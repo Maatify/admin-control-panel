@@ -101,4 +101,33 @@ class AdminController
             ->withHeader('Content-Type', 'application/json')
             ->withStatus(200);
     }
+
+    public function getEmail(Request $request, Response $response, array $args): Response
+    {
+        $adminId = (int)$args['id'];
+
+        $stmt = $this->pdo->prepare("SELECT email_encrypted FROM admin_emails WHERE admin_id = ?");
+        $stmt->execute([$adminId]);
+        $encryptedEmail = $stmt->fetchColumn();
+
+        $encryptionKey = $_ENV['EMAIL_ENCRYPTION_KEY'];
+        $cipher = 'aes-256-gcm';
+        $data = base64_decode($encryptedEmail);
+        $ivLen = openssl_cipher_iv_length($cipher);
+        $iv = substr($data, 0, $ivLen);
+        $tag = substr($data, $ivLen, 16);
+        $ciphertext = substr($data, $ivLen + 16);
+
+        $email = openssl_decrypt($ciphertext, $cipher, $encryptionKey, OPENSSL_RAW_DATA, $iv, $tag);
+
+        $payload = json_encode([
+            'admin_id' => $adminId,
+            'email' => $email
+        ]);
+
+        $response->getBody()->write($payload);
+        return $response
+            ->withHeader('Content-Type', 'application/json')
+            ->withStatus(200);
+    }
 }
