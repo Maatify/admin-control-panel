@@ -4,32 +4,29 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use PDO;
+use App\Infrastructure\Repository\AdminEmailRepository;
+use App\Infrastructure\Repository\AdminRepository;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
 class AdminController
 {
-    private PDO $pdo;
+    private AdminRepository $adminRepository;
+    private AdminEmailRepository $adminEmailRepository;
 
-    public function __construct(PDO $pdo)
+    public function __construct(AdminRepository $adminRepository, AdminEmailRepository $adminEmailRepository)
     {
-        $this->pdo = $pdo;
+        $this->adminRepository = $adminRepository;
+        $this->adminEmailRepository = $adminEmailRepository;
     }
 
     public function create(Request $request, Response $response): Response
     {
-        $stmt = $this->pdo->prepare("INSERT INTO admins (created_at) VALUES (NOW())");
-        $stmt->execute();
-
-        $id = (int)$this->pdo->lastInsertId();
-        
-        $stmt = $this->pdo->prepare("SELECT created_at FROM admins WHERE id = ?");
-        $stmt->execute([$id]);
-        $createdAt = $stmt->fetchColumn();
+        $adminId = $this->adminRepository->create();
+        $createdAt = $this->adminRepository->getCreatedAt($adminId);
 
         $payload = json_encode([
-            'admin_id' => $id,
+            'admin_id' => $adminId,
             'created_at' => $createdAt
         ]);
 
@@ -59,8 +56,7 @@ class AdminController
         $ciphertext = openssl_encrypt($email, $cipher, $encryptionKey, OPENSSL_RAW_DATA, $iv, $tag);
         $encryptedEmail = base64_encode($iv . $tag . $ciphertext);
 
-        $stmt = $this->pdo->prepare("INSERT INTO admin_emails (admin_id, email_blind_index, email_encrypted) VALUES (?, ?, ?)");
-        $stmt->execute([$adminId, $blindIndex, $encryptedEmail]);
+        $this->adminEmailRepository->addEmail($adminId, $blindIndex, $encryptedEmail);
 
         $payload = json_encode([
             'admin_id' => $adminId,
@@ -81,14 +77,12 @@ class AdminController
         $blindIndexKey = $_ENV['EMAIL_BLIND_INDEX_KEY'];
         $blindIndex = hash_hmac('sha256', $email, $blindIndexKey);
 
-        $stmt = $this->pdo->prepare("SELECT admin_id FROM admin_emails WHERE email_blind_index = ?");
-        $stmt->execute([$blindIndex]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $adminId = $this->adminEmailRepository->findByBlindIndex($blindIndex);
 
-        if ($result) {
+        if ($adminId !== null) {
             $payload = json_encode([
                 'exists' => true,
-                'admin_id' => $result['admin_id']
+                'admin_id' => $adminId
             ]);
         } else {
             $payload = json_encode([
@@ -106,13 +100,11 @@ class AdminController
     {
         $adminId = (int)$args['id'];
 
-        $stmt = $this->pdo->prepare("SELECT email_encrypted FROM admin_emails WHERE admin_id = ?");
-        $stmt->execute([$adminId]);
-        $encryptedEmail = $stmt->fetchColumn();
+        $encryptedEmail = $this->adminEmailRepository->getEncryptedEmail($adminId);
 
         $encryptionKey = $_ENV['EMAIL_ENCRYPTION_KEY'];
         $cipher = 'aes-256-gcm';
-        $data = base64_decode($encryptedEmail);
+        $data = base64_decode((string)$encryptedEmail);
         $ivLen = openssl_cipher_iv_length($cipher);
         $iv = substr($data, 0, $ivLen);
         $tag = substr($data, $ivLen, 16);

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Bootstrap;
 
 use App\Infrastructure\Database\PDOFactory;
+use App\Infrastructure\Repository\AdminEmailRepository;
+use App\Infrastructure\Repository\AdminRepository;
 use DI\ContainerBuilder;
 use PDO;
 use Psr\Container\ContainerInterface;
@@ -25,6 +27,12 @@ class Container
 
                 $factory = new PDOFactory($host, $dbName, $user, $pass);
                 return $factory->create();
+            },
+            AdminRepository::class => function (ContainerInterface $c) {
+                return new AdminRepository($c->get(PDO::class));
+            },
+            AdminEmailRepository::class => function (ContainerInterface $c) {
+                return new AdminEmailRepository($c->get(PDO::class));
             },
         ]);
 
