@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminEmailVerificationController;
+use App\Http\Controllers\AdminNotificationPreferenceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NotificationQueryController;
 use App\Http\Middleware\AuthorizationGuardMiddleware;
@@ -48,6 +49,15 @@ return function (App $app) {
         // Phase 8.4
         $group->get('/notifications', [NotificationQueryController::class, 'index'])
             ->setName('notifications.list')
+            ->add(AuthorizationGuardMiddleware::class);
+
+        // Phase 11.1
+        $group->get('/admins/{admin_id}/preferences', [AdminNotificationPreferenceController::class, 'getPreferences'])
+            ->setName('admin.preferences.read')
+            ->add(AuthorizationGuardMiddleware::class);
+
+        $group->put('/admins/{admin_id}/preferences', [AdminNotificationPreferenceController::class, 'upsertPreference'])
+            ->setName('admin.preferences.write')
             ->add(AuthorizationGuardMiddleware::class);
     })->add(SessionGuardMiddleware::class);
 

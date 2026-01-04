@@ -8,7 +8,9 @@ use App\Domain\Contracts\AdminActivityQueryInterface;
 use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
 use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\AdminNotificationChannelRepositoryInterface;
+use App\Domain\Contracts\AdminNotificationPreferenceReaderInterface;
 use App\Domain\Contracts\AdminNotificationPreferenceRepositoryInterface;
+use App\Domain\Contracts\AdminNotificationPreferenceWriterInterface;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
 use App\Domain\Contracts\AdminRoleRepositoryInterface;
@@ -30,6 +32,7 @@ use App\Infrastructure\Repository\AdminEmailRepository;
 use App\Infrastructure\Repository\AdminNotificationChannelRepository;
 use App\Infrastructure\Repository\AdminNotificationPreferenceRepository;
 use App\Infrastructure\Repository\AdminPasswordRepository;
+use App\Infrastructure\Repository\PdoAdminNotificationPreferenceRepository;
 use App\Infrastructure\Repository\AdminRepository;
 use App\Infrastructure\Repository\AdminRoleRepository;
 use App\Infrastructure\Repository\AdminSessionRepository;
@@ -94,7 +97,13 @@ class Container
             AdminNotificationPreferenceRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
-                return new AdminNotificationPreferenceRepository($pdo);
+                return new PdoAdminNotificationPreferenceRepository($pdo);
+            },
+            AdminNotificationPreferenceReaderInterface::class => function (ContainerInterface $c) {
+                return $c->get(AdminNotificationPreferenceRepositoryInterface::class);
+            },
+            AdminNotificationPreferenceWriterInterface::class => function (ContainerInterface $c) {
+                return $c->get(AdminNotificationPreferenceRepositoryInterface::class);
             },
             AdminNotificationRoutingService::class => function (ContainerInterface $c) {
                 $channelRepo = $c->get(AdminNotificationChannelRepositoryInterface::class);
@@ -203,6 +212,13 @@ class Container
                 assert($authService instanceof AdminAuthenticationService);
                 $blindIndexKey = $_ENV['EMAIL_BLIND_INDEX_KEY'] ?? '';
                 return new AuthController($authService, $blindIndexKey);
+            },
+            \App\Http\Controllers\AdminNotificationPreferenceController::class => function (ContainerInterface $c) {
+                $reader = $c->get(AdminNotificationPreferenceReaderInterface::class);
+                $writer = $c->get(AdminNotificationPreferenceWriterInterface::class);
+                assert($reader instanceof AdminNotificationPreferenceReaderInterface);
+                assert($writer instanceof AdminNotificationPreferenceWriterInterface);
+                return new \App\Http\Controllers\AdminNotificationPreferenceController($reader, $writer);
             },
         ]);
 
