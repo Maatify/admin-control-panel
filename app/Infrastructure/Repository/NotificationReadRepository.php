@@ -152,7 +152,7 @@ class NotificationReadRepository implements NotificationReadRepositoryInterface
     {
         // Parse message to extract title and body if possible
         // Format used in FailedNotificationRepository: "Title: %s\n\nBody: %s"
-        $message = (string)($row['message'] ?? '');
+        $message = (string)$row['message'];
         $title = '';
         $body = $message;
 
@@ -161,7 +161,7 @@ class NotificationReadRepository implements NotificationReadRepositoryInterface
             $body = $matches[2];
         }
 
-        $createdAtStr = (string)($row['created_at'] ?? 'now');
+        $createdAtStr = (string)$row['created_at'];
         try {
             $createdAt = new DateTimeImmutable($createdAtStr);
         } catch (\Exception) {
@@ -169,9 +169,9 @@ class NotificationReadRepository implements NotificationReadRepositoryInterface
         }
 
         return new NotificationSummaryDTO(
-            notificationId: (int)($row['id'] ?? 0),
+            notificationId: (int)$row['id'],
             adminId: null, // Not available in failed_notifications
-            channel: (string)($row['channel'] ?? 'unknown'),
+            channel: (string)$row['channel'],
             status: 'failed',
             title: $title,
             body: $body,
