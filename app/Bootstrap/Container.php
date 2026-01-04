@@ -11,6 +11,7 @@ use App\Domain\Contracts\AdminNotificationChannelRepositoryInterface;
 use App\Domain\Contracts\AdminNotificationPreferenceReaderInterface;
 use App\Domain\Contracts\AdminNotificationPreferenceRepositoryInterface;
 use App\Domain\Contracts\AdminNotificationPreferenceWriterInterface;
+use App\Domain\Contracts\AdminNotificationPersistenceWriterInterface;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
 use App\Domain\Contracts\AdminRoleRepositoryInterface;
@@ -32,6 +33,7 @@ use App\Infrastructure\Repository\AdminEmailRepository;
 use App\Infrastructure\Repository\AdminNotificationChannelRepository;
 use App\Infrastructure\Repository\AdminNotificationPreferenceRepository;
 use App\Infrastructure\Repository\AdminPasswordRepository;
+use App\Infrastructure\Repository\PdoAdminNotificationPersistenceRepository;
 use App\Infrastructure\Repository\PdoAdminNotificationPreferenceRepository;
 use App\Infrastructure\Repository\AdminRepository;
 use App\Infrastructure\Repository\AdminRoleRepository;
@@ -104,6 +106,11 @@ class Container
             },
             AdminNotificationPreferenceWriterInterface::class => function (ContainerInterface $c) {
                 return $c->get(AdminNotificationPreferenceRepositoryInterface::class);
+            },
+            AdminNotificationPersistenceWriterInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new PdoAdminNotificationPersistenceRepository($pdo);
             },
             AdminNotificationRoutingService::class => function (ContainerInterface $c) {
                 $channelRepo = $c->get(AdminNotificationChannelRepositoryInterface::class);
