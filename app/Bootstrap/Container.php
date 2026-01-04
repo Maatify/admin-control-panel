@@ -12,6 +12,7 @@ use App\Domain\Contracts\AdminRoleRepositoryInterface;
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Domain\Contracts\AuditLoggerInterface;
 use App\Domain\Contracts\ClientInfoProviderInterface;
+use App\Domain\Contracts\NotificationDispatcherInterface;
 use App\Domain\Contracts\RolePermissionRepositoryInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\Service\AdminAuthenticationService;
@@ -23,6 +24,7 @@ use App\Infrastructure\Repository\AdminRepository;
 use App\Infrastructure\Repository\AdminRoleRepository;
 use App\Infrastructure\Repository\AdminSessionRepository;
 use App\Infrastructure\Repository\AuditLogRepository;
+use App\Infrastructure\Notifications\NullNotificationDispatcher;
 use App\Infrastructure\Repository\RolePermissionRepository;
 use App\Infrastructure\Repository\SecurityEventRepository;
 use App\Infrastructure\Security\WebClientInfoProvider;
@@ -99,6 +101,9 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new SecurityEventRepository($pdo);
+            },
+            NotificationDispatcherInterface::class => function (ContainerInterface $c) {
+                return new NullNotificationDispatcher();
             },
             ClientInfoProviderInterface::class => function (ContainerInterface $c) {
                 return new WebClientInfoProvider();
