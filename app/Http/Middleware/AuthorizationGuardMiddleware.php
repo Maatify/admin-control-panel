@@ -14,12 +14,10 @@ use Psr\Http\Server\RequestHandlerInterface;
 class AuthorizationGuardMiddleware implements MiddlewareInterface
 {
     private AuthorizationService $authorizationService;
-    private string $requiredPermission;
 
-    public function __construct(AuthorizationService $authorizationService, string $requiredPermission)
+    public function __construct(AuthorizationService $authorizationService)
     {
         $this->authorizationService = $authorizationService;
-        $this->requiredPermission = $requiredPermission;
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
@@ -31,7 +29,10 @@ class AuthorizationGuardMiddleware implements MiddlewareInterface
              throw new UnauthorizedException("Authenticated session required.");
         }
 
-        $this->authorizationService->checkPermission($adminId, $this->requiredPermission);
+        $permission = $request->getAttribute('permission');
+        assert(is_string($permission) && $permission !== '', 'Permission attribute must be a non-empty string');
+
+        $this->authorizationService->checkPermission($adminId, $permission);
 
         return $handler->handle($request);
     }

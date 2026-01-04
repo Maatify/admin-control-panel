@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Domain\Service\AuthorizationService;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminEmailVerificationController;
 use App\Http\Controllers\AuthController;
@@ -23,25 +22,27 @@ return function (App $app) {
     });
 
     // Protected Routes
-    $app->group('', function (RouteCollectorProxy $group) use ($app) {
-        $container = $app->getContainer();
-        $authService = $container->get(AuthorizationService::class);
-
+    $app->group('', function (RouteCollectorProxy $group) {
         $group->post('/admins', [AdminController::class, 'create'])
-            ->add(new AuthorizationGuardMiddleware($authService, 'admin.create'));
+            ->setArgument('permission', 'admin.create')
+            ->add(AuthorizationGuardMiddleware::class);
 
         $group->post('/admins/{id}/emails', [AdminController::class, 'addEmail'])
-            ->add(new AuthorizationGuardMiddleware($authService, 'email.add'));
+            ->setArgument('permission', 'email.add')
+            ->add(AuthorizationGuardMiddleware::class);
 
         $group->post('/admin-identifiers/email/lookup', [AdminController::class, 'lookupEmail'])
-            ->add(new AuthorizationGuardMiddleware($authService, 'email.lookup'));
+            ->setArgument('permission', 'email.lookup')
+            ->add(AuthorizationGuardMiddleware::class);
 
         $group->get('/admins/{id}/emails', [AdminController::class, 'getEmail'])
-            ->add(new AuthorizationGuardMiddleware($authService, 'email.read'));
+            ->setArgument('permission', 'email.read')
+            ->add(AuthorizationGuardMiddleware::class);
 
         // Phase 3.4
         $group->post('/admins/{id}/emails/verify', [AdminEmailVerificationController::class, 'verify'])
-            ->add(new AuthorizationGuardMiddleware($authService, 'email.verify'));
+            ->setArgument('permission', 'email.verify')
+            ->add(AuthorizationGuardMiddleware::class);
     })->add(SessionGuardMiddleware::class);
 
     // Phase 4
