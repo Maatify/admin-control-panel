@@ -6,9 +6,11 @@ namespace App\Domain\Service;
 
 use App\Domain\Contracts\AdminNotificationChannelRepositoryInterface;
 use App\Domain\Contracts\AdminNotificationPreferenceRepositoryInterface;
+use App\Domain\Contracts\NotificationRoutingInterface;
 use App\Domain\Enum\NotificationChannelType;
+use App\Domain\Notification\NotificationChannelType as RoutingChannelType;
 
-readonly class AdminNotificationRoutingService
+readonly class AdminNotificationRoutingService implements NotificationRoutingInterface
 {
     public function __construct(
         private AdminNotificationChannelRepositoryInterface $channelRepository,
@@ -45,5 +47,31 @@ readonly class AdminNotificationRoutingService
 
         // Remove duplicates if multiple channels of same type exist
         return array_values(array_unique($allowedTypes, SORT_REGULAR));
+    }
+
+    /**
+     * Resolve which notification channels should be used
+     * for a given admin and notification type.
+     *
+     * This method MUST be decision-only.
+     * No delivery, no side effects.
+     *
+     * @return RoutingChannelType[]
+     */
+    public function resolveChannels(
+        int $adminId,
+        string $notificationType
+    ): array {
+        $legacyChannels = $this->route($adminId, $notificationType);
+
+        $channels = [];
+        foreach ($legacyChannels as $channel) {
+            $mapped = RoutingChannelType::tryFrom($channel->value);
+            if ($mapped !== null) {
+                $channels[] = $mapped;
+            }
+        }
+
+        return $channels;
     }
 }
