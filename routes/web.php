@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminEmailVerificationController;
+use App\Http\Controllers\AuthController;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
@@ -24,4 +25,7 @@ return function (App $app) {
 
     // Phase 3.4
     $app->post('/admins/{id}/emails/verify', [AdminEmailVerificationController::class, 'verify']);
+
+    // Phase 4
+    $app->post('/auth/login', [AuthController::class, 'login']);
 };

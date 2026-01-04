@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Infrastructure\Repository;
 
 use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
+use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Enum\VerificationStatus;
 use App\Domain\Exception\IdentifierNotFoundException;
 use PDO;
 
-class AdminEmailRepository implements AdminEmailVerificationRepositoryInterface
+class AdminEmailRepository implements AdminEmailVerificationRepositoryInterface, AdminIdentifierLookupInterface
 {
     private PDO $pdo;
 
