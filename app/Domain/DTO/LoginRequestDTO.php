@@ -6,11 +6,11 @@ namespace App\Domain\DTO;
 
 use JsonSerializable;
 
-class LoginRequestDTO implements JsonSerializable
+readonly class LoginRequestDTO implements JsonSerializable
 {
     public function __construct(
-        public readonly string $email,
-        public readonly string $password
+        public string $email,
+        public string $password
     ) {
     }
 

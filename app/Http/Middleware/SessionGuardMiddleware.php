@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
-use App\Domain\Exception\ExpiredSessionException;
-use App\Domain\Exception\InvalidSessionException;
-use App\Domain\Exception\RevokedSessionException;
 use App\Domain\Service\SessionValidationService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -22,11 +19,6 @@ class SessionGuardMiddleware implements MiddlewareInterface
         $this->sessionValidationService = $sessionValidationService;
     }
 
-    /**
-     * @throws RevokedSessionException
-     * @throws InvalidSessionException
-     * @throws ExpiredSessionException
-     */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $authHeader = $request->getHeaderLine('Authorization');
@@ -36,7 +28,7 @@ class SessionGuardMiddleware implements MiddlewareInterface
             // Using InvalidSessionException for missing token as well, or letting logic fall through if preferred.
             // Requirement says: "On failure: throw domain exception (NOT silent 401)".
             // However, InvalidSessionException is a Domain Exception.
-            throw new InvalidSessionException('No session token provided.');
+            throw new \App\Domain\Exception\InvalidSessionException('No session token provided.');
         }
 
         $token = substr($authHeader, 7);

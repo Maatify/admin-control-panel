@@ -5,9 +5,12 @@ declare(strict_types=1);
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminEmailVerificationController;
 use App\Http\Controllers\AuthController;
+use App\Http\Middleware\AuthorizationGuardMiddleware;
+use App\Http\Middleware\SessionGuardMiddleware;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
+use Slim\Routing\RouteCollectorProxy;
 
 return function (App $app) {
     $app->get('/health', function (Request $request, Response $response) {
@@ -18,13 +21,29 @@ return function (App $app) {
             ->withStatus(200);
     });
 
-    $app->post('/admins', [AdminController::class, 'create']);
-    $app->post('/admins/{id}/emails', [AdminController::class, 'addEmail']);
-    $app->post('/admin-identifiers/email/lookup', [AdminController::class, 'lookupEmail']);
-    $app->get('/admins/{id}/emails', [AdminController::class, 'getEmail']);
+    // Protected Routes
+    $app->group('', function (RouteCollectorProxy $group) {
+        $group->post('/admins', [AdminController::class, 'create'])
+            ->setArgument('permission', 'admin.create')
+            ->add(AuthorizationGuardMiddleware::class);
 
-    // Phase 3.4
-    $app->post('/admins/{id}/emails/verify', [AdminEmailVerificationController::class, 'verify']);
+        $group->post('/admins/{id}/emails', [AdminController::class, 'addEmail'])
+            ->setArgument('permission', 'email.add')
+            ->add(AuthorizationGuardMiddleware::class);
+
+        $group->post('/admin-identifiers/email/lookup', [AdminController::class, 'lookupEmail'])
+            ->setArgument('permission', 'email.lookup')
+            ->add(AuthorizationGuardMiddleware::class);
+
+        $group->get('/admins/{id}/emails', [AdminController::class, 'getEmail'])
+            ->setArgument('permission', 'email.read')
+            ->add(AuthorizationGuardMiddleware::class);
+
+        // Phase 3.4
+        $group->post('/admins/{id}/emails/verify', [AdminEmailVerificationController::class, 'verify'])
+            ->setArgument('permission', 'email.verify')
+            ->add(AuthorizationGuardMiddleware::class);
+    })->add(SessionGuardMiddleware::class);
 
     // Phase 4
     $app->post('/auth/login', [AuthController::class, 'login']);

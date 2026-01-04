@@ -7,11 +7,11 @@ namespace App\Domain\DTO\Response;
 use App\Domain\Enum\VerificationStatus;
 use JsonSerializable;
 
-class VerificationResponseDTO implements JsonSerializable
+readonly class VerificationResponseDTO implements JsonSerializable
 {
     public function __construct(
-        public readonly int $adminId,
-        public readonly VerificationStatus $status
+        public int $adminId,
+        public VerificationStatus $status
     ) {
     }
 

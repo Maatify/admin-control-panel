@@ -6,9 +6,7 @@ namespace App\Infrastructure\Repository;
 
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
-use DateTimeImmutable;
 use PDO;
-use Random\RandomException;
 
 class AdminSessionRepository implements AdminSessionRepositoryInterface, AdminSessionValidationRepositoryInterface
 {
@@ -19,14 +17,11 @@ class AdminSessionRepository implements AdminSessionRepositoryInterface, AdminSe
         $this->pdo = $pdo;
     }
 
-    /**
-     * @throws RandomException
-     */
     public function createSession(int $adminId): string
     {
         // Generate a secure random token
         $token = bin2hex(random_bytes(32));
-        $expiresAt = (new DateTimeImmutable('+2 hours'))->format('Y-m-d H:i:s');
+        $expiresAt = (new \DateTimeImmutable('+2 hours'))->format('Y-m-d H:i:s');
 
         $stmt = $this->pdo->prepare("
             INSERT INTO admin_sessions (session_id, admin_id, expires_at, is_revoked)

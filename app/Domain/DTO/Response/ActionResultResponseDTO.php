@@ -6,13 +6,13 @@ namespace App\Domain\DTO\Response;
 
 use JsonSerializable;
 
-class ActionResultResponseDTO implements JsonSerializable
+readonly class ActionResultResponseDTO implements JsonSerializable
 {
     public function __construct(
-        public readonly ?int $adminId = null,
-        public readonly ?string $createdAt = null,
-        public readonly ?bool $emailAdded = null,
-        public readonly ?bool $exists = null
+        public ?int $adminId = null,
+        public ?string $createdAt = null,
+        public ?bool $emailAdded = null,
+        public ?bool $exists = null
     ) {
     }
 
