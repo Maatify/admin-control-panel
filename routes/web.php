@@ -59,6 +59,15 @@ return function (App $app) {
         $group->put('/admins/{admin_id}/preferences', [AdminNotificationPreferenceController::class, 'upsertPreference'])
             ->setName('admin.preferences.write')
             ->add(AuthorizationGuardMiddleware::class);
+
+        // Phase 11.2
+        $group->get('/admins/{admin_id}/notifications', [\App\Http\Controllers\AdminNotificationHistoryController::class, 'index'])
+            ->setName('admin.notifications.history')
+            ->add(AuthorizationGuardMiddleware::class);
+
+        $group->post('/admin/notifications/{id}/read', [\App\Http\Controllers\AdminNotificationReadController::class, 'markAsRead'])
+            ->setName('admin.notifications.read')
+            ->add(AuthorizationGuardMiddleware::class);
     })->add(SessionGuardMiddleware::class);
 
     // Phase 4

@@ -112,6 +112,16 @@ class Container
                 assert($pdo instanceof PDO);
                 return new PdoAdminNotificationPersistenceRepository($pdo);
             },
+            \App\Domain\Contracts\AdminNotificationHistoryReaderInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \App\Infrastructure\Repository\PdoAdminNotificationHistoryReader($pdo);
+            },
+            \App\Domain\Contracts\AdminNotificationReadMarkerInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \App\Infrastructure\Repository\PdoAdminNotificationReadMarker($pdo);
+            },
             AdminNotificationRoutingService::class => function (ContainerInterface $c) {
                 $channelRepo = $c->get(AdminNotificationChannelRepositoryInterface::class);
                 $prefRepo = $c->get(AdminNotificationPreferenceRepositoryInterface::class);
@@ -226,6 +236,16 @@ class Container
                 assert($reader instanceof AdminNotificationPreferenceReaderInterface);
                 assert($writer instanceof AdminNotificationPreferenceWriterInterface);
                 return new \App\Http\Controllers\AdminNotificationPreferenceController($reader, $writer);
+            },
+            \App\Http\Controllers\AdminNotificationHistoryController::class => function (ContainerInterface $c) {
+                $reader = $c->get(\App\Domain\Contracts\AdminNotificationHistoryReaderInterface::class);
+                assert($reader instanceof \App\Domain\Contracts\AdminNotificationHistoryReaderInterface);
+                return new \App\Http\Controllers\AdminNotificationHistoryController($reader);
+            },
+            \App\Http\Controllers\AdminNotificationReadController::class => function (ContainerInterface $c) {
+                $marker = $c->get(\App\Domain\Contracts\AdminNotificationReadMarkerInterface::class);
+                assert($marker instanceof \App\Domain\Contracts\AdminNotificationReadMarkerInterface);
+                return new \App\Http\Controllers\AdminNotificationReadController($marker);
             },
         ]);
 
