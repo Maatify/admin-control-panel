@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Bootstrap;
 
+use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
 use App\Infrastructure\Database\PDOFactory;
 use App\Infrastructure\Repository\AdminEmailRepository;
 use App\Infrastructure\Repository\AdminRepository;
@@ -37,6 +38,9 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new AdminEmailRepository($pdo);
+            },
+            AdminEmailVerificationRepositoryInterface::class => function (ContainerInterface $c) {
+                return $c->get(AdminEmailRepository::class);
             },
         ]);
 

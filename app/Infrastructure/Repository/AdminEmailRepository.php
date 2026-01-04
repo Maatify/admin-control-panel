@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Repository;
 
+use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
 use App\Domain\Enum\VerificationStatus;
+use App\Domain\Exception\IdentifierNotFoundException;
 use PDO;
-use RuntimeException;
 
-class AdminEmailRepository
+class AdminEmailRepository implements AdminEmailVerificationRepositoryInterface
 {
     private PDO $pdo;
 
@@ -48,7 +49,7 @@ class AdminEmailRepository
         $result = $stmt->fetchColumn();
 
         if ($result === false) {
-            throw new RuntimeException("Admin email not found for ID: $adminId");
+            throw new IdentifierNotFoundException("Admin email not found for ID: $adminId");
         }
 
         return VerificationStatus::from((string)$result);

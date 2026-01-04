@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Domain\Service;
 
+use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
 use App\Domain\Enum\VerificationStatus;
 use App\Domain\Exception\InvalidIdentifierStateException;
-use App\Infrastructure\Repository\AdminEmailRepository;
 use DateTimeImmutable;
 
 class AdminEmailVerificationService
 {
     public function __construct(
-        private readonly AdminEmailRepository $repository
+        private readonly AdminEmailVerificationRepositoryInterface $repository
     ) {
     }
 

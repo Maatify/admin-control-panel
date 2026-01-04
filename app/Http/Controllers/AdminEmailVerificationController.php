@@ -31,7 +31,9 @@ class AdminEmailVerificationController
 
         $dto = new VerificationResponseDTO($adminId, $status);
 
-        $response->getBody()->write((string)json_encode($dto));
+        $json = json_encode($dto);
+        assert($json !== false);
+        $response->getBody()->write($json);
         return $response->withHeader('Content-Type', 'application/json');
     }
 }
