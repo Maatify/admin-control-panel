@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Domain\DTO\Request\CreateAdminEmailRequestDTO;
+use App\Domain\DTO\Request\VerifyAdminEmailRequestDTO;
+use App\Domain\DTO\Response\ActionResultResponseDTO;
+use App\Domain\DTO\Response\AdminEmailResponseDTO;
 use App\Infrastructure\Repository\AdminEmailRepository;
 use App\Infrastructure\Repository\AdminRepository;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -25,12 +29,12 @@ class AdminController
         $adminId = $this->adminRepository->create();
         $createdAt = $this->adminRepository->getCreatedAt($adminId);
 
-        $payload = json_encode([
-            'admin_id' => $adminId,
-            'created_at' => $createdAt
-        ]);
+        $dto = new ActionResultResponseDTO(
+            adminId: $adminId,
+            createdAt: $createdAt
+        );
 
-        $response->getBody()->write($payload);
+        $response->getBody()->write(json_encode($dto->jsonSerialize()));
         return $response
             ->withHeader('Content-Type', 'application/json')
             ->withStatus(200);
@@ -40,7 +44,9 @@ class AdminController
     {
         $adminId = (int)$args['id'];
         $data = json_decode((string)$request->getBody(), true);
-        $email = trim(strtolower($data['email'] ?? ''));
+        
+        $requestDto = new CreateAdminEmailRequestDTO($data['email'] ?? '');
+        $email = $requestDto->email;
 
         // Blind Index
         $blindIndexKey = $_ENV['EMAIL_BLIND_INDEX_KEY'] ?? '';
@@ -58,12 +64,12 @@ class AdminController
 
         $this->adminEmailRepository->addEmail($adminId, $blindIndex, $encryptedEmail);
 
-        $payload = json_encode([
-            'admin_id' => $adminId,
-            'email_added' => true
-        ]);
+        $responseDto = new ActionResultResponseDTO(
+            adminId: $adminId,
+            emailAdded: true
+        );
 
-        $response->getBody()->write($payload);
+        $response->getBody()->write(json_encode($responseDto->jsonSerialize()));
         return $response
             ->withHeader('Content-Type', 'application/json')
             ->withStatus(200);
@@ -72,7 +78,9 @@ class AdminController
     public function lookupEmail(Request $request, Response $response): Response
     {
         $data = json_decode((string)$request->getBody(), true);
-        $email = trim(strtolower($data['email']));
+        
+        $requestDto = new VerifyAdminEmailRequestDTO($data['email'] ?? '');
+        $email = $requestDto->email;
 
         $blindIndexKey = $_ENV['EMAIL_BLIND_INDEX_KEY'];
         $blindIndex = hash_hmac('sha256', $email, $blindIndexKey);
@@ -80,17 +88,17 @@ class AdminController
         $adminId = $this->adminEmailRepository->findByBlindIndex($blindIndex);
 
         if ($adminId !== null) {
-            $payload = json_encode([
-                'exists' => true,
-                'admin_id' => $adminId
-            ]);
+            $responseDto = new ActionResultResponseDTO(
+                adminId: $adminId,
+                exists: true
+            );
         } else {
-            $payload = json_encode([
-                'exists' => false
-            ]);
+            $responseDto = new ActionResultResponseDTO(
+                exists: false
+            );
         }
 
-        $response->getBody()->write($payload);
+        $response->getBody()->write(json_encode($responseDto->jsonSerialize()));
         return $response
             ->withHeader('Content-Type', 'application/json')
             ->withStatus(200);
@@ -112,12 +120,9 @@ class AdminController
 
         $email = openssl_decrypt($ciphertext, $cipher, $encryptionKey, OPENSSL_RAW_DATA, $iv, $tag);
 
-        $payload = json_encode([
-            'admin_id' => $adminId,
-            'email' => $email
-        ]);
+        $responseDto = new AdminEmailResponseDTO($adminId, $email);
 
-        $response->getBody()->write($payload);
+        $response->getBody()->write(json_encode($responseDto->jsonSerialize()));
         return $response
             ->withHeader('Content-Type', 'application/json')
             ->withStatus(200);
