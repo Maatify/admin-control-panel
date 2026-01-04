@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Service;
 
-use App\Domain\Contracts\AdminNotificationChannelRepositoryInterface;
 use App\Domain\Contracts\NotificationSenderInterface;
 use App\Domain\DTO\Notification\NotificationDeliveryDTO;
 use App\Domain\Exception\UnsupportedNotificationChannelException;
-use DateTimeImmutable;
 use RuntimeException;
-use Throwable;
 
 class NotificationDispatcher
 {
@@ -19,66 +16,8 @@ class NotificationDispatcher
      */
     public function __construct(
         private iterable $senders,
-        private NotificationFailureHandler $failureHandler,
-        private AdminNotificationRoutingService $routingService,
-        private AdminNotificationChannelRepositoryInterface $channelRepository
+        private NotificationFailureHandler $failureHandler
     ) {
-    }
-
-    /**
-     * @param array<string, scalar> $context
-     */
-    public function dispatchIntent(
-        int $adminId,
-        string $notificationType,
-        string $title,
-        string $body,
-        array $context = []
-    ): void {
-        // 1. Resolve channels
-        $allowedTypes = $this->routingService->route($adminId, $notificationType);
-
-        if (empty($allowedTypes)) {
-            return; // No channels enabled/preferred, silent exit
-        }
-
-        // 2. Get configs to find recipients
-        $channels = $this->channelRepository->getEnabledChannelsForAdmin($adminId);
-
-        // 3. Dispatch for each allowed channel
-        foreach ($channels as $channel) {
-            // Must be in allowed types
-            if (! in_array($channel->channelType, $allowedTypes, true)) {
-                continue;
-            }
-
-            // Determine recipient from config
-            $recipient = $channel->config['recipient'] ?? null;
-
-            if (empty($recipient)) {
-                $recipient = match ($channel->channelType->value) {
-                    'email' => $channel->config['email'] ?? $channel->config['email_address'] ?? null,
-                    'telegram' => $channel->config['chat_id'] ?? null,
-                    'webhook' => $channel->config['url'] ?? null,
-                };
-            }
-
-            if (empty($recipient) || ! is_scalar($recipient)) {
-                continue;
-            }
-
-            $deliveryDTO = new NotificationDeliveryDTO(
-                uniqid('notif_', true),
-                $channel->channelType->value,
-                (string)$recipient,
-                $title,
-                $body,
-                $context,
-                new DateTimeImmutable()
-            );
-
-            $this->dispatch($deliveryDTO);
-        }
     }
 
     public function dispatch(NotificationDeliveryDTO $notification): void
@@ -112,7 +51,7 @@ class NotificationDispatcher
              // However, to be robust, let's record it.
              $this->failureHandler->handle($notification, $e);
              throw $e;
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             $this->failureHandler->handle($notification, $e);
             throw $e;
         }
