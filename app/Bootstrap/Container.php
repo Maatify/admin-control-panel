@@ -28,6 +28,8 @@ use App\Infrastructure\Repository\AdminSessionRepository;
 use App\Infrastructure\Repository\AuditLogRepository;
 use App\Infrastructure\Notifications\NullNotificationDispatcher;
 use App\Infrastructure\Repository\RolePermissionRepository;
+use App\Infrastructure\Notification\EmailNotificationSender;
+use App\Infrastructure\Notification\FakeNotificationSender;
 use App\Infrastructure\Repository\SecurityEventRepository;
 use App\Infrastructure\Security\WebClientInfoProvider;
 use App\Infrastructure\UX\AdminActivityMapper;
@@ -113,6 +115,12 @@ class Container
             },
             NotificationDispatcherInterface::class => function (ContainerInterface $c) {
                 return new NullNotificationDispatcher();
+            },
+            EmailNotificationSender::class => function (ContainerInterface $c) {
+                return new EmailNotificationSender();
+            },
+            FakeNotificationSender::class => function (ContainerInterface $c) {
+                return new FakeNotificationSender();
             },
             ClientInfoProviderInterface::class => function (ContainerInterface $c) {
                 return new WebClientInfoProvider();
