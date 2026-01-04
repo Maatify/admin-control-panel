@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Infrastructure\Audit;
 
 use App\Domain\Contracts\AdminTargetedAuditReaderInterface;
-use App\Domain\DTO\Audit\AuditLogViewDTO;
 use App\Domain\DTO\Audit\GetActionsTargetingMeQueryDTO;
+use App\Domain\DTO\Audit\TargetAuditLogViewDTO;
 use PDO;
 
 class PdoAdminTargetedAuditReader implements AdminTargetedAuditReaderInterface
@@ -17,7 +17,7 @@ class PdoAdminTargetedAuditReader implements AdminTargetedAuditReaderInterface
     }
 
     /**
-     * @return array<AuditLogViewDTO>
+     * @return array<TargetAuditLogViewDTO>
      */
     public function getActionsTargetingMe(GetActionsTargetingMeQueryDTO $query): array
     {
@@ -75,11 +75,9 @@ class PdoAdminTargetedAuditReader implements AdminTargetedAuditReaderInterface
                 $changes = [];
             }
 
-            $dtos[] = new AuditLogViewDTO(
+            $dtos[] = new TargetAuditLogViewDTO(
                 (int)$row['id'],
                 $row['actor_admin_id'] !== null ? (int)$row['actor_admin_id'] : null,
-                $row['target_type'],
-                (string)$row['target_id'],
                 $row['action'],
                 $changes,
                 $row['created_at']

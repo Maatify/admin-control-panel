@@ -257,12 +257,25 @@ class Container
                 assert($pdo instanceof PDO);
                 return new \App\Infrastructure\Audit\PdoAdminTargetedAuditReader($pdo);
             },
+            \App\Domain\Contracts\AdminSecurityEventReaderInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \App\Infrastructure\Audit\PdoAdminSecurityEventReader($pdo);
+            },
             \App\Http\Controllers\AdminSelfAuditController::class => function (ContainerInterface $c) {
                 $selfReader = $c->get(\App\Domain\Contracts\AdminSelfAuditReaderInterface::class);
-                $targetedReader = $c->get(\App\Domain\Contracts\AdminTargetedAuditReaderInterface::class);
                 assert($selfReader instanceof \App\Domain\Contracts\AdminSelfAuditReaderInterface);
+                return new \App\Http\Controllers\AdminSelfAuditController($selfReader);
+            },
+            \App\Http\Controllers\AdminTargetedAuditController::class => function (ContainerInterface $c) {
+                $targetedReader = $c->get(\App\Domain\Contracts\AdminTargetedAuditReaderInterface::class);
                 assert($targetedReader instanceof \App\Domain\Contracts\AdminTargetedAuditReaderInterface);
-                return new \App\Http\Controllers\AdminSelfAuditController($selfReader, $targetedReader);
+                return new \App\Http\Controllers\AdminTargetedAuditController($targetedReader);
+            },
+            \App\Http\Controllers\AdminSecurityEventController::class => function (ContainerInterface $c) {
+                $securityReader = $c->get(\App\Domain\Contracts\AdminSecurityEventReaderInterface::class);
+                assert($securityReader instanceof \App\Domain\Contracts\AdminSecurityEventReaderInterface);
+                return new \App\Http\Controllers\AdminSecurityEventController($securityReader);
             },
         ]);
 

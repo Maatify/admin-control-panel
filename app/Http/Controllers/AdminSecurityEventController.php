@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Domain\Contracts\AdminSelfAuditReaderInterface;
-use App\Domain\DTO\Audit\GetMyActionsQueryDTO;
+use App\Domain\Contracts\AdminSecurityEventReaderInterface;
+use App\Domain\DTO\Audit\GetMySecurityEventsQueryDTO;
 use DateTimeImmutable;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-class AdminSelfAuditController
+class AdminSecurityEventController
 {
     public function __construct(
-        private AdminSelfAuditReaderInterface $selfAuditReader
+        private AdminSecurityEventReaderInterface $securityEventReader
     ) {
     }
 
-    public function getMyActions(Request $request, Response $response): Response
+    public function getMySecurityEvents(Request $request, Response $response): Response
     {
         $adminId = $request->getAttribute('admin_id');
         if (!is_int($adminId)) {
@@ -47,19 +47,18 @@ class AdminSelfAuditController
             $endDate = $endDate->setTime(23, 59, 59);
         }
 
-        $query = new GetMyActionsQueryDTO(
+        $query = new GetMySecurityEventsQueryDTO(
             $adminId,
             $page,
             $limit,
-            $params['action'] ?? null,
-            $params['target_type'] ?? null,
+            $params['event_type'] ?? null,
             $startDate,
             $endDate
         );
 
-        $actions = $this->selfAuditReader->getMyActions($query);
+        $events = $this->securityEventReader->getMySecurityEvents($query);
 
-        $response->getBody()->write(json_encode(['data' => $actions]) ?: '');
+        $response->getBody()->write(json_encode(['data' => $events]) ?: '');
         return $response->withHeader('Content-Type', 'application/json');
     }
 }

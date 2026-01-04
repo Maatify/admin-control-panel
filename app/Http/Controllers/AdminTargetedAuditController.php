@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Domain\Contracts\AdminSelfAuditReaderInterface;
-use App\Domain\DTO\Audit\GetMyActionsQueryDTO;
+use App\Domain\Contracts\AdminTargetedAuditReaderInterface;
+use App\Domain\DTO\Audit\GetActionsTargetingMeQueryDTO;
 use DateTimeImmutable;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-class AdminSelfAuditController
+class AdminTargetedAuditController
 {
     public function __construct(
-        private AdminSelfAuditReaderInterface $selfAuditReader
+        private AdminTargetedAuditReaderInterface $targetedAuditReader
     ) {
     }
 
-    public function getMyActions(Request $request, Response $response): Response
+    public function getActionsTargetingMe(Request $request, Response $response): Response
     {
         $adminId = $request->getAttribute('admin_id');
         if (!is_int($adminId)) {
@@ -47,17 +47,17 @@ class AdminSelfAuditController
             $endDate = $endDate->setTime(23, 59, 59);
         }
 
-        $query = new GetMyActionsQueryDTO(
+        $query = new GetActionsTargetingMeQueryDTO(
             $adminId,
             $page,
             $limit,
+            isset($params['actor_admin_id']) ? (int)$params['actor_admin_id'] : null,
             $params['action'] ?? null,
-            $params['target_type'] ?? null,
             $startDate,
             $endDate
         );
 
-        $actions = $this->selfAuditReader->getMyActions($query);
+        $actions = $this->targetedAuditReader->getActionsTargetingMe($query);
 
         $response->getBody()->write(json_encode(['data' => $actions]) ?: '');
         return $response->withHeader('Content-Type', 'application/json');
