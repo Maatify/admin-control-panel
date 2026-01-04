@@ -52,7 +52,19 @@ class NotificationReadRepository implements NotificationReadRepositoryInterface
         $stmt->execute();
 
         $results = [];
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        while (($row = $stmt->fetch(PDO::FETCH_ASSOC)) !== false) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            /**
+             * @var array{
+             *   id: int|string,
+             *   channel: string,
+             *   message: string,
+             *   created_at: string
+             * } $row
+             */
             $results[] = $this->mapRowToDTO($row);
         }
 
@@ -71,7 +83,19 @@ class NotificationReadRepository implements NotificationReadRepositoryInterface
         $stmt->execute([':channel' => $channel]);
 
         $results = [];
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        while (($row = $stmt->fetch(PDO::FETCH_ASSOC)) !== false) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            /**
+             * @var array{
+             *   id: int|string,
+             *   channel: string,
+             *   message: string,
+             *   created_at: string
+             * } $row
+             */
             $results[] = $this->mapRowToDTO($row);
         }
 
@@ -96,7 +120,19 @@ class NotificationReadRepository implements NotificationReadRepositoryInterface
         ]);
 
         $results = [];
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        while (($row = $stmt->fetch(PDO::FETCH_ASSOC)) !== false) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            /**
+             * @var array{
+             *   id: int|string,
+             *   channel: string,
+             *   message: string,
+             *   created_at: string
+             * } $row
+             */
             $results[] = $this->mapRowToDTO($row);
         }
 
@@ -104,7 +140,12 @@ class NotificationReadRepository implements NotificationReadRepositoryInterface
     }
 
     /**
-     * @param array<string, mixed> $row
+     * @param array{
+     *   id: int|string,
+     *   channel: string,
+     *   message: string,
+     *   created_at: string
+     * } $row
      * @return NotificationSummaryDTO
      */
     private function mapRowToDTO(array $row): NotificationSummaryDTO
@@ -128,9 +169,9 @@ class NotificationReadRepository implements NotificationReadRepositoryInterface
         }
 
         return new NotificationSummaryDTO(
-            notificationId: (int)$row['id'],
+            notificationId: (int)($row['id'] ?? 0),
             adminId: null, // Not available in failed_notifications
-            channel: (string)$row['channel'],
+            channel: (string)($row['channel'] ?? 'unknown'),
             status: 'failed',
             title: $title,
             body: $body,
