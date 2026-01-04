@@ -10,14 +10,13 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Routing\RouteContext;
 
-class AuthorizationGuardMiddleware implements MiddlewareInterface
+readonly class AuthorizationGuardMiddleware implements MiddlewareInterface
 {
-    private AuthorizationService $authorizationService;
 
-    public function __construct(AuthorizationService $authorizationService)
+    public function __construct(private AuthorizationService $authorizationService)
     {
-        $this->authorizationService = $authorizationService;
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
@@ -29,7 +28,13 @@ class AuthorizationGuardMiddleware implements MiddlewareInterface
              throw new UnauthorizedException("Authenticated session required.");
         }
 
-        $permission = $request->getAttribute('permission');
+        $route = RouteContext::fromRequest($request)->getRoute();
+
+        if ($route === null) {
+            throw new UnauthorizedException("Route not found.");
+        }
+
+        $permission = $route->getName();
         assert(is_string($permission) && $permission !== '', 'Permission attribute must be a non-empty string');
 
         $this->authorizationService->checkPermission($adminId, $permission);
