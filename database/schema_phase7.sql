@@ -1,6 +1,8 @@
 CREATE TABLE IF NOT EXISTS audit_logs (
     id INT AUTO_INCREMENT PRIMARY KEY,
     actor_admin_id INT NULL,
+    -- target_type is intentionally VARCHAR (not enum / FK)
+    -- to allow future domain extensibility without schema migrations
     target_type VARCHAR(64) NOT NULL,
     target_id INT NULL,
     action VARCHAR(32) NOT NULL,
