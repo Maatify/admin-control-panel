@@ -7,6 +7,8 @@ namespace App\Bootstrap;
 use App\Domain\Contracts\AdminActivityQueryInterface;
 use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
 use App\Domain\Contracts\AdminIdentifierLookupInterface;
+use App\Domain\Contracts\AdminNotificationChannelRepositoryInterface;
+use App\Domain\Contracts\AdminNotificationPreferenceRepositoryInterface;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
 use App\Domain\Contracts\AdminRoleRepositoryInterface;
@@ -19,11 +21,14 @@ use App\Domain\Contracts\NotificationReadRepositoryInterface;
 use App\Domain\Contracts\RolePermissionRepositoryInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\Service\AdminAuthenticationService;
+use App\Domain\Service\AdminNotificationRoutingService;
 use App\Domain\Service\NotificationFailureHandler;
 use App\Http\Controllers\AuthController;
 use App\Infrastructure\Database\PDOFactory;
 use App\Infrastructure\Repository\AdminActivityQueryRepository;
 use App\Infrastructure\Repository\AdminEmailRepository;
+use App\Infrastructure\Repository\AdminNotificationChannelRepository;
+use App\Infrastructure\Repository\AdminNotificationPreferenceRepository;
 use App\Infrastructure\Repository\AdminPasswordRepository;
 use App\Infrastructure\Repository\AdminRepository;
 use App\Infrastructure\Repository\AdminRoleRepository;
@@ -80,6 +85,23 @@ class Container
             },
             AdminIdentifierLookupInterface::class => function (ContainerInterface $c) {
                 return $c->get(AdminEmailRepository::class);
+            },
+            AdminNotificationChannelRepositoryInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new AdminNotificationChannelRepository($pdo);
+            },
+            AdminNotificationPreferenceRepositoryInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new AdminNotificationPreferenceRepository($pdo);
+            },
+            AdminNotificationRoutingService::class => function (ContainerInterface $c) {
+                $channelRepo = $c->get(AdminNotificationChannelRepositoryInterface::class);
+                $prefRepo = $c->get(AdminNotificationPreferenceRepositoryInterface::class);
+                assert($channelRepo instanceof AdminNotificationChannelRepositoryInterface);
+                assert($prefRepo instanceof AdminNotificationPreferenceRepositoryInterface);
+                return new AdminNotificationRoutingService($channelRepo, $prefRepo);
             },
             AdminPasswordRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
@@ -156,9 +178,18 @@ class Container
                 /** @var iterable<mixed, \App\Domain\Contracts\NotificationSenderInterface> $senders */
                 $failureHandler = $c->get(NotificationFailureHandler::class);
                 assert($failureHandler instanceof NotificationFailureHandler);
+
+                $routingService = $c->get(AdminNotificationRoutingService::class);
+                assert($routingService instanceof AdminNotificationRoutingService);
+
+                $channelRepo = $c->get(AdminNotificationChannelRepositoryInterface::class);
+                assert($channelRepo instanceof AdminNotificationChannelRepositoryInterface);
+
                 return new NotificationDispatcher(
                     $senders,
-                    $failureHandler
+                    $failureHandler,
+                    $routingService,
+                    $channelRepo
                 );
             },
             ClientInfoProviderInterface::class => function (ContainerInterface $c) {
