@@ -103,6 +103,9 @@ class Container
                 assert($prefRepo instanceof AdminNotificationPreferenceRepositoryInterface);
                 return new AdminNotificationRoutingService($channelRepo, $prefRepo);
             },
+            \App\Domain\Contracts\NotificationRoutingInterface::class => function (ContainerInterface $c) {
+                return $c->get(AdminNotificationRoutingService::class);
+            },
             AdminPasswordRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
