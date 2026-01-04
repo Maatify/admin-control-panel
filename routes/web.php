@@ -5,9 +5,11 @@ declare(strict_types=1);
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminEmailVerificationController;
 use App\Http\Controllers\AuthController;
+use App\Http\Middleware\SessionGuardMiddleware;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
+use Slim\Routing\RouteCollectorProxy;
 
 return function (App $app) {
     $app->get('/health', function (Request $request, Response $response) {
@@ -18,14 +20,15 @@ return function (App $app) {
             ->withStatus(200);
     });
 
-    $app->post('/admins', [AdminController::class, 'create']);
-    $app->post('/admins/{id}/emails', [AdminController::class, 'addEmail']);
-    $app->post('/admin-identifiers/email/lookup', [AdminController::class, 'lookupEmail']);
-    $app->get('/admins/{id}/emails', [AdminController::class, 'getEmail']);
-
-    // Phase 3.4
-    $app->post('/admins/{id}/emails/verify', [AdminEmailVerificationController::class, 'verify']);
-
-    // Phase 4
+    // Public routes
     $app->post('/auth/login', [AuthController::class, 'login']);
+
+    // Protected routes
+    $app->group('', function (RouteCollectorProxy $group) {
+        $group->post('/admins', [AdminController::class, 'create']);
+        $group->post('/admins/{id}/emails', [AdminController::class, 'addEmail']);
+        $group->post('/admin-identifiers/email/lookup', [AdminController::class, 'lookupEmail']);
+        $group->get('/admins/{id}/emails', [AdminController::class, 'getEmail']);
+        $group->post('/admins/{id}/emails/verify', [AdminEmailVerificationController::class, 'verify']);
+    })->add(SessionGuardMiddleware::class);
 };

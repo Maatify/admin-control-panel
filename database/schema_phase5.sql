@@ -1,0 +1,1 @@
+ALTER TABLE admin_sessions ADD COLUMN is_revoked TINYINT(1) DEFAULT 0 NOT NULL;

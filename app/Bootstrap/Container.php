@@ -8,6 +8,7 @@ use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
 use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
+use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Http\Controllers\AuthController;
 use App\Infrastructure\Database\PDOFactory;
 use App\Infrastructure\Repository\AdminEmailRepository;
@@ -60,6 +61,9 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new AdminSessionRepository($pdo);
+            },
+            AdminSessionValidationRepositoryInterface::class => function (ContainerInterface $c) {
+                return $c->get(AdminSessionRepositoryInterface::class);
             },
             AuthController::class => function (ContainerInterface $c) {
                 $authService = $c->get(\App\Domain\Service\AdminAuthenticationService::class);
