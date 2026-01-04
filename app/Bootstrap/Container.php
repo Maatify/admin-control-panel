@@ -29,10 +29,14 @@ class Container
                 return $factory->create();
             },
             AdminRepository::class => function (ContainerInterface $c) {
-                return new AdminRepository($c->get(PDO::class));
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new AdminRepository($pdo);
             },
             AdminEmailRepository::class => function (ContainerInterface $c) {
-                return new AdminEmailRepository($c->get(PDO::class));
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new AdminEmailRepository($pdo);
             },
         ]);
 

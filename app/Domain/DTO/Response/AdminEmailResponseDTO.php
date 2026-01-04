@@ -14,6 +14,9 @@ class AdminEmailResponseDTO implements JsonSerializable
         public readonly ?string $email    ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function jsonSerialize(): array
     {
         return [

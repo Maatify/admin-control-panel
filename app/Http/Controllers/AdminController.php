@@ -36,35 +36,45 @@ class AdminController
             createdAt: $createdAt
         );
 
-        $response->getBody()->write(json_encode($dto->jsonSerialize()));
+        $json = json_encode($dto->jsonSerialize());
+        assert($json !== false);
+        $response->getBody()->write($json);
         return $response
             ->withHeader('Content-Type', 'application/json')
             ->withStatus(200);
     }
 
     /**
+     * @param array<string, string> $args
      * @throws RandomException
      */
     public function addEmail(Request $request, Response $response, array $args): Response
     {
         $adminId = (int)$args['id'];
         $data = json_decode((string)$request->getBody(), true);
+        assert(is_array($data));
         
-        $requestDto = new CreateAdminEmailRequestDTO($data[IdentifierType::EMAIL->value] ?? '');
+        $emailInput = $data[IdentifierType::EMAIL->value] ?? '';
+        assert(is_string($emailInput));
+        $requestDto = new CreateAdminEmailRequestDTO($emailInput);
         $email = $requestDto->email;
 
         // Blind Index
         $blindIndexKey = $_ENV['EMAIL_BLIND_INDEX_KEY'] ?? '';
         $blindIndex = hash_hmac('sha256', $email, $blindIndexKey);
+        assert(is_string($blindIndex));
 
         // Encryption
         $encryptionKey = $_ENV['EMAIL_ENCRYPTION_KEY'] ?? '';
         
         $cipher = 'aes-256-gcm';
         $ivLen = openssl_cipher_iv_length($cipher);
+        assert(is_int($ivLen) && $ivLen > 0);
         $iv = random_bytes($ivLen);
+        assert(is_string($iv));
         $tag = '';
         $ciphertext = openssl_encrypt($email, $cipher, $encryptionKey, OPENSSL_RAW_DATA, $iv, $tag);
+        assert(is_string($ciphertext));
         $encryptedEmail = base64_encode($iv . $tag . $ciphertext);
 
         $this->adminEmailRepository->addEmail($adminId, $blindIndex, $encryptedEmail);
@@ -74,7 +84,9 @@ class AdminController
             emailAdded: true,
         );
 
-        $response->getBody()->write(json_encode($responseDto->jsonSerialize()));
+        $json = json_encode($responseDto->jsonSerialize());
+        assert($json !== false);
+        $response->getBody()->write($json);
         return $response
             ->withHeader('Content-Type', 'application/json')
             ->withStatus(200);
@@ -83,12 +95,17 @@ class AdminController
     public function lookupEmail(Request $request, Response $response): Response
     {
         $data = json_decode((string)$request->getBody(), true);
+        assert(is_array($data));
         
-        $requestDto = new VerifyAdminEmailRequestDTO($data[IdentifierType::EMAIL->value] ?? '');
+        $emailInput = $data[IdentifierType::EMAIL->value] ?? '';
+        assert(is_string($emailInput));
+        $requestDto = new VerifyAdminEmailRequestDTO($emailInput);
         $email = $requestDto->email;
 
         $blindIndexKey = $_ENV['EMAIL_BLIND_INDEX_KEY'];
+        assert(is_string($blindIndexKey));
         $blindIndex = hash_hmac('sha256', $email, $blindIndexKey);
+        assert(is_string($blindIndex));
 
         $adminId = $this->adminEmailRepository->findByBlindIndex($blindIndex);
 
@@ -103,12 +120,17 @@ class AdminController
             );
         }
 
-        $response->getBody()->write(json_encode($responseDto->jsonSerialize()));
+        $json = json_encode($responseDto->jsonSerialize());
+        assert($json !== false);
+        $response->getBody()->write($json);
         return $response
             ->withHeader('Content-Type', 'application/json')
             ->withStatus(200);
     }
 
+    /**
+     * @param array<string, string> $args
+     */
     public function getEmail(Request $request, Response $response, array $args): Response
     {
         $adminId = (int)$args['id'];
@@ -116,18 +138,30 @@ class AdminController
         $encryptedEmail = $this->adminEmailRepository->getEncryptedEmail($adminId);
 
         $encryptionKey = $_ENV['EMAIL_ENCRYPTION_KEY'];
+        assert(is_string($encryptionKey));
         $cipher = 'aes-256-gcm';
         $data = base64_decode((string)$encryptedEmail);
+        assert(is_string($data));
         $ivLen = openssl_cipher_iv_length($cipher);
+        assert(is_int($ivLen));
         $iv = substr($data, 0, $ivLen);
+        assert(is_string($iv));
         $tag = substr($data, $ivLen, 16);
+        assert(is_string($tag));
         $ciphertext = substr($data, $ivLen + 16);
+        assert(is_string($ciphertext));
 
         $email = openssl_decrypt($ciphertext, $cipher, $encryptionKey, OPENSSL_RAW_DATA, $iv, $tag);
 
+        if ($email === false) {
+            $email = null;
+        }
+
         $responseDto = new AdminEmailResponseDTO($adminId, $email);
 
-        $response->getBody()->write(json_encode($responseDto->jsonSerialize()));
+        $json = json_encode($responseDto->jsonSerialize());
+        assert($json !== false);
+        $response->getBody()->write($json);
         return $response
             ->withHeader('Content-Type', 'application/json')
             ->withStatus(200);
