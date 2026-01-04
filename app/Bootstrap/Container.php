@@ -10,7 +10,10 @@ use App\Domain\Contracts\AdminPasswordRepositoryInterface;
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
 use App\Domain\Contracts\AdminRoleRepositoryInterface;
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
+use App\Domain\Contracts\AuditLoggerInterface;
+use App\Domain\Contracts\ClientInfoProviderInterface;
 use App\Domain\Contracts\RolePermissionRepositoryInterface;
+use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\Service\AdminAuthenticationService;
 use App\Http\Controllers\AuthController;
 use App\Infrastructure\Database\PDOFactory;
@@ -19,7 +22,10 @@ use App\Infrastructure\Repository\AdminPasswordRepository;
 use App\Infrastructure\Repository\AdminRepository;
 use App\Infrastructure\Repository\AdminRoleRepository;
 use App\Infrastructure\Repository\AdminSessionRepository;
+use App\Infrastructure\Repository\AuditLogRepository;
 use App\Infrastructure\Repository\RolePermissionRepository;
+use App\Infrastructure\Repository\SecurityEventRepository;
+use App\Infrastructure\Security\WebClientInfoProvider;
 use DI\ContainerBuilder;
 use Exception;
 use PDO;
@@ -83,6 +89,19 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new RolePermissionRepository($pdo);
+            },
+            AuditLoggerInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new AuditLogRepository($pdo);
+            },
+            SecurityEventLoggerInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new SecurityEventRepository($pdo);
+            },
+            ClientInfoProviderInterface::class => function (ContainerInterface $c) {
+                return new WebClientInfoProvider();
             },
             AuthController::class => function (ContainerInterface $c) {
                 $authService = $c->get(AdminAuthenticationService::class);
