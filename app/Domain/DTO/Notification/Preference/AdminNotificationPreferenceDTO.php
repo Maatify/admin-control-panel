@@ -18,6 +18,9 @@ readonly class AdminNotificationPreferenceDTO implements \JsonSerializable
     ) {
     }
 
+    /**
+     * @return array{admin_id: int, notification_type: string, channel_type: string, is_enabled: bool, created_at: string, updated_at: string}
+     */
     public function jsonSerialize(): array
     {
         return [

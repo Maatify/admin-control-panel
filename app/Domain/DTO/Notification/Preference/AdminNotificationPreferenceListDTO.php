@@ -14,6 +14,9 @@ readonly class AdminNotificationPreferenceListDTO implements \JsonSerializable
     ) {
     }
 
+    /**
+     * @return array{preferences: array<AdminNotificationPreferenceDTO>}
+     */
     public function jsonSerialize(): array
     {
         return [

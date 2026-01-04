@@ -115,10 +115,7 @@ class PdoAdminNotificationPreferenceRepository implements
          foreach ($preferencesList->preferences as $preference) {
              if ($preference->isEnabled) {
                  // Map new Enum to Legacy Enum
-                 $legacyChannel = LegacyNotificationChannelType::tryFrom($preference->channelType->value);
-                 if ($legacyChannel) {
-                     $enabledChannels[] = $legacyChannel;
-                 }
+                 $enabledChannels[] = LegacyNotificationChannelType::from($preference->channelType->value);
              }
          }
 

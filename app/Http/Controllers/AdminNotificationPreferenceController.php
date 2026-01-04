@@ -22,7 +22,10 @@ class AdminNotificationPreferenceController
 
     public function getPreferences(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $adminId = (int)$request->getAttribute('admin_id');
+        $adminId = $request->getAttribute('admin_id');
+        if (!is_int($adminId)) {
+            throw new \RuntimeException('Invalid admin_id');
+        }
         $query = new GetAdminPreferencesQueryDTO($adminId);
         $preferences = $this->reader->getPreferences($query);
 
@@ -37,7 +40,10 @@ class AdminNotificationPreferenceController
 
     public function upsertPreference(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $adminId = (int)$request->getAttribute('admin_id');
+        $adminId = $request->getAttribute('admin_id');
+        if (!is_int($adminId)) {
+            throw new \RuntimeException('Invalid admin_id');
+        }
         /** @var array<string, mixed> $body */
         $body = $request->getParsedBody();
 
@@ -46,13 +52,21 @@ class AdminNotificationPreferenceController
         $isEnabled = $body['is_enabled'] ?? null;
 
         if (!is_string($notificationType) || !is_string($channelTypeStr) || !is_bool($isEnabled)) {
-            $response->getBody()->write(json_encode(['error' => 'Invalid input']));
+            $errorPayload = json_encode(['error' => 'Invalid input']);
+            if ($errorPayload === false) {
+                throw new \RuntimeException('JSON encoding failed');
+            }
+            $response->getBody()->write($errorPayload);
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
         $channelType = NotificationChannelType::tryFrom($channelTypeStr);
         if ($channelType === null) {
-            $response->getBody()->write(json_encode(['error' => 'Invalid channel type']));
+            $errorPayload = json_encode(['error' => 'Invalid channel type']);
+            if ($errorPayload === false) {
+                throw new \RuntimeException('JSON encoding failed');
+            }
+            $response->getBody()->write($errorPayload);
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
