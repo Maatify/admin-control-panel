@@ -28,15 +28,17 @@ The resolver MUST follow this strict priority order:
 - If the resolution process results in an empty list of channels, the `isNoChannelAvailable` flag in `ChannelResolutionResultDTO` MUST be set to `true`.
 - This is a valid state (e.g., user disabled all notifications) and MUST NOT cause an exception.
 
-## 3. Disabled Channel Behavior
+## 3. Preference Only Responsibility
 
-- If a channel is globally disabled (system-wide), it MUST NOT be returned, regardless of admin preference.
-- Implementation of this check might belong in a higher-level service, but the resolver should be aware of available channels. *Clarification: The resolver's primary scope is preference logic. Global availability checks can be applied here if the resolver has access to that context, otherwise it returns the preference, and the dispatcher filters by availability.*
-- **Strict Rule:** The resolver is responsible for *preference*. If a user *prefers* a channel, the resolver returns it. If the channel is technically unavailable (e.g., no API key), the *Dispatcher* or *Sender* handles the failure.
+- **Explicit Rule:** The resolver is responsible for **PREFERENCE ONLY**.
+- The resolver MUST return what the user *wants*, regardless of technical capability.
+- **Availability Ignored:** The resolver MUST NOT check if the system "can" send (e.g., has API keys, valid email format).
+- **Execution Failures:** Availability checks and failure handling belong strictly to the Dispatcher/Delivery layers (Phase 9/11). They are **OUT OF SCOPE** for preference resolution.
+- If a user prefers a channel that is technically broken, the resolver MUST still return it. The Dispatcher will then fail to deliver, which is correct behavior.
 
 ## 4. Determinism Guarantees
 
-- **Input:** `(adminId, notificationType)`
+- **Input:** `NotificationRoutingContextDTO (adminId, notificationType)`
 - **Output:** `ChannelResolutionResultDTO`
 - The same input MUST always result in the same output given the same state of preferences.
 - Randomization or load balancing logic is FORBIDDEN in the preference resolver.

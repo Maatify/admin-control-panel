@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Contracts;
 
 use App\Domain\DTO\Notification\ChannelResolutionResultDTO;
+use App\Domain\DTO\Notification\NotificationRoutingContextDTO;
 
 interface NotificationChannelPreferenceResolverInterface
 {
@@ -13,13 +14,11 @@ interface NotificationChannelPreferenceResolverInterface
      *
      * This method MUST be decision-only and side-effect free.
      *
-     * @param int $adminId The ID of the admin receiving the notification.
-     * @param string $notificationType The type of notification being sent.
+     * @param NotificationRoutingContextDTO $context The routing context containing admin ID and notification type.
      *
      * @return ChannelResolutionResultDTO The result of the preference resolution.
      */
     public function resolvePreference(
-        int $adminId,
-        string $notificationType
+        NotificationRoutingContextDTO $context
     ): ChannelResolutionResultDTO;
 }

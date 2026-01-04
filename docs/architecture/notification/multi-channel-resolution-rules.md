@@ -19,10 +19,10 @@ The `resolveChannels` method (and `resolvePreference`) returns an `array` of `No
 
 The order of channels in the resolved list is **meaningful**.
 
-- **Sequential Processing:** The dispatcher MAY process channels in the order returned.
-- **Priority:** The first element is considered the "primary" channel.
-- **Fallbacks:** While the current dispatcher implementation might send to all resolved channels (broadcast) or stop at the first success (fallback), the resolver MUST provide the channels in the preferred order of execution.
-    - Default policy: **Broadcast** (send to all resolved channels). *Clarification: Unless specific "Stop on Success" logic is implemented in the Dispatcher, the default assumption is that all resolved channels are intended recipients.*
+- **Primary Intent:** The first element is considered the primary preferred channel.
+- **Secondary Intent:** Subsequent elements are considered secondary preferences.
+- **Resolver Defines Intent:** The resolver provides the channels in the *preferred* order.
+- **No Execution Semantics:** This document does **NOT** define whether the dispatcher executes them sequentially, in parallel, or stops on success. That is an execution detail (Phase 11). The resolver only provides the *ordered list of preferred targets*.
 
 ## 3. No Fan-Out Execution
 
