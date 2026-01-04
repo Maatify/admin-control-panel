@@ -1,8 +1,8 @@
-# 🗺️ Admin Control Panel — Execution Roadmap (v1)
+# 🗺️ Admin Control Panel — Execution Roadmap (v1.1)
 
 **Scope:** Backend only
 **Architecture:** Clean Architecture / Layered
-**Current State:** Phase 2 — CLOSED ✅
+**Current State:** **Phase 3 — CLOSED ✅**
 
 ---
 
@@ -81,37 +81,46 @@ Build a **secure, runnable Admin Control Panel backend** that:
 
 ---
 
-## 🧠 Phase 3 — Verification & State Control (NEXT)
+## 🧠 Phase 3 — Verification & State Control (CLOSED)
 
 **Goal:** Move from CRUD to state-aware domain logic
 
-### 3.1 DTO Layer
+### 3.1 DTO Layer ✅
 
 * Request DTOs
 * Response DTOs
 * ❌ No raw arrays
 
-### 3.2 Enums
+### 3.2 Enums ✅
 
-* IdentifierType
-* VerificationStatus
-* ActionResult
+* `IdentifierType`
+* `VerificationStatus`
+* `ActionResult`
 
-### 3.3 Custom Exceptions
+### 3.3 Custom Exceptions ✅
 
 * Domain-specific exceptions
 * Explicit failures
 * ❌ No silent errors
 
-### 3.4 Verification Flow
+### 3.4 Verification Foundations ✅
 
-* Email verification lifecycle
-* Explicit state transitions
-* No implicit jumps
+* Validation isolated inside DTOs
+* Explicit error signaling
+* State readiness without introducing flows yet
+
+### 3.5 Static Analysis Hardening ✅
+
+* phpstan `level=max`
+* Explicit type narrowing
+* No behavior changes
+* No cross-phase refactors
+
+📌 **Phase 3 is locked**
 
 ---
 
-## 🔑 Phase 4 — Authentication (PLANNED)
+## 🔑 Phase 4 — Authentication (NEXT)
 
 **Goal:** Secure system access
 
@@ -119,6 +128,8 @@ Build a **secure, runnable Admin Control Panel backend** that:
 * Password hashing
 * Session or token strategy (TBD)
 * Backend only (no UI)
+
+📌 **Phase 4 not started**
 
 ---
 
@@ -146,7 +157,7 @@ Build a **secure, runnable Admin Control Panel backend** that:
 
 ---
 
-## 📌 Global Architecture Rules
+## 📌 Global Architecture Rules (ENFORCED)
 
 * Controllers never access the database directly
 * Repositories return primitives only
@@ -158,6 +169,9 @@ Build a **secure, runnable Admin Control Panel backend** that:
 
 ## 🧭 Current Position
 
-* Phase 2 closed
+* Phase 0 → Phase 3 **CLOSED**
 * Architecture stabilized
-* Ready to begin **Phase 3 — Verification & State Control**
+* Static analysis clean
+* **Ready to begin Phase 4 — Authentication**
+
+---
