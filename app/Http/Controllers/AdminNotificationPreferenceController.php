@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Domain\Contracts\AdminNotificationPreferenceReaderInterface;
 use App\Domain\Contracts\AdminNotificationPreferenceWriterInterface;
+use App\Domain\DTO\Notification\Preference\GetAdminPreferencesQueryDTO;
 use App\Domain\DTO\Notification\Preference\UpdateAdminNotificationPreferenceDTO;
 use App\Domain\Notification\NotificationChannelType;
 use Psr\Http\Message\ResponseInterface;
@@ -22,7 +23,8 @@ class AdminNotificationPreferenceController
     public function getPreferences(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $adminId = (int)$request->getAttribute('admin_id');
-        $preferences = $this->reader->getPreferences($adminId);
+        $query = new GetAdminPreferencesQueryDTO($adminId);
+        $preferences = $this->reader->getPreferences($query);
 
         $payload = json_encode($preferences);
         if ($payload === false) {

@@ -9,6 +9,8 @@ use App\Domain\Contracts\AdminNotificationPreferenceWriterInterface;
 use App\Domain\Contracts\AdminNotificationPreferenceRepositoryInterface;
 use App\Domain\DTO\Notification\Preference\AdminNotificationPreferenceDTO;
 use App\Domain\DTO\Notification\Preference\AdminNotificationPreferenceListDTO;
+use App\Domain\DTO\Notification\Preference\GetAdminPreferencesQueryDTO;
+use App\Domain\DTO\Notification\Preference\GetAdminPreferencesByTypeQueryDTO;
 use App\Domain\DTO\Notification\Preference\UpdateAdminNotificationPreferenceDTO;
 use App\Domain\Enum\NotificationChannelType as LegacyNotificationChannelType;
 use App\Domain\Notification\NotificationChannelType;
@@ -26,12 +28,12 @@ class PdoAdminNotificationPreferenceRepository implements
         $this->connection = $connection;
     }
 
-    public function getPreferences(int $adminId): AdminNotificationPreferenceListDTO
+    public function getPreferences(GetAdminPreferencesQueryDTO $query): AdminNotificationPreferenceListDTO
     {
         $stmt = $this->connection->prepare(
             'SELECT * FROM admin_notification_preferences WHERE admin_id = :admin_id'
         );
-        $stmt->execute(['admin_id' => $adminId]);
+        $stmt->execute(['admin_id' => $query->adminId]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $preferences = [];
@@ -44,12 +46,12 @@ class PdoAdminNotificationPreferenceRepository implements
         return new AdminNotificationPreferenceListDTO($preferences);
     }
 
-    public function getPreferencesByType(int $adminId, string $notificationType): AdminNotificationPreferenceListDTO
+    public function getPreferencesByType(GetAdminPreferencesByTypeQueryDTO $query): AdminNotificationPreferenceListDTO
     {
         $stmt = $this->connection->prepare(
             'SELECT * FROM admin_notification_preferences WHERE admin_id = :admin_id AND notification_type = :notification_type'
         );
-        $stmt->execute(['admin_id' => $adminId, 'notification_type' => $notificationType]);
+        $stmt->execute(['admin_id' => $query->adminId, 'notification_type' => $query->notificationType]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $preferences = [];
@@ -106,7 +108,8 @@ class PdoAdminNotificationPreferenceRepository implements
      */
     public function getEnabledChannelsForNotification(int $adminId, string $notificationType): array
     {
-         $preferencesList = $this->getPreferencesByType($adminId, $notificationType);
+         $query = new GetAdminPreferencesByTypeQueryDTO($adminId, $notificationType);
+         $preferencesList = $this->getPreferencesByType($query);
          $enabledChannels = [];
 
          foreach ($preferencesList->preferences as $preference) {

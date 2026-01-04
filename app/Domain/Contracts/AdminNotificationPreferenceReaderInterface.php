@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace App\Domain\Contracts;
 
-use App\Domain\DTO\Notification\Preference\AdminNotificationPreferenceDTO;
 use App\Domain\DTO\Notification\Preference\AdminNotificationPreferenceListDTO;
+use App\Domain\DTO\Notification\Preference\GetAdminPreferencesQueryDTO;
+use App\Domain\DTO\Notification\Preference\GetAdminPreferencesByTypeQueryDTO;
 
 interface AdminNotificationPreferenceReaderInterface
 {
     /**
-     * @param int $adminId
+     * @param GetAdminPreferencesQueryDTO $query
      * @return AdminNotificationPreferenceListDTO
      */
-    public function getPreferences(int $adminId): AdminNotificationPreferenceListDTO;
+    public function getPreferences(GetAdminPreferencesQueryDTO $query): AdminNotificationPreferenceListDTO;
 
     /**
-     * @param int $adminId
-     * @param string $notificationType
+     * @param GetAdminPreferencesByTypeQueryDTO $query
      * @return AdminNotificationPreferenceListDTO
      */
-    public function getPreferencesByType(int $adminId, string $notificationType): AdminNotificationPreferenceListDTO;
+    public function getPreferencesByType(GetAdminPreferencesByTypeQueryDTO $query): AdminNotificationPreferenceListDTO;
 }
