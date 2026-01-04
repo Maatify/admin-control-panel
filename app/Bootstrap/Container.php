@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Bootstrap;
 
+use App\Domain\Contracts\AdminActivityQueryInterface;
 use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
 use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
@@ -18,6 +19,7 @@ use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\Service\AdminAuthenticationService;
 use App\Http\Controllers\AuthController;
 use App\Infrastructure\Database\PDOFactory;
+use App\Infrastructure\Repository\AdminActivityQueryRepository;
 use App\Infrastructure\Repository\AdminEmailRepository;
 use App\Infrastructure\Repository\AdminPasswordRepository;
 use App\Infrastructure\Repository\AdminRepository;
@@ -28,6 +30,7 @@ use App\Infrastructure\Notifications\NullNotificationDispatcher;
 use App\Infrastructure\Repository\RolePermissionRepository;
 use App\Infrastructure\Repository\SecurityEventRepository;
 use App\Infrastructure\Security\WebClientInfoProvider;
+use App\Infrastructure\UX\AdminActivityMapper;
 use DI\ContainerBuilder;
 use Exception;
 use PDO;
@@ -101,6 +104,12 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new SecurityEventRepository($pdo);
+            },
+            AdminActivityQueryInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                $mapper = new AdminActivityMapper();
+                return new AdminActivityQueryRepository($pdo, $mapper);
             },
             NotificationDispatcherInterface::class => function (ContainerInterface $c) {
                 return new NullNotificationDispatcher();
