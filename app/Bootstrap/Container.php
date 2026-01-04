@@ -13,10 +13,12 @@ use App\Domain\Contracts\AdminRoleRepositoryInterface;
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Domain\Contracts\AuditLoggerInterface;
 use App\Domain\Contracts\ClientInfoProviderInterface;
+use App\Domain\Contracts\FailedNotificationRepositoryInterface;
 use App\Domain\Contracts\NotificationDispatcherInterface;
 use App\Domain\Contracts\RolePermissionRepositoryInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\Service\AdminAuthenticationService;
+use App\Domain\Service\NotificationFailureHandler;
 use App\Http\Controllers\AuthController;
 use App\Infrastructure\Database\PDOFactory;
 use App\Infrastructure\Repository\AdminActivityQueryRepository;
@@ -26,6 +28,7 @@ use App\Infrastructure\Repository\AdminRepository;
 use App\Infrastructure\Repository\AdminRoleRepository;
 use App\Infrastructure\Repository\AdminSessionRepository;
 use App\Infrastructure\Repository\AuditLogRepository;
+use App\Infrastructure\Repository\FailedNotificationRepository;
 use App\Infrastructure\Notifications\NullNotificationDispatcher;
 use App\Infrastructure\Repository\RolePermissionRepository;
 use App\Domain\Service\NotificationDispatcher;
@@ -118,6 +121,16 @@ class Container
             NotificationDispatcherInterface::class => function (ContainerInterface $c) {
                 return new NullNotificationDispatcher();
             },
+            FailedNotificationRepositoryInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new FailedNotificationRepository($pdo);
+            },
+            NotificationFailureHandler::class => function (ContainerInterface $c) {
+                $repo = $c->get(FailedNotificationRepositoryInterface::class);
+                assert($repo instanceof FailedNotificationRepositoryInterface);
+                return new NotificationFailureHandler($repo);
+            },
             EmailNotificationSender::class => function (ContainerInterface $c) {
                 return new EmailNotificationSender();
             },
@@ -134,7 +147,12 @@ class Container
                     $c->get(NullNotificationSender::class),
                 ];
                 /** @var iterable<mixed, \App\Domain\Contracts\NotificationSenderInterface> $senders */
-                return new NotificationDispatcher($senders);
+                $failureHandler = $c->get(NotificationFailureHandler::class);
+                assert($failureHandler instanceof NotificationFailureHandler);
+                return new NotificationDispatcher(
+                    $senders,
+                    $failureHandler
+                );
             },
             ClientInfoProviderInterface::class => function (ContainerInterface $c) {
                 return new WebClientInfoProvider();
