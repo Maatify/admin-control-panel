@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminEmailVerificationController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\NotificationQueryController;
 use App\Http\Middleware\AuthorizationGuardMiddleware;
 use App\Http\Middleware\SessionGuardMiddleware;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -42,6 +43,11 @@ return function (App $app) {
         // Phase 3.4
         $group->post('/admins/{id}/emails/verify', [AdminEmailVerificationController::class, 'verify'])
             ->setName('email.verify')
+            ->add(AuthorizationGuardMiddleware::class);
+
+        // Phase 8.4
+        $group->get('/notifications', [NotificationQueryController::class, 'index'])
+            ->setName('notifications.list')
             ->add(AuthorizationGuardMiddleware::class);
     })->add(SessionGuardMiddleware::class);
 

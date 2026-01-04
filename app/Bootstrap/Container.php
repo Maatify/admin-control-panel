@@ -15,6 +15,7 @@ use App\Domain\Contracts\AuditLoggerInterface;
 use App\Domain\Contracts\ClientInfoProviderInterface;
 use App\Domain\Contracts\FailedNotificationRepositoryInterface;
 use App\Domain\Contracts\NotificationDispatcherInterface;
+use App\Domain\Contracts\NotificationReadRepositoryInterface;
 use App\Domain\Contracts\RolePermissionRepositoryInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\Service\AdminAuthenticationService;
@@ -29,6 +30,7 @@ use App\Infrastructure\Repository\AdminRoleRepository;
 use App\Infrastructure\Repository\AdminSessionRepository;
 use App\Infrastructure\Repository\AuditLogRepository;
 use App\Infrastructure\Repository\FailedNotificationRepository;
+use App\Infrastructure\Repository\NotificationReadRepository;
 use App\Infrastructure\Notifications\NullNotificationDispatcher;
 use App\Infrastructure\Repository\RolePermissionRepository;
 use App\Domain\Service\NotificationDispatcher;
@@ -125,6 +127,11 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new FailedNotificationRepository($pdo);
+            },
+            NotificationReadRepositoryInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new NotificationReadRepository($pdo);
             },
             NotificationFailureHandler::class => function (ContainerInterface $c) {
                 $repo = $c->get(FailedNotificationRepositoryInterface::class);
