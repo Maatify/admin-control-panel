@@ -24,24 +24,24 @@ return function (App $app) {
     // Protected Routes
     $app->group('', function (RouteCollectorProxy $group) {
         $group->post('/admins', [AdminController::class, 'create'])
-            ->setArgument('permission', 'admin.create')
+            ->setName('admin.create')
             ->add(AuthorizationGuardMiddleware::class);
 
         $group->post('/admins/{id}/emails', [AdminController::class, 'addEmail'])
-            ->setArgument('permission', 'email.add')
+            ->setName('email.add')
             ->add(AuthorizationGuardMiddleware::class);
 
         $group->post('/admin-identifiers/email/lookup', [AdminController::class, 'lookupEmail'])
-            ->setArgument('permission', 'email.lookup')
+            ->setName('email.lookup')
             ->add(AuthorizationGuardMiddleware::class);
 
         $group->get('/admins/{id}/emails', [AdminController::class, 'getEmail'])
-            ->setArgument('permission', 'email.read')
+            ->setName('email.read')
             ->add(AuthorizationGuardMiddleware::class);
 
         // Phase 3.4
         $group->post('/admins/{id}/emails/verify', [AdminEmailVerificationController::class, 'verify'])
-            ->setArgument('permission', 'email.verify')
+            ->setName('email.verify')
             ->add(AuthorizationGuardMiddleware::class);
     })->add(SessionGuardMiddleware::class);
 
