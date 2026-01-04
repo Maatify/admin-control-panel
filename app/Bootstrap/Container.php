@@ -8,13 +8,17 @@ use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
 use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
+use App\Domain\Contracts\AdminRoleRepositoryInterface;
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
+use App\Domain\Contracts\RolePermissionRepositoryInterface;
 use App\Http\Controllers\AuthController;
 use App\Infrastructure\Database\PDOFactory;
 use App\Infrastructure\Repository\AdminEmailRepository;
 use App\Infrastructure\Repository\AdminPasswordRepository;
 use App\Infrastructure\Repository\AdminRepository;
+use App\Infrastructure\Repository\AdminRoleRepository;
 use App\Infrastructure\Repository\AdminSessionRepository;
+use App\Infrastructure\Repository\RolePermissionRepository;
 use DI\ContainerBuilder;
 use PDO;
 use Psr\Container\ContainerInterface;
@@ -64,6 +68,16 @@ class Container
             },
             AdminSessionValidationRepositoryInterface::class => function (ContainerInterface $c) {
                 return $c->get(AdminSessionRepositoryInterface::class);
+            },
+            AdminRoleRepositoryInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new AdminRoleRepository($pdo);
+            },
+            RolePermissionRepositoryInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new RolePermissionRepository($pdo);
             },
             AuthController::class => function (ContainerInterface $c) {
                 $authService = $c->get(\App\Domain\Service\AdminAuthenticationService::class);
