@@ -5,9 +5,15 @@ declare(strict_types=1);
 namespace App\Bootstrap;
 
 use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
+use App\Domain\Contracts\AdminIdentifierLookupInterface;
+use App\Domain\Contracts\AdminPasswordRepositoryInterface;
+use App\Domain\Contracts\AdminSessionRepositoryInterface;
+use App\Http\Controllers\AuthController;
 use App\Infrastructure\Database\PDOFactory;
 use App\Infrastructure\Repository\AdminEmailRepository;
+use App\Infrastructure\Repository\AdminPasswordRepository;
 use App\Infrastructure\Repository\AdminRepository;
+use App\Infrastructure\Repository\AdminSessionRepository;
 use DI\ContainerBuilder;
 use PDO;
 use Psr\Container\ContainerInterface;
@@ -41,6 +47,25 @@ class Container
             },
             AdminEmailVerificationRepositoryInterface::class => function (ContainerInterface $c) {
                 return $c->get(AdminEmailRepository::class);
+            },
+            AdminIdentifierLookupInterface::class => function (ContainerInterface $c) {
+                return $c->get(AdminEmailRepository::class);
+            },
+            AdminPasswordRepositoryInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new AdminPasswordRepository($pdo);
+            },
+            AdminSessionRepositoryInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new AdminSessionRepository($pdo);
+            },
+            AuthController::class => function (ContainerInterface $c) {
+                $authService = $c->get(\App\Domain\Service\AdminAuthenticationService::class);
+                assert($authService instanceof \App\Domain\Service\AdminAuthenticationService);
+                $blindIndexKey = $_ENV['EMAIL_BLIND_INDEX_KEY'] ?? '';
+                return new AuthController($authService, $blindIndexKey);
             },
         ]);
 
