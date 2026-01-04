@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS admin_emails (
     admin_id INT NOT NULL,
     email_blind_index CHAR(64) NOT NULL,
     email_encrypted TEXT NOT NULL,
+    verification_status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    verified_at DATETIME NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (email_blind_index),
     FOREIGN KEY (admin_id) REFERENCES admins(id)

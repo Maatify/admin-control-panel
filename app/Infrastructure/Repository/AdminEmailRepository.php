@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Repository;
 
+use App\Domain\Enum\VerificationStatus;
 use PDO;
+use RuntimeException;
 
 class AdminEmailRepository
 {
@@ -37,5 +39,36 @@ class AdminEmailRepository
         $result = $stmt->fetchColumn();
 
         return $result !== false ? (string)$result : null;
+    }
+
+    public function getVerificationStatus(int $adminId): VerificationStatus
+    {
+        $stmt = $this->pdo->prepare("SELECT verification_status FROM admin_emails WHERE admin_id = ?");
+        $stmt->execute([$adminId]);
+        $result = $stmt->fetchColumn();
+
+        if ($result === false) {
+            throw new RuntimeException("Admin email not found for ID: $adminId");
+        }
+
+        return VerificationStatus::from((string)$result);
+    }
+
+    public function markVerified(int $adminId, string $timestamp): void
+    {
+        $stmt = $this->pdo->prepare("UPDATE admin_emails SET verification_status = ?, verified_at = ? WHERE admin_id = ?");
+        $stmt->execute([VerificationStatus::VERIFIED->value, $timestamp, $adminId]);
+    }
+
+    public function markFailed(int $adminId): void
+    {
+        $stmt = $this->pdo->prepare("UPDATE admin_emails SET verification_status = ?, verified_at = NULL WHERE admin_id = ?");
+        $stmt->execute([VerificationStatus::FAILED->value, $adminId]);
+    }
+
+    public function markPending(int $adminId): void
+    {
+        $stmt = $this->pdo->prepare("UPDATE admin_emails SET verification_status = ?, verified_at = NULL WHERE admin_id = ?");
+        $stmt->execute([VerificationStatus::PENDING->value, $adminId]);
     }
 }
