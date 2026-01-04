@@ -247,6 +247,23 @@ class Container
                 assert($marker instanceof \App\Domain\Contracts\AdminNotificationReadMarkerInterface);
                 return new \App\Http\Controllers\AdminNotificationReadController($marker);
             },
+            \App\Domain\Contracts\AdminSelfAuditReaderInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \App\Infrastructure\Audit\PdoAdminSelfAuditReader($pdo);
+            },
+            \App\Domain\Contracts\AdminTargetedAuditReaderInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \App\Infrastructure\Audit\PdoAdminTargetedAuditReader($pdo);
+            },
+            \App\Http\Controllers\AdminSelfAuditController::class => function (ContainerInterface $c) {
+                $selfReader = $c->get(\App\Domain\Contracts\AdminSelfAuditReaderInterface::class);
+                $targetedReader = $c->get(\App\Domain\Contracts\AdminTargetedAuditReaderInterface::class);
+                assert($selfReader instanceof \App\Domain\Contracts\AdminSelfAuditReaderInterface);
+                assert($targetedReader instanceof \App\Domain\Contracts\AdminTargetedAuditReaderInterface);
+                return new \App\Http\Controllers\AdminSelfAuditController($selfReader, $targetedReader);
+            },
         ]);
 
         return $containerBuilder->build();
