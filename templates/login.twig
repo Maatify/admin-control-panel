@@ -1,11 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-</head>
-<body>
+{% extends "layout.twig" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
     <h1>Login</h1>
     {% if error %}
         <p style="color: red;">{{ error }}</p>
@@ -21,5 +18,4 @@
         </div>
         <button type="submit">Login</button>
     </form>
-</body>
-</html>
+{% endblock %}

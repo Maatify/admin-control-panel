@@ -10,6 +10,14 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
+/**
+ * Guard Middleware for Session Validation.
+ *
+ * NOTE: Explicit Web vs API distinction logic is provisional (Phase 13 only).
+ * This logic handles the different auth mechanisms (Bearer vs Cookie) and failure responses (Exception vs Redirect)
+ * for the Web Surface Enablement. It will be formalized in a later phase.
+ * No security decision is derived from the UI surface itself; this is purely for transport and response format handling.
+ */
 class SessionGuardMiddleware implements MiddlewareInterface
 {
     private SessionValidationService $sessionValidationService;
