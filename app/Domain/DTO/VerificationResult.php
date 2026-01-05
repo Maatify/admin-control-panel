@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace App\Domain\DTO;
 
-use App\Domain\Enum\IdentityType;
-use App\Domain\Enum\VerificationPurpose;
+use App\Domain\Enum\IdentityTypeEnum;
+use App\Domain\Enum\VerificationPurposeEnum;
 
 readonly class VerificationResult
 {
     public function __construct(
         public bool $success,
         public string $reason = '',
-        public ?IdentityType $identityType = null,
+        public ?IdentityTypeEnum $identityType = null,
         public ?string $identityId = null,
-        public ?VerificationPurpose $purpose = null
+        public ?VerificationPurposeEnum $purpose = null
     ) {
     }
 
-    public static function success(?IdentityType $identityType = null, ?string $identityId = null, ?VerificationPurpose $purpose = null): self
+    public static function success(?IdentityTypeEnum $identityType = null, ?string $identityId = null, ?VerificationPurposeEnum $purpose = null): self
     {
         return new self(true, '', $identityType, $identityId, $purpose);
     }

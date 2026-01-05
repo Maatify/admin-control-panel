@@ -6,9 +6,9 @@ namespace App\Infrastructure\Repository;
 
 use App\Domain\Contracts\VerificationCodeRepositoryInterface;
 use App\Domain\DTO\VerificationCode;
-use App\Domain\Enum\IdentityType;
+use App\Domain\Enum\IdentityTypeEnum;
 use App\Domain\Enum\VerificationCodeStatus;
-use App\Domain\Enum\VerificationPurpose;
+use App\Domain\Enum\VerificationPurposeEnum;
 use DateTimeImmutable;
 use PDO;
 
@@ -44,7 +44,7 @@ class PdoVerificationCodeRepository implements VerificationCodeRepositoryInterfa
         ]);
     }
 
-    public function findActive(IdentityType $identityType, string $identityId, VerificationPurpose $purpose): ?VerificationCode
+    public function findActive(IdentityTypeEnum $identityType, string $identityId, VerificationPurposeEnum $purpose): ?VerificationCode
     {
         $stmt = $this->pdo->prepare("
             SELECT * FROM verification_codes
@@ -120,7 +120,7 @@ class PdoVerificationCodeRepository implements VerificationCodeRepositoryInterfa
         $stmt->execute(['id' => $codeId]);
     }
 
-    public function expireAllFor(IdentityType $identityType, string $identityId, VerificationPurpose $purpose): void
+    public function expireAllFor(IdentityTypeEnum $identityType, string $identityId, VerificationPurposeEnum $purpose): void
     {
         $stmt = $this->pdo->prepare("
             UPDATE verification_codes
@@ -165,9 +165,9 @@ class PdoVerificationCodeRepository implements VerificationCodeRepositoryInterfa
 
         return new VerificationCode(
             (int)$id,
-            IdentityType::from($identityType),
+            IdentityTypeEnum::from($identityType),
             $identityId,
-            VerificationPurpose::from($purpose),
+            VerificationPurposeEnum::from($purpose),
             $codeHash,
             VerificationCodeStatus::from($statusStr),
             (int)$attempts,

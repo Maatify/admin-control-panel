@@ -9,9 +9,9 @@ use App\Domain\Contracts\VerificationCodePolicyResolverInterface;
 use App\Domain\Contracts\VerificationCodeRepositoryInterface;
 use App\Domain\DTO\GeneratedVerificationCode;
 use App\Domain\DTO\VerificationCode;
-use App\Domain\Enum\IdentityType;
+use App\Domain\Enum\IdentityTypeEnum;
 use App\Domain\Enum\VerificationCodeStatus;
-use App\Domain\Enum\VerificationPurpose;
+use App\Domain\Enum\VerificationPurposeEnum;
 use DateTimeImmutable;
 use Exception;
 use RuntimeException;
@@ -24,7 +24,7 @@ class VerificationCodeGenerator implements VerificationCodeGeneratorInterface
     ) {
     }
 
-    public function generate(IdentityType $identityType, string $identityId, VerificationPurpose $purpose): GeneratedVerificationCode
+    public function generate(IdentityTypeEnum $identityType, string $identityId, VerificationPurposeEnum $purpose): GeneratedVerificationCode
     {
         // 1. Resolve Policy
         $policy = $this->policyResolver->resolve($purpose);

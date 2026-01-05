@@ -6,9 +6,9 @@ namespace App\Infrastructure\Notification;
 
 use App\Domain\Contracts\AdminNotificationChannelRepositoryInterface;
 use App\Domain\Contracts\VerificationCodeValidatorInterface;
-use App\Domain\Enum\IdentityType;
+use App\Domain\Enum\IdentityTypeEnum;
 use App\Domain\Enum\NotificationChannelType;
-use App\Domain\Enum\VerificationPurpose;
+use App\Domain\Enum\VerificationPurposeEnum;
 
 class TelegramHandler
 {
@@ -28,11 +28,11 @@ class TelegramHandler
         }
 
         // 2. Check Purpose & Identity
-        if ($result->purpose !== VerificationPurpose::TELEGRAM_CHANNEL_LINK) {
+        if ($result->purpose !== VerificationPurposeEnum::TelegramChannelLink) {
             return 'Invalid code purpose.';
         }
 
-        if ($result->identityType !== IdentityType::ADMIN) {
+        if ($result->identityType !== IdentityTypeEnum::Admin) {
             return 'Invalid identity type.';
         }
 
@@ -43,11 +43,16 @@ class TelegramHandler
         $adminId = (int)$adminIdStr;
 
         // 3. Register Channel
-        $this->channelRepository->registerChannel(
-            $adminId,
-            NotificationChannelType::TELEGRAM->value, // Use value 'telegram'
-            ['chat_id' => $chatId]
-        );
+        try {
+            $this->channelRepository->registerChannel(
+                $adminId,
+                NotificationChannelType::TELEGRAM->value,
+                ['chat_id' => $chatId]
+            );
+        } catch (\RuntimeException $e) {
+            // Log error?
+            return 'Failed to register channel. It might be in use.';
+        }
 
         return 'Telegram connected successfully!';
     }

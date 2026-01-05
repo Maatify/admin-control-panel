@@ -79,6 +79,24 @@ class AdminNotificationChannelRepository implements AdminNotificationChannelRepo
 
     public function registerChannel(int $adminId, string $channelType, array $config): void
     {
+        // Enforce uniqueness for Telegram chat_id
+        if ($channelType === 'telegram' || $channelType === NotificationChannelType::TELEGRAM->value) {
+            $chatId = $config['chat_id'] ?? null;
+            if ($chatId !== null) {
+                $sql = "
+                    SELECT id FROM admin_notification_channels
+                    WHERE channel_type = ?
+                    AND JSON_UNQUOTE(JSON_EXTRACT(config, '$.chat_id')) = ?
+                    AND admin_id != ?
+                ";
+                $checkStmt = $this->pdo->prepare($sql);
+                $checkStmt->execute([$channelType, (string)$chatId, $adminId]);
+                if ($checkStmt->fetch()) {
+                    throw new RuntimeException("Telegram chat_id already linked to another admin.");
+                }
+            }
+        }
+
         $stmt = $this->pdo->prepare("SELECT id FROM admin_notification_channels WHERE admin_id = ? AND channel_type = ?");
         $stmt->execute([$adminId, $channelType]);
         $id = $stmt->fetchColumn();

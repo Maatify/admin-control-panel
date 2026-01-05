@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Domain\Contracts\VerificationCodeGeneratorInterface;
-use App\Domain\Enum\IdentityType;
-use App\Domain\Enum\VerificationPurpose;
+use App\Domain\Enum\IdentityTypeEnum;
+use App\Domain\Enum\VerificationPurposeEnum;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
@@ -32,7 +32,7 @@ readonly class TelegramConnectController
         // Generate OTP
         // Identity: admin, ID: adminId
         // Purpose: telegram_channel_link
-        $code = $this->generator->generate(IdentityType::ADMIN, (string)$adminId, VerificationPurpose::TELEGRAM_CHANNEL_LINK);
+        $code = $this->generator->generate(IdentityTypeEnum::Admin, (string)$adminId, VerificationPurposeEnum::TelegramChannelLink);
 
         return $this->view->render($response, 'telegram-connect.twig', [
             'otp' => $code->plainCode
