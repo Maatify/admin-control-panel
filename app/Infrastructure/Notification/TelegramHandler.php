@@ -24,49 +24,46 @@ readonly class TelegramHandler
 
     public function handleStart(string $otp, string $chatId): string
     {
-        $unifiedMessage = 'Verification failed. Please try again.';
-
         // 1. Validate OTP
         $result = $this->validator->validateByCode($otp);
 
         if (!$result->success) {
-            $this->logger->warning('telegram_link_failed', [
-                'reason' => VerificationFailureReasonEnum::INVALID_OTP->value,
+            return $this->fail(VerificationFailureReasonEnum::INVALID_OTP, [
                 'chat_id' => $chatId,
+                'purpose' => $result->purpose?->value,
+                'identity_type' => $result->identityType?->value,
+                'identity_id' => $result->identityId,
             ]);
-            return $unifiedMessage;
         }
 
         // 2. Check Purpose
         if ($result->purpose !== VerificationPurposeEnum::TelegramChannelLink) {
-            $this->logger->warning('telegram_link_failed', [
-                'reason' => VerificationFailureReasonEnum::OTP_WRONG_PURPOSE->value,
-                'expected_purpose' => VerificationPurposeEnum::TelegramChannelLink->value,
-                'actual_purpose' => $result->purpose->value,
+            return $this->fail(VerificationFailureReasonEnum::OTP_WRONG_PURPOSE, [
                 'chat_id' => $chatId,
+                'purpose' => $result->purpose?->value,
+                'identity_type' => $result->identityType?->value,
+                'identity_id' => $result->identityId,
             ]);
-            return $unifiedMessage;
         }
 
         // 3. Check Identity Type
         if ($result->identityType !== IdentityTypeEnum::Admin) {
-            $this->logger->warning('telegram_link_failed', [
-                'reason' => VerificationFailureReasonEnum::IDENTITY_MISMATCH->value,
-                'expected_identity_type' => IdentityTypeEnum::Admin->value,
-                'actual_identity_type' => $result->identityType->value,
+            return $this->fail(VerificationFailureReasonEnum::IDENTITY_MISMATCH, [
                 'chat_id' => $chatId,
+                'purpose' => $result->purpose?->value,
+                'identity_type' => $result->identityType?->value,
+                'identity_id' => $result->identityId,
             ]);
-            return $unifiedMessage;
         }
 
         $adminIdStr = $result->identityId;
         if (!is_numeric($adminIdStr)) {
-            $this->logger->error('telegram_link_failed', [
-                'reason' => VerificationFailureReasonEnum::INVALID_IDENTITY_ID->value,
-                'identity_id' => $adminIdStr,
+            return $this->fail(VerificationFailureReasonEnum::INVALID_IDENTITY_ID, [
                 'chat_id' => $chatId,
+                'purpose' => $result->purpose?->value,
+                'identity_type' => $result->identityType?->value,
+                'identity_id' => $result->identityId,
             ]);
-            return $unifiedMessage;
         }
         $adminId = (int)$adminIdStr;
 
@@ -78,23 +75,37 @@ readonly class TelegramHandler
                 ['chat_id' => $chatId]
             );
         } catch (RuntimeException $e) {
-            $this->logger->warning('telegram_link_failed', [
-                'reason' => VerificationFailureReasonEnum::CHANNEL_ALREADY_LINKED->value, // Assuming existing channel throws generic RuntimeException or specific one
-                'admin_id' => $adminId,
+            return $this->fail(VerificationFailureReasonEnum::CHANNEL_ALREADY_LINKED, [
                 'chat_id' => $chatId,
+                'purpose' => $result->purpose?->value,
+                'identity_type' => $result->identityType?->value,
+                'identity_id' => $result->identityId,
                 'exception_message' => $e->getMessage(),
             ]);
-            return $unifiedMessage;
         } catch (\Exception $e) {
-             $this->logger->error('telegram_link_failed', [
-                'reason' => VerificationFailureReasonEnum::CHANNEL_REGISTRATION_FAILED->value,
-                'admin_id' => $adminId,
+            return $this->fail(VerificationFailureReasonEnum::CHANNEL_REGISTRATION_FAILED, [
                 'chat_id' => $chatId,
+                'purpose' => $result->purpose?->value,
+                'identity_type' => $result->identityType?->value,
+                'identity_id' => $result->identityId,
                 'exception_message' => $e->getMessage(),
             ]);
-            return $unifiedMessage;
         }
 
         return 'Telegram connected successfully!';
+    }
+
+    /**
+     * @param array<string, mixed> $context
+     */
+    private function fail(
+        VerificationFailureReasonEnum $reason,
+        array $context = []
+    ): string {
+        $this->logger->warning('telegram_channel_link_failed', array_merge([
+            'reason' => $reason->value,
+        ], $context));
+
+        return 'Unable to connect Telegram. Please try again.';
     }
 }
