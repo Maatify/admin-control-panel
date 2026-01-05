@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Domain\Exception\ExpiredSessionException;
+use App\Domain\Exception\InvalidSessionException;
+use App\Domain\Exception\RevokedSessionException;
 use App\Domain\Service\SessionValidationService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -51,7 +54,7 @@ class GuestGuardMiddleware implements MiddlewareInterface
             // If we are here, session is valid. Block access.
             if ($this->isApi) {
                 $response = new Response();
-                $response->getBody()->write(json_encode(['error' => 'Already authenticated.']) ?: '');
+                $response->getBody()->write(json_encode(['error' => 'Already authenticated.'], JSON_THROW_ON_ERROR));
                 return $response
                     ->withHeader('Content-Type', 'application/json')
                     ->withStatus(403);
@@ -61,7 +64,7 @@ class GuestGuardMiddleware implements MiddlewareInterface
                     ->withHeader('Location', '/dashboard')
                     ->withStatus(302);
             }
-        } catch (\Exception $e) {
+        } catch (InvalidSessionException | ExpiredSessionException | RevokedSessionException $e) {
             // Session is invalid/expired/revoked. Proceed as guest.
             return $handler->handle($request);
         }
