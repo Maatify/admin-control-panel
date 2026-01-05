@@ -217,10 +217,11 @@ class Container
             },
             PasswordService::class => function (ContainerInterface $c) {
                 $pepper = $_ENV['PASSWORD_PEPPER'] ?? '';
+                $oldPepper = $_ENV['PASSWORD_PEPPER_OLD'] ?? null;
                 if ($pepper === '') {
                     throw new Exception('PASSWORD_PEPPER env var is required');
                 }
-                return new PasswordService($pepper);
+                return new PasswordService($pepper, $oldPepper);
             },
             AdminAuthenticationService::class => function (ContainerInterface $c) {
                 $lookup = $c->get(AdminIdentifierLookupInterface::class);

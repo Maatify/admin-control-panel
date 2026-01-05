@@ -11,11 +11,12 @@ use RuntimeException;
 class PasswordServiceTest extends TestCase
 {
     private string $pepper = 'test-pepper';
+    private string $oldPepper = 'old-pepper';
     private PasswordService $service;
 
     protected function setUp(): void
     {
-        $this->service = new PasswordService($this->pepper);
+        $this->service = new PasswordService($this->pepper, $this->oldPepper);
     }
 
     public function testHashAndVerifySuccess(): void
@@ -27,6 +28,16 @@ class PasswordServiceTest extends TestCase
         $this->assertFalse($this->service->verify('wrong', $hash));
     }
 
+    public function testVerifyOldPepperSuccess(): void
+    {
+        // Simulate hash created with old pepper
+        $password = 'oldsecret';
+        $oldPeppered = hash_hmac('sha256', $password, $this->oldPepper);
+        $hash = password_hash($oldPeppered, PASSWORD_ARGON2ID);
+
+        $this->assertTrue($this->service->verify($password, $hash));
+    }
+
     public function testVerifyLegacyHash(): void
     {
         $password = 'legacy123';
@@ -36,7 +47,7 @@ class PasswordServiceTest extends TestCase
         $this->assertTrue($this->service->verify($password, $legacyHash));
     }
 
-    public function testVerifyFailsOnInvalidBoth(): void
+    public function testVerifyFailsOnInvalidAll(): void
     {
         $password = 'secret123';
         $hash = $this->service->hash($password);

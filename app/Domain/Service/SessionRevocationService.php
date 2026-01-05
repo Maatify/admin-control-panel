@@ -28,6 +28,7 @@ class SessionRevocationService
             // Retrieve session info for audit context before revoking
             $session = $this->repository->findSession($token);
             $actorId = $session ? (int)$session['admin_id'] : 0;
+            $sessionId = hash('sha256', $token);
 
             $this->repository->revokeSession($token);
 
@@ -38,7 +39,8 @@ class SessionRevocationService
                 null,
                 'MEDIUM',
                 [
-                    'token_prefix' => substr($token, 0, 8) . '...',
+                    // Log the Session ID prefix (Safe), NOT the Token prefix
+                    'session_id_prefix' => substr($sessionId, 0, 8) . '...',
                     'ip_address' => $this->clientInfoProvider->getIpAddress(),
                     'reason' => 'explicit_revocation'
                 ],
