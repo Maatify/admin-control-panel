@@ -5,18 +5,20 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Domain\Service\SessionValidationService;
+use App\Http\Auth\AuthSurface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
+// Phase 13.7 LOCK: Auth surface detection MUST use AuthSurface::isApi()
 /**
  * Guard Middleware for Session Validation.
  *
- * NOTE: Explicit Web vs API distinction logic is provisional (Phase 13 only).
- * This logic handles the different auth mechanisms (Bearer vs Cookie) and failure responses (Exception vs Redirect)
- * for the Web Surface Enablement. It will be formalized in a later phase.
- * No security decision is derived from the UI surface itself; this is purely for transport and response format handling.
+ * PHASE 13.7: Auth Boundary Lock & Regression Guard
+ * - STRICT Web vs API detection (Bearer header presence vs Cookie).
+ * - Explicit failure responses (401 JSON vs 302 Redirect).
+ * - Canonical exception handling.
  */
 class SessionGuardMiddleware implements MiddlewareInterface
 {
@@ -29,16 +31,19 @@ class SessionGuardMiddleware implements MiddlewareInterface
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        // Check for Bearer Token
-        $authHeader = $request->getHeaderLine('Authorization');
+        // 1. Detect Mode: API (Authorization Header) vs Web (Cookie)
+        // STRICT RULE: Presence of 'Authorization' header implies API intent.
+        $isApi = AuthSurface::isApi($request);
+
         $token = null;
 
-        if (!empty($authHeader) && str_starts_with($authHeader, 'Bearer ')) {
-            $token = substr($authHeader, 7);
-        }
-
-        // Check for Cookie if no Bearer Token
-        if ($token === null) {
+        if ($isApi) {
+            $authHeader = $request->getHeaderLine('Authorization');
+            if (str_starts_with($authHeader, 'Bearer ')) {
+                $token = substr($authHeader, 7);
+            }
+            // If header exists but not Bearer, token remains null -> Invalid Session
+        } else {
             $cookies = $request->getCookieParams();
             if (isset($cookies['auth_token'])) {
                 $token = $cookies['auth_token'];
@@ -46,7 +51,7 @@ class SessionGuardMiddleware implements MiddlewareInterface
         }
 
         if ($token === null) {
-            return $this->handleFailure($request, 'No session token provided.');
+            return $this->handleFailure($isApi, 'No session token provided.');
         }
 
         try {
@@ -54,22 +59,21 @@ class SessionGuardMiddleware implements MiddlewareInterface
             $request = $request->withAttribute('admin_id', $adminId);
             return $handler->handle($request);
         } catch (\App\Domain\Exception\InvalidSessionException | \App\Domain\Exception\ExpiredSessionException | \App\Domain\Exception\RevokedSessionException $e) {
-            return $this->handleFailure($request, $e->getMessage());
+            return $this->handleFailure($isApi, $e->getMessage());
         }
     }
 
-    private function handleFailure(ServerRequestInterface $request, string $message): ResponseInterface
+    private function handleFailure(bool $isApi, string $message): ResponseInterface
     {
-        // Detect if Web request based on Accept header
-        $acceptHeader = $request->getHeaderLine('Accept');
-        $isWeb = str_contains($acceptHeader, 'text/html');
-
-        if ($isWeb) {
+        if ($isApi) {
+            // API Failure: 401 Unauthorized (JSON)
+            $response = new \Slim\Psr7\Response();
+            $response->getBody()->write((string)json_encode(['error' => $message], JSON_THROW_ON_ERROR));
+            return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
+        } else {
+            // Web Failure: Redirect to Login
             $response = new \Slim\Psr7\Response();
             return $response->withHeader('Location', '/login')->withStatus(302);
         }
-
-        // API request: Throw exception
-        throw new \App\Domain\Exception\InvalidSessionException($message);
     }
 }
