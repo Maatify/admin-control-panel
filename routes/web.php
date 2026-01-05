@@ -90,6 +90,10 @@ return function (App $app) {
         $group->post('/admin/notifications/{id}/read', [\App\Http\Controllers\AdminNotificationReadController::class, 'markAsRead'])
             ->setName('admin.notifications.read')
             ->add(AuthorizationGuardMiddleware::class);
+
+        // Phase 13.4
+        $group->post('/logout', [\App\Http\Controllers\Web\LogoutController::class, 'logout'])
+            ->setName('auth.logout');
     })
     ->add(\App\Http\Middleware\ScopeGuardMiddleware::class)
     ->add(\App\Http\Middleware\SessionStateGuardMiddleware::class) // Phase 12 Session State Guard

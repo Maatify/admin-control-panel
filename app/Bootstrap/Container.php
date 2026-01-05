@@ -325,6 +325,21 @@ class Container
                     $view
                 );
             },
+            \App\Http\Controllers\Web\LogoutController::class => function (ContainerInterface $c) {
+                $sessionRepo = $c->get(AdminSessionRepositoryInterface::class);
+                $logger = $c->get(SecurityEventLoggerInterface::class);
+                $clientInfo = $c->get(ClientInfoProviderInterface::class);
+
+                assert($sessionRepo instanceof AdminSessionRepositoryInterface);
+                assert($logger instanceof SecurityEventLoggerInterface);
+                assert($clientInfo instanceof ClientInfoProviderInterface);
+
+                return new \App\Http\Controllers\Web\LogoutController(
+                    $sessionRepo,
+                    $logger,
+                    $clientInfo
+                );
+            },
             EmailVerificationController::class => function (ContainerInterface $c) {
                 $validator = $c->get(VerificationCodeValidatorInterface::class);
                 $generator = $c->get(VerificationCodeGeneratorInterface::class);
