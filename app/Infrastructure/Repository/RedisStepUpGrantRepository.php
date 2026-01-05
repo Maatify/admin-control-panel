@@ -92,7 +92,7 @@ class RedisStepUpGrantRepository implements StepUpGrantRepositoryInterface
                 new DateTimeImmutable((string)$decoded['issued_at']),
                 new DateTimeImmutable((string)$decoded['expires_at']),
                 (bool)$decoded['single_use'],
-                (array)($decoded['context_snapshot'] ?? [])
+                (array)$decoded['context_snapshot']
             );
         } catch (\Throwable $e) {
             return null;

@@ -17,9 +17,12 @@ class StepUpController
 
     public function verify(Request $request, Response $response): Response
     {
-        $data = json_decode((string)$request->getBody(), true);
-        $code = $data['code'] ?? '';
-        $scopeStr = $data['scope'] ?? null;
+        $data = $request->getParsedBody();
+        if (!is_array($data)) {
+            $data = [];
+        }
+        $code = isset($data['code']) ? (string)$data['code'] : '';
+        $scopeStr = isset($data['scope']) ? (string)$data['scope'] : null;
 
         $requestedScope = null;
         if ($scopeStr !== null) {

@@ -25,7 +25,7 @@ class ScopeGuardMiddleware implements MiddlewareInterface
         $adminId = $request->getAttribute('admin_id');
         if (!is_int($adminId)) {
             $response = new \Slim\Psr7\Response();
-            $response->getBody()->write(json_encode(['error' => 'Authentication required']));
+            $response->getBody()->write((string)json_encode(['error' => 'Authentication required'], JSON_THROW_ON_ERROR));
             return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
         }
 
@@ -33,7 +33,7 @@ class ScopeGuardMiddleware implements MiddlewareInterface
         if ($sessionId === null) {
              // Should not happen if SessionGuard works
              $response = new \Slim\Psr7\Response();
-             $response->getBody()->write(json_encode(['error' => 'Session required']));
+             $response->getBody()->write((string)json_encode(['error' => 'Session required'], JSON_THROW_ON_ERROR));
              return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
         }
 
@@ -50,7 +50,7 @@ class ScopeGuardMiddleware implements MiddlewareInterface
                  'code' => 'STEP_UP_REQUIRED',
                  'scope' => 'login'
              ];
-             $response->getBody()->write(json_encode($payload));
+             $response->getBody()->write((string)json_encode($payload, JSON_THROW_ON_ERROR));
              return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
         }
 
@@ -85,7 +85,7 @@ class ScopeGuardMiddleware implements MiddlewareInterface
                  'code' => 'STEP_UP_REQUIRED',
                  'scope' => $requiredScope->value
              ];
-             $response->getBody()->write(json_encode($payload));
+             $response->getBody()->write((string)json_encode($payload, JSON_THROW_ON_ERROR));
              return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
         }
 

@@ -164,18 +164,24 @@ readonly class StepUpService
         return SessionState::PENDING_STEP_UP;
     }
 
+    /**
+     * @param array<string, mixed> $details
+     */
     private function logSecurityEvent(int $adminId, string $sessionId, string $event, array $details): void
     {
         $details['session_id'] = $sessionId;
         $details['scope'] = Scope::LOGIN->value;
         $details['severity'] = 'error';
 
+        /** @var array<string, scalar> $context */
+        $context = $details;
+
         $this->auditLogger->log(new AuditEventDTO(
             $adminId,
             'security',
             $adminId,
             $event,
-            $details,
+            $context,
             '0.0.0.0',
             'system',
             new DateTimeImmutable()
