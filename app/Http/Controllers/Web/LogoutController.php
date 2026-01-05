@@ -25,7 +25,7 @@ readonly class LogoutController
              $this->sessionRepository->invalidateSession($cookies['auth_token']);
         }
 
-        // 2. Revoke Remember-Me
+        // 2. Revoke Remember-Me (Updated)
         if (isset($cookies['remember_me'])) {
             $this->rememberMeService->revoke($cookies['remember_me']);
         }

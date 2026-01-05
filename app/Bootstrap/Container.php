@@ -62,6 +62,7 @@ use App\Http\Controllers\Web\LoginController;
 use App\Http\Controllers\Web\LogoutController;
 use App\Http\Controllers\Web\TelegramConnectController;
 use App\Http\Controllers\Web\TwoFactorController;
+use App\Http\Middleware\RememberMeMiddleware;
 use App\Http\Middleware\ScopeGuardMiddleware;
 use App\Http\Middleware\SessionGuardMiddleware;
 use App\Http\Middleware\SessionStateGuardMiddleware;
@@ -479,10 +480,13 @@ class Container
             },
             SessionGuardMiddleware::class => function (ContainerInterface $c) {
                 $sessionService = $c->get(SessionValidationService::class);
-                $rememberMeService = $c->get(RememberMeService::class);
                 assert($sessionService instanceof SessionValidationService);
-                assert($rememberMeService instanceof RememberMeService);
-                return new SessionGuardMiddleware($sessionService, $rememberMeService);
+                return new SessionGuardMiddleware($sessionService);
+            },
+            RememberMeMiddleware::class => function (ContainerInterface $c) {
+                $service = $c->get(RememberMeService::class);
+                assert($service instanceof RememberMeService);
+                return new RememberMeMiddleware($service);
             },
             SessionStateGuardMiddleware::class => function (ContainerInterface $c) {
                 $service = $c->get(StepUpService::class);
@@ -504,26 +508,24 @@ class Container
 
             // Phase 13.5 Remember Me
             RememberMeRepositoryInterface::class => function (ContainerInterface $c) {
-                $pdoFactory = new PDOFactory(
-                    $_ENV['DB_HOST'] ?? 'localhost',
-                    $_ENV['DB_NAME'] ?? 'test',
-                    $_ENV['DB_USER'] ?? 'root',
-                    $_ENV['DB_PASS'] ?? ''
-                );
-                return new PdoRememberMeRepository($pdoFactory);
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new PdoRememberMeRepository($pdo);
             },
             RememberMeService::class => function (ContainerInterface $c) {
                 $repo = $c->get(RememberMeRepositoryInterface::class);
                 $sessionRepo = $c->get(AdminSessionRepositoryInterface::class);
+                $sessionValidationRepo = $c->get(AdminSessionValidationRepositoryInterface::class);
                 $audit = $c->get(AuditLoggerInterface::class);
                 $clientInfo = $c->get(ClientInfoProviderInterface::class);
 
                 assert($repo instanceof RememberMeRepositoryInterface);
                 assert($sessionRepo instanceof AdminSessionRepositoryInterface);
+                assert($sessionValidationRepo instanceof AdminSessionValidationRepositoryInterface);
                 assert($audit instanceof AuditLoggerInterface);
                 assert($clientInfo instanceof ClientInfoProviderInterface);
 
-                return new RememberMeService($repo, $sessionRepo, $audit, $clientInfo);
+                return new RememberMeService($repo, $sessionRepo, $sessionValidationRepo, $audit, $clientInfo);
             },
 
             // Phase Sx: Verification Code Infrastructure

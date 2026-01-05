@@ -8,6 +8,7 @@ use App\Http\Controllers\AdminNotificationPreferenceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NotificationQueryController;
 use App\Http\Middleware\AuthorizationGuardMiddleware;
+use App\Http\Middleware\RememberMeMiddleware;
 use App\Http\Middleware\SessionGuardMiddleware;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -28,7 +29,6 @@ return function (App $app) {
     $app->post('/login', [\App\Http\Controllers\Web\LoginController::class, 'login']);
     // Logout (Phase 13.5)
     $app->post('/logout', [\App\Http\Controllers\Web\LogoutController::class, 'logout']);
-
 
     $app->get('/verify-email', [\App\Http\Controllers\Web\EmailVerificationController::class, 'index']);
     $app->post('/verify-email', [\App\Http\Controllers\Web\EmailVerificationController::class, 'verify']);
@@ -95,8 +95,9 @@ return function (App $app) {
             ->add(AuthorizationGuardMiddleware::class);
     })
     ->add(\App\Http\Middleware\ScopeGuardMiddleware::class)
-    ->add(\App\Http\Middleware\SessionStateGuardMiddleware::class) // Phase 12 Session State Guard
-    ->add(SessionGuardMiddleware::class);
+    ->add(\App\Http\Middleware\SessionStateGuardMiddleware::class) // Phase 12
+    ->add(SessionGuardMiddleware::class)
+    ->add(RememberMeMiddleware::class); // Phase 13.5 (Must run before SessionGuard)
 
     // Phase 4
     $app->post('/auth/login', [AuthController::class, 'login']);

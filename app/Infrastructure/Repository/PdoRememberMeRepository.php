@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Infrastructure\Repository;
 
 use App\Domain\Contracts\RememberMeRepositoryInterface;
-use App\Infrastructure\Database\PDOFactory;
 use DateTimeImmutable;
 use PDO;
 
@@ -13,9 +12,9 @@ class PdoRememberMeRepository implements RememberMeRepositoryInterface
 {
     private PDO $pdo;
 
-    public function __construct(PDOFactory $pdoFactory)
+    public function __construct(PDO $pdo)
     {
-        $this->pdo = $pdoFactory->create();
+        $this->pdo = $pdo;
     }
 
     public function save(

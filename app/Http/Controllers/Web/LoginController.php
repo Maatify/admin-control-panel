@@ -49,9 +49,7 @@ readonly class LoginController
             // We get the token.
             $token = $this->authService->login($blindIndex, $dto->password);
 
-            // Resolve Admin ID (Need it for RememberMe)
-            // Ideally authService returns a DTO with token and admin_id, but strictly it returns string.
-            // We can look up the session to get the admin_id.
+            // Fetch session details to align cookie expiration
             $session = $this->sessionRepository->findSession($token);
             if ($session === null) {
                 throw new InvalidCredentialsException("Session creation failed.");
