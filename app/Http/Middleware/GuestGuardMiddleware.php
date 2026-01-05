@@ -16,26 +16,30 @@ use Slim\Psr7\Response;
 
 class GuestGuardMiddleware implements MiddlewareInterface
 {
-    public function __construct(private SessionValidationService $sessionValidationService)
-    {
+    public function __construct(
+        private SessionValidationService $sessionValidationService,
+        private bool $isApi = false
+    ) {
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $token = $this->extractToken($request);
 
+        // If no token, user is definitely a guest. Proceed.
         if ($token === null) {
             return $handler->handle($request);
         }
 
         try {
+            // Check if the request is already authenticated.
             $this->sessionValidationService->validate($token);
 
             // If we are here, the user is authenticated.
-            return $this->handleAuthenticated($request);
+            return $this->handleAuthenticated();
 
         } catch (InvalidSessionException | ExpiredSessionException | RevokedSessionException $e) {
-            // Token is invalid, treat as guest.
+            // Token is invalid (expired, revoked, or malformed). Treat as guest.
             return $handler->handle($request);
         }
     }
@@ -49,30 +53,26 @@ class GuestGuardMiddleware implements MiddlewareInterface
 
         $cookies = $request->getCookieParams();
         if (isset($cookies['auth_token'])) {
-            // Strict cast to string to satisfy PHPStan if cookie params are mixed
             return (string)$cookies['auth_token'];
         }
 
         return null;
     }
 
-    private function handleAuthenticated(ServerRequestInterface $request): ResponseInterface
+    private function handleAuthenticated(): ResponseInterface
     {
-        // Detect if Web request
-        $acceptHeader = $request->getHeaderLine('Accept');
-        $isWeb = str_contains($acceptHeader, 'text/html');
-
-        if ($isWeb) {
+        if ($this->isApi) {
+            // API Mode: Return 403 Forbidden
             $response = new Response();
-            return $response->withHeader('Location', '/dashboard')->withStatus(302);
+            $payload = json_encode(['error' => 'Already authenticated.'], JSON_THROW_ON_ERROR);
+            $response->getBody()->write($payload);
+            return $response
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(403);
         }
 
-        // For API, we strictly deny access to guest-only routes if authenticated.
+        // Web Mode: Redirect to Dashboard
         $response = new Response();
-        $payload = json_encode(['error' => 'Already authenticated.'], JSON_THROW_ON_ERROR);
-        $response->getBody()->write($payload);
-        return $response
-            ->withHeader('Content-Type', 'application/json')
-            ->withStatus(403);
+        return $response->withHeader('Location', '/dashboard')->withStatus(302);
     }
 }

@@ -8,13 +8,31 @@ use App\Http\Controllers\AdminNotificationPreferenceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NotificationQueryController;
 use App\Http\Middleware\AuthorizationGuardMiddleware;
+use App\Http\Middleware\GuestGuardMiddleware;
 use App\Http\Middleware\SessionGuardMiddleware;
+use App\Domain\Service\SessionValidationService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
 use Slim\Routing\RouteCollectorProxy;
 
 return function (App $app) {
+    // Retrieve Container for Manual Injection
+    $container = $app->getContainer();
+
+    // Create Configured Guards
+    // Web Guest Guard: Redirects to /dashboard if authenticated
+    $webGuestGuard = new GuestGuardMiddleware(
+        $container->get(SessionValidationService::class),
+        isApi: false
+    );
+
+    // API Guest Guard: Returns 403 JSON if authenticated
+    $apiGuestGuard = new GuestGuardMiddleware(
+        $container->get(SessionValidationService::class),
+        isApi: true
+    );
+
     $app->get('/health', function (Request $request, Response $response) {
         $payload = json_encode(['status' => 'ok']);
         $response->getBody()->write((string)$payload);
@@ -23,7 +41,7 @@ return function (App $app) {
             ->withStatus(200);
     });
 
-    // Guest Routes
+    // Web Guest Routes (Redirect if Auth)
     $app->group('', function (RouteCollectorProxy $group) {
         $group->get('/login', [\App\Http\Controllers\Web\LoginController::class, 'index']);
         $group->post('/login', [\App\Http\Controllers\Web\LoginController::class, 'login']);
@@ -31,10 +49,12 @@ return function (App $app) {
         $group->get('/verify-email', [\App\Http\Controllers\Web\EmailVerificationController::class, 'index']);
         $group->post('/verify-email', [\App\Http\Controllers\Web\EmailVerificationController::class, 'verify']);
         $group->post('/verify-email/resend', [\App\Http\Controllers\Web\EmailVerificationController::class, 'resend']);
+    })->add($webGuestGuard);
 
-        // Phase 4
-        $group->post('/auth/login', [AuthController::class, 'login']);
-    })->add(\App\Http\Middleware\GuestGuardMiddleware::class);
+    // API Guest Routes (403 if Auth)
+    // Phase 4
+    $app->post('/auth/login', [AuthController::class, 'login'])
+        ->add($apiGuestGuard);
 
     // Protected Routes
     $app->group('', function (RouteCollectorProxy $group) {
