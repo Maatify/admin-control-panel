@@ -154,8 +154,16 @@ class Container
             },
             AdminEmailVerificationService::class => function (ContainerInterface $c) {
                 $repo = $c->get(AdminEmailVerificationRepositoryInterface::class);
+                $auditWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
+                $clientInfo = $c->get(ClientInfoProviderInterface::class);
+                $pdo = $c->get(PDO::class);
+
                 assert($repo instanceof AdminEmailVerificationRepositoryInterface);
-                return new AdminEmailVerificationService($repo);
+                assert($auditWriter instanceof AuthoritativeSecurityAuditWriterInterface);
+                assert($clientInfo instanceof ClientInfoProviderInterface);
+                assert($pdo instanceof PDO);
+
+                return new AdminEmailVerificationService($repo, $auditWriter, $clientInfo, $pdo);
             },
             AdminIdentifierLookupInterface::class => function (ContainerInterface $c) {
                 return $c->get(AdminEmailRepository::class);
@@ -213,6 +221,19 @@ class Container
             },
             AdminSessionValidationRepositoryInterface::class => function (ContainerInterface $c) {
                 return $c->get(AdminSessionRepositoryInterface::class);
+            },
+            \App\Domain\Service\SessionRevocationService::class => function (ContainerInterface $c) {
+                $repo = $c->get(AdminSessionValidationRepositoryInterface::class);
+                $auditWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
+                $clientInfo = $c->get(ClientInfoProviderInterface::class);
+                $pdo = $c->get(PDO::class);
+
+                assert($repo instanceof AdminSessionValidationRepositoryInterface);
+                assert($auditWriter instanceof AuthoritativeSecurityAuditWriterInterface);
+                assert($clientInfo instanceof ClientInfoProviderInterface);
+                assert($pdo instanceof PDO);
+
+                return new \App\Domain\Service\SessionRevocationService($repo, $auditWriter, $clientInfo, $pdo);
             },
             RememberMeRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
@@ -635,17 +656,23 @@ class Container
                 $sessionRepo = $c->get(AdminSessionRepositoryInterface::class);
                 $securityLogger = $c->get(SecurityEventLoggerInterface::class);
                 $clientInfo = $c->get(ClientInfoProviderInterface::class);
+                $auditWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
+                $pdo = $c->get(PDO::class);
 
                 assert($rememberMeRepo instanceof RememberMeRepositoryInterface);
                 assert($sessionRepo instanceof AdminSessionRepositoryInterface);
                 assert($securityLogger instanceof SecurityEventLoggerInterface);
                 assert($clientInfo instanceof ClientInfoProviderInterface);
+                assert($auditWriter instanceof AuthoritativeSecurityAuditWriterInterface);
+                assert($pdo instanceof PDO);
 
                 return new RememberMeService(
                     $rememberMeRepo,
                     $sessionRepo,
                     $securityLogger,
-                    $clientInfo
+                    $clientInfo,
+                    $auditWriter,
+                    $pdo
                 );
             },
             RememberMeMiddleware::class => function (ContainerInterface $c) {

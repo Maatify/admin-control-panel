@@ -39,7 +39,7 @@ readonly class AdminAuthenticationService
 
     public function login(string $blindIndex, string $password): string
     {
-        $this->recoveryState->check();
+        $this->recoveryState->enforce(RecoveryStateService::ACTION_LOGIN);
 
         // 1. Look up Admin ID by Blind Index
         $adminId = $this->lookupRepository->findByBlindIndex($blindIndex);

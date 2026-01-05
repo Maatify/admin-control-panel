@@ -72,17 +72,6 @@ class RecoveryStateService
         }
     }
 
-    /**
-     * @deprecated Use enforce() instead.
-     */
-    public function check(): void
-    {
-        if ($this->isLocked()) {
-             // Fallback for legacy calls - assume generic blockage
-             $this->handleBlockedAction('legacy_check', null);
-        }
-    }
-
     private function handleBlockedAction(string $action, ?int $actorId): void
     {
         // 1. Emit Security Event

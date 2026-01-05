@@ -34,7 +34,7 @@ class RoleAssignmentService
         // 1. Recovery State Check
         // FIX 1: Authoritative Audit on Denial Path
         try {
-            $this->recoveryState->check();
+            $this->recoveryState->enforce(RecoveryStateService::ACTION_ROLE_ASSIGNMENT, $actorId);
         } catch (\Exception $e) {
              // We need to check scope for audit even here?
              // "payload MUST include ... scope_security (present|missing)"

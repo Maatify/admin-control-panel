@@ -36,7 +36,7 @@ readonly class StepUpService
 
     public function verifyTotp(int $adminId, string $sessionId, string $code, ?Scope $requestedScope = null): TotpVerificationResultDTO
     {
-        $this->recoveryState->check();
+        $this->recoveryState->enforce(RecoveryStateService::ACTION_OTP_VERIFY, $adminId);
 
         $secret = $this->totpSecretRepository->get($adminId);
         if ($secret === null) {
@@ -68,17 +68,17 @@ readonly class StepUpService
 
     public function enableTotp(int $adminId, string $sessionId, string $secret, string $code): bool
     {
-        $this->recoveryState->check();
+        $this->recoveryState->enforce(RecoveryStateService::ACTION_OTP_VERIFY, $adminId);
 
         if (!$this->totpService->verify($secret, $code)) {
             $this->logSecurityEvent($adminId, $sessionId, 'stepup_enroll_failed', ['reason' => 'invalid_code']);
             return false;
         }
 
-        $this->totpSecretRepository->save($adminId, $secret);
-
         $this->pdo->beginTransaction();
         try {
+            $this->totpSecretRepository->save($adminId, $secret);
+
             $this->issuePrimaryGrant($adminId, $sessionId);
 
             $this->auditLogger->log(new LegacyAuditEventDTO(
