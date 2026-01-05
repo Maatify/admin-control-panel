@@ -353,6 +353,28 @@ class Container
                 assert($service instanceof \App\Domain\Service\StepUpService);
                 return new \App\Http\Controllers\StepUpController($service);
             },
+
+            // Phase Sx: Verification Code Infrastructure
+            \App\Domain\Contracts\VerificationCodeRepositoryInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \App\Infrastructure\Repository\PdoVerificationCodeRepository($pdo);
+            },
+            \App\Domain\Contracts\VerificationCodePolicyResolverInterface::class => function (ContainerInterface $c) {
+                return new \App\Domain\Service\VerificationCodePolicyResolver();
+            },
+            \App\Domain\Contracts\VerificationCodeGeneratorInterface::class => function (ContainerInterface $c) {
+                $repo = $c->get(\App\Domain\Contracts\VerificationCodeRepositoryInterface::class);
+                $resolver = $c->get(\App\Domain\Contracts\VerificationCodePolicyResolverInterface::class);
+                assert($repo instanceof \App\Domain\Contracts\VerificationCodeRepositoryInterface);
+                assert($resolver instanceof \App\Domain\Contracts\VerificationCodePolicyResolverInterface);
+                return new \App\Domain\Service\VerificationCodeGenerator($repo, $resolver);
+            },
+            \App\Domain\Contracts\VerificationCodeValidatorInterface::class => function (ContainerInterface $c) {
+                $repo = $c->get(\App\Domain\Contracts\VerificationCodeRepositoryInterface::class);
+                assert($repo instanceof \App\Domain\Contracts\VerificationCodeRepositoryInterface);
+                return new \App\Domain\Service\VerificationCodeValidator($repo);
+            },
         ]);
 
         return $containerBuilder->build();
