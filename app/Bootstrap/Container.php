@@ -31,6 +31,7 @@ use App\Domain\Contracts\NotificationReadRepositoryInterface;
 use App\Domain\Contracts\NotificationRoutingInterface;
 use App\Domain\Contracts\NotificationSenderInterface;
 use App\Domain\Contracts\RolePermissionRepositoryInterface;
+use App\Domain\Contracts\RoleRepositoryInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\Contracts\StepUpGrantRepositoryInterface;
 use App\Domain\Contracts\TotpSecretRepositoryInterface;
@@ -45,6 +46,9 @@ use App\Domain\Service\AdminNotificationRoutingService;
 use App\Domain\Service\NotificationFailureHandler;
 use App\Domain\Service\RecoveryStateService;
 use App\Domain\Service\RememberMeService;
+use App\Domain\Service\RoleAssignmentService;
+use App\Domain\Service\RoleHierarchyComparator;
+use App\Domain\Service\RoleLevelResolver;
 use App\Domain\Service\StepUpService;
 use App\Domain\Service\VerificationCodeGenerator;
 use App\Domain\Service\VerificationCodePolicyResolver;
@@ -91,6 +95,7 @@ use App\Infrastructure\Repository\FailedNotificationRepository;
 use App\Infrastructure\Repository\NotificationReadRepository;
 use App\Infrastructure\Notifications\NullNotificationDispatcher;
 use App\Infrastructure\Repository\PdoAdminNotificationReadMarker;
+use App\Infrastructure\Repository\PdoRoleRepository;
 use App\Infrastructure\Repository\PdoStepUpGrantRepository;
 use App\Infrastructure\Repository\PdoVerificationCodeRepository;
 use App\Infrastructure\Repository\RedisStepUpGrantRepository;
@@ -227,6 +232,55 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new RolePermissionRepository($pdo);
+            },
+            RoleRepositoryInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new PdoRoleRepository($pdo);
+            },
+            RoleLevelResolver::class => function () {
+                return new RoleLevelResolver();
+            },
+            RoleHierarchyComparator::class => function (ContainerInterface $c) {
+                $adminRoleRepo = $c->get(AdminRoleRepositoryInterface::class);
+                $roleRepo = $c->get(RoleRepositoryInterface::class);
+                $resolver = $c->get(RoleLevelResolver::class);
+
+                assert($adminRoleRepo instanceof AdminRoleRepositoryInterface);
+                assert($roleRepo instanceof RoleRepositoryInterface);
+                assert($resolver instanceof RoleLevelResolver);
+
+                return new RoleHierarchyComparator($adminRoleRepo, $roleRepo, $resolver);
+            },
+            RoleAssignmentService::class => function (ContainerInterface $c) {
+                $recoveryState = $c->get(RecoveryStateService::class);
+                $stepUpService = $c->get(StepUpService::class);
+                $grantRepo = $c->get(StepUpGrantRepositoryInterface::class);
+                $hierarchyComparator = $c->get(RoleHierarchyComparator::class);
+                $adminRoleRepo = $c->get(AdminRoleRepositoryInterface::class);
+                $auditWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
+                $clientInfo = $c->get(ClientInfoProviderInterface::class);
+                $pdo = $c->get(PDO::class);
+
+                assert($recoveryState instanceof RecoveryStateService);
+                assert($stepUpService instanceof StepUpService);
+                assert($grantRepo instanceof StepUpGrantRepositoryInterface);
+                assert($hierarchyComparator instanceof RoleHierarchyComparator);
+                assert($adminRoleRepo instanceof AdminRoleRepositoryInterface);
+                assert($auditWriter instanceof AuthoritativeSecurityAuditWriterInterface);
+                assert($clientInfo instanceof ClientInfoProviderInterface);
+                assert($pdo instanceof PDO);
+
+                return new RoleAssignmentService(
+                    $recoveryState,
+                    $stepUpService,
+                    $grantRepo,
+                    $hierarchyComparator,
+                    $adminRoleRepo,
+                    $auditWriter,
+                    $clientInfo,
+                    $pdo
+                );
             },
             LoggerInterface::class => function () {
                 return new class extends AbstractLogger {
