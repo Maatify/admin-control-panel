@@ -226,3 +226,9 @@ CREATE TABLE admin_direct_permissions (
     CONSTRAINT fk_adp_permission_id FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE,
     INDEX idx_adp_lookup (admin_id, permission_id, expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE system_state (
+    state_key VARCHAR(64) PRIMARY KEY,
+    state_value VARCHAR(64) NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
