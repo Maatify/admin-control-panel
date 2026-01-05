@@ -236,11 +236,18 @@ class Container
             },
             \App\Http\Controllers\Web\LoginController::class => function (ContainerInterface $c) {
                 $authService = $c->get(AdminAuthenticationService::class);
+                $sessionRepo = $c->get(AdminSessionValidationRepositoryInterface::class);
                 $view = $c->get(Twig::class);
                 assert($authService instanceof AdminAuthenticationService);
+                assert($sessionRepo instanceof AdminSessionValidationRepositoryInterface);
                 assert($view instanceof Twig);
                 $blindIndexKey = $_ENV['EMAIL_BLIND_INDEX_KEY'] ?? '';
-                return new \App\Http\Controllers\Web\LoginController($authService, $blindIndexKey, $view);
+                return new \App\Http\Controllers\Web\LoginController(
+                    $authService,
+                    $sessionRepo,
+                    $blindIndexKey,
+                    $view
+                );
             },
             \App\Http\Controllers\Web\EmailVerificationController::class => function (ContainerInterface $c) {
                 $validator = $c->get(\App\Domain\Contracts\VerificationCodeValidatorInterface::class);

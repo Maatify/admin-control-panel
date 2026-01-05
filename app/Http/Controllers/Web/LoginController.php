@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Domain\DTO\LoginRequestDTO;
 use App\Domain\Exception\AuthStateException;
 use App\Domain\Exception\InvalidCredentialsException;
@@ -11,11 +12,13 @@ use App\Domain\Service\AdminAuthenticationService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
+use DateTimeImmutable;
 
 readonly class LoginController
 {
     public function __construct(
         private AdminAuthenticationService $authService,
+        private AdminSessionValidationRepositoryInterface $sessionRepository,
         private string $blindIndexKey,
         private Twig $view
     ) {
@@ -43,7 +46,37 @@ readonly class LoginController
             // We get the token.
             $token = $this->authService->login($blindIndex, $dto->password);
 
-            $response = $response->withHeader('Set-Cookie', "auth_token=$token; Path=/; HttpOnly; SameSite=Strict");
+            // Fetch session details to align cookie expiration
+            $session = $this->sessionRepository->findSession($token);
+            if ($session === null) {
+                // This should practically not happen immediately after creation
+                throw new InvalidCredentialsException("Session creation failed.");
+            }
+
+            $expiresAt = new DateTimeImmutable($session['expires_at']);
+            $now = new DateTimeImmutable();
+            $maxAge = $expiresAt->getTimestamp() - $now->getTimestamp();
+
+            // Ensure positive Max-Age
+            if ($maxAge < 0) {
+                $maxAge = 0;
+            }
+
+            // Determine Secure flag based on request scheme
+            $isSecure = $request->getUri()->getScheme() === 'https';
+            $secureFlag = $isSecure ? 'Secure;' : '';
+
+            $cookieHeader = sprintf(
+                "auth_token=%s; Path=/; HttpOnly; SameSite=Strict; Max-Age=%d; %s",
+                $token,
+                $maxAge,
+                $secureFlag
+            );
+
+            // Trim trailing semicolon/space if not secure
+            $cookieHeader = trim($cookieHeader, '; ');
+
+            $response = $response->withHeader('Set-Cookie', $cookieHeader);
 
             return $response->withHeader('Location', '/dashboard')->withStatus(302);
         } catch (AuthStateException $e) {
