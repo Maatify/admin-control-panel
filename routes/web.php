@@ -68,8 +68,17 @@ return function (App $app) {
         $group->post('/admin/notifications/{id}/read', [\App\Http\Controllers\AdminNotificationReadController::class, 'markAsRead'])
             ->setName('admin.notifications.read')
             ->add(AuthorizationGuardMiddleware::class);
-    })->add(SessionGuardMiddleware::class);
+    })
+    ->add(\App\Http\Middleware\ScopeGuardMiddleware::class)
+    ->add(\App\Http\Middleware\SessionStateGuardMiddleware::class) // Phase 12 Session State Guard
+    ->add(SessionGuardMiddleware::class);
 
     // Phase 4
     $app->post('/auth/login', [AuthController::class, 'login']);
+
+    // Phase 12
+    $app->group('/auth', function (RouteCollectorProxy $group) {
+        $group->post('/step-up', [\App\Http\Controllers\StepUpController::class, 'verify'])
+            ->setName('auth.stepup.verify');
+    })->add(SessionGuardMiddleware::class);
 };

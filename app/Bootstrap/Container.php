@@ -277,6 +277,54 @@ class Container
                 assert($securityReader instanceof \App\Domain\Contracts\AdminSecurityEventReaderInterface);
                 return new \App\Http\Controllers\AdminSecurityEventController($securityReader);
             },
+
+            // Phase 12
+            \App\Domain\Contracts\StepUpGrantRepositoryInterface::class => function (ContainerInterface $c) {
+                return new \App\Infrastructure\Repository\RedisStepUpGrantRepository(
+                    $_ENV['REDIS_HOST'] ?? '127.0.0.1',
+                    (int)($_ENV['REDIS_PORT'] ?? 6379)
+                );
+            },
+            \App\Domain\Contracts\TotpSecretRepositoryInterface::class => function (ContainerInterface $c) {
+                $storagePath = __DIR__ . '/../../storage/totp';
+                return new \App\Infrastructure\Repository\FileTotpSecretRepository($storagePath);
+            },
+            \App\Domain\Contracts\TotpServiceInterface::class => function (ContainerInterface $c) {
+                return new \App\Infrastructure\Service\Google2faTotpService();
+            },
+            \App\Domain\Service\StepUpService::class => function (ContainerInterface $c) {
+                 $grantRepo = $c->get(\App\Domain\Contracts\StepUpGrantRepositoryInterface::class);
+                 $secretRepo = $c->get(\App\Domain\Contracts\TotpSecretRepositoryInterface::class);
+                 $totpService = $c->get(\App\Domain\Contracts\TotpServiceInterface::class);
+                 $auditLogger = $c->get(\App\Domain\Contracts\AuditLoggerInterface::class);
+
+                 assert($grantRepo instanceof \App\Domain\Contracts\StepUpGrantRepositoryInterface);
+                 assert($secretRepo instanceof \App\Domain\Contracts\TotpSecretRepositoryInterface);
+                 assert($totpService instanceof \App\Domain\Contracts\TotpServiceInterface);
+                 assert($auditLogger instanceof \App\Domain\Contracts\AuditLoggerInterface);
+
+                 return new \App\Domain\Service\StepUpService(
+                     $grantRepo,
+                     $secretRepo,
+                     $totpService,
+                     $auditLogger
+                 );
+            },
+            \App\Http\Middleware\SessionStateGuardMiddleware::class => function (ContainerInterface $c) {
+                $service = $c->get(\App\Domain\Service\StepUpService::class);
+                assert($service instanceof \App\Domain\Service\StepUpService);
+                return new \App\Http\Middleware\SessionStateGuardMiddleware($service);
+            },
+            \App\Http\Middleware\ScopeGuardMiddleware::class => function (ContainerInterface $c) {
+                $service = $c->get(\App\Domain\Service\StepUpService::class);
+                assert($service instanceof \App\Domain\Service\StepUpService);
+                return new \App\Http\Middleware\ScopeGuardMiddleware($service);
+            },
+            \App\Http\Controllers\StepUpController::class => function (ContainerInterface $c) {
+                $service = $c->get(\App\Domain\Service\StepUpService::class);
+                assert($service instanceof \App\Domain\Service\StepUpService);
+                return new \App\Http\Controllers\StepUpController($service);
+            },
         ]);
 
         return $containerBuilder->build();

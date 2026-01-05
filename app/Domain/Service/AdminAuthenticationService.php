@@ -83,7 +83,7 @@ readonly class AdminAuthenticationService
             $adminId, // Actor
             'admin', // Target Type
             $adminId, // Target ID
-            'login', // Action
+            'login_credentials_verified', // Action
             [], // Changes
             $this->clientInfoProvider->getIpAddress(),
             $this->clientInfoProvider->getUserAgent(),
