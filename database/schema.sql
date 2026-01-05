@@ -1,5 +1,6 @@
 SET FOREIGN_KEY_CHECKS=0;
 
+DROP TABLE IF EXISTS admin_direct_permissions;
 DROP TABLE IF EXISTS step_up_grants;
 DROP TABLE IF EXISTS audit_outbox;
 DROP TABLE IF EXISTS verification_codes;
@@ -204,6 +205,7 @@ CREATE TABLE step_up_grants (
     admin_id INT NOT NULL,
     session_id VARCHAR(64) NOT NULL,
     scope VARCHAR(64) NOT NULL,
+    risk_context_hash VARCHAR(64) NOT NULL,
     issued_at DATETIME NOT NULL,
     expires_at DATETIME NOT NULL,
     single_use TINYINT(1) NOT NULL DEFAULT 0,
@@ -211,4 +213,16 @@ CREATE TABLE step_up_grants (
     PRIMARY KEY (admin_id, session_id, scope),
     CONSTRAINT fk_sug_admin_id FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE CASCADE,
     CONSTRAINT fk_sug_session_id FOREIGN KEY (session_id) REFERENCES admin_sessions(session_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE admin_direct_permissions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    admin_id INT NOT NULL,
+    permission_id INT NOT NULL,
+    is_allowed TINYINT(1) NOT NULL,
+    granted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at DATETIME NULL,
+    CONSTRAINT fk_adp_admin_id FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE CASCADE,
+    CONSTRAINT fk_adp_permission_id FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE,
+    INDEX idx_adp_lookup (admin_id, permission_id, expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

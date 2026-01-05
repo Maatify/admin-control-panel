@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Service;
 
-use App\Domain\Contracts\AuditLoggerInterface;
-use App\Domain\Contracts\TransactionalAuditWriterInterface;
+use App\Domain\Contracts\TelemetryAuditLoggerInterface;
+use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
+use App\Domain\Contracts\ClientInfoProviderInterface;
 use App\Domain\Contracts\StepUpGrantRepositoryInterface;
 use App\Domain\Contracts\TotpSecretRepositoryInterface;
 use App\Domain\Contracts\TotpServiceInterface;
@@ -25,14 +26,18 @@ readonly class StepUpService
         private StepUpGrantRepositoryInterface $grantRepository,
         private TotpSecretRepositoryInterface $totpSecretRepository,
         private TotpServiceInterface $totpService,
-        private AuditLoggerInterface $auditLogger,
-        private TransactionalAuditWriterInterface $outboxWriter,
+        private TelemetryAuditLoggerInterface $auditLogger,
+        private AuthoritativeSecurityAuditWriterInterface $outboxWriter,
+        private ClientInfoProviderInterface $clientInfoProvider,
+        private RecoveryStateService $recoveryState,
         private PDO $pdo
     ) {
     }
 
     public function verifyTotp(int $adminId, string $sessionId, string $code, ?Scope $requestedScope = null): TotpVerificationResultDTO
     {
+        $this->recoveryState->check();
+
         $secret = $this->totpSecretRepository->get($adminId);
         if ($secret === null) {
              $this->logSecurityEvent($adminId, $sessionId, 'stepup_primary_failed', ['reason' => 'no_totp_enrolled']);
@@ -63,6 +68,8 @@ readonly class StepUpService
 
     public function enableTotp(int $adminId, string $sessionId, string $secret, string $code): bool
     {
+        $this->recoveryState->check();
+
         if (!$this->totpService->verify($secret, $code)) {
             $this->logSecurityEvent($adminId, $sessionId, 'stepup_enroll_failed', ['reason' => 'invalid_code']);
             return false;
@@ -111,6 +118,7 @@ readonly class StepUpService
             $adminId,
             $sessionId,
             Scope::LOGIN, // Primary Scope
+            $this->getRiskHash(),
             new DateTimeImmutable(),
             new DateTimeImmutable('+2 hours'), // Match session expiry usually
             false
@@ -147,6 +155,7 @@ readonly class StepUpService
             $adminId,
             $sessionId,
             $scope,
+            $this->getRiskHash(),
             new DateTimeImmutable(),
             new DateTimeImmutable('+15 minutes'), // Scoped grants are short-lived
             false
@@ -220,6 +229,30 @@ readonly class StepUpService
             return false;
         }
 
+        // Verify Risk Context
+        if (!hash_equals($grant->riskContextHash, $this->getRiskHash())) {
+            $this->logSecurityEvent($adminId, $sessionId, 'stepup_risk_mismatch', ['reason' => 'context_changed']);
+            // Invalidate strictly
+            $this->pdo->beginTransaction();
+            try {
+                $this->grantRepository->revoke($adminId, $sessionId, $scope);
+                $this->outboxWriter->write(new AuditEventDTO(
+                    $adminId,
+                    'stepup_revoked_risk',
+                    'grant',
+                    $adminId,
+                    'HIGH',
+                    ['session_id' => $sessionId, 'scope' => $scope->value],
+                    bin2hex(random_bytes(16)),
+                    new DateTimeImmutable()
+                ));
+                $this->pdo->commit();
+            } catch (\Throwable $e) {
+                $this->pdo->rollBack();
+            }
+            return false;
+        }
+
         if ($grant->expiresAt < new DateTimeImmutable()) {
             return false;
         }
@@ -269,7 +302,10 @@ readonly class StepUpService
         $primaryGrant = $this->grantRepository->find($adminId, $sessionId, Scope::LOGIN);
 
         if ($primaryGrant !== null && $primaryGrant->expiresAt > new DateTimeImmutable()) {
-            return SessionState::ACTIVE;
+            // Verify Risk Context for Primary Grant too
+            if (hash_equals($primaryGrant->riskContextHash, $this->getRiskHash())) {
+                return SessionState::ACTIVE;
+            }
         }
 
         return SessionState::PENDING_STEP_UP;
@@ -294,5 +330,12 @@ readonly class StepUpService
             'system',
             new DateTimeImmutable()
         ));
+    }
+
+    private function getRiskHash(): string
+    {
+        $ip = $this->clientInfoProvider->getIpAddress();
+        $ua = $this->clientInfoProvider->getUserAgent();
+        return hash('sha256', $ip . '|' . $ua);
     }
 }

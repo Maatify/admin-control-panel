@@ -17,6 +17,7 @@ readonly class StepUpGrant implements JsonSerializable
         public int $adminId,
         public string $sessionId,
         public Scope $scope,
+        public string $riskContextHash,
         public DateTimeImmutable $issuedAt,
         public DateTimeImmutable $expiresAt,
         public bool $singleUse,
@@ -25,7 +26,7 @@ readonly class StepUpGrant implements JsonSerializable
     }
 
     /**
-     * @return array{admin_id: int, session_id: string, scope: string, issued_at: string, expires_at: string, single_use: bool, context_snapshot: array<string, mixed>}
+     * @return array{admin_id: int, session_id: string, scope: string, risk_context_hash: string, issued_at: string, expires_at: string, single_use: bool, context_snapshot: array<string, mixed>}
      */
     public function jsonSerialize(): array
     {
@@ -33,6 +34,7 @@ readonly class StepUpGrant implements JsonSerializable
             'admin_id' => $this->adminId,
             'session_id' => $this->sessionId,
             'scope' => $this->scope->value,
+            'risk_context_hash' => $this->riskContextHash,
             'issued_at' => $this->issuedAt->format(DateTimeImmutable::ATOM),
             'expires_at' => $this->expiresAt->format(DateTimeImmutable::ATOM),
             'single_use' => $this->singleUse,

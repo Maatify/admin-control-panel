@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Service;
 
+use App\Domain\Contracts\AdminDirectPermissionRepositoryInterface;
 use App\Domain\Contracts\AdminRoleRepositoryInterface;
-use App\Domain\Contracts\AuditLoggerInterface;
+use App\Domain\Contracts\TelemetryAuditLoggerInterface;
 use App\Domain\Contracts\ClientInfoProviderInterface;
-use App\Domain\Contracts\TransactionalAuditWriterInterface;
+use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\Contracts\RolePermissionRepositoryInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\DTO\AuditEventDTO;
@@ -23,10 +24,12 @@ readonly class AuthorizationService
     public function __construct(
         private AdminRoleRepositoryInterface $adminRoleRepository,
         private RolePermissionRepositoryInterface $rolePermissionRepository,
-        private AuditLoggerInterface $auditLogger,
+        private AdminDirectPermissionRepositoryInterface $directPermissionRepository,
+        private TelemetryAuditLoggerInterface $auditLogger,
         private SecurityEventLoggerInterface $securityLogger,
         private ClientInfoProviderInterface $clientInfoProvider,
-        private TransactionalAuditWriterInterface $outboxWriter,
+        private AuthoritativeSecurityAuditWriterInterface $outboxWriter,
+        private RecoveryStateService $recoveryState,
         private PDO $pdo
     ) {
     }
@@ -43,40 +46,75 @@ readonly class AuthorizationService
                 $this->clientInfoProvider->getUserAgent(),
                 new DateTimeImmutable()
             ));
-            // "Unknown permission -> UnauthorizedException"
             throw new UnauthorizedException("Permission '$permission' does not exist.");
         }
 
+        // 1. Direct Permissions (Explicit Deny/Allow)
+        $directPermissions = $this->directPermissionRepository->getActivePermissions($adminId);
+        foreach ($directPermissions as $direct) {
+            if ($direct['permission'] === $permission) {
+                if (!$direct['is_allowed']) {
+                    $this->securityLogger->log(new SecurityEventDTO(
+                        $adminId,
+                        'permission_denied',
+                        'warning',
+                        ['reason' => 'explicit_deny', 'permission' => $permission],
+                        $this->clientInfoProvider->getIpAddress(),
+                        $this->clientInfoProvider->getUserAgent(),
+                        new DateTimeImmutable()
+                    ));
+                    throw new PermissionDeniedException("Explicit deny for '$permission'.");
+                }
+
+                // Explicit Allow
+                $this->auditLogger->log(new LegacyAuditEventDTO(
+                    $adminId,
+                    'system_capability',
+                    null,
+                    'access_granted',
+                    ['permission' => $permission, 'source' => 'direct'],
+                    $this->clientInfoProvider->getIpAddress(),
+                    $this->clientInfoProvider->getUserAgent(),
+                    new DateTimeImmutable()
+                ));
+                return;
+            }
+        }
+
+        // 2. Role Permissions
         $roleIds = $this->adminRoleRepository->getRoleIds($adminId);
 
-        if (!$this->rolePermissionRepository->hasPermission($roleIds, $permission)) {
-            $this->securityLogger->log(new SecurityEventDTO(
+        if ($this->rolePermissionRepository->hasPermission($roleIds, $permission)) {
+            $this->auditLogger->log(new LegacyAuditEventDTO(
                 $adminId,
-                'permission_denied',
-                'warning',
-                ['reason' => 'missing_permission', 'permission' => $permission],
+                'system_capability',
+                null,
+                'access_granted',
+                ['permission' => $permission],
                 $this->clientInfoProvider->getIpAddress(),
                 $this->clientInfoProvider->getUserAgent(),
                 new DateTimeImmutable()
             ));
-            // "Missing permission -> PermissionDeniedException"
-            throw new PermissionDeniedException("Admin $adminId lacks permission '$permission'.");
+            return;
         }
 
-        $this->auditLogger->log(new LegacyAuditEventDTO(
+        // Default Deny
+        $this->securityLogger->log(new SecurityEventDTO(
             $adminId,
-            'system_capability',
-            null,
-            'access_granted',
-            ['permission' => $permission],
+            'permission_denied',
+            'warning',
+            ['reason' => 'missing_permission', 'permission' => $permission],
             $this->clientInfoProvider->getIpAddress(),
             $this->clientInfoProvider->getUserAgent(),
             new DateTimeImmutable()
         ));
+        throw new PermissionDeniedException("Admin $adminId lacks permission '$permission'.");
     }
 
     public function assignRole(int $adminId, int $roleId): void
     {
+        $this->recoveryState->check();
+
         $this->pdo->beginTransaction();
         try {
             $this->adminRoleRepository->assign($adminId, $roleId);

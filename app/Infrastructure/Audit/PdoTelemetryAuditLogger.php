@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Repository;
+namespace App\Infrastructure\Audit;
 
-use App\Domain\Contracts\AuditLoggerInterface;
+use App\Domain\Contracts\TelemetryAuditLoggerInterface;
 use App\Domain\DTO\LegacyAuditEventDTO;
 use PDO;
 
-class AuditLogRepository implements AuditLoggerInterface
+class PdoTelemetryAuditLogger implements TelemetryAuditLoggerInterface
 {
     private PDO $pdo;
 

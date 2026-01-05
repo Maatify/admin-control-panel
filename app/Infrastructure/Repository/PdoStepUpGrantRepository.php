@@ -22,9 +22,10 @@ class PdoStepUpGrantRepository implements StepUpGrantRepositoryInterface
     public function save(StepUpGrant $grant): void
     {
         $stmt = $this->pdo->prepare('
-            INSERT INTO step_up_grants (admin_id, session_id, scope, issued_at, expires_at, single_use, context_snapshot)
-            VALUES (:admin_id, :session_id, :scope, :issued_at, :expires_at, :single_use, :context_snapshot)
+            INSERT INTO step_up_grants (admin_id, session_id, scope, risk_context_hash, issued_at, expires_at, single_use, context_snapshot)
+            VALUES (:admin_id, :session_id, :scope, :risk_context_hash, :issued_at, :expires_at, :single_use, :context_snapshot)
             ON DUPLICATE KEY UPDATE
+                risk_context_hash = VALUES(risk_context_hash),
                 issued_at = VALUES(issued_at),
                 expires_at = VALUES(expires_at),
                 single_use = VALUES(single_use),
@@ -37,6 +38,7 @@ class PdoStepUpGrantRepository implements StepUpGrantRepositoryInterface
             ':admin_id' => $grant->adminId,
             ':session_id' => $grant->sessionId,
             ':scope' => $grant->scope->value,
+            ':risk_context_hash' => $grant->riskContextHash,
             ':issued_at' => $grant->issuedAt->format('Y-m-d H:i:s'),
             ':expires_at' => $grant->expiresAt->format('Y-m-d H:i:s'),
             ':single_use' => $grant->singleUse ? 1 : 0,
@@ -47,7 +49,7 @@ class PdoStepUpGrantRepository implements StepUpGrantRepositoryInterface
     public function find(int $adminId, string $sessionId, Scope $scope): ?StepUpGrant
     {
         $stmt = $this->pdo->prepare('
-            SELECT admin_id, session_id, scope, issued_at, expires_at, single_use, context_snapshot
+            SELECT admin_id, session_id, scope, risk_context_hash, issued_at, expires_at, single_use, context_snapshot
             FROM step_up_grants
             WHERE admin_id = :admin_id AND session_id = :session_id AND scope = :scope
         ');
@@ -65,7 +67,7 @@ class PdoStepUpGrantRepository implements StepUpGrantRepositoryInterface
         }
 
         // PHPStan hint
-        /** @var array{admin_id: int|string, session_id: string, scope: string, issued_at: string, expires_at: string, single_use: int|string, context_snapshot: string|null} $result */
+        /** @var array{admin_id: int|string, session_id: string, scope: string, risk_context_hash: string, issued_at: string, expires_at: string, single_use: int|string, context_snapshot: string|null} $result */
 
         $contextSnapshot = [];
         if (!empty($result['context_snapshot'])) {
@@ -79,6 +81,7 @@ class PdoStepUpGrantRepository implements StepUpGrantRepositoryInterface
             (int)$result['admin_id'],
             (string)$result['session_id'],
             Scope::from((string)$result['scope']),
+            (string)$result['risk_context_hash'],
             new DateTimeImmutable((string)$result['issued_at']),
             new DateTimeImmutable((string)$result['expires_at']),
             (bool)$result['single_use'],

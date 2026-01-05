@@ -8,9 +8,9 @@ use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
 use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
-use App\Domain\Contracts\AuditLoggerInterface;
+use App\Domain\Contracts\TelemetryAuditLoggerInterface;
 use App\Domain\Contracts\ClientInfoProviderInterface;
-use App\Domain\Contracts\TransactionalAuditWriterInterface;
+use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\DTO\AuditEventDTO;
 use App\Domain\DTO\LegacyAuditEventDTO;
@@ -28,16 +28,19 @@ readonly class AdminAuthenticationService
         private AdminEmailVerificationRepositoryInterface $verificationRepository,
         private AdminPasswordRepositoryInterface $passwordRepository,
         private AdminSessionRepositoryInterface $sessionRepository,
-        private AuditLoggerInterface $auditLogger,
+        private TelemetryAuditLoggerInterface $auditLogger,
         private SecurityEventLoggerInterface $securityLogger,
         private ClientInfoProviderInterface $clientInfoProvider,
-        private TransactionalAuditWriterInterface $outboxWriter,
+        private AuthoritativeSecurityAuditWriterInterface $outboxWriter,
+        private RecoveryStateService $recoveryState,
         private PDO $pdo
     ) {
     }
 
     public function login(string $blindIndex, string $password): string
     {
+        $this->recoveryState->check();
+
         // 1. Look up Admin ID by Blind Index
         $adminId = $this->lookupRepository->findByBlindIndex($blindIndex);
         if ($adminId === null) {
