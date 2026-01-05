@@ -44,6 +44,9 @@ return function (App $app) {
             ->setName('2fa.verify');
         $group->post('/2fa/verify', [\App\Http\Controllers\Web\TwoFactorController::class, 'doVerify']);
 
+        // Phase 13.3
+        $group->get('/notifications/telegram/connect', [\App\Http\Controllers\Web\TelegramConnectController::class, 'index']);
+
         $group->post('/admins', [AdminController::class, 'create'])
             ->setName('admin.create')
             ->add(AuthorizationGuardMiddleware::class);

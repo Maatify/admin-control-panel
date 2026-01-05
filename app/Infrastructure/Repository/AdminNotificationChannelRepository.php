@@ -76,4 +76,26 @@ class AdminNotificationChannelRepository implements AdminNotificationChannelRepo
         /** @var array<string, scalar> $config */
         return $config;
     }
+
+    public function registerChannel(int $adminId, string $channelType, array $config): void
+    {
+        $stmt = $this->pdo->prepare("SELECT id FROM admin_notification_channels WHERE admin_id = ? AND channel_type = ?");
+        $stmt->execute([$adminId, $channelType]);
+        $id = $stmt->fetchColumn();
+
+        $configJson = json_encode($config);
+        if ($configJson === false) {
+            throw new RuntimeException("Invalid config JSON");
+        }
+
+        if ($id !== false) {
+            // Update
+            $stmt = $this->pdo->prepare("UPDATE admin_notification_channels SET config = ?, is_enabled = 1 WHERE id = ?");
+            $stmt->execute([$configJson, $id]);
+        } else {
+            // Insert
+            $stmt = $this->pdo->prepare("INSERT INTO admin_notification_channels (admin_id, channel_type, config, is_enabled) VALUES (?, ?, ?, 1)");
+            $stmt->execute([$adminId, $channelType, $configJson]);
+        }
+    }
 }

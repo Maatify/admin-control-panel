@@ -265,6 +265,20 @@ class Container
                     $blindIndexKey
                 );
             },
+            \App\Http\Controllers\Web\TelegramConnectController::class => function (ContainerInterface $c) {
+                $generator = $c->get(\App\Domain\Contracts\VerificationCodeGeneratorInterface::class);
+                $view = $c->get(Twig::class);
+                assert($generator instanceof \App\Domain\Contracts\VerificationCodeGeneratorInterface);
+                assert($view instanceof Twig);
+                return new \App\Http\Controllers\Web\TelegramConnectController($generator, $view);
+            },
+            \App\Infrastructure\Notification\TelegramHandler::class => function (ContainerInterface $c) {
+                $validator = $c->get(\App\Domain\Contracts\VerificationCodeValidatorInterface::class);
+                $repo = $c->get(\App\Domain\Contracts\AdminNotificationChannelRepositoryInterface::class);
+                assert($validator instanceof \App\Domain\Contracts\VerificationCodeValidatorInterface);
+                assert($repo instanceof \App\Domain\Contracts\AdminNotificationChannelRepositoryInterface);
+                return new \App\Infrastructure\Notification\TelegramHandler($validator, $repo);
+            },
             \App\Http\Controllers\Web\DashboardController::class => function (ContainerInterface $c) {
                 $view = $c->get(Twig::class);
                 assert($view instanceof Twig);

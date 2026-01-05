@@ -6,7 +6,9 @@ namespace App\Domain\Service;
 
 use App\Domain\Contracts\VerificationCodeRepositoryInterface;
 use App\Domain\Contracts\VerificationCodeValidatorInterface;
+use App\Domain\DTO\VerificationCode;
 use App\Domain\DTO\VerificationResult;
+use App\Domain\Enum\VerificationCodeStatus;
 use DateTimeImmutable;
 
 class VerificationCodeValidator implements VerificationCodeValidatorInterface
@@ -16,13 +18,12 @@ class VerificationCodeValidator implements VerificationCodeValidatorInterface
     ) {
     }
 
-    public function validate(string $subjectType, string $subjectIdentifier, string $purpose, string $plainCode): VerificationResult
+    public function validate(string $identityType, string $identityId, string $purpose, string $plainCode): VerificationResult
     {
         // 1. Find active code
-        $code = $this->repository->findActive($subjectType, $subjectIdentifier, $purpose);
+        $code = $this->repository->findActive($identityType, $identityId, $purpose);
 
         if ($code === null) {
-            // Generic failure
             return VerificationResult::failure('Invalid code.');
         }
 
@@ -53,6 +54,43 @@ class VerificationCodeValidator implements VerificationCodeValidatorInterface
         // 5. Mark used on success
         $this->repository->markUsed($code->id);
 
-        return VerificationResult::success();
+        return VerificationResult::success($code->identityType, $code->identityId, $code->purpose);
+    }
+
+    public function validateByCode(string $plainCode): VerificationResult
+    {
+        // 1. Hash the input
+        $codeHash = hash('sha256', $plainCode);
+
+        // 2. Lookup by hash
+        $code = $this->repository->findByCodeHash($codeHash);
+
+        if ($code === null) {
+            // No matching code found (or hash mismatch implies not found)
+            return VerificationResult::failure('Invalid code.');
+        }
+
+        // 3. Check status
+        if ($code->status !== VerificationCodeStatus::ACTIVE) {
+            return VerificationResult::failure('Invalid code.');
+        }
+
+        // 4. Check expiry
+        if ($code->expiresAt < new DateTimeImmutable()) {
+            $this->repository->expire($code->id);
+            return VerificationResult::failure('Invalid code.');
+        }
+
+        // 5. Check attempts
+        // Even if hash matches, maybe it was locked out previously?
+        if ($code->attempts >= $code->maxAttempts) {
+            $this->repository->expire($code->id);
+            return VerificationResult::failure('Invalid code.');
+        }
+
+        // 6. Success -> Mark used
+        $this->repository->markUsed($code->id);
+
+        return VerificationResult::success($code->identityType, $code->identityId, $code->purpose);
     }
 }

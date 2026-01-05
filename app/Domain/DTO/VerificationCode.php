@@ -11,8 +11,8 @@ readonly class VerificationCode
 {
     public function __construct(
         public int $id,
-        public string $subjectType,
-        public string $subjectIdentifier,
+        public string $identityType,
+        public string $identityId,
         public string $purpose,
         public string $codeHash,
         public VerificationCodeStatus $status,

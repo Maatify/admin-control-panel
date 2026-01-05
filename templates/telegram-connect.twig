@@ -1,0 +1,12 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+<h1>Connect Telegram</h1>
+<p>To receive notifications on Telegram, please follow these steps:</p>
+<ol>
+    <li>Open our Telegram Bot: <a href="https://t.me/YourBotName" target="_blank">@YourBotName</a></li>
+    <li>Send the following command:</li>
+</ol>
+<pre>/start {{ otp }}</pre>
+<p>This code is valid for a limited time.</p>
+{% endblock %}
