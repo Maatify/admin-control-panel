@@ -11,6 +11,7 @@ use App\Domain\DTO\SecurityEventDTO;
 use App\Domain\Exception\RecoveryLockException;
 use DateTimeImmutable;
 use PDO;
+use RuntimeException;
 
 class RecoveryStateService
 {
@@ -37,7 +38,8 @@ class RecoveryStateService
     public function __construct(
         private AuthoritativeSecurityAuditWriterInterface $auditWriter,
         private SecurityEventLoggerInterface $securityLogger,
-        private PDO $pdo
+        private PDO $pdo,
+        private string $storagePath
     ) {
     }
 
@@ -72,6 +74,108 @@ class RecoveryStateService
         }
     }
 
+    public function monitorState(): void
+    {
+        $currentState = $this->getSystemState();
+        $storedState = $this->readStoredState();
+
+        if ($currentState !== $storedState) {
+            $this->handleTransition($storedState, $currentState);
+        }
+    }
+
+    private function readStoredState(): string
+    {
+        if (!file_exists($this->storagePath)) {
+            // Default assumption if file missing: ACTIVE
+            // This handles initial boot or fresh install gracefully
+            return self::SYSTEM_STATE_ACTIVE;
+        }
+
+        $content = file_get_contents($this->storagePath);
+        if ($content === false) {
+             // If we can't read, fail closed? Or assume ACTIVE?
+             // If we can't read, we can't monitor transitions reliably.
+             // But crashing on every request due to file permission is harsh.
+             // However, strictly, "NO silent state".
+             // We'll throw.
+             throw new RuntimeException("Unable to read recovery state file.");
+        }
+
+        $state = trim($content);
+        // Basic validation
+        if (!in_array($state, [self::SYSTEM_STATE_ACTIVE, self::SYSTEM_STATE_RECOVERY_LOCKED], true)) {
+            // Corrupt file? Assume ACTIVE to trigger transition to current if needed, or throw?
+            // If corrupt, we should probably reset/detect.
+            // Let's return UNKNOWN to force a transition log if current is valid.
+            return 'UNKNOWN';
+        }
+
+        return $state;
+    }
+
+    private function writeStoredState(string $state): void
+    {
+        // Ensure directory exists
+        $dir = dirname($this->storagePath);
+        if (!is_dir($dir)) {
+            if (!mkdir($dir, 0755, true) && !is_dir($dir)) {
+                 throw new RuntimeException("Unable to create recovery state directory.");
+            }
+        }
+
+        if (file_put_contents($this->storagePath, $state) === false) {
+            throw new RuntimeException("Unable to write recovery state file.");
+        }
+    }
+
+    private function handleTransition(string $previousState, string $currentState): void
+    {
+        // Determine action name
+        if ($currentState === self::SYSTEM_STATE_RECOVERY_LOCKED) {
+            $action = 'recovery_entered';
+        } elseif ($currentState === self::SYSTEM_STATE_ACTIVE) {
+            $action = 'recovery_exited';
+        } else {
+            $action = 'recovery_state_changed'; // Fallback
+        }
+
+        $txStarted = false;
+        if (!$this->pdo->inTransaction()) {
+            $this->pdo->beginTransaction();
+            $txStarted = true;
+        }
+
+        try {
+            $this->auditWriter->write(new AuditEventDTO(
+                0, // System actor (0)
+                $action,
+                'system',
+                0, // System target
+                'CRITICAL',
+                [
+                    'reason' => 'environment_variable_change',
+                    'previous_state' => $previousState,
+                    'current_state' => $currentState
+                ],
+                bin2hex(random_bytes(16)),
+                new DateTimeImmutable()
+            ));
+
+            $this->writeStoredState($currentState);
+
+            if ($txStarted) {
+                $this->pdo->commit();
+            }
+        } catch (\Throwable $e) {
+            if ($txStarted) {
+                $this->pdo->rollBack();
+            }
+            // If we failed to write audit or file, we MUST throw to prevent silent failure
+            throw new RuntimeException("Failed to persist recovery state transition: " . $e->getMessage(), 0, $e);
+        }
+    }
+
     private function handleBlockedAction(string $action, ?int $actorId): void
     {
         // 1. Emit Security Event
@@ -98,7 +202,7 @@ class RecoveryStateService
 
         try {
             $this->auditWriter->write(new AuditEventDTO(
-                $actorId,
+                $actorId ?? 0,
                 'recovery_action_blocked',
                 'system',
                 null,

@@ -123,4 +123,6 @@ return function (App $app) {
         $group->post('/step-up', [\App\Http\Controllers\StepUpController::class, 'verify'])
             ->setName('auth.stepup.verify');
     })->add(SessionGuardMiddleware::class);
+
+    $app->add(\App\Http\Middleware\RecoveryStateMiddleware::class);
 };
