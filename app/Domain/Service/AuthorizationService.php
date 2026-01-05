@@ -6,14 +6,17 @@ namespace App\Domain\Service;
 
 use App\Domain\Contracts\AdminRoleRepositoryInterface;
 use App\Domain\Contracts\AuditLoggerInterface;
+use App\Domain\Contracts\AuditOutboxWriterInterface;
 use App\Domain\Contracts\ClientInfoProviderInterface;
 use App\Domain\Contracts\RolePermissionRepositoryInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\DTO\AuditEventDTO;
+use App\Domain\DTO\LegacyAuditEventDTO;
 use App\Domain\DTO\SecurityEventDTO;
 use App\Domain\Exception\PermissionDeniedException;
 use App\Domain\Exception\UnauthorizedException;
 use DateTimeImmutable;
+use PDO;
 
 readonly class AuthorizationService
 {
@@ -22,7 +25,9 @@ readonly class AuthorizationService
         private RolePermissionRepositoryInterface $rolePermissionRepository,
         private AuditLoggerInterface $auditLogger,
         private SecurityEventLoggerInterface $securityLogger,
-        private ClientInfoProviderInterface $clientInfoProvider
+        private ClientInfoProviderInterface $clientInfoProvider,
+        private AuditOutboxWriterInterface $outboxWriter,
+        private PDO $pdo
     ) {
     }
 
@@ -58,7 +63,7 @@ readonly class AuthorizationService
             throw new PermissionDeniedException("Admin $adminId lacks permission '$permission'.");
         }
 
-        $this->auditLogger->log(new AuditEventDTO(
+        $this->auditLogger->log(new LegacyAuditEventDTO(
             $adminId,
             'system_capability',
             null,
@@ -68,5 +73,29 @@ readonly class AuthorizationService
             $this->clientInfoProvider->getUserAgent(),
             new DateTimeImmutable()
         ));
+    }
+
+    public function assignRole(int $adminId, int $roleId): void
+    {
+        $this->pdo->beginTransaction();
+        try {
+            $this->adminRoleRepository->assign($adminId, $roleId);
+
+            $this->outboxWriter->write(new AuditEventDTO(
+                $adminId,
+                'role_assigned',
+                'admin',
+                $adminId,
+                'HIGH',
+                ['role_id' => $roleId],
+                bin2hex(random_bytes(16)),
+                new DateTimeImmutable()
+            ));
+
+            $this->pdo->commit();
+        } catch (\Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
     }
 }

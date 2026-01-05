@@ -11,4 +11,6 @@ interface AdminRoleRepositoryInterface
      * @return int[]
      */
     public function getRoleIds(int $adminId): array;
+
+    public function assign(int $adminId, int $roleId): void;
 }

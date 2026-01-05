@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Contracts;
 
-use App\Domain\DTO\AuditEventDTO;
+use App\Domain\DTO\LegacyAuditEventDTO;
 
 interface AuditLoggerInterface
 {
-    public function log(AuditEventDTO $event): void;
+    public function log(LegacyAuditEventDTO $event): void;
 }

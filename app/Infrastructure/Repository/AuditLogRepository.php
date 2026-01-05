@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Repository;
 
 use App\Domain\Contracts\AuditLoggerInterface;
-use App\Domain\DTO\AuditEventDTO;
+use App\Domain\DTO\LegacyAuditEventDTO;
 use PDO;
 
 class AuditLogRepository implements AuditLoggerInterface
@@ -17,7 +17,7 @@ class AuditLogRepository implements AuditLoggerInterface
         $this->pdo = $pdo;
     }
 
-    public function log(AuditEventDTO $event): void
+    public function log(LegacyAuditEventDTO $event): void
     {
         $stmt = $this->pdo->prepare(
             'INSERT INTO audit_logs (actor_admin_id, target_type, target_id, action, changes, ip_address, user_agent, occurred_at)

@@ -1,5 +1,7 @@
 SET FOREIGN_KEY_CHECKS=0;
 
+DROP TABLE IF EXISTS step_up_grants;
+DROP TABLE IF EXISTS audit_outbox;
 DROP TABLE IF EXISTS verification_codes;
 DROP TABLE IF EXISTS admin_notification_channels;
 DROP TABLE IF EXISTS admin_notification_preferences;
@@ -184,4 +186,29 @@ CREATE TABLE admin_remember_me_tokens (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     user_agent_hash CHAR(64) NOT NULL,
     CONSTRAINT fk_armt_admin_id FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE audit_outbox (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  actor_id BIGINT NULL,
+  action VARCHAR(128) NOT NULL,
+  target_type VARCHAR(64) NOT NULL,
+  target_id BIGINT NULL,
+  risk_level ENUM('LOW','MEDIUM','HIGH','CRITICAL') NOT NULL,
+  payload JSON NOT NULL,
+  correlation_id CHAR(36) NOT NULL,
+  created_at DATETIME NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE step_up_grants (
+    admin_id INT NOT NULL,
+    session_id VARCHAR(64) NOT NULL,
+    scope VARCHAR(64) NOT NULL,
+    issued_at DATETIME NOT NULL,
+    expires_at DATETIME NOT NULL,
+    single_use TINYINT(1) NOT NULL DEFAULT 0,
+    context_snapshot JSON NULL,
+    PRIMARY KEY (admin_id, session_id, scope),
+    CONSTRAINT fk_sug_admin_id FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE CASCADE,
+    CONSTRAINT fk_sug_session_id FOREIGN KEY (session_id) REFERENCES admin_sessions(session_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

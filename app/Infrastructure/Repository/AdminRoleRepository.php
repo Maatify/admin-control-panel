@@ -22,4 +22,10 @@ class AdminRoleRepository implements AdminRoleRepositoryInterface
         $stmt->execute(['admin_id' => $adminId]);
         return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
     }
+
+    public function assign(int $adminId, int $roleId): void
+    {
+        $stmt = $this->pdo->prepare('INSERT INTO admin_roles (admin_id, role_id) VALUES (:admin_id, :role_id)');
+        $stmt->execute(['admin_id' => $adminId, 'role_id' => $roleId]);
+    }
 }

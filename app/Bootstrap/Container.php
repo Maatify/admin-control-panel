@@ -63,9 +63,11 @@ use App\Http\Controllers\Web\TwoFactorController;
 use App\Http\Middleware\RememberMeMiddleware;
 use App\Http\Middleware\ScopeGuardMiddleware;
 use App\Http\Middleware\SessionStateGuardMiddleware;
+use App\Domain\Contracts\AuditOutboxWriterInterface;
 use App\Infrastructure\Audit\PdoAdminSecurityEventReader;
 use App\Infrastructure\Audit\PdoAdminSelfAuditReader;
 use App\Infrastructure\Audit\PdoAdminTargetedAuditReader;
+use App\Infrastructure\Audit\PdoAuditOutboxWriter;
 use App\Infrastructure\Database\PDOFactory;
 use App\Infrastructure\Notification\TelegramHandler;
 use App\Infrastructure\Repository\AdminActivityQueryRepository;
@@ -86,6 +88,7 @@ use App\Infrastructure\Repository\FailedNotificationRepository;
 use App\Infrastructure\Repository\NotificationReadRepository;
 use App\Infrastructure\Notifications\NullNotificationDispatcher;
 use App\Infrastructure\Repository\PdoAdminNotificationReadMarker;
+use App\Infrastructure\Repository\PdoStepUpGrantRepository;
 use App\Infrastructure\Repository\PdoVerificationCodeRepository;
 use App\Infrastructure\Repository\RedisStepUpGrantRepository;
 use App\Infrastructure\Repository\RolePermissionRepository;
@@ -248,6 +251,11 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new AuditLogRepository($pdo);
+            },
+            AuditOutboxWriterInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new PdoAuditOutboxWriter($pdo);
             },
             SecurityEventLoggerInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
@@ -461,10 +469,9 @@ class Container
 
             // Phase 12
             StepUpGrantRepositoryInterface::class => function (ContainerInterface $c) {
-                return new RedisStepUpGrantRepository(
-                    $_ENV['REDIS_HOST'] ?? '127.0.0.1',
-                    (int)($_ENV['REDIS_PORT'] ?? 6379)
-                );
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new PdoStepUpGrantRepository($pdo);
             },
             TotpSecretRepositoryInterface::class => function (ContainerInterface $c) {
                 $storagePath = __DIR__ . '/../../storage/totp';
@@ -478,17 +485,23 @@ class Container
                  $secretRepo = $c->get(TotpSecretRepositoryInterface::class);
                  $totpService = $c->get(TotpServiceInterface::class);
                  $auditLogger = $c->get(AuditLoggerInterface::class);
+                 $outboxWriter = $c->get(AuditOutboxWriterInterface::class);
+                 $pdo = $c->get(PDO::class);
 
                  assert($grantRepo instanceof StepUpGrantRepositoryInterface);
                  assert($secretRepo instanceof TotpSecretRepositoryInterface);
                  assert($totpService instanceof TotpServiceInterface);
                  assert($auditLogger instanceof AuditLoggerInterface);
+                 assert($outboxWriter instanceof AuditOutboxWriterInterface);
+                 assert($pdo instanceof PDO);
 
                  return new StepUpService(
                      $grantRepo,
                      $secretRepo,
                      $totpService,
-                     $auditLogger
+                     $auditLogger,
+                     $outboxWriter,
+                     $pdo
                  );
             },
             SessionStateGuardMiddleware::class => function (ContainerInterface $c) {

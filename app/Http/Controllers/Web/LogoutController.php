@@ -8,6 +8,7 @@ use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Domain\Contracts\ClientInfoProviderInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\DTO\SecurityEventDTO;
+use App\Domain\Service\AdminAuthenticationService;
 use App\Domain\Service\RememberMeService;
 use DateTimeImmutable;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -19,7 +20,8 @@ readonly class LogoutController
         private AdminSessionValidationRepositoryInterface $sessionRepository,
         private RememberMeService $rememberMeService,
         private SecurityEventLoggerInterface $securityEventLogger,
-        private ClientInfoProviderInterface $clientInfoProvider
+        private ClientInfoProviderInterface $clientInfoProvider,
+        private AdminAuthenticationService $authService
     ) {
     }
 
@@ -50,7 +52,7 @@ readonly class LogoutController
 
                 // Only invalidate if the session belongs to the current admin
                 if ($session !== null && (int)$session['admin_id'] === $adminId) {
-                    $this->sessionRepository->revokeSession($token);
+                    $this->authService->logoutSession($adminId, $token);
                 }
             }
 
