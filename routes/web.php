@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Domain\Service\SessionValidationService;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminEmailVerificationController;
 use App\Http\Controllers\AdminNotificationPreferenceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NotificationQueryController;
 use App\Http\Middleware\AuthorizationGuardMiddleware;
+use App\Http\Middleware\GuestGuardMiddleware;
 use App\Http\Middleware\SessionGuardMiddleware;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -15,6 +17,16 @@ use Slim\App;
 use Slim\Routing\RouteCollectorProxy;
 
 return function (App $app) {
+    // Instantiate Guest Guards
+    $container = $app->getContainer();
+    if ($container === null) {
+        throw new \RuntimeException('Container not found');
+    }
+
+    $sessionValidationService = $container->get(SessionValidationService::class);
+    $webGuestGuard = new GuestGuardMiddleware($sessionValidationService, false);
+    $apiGuestGuard = new GuestGuardMiddleware($sessionValidationService, true);
+
     $app->get('/health', function (Request $request, Response $response) {
         $payload = json_encode(['status' => 'ok']);
         $response->getBody()->write((string)$payload);
@@ -24,12 +36,14 @@ return function (App $app) {
     });
 
     // Web Routes
-    $app->get('/login', [\App\Http\Controllers\Web\LoginController::class, 'index']);
-    $app->post('/login', [\App\Http\Controllers\Web\LoginController::class, 'login']);
+    $app->group('', function (RouteCollectorProxy $group) {
+        $group->get('/login', [\App\Http\Controllers\Web\LoginController::class, 'index']);
+        $group->post('/login', [\App\Http\Controllers\Web\LoginController::class, 'login']);
 
-    $app->get('/verify-email', [\App\Http\Controllers\Web\EmailVerificationController::class, 'index']);
-    $app->post('/verify-email', [\App\Http\Controllers\Web\EmailVerificationController::class, 'verify']);
-    $app->post('/verify-email/resend', [\App\Http\Controllers\Web\EmailVerificationController::class, 'resend']);
+        $group->get('/verify-email', [\App\Http\Controllers\Web\EmailVerificationController::class, 'index']);
+        $group->post('/verify-email', [\App\Http\Controllers\Web\EmailVerificationController::class, 'verify']);
+        $group->post('/verify-email/resend', [\App\Http\Controllers\Web\EmailVerificationController::class, 'resend']);
+    })->add($webGuestGuard);
 
     // Protected Routes
     $app->group('', function (RouteCollectorProxy $group) {
@@ -101,7 +115,8 @@ return function (App $app) {
     ->add(\App\Http\Middleware\RememberMeMiddleware::class); // Phase 13.5 Remember Me
 
     // Phase 4
-    $app->post('/auth/login', [AuthController::class, 'login']);
+    $app->post('/auth/login', [AuthController::class, 'login'])
+        ->add($apiGuestGuard);
 
     // Phase 12
     $app->group('/auth', function (RouteCollectorProxy $group) {
