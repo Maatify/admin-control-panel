@@ -206,13 +206,21 @@ class Container
             },
             LoggerInterface::class => function () {
                 return new class extends AbstractLogger {
-                    public function log($level, $message, array $context = []): void
-                    {
+                    public function log(
+                        mixed $level,
+                        string|\Stringable $message,
+                        array $context = []
+                    ): void {
                         error_log(sprintf(
                             '[%s] %s %s',
                             strtoupper((string) $level),
                             (string) $message,
-                            $context ? json_encode($context, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : ''
+                            $context !== []
+                                ? json_encode(
+                                    $context,
+                                    JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+                                )
+                                : ''
                         ));
                     }
                 };
