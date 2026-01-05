@@ -30,12 +30,12 @@ readonly class StepUpService
     {
         $secret = $this->totpSecretRepository->get($adminId);
         if ($secret === null) {
-             $this->logSecurityEvent($adminId, 'stepup_primary_failed', ['reason' => 'no_totp_enrolled']);
+             $this->logSecurityEvent($adminId, $sessionId, 'stepup_primary_failed', ['reason' => 'no_totp_enrolled']);
              return new TotpVerificationResultDTO(false, 'TOTP not enrolled');
         }
 
         if (!$this->totpService->verify($secret, $code)) {
-            $this->logSecurityEvent($adminId, 'stepup_primary_failed', ['reason' => 'invalid_code']);
+            $this->logSecurityEvent($adminId, $sessionId, 'stepup_primary_failed', ['reason' => 'invalid_code']);
             return new TotpVerificationResultDTO(false, 'Invalid code');
         }
 
@@ -106,7 +106,11 @@ readonly class StepUpService
             'system',
             $adminId,
             'stepup_denied',
-            ['session_id' => $sessionId, 'required_scope' => $requiredScope->value],
+            [
+                'session_id' => $sessionId,
+                'required_scope' => $requiredScope->value,
+                'severity' => 'warning'
+            ],
             '0.0.0.0',
             'system',
             new DateTimeImmutable()
@@ -160,13 +164,11 @@ readonly class StepUpService
         return SessionState::PENDING_STEP_UP;
     }
 
-    private function logSecurityEvent(int $adminId, string $event, array $details): void
+    private function logSecurityEvent(int $adminId, string $sessionId, string $event, array $details): void
     {
-        // Ideally should use SecurityEventLoggerInterface, but currently reusing AuditLogger for simplicity as per Plan?
-        // No, prompt says "Audit events are emitted...".
-        // The AuditLoggerInterface logs to audit_logs table.
-        // Prompt says "Emit events for: stepup_primary_failed".
-        // I should stick to AuditLogger for now as injected.
+        $details['session_id'] = $sessionId;
+        $details['scope'] = Scope::LOGIN->value;
+        $details['severity'] = 'error';
 
         $this->auditLogger->log(new AuditEventDTO(
             $adminId,
