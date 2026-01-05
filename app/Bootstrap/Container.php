@@ -145,7 +145,11 @@ class Container
                 return new AdminEmailRepository($pdo);
             },
             AdminEmailVerificationRepositoryInterface::class => function (ContainerInterface $c) {
-                return $c->get(AdminEmailRepository::class);
+                $repo = $c->get(AdminEmailVerificationRepositoryInterface::class);
+                $recovery = $c->get(RecoveryStateService::class);
+                assert($repo instanceof AdminEmailVerificationRepositoryInterface);
+                assert($recovery instanceof RecoveryStateService);
+                return new AdminEmailVerificationService($repo, $recovery);
             },
             AdminIdentifierLookupInterface::class => function (ContainerInterface $c) {
                 return $c->get(AdminEmailRepository::class);
@@ -561,7 +565,15 @@ class Container
                 return new VerificationCodeValidator($repo);
             },
             RecoveryStateService::class => function (ContainerInterface $c) {
-                return new RecoveryStateService();
+                $auditWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
+                $securityLogger = $c->get(SecurityEventLoggerInterface::class);
+                $pdo = $c->get(PDO::class);
+
+                assert($auditWriter instanceof AuthoritativeSecurityAuditWriterInterface);
+                assert($securityLogger instanceof SecurityEventLoggerInterface);
+                assert($pdo instanceof PDO);
+
+                return new RecoveryStateService($auditWriter, $securityLogger, $pdo);
             },
             RememberMeService::class => function (ContainerInterface $c) {
                 $rememberMeRepo = $c->get(RememberMeRepositoryInterface::class);
