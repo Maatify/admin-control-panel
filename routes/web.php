@@ -23,13 +23,18 @@ return function (App $app) {
             ->withStatus(200);
     });
 
-    // Web Routes
-    $app->get('/login', [\App\Http\Controllers\Web\LoginController::class, 'index']);
-    $app->post('/login', [\App\Http\Controllers\Web\LoginController::class, 'login']);
+    // Guest Routes
+    $app->group('', function (RouteCollectorProxy $group) {
+        $group->get('/login', [\App\Http\Controllers\Web\LoginController::class, 'index']);
+        $group->post('/login', [\App\Http\Controllers\Web\LoginController::class, 'login']);
 
-    $app->get('/verify-email', [\App\Http\Controllers\Web\EmailVerificationController::class, 'index']);
-    $app->post('/verify-email', [\App\Http\Controllers\Web\EmailVerificationController::class, 'verify']);
-    $app->post('/verify-email/resend', [\App\Http\Controllers\Web\EmailVerificationController::class, 'resend']);
+        $group->get('/verify-email', [\App\Http\Controllers\Web\EmailVerificationController::class, 'index']);
+        $group->post('/verify-email', [\App\Http\Controllers\Web\EmailVerificationController::class, 'verify']);
+        $group->post('/verify-email/resend', [\App\Http\Controllers\Web\EmailVerificationController::class, 'resend']);
+
+        // Phase 4
+        $group->post('/auth/login', [AuthController::class, 'login']);
+    })->add(\App\Http\Middleware\GuestGuardMiddleware::class);
 
     // Protected Routes
     $app->group('', function (RouteCollectorProxy $group) {
@@ -94,9 +99,6 @@ return function (App $app) {
     ->add(\App\Http\Middleware\ScopeGuardMiddleware::class)
     ->add(\App\Http\Middleware\SessionStateGuardMiddleware::class) // Phase 12 Session State Guard
     ->add(SessionGuardMiddleware::class);
-
-    // Phase 4
-    $app->post('/auth/login', [AuthController::class, 'login']);
 
     // Phase 12
     $app->group('/auth', function (RouteCollectorProxy $group) {
