@@ -55,32 +55,11 @@ readonly class LogoutController
             }
 
             // Revoke Remember-Me tokens for this admin
-            // Note: Ideally we should only revoke the current one if possible, but
-            // "Revoke remember-me token" implies the current session's persistence.
-            // Since we don't have the remember_me token explicitly in the session (it's a separate cookie),
-            // and we might want to allow "logout everywhere" vs "logout this device".
-            // The prompt says: "Logout fully revokes persistent access".
-            // It also says: "Revoke remember-me token via RememberMeService".
-            // Does it mean ALL tokens or just the one on this device?
-            // If I logout, I expect to be logged out.
-            // But if I have another session on another device, do I kill that too?
-            // The prompt "Logout fully revokes persistent access" is slightly ambiguous.
-            // However, `RememberMeService::revoke(int $adminId)` deletes ALL tokens for the admin.
-            // `RememberMeService::revokeBySelector(string $selector)` deletes specific.
-            // The cookie has the selector.
-
             if (isset($cookies['remember_me'])) {
                 $parts = explode(':', (string)$cookies['remember_me']);
                 if (count($parts) === 2) {
                     $this->rememberMeService->revokeBySelector($parts[0]);
                 }
-            } else {
-                 // Fallback: If we don't have the cookie but we are logging out, maybe we should kill all?
-                 // Safe default for "secure logout" often implies killing session.
-                 // But let's stick to revoking the current one if present.
-                 // If the user wants to "logout everywhere", that's usually a specific action.
-                 // But `revoke(int $adminId)` was defined in the service as `deleteByAdminId`.
-                 // Let's check my service implementation.
             }
         }
 
