@@ -29,7 +29,11 @@ class ScopeGuardMiddleware implements MiddlewareInterface
             return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
         }
 
-        $sessionId = $this->getSessionIdFromRequest($request);
+        // Detect Mode (Strict)
+        $hasAuthHeader = $request->hasHeader('Authorization');
+        $isApi = $hasAuthHeader;
+
+        $sessionId = $this->getSessionIdFromRequest($request, $isApi);
         if ($sessionId === null) {
              // Should not happen if SessionGuard works
              $response = new \Slim\Psr7\Response();
@@ -41,8 +45,7 @@ class ScopeGuardMiddleware implements MiddlewareInterface
         // This ensures middleware order is correct and no one bypassed SessionStateGuard.
         $state = $this->stepUpService->getSessionState($adminId, $sessionId);
         if ($state !== \App\Domain\Enum\SessionState::ACTIVE) {
-             // This is a critical integrity failure or configuration error.
-             // We fallback to the same Step-Up requirement to be safe.
+             // Fallback handling if SessionStateGuard was bypassed or failed.
              $this->stepUpService->logDenial($adminId, $sessionId, Scope::LOGIN);
 
              $response = new \Slim\Psr7\Response();
@@ -92,14 +95,18 @@ class ScopeGuardMiddleware implements MiddlewareInterface
         return $handler->handle($request);
     }
 
-    private function getSessionIdFromRequest(ServerRequestInterface $request): ?string
+    private function getSessionIdFromRequest(ServerRequestInterface $request, bool $isApi): ?string
     {
-        // Extract Bearer token again? Or rely on attribute if SessionGuard sets it?
-        // SessionGuard sets 'admin_id'. It does NOT set session_id in attributes based on previous code.
-        // We need to extract it from header.
-        $header = $request->getHeaderLine('Authorization');
-        if (preg_match('/Bearer\s+(.*)$/i', $header, $matches)) {
-            return $matches[1];
+        if ($isApi) {
+            $header = $request->getHeaderLine('Authorization');
+            if (preg_match('/Bearer\s+(.*)$/i', $header, $matches)) {
+                return $matches[1];
+            }
+        } else {
+            $cookies = $request->getCookieParams();
+            if (isset($cookies['auth_token'])) {
+                return (string)$cookies['auth_token'];
+            }
         }
         return null;
     }

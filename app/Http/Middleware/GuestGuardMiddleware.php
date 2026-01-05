@@ -27,22 +27,22 @@ class GuestGuardMiddleware implements MiddlewareInterface
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        // Extract token (Logic aligned with SessionGuardMiddleware)
-        $authHeader = $request->getHeaderLine('Authorization');
         $token = null;
 
-        if (!empty($authHeader) && str_starts_with($authHeader, 'Bearer ')) {
-            $token = substr($authHeader, 7);
-        }
-
-        if ($token === null) {
+        // STRICT SEPARATION: API checks Bearer, Web checks Cookie.
+        if ($this->isApi) {
+            $authHeader = $request->getHeaderLine('Authorization');
+            if (!empty($authHeader) && str_starts_with($authHeader, 'Bearer ')) {
+                $token = substr($authHeader, 7);
+            }
+        } else {
             $cookies = $request->getCookieParams();
             if (isset($cookies['auth_token'])) {
                 $token = $cookies['auth_token'];
             }
         }
 
-        // If no token, proceed as guest
+        // If no token found in the expected source, proceed as guest
         if ($token === null) {
             return $handler->handle($request);
         }
@@ -51,7 +51,7 @@ class GuestGuardMiddleware implements MiddlewareInterface
             // Check if session is valid
             $this->sessionValidationService->validate($token);
 
-            // If we are here, session is valid. Block access.
+            // Session is valid. Block access.
             if ($this->isApi) {
                 $response = new Response();
                 $response->getBody()->write(json_encode(['error' => 'Already authenticated.'], JSON_THROW_ON_ERROR));
