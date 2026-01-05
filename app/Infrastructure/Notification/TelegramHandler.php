@@ -60,8 +60,8 @@ readonly class TelegramHandler
         if (!is_numeric($adminIdStr)) {
             return $this->fail(VerificationFailureReasonEnum::INVALID_IDENTITY_ID, [
                 'chat_id' => $chatId,
-                'purpose' => $result->purpose?->value,
-                'identity_type' => $result->identityType?->value,
+                'purpose' => $result->purpose->value,
+                'identity_type' => $result->identityType->value,
                 'identity_id' => $result->identityId,
             ]);
         }
@@ -77,16 +77,16 @@ readonly class TelegramHandler
         } catch (RuntimeException $e) {
             return $this->fail(VerificationFailureReasonEnum::CHANNEL_ALREADY_LINKED, [
                 'chat_id' => $chatId,
-                'purpose' => $result->purpose?->value,
-                'identity_type' => $result->identityType?->value,
+                'purpose' => $result->purpose->value,
+                'identity_type' => $result->identityType->value,
                 'identity_id' => $result->identityId,
                 'exception_message' => $e->getMessage(),
             ]);
         } catch (\Exception $e) {
             return $this->fail(VerificationFailureReasonEnum::CHANNEL_REGISTRATION_FAILED, [
                 'chat_id' => $chatId,
-                'purpose' => $result->purpose?->value,
-                'identity_type' => $result->identityType?->value,
+                'purpose' => $result->purpose->value,
+                'identity_type' => $result->identityType->value,
                 'identity_id' => $result->identityId,
                 'exception_message' => $e->getMessage(),
             ]);
