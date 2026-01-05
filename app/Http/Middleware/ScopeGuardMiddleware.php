@@ -22,9 +22,6 @@ class ScopeGuardMiddleware implements MiddlewareInterface
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        // 1. Assumption: SessionStateGuardMiddleware has already run.
-        // Therefore, the session is ACTIVE. We do not check for Scope::LOGIN.
-
         $adminId = $request->getAttribute('admin_id');
         if (!is_int($adminId)) {
             $response = new \Slim\Psr7\Response();
@@ -38,6 +35,23 @@ class ScopeGuardMiddleware implements MiddlewareInterface
              $response = new \Slim\Psr7\Response();
              $response->getBody()->write(json_encode(['error' => 'Session required']));
              return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
+        }
+
+        // Defensive Assertion: Session MUST be ACTIVE here.
+        // This ensures middleware order is correct and no one bypassed SessionStateGuard.
+        $state = $this->stepUpService->getSessionState($adminId, $sessionId);
+        if ($state !== \App\Domain\Enum\SessionState::ACTIVE) {
+             // This is a critical integrity failure or configuration error.
+             // We fallback to the same Step-Up requirement to be safe.
+             $this->stepUpService->logDenial($adminId, $sessionId, Scope::LOGIN);
+
+             $response = new \Slim\Psr7\Response();
+             $payload = [
+                 'code' => 'STEP_UP_REQUIRED',
+                 'scope' => 'login'
+             ];
+             $response->getBody()->write(json_encode($payload));
+             return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
         }
 
         // Determine required scope
