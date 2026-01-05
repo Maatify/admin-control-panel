@@ -1,0 +1,20 @@
+{% extends "layout.twig" %}
+
+{% block title %}2FA Setup{% endblock %}
+
+{% block content %}
+<h1>Setup Two-Factor Authentication</h1>
+<p>Please enter the following secret into your Authenticator App:</p>
+<pre>{{ secret }}</pre>
+
+<form method="POST" action="/2fa/setup">
+    <input type="hidden" name="secret" value="{{ secret }}">
+    <label for="code">Enter Code:</label>
+    <input type="text" id="code" name="code" required>
+    <button type="submit">Verify & Save</button>
+</form>
+
+{% if error %}
+<p style="color: red">{{ error }}</p>
+{% endif %}
+{% endblock %}

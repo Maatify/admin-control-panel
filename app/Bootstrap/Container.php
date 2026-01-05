@@ -247,6 +247,15 @@ class Container
                 assert($view instanceof Twig);
                 return new \App\Http\Controllers\Web\DashboardController($view);
             },
+            \App\Http\Controllers\Web\TwoFactorController::class => function (ContainerInterface $c) {
+                $stepUp = $c->get(\App\Domain\Service\StepUpService::class);
+                $totp = $c->get(\App\Domain\Contracts\TotpServiceInterface::class);
+                $view = $c->get(Twig::class);
+                assert($stepUp instanceof \App\Domain\Service\StepUpService);
+                assert($totp instanceof \App\Domain\Contracts\TotpServiceInterface);
+                assert($view instanceof Twig);
+                return new \App\Http\Controllers\Web\TwoFactorController($stepUp, $totp, $view);
+            },
             \App\Http\Controllers\AdminNotificationPreferenceController::class => function (ContainerInterface $c) {
                 $reader = $c->get(AdminNotificationPreferenceReaderInterface::class);
                 $writer = $c->get(AdminNotificationPreferenceWriterInterface::class);
@@ -329,8 +338,10 @@ class Container
             },
             \App\Http\Middleware\SessionStateGuardMiddleware::class => function (ContainerInterface $c) {
                 $service = $c->get(\App\Domain\Service\StepUpService::class);
+                $repo = $c->get(\App\Domain\Contracts\TotpSecretRepositoryInterface::class);
                 assert($service instanceof \App\Domain\Service\StepUpService);
-                return new \App\Http\Middleware\SessionStateGuardMiddleware($service);
+                assert($repo instanceof \App\Domain\Contracts\TotpSecretRepositoryInterface);
+                return new \App\Http\Middleware\SessionStateGuardMiddleware($service, $repo);
             },
             \App\Http\Middleware\ScopeGuardMiddleware::class => function (ContainerInterface $c) {
                 $service = $c->get(\App\Domain\Service\StepUpService::class);

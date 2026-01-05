@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Domain\Contracts\TotpSecretRepositoryInterface;
 use App\Domain\Enum\Scope;
 use App\Domain\Enum\SessionState;
 use App\Domain\Service\StepUpService;
@@ -15,7 +16,8 @@ use Psr\Http\Server\RequestHandlerInterface;
 class SessionStateGuardMiddleware implements MiddlewareInterface
 {
     public function __construct(
-        private StepUpService $stepUpService
+        private StepUpService $stepUpService,
+        private TotpSecretRepositoryInterface $totpSecretRepository
     ) {
     }
 
@@ -40,13 +42,27 @@ class SessionStateGuardMiddleware implements MiddlewareInterface
         // Skip check for Step-Up Verification route to allow promotion
         $routeContext = \Slim\Routing\RouteContext::fromRequest($request);
         $route = $routeContext->getRoute();
-        if ($route && $route->getName() === 'auth.stepup.verify') {
+        $routeName = $route ? $route->getName() : null;
+
+        if ($routeName === 'auth.stepup.verify' || $routeName === '2fa.setup' || $routeName === '2fa.verify') {
             return $handler->handle($request);
         }
 
         $state = $this->stepUpService->getSessionState($adminId, $sessionId);
 
         if ($state !== SessionState::ACTIVE) {
+            // Check if Web Request
+            $acceptHeader = $request->getHeaderLine('Accept');
+            if (str_contains($acceptHeader, 'text/html')) {
+                // Redirect logic
+                $response = new \Slim\Psr7\Response();
+                if ($this->totpSecretRepository->get($adminId) === null) {
+                    return $response->withHeader('Location', '/2fa/setup')->withStatus(302);
+                } else {
+                    return $response->withHeader('Location', '/2fa/verify')->withStatus(302);
+                }
+            }
+
              // Deny - Step Up Required (Primary/Login)
              $this->stepUpService->logDenial($adminId, $sessionId, Scope::LOGIN);
 
@@ -68,6 +84,12 @@ class SessionStateGuardMiddleware implements MiddlewareInterface
         if (preg_match('/Bearer\s+(.*)$/i', $header, $matches)) {
             return $matches[1];
         }
+
+        $cookies = $request->getCookieParams();
+        if (isset($cookies['auth_token'])) {
+            return (string)$cookies['auth_token'];
+        }
+
         return null;
     }
 }

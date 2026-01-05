@@ -49,6 +49,30 @@ readonly class StepUpService
         return new TotpVerificationResultDTO(true);
     }
 
+    public function enableTotp(int $adminId, string $sessionId, string $secret, string $code): bool
+    {
+        if (!$this->totpService->verify($secret, $code)) {
+            $this->logSecurityEvent($adminId, $sessionId, 'stepup_enroll_failed', ['reason' => 'invalid_code']);
+            return false;
+        }
+
+        $this->totpSecretRepository->save($adminId, $secret);
+        $this->issuePrimaryGrant($adminId, $sessionId);
+
+        $this->auditLogger->log(new AuditEventDTO(
+            $adminId,
+            'system',
+            $adminId,
+            'stepup_enrolled',
+            ['session_id' => $sessionId],
+            '0.0.0.0',
+            'system',
+            new DateTimeImmutable()
+        ));
+
+        return true;
+    }
+
     public function issuePrimaryGrant(int $adminId, string $sessionId): void
     {
         $grant = new StepUpGrant(
