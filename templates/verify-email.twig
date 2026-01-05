@@ -1,0 +1,36 @@
+{% extends "layout.twig" %}
+
+{% block title %}Verify Email{% endblock %}
+
+{% block content %}
+    <h1>Verify Email</h1>
+    {% if error %}
+        <p>{{ error }}</p>
+    {% endif %}
+    {% if message %}
+        <p>{{ message }}</p>
+    {% endif %}
+
+    <form action="/verify-email" method="post">
+        <div>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" value="{{ email }}" required>
+        </div>
+        <div>
+            <label for="otp">OTP Code:</label>
+            <input type="text" id="otp" name="otp" required autocomplete="one-time-code">
+        </div>
+        <button type="submit">Verify</button>
+    </form>
+
+    <hr>
+
+    <h3>Resend Code</h3>
+    <form action="/verify-email/resend" method="post">
+        <div>
+            <label for="resend_email">Email:</label>
+            <input type="email" id="resend_email" name="email" value="{{ email }}" required>
+        </div>
+        <button type="submit">Resend OTP</button>
+    </form>
+{% endblock %}

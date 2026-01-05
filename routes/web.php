@@ -27,6 +27,10 @@ return function (App $app) {
     $app->get('/login', [\App\Http\Controllers\Web\LoginController::class, 'index']);
     $app->post('/login', [\App\Http\Controllers\Web\LoginController::class, 'login']);
 
+    $app->get('/verify-email', [\App\Http\Controllers\Web\EmailVerificationController::class, 'index']);
+    $app->post('/verify-email', [\App\Http\Controllers\Web\EmailVerificationController::class, 'verify']);
+    $app->post('/verify-email/resend', [\App\Http\Controllers\Web\EmailVerificationController::class, 'resend']);
+
     // Protected Routes
     $app->group('', function (RouteCollectorProxy $group) {
         $group->get('/dashboard', [\App\Http\Controllers\Web\DashboardController::class, 'index']);

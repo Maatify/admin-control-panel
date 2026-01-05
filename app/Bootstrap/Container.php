@@ -242,6 +242,29 @@ class Container
                 $blindIndexKey = $_ENV['EMAIL_BLIND_INDEX_KEY'] ?? '';
                 return new \App\Http\Controllers\Web\LoginController($authService, $blindIndexKey, $view);
             },
+            \App\Http\Controllers\Web\EmailVerificationController::class => function (ContainerInterface $c) {
+                $validator = $c->get(\App\Domain\Contracts\VerificationCodeValidatorInterface::class);
+                $generator = $c->get(\App\Domain\Contracts\VerificationCodeGeneratorInterface::class);
+                $verificationService = $c->get(\App\Domain\Service\AdminEmailVerificationService::class);
+                $lookup = $c->get(\App\Domain\Contracts\AdminIdentifierLookupInterface::class);
+                $view = $c->get(Twig::class);
+                $blindIndexKey = $_ENV['EMAIL_BLIND_INDEX_KEY'] ?? '';
+
+                assert($validator instanceof \App\Domain\Contracts\VerificationCodeValidatorInterface);
+                assert($generator instanceof \App\Domain\Contracts\VerificationCodeGeneratorInterface);
+                assert($verificationService instanceof \App\Domain\Service\AdminEmailVerificationService);
+                assert($lookup instanceof \App\Domain\Contracts\AdminIdentifierLookupInterface);
+                assert($view instanceof Twig);
+
+                return new \App\Http\Controllers\Web\EmailVerificationController(
+                    $validator,
+                    $generator,
+                    $verificationService,
+                    $lookup,
+                    $view,
+                    $blindIndexKey
+                );
+            },
             \App\Http\Controllers\Web\DashboardController::class => function (ContainerInterface $c) {
                 $view = $c->get(Twig::class);
                 assert($view instanceof Twig);

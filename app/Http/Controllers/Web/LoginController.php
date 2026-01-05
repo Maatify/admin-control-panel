@@ -46,7 +46,14 @@ readonly class LoginController
             $response = $response->withHeader('Set-Cookie', "auth_token=$token; Path=/; HttpOnly; SameSite=Strict");
 
             return $response->withHeader('Location', '/dashboard')->withStatus(302);
-        } catch (InvalidCredentialsException | AuthStateException $e) {
+        } catch (AuthStateException $e) {
+            if ($e->getMessage() === 'Identifier is not verified.') {
+                 return $response
+                    ->withHeader('Location', '/verify-email?email=' . urlencode($dto->email))
+                    ->withStatus(302);
+            }
+            return $this->view->render($response, 'login.twig', ['error' => 'Authentication failed.']);
+        } catch (InvalidCredentialsException $e) {
             // Requirement: Generic login error message
             return $this->view->render($response, 'login.twig', ['error' => 'Authentication failed.']);
         }
