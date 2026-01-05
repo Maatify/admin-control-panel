@@ -8,31 +8,70 @@ use App\Domain\Contracts\AdminActivityQueryInterface;
 use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
 use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\AdminNotificationChannelRepositoryInterface;
+use App\Domain\Contracts\AdminNotificationHistoryReaderInterface;
 use App\Domain\Contracts\AdminNotificationPreferenceReaderInterface;
 use App\Domain\Contracts\AdminNotificationPreferenceRepositoryInterface;
 use App\Domain\Contracts\AdminNotificationPreferenceWriterInterface;
 use App\Domain\Contracts\AdminNotificationPersistenceWriterInterface;
+use App\Domain\Contracts\AdminNotificationReadMarkerInterface;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
+use App\Domain\Contracts\AdminSecurityEventReaderInterface;
+use App\Domain\Contracts\AdminSelfAuditReaderInterface;
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
 use App\Domain\Contracts\AdminRoleRepositoryInterface;
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
+use App\Domain\Contracts\AdminTargetedAuditReaderInterface;
 use App\Domain\Contracts\AuditLoggerInterface;
 use App\Domain\Contracts\ClientInfoProviderInterface;
 use App\Domain\Contracts\FailedNotificationRepositoryInterface;
 use App\Domain\Contracts\NotificationDispatcherInterface;
 use App\Domain\Contracts\NotificationReadRepositoryInterface;
+use App\Domain\Contracts\NotificationRoutingInterface;
+use App\Domain\Contracts\NotificationSenderInterface;
 use App\Domain\Contracts\RolePermissionRepositoryInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
+use App\Domain\Contracts\StepUpGrantRepositoryInterface;
+use App\Domain\Contracts\TotpSecretRepositoryInterface;
+use App\Domain\Contracts\TotpServiceInterface;
+use App\Domain\Contracts\VerificationCodeGeneratorInterface;
+use App\Domain\Contracts\VerificationCodePolicyResolverInterface;
+use App\Domain\Contracts\VerificationCodeRepositoryInterface;
+use App\Domain\Contracts\VerificationCodeValidatorInterface;
 use App\Domain\Service\AdminAuthenticationService;
+use App\Domain\Service\AdminEmailVerificationService;
 use App\Domain\Service\AdminNotificationRoutingService;
 use App\Domain\Service\NotificationFailureHandler;
+use App\Domain\Service\StepUpService;
+use App\Domain\Service\VerificationCodeGenerator;
+use App\Domain\Service\VerificationCodePolicyResolver;
+use App\Domain\Service\VerificationCodeValidator;
+use App\Http\Controllers\AdminNotificationHistoryController;
+use App\Http\Controllers\AdminNotificationPreferenceController;
+use App\Http\Controllers\AdminNotificationReadController;
+use App\Http\Controllers\AdminSecurityEventController;
+use App\Http\Controllers\AdminSelfAuditController;
+use App\Http\Controllers\AdminTargetedAuditController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\StepUpController;
+use App\Http\Controllers\Web\DashboardController;
+use App\Http\Controllers\Web\EmailVerificationController;
+use App\Http\Controllers\Web\LoginController;
+use App\Http\Controllers\Web\TelegramConnectController;
+use App\Http\Controllers\Web\TwoFactorController;
+use App\Http\Middleware\ScopeGuardMiddleware;
+use App\Http\Middleware\SessionStateGuardMiddleware;
+use App\Infrastructure\Audit\PdoAdminSecurityEventReader;
+use App\Infrastructure\Audit\PdoAdminSelfAuditReader;
+use App\Infrastructure\Audit\PdoAdminTargetedAuditReader;
 use App\Infrastructure\Database\PDOFactory;
+use App\Infrastructure\Notification\TelegramHandler;
 use App\Infrastructure\Repository\AdminActivityQueryRepository;
 use App\Infrastructure\Repository\AdminEmailRepository;
 use App\Infrastructure\Repository\AdminNotificationChannelRepository;
 use App\Infrastructure\Repository\AdminNotificationPreferenceRepository;
 use App\Infrastructure\Repository\AdminPasswordRepository;
+use App\Infrastructure\Repository\FileTotpSecretRepository;
+use App\Infrastructure\Repository\PdoAdminNotificationHistoryReader;
 use App\Infrastructure\Repository\PdoAdminNotificationPersistenceRepository;
 use App\Infrastructure\Repository\PdoAdminNotificationPreferenceRepository;
 use App\Infrastructure\Repository\AdminRepository;
@@ -42,6 +81,9 @@ use App\Infrastructure\Repository\AuditLogRepository;
 use App\Infrastructure\Repository\FailedNotificationRepository;
 use App\Infrastructure\Repository\NotificationReadRepository;
 use App\Infrastructure\Notifications\NullNotificationDispatcher;
+use App\Infrastructure\Repository\PdoAdminNotificationReadMarker;
+use App\Infrastructure\Repository\PdoVerificationCodeRepository;
+use App\Infrastructure\Repository\RedisStepUpGrantRepository;
 use App\Infrastructure\Repository\RolePermissionRepository;
 use App\Domain\Service\NotificationDispatcher;
 use App\Infrastructure\Notification\EmailNotificationSender;
@@ -49,12 +91,15 @@ use App\Infrastructure\Notification\FakeNotificationSender;
 use App\Infrastructure\Notification\NullNotificationSender;
 use App\Infrastructure\Repository\SecurityEventRepository;
 use App\Infrastructure\Security\WebClientInfoProvider;
+use App\Infrastructure\Service\Google2faTotpService;
 use App\Infrastructure\UX\AdminActivityMapper;
 use DI\ContainerBuilder;
 use Exception;
 use PDO;
 use Psr\Container\ContainerInterface;
+use Psr\Log\LoggerInterface;
 use Slim\Views\Twig;
+use Psr\Log\AbstractLogger;
 
 class Container
 {
@@ -116,15 +161,15 @@ class Container
                 assert($pdo instanceof PDO);
                 return new PdoAdminNotificationPersistenceRepository($pdo);
             },
-            \App\Domain\Contracts\AdminNotificationHistoryReaderInterface::class => function (ContainerInterface $c) {
+            AdminNotificationHistoryReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
-                return new \App\Infrastructure\Repository\PdoAdminNotificationHistoryReader($pdo);
+                return new PdoAdminNotificationHistoryReader($pdo);
             },
-            \App\Domain\Contracts\AdminNotificationReadMarkerInterface::class => function (ContainerInterface $c) {
+            AdminNotificationReadMarkerInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
-                return new \App\Infrastructure\Repository\PdoAdminNotificationReadMarker($pdo);
+                return new PdoAdminNotificationReadMarker($pdo);
             },
             AdminNotificationRoutingService::class => function (ContainerInterface $c) {
                 $channelRepo = $c->get(AdminNotificationChannelRepositoryInterface::class);
@@ -133,7 +178,7 @@ class Container
                 assert($prefRepo instanceof AdminNotificationPreferenceRepositoryInterface);
                 return new AdminNotificationRoutingService($channelRepo, $prefRepo);
             },
-            \App\Domain\Contracts\NotificationRoutingInterface::class => function (ContainerInterface $c) {
+            NotificationRoutingInterface::class => function (ContainerInterface $c) {
                 return $c->get(AdminNotificationRoutingService::class);
             },
             AdminPasswordRepositoryInterface::class => function (ContainerInterface $c) {
@@ -158,6 +203,19 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new RolePermissionRepository($pdo);
+            },
+            LoggerInterface::class => function () {
+                return new class extends AbstractLogger {
+                    public function log($level, $message, array $context = []): void
+                    {
+                        error_log(sprintf(
+                            '[%s] %s %s',
+                            strtoupper((string) $level),
+                            (string) $message,
+                            $context ? json_encode($context, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : ''
+                        ));
+                    }
+                };
             },
             AuditLoggerInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
@@ -208,7 +266,7 @@ class Container
                     $c->get(FakeNotificationSender::class),
                     $c->get(NullNotificationSender::class),
                 ];
-                /** @var iterable<mixed, \App\Domain\Contracts\NotificationSenderInterface> $senders */
+                /** @var iterable<mixed, NotificationSenderInterface> $senders */
                 $failureHandler = $c->get(NotificationFailureHandler::class);
                 assert($failureHandler instanceof NotificationFailureHandler);
 
@@ -234,7 +292,7 @@ class Container
                 $blindIndexKey = $_ENV['EMAIL_BLIND_INDEX_KEY'] ?? '';
                 return new AuthController($authService, $blindIndexKey);
             },
-            \App\Http\Controllers\Web\LoginController::class => function (ContainerInterface $c) {
+            LoginController::class => function (ContainerInterface $c) {
                 $authService = $c->get(AdminAuthenticationService::class);
                 $sessionRepo = $c->get(AdminSessionValidationRepositoryInterface::class);
                 $view = $c->get(Twig::class);
@@ -242,28 +300,28 @@ class Container
                 assert($sessionRepo instanceof AdminSessionValidationRepositoryInterface);
                 assert($view instanceof Twig);
                 $blindIndexKey = $_ENV['EMAIL_BLIND_INDEX_KEY'] ?? '';
-                return new \App\Http\Controllers\Web\LoginController(
+                return new LoginController(
                     $authService,
                     $sessionRepo,
                     $blindIndexKey,
                     $view
                 );
             },
-            \App\Http\Controllers\Web\EmailVerificationController::class => function (ContainerInterface $c) {
-                $validator = $c->get(\App\Domain\Contracts\VerificationCodeValidatorInterface::class);
-                $generator = $c->get(\App\Domain\Contracts\VerificationCodeGeneratorInterface::class);
-                $verificationService = $c->get(\App\Domain\Service\AdminEmailVerificationService::class);
-                $lookup = $c->get(\App\Domain\Contracts\AdminIdentifierLookupInterface::class);
+            EmailVerificationController::class => function (ContainerInterface $c) {
+                $validator = $c->get(VerificationCodeValidatorInterface::class);
+                $generator = $c->get(VerificationCodeGeneratorInterface::class);
+                $verificationService = $c->get(AdminEmailVerificationService::class);
+                $lookup = $c->get(AdminIdentifierLookupInterface::class);
                 $view = $c->get(Twig::class);
                 $blindIndexKey = $_ENV['EMAIL_BLIND_INDEX_KEY'] ?? '';
 
-                assert($validator instanceof \App\Domain\Contracts\VerificationCodeValidatorInterface);
-                assert($generator instanceof \App\Domain\Contracts\VerificationCodeGeneratorInterface);
-                assert($verificationService instanceof \App\Domain\Service\AdminEmailVerificationService);
-                assert($lookup instanceof \App\Domain\Contracts\AdminIdentifierLookupInterface);
+                assert($validator instanceof VerificationCodeValidatorInterface);
+                assert($generator instanceof VerificationCodeGeneratorInterface);
+                assert($verificationService instanceof AdminEmailVerificationService);
+                assert($lookup instanceof AdminIdentifierLookupInterface);
                 assert($view instanceof Twig);
 
-                return new \App\Http\Controllers\Web\EmailVerificationController(
+                return new EmailVerificationController(
                     $validator,
                     $generator,
                     $verificationService,
@@ -272,152 +330,154 @@ class Container
                     $blindIndexKey
                 );
             },
-            \App\Http\Controllers\Web\TelegramConnectController::class => function (ContainerInterface $c) {
-                $generator = $c->get(\App\Domain\Contracts\VerificationCodeGeneratorInterface::class);
+            TelegramConnectController::class => function (ContainerInterface $c) {
+                $generator = $c->get(VerificationCodeGeneratorInterface::class);
                 $view = $c->get(Twig::class);
-                assert($generator instanceof \App\Domain\Contracts\VerificationCodeGeneratorInterface);
+                assert($generator instanceof VerificationCodeGeneratorInterface);
                 assert($view instanceof Twig);
-                return new \App\Http\Controllers\Web\TelegramConnectController($generator, $view);
+                return new TelegramConnectController($generator, $view);
             },
-            \App\Infrastructure\Notification\TelegramHandler::class => function (ContainerInterface $c) {
-                $validator = $c->get(\App\Domain\Contracts\VerificationCodeValidatorInterface::class);
-                $repo = $c->get(\App\Domain\Contracts\AdminNotificationChannelRepositoryInterface::class);
-                assert($validator instanceof \App\Domain\Contracts\VerificationCodeValidatorInterface);
-                assert($repo instanceof \App\Domain\Contracts\AdminNotificationChannelRepositoryInterface);
-                return new \App\Infrastructure\Notification\TelegramHandler($validator, $repo);
+            TelegramHandler::class => function (ContainerInterface $c) {
+                $validator = $c->get(VerificationCodeValidatorInterface::class);
+                $repo = $c->get(AdminNotificationChannelRepositoryInterface::class);
+                $logger = $c->get(LoggerInterface::class);
+                assert($validator instanceof VerificationCodeValidatorInterface);
+                assert($repo instanceof AdminNotificationChannelRepositoryInterface);
+                assert($logger instanceof LoggerInterface);
+                return new TelegramHandler($validator, $repo, $logger);
             },
-            \App\Http\Controllers\Web\DashboardController::class => function (ContainerInterface $c) {
+            DashboardController::class => function (ContainerInterface $c) {
                 $view = $c->get(Twig::class);
                 assert($view instanceof Twig);
-                return new \App\Http\Controllers\Web\DashboardController($view);
+                return new DashboardController($view);
             },
-            \App\Http\Controllers\Web\TwoFactorController::class => function (ContainerInterface $c) {
-                $stepUp = $c->get(\App\Domain\Service\StepUpService::class);
-                $totp = $c->get(\App\Domain\Contracts\TotpServiceInterface::class);
+            TwoFactorController::class => function (ContainerInterface $c) {
+                $stepUp = $c->get(StepUpService::class);
+                $totp = $c->get(TotpServiceInterface::class);
                 $view = $c->get(Twig::class);
-                assert($stepUp instanceof \App\Domain\Service\StepUpService);
-                assert($totp instanceof \App\Domain\Contracts\TotpServiceInterface);
+                assert($stepUp instanceof StepUpService);
+                assert($totp instanceof TotpServiceInterface);
                 assert($view instanceof Twig);
-                return new \App\Http\Controllers\Web\TwoFactorController($stepUp, $totp, $view);
+                return new TwoFactorController($stepUp, $totp, $view);
             },
-            \App\Http\Controllers\AdminNotificationPreferenceController::class => function (ContainerInterface $c) {
+            AdminNotificationPreferenceController::class => function (ContainerInterface $c) {
                 $reader = $c->get(AdminNotificationPreferenceReaderInterface::class);
                 $writer = $c->get(AdminNotificationPreferenceWriterInterface::class);
                 assert($reader instanceof AdminNotificationPreferenceReaderInterface);
                 assert($writer instanceof AdminNotificationPreferenceWriterInterface);
-                return new \App\Http\Controllers\AdminNotificationPreferenceController($reader, $writer);
+                return new AdminNotificationPreferenceController($reader, $writer);
             },
-            \App\Http\Controllers\AdminNotificationHistoryController::class => function (ContainerInterface $c) {
-                $reader = $c->get(\App\Domain\Contracts\AdminNotificationHistoryReaderInterface::class);
-                assert($reader instanceof \App\Domain\Contracts\AdminNotificationHistoryReaderInterface);
-                return new \App\Http\Controllers\AdminNotificationHistoryController($reader);
+            AdminNotificationHistoryController::class => function (ContainerInterface $c) {
+                $reader = $c->get(AdminNotificationHistoryReaderInterface::class);
+                assert($reader instanceof AdminNotificationHistoryReaderInterface);
+                return new AdminNotificationHistoryController($reader);
             },
-            \App\Http\Controllers\AdminNotificationReadController::class => function (ContainerInterface $c) {
-                $marker = $c->get(\App\Domain\Contracts\AdminNotificationReadMarkerInterface::class);
-                assert($marker instanceof \App\Domain\Contracts\AdminNotificationReadMarkerInterface);
-                return new \App\Http\Controllers\AdminNotificationReadController($marker);
+            AdminNotificationReadController::class => function (ContainerInterface $c) {
+                $marker = $c->get(AdminNotificationReadMarkerInterface::class);
+                assert($marker instanceof AdminNotificationReadMarkerInterface);
+                return new AdminNotificationReadController($marker);
             },
-            \App\Domain\Contracts\AdminSelfAuditReaderInterface::class => function (ContainerInterface $c) {
+            AdminSelfAuditReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
-                return new \App\Infrastructure\Audit\PdoAdminSelfAuditReader($pdo);
+                return new PdoAdminSelfAuditReader($pdo);
             },
-            \App\Domain\Contracts\AdminTargetedAuditReaderInterface::class => function (ContainerInterface $c) {
+            AdminTargetedAuditReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
-                return new \App\Infrastructure\Audit\PdoAdminTargetedAuditReader($pdo);
+                return new PdoAdminTargetedAuditReader($pdo);
             },
-            \App\Domain\Contracts\AdminSecurityEventReaderInterface::class => function (ContainerInterface $c) {
+            AdminSecurityEventReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
-                return new \App\Infrastructure\Audit\PdoAdminSecurityEventReader($pdo);
+                return new PdoAdminSecurityEventReader($pdo);
             },
-            \App\Http\Controllers\AdminSelfAuditController::class => function (ContainerInterface $c) {
-                $selfReader = $c->get(\App\Domain\Contracts\AdminSelfAuditReaderInterface::class);
-                assert($selfReader instanceof \App\Domain\Contracts\AdminSelfAuditReaderInterface);
-                return new \App\Http\Controllers\AdminSelfAuditController($selfReader);
+            AdminSelfAuditController::class => function (ContainerInterface $c) {
+                $selfReader = $c->get(AdminSelfAuditReaderInterface::class);
+                assert($selfReader instanceof AdminSelfAuditReaderInterface);
+                return new AdminSelfAuditController($selfReader);
             },
-            \App\Http\Controllers\AdminTargetedAuditController::class => function (ContainerInterface $c) {
-                $targetedReader = $c->get(\App\Domain\Contracts\AdminTargetedAuditReaderInterface::class);
-                assert($targetedReader instanceof \App\Domain\Contracts\AdminTargetedAuditReaderInterface);
-                return new \App\Http\Controllers\AdminTargetedAuditController($targetedReader);
+            AdminTargetedAuditController::class => function (ContainerInterface $c) {
+                $targetedReader = $c->get(AdminTargetedAuditReaderInterface::class);
+                assert($targetedReader instanceof AdminTargetedAuditReaderInterface);
+                return new AdminTargetedAuditController($targetedReader);
             },
-            \App\Http\Controllers\AdminSecurityEventController::class => function (ContainerInterface $c) {
-                $securityReader = $c->get(\App\Domain\Contracts\AdminSecurityEventReaderInterface::class);
-                assert($securityReader instanceof \App\Domain\Contracts\AdminSecurityEventReaderInterface);
-                return new \App\Http\Controllers\AdminSecurityEventController($securityReader);
+            AdminSecurityEventController::class => function (ContainerInterface $c) {
+                $securityReader = $c->get(AdminSecurityEventReaderInterface::class);
+                assert($securityReader instanceof AdminSecurityEventReaderInterface);
+                return new AdminSecurityEventController($securityReader);
             },
 
             // Phase 12
-            \App\Domain\Contracts\StepUpGrantRepositoryInterface::class => function (ContainerInterface $c) {
-                return new \App\Infrastructure\Repository\RedisStepUpGrantRepository(
+            StepUpGrantRepositoryInterface::class => function (ContainerInterface $c) {
+                return new RedisStepUpGrantRepository(
                     $_ENV['REDIS_HOST'] ?? '127.0.0.1',
                     (int)($_ENV['REDIS_PORT'] ?? 6379)
                 );
             },
-            \App\Domain\Contracts\TotpSecretRepositoryInterface::class => function (ContainerInterface $c) {
+            TotpSecretRepositoryInterface::class => function (ContainerInterface $c) {
                 $storagePath = __DIR__ . '/../../storage/totp';
-                return new \App\Infrastructure\Repository\FileTotpSecretRepository($storagePath);
+                return new FileTotpSecretRepository($storagePath);
             },
-            \App\Domain\Contracts\TotpServiceInterface::class => function (ContainerInterface $c) {
-                return new \App\Infrastructure\Service\Google2faTotpService();
+            TotpServiceInterface::class => function (ContainerInterface $c) {
+                return new Google2faTotpService();
             },
-            \App\Domain\Service\StepUpService::class => function (ContainerInterface $c) {
-                 $grantRepo = $c->get(\App\Domain\Contracts\StepUpGrantRepositoryInterface::class);
-                 $secretRepo = $c->get(\App\Domain\Contracts\TotpSecretRepositoryInterface::class);
-                 $totpService = $c->get(\App\Domain\Contracts\TotpServiceInterface::class);
-                 $auditLogger = $c->get(\App\Domain\Contracts\AuditLoggerInterface::class);
+            StepUpService::class => function (ContainerInterface $c) {
+                 $grantRepo = $c->get(StepUpGrantRepositoryInterface::class);
+                 $secretRepo = $c->get(TotpSecretRepositoryInterface::class);
+                 $totpService = $c->get(TotpServiceInterface::class);
+                 $auditLogger = $c->get(AuditLoggerInterface::class);
 
-                 assert($grantRepo instanceof \App\Domain\Contracts\StepUpGrantRepositoryInterface);
-                 assert($secretRepo instanceof \App\Domain\Contracts\TotpSecretRepositoryInterface);
-                 assert($totpService instanceof \App\Domain\Contracts\TotpServiceInterface);
-                 assert($auditLogger instanceof \App\Domain\Contracts\AuditLoggerInterface);
+                 assert($grantRepo instanceof StepUpGrantRepositoryInterface);
+                 assert($secretRepo instanceof TotpSecretRepositoryInterface);
+                 assert($totpService instanceof TotpServiceInterface);
+                 assert($auditLogger instanceof AuditLoggerInterface);
 
-                 return new \App\Domain\Service\StepUpService(
+                 return new StepUpService(
                      $grantRepo,
                      $secretRepo,
                      $totpService,
                      $auditLogger
                  );
             },
-            \App\Http\Middleware\SessionStateGuardMiddleware::class => function (ContainerInterface $c) {
-                $service = $c->get(\App\Domain\Service\StepUpService::class);
-                $repo = $c->get(\App\Domain\Contracts\TotpSecretRepositoryInterface::class);
-                assert($service instanceof \App\Domain\Service\StepUpService);
-                assert($repo instanceof \App\Domain\Contracts\TotpSecretRepositoryInterface);
-                return new \App\Http\Middleware\SessionStateGuardMiddleware($service, $repo);
+            SessionStateGuardMiddleware::class => function (ContainerInterface $c) {
+                $service = $c->get(StepUpService::class);
+                $repo = $c->get(TotpSecretRepositoryInterface::class);
+                assert($service instanceof StepUpService);
+                assert($repo instanceof TotpSecretRepositoryInterface);
+                return new SessionStateGuardMiddleware($service, $repo);
             },
-            \App\Http\Middleware\ScopeGuardMiddleware::class => function (ContainerInterface $c) {
-                $service = $c->get(\App\Domain\Service\StepUpService::class);
-                assert($service instanceof \App\Domain\Service\StepUpService);
-                return new \App\Http\Middleware\ScopeGuardMiddleware($service);
+            ScopeGuardMiddleware::class => function (ContainerInterface $c) {
+                $service = $c->get(StepUpService::class);
+                assert($service instanceof StepUpService);
+                return new ScopeGuardMiddleware($service);
             },
-            \App\Http\Controllers\StepUpController::class => function (ContainerInterface $c) {
-                $service = $c->get(\App\Domain\Service\StepUpService::class);
-                assert($service instanceof \App\Domain\Service\StepUpService);
-                return new \App\Http\Controllers\StepUpController($service);
+            StepUpController::class => function (ContainerInterface $c) {
+                $service = $c->get(StepUpService::class);
+                assert($service instanceof StepUpService);
+                return new StepUpController($service);
             },
 
             // Phase Sx: Verification Code Infrastructure
-            \App\Domain\Contracts\VerificationCodeRepositoryInterface::class => function (ContainerInterface $c) {
+            VerificationCodeRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
-                return new \App\Infrastructure\Repository\PdoVerificationCodeRepository($pdo);
+                return new PdoVerificationCodeRepository($pdo);
             },
-            \App\Domain\Contracts\VerificationCodePolicyResolverInterface::class => function (ContainerInterface $c) {
-                return new \App\Domain\Service\VerificationCodePolicyResolver();
+            VerificationCodePolicyResolverInterface::class => function (ContainerInterface $c) {
+                return new VerificationCodePolicyResolver();
             },
-            \App\Domain\Contracts\VerificationCodeGeneratorInterface::class => function (ContainerInterface $c) {
-                $repo = $c->get(\App\Domain\Contracts\VerificationCodeRepositoryInterface::class);
-                $resolver = $c->get(\App\Domain\Contracts\VerificationCodePolicyResolverInterface::class);
-                assert($repo instanceof \App\Domain\Contracts\VerificationCodeRepositoryInterface);
-                assert($resolver instanceof \App\Domain\Contracts\VerificationCodePolicyResolverInterface);
-                return new \App\Domain\Service\VerificationCodeGenerator($repo, $resolver);
+            VerificationCodeGeneratorInterface::class => function (ContainerInterface $c) {
+                $repo = $c->get(VerificationCodeRepositoryInterface::class);
+                $resolver = $c->get(VerificationCodePolicyResolverInterface::class);
+                assert($repo instanceof VerificationCodeRepositoryInterface);
+                assert($resolver instanceof VerificationCodePolicyResolverInterface);
+                return new VerificationCodeGenerator($repo, $resolver);
             },
-            \App\Domain\Contracts\VerificationCodeValidatorInterface::class => function (ContainerInterface $c) {
-                $repo = $c->get(\App\Domain\Contracts\VerificationCodeRepositoryInterface::class);
-                assert($repo instanceof \App\Domain\Contracts\VerificationCodeRepositoryInterface);
-                return new \App\Domain\Service\VerificationCodeValidator($repo);
+            VerificationCodeValidatorInterface::class => function (ContainerInterface $c) {
+                $repo = $c->get(VerificationCodeRepositoryInterface::class);
+                assert($repo instanceof VerificationCodeRepositoryInterface);
+                return new VerificationCodeValidator($repo);
             },
         ]);
 
