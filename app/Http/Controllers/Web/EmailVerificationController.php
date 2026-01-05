@@ -95,7 +95,7 @@ readonly class EmailVerificationController
                 'reason' => VerificationFailureReasonEnum::IDENTITY_MISMATCH->value,
                 'identity_type' => $result->identityType?->value,
                 'identity_id' => $result->identityId,
-                'purpose' => $result->purpose?->value,
+                'purpose' => $result->purpose->value,
             ]);
             return $this->view->render($response, 'verify-email.twig', [
                 'error' => 'Verification failed.',
@@ -107,9 +107,9 @@ readonly class EmailVerificationController
         if ($result->identityId === null || !is_numeric($result->identityId)) {
             $this->logger->warning('Email verification failed', [
                 'reason' => VerificationFailureReasonEnum::INVALID_IDENTITY_ID->value,
-                'identity_type' => $result->identityType?->value,
+                'identity_type' => $result->identityType->value,
                 'identity_id' => $result->identityId,
-                'purpose' => $result->purpose?->value,
+                'purpose' => $result->purpose->value,
             ]);
             return $this->view->render($response, 'verify-email.twig', [
                 'error' => 'Verification failed.',

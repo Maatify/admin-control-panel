@@ -331,6 +331,7 @@ class Container
                 $verificationService = $c->get(AdminEmailVerificationService::class);
                 $lookup = $c->get(AdminIdentifierLookupInterface::class);
                 $view = $c->get(Twig::class);
+                $logger = $c->get(LoggerInterface::class);
                 $blindIndexKey = $_ENV['EMAIL_BLIND_INDEX_KEY'] ?? '';
 
                 assert($validator instanceof VerificationCodeValidatorInterface);
@@ -338,6 +339,7 @@ class Container
                 assert($verificationService instanceof AdminEmailVerificationService);
                 assert($lookup instanceof AdminIdentifierLookupInterface);
                 assert($view instanceof Twig);
+                assert($logger instanceof LoggerInterface);
 
                 return new EmailVerificationController(
                     $validator,
@@ -345,6 +347,7 @@ class Container
                     $verificationService,
                     $lookup,
                     $view,
+                    $logger,
                     $blindIndexKey
                 );
             },
