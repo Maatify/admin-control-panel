@@ -31,6 +31,15 @@ return function (App $app) {
     $app->group('', function (RouteCollectorProxy $group) {
         $group->get('/dashboard', [\App\Http\Controllers\Web\DashboardController::class, 'index']);
 
+        // Phase 13.1
+        $group->get('/2fa/setup', [\App\Http\Controllers\Web\TwoFactorController::class, 'setup'])
+            ->setName('2fa.setup');
+        $group->post('/2fa/setup', [\App\Http\Controllers\Web\TwoFactorController::class, 'doSetup']);
+
+        $group->get('/2fa/verify', [\App\Http\Controllers\Web\TwoFactorController::class, 'verify'])
+            ->setName('2fa.verify');
+        $group->post('/2fa/verify', [\App\Http\Controllers\Web\TwoFactorController::class, 'doVerify']);
+
         $group->post('/admins', [AdminController::class, 'create'])
             ->setName('admin.create')
             ->add(AuthorizationGuardMiddleware::class);
