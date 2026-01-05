@@ -26,6 +26,9 @@ return function (App $app) {
     // Web Routes
     $app->get('/login', [\App\Http\Controllers\Web\LoginController::class, 'index']);
     $app->post('/login', [\App\Http\Controllers\Web\LoginController::class, 'login']);
+    // Logout (Phase 13.5)
+    $app->post('/logout', [\App\Http\Controllers\Web\LogoutController::class, 'logout']);
+
 
     $app->get('/verify-email', [\App\Http\Controllers\Web\EmailVerificationController::class, 'index']);
     $app->post('/verify-email', [\App\Http\Controllers\Web\EmailVerificationController::class, 'verify']);

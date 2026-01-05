@@ -15,6 +15,7 @@ DROP TABLE IF EXISTS admin_sessions;
 DROP TABLE IF EXISTS admin_passwords;
 DROP TABLE IF EXISTS admin_emails;
 DROP TABLE IF EXISTS admins;
+DROP TABLE IF EXISTS admin_remember_me_tokens;
 
 SET FOREIGN_KEY_CHECKS=1;
 
@@ -174,4 +175,17 @@ CREATE TABLE security_events (
     INDEX idx_security_admin_id (admin_id),
     INDEX idx_security_event_name (event_name),
     INDEX idx_security_occurred_at (occurred_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE admin_remember_me_tokens (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    admin_id INT NOT NULL,
+    selector CHAR(24) NOT NULL,
+    hashed_validator VARCHAR(255) NOT NULL,
+    user_agent_hash CHAR(64) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_selector (selector),
+    CONSTRAINT fk_armt_admin_id FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE CASCADE,
+    INDEX idx_admin_id (admin_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

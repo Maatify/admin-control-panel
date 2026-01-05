@@ -28,6 +28,7 @@ use App\Domain\Contracts\NotificationDispatcherInterface;
 use App\Domain\Contracts\NotificationReadRepositoryInterface;
 use App\Domain\Contracts\NotificationRoutingInterface;
 use App\Domain\Contracts\NotificationSenderInterface;
+use App\Domain\Contracts\RememberMeRepositoryInterface;
 use App\Domain\Contracts\RolePermissionRepositoryInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\Contracts\StepUpGrantRepositoryInterface;
@@ -41,6 +42,8 @@ use App\Domain\Service\AdminAuthenticationService;
 use App\Domain\Service\AdminEmailVerificationService;
 use App\Domain\Service\AdminNotificationRoutingService;
 use App\Domain\Service\NotificationFailureHandler;
+use App\Domain\Service\RememberMeService;
+use App\Domain\Service\SessionValidationService;
 use App\Domain\Service\StepUpService;
 use App\Domain\Service\VerificationCodeGenerator;
 use App\Domain\Service\VerificationCodePolicyResolver;
@@ -56,9 +59,11 @@ use App\Http\Controllers\StepUpController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\EmailVerificationController;
 use App\Http\Controllers\Web\LoginController;
+use App\Http\Controllers\Web\LogoutController;
 use App\Http\Controllers\Web\TelegramConnectController;
 use App\Http\Controllers\Web\TwoFactorController;
 use App\Http\Middleware\ScopeGuardMiddleware;
+use App\Http\Middleware\SessionGuardMiddleware;
 use App\Http\Middleware\SessionStateGuardMiddleware;
 use App\Infrastructure\Audit\PdoAdminSecurityEventReader;
 use App\Infrastructure\Audit\PdoAdminSelfAuditReader;
@@ -82,6 +87,7 @@ use App\Infrastructure\Repository\FailedNotificationRepository;
 use App\Infrastructure\Repository\NotificationReadRepository;
 use App\Infrastructure\Notifications\NullNotificationDispatcher;
 use App\Infrastructure\Repository\PdoAdminNotificationReadMarker;
+use App\Infrastructure\Repository\PdoRememberMeRepository;
 use App\Infrastructure\Repository\PdoVerificationCodeRepository;
 use App\Infrastructure\Repository\RedisStepUpGrantRepository;
 use App\Infrastructure\Repository\RolePermissionRepository;
@@ -313,14 +319,17 @@ class Container
             LoginController::class => function (ContainerInterface $c) {
                 $authService = $c->get(AdminAuthenticationService::class);
                 $sessionRepo = $c->get(AdminSessionValidationRepositoryInterface::class);
+                $rememberMe = $c->get(RememberMeService::class);
                 $view = $c->get(Twig::class);
                 assert($authService instanceof AdminAuthenticationService);
                 assert($sessionRepo instanceof AdminSessionValidationRepositoryInterface);
+                assert($rememberMe instanceof RememberMeService);
                 assert($view instanceof Twig);
                 $blindIndexKey = $_ENV['EMAIL_BLIND_INDEX_KEY'] ?? '';
                 return new LoginController(
                     $authService,
                     $sessionRepo,
+                    $rememberMe,
                     $blindIndexKey,
                     $view
                 );
@@ -428,6 +437,13 @@ class Container
                 assert($securityReader instanceof AdminSecurityEventReaderInterface);
                 return new AdminSecurityEventController($securityReader);
             },
+            LogoutController::class => function (ContainerInterface $c) {
+                $sessionRepo = $c->get(AdminSessionRepositoryInterface::class);
+                $rememberMe = $c->get(RememberMeService::class);
+                assert($sessionRepo instanceof AdminSessionRepositoryInterface);
+                assert($rememberMe instanceof RememberMeService);
+                return new LogoutController($sessionRepo, $rememberMe);
+            },
 
             // Phase 12
             StepUpGrantRepositoryInterface::class => function (ContainerInterface $c) {
@@ -461,6 +477,13 @@ class Container
                      $auditLogger
                  );
             },
+            SessionGuardMiddleware::class => function (ContainerInterface $c) {
+                $sessionService = $c->get(SessionValidationService::class);
+                $rememberMeService = $c->get(RememberMeService::class);
+                assert($sessionService instanceof SessionValidationService);
+                assert($rememberMeService instanceof RememberMeService);
+                return new SessionGuardMiddleware($sessionService, $rememberMeService);
+            },
             SessionStateGuardMiddleware::class => function (ContainerInterface $c) {
                 $service = $c->get(StepUpService::class);
                 $repo = $c->get(TotpSecretRepositoryInterface::class);
@@ -477,6 +500,30 @@ class Container
                 $service = $c->get(StepUpService::class);
                 assert($service instanceof StepUpService);
                 return new StepUpController($service);
+            },
+
+            // Phase 13.5 Remember Me
+            RememberMeRepositoryInterface::class => function (ContainerInterface $c) {
+                $pdoFactory = new PDOFactory(
+                    $_ENV['DB_HOST'] ?? 'localhost',
+                    $_ENV['DB_NAME'] ?? 'test',
+                    $_ENV['DB_USER'] ?? 'root',
+                    $_ENV['DB_PASS'] ?? ''
+                );
+                return new PdoRememberMeRepository($pdoFactory);
+            },
+            RememberMeService::class => function (ContainerInterface $c) {
+                $repo = $c->get(RememberMeRepositoryInterface::class);
+                $sessionRepo = $c->get(AdminSessionRepositoryInterface::class);
+                $audit = $c->get(AuditLoggerInterface::class);
+                $clientInfo = $c->get(ClientInfoProviderInterface::class);
+
+                assert($repo instanceof RememberMeRepositoryInterface);
+                assert($sessionRepo instanceof AdminSessionRepositoryInterface);
+                assert($audit instanceof AuditLoggerInterface);
+                assert($clientInfo instanceof ClientInfoProviderInterface);
+
+                return new RememberMeService($repo, $sessionRepo, $audit, $clientInfo);
             },
 
             // Phase Sx: Verification Code Infrastructure
