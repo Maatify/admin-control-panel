@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Service;
 
 use App\Domain\Contracts\AuditLoggerInterface;
-use App\Domain\Contracts\AuditOutboxWriterInterface;
+use App\Domain\Contracts\TransactionalAuditWriterInterface;
 use App\Domain\Contracts\StepUpGrantRepositoryInterface;
 use App\Domain\Contracts\TotpSecretRepositoryInterface;
 use App\Domain\Contracts\TotpServiceInterface;
@@ -26,7 +26,7 @@ readonly class StepUpService
         private TotpSecretRepositoryInterface $totpSecretRepository,
         private TotpServiceInterface $totpService,
         private AuditLoggerInterface $auditLogger,
-        private AuditOutboxWriterInterface $outboxWriter,
+        private TransactionalAuditWriterInterface $outboxWriter,
         private PDO $pdo
     ) {
     }
@@ -194,16 +194,23 @@ readonly class StepUpService
             new DateTimeImmutable()
         ));
 
-        $this->outboxWriter->write(new AuditEventDTO(
-            $adminId,
-            'stepup_denied',
-            'grant',
-            $adminId,
-            'LOW',
-            ['session_id' => $sessionId, 'required_scope' => $requiredScope->value],
-            bin2hex(random_bytes(16)),
-            new DateTimeImmutable()
-        ));
+        $this->pdo->beginTransaction();
+        try {
+            $this->outboxWriter->write(new AuditEventDTO(
+                $adminId,
+                'stepup_denied',
+                'grant',
+                $adminId,
+                'LOW',
+                ['session_id' => $sessionId, 'required_scope' => $requiredScope->value],
+                bin2hex(random_bytes(16)),
+                new DateTimeImmutable()
+            ));
+            $this->pdo->commit();
+        } catch (\Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
     }
 
     public function hasGrant(int $adminId, string $sessionId, Scope $scope): bool

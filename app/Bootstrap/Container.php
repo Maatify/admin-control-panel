@@ -63,7 +63,7 @@ use App\Http\Controllers\Web\TwoFactorController;
 use App\Http\Middleware\RememberMeMiddleware;
 use App\Http\Middleware\ScopeGuardMiddleware;
 use App\Http\Middleware\SessionStateGuardMiddleware;
-use App\Domain\Contracts\AuditOutboxWriterInterface;
+use App\Domain\Contracts\TransactionalAuditWriterInterface;
 use App\Infrastructure\Audit\PdoAdminSecurityEventReader;
 use App\Infrastructure\Audit\PdoAdminSelfAuditReader;
 use App\Infrastructure\Audit\PdoAdminTargetedAuditReader;
@@ -252,7 +252,7 @@ class Container
                 assert($pdo instanceof PDO);
                 return new AuditLogRepository($pdo);
             },
-            AuditOutboxWriterInterface::class => function (ContainerInterface $c) {
+            TransactionalAuditWriterInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new PdoAuditOutboxWriter($pdo);
@@ -485,14 +485,14 @@ class Container
                  $secretRepo = $c->get(TotpSecretRepositoryInterface::class);
                  $totpService = $c->get(TotpServiceInterface::class);
                  $auditLogger = $c->get(AuditLoggerInterface::class);
-                 $outboxWriter = $c->get(AuditOutboxWriterInterface::class);
+                 $outboxWriter = $c->get(TransactionalAuditWriterInterface::class);
                  $pdo = $c->get(PDO::class);
 
                  assert($grantRepo instanceof StepUpGrantRepositoryInterface);
                  assert($secretRepo instanceof TotpSecretRepositoryInterface);
                  assert($totpService instanceof TotpServiceInterface);
                  assert($auditLogger instanceof AuditLoggerInterface);
-                 assert($outboxWriter instanceof AuditOutboxWriterInterface);
+                 assert($outboxWriter instanceof TransactionalAuditWriterInterface);
                  assert($pdo instanceof PDO);
 
                  return new StepUpService(

@@ -9,8 +9,8 @@ use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
 use App\Domain\Contracts\AuditLoggerInterface;
-use App\Domain\Contracts\AuditOutboxWriterInterface;
 use App\Domain\Contracts\ClientInfoProviderInterface;
+use App\Domain\Contracts\TransactionalAuditWriterInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\DTO\AuditEventDTO;
 use App\Domain\DTO\LegacyAuditEventDTO;
@@ -31,7 +31,7 @@ readonly class AdminAuthenticationService
         private AuditLoggerInterface $auditLogger,
         private SecurityEventLoggerInterface $securityLogger,
         private ClientInfoProviderInterface $clientInfoProvider,
-        private AuditOutboxWriterInterface $outboxWriter,
+        private TransactionalAuditWriterInterface $outboxWriter,
         private PDO $pdo
     ) {
     }

@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Audit;
 
-use App\Domain\Contracts\AuditOutboxWriterInterface;
+use App\Domain\Contracts\TransactionalAuditWriterInterface;
 use App\Domain\DTO\AuditEventDTO;
 use PDO;
+use RuntimeException;
 
-class PdoAuditOutboxWriter implements AuditOutboxWriterInterface
+class PdoAuditOutboxWriter implements TransactionalAuditWriterInterface
 {
     private PDO $pdo;
 
@@ -19,6 +20,10 @@ class PdoAuditOutboxWriter implements AuditOutboxWriterInterface
 
     public function write(AuditEventDTO $event): void
     {
+        if (!$this->pdo->inTransaction()) {
+            throw new RuntimeException('Audit Outbox writes must be performed within an active transaction.');
+        }
+
         $stmt = $this->pdo->prepare(
             'INSERT INTO audit_outbox (actor_id, action, target_type, target_id, risk_level, payload, correlation_id, created_at)
              VALUES (:actor_id, :action, :target_type, :target_id, :risk_level, :payload, :correlation_id, :created_at)'

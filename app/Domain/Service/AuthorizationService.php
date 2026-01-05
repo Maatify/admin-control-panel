@@ -6,8 +6,8 @@ namespace App\Domain\Service;
 
 use App\Domain\Contracts\AdminRoleRepositoryInterface;
 use App\Domain\Contracts\AuditLoggerInterface;
-use App\Domain\Contracts\AuditOutboxWriterInterface;
 use App\Domain\Contracts\ClientInfoProviderInterface;
+use App\Domain\Contracts\TransactionalAuditWriterInterface;
 use App\Domain\Contracts\RolePermissionRepositoryInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\DTO\AuditEventDTO;
@@ -26,7 +26,7 @@ readonly class AuthorizationService
         private AuditLoggerInterface $auditLogger,
         private SecurityEventLoggerInterface $securityLogger,
         private ClientInfoProviderInterface $clientInfoProvider,
-        private AuditOutboxWriterInterface $outboxWriter,
+        private TransactionalAuditWriterInterface $outboxWriter,
         private PDO $pdo
     ) {
     }
