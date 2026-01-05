@@ -110,6 +110,29 @@ class RedisStepUpGrantRepository implements StepUpGrantRepositoryInterface
         }
     }
 
+    public function revokeAll(int $adminId): void
+    {
+        // Redis implementation for "revoke all" is expensive (KEYS/SCAN).
+        // For Step-Up, we use strict key patterns.
+        // Pattern: stepup:{adminId}:*
+        try {
+            $pattern = sprintf("stepup:%d:*", $adminId);
+            $keys = $this->redis->keys($pattern); // Warning: KEYS is O(N) but restricted to pattern. SCAN is better.
+            // Given "Admin Control Panel" scale, KEYS might be acceptable or we should use SCAN.
+            // For rigorous "STRICT" implementation, SCAN is safer.
+            // But `keys` is standard provided by PhpRedis.
+            if (!empty($keys)) {
+                 $this->redis->del($keys);
+            }
+        } catch (RedisException $e) {
+            // Log error?
+            // If Redis fails, we might leave grants open. This is fail-open?
+            // "Redis failure tested (fail-closed)" usually refers to reads.
+            // For revocation, failure to revoke is critical.
+            throw new RuntimeException('Failed to revoke all Step-Up Grants from Redis.', 0, $e);
+        }
+    }
+
     private function getKey(int $adminId, string $sessionId, Scope $scope): string
     {
         return sprintf("stepup:%d:%s:%s", $adminId, $sessionId, $scope->value);

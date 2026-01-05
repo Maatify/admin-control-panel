@@ -14,4 +14,6 @@ interface StepUpGrantRepositoryInterface
     public function find(int $adminId, string $sessionId, Scope $scope): ?StepUpGrant;
 
     public function revoke(int $adminId, string $sessionId, Scope $scope): void;
+
+    public function revokeAll(int $adminId): void;
 }

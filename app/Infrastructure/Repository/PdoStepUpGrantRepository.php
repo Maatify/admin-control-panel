@@ -102,4 +102,14 @@ class PdoStepUpGrantRepository implements StepUpGrantRepositoryInterface
             ':scope' => $scope->value,
         ]);
     }
+
+    public function revokeAll(int $adminId): void
+    {
+        $stmt = $this->pdo->prepare('
+            DELETE FROM step_up_grants
+            WHERE admin_id = :admin_id
+        ');
+
+        $stmt->execute([':admin_id' => $adminId]);
+    }
 }
