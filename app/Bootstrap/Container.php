@@ -649,9 +649,7 @@ class Container
                 assert($securityLogger instanceof SecurityEventLoggerInterface);
                 assert($pdo instanceof PDO);
 
-                $storagePath = __DIR__ . '/../../storage/recovery_state';
-
-                return new RecoveryStateService($auditWriter, $securityLogger, $pdo, $storagePath);
+                return new RecoveryStateService($auditWriter, $securityLogger, $pdo);
             },
             \App\Http\Middleware\RecoveryStateMiddleware::class => function (ContainerInterface $c) {
                 $service = $c->get(RecoveryStateService::class);

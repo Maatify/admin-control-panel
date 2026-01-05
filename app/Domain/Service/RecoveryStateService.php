@@ -39,14 +39,13 @@ class RecoveryStateService
     public function __construct(
         private AuthoritativeSecurityAuditWriterInterface $auditWriter,
         private SecurityEventLoggerInterface $securityLogger,
-        private PDO $pdo,
-        private string $storagePath
+        private PDO $pdo
     ) {
     }
 
     public function isLocked(): bool
     {
-        // 1. Check if manually/persistently locked
+        // 1. Check if persistently locked in DB
         if ($this->readStoredState() === self::SYSTEM_STATE_RECOVERY_LOCKED) {
             return true;
         }
@@ -74,11 +73,6 @@ class RecoveryStateService
         return false;
     }
 
-    public function getSystemState(): string
-    {
-        return $this->isLocked() ? self::SYSTEM_STATE_RECOVERY_LOCKED : self::SYSTEM_STATE_ACTIVE;
-    }
-
     public function enforce(string $action, ?int $actorId = null): void
     {
         if (!$this->isLocked()) {
@@ -96,10 +90,8 @@ class RecoveryStateService
         $isEnvLocked = $this->isEnvLocked();
 
         // Calculate expected state based on Environment only (for monitoring automated transitions)
+        // STRICT: Only Auto-Lock if Env dictates. Never Auto-Unlock.
         // If Stored is ACTIVE but ENV is LOCKED -> Must Enter Recovery
-        // If Stored is LOCKED but ENV is ACTIVE -> Must Exit Recovery (if we assume Auto-Recovery)
-        // NOTE: Strictly following "Single Transition Authority".
-
         if ($storedState === self::SYSTEM_STATE_ACTIVE && $isEnvLocked) {
             // Reason derivation
             $reason = RecoveryTransitionReason::ENVIRONMENT_OVERRIDE;
@@ -109,10 +101,10 @@ class RecoveryStateService
             }
 
             $this->enterRecovery($reason, 0); // System Actor
-        } elseif ($storedState === self::SYSTEM_STATE_RECOVERY_LOCKED && !$isEnvLocked) {
-            // Environment cleared, auto-exit recovery
-            $this->exitRecovery(RecoveryTransitionReason::ENVIRONMENT_OVERRIDE, 0);
         }
+
+        // Auto-Unlock is FORBIDDEN.
+        // If Stored is LOCKED but Env is ACTIVE -> Remain LOCKED until explicit manual exit.
     }
 
     public function enterRecovery(RecoveryTransitionReason $reason, int $actorId): void
@@ -146,16 +138,6 @@ class RecoveryStateService
         RecoveryTransitionReason $reason,
         int $actorId
     ): void {
-        // Optimization: if already in state, do nothing?
-        // But file check is cheap.
-        // However, if we are calling this, we probably want to enforce the transition event.
-        // But monitorState calls it only on change.
-        // If manual call repeats the state, maybe we should log it anyway (Idempotent call vs Event)?
-        // Prompt says "Canonical Event".
-        // If I call enterRecovery and I am already locked, is it a new event?
-        // Yes, "Re-entering" or "Confirming" lock.
-        // But for strictness, let's allow it. It provides audit trail of the attempt.
-
         $txStarted = false;
         if (!$this->pdo->inTransaction()) {
             $this->pdo->beginTransaction();
@@ -194,35 +176,30 @@ class RecoveryStateService
 
     private function readStoredState(): string
     {
-        if (!file_exists($this->storagePath)) {
-            return self::SYSTEM_STATE_ACTIVE;
+        // Read from DB `system_state`
+        $stmt = $this->pdo->prepare("SELECT state_value FROM system_state WHERE state_key = 'recovery_mode'");
+        $stmt->execute();
+        $result = $stmt->fetchColumn();
+
+        if ($result === false) {
+             // Default to ACTIVE if not found (Bootstrap scenario)
+             return self::SYSTEM_STATE_ACTIVE;
         }
 
-        $content = file_get_contents($this->storagePath);
-        if ($content === false) {
-             throw new RuntimeException("Unable to read recovery state file.");
-        }
-
-        $state = trim($content);
-        if (!in_array($state, [self::SYSTEM_STATE_ACTIVE, self::SYSTEM_STATE_RECOVERY_LOCKED], true)) {
-            return 'UNKNOWN';
-        }
-
-        return $state;
+        return (string)$result;
     }
 
     private function writeStoredState(string $state): void
     {
-        $dir = dirname($this->storagePath);
-        if (!is_dir($dir)) {
-            if (!mkdir($dir, 0755, true) && !is_dir($dir)) {
-                 throw new RuntimeException("Unable to create recovery state directory.");
-            }
-        }
+        // Write to DB `system_state`
+        // Upsert
+        $sql = "INSERT INTO system_state (state_key, state_value, updated_at)
+                VALUES ('recovery_mode', :val, NOW())
+                ON DUPLICATE KEY UPDATE state_value = :val, updated_at = NOW()";
 
-        if (file_put_contents($this->storagePath, $state) === false) {
-            throw new RuntimeException("Unable to write recovery state file.");
-        }
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(':val', $state);
+        $stmt->execute();
     }
 
     private function handleBlockedAction(string $action, ?int $actorId): void
