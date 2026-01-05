@@ -33,7 +33,8 @@ readonly class AdminAuthenticationService
         private ClientInfoProviderInterface $clientInfoProvider,
         private AuthoritativeSecurityAuditWriterInterface $outboxWriter,
         private RecoveryStateService $recoveryState,
-        private PDO $pdo
+        private PDO $pdo,
+        private PasswordService $passwordService
     ) {
     }
 
@@ -74,7 +75,7 @@ readonly class AdminAuthenticationService
 
         // 3. Verify Password
         $hash = $this->passwordRepository->getPasswordHash($adminId);
-        if ($hash === null || !password_verify($password, $hash)) {
+        if ($hash === null || !$this->passwordService->verify($password, $hash)) {
             $this->securityLogger->log(new SecurityEventDTO(
                 $adminId,
                 'login_failed',
@@ -91,6 +92,8 @@ readonly class AdminAuthenticationService
         $this->pdo->beginTransaction();
         try {
             $token = $this->sessionRepository->createSession($adminId);
+            // Hash token to get Session ID (for audit logging)
+            $sessionId = hash('sha256', $token);
 
             $this->auditLogger->log(new LegacyAuditEventDTO(
                 $adminId, // Actor
@@ -112,6 +115,8 @@ readonly class AdminAuthenticationService
                 [
                     'ip_address' => $this->clientInfoProvider->getIpAddress(),
                     'user_agent' => $this->clientInfoProvider->getUserAgent(),
+                    // Log the Session ID prefix (Safe), NOT the Token prefix
+                    'session_id_prefix' => substr($sessionId, 0, 8) . '...',
                 ],
                 bin2hex(random_bytes(16)),
                 new DateTimeImmutable()
@@ -131,6 +136,7 @@ readonly class AdminAuthenticationService
         $this->pdo->beginTransaction();
         try {
             $this->sessionRepository->revokeSession($token);
+            $sessionId = hash('sha256', $token);
 
             $this->outboxWriter->write(new AuditEventDTO(
                 $adminId,
@@ -139,7 +145,8 @@ readonly class AdminAuthenticationService
                 $adminId,
                 'LOW',
                 [
-                    'session_token_prefix' => substr($token, 0, 8) . '...',
+                    // Log the Session ID prefix (Safe), NOT the Token prefix
+                    'session_id_prefix' => substr($sessionId, 0, 8) . '...',
                     'ip_address' => $this->clientInfoProvider->getIpAddress(),
                     'user_agent' => $this->clientInfoProvider->getUserAgent(),
                 ],

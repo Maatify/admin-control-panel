@@ -11,6 +11,7 @@ use App\Domain\Contracts\TotpSecretRepositoryInterface;
 use App\Domain\Contracts\TotpServiceInterface;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\DTO\AuditEventDTO;
+use App\Domain\Service\PasswordService;
 
 // Load Env
 $dotenv = Dotenv::createImmutable(__DIR__ . '/../');
@@ -79,7 +80,8 @@ try {
 
     // 3. Password
     $passRepo = $container->get(AdminPasswordRepositoryInterface::class);
-    $passRepo->savePassword($adminId, password_hash($password, PASSWORD_DEFAULT));
+    $passwordService = $container->get(PasswordService::class);
+    $passRepo->savePassword($adminId, $passwordService->hash($password));
 
     // 4. TOTP
     $totpRepo = $container->get(TotpSecretRepositoryInterface::class);

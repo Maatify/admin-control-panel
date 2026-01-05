@@ -101,6 +101,7 @@ use App\Infrastructure\Repository\PdoVerificationCodeRepository;
 use App\Infrastructure\Repository\RedisStepUpGrantRepository;
 use App\Infrastructure\Repository\RolePermissionRepository;
 use App\Domain\Service\NotificationDispatcher;
+use App\Domain\Service\PasswordService;
 use App\Infrastructure\Notification\EmailNotificationSender;
 use App\Infrastructure\Notification\FakeNotificationSender;
 use App\Infrastructure\Notification\NullNotificationSender;
@@ -213,6 +214,53 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new AdminPasswordRepository($pdo);
+            },
+            PasswordService::class => function (ContainerInterface $c) {
+                $pepper = $_ENV['PASSWORD_PEPPER'] ?? '';
+                $oldPepper = $_ENV['PASSWORD_PEPPER_OLD'] ?? null;
+                if ($pepper === '') {
+                    throw new Exception('PASSWORD_PEPPER env var is required');
+                }
+                return new PasswordService($pepper, $oldPepper);
+            },
+            AdminAuthenticationService::class => function (ContainerInterface $c) {
+                $lookup = $c->get(AdminIdentifierLookupInterface::class);
+                $verificationRepo = $c->get(AdminEmailVerificationRepositoryInterface::class);
+                $passwordRepo = $c->get(AdminPasswordRepositoryInterface::class);
+                $sessionRepo = $c->get(AdminSessionRepositoryInterface::class);
+                $auditLogger = $c->get(TelemetryAuditLoggerInterface::class);
+                $securityLogger = $c->get(SecurityEventLoggerInterface::class);
+                $clientInfo = $c->get(ClientInfoProviderInterface::class);
+                $outboxWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
+                $recoveryState = $c->get(RecoveryStateService::class);
+                $pdo = $c->get(PDO::class);
+                $passwordService = $c->get(PasswordService::class);
+
+                assert($lookup instanceof AdminIdentifierLookupInterface);
+                assert($verificationRepo instanceof AdminEmailVerificationRepositoryInterface);
+                assert($passwordRepo instanceof AdminPasswordRepositoryInterface);
+                assert($sessionRepo instanceof AdminSessionRepositoryInterface);
+                assert($auditLogger instanceof TelemetryAuditLoggerInterface);
+                assert($securityLogger instanceof SecurityEventLoggerInterface);
+                assert($clientInfo instanceof ClientInfoProviderInterface);
+                assert($outboxWriter instanceof AuthoritativeSecurityAuditWriterInterface);
+                assert($recoveryState instanceof RecoveryStateService);
+                assert($pdo instanceof PDO);
+                assert($passwordService instanceof PasswordService);
+
+                return new AdminAuthenticationService(
+                    $lookup,
+                    $verificationRepo,
+                    $passwordRepo,
+                    $sessionRepo,
+                    $auditLogger,
+                    $securityLogger,
+                    $clientInfo,
+                    $outboxWriter,
+                    $recoveryState,
+                    $pdo,
+                    $passwordService
+                );
             },
             AdminSessionRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
