@@ -311,6 +311,9 @@ readonly class StepUpService
         return SessionState::PENDING_STEP_UP;
     }
 
+    /**
+     * @param array<string, scalar> $details
+     */
     private function logSecurityEvent(int $adminId, string $sessionId, string $event, array $details): void
     {
         $details['session_id'] = $sessionId;

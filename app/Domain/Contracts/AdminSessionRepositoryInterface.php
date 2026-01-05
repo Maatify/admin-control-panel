@@ -10,5 +10,7 @@ interface AdminSessionRepositoryInterface
 
     public function invalidateSession(string $token): void;
 
+    public function revokeSession(string $token): void;
+
     public function getAdminIdFromSession(string $token): ?int;
 }

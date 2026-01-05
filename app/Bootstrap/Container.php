@@ -358,17 +358,20 @@ class Container
                 $rememberMeService = $c->get(RememberMeService::class);
                 $logger = $c->get(SecurityEventLoggerInterface::class);
                 $clientInfo = $c->get(ClientInfoProviderInterface::class);
+                $authService = $c->get(AdminAuthenticationService::class);
 
                 assert($sessionRepo instanceof AdminSessionValidationRepositoryInterface);
                 assert($rememberMeService instanceof RememberMeService);
                 assert($logger instanceof SecurityEventLoggerInterface);
                 assert($clientInfo instanceof ClientInfoProviderInterface);
+                assert($authService instanceof AdminAuthenticationService);
 
                 return new \App\Http\Controllers\Web\LogoutController(
                     $sessionRepo,
                     $rememberMeService,
                     $logger,
-                    $clientInfo
+                    $clientInfo,
+                    $authService
                 );
             },
             EmailVerificationController::class => function (ContainerInterface $c) {

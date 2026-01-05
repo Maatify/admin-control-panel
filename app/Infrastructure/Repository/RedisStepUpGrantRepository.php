@@ -84,11 +84,12 @@ class RedisStepUpGrantRepository implements StepUpGrantRepositoryInterface
         // We need to reconstruct the DTO.
 
         try {
-            /** @var array{admin_id: int, session_id: string, scope: string, issued_at: string, expires_at: string, single_use: bool, context_snapshot: array<string, mixed>} $decoded */
+            /** @var array{admin_id: int, session_id: string, scope: string, risk_context_hash: ?string, issued_at: string, expires_at: string, single_use: bool, context_snapshot: array<string, mixed>} $decoded */
             return new StepUpGrant(
                 (int)$decoded['admin_id'],
                 (string)$decoded['session_id'],
                 Scope::from((string)$decoded['scope']),
+                (string)($decoded['risk_context_hash'] ?? ''),
                 new DateTimeImmutable((string)$decoded['issued_at']),
                 new DateTimeImmutable((string)$decoded['expires_at']),
                 (bool)$decoded['single_use'],
