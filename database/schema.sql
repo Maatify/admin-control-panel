@@ -80,19 +80,22 @@ CREATE TABLE role_permissions (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Identity-Based Verification Codes
+-- NOTE: Application logic MUST enforce only one 'active' code per (identity_type, identity_id, purpose).
+-- Database constraints do not strictly enforce this to allow history retention (used/expired codes).
 CREATE TABLE verification_codes (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     identity_type ENUM('admin', 'user', 'customer') NOT NULL,
-    identity_id BIGINT UNSIGNED NOT NULL,
+    identity_id VARCHAR(64) NOT NULL,
     purpose VARCHAR(64) NOT NULL,
     code_hash VARCHAR(64) NOT NULL,
     expires_at DATETIME NOT NULL,
     max_attempts INT UNSIGNED NOT NULL,
-    attempts_used INT UNSIGNED NOT NULL DEFAULT 0,
+    attempts INT UNSIGNED NOT NULL DEFAULT 0,
     status ENUM('active','used','expired','revoked') NOT NULL DEFAULT 'active',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     used_at DATETIME NULL,
-    INDEX idx_identity (identity_type, identity_id),
+    UNIQUE INDEX uniq_verification_code_hash (code_hash),
+    INDEX idx_active_lookup (identity_type, identity_id, purpose, status),
     INDEX idx_status_expiry (status, expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
