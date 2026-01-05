@@ -10,7 +10,7 @@ use App\Domain\Enum\IdentityTypeEnum;
 use App\Domain\Enum\NotificationChannelType;
 use App\Domain\Enum\VerificationPurposeEnum;
 
-class TelegramHandler
+readonly class TelegramHandler
 {
     public function __construct(
         private VerificationCodeValidatorInterface $validator,
