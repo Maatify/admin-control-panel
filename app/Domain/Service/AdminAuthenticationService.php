@@ -39,6 +39,7 @@ readonly class AdminAuthenticationService
             $this->securityLogger->log(new SecurityEventDTO(
                 null,
                 'login_failed',
+                'warning',
                 ['reason' => 'user_not_found', 'blind_index' => $blindIndex],
                 $this->clientInfoProvider->getIpAddress(),
                 $this->clientInfoProvider->getUserAgent(),
@@ -54,6 +55,7 @@ readonly class AdminAuthenticationService
             $this->securityLogger->log(new SecurityEventDTO(
                 $adminId,
                 'login_failed',
+                'warning',
                 ['reason' => 'not_verified'],
                 $this->clientInfoProvider->getIpAddress(),
                 $this->clientInfoProvider->getUserAgent(),
@@ -68,6 +70,7 @@ readonly class AdminAuthenticationService
             $this->securityLogger->log(new SecurityEventDTO(
                 $adminId,
                 'login_failed',
+                'warning',
                 ['reason' => 'invalid_password'],
                 $this->clientInfoProvider->getIpAddress(),
                 $this->clientInfoProvider->getUserAgent(),

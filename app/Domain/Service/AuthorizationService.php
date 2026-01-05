@@ -32,6 +32,7 @@ readonly class AuthorizationService
             $this->securityLogger->log(new SecurityEventDTO(
                 $adminId,
                 'permission_denied',
+                'warning',
                 ['reason' => 'unknown_permission', 'permission' => $permission],
                 $this->clientInfoProvider->getIpAddress(),
                 $this->clientInfoProvider->getUserAgent(),
@@ -47,6 +48,7 @@ readonly class AuthorizationService
             $this->securityLogger->log(new SecurityEventDTO(
                 $adminId,
                 'permission_denied',
+                'warning',
                 ['reason' => 'missing_permission', 'permission' => $permission],
                 $this->clientInfoProvider->getIpAddress(),
                 $this->clientInfoProvider->getUserAgent(),

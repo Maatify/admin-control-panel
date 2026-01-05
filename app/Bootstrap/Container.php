@@ -326,11 +326,11 @@ class Container
                 );
             },
             \App\Http\Controllers\Web\LogoutController::class => function (ContainerInterface $c) {
-                $sessionRepo = $c->get(AdminSessionRepositoryInterface::class);
+                $sessionRepo = $c->get(AdminSessionValidationRepositoryInterface::class);
                 $logger = $c->get(SecurityEventLoggerInterface::class);
                 $clientInfo = $c->get(ClientInfoProviderInterface::class);
 
-                assert($sessionRepo instanceof AdminSessionRepositoryInterface);
+                assert($sessionRepo instanceof AdminSessionValidationRepositoryInterface);
                 assert($logger instanceof SecurityEventLoggerInterface);
                 assert($clientInfo instanceof ClientInfoProviderInterface);
 

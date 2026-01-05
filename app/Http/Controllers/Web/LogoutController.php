@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
-use App\Domain\Contracts\AdminSessionRepositoryInterface;
+use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Domain\Contracts\ClientInfoProviderInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\DTO\SecurityEventDTO;
@@ -15,7 +15,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 readonly class LogoutController
 {
     public function __construct(
-        private AdminSessionRepositoryInterface $sessionRepository,
+        private AdminSessionValidationRepositoryInterface $sessionRepository,
         private SecurityEventLoggerInterface $securityEventLogger,
         private ClientInfoProviderInterface $clientInfoProvider
     ) {
@@ -30,21 +30,26 @@ readonly class LogoutController
         $token = isset($cookies['auth_token']) ? (string)$cookies['auth_token'] : null;
 
         // Perform logout logic only if we have an identified admin
-        // Note: Middleware ensures admin_id is present for protected routes.
         if (is_int($adminId)) {
             // Log the logout event
             $this->securityEventLogger->log(new SecurityEventDTO(
                 $adminId,
                 'admin_logout',
-                ['severity' => 'INFO'],
+                'info',
+                [], // Context
                 $this->clientInfoProvider->getIpAddress(),
                 $this->clientInfoProvider->getUserAgent(),
                 new DateTimeImmutable()
             ));
 
-            // Invalidate the session in the repository
+            // Token + Identity Binding Check
             if ($token !== null) {
-                $this->sessionRepository->invalidateSession($token);
+                $session = $this->sessionRepository->findSession($token);
+
+                // Only invalidate if the session belongs to the current admin
+                if ($session !== null && isset($session['admin_id']) && (int)$session['admin_id'] === $adminId) {
+                    $this->sessionRepository->revokeSession($token);
+                }
             }
         }
 
