@@ -54,6 +54,7 @@ use DI\ContainerBuilder;
 use Exception;
 use PDO;
 use Psr\Container\ContainerInterface;
+use Slim\Views\Twig;
 
 class Container
 {
@@ -65,6 +66,9 @@ class Container
         $containerBuilder = new ContainerBuilder();
 
         $containerBuilder->addDefinitions([
+            Twig::class => function (ContainerInterface $c) {
+                return Twig::create(__DIR__ . '/../../templates', ['cache' => false]);
+            },
             PDO::class => function (ContainerInterface $c) {
                 // Ensure environment variables are loaded before this is called
                 $host = $_ENV['DB_HOST'] ?? 'localhost';
@@ -229,6 +233,19 @@ class Container
                 assert($authService instanceof AdminAuthenticationService);
                 $blindIndexKey = $_ENV['EMAIL_BLIND_INDEX_KEY'] ?? '';
                 return new AuthController($authService, $blindIndexKey);
+            },
+            \App\Http\Controllers\Web\LoginController::class => function (ContainerInterface $c) {
+                $authService = $c->get(AdminAuthenticationService::class);
+                $view = $c->get(Twig::class);
+                assert($authService instanceof AdminAuthenticationService);
+                assert($view instanceof Twig);
+                $blindIndexKey = $_ENV['EMAIL_BLIND_INDEX_KEY'] ?? '';
+                return new \App\Http\Controllers\Web\LoginController($authService, $blindIndexKey, $view);
+            },
+            \App\Http\Controllers\Web\DashboardController::class => function (ContainerInterface $c) {
+                $view = $c->get(Twig::class);
+                assert($view instanceof Twig);
+                return new \App\Http\Controllers\Web\DashboardController($view);
             },
             \App\Http\Controllers\AdminNotificationPreferenceController::class => function (ContainerInterface $c) {
                 $reader = $c->get(AdminNotificationPreferenceReaderInterface::class);

@@ -23,8 +23,14 @@ return function (App $app) {
             ->withStatus(200);
     });
 
+    // Web Routes
+    $app->get('/login', [\App\Http\Controllers\Web\LoginController::class, 'index']);
+    $app->post('/login', [\App\Http\Controllers\Web\LoginController::class, 'login']);
+
     // Protected Routes
     $app->group('', function (RouteCollectorProxy $group) {
+        $group->get('/dashboard', [\App\Http\Controllers\Web\DashboardController::class, 'index']);
+
         $group->post('/admins', [AdminController::class, 'create'])
             ->setName('admin.create')
             ->add(AuthorizationGuardMiddleware::class);
