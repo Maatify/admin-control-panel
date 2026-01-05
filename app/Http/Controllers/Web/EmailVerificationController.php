@@ -9,10 +9,12 @@ use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\VerificationCodeGeneratorInterface;
 use App\Domain\Contracts\VerificationCodeValidatorInterface;
 use App\Domain\Enum\IdentityTypeEnum;
+use App\Domain\Enum\VerificationFailureReasonEnum;
 use App\Domain\Enum\VerificationPurposeEnum;
 use App\Domain\Service\AdminEmailVerificationService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Log\LoggerInterface;
 use Slim\Views\Twig;
 
 readonly class EmailVerificationController
@@ -23,6 +25,7 @@ readonly class EmailVerificationController
         private AdminEmailVerificationService $verificationService,
         private AdminIdentifierLookupInterface $lookupInterface,
         private Twig $view,
+        private LoggerInterface $logger,
         private string $blindIndexKey
     ) {
     }
@@ -56,32 +59,67 @@ readonly class EmailVerificationController
              ]);
         }
 
-        // 1. Validate OTP
-        $result = $this->validator->validate(IdentityTypeEnum::Email, $email, VerificationPurposeEnum::EmailVerification, $otp);
+        // 1. Validate OTP (Identity-based)
+        $result = $this->validator->validateByCode($otp);
 
         if (!$result->success) {
+            $this->logger->warning('Email verification failed', [
+                'reason' => VerificationFailureReasonEnum::INVALID_OTP->value,
+                'identity_type' => $result->identityType?->value,
+                'identity_id' => $result->identityId,
+                'purpose' => $result->purpose?->value,
+            ]);
             return $this->view->render($response, 'verify-email.twig', [
                 'error' => 'Verification failed.',
                 'email' => $email
             ]);
         }
 
-        // 2. Compute Blind Index & Lookup Admin
-        $blindIndex = hash_hmac('sha256', $email, $this->blindIndexKey);
-        assert(is_string($blindIndex));
-
-        $adminId = $this->lookupInterface->findByBlindIndex($blindIndex);
-
-        if ($adminId === null) {
-            // OTP was valid for the email, but no admin found?
-            // This is an edge case (orphaned code?). Securely fail.
+        // 2. Check Purpose
+        if ($result->purpose !== VerificationPurposeEnum::EmailVerification) {
+            $this->logger->warning('Email verification failed', [
+                'reason' => VerificationFailureReasonEnum::OTP_WRONG_PURPOSE->value,
+                'identity_type' => $result->identityType?->value,
+                'identity_id' => $result->identityId,
+                'purpose' => $result->purpose?->value,
+            ]);
             return $this->view->render($response, 'verify-email.twig', [
                 'error' => 'Verification failed.',
                 'email' => $email
             ]);
         }
 
-        // 3. Mark Verified
+        // 3. Check Identity Type
+        if ($result->identityType !== IdentityTypeEnum::Admin) {
+            $this->logger->warning('Email verification failed', [
+                'reason' => VerificationFailureReasonEnum::IDENTITY_MISMATCH->value,
+                'identity_type' => $result->identityType?->value,
+                'identity_id' => $result->identityId,
+                'purpose' => $result->purpose?->value,
+            ]);
+            return $this->view->render($response, 'verify-email.twig', [
+                'error' => 'Verification failed.',
+                'email' => $email
+            ]);
+        }
+
+        // 4. Validate Identity ID Format
+        if ($result->identityId === null || !is_numeric($result->identityId)) {
+            $this->logger->warning('Email verification failed', [
+                'reason' => VerificationFailureReasonEnum::INVALID_IDENTITY_ID->value,
+                'identity_type' => $result->identityType?->value,
+                'identity_id' => $result->identityId,
+                'purpose' => $result->purpose?->value,
+            ]);
+            return $this->view->render($response, 'verify-email.twig', [
+                'error' => 'Verification failed.',
+                'email' => $email
+            ]);
+        }
+
+        $adminId = (int)$result->identityId;
+
+        // 5. Mark Verified
         try {
             $this->verificationService->verify($adminId);
         } catch (\Exception $e) {
@@ -89,7 +127,7 @@ readonly class EmailVerificationController
              // We can proceed to login as if success
         }
 
-        // 4. Redirect to Login
+        // 6. Redirect to Login
         return $response
             ->withHeader('Location', '/login?message=' . urlencode('Email verified. Please login.'))
             ->withStatus(302);
@@ -104,14 +142,18 @@ readonly class EmailVerificationController
         }
 
         if (!empty($email)) {
-            try {
-                $this->generator->generate(IdentityTypeEnum::Email, $email, VerificationPurposeEnum::EmailVerification);
-            } catch (\Exception $e) {
-                // Ignore errors (like rate limit) to avoid leaking info?
-                // Or show generic error?
-                // "Resend cooldown" implies we might hit rate limit.
-                // If we hit rate limit, we should probably tell the user "Too many attempts".
-                // But for now, just redirect.
+            // 1. Compute Blind Index & Lookup Admin
+            $blindIndex = hash_hmac('sha256', $email, $this->blindIndexKey);
+            assert(is_string($blindIndex));
+
+            $adminId = $this->lookupInterface->findByBlindIndex($blindIndex);
+
+            if ($adminId !== null) {
+                try {
+                    $this->generator->generate(IdentityTypeEnum::Admin, (string)$adminId, VerificationPurposeEnum::EmailVerification);
+                } catch (\Exception $e) {
+                    // Ignore errors (like rate limit) to avoid leaking info
+                }
             }
         }
 
