@@ -8,28 +8,29 @@ use App\Domain\Exception\ExpiredSessionException;
 use App\Domain\Exception\InvalidSessionException;
 use App\Domain\Exception\RevokedSessionException;
 use App\Domain\Service\SessionValidationService;
-use App\Http\Auth\AuthSurface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Slim\Psr7\Response;
 
-// Phase 13.7 LOCK: Auth surface detection MUST use AuthSurface::isApi()
+// Phase 13.7 LOCK: GuestGuardMiddleware MUST remain route-configured (Web vs API)
 class GuestGuardMiddleware implements MiddlewareInterface
 {
     private SessionValidationService $sessionValidationService;
+    private bool $isApi;
 
     public function __construct(SessionValidationService $sessionValidationService, bool $isApi = false)
     {
         $this->sessionValidationService = $sessionValidationService;
-        // $isApi is preserved for constructor compatibility but ignored in favor of AuthSurface
+        $this->isApi = $isApi;
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $token = null;
-        $isApi = AuthSurface::isApi($request);
+        // Restore route-configured detection
+        $isApi = $this->isApi;
 
         // STRICT SEPARATION: API checks Bearer, Web checks Cookie.
         if ($isApi) {
