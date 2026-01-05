@@ -54,6 +54,7 @@ use DI\ContainerBuilder;
 use Exception;
 use PDO;
 use Psr\Container\ContainerInterface;
+use Psr\Log\LoggerInterface;
 use Slim\Views\Twig;
 
 class Container
@@ -158,6 +159,9 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new RolePermissionRepository($pdo);
+            },
+            LoggerInterface::class => function (ContainerInterface $c) {
+                return new \App\Infrastructure\Logging\StderrLogger();
             },
             AuditLoggerInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
@@ -282,9 +286,11 @@ class Container
             \App\Infrastructure\Notification\TelegramHandler::class => function (ContainerInterface $c) {
                 $validator = $c->get(\App\Domain\Contracts\VerificationCodeValidatorInterface::class);
                 $repo = $c->get(\App\Domain\Contracts\AdminNotificationChannelRepositoryInterface::class);
+                $logger = $c->get(LoggerInterface::class);
                 assert($validator instanceof \App\Domain\Contracts\VerificationCodeValidatorInterface);
                 assert($repo instanceof \App\Domain\Contracts\AdminNotificationChannelRepositoryInterface);
-                return new \App\Infrastructure\Notification\TelegramHandler($validator, $repo);
+                assert($logger instanceof LoggerInterface);
+                return new \App\Infrastructure\Notification\TelegramHandler($validator, $repo, $logger);
             },
             \App\Http\Controllers\Web\DashboardController::class => function (ContainerInterface $c) {
                 $view = $c->get(Twig::class);
