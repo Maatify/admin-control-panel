@@ -13,6 +13,11 @@ use App\Domain\Enum\VerificationPurposeEnum;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 
+/**
+ * INTERNAL ADAPTER. NOT A DOMAIN SERVICE.
+ * This class handles the boundary between Telegram Webhooks and Domain Logic.
+ * It MUST NOT accumulate business logic.
+ */
 readonly class TelegramHandler
 {
     public function __construct(
@@ -45,6 +50,8 @@ readonly class TelegramHandler
                 'identity_id' => $result->identityId,
             ]);
         }
+        // Invariant: Purpose is verified non-null and correct
+        assert($result->purpose !== null);
 
         // 3. Check Identity Type
         if ($result->identityType !== IdentityTypeEnum::Admin) {
@@ -55,6 +62,8 @@ readonly class TelegramHandler
                 'identity_id' => $result->identityId,
             ]);
         }
+        // Invariant: IdentityType is verified non-null and correct
+        assert($result->identityType !== null);
 
         $adminIdStr = $result->identityId;
         if (!is_numeric($adminIdStr)) {

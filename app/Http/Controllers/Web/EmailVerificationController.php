@@ -88,6 +88,7 @@ readonly class EmailVerificationController
                 'email' => $email
             ]);
         }
+        assert($result->purpose !== null);
 
         // 3. Check Identity Type
         if ($result->identityType !== IdentityTypeEnum::Admin) {
@@ -102,6 +103,7 @@ readonly class EmailVerificationController
                 'email' => $email
             ]);
         }
+        assert($result->identityType !== null);
 
         // 4. Validate Identity ID Format
         if ($result->identityId === null || !is_numeric($result->identityId)) {
