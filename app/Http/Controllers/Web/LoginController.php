@@ -9,6 +9,7 @@ use App\Domain\DTO\LoginRequestDTO;
 use App\Domain\Exception\AuthStateException;
 use App\Domain\Exception\InvalidCredentialsException;
 use App\Domain\Service\AdminAuthenticationService;
+use App\Domain\Service\RememberMeService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
@@ -19,6 +20,7 @@ readonly class LoginController
     public function __construct(
         private AdminAuthenticationService $authService,
         private AdminSessionValidationRepositoryInterface $sessionRepository,
+        private RememberMeService $rememberMeService,
         private string $blindIndexKey,
         private Twig $view
     ) {
@@ -77,6 +79,20 @@ readonly class LoginController
             $cookieHeader = trim($cookieHeader, '; ');
 
             $response = $response->withHeader('Set-Cookie', $cookieHeader);
+
+            // Handle Remember Me
+            if (isset($data['remember_me']) && $data['remember_me'] === 'on') {
+                $rememberMeToken = $this->rememberMeService->issue((int)$session['admin_id']);
+
+                $rememberMeCookie = sprintf(
+                    "remember_me=%s; Path=/; HttpOnly; SameSite=Strict; Max-Age=%d; %s",
+                    $rememberMeToken,
+                    60 * 60 * 24 * 30, // 30 days
+                    $secureFlag
+                );
+
+                $response = $response->withAddedHeader('Set-Cookie', $rememberMeCookie);
+            }
 
             return $response->withHeader('Location', '/dashboard')->withStatus(302);
         } catch (AuthStateException $e) {

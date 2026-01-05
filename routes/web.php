@@ -97,7 +97,8 @@ return function (App $app) {
     })
     ->add(\App\Http\Middleware\ScopeGuardMiddleware::class)
     ->add(\App\Http\Middleware\SessionStateGuardMiddleware::class) // Phase 12 Session State Guard
-    ->add(SessionGuardMiddleware::class);
+    ->add(SessionGuardMiddleware::class)
+    ->add(\App\Http\Middleware\RememberMeMiddleware::class); // Phase 13.5 Remember Me
 
     // Phase 4
     $app->post('/auth/login', [AuthController::class, 'login']);

@@ -22,6 +22,7 @@ use App\Domain\Contracts\AdminRoleRepositoryInterface;
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Domain\Contracts\AdminTargetedAuditReaderInterface;
 use App\Domain\Contracts\AuditLoggerInterface;
+use App\Domain\Contracts\RememberMeRepositoryInterface;
 use App\Domain\Contracts\ClientInfoProviderInterface;
 use App\Domain\Contracts\FailedNotificationRepositoryInterface;
 use App\Domain\Contracts\NotificationDispatcherInterface;
@@ -41,6 +42,7 @@ use App\Domain\Service\AdminAuthenticationService;
 use App\Domain\Service\AdminEmailVerificationService;
 use App\Domain\Service\AdminNotificationRoutingService;
 use App\Domain\Service\NotificationFailureHandler;
+use App\Domain\Service\RememberMeService;
 use App\Domain\Service\StepUpService;
 use App\Domain\Service\VerificationCodeGenerator;
 use App\Domain\Service\VerificationCodePolicyResolver;
@@ -58,6 +60,7 @@ use App\Http\Controllers\Web\EmailVerificationController;
 use App\Http\Controllers\Web\LoginController;
 use App\Http\Controllers\Web\TelegramConnectController;
 use App\Http\Controllers\Web\TwoFactorController;
+use App\Http\Middleware\RememberMeMiddleware;
 use App\Http\Middleware\ScopeGuardMiddleware;
 use App\Http\Middleware\SessionStateGuardMiddleware;
 use App\Infrastructure\Audit\PdoAdminSecurityEventReader;
@@ -74,6 +77,7 @@ use App\Infrastructure\Repository\FileTotpSecretRepository;
 use App\Infrastructure\Repository\PdoAdminNotificationHistoryReader;
 use App\Infrastructure\Repository\PdoAdminNotificationPersistenceRepository;
 use App\Infrastructure\Repository\PdoAdminNotificationPreferenceRepository;
+use App\Infrastructure\Repository\PdoRememberMeRepository;
 use App\Infrastructure\Repository\AdminRepository;
 use App\Infrastructure\Repository\AdminRoleRepository;
 use App\Infrastructure\Repository\AdminSessionRepository;
@@ -194,6 +198,11 @@ class Container
             AdminSessionValidationRepositoryInterface::class => function (ContainerInterface $c) {
                 return $c->get(AdminSessionRepositoryInterface::class);
             },
+            RememberMeRepositoryInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new PdoRememberMeRepository($pdo);
+            },
             AdminRoleRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
@@ -313,29 +322,35 @@ class Container
             LoginController::class => function (ContainerInterface $c) {
                 $authService = $c->get(AdminAuthenticationService::class);
                 $sessionRepo = $c->get(AdminSessionValidationRepositoryInterface::class);
+                $rememberMeService = $c->get(RememberMeService::class);
                 $view = $c->get(Twig::class);
                 assert($authService instanceof AdminAuthenticationService);
                 assert($sessionRepo instanceof AdminSessionValidationRepositoryInterface);
+                assert($rememberMeService instanceof RememberMeService);
                 assert($view instanceof Twig);
                 $blindIndexKey = $_ENV['EMAIL_BLIND_INDEX_KEY'] ?? '';
                 return new LoginController(
                     $authService,
                     $sessionRepo,
+                    $rememberMeService,
                     $blindIndexKey,
                     $view
                 );
             },
             \App\Http\Controllers\Web\LogoutController::class => function (ContainerInterface $c) {
                 $sessionRepo = $c->get(AdminSessionValidationRepositoryInterface::class);
+                $rememberMeService = $c->get(RememberMeService::class);
                 $logger = $c->get(SecurityEventLoggerInterface::class);
                 $clientInfo = $c->get(ClientInfoProviderInterface::class);
 
                 assert($sessionRepo instanceof AdminSessionValidationRepositoryInterface);
+                assert($rememberMeService instanceof RememberMeService);
                 assert($logger instanceof SecurityEventLoggerInterface);
                 assert($clientInfo instanceof ClientInfoProviderInterface);
 
                 return new \App\Http\Controllers\Web\LogoutController(
                     $sessionRepo,
+                    $rememberMeService,
                     $logger,
                     $clientInfo
                 );
@@ -514,6 +529,29 @@ class Container
                 $repo = $c->get(VerificationCodeRepositoryInterface::class);
                 assert($repo instanceof VerificationCodeRepositoryInterface);
                 return new VerificationCodeValidator($repo);
+            },
+            RememberMeService::class => function (ContainerInterface $c) {
+                $rememberMeRepo = $c->get(RememberMeRepositoryInterface::class);
+                $sessionRepo = $c->get(AdminSessionRepositoryInterface::class);
+                $securityLogger = $c->get(SecurityEventLoggerInterface::class);
+                $clientInfo = $c->get(ClientInfoProviderInterface::class);
+
+                assert($rememberMeRepo instanceof RememberMeRepositoryInterface);
+                assert($sessionRepo instanceof AdminSessionRepositoryInterface);
+                assert($securityLogger instanceof SecurityEventLoggerInterface);
+                assert($clientInfo instanceof ClientInfoProviderInterface);
+
+                return new RememberMeService(
+                    $rememberMeRepo,
+                    $sessionRepo,
+                    $securityLogger,
+                    $clientInfo
+                );
+            },
+            RememberMeMiddleware::class => function (ContainerInterface $c) {
+                $service = $c->get(RememberMeService::class);
+                assert($service instanceof RememberMeService);
+                return new RememberMeMiddleware($service);
             },
         ]);
 
