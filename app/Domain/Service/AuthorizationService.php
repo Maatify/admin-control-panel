@@ -8,7 +8,6 @@ use App\Domain\Contracts\AdminDirectPermissionRepositoryInterface;
 use App\Domain\Contracts\AdminRoleRepositoryInterface;
 use App\Domain\Contracts\TelemetryAuditLoggerInterface;
 use App\Domain\Contracts\ClientInfoProviderInterface;
-use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\Contracts\RolePermissionRepositoryInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\DTO\LegacyAuditEventDTO;
@@ -16,7 +15,6 @@ use App\Domain\DTO\SecurityEventDTO;
 use App\Domain\Exception\PermissionDeniedException;
 use App\Domain\Exception\UnauthorizedException;
 use DateTimeImmutable;
-use PDO;
 
 readonly class AuthorizationService
 {
@@ -26,10 +24,7 @@ readonly class AuthorizationService
         private AdminDirectPermissionRepositoryInterface $directPermissionRepository,
         private TelemetryAuditLoggerInterface $auditLogger,
         private SecurityEventLoggerInterface $securityLogger,
-        private ClientInfoProviderInterface $clientInfoProvider,
-        private AuthoritativeSecurityAuditWriterInterface $outboxWriter,
-        private RecoveryStateService $recoveryState,
-        private PDO $pdo
+        private ClientInfoProviderInterface $clientInfoProvider
     ) {
     }
 

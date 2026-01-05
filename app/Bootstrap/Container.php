@@ -150,11 +150,12 @@ class Container
                 return new AdminEmailRepository($pdo);
             },
             AdminEmailVerificationRepositoryInterface::class => function (ContainerInterface $c) {
+                return $c->get(AdminEmailRepository::class);
+            },
+            AdminEmailVerificationService::class => function (ContainerInterface $c) {
                 $repo = $c->get(AdminEmailVerificationRepositoryInterface::class);
-                $recovery = $c->get(RecoveryStateService::class);
                 assert($repo instanceof AdminEmailVerificationRepositoryInterface);
-                assert($recovery instanceof RecoveryStateService);
-                return new AdminEmailVerificationService($repo, $recovery);
+                return new AdminEmailVerificationService($repo);
             },
             AdminIdentifierLookupInterface::class => function (ContainerInterface $c) {
                 return $c->get(AdminEmailRepository::class);
