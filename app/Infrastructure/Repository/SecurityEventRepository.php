@@ -24,7 +24,10 @@ class SecurityEventRepository implements SecurityEventLoggerInterface
              VALUES (:admin_id, :event_name, :context, :ip_address, :user_agent, :occurred_at)'
         );
 
-        $contextJson = json_encode($event->context);
+        $context = $event->context;
+        $context['severity'] = $event->severity;
+
+        $contextJson = json_encode($context);
         assert($contextJson !== false);
 
         $stmt->execute([
