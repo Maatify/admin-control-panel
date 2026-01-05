@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Enum;
 
+/**
+ * Internal enum for categorizing verification failures in logs.
+ *
+ * @internal This enum is for internal logging and diagnostics only.
+ *           It is NOT part of the public API or domain contract.
+ *           Do not rely on these values for business logic flow control.
+ */
 enum VerificationFailureReasonEnum: string
 {
     case INVALID_OTP = 'invalid_otp';
