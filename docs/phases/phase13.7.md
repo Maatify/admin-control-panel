@@ -48,3 +48,14 @@ Only the following exceptions are valid for session validity failures. Generic e
 ## 5. Regression Guards
 *   **Explicit Responses:** Middleware must return `ResponseInterface` directly for failures (401/403/302) rather than throwing exceptions that rely on global handlers.
 *   **Strict Extraction:** API Guards must *only* look at Headers. Web Guards must *only* look at Cookies. No fallback or mixing.
+
+## 6. Auth Surface Canonicalization
+
+As of Phase 13.7, Web vs API detection is **canonicalized** in:
+
+`App\Http\Auth\AuthSurface::isApi()`
+
+Rules:
+- Middleware MUST NOT infer surface via `Accept` headers.
+- Middleware MUST NOT re-implement detection logic.
+- Any deviation is considered a **breaking security change**.

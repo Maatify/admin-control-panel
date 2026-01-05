@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Domain\Service\SessionValidationService;
+use App\Http\Auth\AuthSurface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
+// Phase 13.7 LOCK: Auth surface detection MUST use AuthSurface::isApi()
 /**
  * Guard Middleware for Session Validation.
  *
@@ -31,8 +33,7 @@ class SessionGuardMiddleware implements MiddlewareInterface
     {
         // 1. Detect Mode: API (Authorization Header) vs Web (Cookie)
         // STRICT RULE: Presence of 'Authorization' header implies API intent.
-        $hasAuthHeader = $request->hasHeader('Authorization');
-        $isApi = $hasAuthHeader;
+        $isApi = AuthSurface::isApi($request);
 
         $token = null;
 

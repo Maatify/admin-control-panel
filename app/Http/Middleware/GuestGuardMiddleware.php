@@ -8,29 +8,31 @@ use App\Domain\Exception\ExpiredSessionException;
 use App\Domain\Exception\InvalidSessionException;
 use App\Domain\Exception\RevokedSessionException;
 use App\Domain\Service\SessionValidationService;
+use App\Http\Auth\AuthSurface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Slim\Psr7\Response;
 
+// Phase 13.7 LOCK: Auth surface detection MUST use AuthSurface::isApi()
 class GuestGuardMiddleware implements MiddlewareInterface
 {
     private SessionValidationService $sessionValidationService;
-    private bool $isApi;
 
     public function __construct(SessionValidationService $sessionValidationService, bool $isApi = false)
     {
         $this->sessionValidationService = $sessionValidationService;
-        $this->isApi = $isApi;
+        // $isApi is preserved for constructor compatibility but ignored in favor of AuthSurface
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $token = null;
+        $isApi = AuthSurface::isApi($request);
 
         // STRICT SEPARATION: API checks Bearer, Web checks Cookie.
-        if ($this->isApi) {
+        if ($isApi) {
             $authHeader = $request->getHeaderLine('Authorization');
             if (!empty($authHeader) && str_starts_with($authHeader, 'Bearer ')) {
                 $token = substr($authHeader, 7);
@@ -52,7 +54,7 @@ class GuestGuardMiddleware implements MiddlewareInterface
             $this->sessionValidationService->validate($token);
 
             // Session is valid. Block access.
-            if ($this->isApi) {
+            if ($isApi) {
                 $response = new Response();
                 $response->getBody()->write(json_encode(['error' => 'Already authenticated.'], JSON_THROW_ON_ERROR));
                 return $response

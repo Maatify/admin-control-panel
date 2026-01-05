@@ -7,12 +7,14 @@ namespace App\Http\Middleware;
 use App\Domain\Enum\Scope;
 use App\Domain\Security\ScopeRegistry;
 use App\Domain\Service\StepUpService;
+use App\Http\Auth\AuthSurface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Slim\Routing\RouteContext;
 
+// Phase 13.7 LOCK: Auth surface detection MUST use AuthSurface::isApi()
 class ScopeGuardMiddleware implements MiddlewareInterface
 {
     public function __construct(
@@ -30,8 +32,7 @@ class ScopeGuardMiddleware implements MiddlewareInterface
         }
 
         // Detect Mode (Strict)
-        $hasAuthHeader = $request->hasHeader('Authorization');
-        $isApi = $hasAuthHeader;
+        $isApi = AuthSurface::isApi($request);
 
         $sessionId = $this->getSessionIdFromRequest($request, $isApi);
         if ($sessionId === null) {

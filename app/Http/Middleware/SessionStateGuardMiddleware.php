@@ -8,11 +8,13 @@ use App\Domain\Contracts\TotpSecretRepositoryInterface;
 use App\Domain\Enum\Scope;
 use App\Domain\Enum\SessionState;
 use App\Domain\Service\StepUpService;
+use App\Http\Auth\AuthSurface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
+// Phase 13.7 LOCK: Auth surface detection MUST use AuthSurface::isApi()
 class SessionStateGuardMiddleware implements MiddlewareInterface
 {
     public function __construct(
@@ -34,8 +36,7 @@ class SessionStateGuardMiddleware implements MiddlewareInterface
         }
 
         // STRICT Detection: Same as SessionGuardMiddleware
-        $hasAuthHeader = $request->hasHeader('Authorization');
-        $isApi = $hasAuthHeader;
+        $isApi = AuthSurface::isApi($request);
 
         $sessionId = $this->getSessionIdFromRequest($request, $isApi);
         if ($sessionId === null) {
