@@ -21,17 +21,17 @@ class PdoVerificationCodeRepository implements VerificationCodeRepositoryInterfa
     {
         $stmt = $this->pdo->prepare("
             INSERT INTO verification_codes (
-                subject_type, subject_identifier, purpose, code_hash,
+                identity_type, identity_id, purpose, code_hash,
                 status, attempts, max_attempts, expires_at, created_at
             ) VALUES (
-                :subject_type, :subject_identifier, :purpose, :code_hash,
+                :identity_type, :identity_id, :purpose, :code_hash,
                 :status, :attempts, :max_attempts, :expires_at, :created_at
             )
         ");
 
         $stmt->execute([
-            'subject_type' => $code->subjectType,
-            'subject_identifier' => $code->subjectIdentifier,
+            'identity_type' => $code->subjectType,
+            'identity_id' => $code->subjectIdentifier,
             'purpose' => $code->purpose,
             'code_hash' => $code->codeHash,
             'status' => $code->status->value,
@@ -58,8 +58,8 @@ class PdoVerificationCodeRepository implements VerificationCodeRepositoryInterfa
 
         $stmt = $this->pdo->prepare("
             SELECT * FROM verification_codes
-            WHERE subject_type = :subject_type
-            AND subject_identifier = :subject_identifier
+            WHERE identity_type = :identity_type
+            AND identity_id = :identity_id
             AND purpose = :purpose
             AND status = 'active'
             ORDER BY created_at DESC
@@ -67,8 +67,8 @@ class PdoVerificationCodeRepository implements VerificationCodeRepositoryInterfa
         ");
 
         $stmt->execute([
-            'subject_type' => $subjectType,
-            'subject_identifier' => $subjectIdentifier,
+            'identity_type' => $subjectType,
+            'identity_id' => $subjectIdentifier,
             'purpose' => $purpose,
         ]);
 
@@ -116,14 +116,14 @@ class PdoVerificationCodeRepository implements VerificationCodeRepositoryInterfa
         $stmt = $this->pdo->prepare("
             UPDATE verification_codes
             SET status = 'expired'
-            WHERE subject_type = :subject_type
-            AND subject_identifier = :subject_identifier
+            WHERE identity_type = :identity_type
+            AND identity_id = :identity_id
             AND purpose = :purpose
             AND status = 'active'
         ");
         $stmt->execute([
-            'subject_type' => $subjectType,
-            'subject_identifier' => $subjectIdentifier,
+            'identity_type' => $subjectType,
+            'identity_id' => $subjectIdentifier,
             'purpose' => $purpose,
         ]);
     }
@@ -136,9 +136,9 @@ class PdoVerificationCodeRepository implements VerificationCodeRepositoryInterfa
         /** @var int $id */
         $id = $row['id'];
         /** @var string $subjectType */
-        $subjectType = $row['subject_type'];
+        $subjectType = $row['identity_type'];
         /** @var string $subjectIdentifier */
-        $subjectIdentifier = $row['subject_identifier'];
+        $subjectIdentifier = $row['identity_id'];
         /** @var string $purpose */
         $purpose = $row['purpose'];
         /** @var string $codeHash */
