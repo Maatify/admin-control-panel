@@ -11,7 +11,9 @@
     "slim/psr7": "^1.8",
     "php-di/php-di": "^7.0",
     "vlucas/phpdotenv": "^5.5",
-    "ext-openssl": "*"
+    "ext-openssl": "*",
+    "pragmarx/google2fa": "^8.0",
+    "ext-redis": "*"
   },
 
   "require-dev": {
