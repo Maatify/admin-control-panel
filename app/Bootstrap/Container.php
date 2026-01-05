@@ -211,16 +211,26 @@ class Container
                         string|\Stringable $message,
                         array $context = []
                     ): void {
+                        $levelStr = is_scalar($level) || $level instanceof \Stringable
+                            ? (string) $level
+                            : 'mixed';
+
+                        $jsonContext = $context !== []
+                            ? json_encode(
+                                $context,
+                                JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+                            )
+                            : '';
+
+                        if ($jsonContext === false) {
+                            $jsonContext = '{"error":"json_encode_failed"}';
+                        }
+
                         error_log(sprintf(
                             '[%s] %s %s',
-                            strtoupper((string) $level),
+                            strtoupper($levelStr),
                             (string) $message,
-                            $context !== []
-                                ? json_encode(
-                                    $context,
-                                    JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
-                                )
-                                : ''
+                            $jsonContext
                         ));
                     }
                 };
