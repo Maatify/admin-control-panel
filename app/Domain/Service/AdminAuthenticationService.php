@@ -33,7 +33,8 @@ readonly class AdminAuthenticationService
         private ClientInfoProviderInterface $clientInfoProvider,
         private AuthoritativeSecurityAuditWriterInterface $outboxWriter,
         private RecoveryStateService $recoveryState,
-        private PDO $pdo
+        private PDO $pdo,
+        private PasswordService $passwordService
     ) {
     }
 
@@ -74,7 +75,7 @@ readonly class AdminAuthenticationService
 
         // 3. Verify Password
         $hash = $this->passwordRepository->getPasswordHash($adminId);
-        if ($hash === null || !password_verify($password, $hash)) {
+        if ($hash === null || !$this->passwordService->verify($password, $hash)) {
             $this->securityLogger->log(new SecurityEventDTO(
                 $adminId,
                 'login_failed',

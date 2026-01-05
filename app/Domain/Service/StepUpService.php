@@ -34,9 +34,11 @@ readonly class StepUpService
     ) {
     }
 
-    public function verifyTotp(int $adminId, string $sessionId, string $code, ?Scope $requestedScope = null): TotpVerificationResultDTO
+    public function verifyTotp(int $adminId, string $token, string $code, ?Scope $requestedScope = null): TotpVerificationResultDTO
     {
         $this->recoveryState->enforce(RecoveryStateService::ACTION_OTP_VERIFY, $adminId);
+
+        $sessionId = hash('sha256', $token);
 
         $secret = $this->totpSecretRepository->get($adminId);
         if ($secret === null) {
@@ -52,10 +54,10 @@ readonly class StepUpService
         $this->pdo->beginTransaction();
         try {
             if ($requestedScope !== null && $requestedScope !== Scope::LOGIN) {
-                $this->issueScopedGrant($adminId, $sessionId, $requestedScope);
+                $this->issueScopedGrant($adminId, $token, $requestedScope);
             } else {
                 // Issue Primary Grant
-                $this->issuePrimaryGrant($adminId, $sessionId);
+                $this->issuePrimaryGrant($adminId, $token);
             }
             $this->pdo->commit();
         } catch (\Throwable $e) {
@@ -66,9 +68,11 @@ readonly class StepUpService
         return new TotpVerificationResultDTO(true);
     }
 
-    public function enableTotp(int $adminId, string $sessionId, string $secret, string $code): bool
+    public function enableTotp(int $adminId, string $token, string $secret, string $code): bool
     {
         $this->recoveryState->enforce(RecoveryStateService::ACTION_OTP_VERIFY, $adminId);
+
+        $sessionId = hash('sha256', $token);
 
         if (!$this->totpService->verify($secret, $code)) {
             $this->logSecurityEvent($adminId, $sessionId, 'stepup_enroll_failed', ['reason' => 'invalid_code']);
@@ -79,7 +83,7 @@ readonly class StepUpService
         try {
             $this->totpSecretRepository->save($adminId, $secret);
 
-            $this->issuePrimaryGrant($adminId, $sessionId);
+            $this->issuePrimaryGrant($adminId, $token);
 
             $this->auditLogger->log(new LegacyAuditEventDTO(
                 $adminId,
@@ -112,8 +116,10 @@ readonly class StepUpService
         return true;
     }
 
-    public function issuePrimaryGrant(int $adminId, string $sessionId): void
+    public function issuePrimaryGrant(int $adminId, string $token): void
     {
+        $sessionId = hash('sha256', $token);
+
         $grant = new StepUpGrant(
             $adminId,
             $sessionId,
@@ -149,8 +155,10 @@ readonly class StepUpService
         ));
     }
 
-    public function issueScopedGrant(int $adminId, string $sessionId, Scope $scope): void
+    public function issueScopedGrant(int $adminId, string $token, Scope $scope): void
     {
+        $sessionId = hash('sha256', $token);
+
         $grant = new StepUpGrant(
             $adminId,
             $sessionId,
@@ -186,8 +194,10 @@ readonly class StepUpService
         ));
     }
 
-    public function logDenial(int $adminId, string $sessionId, Scope $requiredScope): void
+    public function logDenial(int $adminId, string $token, Scope $requiredScope): void
     {
+        $sessionId = hash('sha256', $token);
+
         $this->auditLogger->log(new LegacyAuditEventDTO(
             $adminId,
             'system',
@@ -222,8 +232,10 @@ readonly class StepUpService
         }
     }
 
-    public function hasGrant(int $adminId, string $sessionId, Scope $scope): bool
+    public function hasGrant(int $adminId, string $token, Scope $scope): bool
     {
+        $sessionId = hash('sha256', $token);
+
         $grant = $this->grantRepository->find($adminId, $sessionId, $scope);
         if ($grant === null) {
             return false;
@@ -296,8 +308,10 @@ readonly class StepUpService
         return true;
     }
 
-    public function getSessionState(int $adminId, string $sessionId): SessionState
+    public function getSessionState(int $adminId, string $token): SessionState
     {
+        $sessionId = hash('sha256', $token);
+
         // Check for Primary Grant (Scope::LOGIN)
         $primaryGrant = $this->grantRepository->find($adminId, $sessionId, Scope::LOGIN);
 
