@@ -439,11 +439,17 @@ class Container
                 return new AdminSecurityEventController($securityReader);
             },
             LogoutController::class => function (ContainerInterface $c) {
-                $sessionRepo = $c->get(AdminSessionRepositoryInterface::class);
+                $sessionRepo = $c->get(AdminSessionValidationRepositoryInterface::class);
+                $securityLogger = $c->get(SecurityEventLoggerInterface::class);
+                $clientInfo = $c->get(ClientInfoProviderInterface::class);
                 $rememberMe = $c->get(RememberMeService::class);
-                assert($sessionRepo instanceof AdminSessionRepositoryInterface);
+
+                assert($sessionRepo instanceof AdminSessionValidationRepositoryInterface);
+                assert($securityLogger instanceof SecurityEventLoggerInterface);
+                assert($clientInfo instanceof ClientInfoProviderInterface);
                 assert($rememberMe instanceof RememberMeService);
-                return new LogoutController($sessionRepo, $rememberMe);
+
+                return new LogoutController($sessionRepo, $securityLogger, $clientInfo, $rememberMe);
             },
 
             // Phase 12

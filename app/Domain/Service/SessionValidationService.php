@@ -44,6 +44,7 @@ class SessionValidationService
             $this->securityLogger->log(new SecurityEventDTO(
                 null,
                 'session_validation_failed',
+                'warning',
                 ['reason' => 'invalid_token'],
                 $this->clientInfoProvider->getIpAddress(),
                 $this->clientInfoProvider->getUserAgent(),
@@ -56,6 +57,7 @@ class SessionValidationService
             $this->securityLogger->log(new SecurityEventDTO(
                 $session['admin_id'],
                 'session_validation_failed',
+                'warning',
                 ['reason' => 'revoked'],
                 $this->clientInfoProvider->getIpAddress(),
                 $this->clientInfoProvider->getUserAgent(),
@@ -69,6 +71,7 @@ class SessionValidationService
             $this->securityLogger->log(new SecurityEventDTO(
                 $session['admin_id'],
                 'session_validation_failed',
+                'warning',
                 ['reason' => 'expired'],
                 $this->clientInfoProvider->getIpAddress(),
                 $this->clientInfoProvider->getUserAgent(),

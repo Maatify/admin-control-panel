@@ -27,7 +27,6 @@ return function (App $app) {
     // Web Routes
     $app->get('/login', [\App\Http\Controllers\Web\LoginController::class, 'index']);
     $app->post('/login', [\App\Http\Controllers\Web\LoginController::class, 'login']);
-    // Logout (Phase 13.5)
     $app->post('/logout', [\App\Http\Controllers\Web\LogoutController::class, 'logout']);
 
     $app->get('/verify-email', [\App\Http\Controllers\Web\EmailVerificationController::class, 'index']);
@@ -97,7 +96,7 @@ return function (App $app) {
     ->add(\App\Http\Middleware\ScopeGuardMiddleware::class)
     ->add(\App\Http\Middleware\SessionStateGuardMiddleware::class) // Phase 12
     ->add(SessionGuardMiddleware::class)
-    ->add(RememberMeMiddleware::class); // Phase 13.5 (Must run before SessionGuard)
+    ->add(RememberMeMiddleware::class); // Phase 13.5 (Runs BEFORE SessionGuard)
 
     // Phase 4
     $app->post('/auth/login', [AuthController::class, 'login']);

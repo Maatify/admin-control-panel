@@ -67,11 +67,6 @@ class SessionGuardMiddleware implements MiddlewareInterface
         // We will default to Redirect for Web (Cookie-based requests) and Exception for API (Bearer).
         // If the request came with a Cookie, we treat it as Web.
 
-        $cookies = $request->getCookieParams();
-        $hasAuthCookie = isset($cookies['auth_token']);
-
-        // If it looks like a browser request (has cookie or no auth at all), redirect.
-        // If it has Bearer header, it's API.
         $authHeader = $request->getHeaderLine('Authorization');
         $isApi = !empty($authHeader) && str_starts_with($authHeader, 'Bearer ');
 

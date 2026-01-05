@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Contracts;
 
+use DateTimeImmutable;
+
 interface RememberMeRepositoryInterface
 {
     /**
@@ -13,7 +15,7 @@ interface RememberMeRepositoryInterface
      * @param string $selector
      * @param string $hashedValidator
      * @param string $userAgentHash
-     * @param \DateTimeImmutable $expiresAt
+     * @param DateTimeImmutable $expiresAt
      * @return void
      */
     public function save(
@@ -21,7 +23,7 @@ interface RememberMeRepositoryInterface
         string $selector,
         string $hashedValidator,
         string $userAgentHash,
-        \DateTimeImmutable $expiresAt
+        DateTimeImmutable $expiresAt
     ): void;
 
     /**

@@ -14,6 +14,7 @@ readonly class SecurityEventDTO
     public function __construct(
         public ?int $adminId,
         public string $eventName,
+        public string $severity,
         public array $context,
         public ?string $ipAddress,
         public ?string $userAgent,
