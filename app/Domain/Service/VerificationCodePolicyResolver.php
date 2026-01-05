@@ -6,27 +6,20 @@ namespace App\Domain\Service;
 
 use App\Domain\Contracts\VerificationCodePolicyResolverInterface;
 use App\Domain\DTO\VerificationPolicy;
+use App\Domain\Enum\VerificationPurpose;
 
 class VerificationCodePolicyResolver implements VerificationCodePolicyResolverInterface
 {
-    public function resolve(string $purpose): VerificationPolicy
+    public function resolve(VerificationPurpose $purpose): VerificationPolicy
     {
-        // In a real app, this might come from config or DB.
-        // Hardcoding based on purpose for now.
-
         return match ($purpose) {
-            'email_verification' => new VerificationPolicy(
+            VerificationPurpose::EMAIL_VERIFICATION => new VerificationPolicy(
                 ttlSeconds: 600, // 10 minutes
                 maxAttempts: 3,
                 resendCooldownSeconds: 60
             ),
-            'telegram_link' => new VerificationPolicy(
+            VerificationPurpose::TELEGRAM_CHANNEL_LINK => new VerificationPolicy(
                 ttlSeconds: 300, // 5 minutes
-                maxAttempts: 3,
-                resendCooldownSeconds: 60
-            ),
-            default => new VerificationPolicy(
-                ttlSeconds: 300,
                 maxAttempts: 3,
                 resendCooldownSeconds: 60
             ),

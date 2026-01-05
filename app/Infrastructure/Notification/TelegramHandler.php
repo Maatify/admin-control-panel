@@ -6,7 +6,9 @@ namespace App\Infrastructure\Notification;
 
 use App\Domain\Contracts\AdminNotificationChannelRepositoryInterface;
 use App\Domain\Contracts\VerificationCodeValidatorInterface;
+use App\Domain\Enum\IdentityType;
 use App\Domain\Enum\NotificationChannelType;
+use App\Domain\Enum\VerificationPurpose;
 
 class TelegramHandler
 {
@@ -26,11 +28,11 @@ class TelegramHandler
         }
 
         // 2. Check Purpose & Identity
-        if ($result->purpose !== 'telegram_channel_link') {
+        if ($result->purpose !== VerificationPurpose::TELEGRAM_CHANNEL_LINK) {
             return 'Invalid code purpose.';
         }
 
-        if ($result->identityType !== 'admin') {
+        if ($result->identityType !== IdentityType::ADMIN) {
             return 'Invalid identity type.';
         }
 

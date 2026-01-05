@@ -8,6 +8,8 @@ use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
 use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\VerificationCodeGeneratorInterface;
 use App\Domain\Contracts\VerificationCodeValidatorInterface;
+use App\Domain\Enum\IdentityType;
+use App\Domain\Enum\VerificationPurpose;
 use App\Domain\Service\AdminEmailVerificationService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -55,7 +57,7 @@ readonly class EmailVerificationController
         }
 
         // 1. Validate OTP
-        $result = $this->validator->validate('email', $email, 'email_verification', $otp);
+        $result = $this->validator->validate(IdentityType::EMAIL, $email, VerificationPurpose::EMAIL_VERIFICATION, $otp);
 
         if (!$result->success) {
             return $this->view->render($response, 'verify-email.twig', [
@@ -103,7 +105,7 @@ readonly class EmailVerificationController
 
         if (!empty($email)) {
             try {
-                $this->generator->generate('email', $email, 'email_verification');
+                $this->generator->generate(IdentityType::EMAIL, $email, VerificationPurpose::EMAIL_VERIFICATION);
             } catch (\Exception $e) {
                 // Ignore errors (like rate limit) to avoid leaking info?
                 // Or show generic error?

@@ -8,7 +8,9 @@ use App\Domain\Contracts\VerificationCodeRepositoryInterface;
 use App\Domain\Contracts\VerificationCodeValidatorInterface;
 use App\Domain\DTO\VerificationCode;
 use App\Domain\DTO\VerificationResult;
+use App\Domain\Enum\IdentityType;
 use App\Domain\Enum\VerificationCodeStatus;
+use App\Domain\Enum\VerificationPurpose;
 use DateTimeImmutable;
 
 class VerificationCodeValidator implements VerificationCodeValidatorInterface
@@ -18,7 +20,7 @@ class VerificationCodeValidator implements VerificationCodeValidatorInterface
     ) {
     }
 
-    public function validate(string $identityType, string $identityId, string $purpose, string $plainCode): VerificationResult
+    public function validate(IdentityType $identityType, string $identityId, VerificationPurpose $purpose, string $plainCode): VerificationResult
     {
         // 1. Find active code
         $code = $this->repository->findActive($identityType, $identityId, $purpose);

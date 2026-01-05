@@ -6,7 +6,9 @@ namespace App\Infrastructure\Repository;
 
 use App\Domain\Contracts\VerificationCodeRepositoryInterface;
 use App\Domain\DTO\VerificationCode;
+use App\Domain\Enum\IdentityType;
 use App\Domain\Enum\VerificationCodeStatus;
+use App\Domain\Enum\VerificationPurpose;
 use DateTimeImmutable;
 use PDO;
 
@@ -30,9 +32,9 @@ class PdoVerificationCodeRepository implements VerificationCodeRepositoryInterfa
         ");
 
         $stmt->execute([
-            'identity_type' => $code->identityType,
+            'identity_type' => $code->identityType->value,
             'identity_id' => $code->identityId,
-            'purpose' => $code->purpose,
+            'purpose' => $code->purpose->value,
             'code_hash' => $code->codeHash,
             'status' => $code->status->value,
             'attempts' => $code->attempts,
@@ -42,7 +44,7 @@ class PdoVerificationCodeRepository implements VerificationCodeRepositoryInterfa
         ]);
     }
 
-    public function findActive(string $identityType, string $identityId, string $purpose): ?VerificationCode
+    public function findActive(IdentityType $identityType, string $identityId, VerificationPurpose $purpose): ?VerificationCode
     {
         $stmt = $this->pdo->prepare("
             SELECT * FROM verification_codes
@@ -55,9 +57,9 @@ class PdoVerificationCodeRepository implements VerificationCodeRepositoryInterfa
         ");
 
         $stmt->execute([
-            'identity_type' => $identityType,
+            'identity_type' => $identityType->value,
             'identity_id' => $identityId,
-            'purpose' => $purpose,
+            'purpose' => $purpose->value,
         ]);
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -118,7 +120,7 @@ class PdoVerificationCodeRepository implements VerificationCodeRepositoryInterfa
         $stmt->execute(['id' => $codeId]);
     }
 
-    public function expireAllFor(string $identityType, string $identityId, string $purpose): void
+    public function expireAllFor(IdentityType $identityType, string $identityId, VerificationPurpose $purpose): void
     {
         $stmt = $this->pdo->prepare("
             UPDATE verification_codes
@@ -129,9 +131,9 @@ class PdoVerificationCodeRepository implements VerificationCodeRepositoryInterfa
             AND status = 'active'
         ");
         $stmt->execute([
-            'identity_type' => $identityType,
+            'identity_type' => $identityType->value,
             'identity_id' => $identityId,
-            'purpose' => $purpose,
+            'purpose' => $purpose->value,
         ]);
     }
 
@@ -163,9 +165,9 @@ class PdoVerificationCodeRepository implements VerificationCodeRepositoryInterfa
 
         return new VerificationCode(
             (int)$id,
-            $identityType,
+            IdentityType::from($identityType),
             $identityId,
-            $purpose,
+            VerificationPurpose::from($purpose),
             $codeHash,
             VerificationCodeStatus::from($statusStr),
             (int)$attempts,

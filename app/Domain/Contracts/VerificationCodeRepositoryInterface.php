@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Domain\Contracts;
 
 use App\Domain\DTO\VerificationCode;
+use App\Domain\Enum\IdentityType;
+use App\Domain\Enum\VerificationPurpose;
 
 interface VerificationCodeRepositoryInterface
 {
     public function store(VerificationCode $code): void;
 
-    public function findActive(string $identityType, string $identityId, string $purpose): ?VerificationCode;
+    public function findActive(IdentityType $identityType, string $identityId, VerificationPurpose $purpose): ?VerificationCode;
 
     public function findByCodeHash(string $codeHash): ?VerificationCode;
 
@@ -20,5 +22,5 @@ interface VerificationCodeRepositoryInterface
 
     public function expire(int $codeId): void;
 
-    public function expireAllFor(string $identityType, string $identityId, string $purpose): void;
+    public function expireAllFor(IdentityType $identityType, string $identityId, VerificationPurpose $purpose): void;
 }
