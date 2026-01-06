@@ -102,10 +102,11 @@ composer install
   ```
 * Configure database connection values (`DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`).
 * **Critical Security Keys:**
-  You must set the following keys in `.env` for the system to function. Use a secure random generator (e.g., `openssl rand -hex 32`).
-  * `ENCRYPTION_KEY`
-  * `EMAIL_BLIND_INDEX_KEY`
-  * `PASSWORD_PEPPER`
+  The system requires specific cryptographic keys to function (`ENCRYPTION_KEY`, `EMAIL_BLIND_INDEX_KEY`, `PASSWORD_PEPPER`).
+
+  > **Frontend Developers:** Do NOT modify these keys.
+  >
+  > **Backend Developers:** Use a secure random generator (CSPRNG). Consult the core/security team for specific length and format requirements.
 
 ---
 
@@ -190,16 +191,12 @@ php -S 0.0.0.0:8080 -t public
 
 The following routes are currently exposed in `routes/web.php`.
 
-### Public / Guest
-*   `GET  /health`
+### Web Routes (Browser / Twig)
 *   `GET  /login`
 *   `POST /login`
 *   `GET  /verify-email`
 *   `POST /verify-email`
 *   `POST /verify-email/resend`
-*   `POST /auth/login` (API)
-
-### Protected (Web & API)
 *   `GET  /dashboard`
 *   `GET  /2fa/setup`
 *   `POST /2fa/setup`
@@ -207,6 +204,11 @@ The following routes are currently exposed in `routes/web.php`.
 *   `POST /2fa/verify`
 *   `GET  /notifications/telegram/connect`
 *   `POST /logout`
+
+### API Routes (JSON)
+*   `GET  /health`
+*   `POST /auth/login`
+*   `POST /auth/step-up`
 *   `POST /admins`
 *   `POST /admins/{id}/emails`
 *   `GET  /admins/{id}/emails`
@@ -217,7 +219,6 @@ The following routes are currently exposed in `routes/web.php`.
 *   `PUT  /admins/{admin_id}/preferences`
 *   `GET  /admins/{admin_id}/notifications`
 *   `POST /admin/notifications/{id}/read`
-*   `POST /auth/step-up`
 
 📌 **Note:** Any endpoint not listed here is unavailable.
 
