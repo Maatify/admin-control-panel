@@ -19,18 +19,7 @@ class PdoSessionListReader implements SessionListReaderInterface
 
     public function getSessions(SessionListQueryDTO $query): SessionListResponseDTO
     {
-        $sql = "SELECT SQL_CALC_FOUND_ROWS
-                    session_id,
-                    created_at,
-                    expires_at,
-                    is_revoked,
-                    CASE
-                        WHEN is_revoked = 1 THEN 'revoked'
-                        WHEN expires_at <= NOW() THEN 'expired'
-                        ELSE 'active'
-                    END as status
-                FROM admin_sessions";
-
+        // 1. Build Query Conditions
         $conditions = [];
         $params = [];
 
@@ -51,11 +40,30 @@ class PdoSessionListReader implements SessionListReaderInterface
             }
         }
 
-        if (!empty($conditions)) {
-            $sql .= " WHERE " . implode(' AND ', $conditions);
-        }
+        $whereClause = !empty($conditions) ? " WHERE " . implode(' AND ', $conditions) : "";
 
-        // Pagination
+        // 2. Count Total
+        $countSql = "SELECT COUNT(*) FROM admin_sessions" . $whereClause;
+        $countStmt = $this->pdo->prepare($countSql);
+        foreach ($params as $key => $value) {
+            $countStmt->bindValue($key, $value);
+        }
+        $countStmt->execute();
+        $total = (int)$countStmt->fetchColumn();
+
+        // 3. Fetch Data
+        $sql = "SELECT
+                    session_id,
+                    created_at,
+                    expires_at,
+                    is_revoked,
+                    CASE
+                        WHEN is_revoked = 1 THEN 'revoked'
+                        WHEN expires_at <= NOW() THEN 'expired'
+                        ELSE 'active'
+                    END as status
+                FROM admin_sessions" . $whereClause;
+
         $sql .= " ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
 
         $limit = $query->per_page;
@@ -63,7 +71,6 @@ class PdoSessionListReader implements SessionListReaderInterface
 
         $stmt = $this->pdo->prepare($sql);
 
-        // Bind params manually to ensure correct types for limit/offset
         foreach ($params as $key => $value) {
             $stmt->bindValue($key, $value);
         }
@@ -71,21 +78,19 @@ class PdoSessionListReader implements SessionListReaderInterface
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 
         $stmt->execute();
-
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Get total count
-        $countStmt = $this->pdo->query("SELECT FOUND_ROWS()");
-        $total = $countStmt ? (int)$countStmt->fetchColumn() : 0;
-
         $items = [];
-        foreach ($results as $row) {
-            $items[] = new SessionListItemDTO(
-                session_id: (string)$row['session_id'],
-                created_at: (string)$row['created_at'],
-                expires_at: (string)$row['expires_at'],
-                status: (string)$row['status']
-            );
+        if ($results !== false) {
+             foreach ($results as $row) {
+                /** @var array{session_id: string, created_at: string, expires_at: string, is_revoked: int, status: string} $row */
+                $items[] = new SessionListItemDTO(
+                    session_id: (string)$row['session_id'],
+                    created_at: (string)$row['created_at'],
+                    expires_at: (string)$row['expires_at'],
+                    status: (string)$row['status']
+                );
+            }
         }
 
         return new SessionListResponseDTO(
