@@ -61,20 +61,29 @@ readonly class TwoFactorController
 
     public function verify(Request $request, Response $response): Response
     {
-        return $this->view->render($response, '2fa-verify.twig');
+        $template = $request->getAttribute('template');
+        if (!is_string($template)) {
+            $template = '2fa-verify.twig';
+        }
+        return $this->view->render($response, $template);
     }
 
     public function doVerify(Request $request, Response $response): Response
     {
+        $template = $request->getAttribute('template');
+        if (!is_string($template)) {
+            $template = '2fa-verify.twig';
+        }
+
         $data = $request->getParsedBody();
         if (!is_array($data)) {
-             return $this->view->render($response, '2fa-verify.twig', ['error' => 'Invalid request']);
+             return $this->view->render($response, $template, ['error' => 'Invalid request']);
         }
 
         $code = $data['code'] ?? '';
 
         if (!is_string($code)) {
-             return $this->view->render($response, '2fa-verify.twig', ['error' => 'Invalid input']);
+             return $this->view->render($response, $template, ['error' => 'Invalid input']);
         }
 
         $adminId = $request->getAttribute('admin_id');
@@ -95,7 +104,7 @@ readonly class TwoFactorController
             return $response->withHeader('Location', '/dashboard')->withStatus(302);
         }
 
-        return $this->view->render($response, '2fa-verify.twig', ['error' => $result->errorReason ?? 'Invalid code']);
+        return $this->view->render($response, $template, ['error' => $result->errorReason ?? 'Invalid code']);
     }
 
     private function getSessionIdFromRequest(Request $request): ?string

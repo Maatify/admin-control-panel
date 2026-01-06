@@ -32,11 +32,16 @@ readonly class EmailVerificationController
 
     public function index(Request $request, Response $response): Response
     {
+        $template = $request->getAttribute('template');
+        if (!is_string($template)) {
+            $template = 'verify-email.twig';
+        }
+
         $queryParams = $request->getQueryParams();
         $email = $queryParams['email'] ?? '';
         $message = $queryParams['message'] ?? null;
 
-        return $this->view->render($response, 'verify-email.twig', [
+        return $this->view->render($response, $template, [
             'email' => $email,
             'message' => $message
         ]);
@@ -44,16 +49,21 @@ readonly class EmailVerificationController
 
     public function verify(Request $request, Response $response): Response
     {
+        $template = $request->getAttribute('template');
+        if (!is_string($template)) {
+            $template = 'verify-email.twig';
+        }
+
         $data = $request->getParsedBody();
         if (!is_array($data)) {
-            return $this->view->render($response, 'verify-email.twig', ['error' => 'Invalid request']);
+            return $this->view->render($response, $template, ['error' => 'Invalid request']);
         }
 
         $email = (string)($data['email'] ?? '');
         $otp = (string)($data['otp'] ?? '');
 
         if (empty($email) || empty($otp)) {
-             return $this->view->render($response, 'verify-email.twig', [
+             return $this->view->render($response, $template, [
                  'error' => 'Email and OTP are required.',
                  'email' => $email
              ]);
@@ -69,7 +79,7 @@ readonly class EmailVerificationController
                 'identity_id' => $result->identityId,
                 'purpose' => $result->purpose?->value,
             ]);
-            return $this->view->render($response, 'verify-email.twig', [
+            return $this->view->render($response, $template, [
                 'error' => 'Verification failed.',
                 'email' => $email
             ]);
@@ -83,7 +93,7 @@ readonly class EmailVerificationController
                 'identity_id' => $result->identityId,
                 'purpose' => $result->purpose?->value,
             ]);
-            return $this->view->render($response, 'verify-email.twig', [
+            return $this->view->render($response, $template, [
                 'error' => 'Verification failed.',
                 'email' => $email
             ]);
@@ -98,7 +108,7 @@ readonly class EmailVerificationController
                 'identity_id' => $result->identityId,
                 'purpose' => $result->purpose->value,
             ]);
-            return $this->view->render($response, 'verify-email.twig', [
+            return $this->view->render($response, $template, [
                 'error' => 'Verification failed.',
                 'email' => $email
             ]);
@@ -113,7 +123,7 @@ readonly class EmailVerificationController
                 'identity_id' => $result->identityId,
                 'purpose' => $result->purpose->value,
             ]);
-            return $this->view->render($response, 'verify-email.twig', [
+            return $this->view->render($response, $template, [
                 'error' => 'Verification failed.',
                 'email' => $email
             ]);
