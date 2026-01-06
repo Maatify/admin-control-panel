@@ -46,7 +46,7 @@ return function (App $app) {
     })->add($webGuestGuard);
 
     // Phase 14 UI Routes
-    $app->group('/ui', function (RouteCollectorProxy $group) {
+    $app->group('/ui', function (RouteCollectorProxy $group) use ($webGuestGuard) {
         // Guest Routes
         $group->group('', function (RouteCollectorProxy $guestGroup) {
             $guestGroup->get('/login', [\App\Http\Controllers\Ui\UiLoginController::class, 'index']);
