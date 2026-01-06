@@ -28,14 +28,23 @@ readonly class LoginController
 
     public function index(Request $request, Response $response): Response
     {
-        return $this->view->render($response, 'login.twig');
+        $template = $request->getAttribute('template');
+        if (!is_string($template)) {
+            $template = 'login.twig';
+        }
+        return $this->view->render($response, $template);
     }
 
     public function login(Request $request, Response $response): Response
     {
+        $template = $request->getAttribute('template');
+        if (!is_string($template)) {
+            $template = 'login.twig';
+        }
+
         $data = $request->getParsedBody();
         if (!is_array($data) || !isset($data['email']) || !isset($data['password'])) {
-             return $this->view->render($response, 'login.twig', ['error' => 'Invalid request']);
+             return $this->view->render($response, $template, ['error' => 'Invalid request']);
         }
 
         $dto = new LoginRequestDTO((string)$data['email'], (string)$data['password']);
@@ -101,10 +110,10 @@ readonly class LoginController
                     ->withHeader('Location', '/verify-email?email=' . urlencode($dto->email))
                     ->withStatus(302);
             }
-            return $this->view->render($response, 'login.twig', ['error' => 'Authentication failed.']);
+            return $this->view->render($response, $template, ['error' => 'Authentication failed.']);
         } catch (InvalidCredentialsException $e) {
             // Requirement: Generic login error message
-            return $this->view->render($response, 'login.twig', ['error' => 'Authentication failed.']);
+            return $this->view->render($response, $template, ['error' => 'Authentication failed.']);
         }
     }
 }

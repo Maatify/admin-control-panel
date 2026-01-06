@@ -1,0 +1,20 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+<h1>Verify Email</h1>
+{% if error %}
+    <div style="color: red;">{{ error }}</div>
+{% endif %}
+{% if message %}
+    <div style="color: green;">{{ message }}</div>
+{% endif %}
+<form method="post" action="/ui/verify-email">
+    <input type="hidden" name="email" value="{{ email }}">
+    <label>Code: <input type="text" name="otp" required></label><br>
+    <button type="submit">Verify</button>
+</form>
+<form method="post" action="/ui/verify-email/resend">
+    <input type="hidden" name="email" value="{{ email }}">
+    <button type="submit">Resend Code</button>
+</form>
+{% endblock %}

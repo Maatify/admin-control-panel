@@ -1,0 +1,14 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+<h1>Login</h1>
+{% if error %}
+    <div style="color: red;">{{ error }}</div>
+{% endif %}
+<form method="post" action="/ui/login">
+    <label>Email: <input type="email" name="email" required></label><br>
+    <label>Password: <input type="password" name="password" required></label><br>
+    <label><input type="checkbox" name="remember_me"> Remember Me</label><br>
+    <button type="submit">Login</button>
+</form>
+{% endblock %}

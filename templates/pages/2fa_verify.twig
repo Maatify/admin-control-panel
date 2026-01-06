@@ -1,0 +1,12 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+<h1>Two-Factor Verification</h1>
+{% if error %}
+    <div style="color: red;">{{ error }}</div>
+{% endif %}
+<form method="post" action="/ui/2fa/verify">
+    <label>Code: <input type="text" name="code" required></label><br>
+    <button type="submit">Verify</button>
+</form>
+{% endblock %}
