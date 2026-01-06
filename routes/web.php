@@ -118,6 +118,9 @@ return function (App $app) {
     $app->post('/auth/login', [AuthController::class, 'login'])
         ->add($apiGuestGuard);
 
+    // Phase 13.3 (Fix)
+    $app->post('/webhooks/telegram', [\App\Http\Controllers\TelegramWebhookController::class, 'handle']);
+
     // Phase 12
     $app->group('/auth', function (RouteCollectorProxy $group) {
         $group->post('/step-up', [\App\Http\Controllers\StepUpController::class, 'verify'])
