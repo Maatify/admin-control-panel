@@ -64,6 +64,9 @@ return function (App $app) {
             $protectedGroup->get('/permissions', [\App\Http\Controllers\Ui\UiPermissionsController::class, 'index']);
             $protectedGroup->get('/settings', [\App\Http\Controllers\Ui\UiSettingsController::class, 'index']);
 
+            // Phase 14.3: Sessions LIST
+            $protectedGroup->get('/sessions', [\App\Http\Controllers\Ui\SessionListController::class, '__invoke']);
+
             // Allow logout from UI
             $protectedGroup->post('/logout', [\App\Http\Controllers\Web\LogoutController::class, 'logout'])
                 ->setName('auth.logout');
@@ -88,6 +91,11 @@ return function (App $app) {
 
         // Protected API
         $api->group('', function (RouteCollectorProxy $group) {
+            // Phase 14.3: Sessions Query
+            $group->post('/sessions/query', [\App\Http\Controllers\Api\SessionQueryController::class, '__invoke'])
+                ->setName('sessions.list')
+                ->add(AuthorizationGuardMiddleware::class);
+
             // Notifications / Admins / Etc.
             $group->post('/admins', [AdminController::class, 'create'])
                 ->setName('admin.create')

@@ -301,3 +301,49 @@ Simple status check.
     ```json
     {"status": "ok"}
     ```
+
+---
+
+## 📅 Sessions
+
+### List Sessions (API)
+Server-side pagination and filtering for sessions list.
+
+**Endpoint:** `POST /api/sessions/query`
+**Auth Required:** Yes (Permission `sessions.list`)
+
+**Request Model:**
+```json
+{
+  "page": 1,
+  "per_page": 20,
+  "filters": {
+    "session_id": "optional_id_fragment",
+    "status": "active|revoked|expired|all"
+  }
+}
+```
+
+**Response Model:**
+```json
+{
+  "data": [
+    {
+      "session_id": "abc123hash...",
+      "created_at": "2024-01-01 10:00:00",
+      "expires_at": "2024-01-02 10:00:00",
+      "status": "active"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "per_page": 20,
+    "total": 50
+  }
+}
+```
+
+**Notes:**
+*   Pagination is mandatory.
+*   Status is derived on backend.
+*   Filters are optional.

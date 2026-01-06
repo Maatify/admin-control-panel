@@ -72,6 +72,10 @@ use App\Http\Controllers\Ui\UiDashboardController;
 use App\Http\Controllers\Ui\UiPermissionsController;
 use App\Http\Controllers\Ui\UiRolesController;
 use App\Http\Controllers\Ui\UiSettingsController;
+use App\Http\Controllers\Ui\SessionListController;
+use App\Http\Controllers\Api\SessionQueryController;
+use App\Domain\Session\Reader\SessionListReaderInterface;
+use App\Infrastructure\Reader\Session\PdoSessionListReader;
 use App\Http\Middleware\RememberMeMiddleware;
 use App\Http\Middleware\ScopeGuardMiddleware;
 use App\Http\Middleware\SessionStateGuardMiddleware;
@@ -642,6 +646,23 @@ class Container
                 $securityReader = $c->get(AdminSecurityEventReaderInterface::class);
                 assert($securityReader instanceof AdminSecurityEventReaderInterface);
                 return new AdminSecurityEventController($securityReader);
+            },
+
+            // Phase 14.3: Sessions
+            SessionListReaderInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new PdoSessionListReader($pdo);
+            },
+            SessionListController::class => function (ContainerInterface $c) {
+                $twig = $c->get(Twig::class);
+                assert($twig instanceof Twig);
+                return new SessionListController($twig);
+            },
+            SessionQueryController::class => function (ContainerInterface $c) {
+                $reader = $c->get(SessionListReaderInterface::class);
+                assert($reader instanceof SessionListReaderInterface);
+                return new SessionQueryController($reader);
             },
 
             // Phase 12
