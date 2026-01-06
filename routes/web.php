@@ -149,7 +149,11 @@ return function (App $app) {
         ->add(\App\Http\Middleware\ScopeGuardMiddleware::class)
         ->add(\App\Http\Middleware\SessionStateGuardMiddleware::class)
         ->add(SessionGuardMiddleware::class)
-        ->add(\App\Http\Middleware\RememberMeMiddleware::class);
+        ->add(\App\Http\Middleware\RememberMeMiddleware::class)
+        ->add(function (Request $request, \Psr\Http\Server\RequestHandlerInterface $handler) {
+            // Force Cookie Mode for internal API usage by stripping Authorization header
+            return $handler->handle($request->withoutHeader('Authorization'));
+        });
     });
 
     // Webhooks
