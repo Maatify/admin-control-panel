@@ -40,6 +40,7 @@ use App\Domain\Contracts\VerificationCodeGeneratorInterface;
 use App\Domain\Contracts\VerificationCodePolicyResolverInterface;
 use App\Domain\Contracts\VerificationCodeRepositoryInterface;
 use App\Domain\Contracts\VerificationCodeValidatorInterface;
+use App\Domain\Ownership\SystemOwnershipRepositoryInterface;
 use App\Domain\Service\AdminAuthenticationService;
 use App\Domain\Service\AdminEmailVerificationService;
 use App\Domain\Service\AdminNotificationRoutingService;
@@ -107,6 +108,7 @@ use App\Infrastructure\Notifications\NullNotificationDispatcher;
 use App\Infrastructure\Repository\PdoAdminNotificationReadMarker;
 use App\Infrastructure\Repository\PdoRoleRepository;
 use App\Infrastructure\Repository\PdoStepUpGrantRepository;
+use App\Infrastructure\Repository\PdoSystemOwnershipRepository;
 use App\Infrastructure\Repository\PdoVerificationCodeRepository;
 use App\Infrastructure\Repository\RedisStepUpGrantRepository;
 use App\Infrastructure\Repository\RolePermissionRepository;
@@ -137,6 +139,33 @@ class Container
         $containerBuilder = new ContainerBuilder();
 
         $containerBuilder->addDefinitions([
+            \App\Domain\Service\AuthorizationService::class => function (ContainerInterface $c) {
+                $adminRoleRepo = $c->get(AdminRoleRepositoryInterface::class);
+                $rolePermissionRepo = $c->get(RolePermissionRepositoryInterface::class);
+                $directPermissionRepo = $c->get(AdminDirectPermissionRepositoryInterface::class);
+                $auditLogger = $c->get(TelemetryAuditLoggerInterface::class);
+                $securityLogger = $c->get(SecurityEventLoggerInterface::class);
+                $clientInfo = $c->get(ClientInfoProviderInterface::class);
+                $ownershipRepo = $c->get(SystemOwnershipRepositoryInterface::class);
+
+                assert($adminRoleRepo instanceof AdminRoleRepositoryInterface);
+                assert($rolePermissionRepo instanceof RolePermissionRepositoryInterface);
+                assert($directPermissionRepo instanceof AdminDirectPermissionRepositoryInterface);
+                assert($auditLogger instanceof TelemetryAuditLoggerInterface);
+                assert($securityLogger instanceof SecurityEventLoggerInterface);
+                assert($clientInfo instanceof ClientInfoProviderInterface);
+                assert($ownershipRepo instanceof SystemOwnershipRepositoryInterface);
+
+                return new \App\Domain\Service\AuthorizationService(
+                    $adminRoleRepo,
+                    $rolePermissionRepo,
+                    $directPermissionRepo,
+                    $auditLogger,
+                    $securityLogger,
+                    $clientInfo,
+                    $ownershipRepo
+                );
+            },
             Twig::class => function (ContainerInterface $c) {
                 return Twig::create(__DIR__ . '/../../templates', ['cache' => false]);
             },
@@ -312,6 +341,11 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new RolePermissionRepository($pdo);
+            },
+            SystemOwnershipRepositoryInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new PdoSystemOwnershipRepository($pdo);
             },
             RoleRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);

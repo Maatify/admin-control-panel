@@ -14,6 +14,7 @@ use App\Domain\DTO\LegacyAuditEventDTO;
 use App\Domain\DTO\SecurityEventDTO;
 use App\Domain\Exception\PermissionDeniedException;
 use App\Domain\Exception\UnauthorizedException;
+use App\Domain\Ownership\SystemOwnershipRepositoryInterface;
 use DateTimeImmutable;
 
 readonly class AuthorizationService
@@ -24,12 +25,29 @@ readonly class AuthorizationService
         private AdminDirectPermissionRepositoryInterface $directPermissionRepository,
         private TelemetryAuditLoggerInterface $auditLogger,
         private SecurityEventLoggerInterface $securityLogger,
-        private ClientInfoProviderInterface $clientInfoProvider
+        private ClientInfoProviderInterface $clientInfoProvider,
+        private SystemOwnershipRepositoryInterface $systemOwnershipRepository
     ) {
     }
 
     public function checkPermission(int $adminId, string $permission): void
     {
+        // 0. System Owner Bypass
+        if ($this->systemOwnershipRepository->isOwner($adminId)) {
+            // Log access grant for audit purposes, but bypass all checks
+            $this->auditLogger->log(new LegacyAuditEventDTO(
+                $adminId,
+                'system_capability',
+                null,
+                'access_granted',
+                ['permission' => $permission, 'source' => 'system_owner'],
+                $this->clientInfoProvider->getIpAddress(),
+                $this->clientInfoProvider->getUserAgent(),
+                new DateTimeImmutable()
+            ));
+            return;
+        }
+
         if (!$this->rolePermissionRepository->permissionExists($permission)) {
             $this->securityLogger->log(new SecurityEventDTO(
                 $adminId,

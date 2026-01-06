@@ -12,6 +12,7 @@ use App\Domain\Contracts\TotpServiceInterface;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\DTO\AuditEventDTO;
 use App\Domain\Service\PasswordService;
+use App\Domain\Ownership\SystemOwnershipRepositoryInterface;
 
 // Load Env
 $dotenv = Dotenv::createImmutable(__DIR__ . '/../');
@@ -20,13 +21,16 @@ $dotenv->safeLoad();
 // Container
 $container = Container::create();
 
-// Check if admins exist
-$pdo = $container->get(PDO::class);
-$stmt = $pdo->query("SELECT COUNT(*) FROM admins");
-if ($stmt->fetchColumn() > 0) {
-    echo "Bootstrap disabled: Admins already exist.\n";
+// Check if system ownership already assigned
+$ownershipRepo = $container->get(SystemOwnershipRepositoryInterface::class);
+if ($ownershipRepo->exists()) {
+    echo "Bootstrap disabled: System ownership already assigned.\n";
     exit(1);
 }
+
+// Check if admins exist - DEPRECATED check removed in favor of strict ownership check
+// But we still need PDO later
+$pdo = $container->get(PDO::class);
 
 // Inputs
 echo "Bootstrap First Admin\n";
@@ -87,7 +91,11 @@ try {
     $totpRepo = $container->get(TotpSecretRepositoryInterface::class);
     $totpRepo->save($adminId, $secret);
 
-    // 5. Audit
+    // 5. System Ownership
+    $ownershipRepo = $container->get(SystemOwnershipRepositoryInterface::class);
+    $ownershipRepo->assignOwner($adminId);
+
+    // 6. Audit
     $writer = $container->get(AuthoritativeSecurityAuditWriterInterface::class);
     $writer->write(new AuditEventDTO(
         $adminId,
