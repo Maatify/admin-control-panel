@@ -148,7 +148,8 @@ return function (App $app) {
         })
         ->add(\App\Http\Middleware\ScopeGuardMiddleware::class)
         ->add(\App\Http\Middleware\SessionStateGuardMiddleware::class)
-        ->add(SessionGuardMiddleware::class);
+        ->add(SessionGuardMiddleware::class)
+        ->add(\App\Http\Middleware\RememberMeMiddleware::class);
     });
 
     // Webhooks
