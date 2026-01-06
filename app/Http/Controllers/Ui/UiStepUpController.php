@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Ui;
 
+use App\Http\Controllers\Ui\Shared\UiResponseNormalizer;
 use App\Http\Controllers\Web\TwoFactorController;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -17,10 +18,11 @@ readonly class UiStepUpController
 
     public function verify(Request $request, Response $response): Response
     {
-        return $this->web2fa->verify(
+        $res = $this->web2fa->verify(
             $request->withAttribute('template', 'pages/2fa_verify.twig'),
             $response
         );
+        return UiResponseNormalizer::normalize($res);
     }
 
     public function doVerify(Request $request, Response $response): Response
@@ -29,14 +31,6 @@ readonly class UiStepUpController
             $request->withAttribute('template', 'pages/2fa_verify.twig'),
             $response
         );
-
-        if ($res->getStatusCode() === 302) {
-            $location = $res->getHeaderLine('Location');
-            if ($location === '/dashboard') {
-                return $res->withHeader('Location', '/ui/dashboard');
-            }
-        }
-
-        return $res;
+        return UiResponseNormalizer::normalize($res);
     }
 }
