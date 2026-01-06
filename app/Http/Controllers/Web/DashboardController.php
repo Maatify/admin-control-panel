@@ -17,6 +17,10 @@ readonly class DashboardController
 
     public function index(Request $request, Response $response): Response
     {
-        return $this->view->render($response, 'dashboard.twig');
+        $template = $request->getAttribute('template');
+        if (!is_string($template)) {
+            $template = 'dashboard.twig';
+        }
+        return $this->view->render($response, $template);
     }
 }

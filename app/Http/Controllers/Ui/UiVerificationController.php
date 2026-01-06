@@ -18,28 +18,25 @@ readonly class UiVerificationController
 
     public function index(Request $request, Response $response): Response
     {
-        $res = $this->webEmail->index(
+        return $this->webEmail->index(
             $request->withAttribute('template', 'pages/verify_email.twig'),
             $response
         );
-        return UiResponseNormalizer::normalize($res);
     }
 
     public function verify(Request $request, Response $response): Response
     {
-        $res = $this->webEmail->verify(
+        return $this->webEmail->verify(
             $request->withAttribute('template', 'pages/verify_email.twig'),
             $response
         );
-        return UiResponseNormalizer::normalize($res);
     }
 
     public function resend(Request $request, Response $response): Response
     {
-        $res = $this->webEmail->resend(
+        return $this->webEmail->resend(
             $request->withAttribute('template', 'pages/verify_email.twig'),
             $response
         );
-        return UiResponseNormalizer::normalize($res);
     }
 }
