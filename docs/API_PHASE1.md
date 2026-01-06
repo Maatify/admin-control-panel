@@ -86,6 +86,19 @@ Terminates the session and revokes tokens.
 **Response:**
 *   **Success (302):** Redirects to `/login`. Clears cookies.
 
+### Remember-Me Behavior
+Remember-Me is an **optional login convenience** that persists a session across browser restarts.
+
+*   **Behavior:**
+    *   It does **NOT** bypass authentication or 2FA / Step-Up.
+    *   It does **NOT** restore a fully trusted session.
+*   **Session State:**
+    *   Sessions restored via Remember-Me always start in `PENDING_STEP_UP`.
+    *   Access to the dashboard is blocked until TOTP verification is completed.
+*   **Security:**
+    *   Remember-Me ≠ Session
+    *   Remember-Me ≠ Step-Up
+
 ---
 
 ## 📧 Email Verification
