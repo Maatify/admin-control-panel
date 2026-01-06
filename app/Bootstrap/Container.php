@@ -64,6 +64,7 @@ use App\Http\Controllers\StepUpController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\EmailVerificationController;
 use App\Http\Controllers\Web\LoginController;
+use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Controllers\Web\TelegramConnectController;
 use App\Http\Controllers\Web\TwoFactorController;
 use App\Http\Middleware\RememberMeMiddleware;
@@ -534,6 +535,13 @@ class Container
                 assert($generator instanceof VerificationCodeGeneratorInterface);
                 assert($view instanceof Twig);
                 return new TelegramConnectController($generator, $view);
+            },
+            TelegramWebhookController::class => function (ContainerInterface $c) {
+                $handler = $c->get(TelegramHandler::class);
+                $logger = $c->get(LoggerInterface::class);
+                assert($handler instanceof TelegramHandler);
+                assert($logger instanceof LoggerInterface);
+                return new TelegramWebhookController($handler, $logger);
             },
             TelegramHandler::class => function (ContainerInterface $c) {
                 $validator = $c->get(VerificationCodeValidatorInterface::class);
