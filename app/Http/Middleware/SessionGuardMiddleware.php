@@ -16,7 +16,7 @@ use Psr\Http\Server\RequestHandlerInterface;
  * Guard Middleware for Session Validation.
  *
  * PHASE 13.7: Auth Boundary Lock & Regression Guard
- * - STRICT Web vs API detection (Bearer header presence vs Cookie).
+ * - STRICT Web vs API detection (path-based).
  * - Explicit failure responses (401 JSON vs 302 Redirect).
  * - Canonical exception handling.
  */
@@ -31,23 +31,16 @@ class SessionGuardMiddleware implements MiddlewareInterface
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        // 1. Detect Mode: API (Authorization Header) vs Web (Cookie)
-        // STRICT RULE: Presence of 'Authorization' header implies API intent.
+        // 1. Detect Mode: API vs Web (Response Format Only)
+        // STRICT RULE: Path implies API intent for error handling.
         $isApi = AuthSurface::isApi($request);
 
         $token = null;
 
-        if ($isApi) {
-            $authHeader = $request->getHeaderLine('Authorization');
-            if (str_starts_with($authHeader, 'Bearer ')) {
-                $token = substr($authHeader, 7);
-            }
-            // If header exists but not Bearer, token remains null -> Invalid Session
-        } else {
-            $cookies = $request->getCookieParams();
-            if (isset($cookies['auth_token'])) {
-                $token = $cookies['auth_token'];
-            }
+        // STRICT RULE: Always check Cookie for Auth Token (Session Only)
+        $cookies = $request->getCookieParams();
+        if (isset($cookies['auth_token'])) {
+            $token = $cookies['auth_token'];
         }
 
         if ($token === null) {

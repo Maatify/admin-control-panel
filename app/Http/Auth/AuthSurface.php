@@ -10,11 +10,11 @@ final class AuthSurface
 {
     /**
      * STRICT RULE (Phase 13.7 LOCK):
-     * API = Authorization header exists
-     * Web = Authorization header absent
+     * API = Path starts with /api
+     * Web = Path does not start with /api
      */
     public static function isApi(ServerRequestInterface $request): bool
     {
-        return $request->hasHeader('Authorization');
+        return str_starts_with($request->getUri()->getPath(), '/api');
     }
 }

@@ -29,20 +29,13 @@ class GuestGuardMiddleware implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $token = null;
-        // Restore route-configured detection
+        // Restore route-configured detection for response format
         $isApi = $this->isApi;
 
-        // STRICT SEPARATION: API checks Bearer, Web checks Cookie.
-        if ($isApi) {
-            $authHeader = $request->getHeaderLine('Authorization');
-            if (!empty($authHeader) && str_starts_with($authHeader, 'Bearer ')) {
-                $token = substr($authHeader, 7);
-            }
-        } else {
-            $cookies = $request->getCookieParams();
-            if (isset($cookies['auth_token'])) {
-                $token = $cookies['auth_token'];
-            }
+        // STRICT SEPARATION: Check Cookie for BOTH API and Web.
+        $cookies = $request->getCookieParams();
+        if (isset($cookies['auth_token'])) {
+            $token = $cookies['auth_token'];
         }
 
         // If no token found in the expected source, proceed as guest

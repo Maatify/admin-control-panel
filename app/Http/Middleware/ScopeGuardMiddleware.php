@@ -31,10 +31,7 @@ class ScopeGuardMiddleware implements MiddlewareInterface
             return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
         }
 
-        // Detect Mode (Strict)
-        $isApi = AuthSurface::isApi($request);
-
-        $sessionId = $this->getSessionIdFromRequest($request, $isApi);
+        $sessionId = $this->getSessionIdFromRequest($request);
         if ($sessionId === null) {
              // Should not happen if SessionGuard works
              $response = new \Slim\Psr7\Response();
@@ -96,18 +93,12 @@ class ScopeGuardMiddleware implements MiddlewareInterface
         return $handler->handle($request);
     }
 
-    private function getSessionIdFromRequest(ServerRequestInterface $request, bool $isApi): ?string
+    private function getSessionIdFromRequest(ServerRequestInterface $request): ?string
     {
-        if ($isApi) {
-            $header = $request->getHeaderLine('Authorization');
-            if (preg_match('/Bearer\s+(.*)$/i', $header, $matches)) {
-                return $matches[1];
-            }
-        } else {
-            $cookies = $request->getCookieParams();
-            if (isset($cookies['auth_token'])) {
-                return (string)$cookies['auth_token'];
-            }
+        // STRICT RULE: Always check Cookie for Auth Token (Session Only)
+        $cookies = $request->getCookieParams();
+        if (isset($cookies['auth_token'])) {
+            return (string)$cookies['auth_token'];
         }
         return null;
     }
