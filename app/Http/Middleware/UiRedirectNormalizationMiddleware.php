@@ -2,35 +2,33 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Ui\Shared;
+namespace App\Http\Middleware;
 
-use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 
-class UiResponseNormalizer
+class UiRedirectNormalizationMiddleware implements MiddlewareInterface
 {
-    /**
-     * Normalizes backend responses for the UI layer:
-     * 1. Rewrites redirects to /ui/* namespace.
-     * 2. Detects JSON responses (errors) and converts them to UI redirects.
-     */
-    public static function normalize(ResponseInterface $response): ResponseInterface
+    public function process(Request $request, RequestHandler $handler): Response
     {
+        $response = $handler->handle($request);
+
         // 1. Rewrite Redirects
         if ($response->hasHeader('Location')) {
             $location = $response->getHeaderLine('Location');
-            $newLocation = self::rewriteLocation($location);
+            $newLocation = $this->rewriteLocation($location);
             if ($newLocation !== $location) {
                 return $response->withHeader('Location', $newLocation);
             }
         }
 
-        // 2. Guard against JSON responses
+        // 2. Guard against JSON responses (e.g. from SessionStateGuardMiddleware)
         $contentType = $response->getHeaderLine('Content-Type');
         if (str_contains($contentType, 'application/json')) {
-            // We need to parse the JSON to understand the intent,
-            // or default to a generic error page if parsing fails.
             $body = (string)$response->getBody();
-            // Reset stream for safety if further used (though we replace it)
+            // Reset stream
             $response->getBody()->rewind();
 
             $data = json_decode($body, true);
@@ -49,7 +47,7 @@ class UiResponseNormalizer
                     ->withHeader('Location', '/ui/error?code=' . urlencode((string)$errorCode));
             }
 
-            // Fallback for unparseable JSON
+            // Fallback for unparseable JSON or other JSON responses on UI routes
             return $response
                 ->withStatus(302)
                 ->withHeader('Location', '/ui/error?code=backend_json_error');
@@ -58,12 +56,8 @@ class UiResponseNormalizer
         return $response;
     }
 
-    private static function rewriteLocation(string $location): string
+    private function rewriteLocation(string $location): string
     {
-        // Parse the URL to handle query parameters correctly if needed.
-        // For simplicity, we'll use string replacement for known paths.
-        // We must be careful not to rewrite external URLs (though rare here).
-
         $map = [
             '/login'        => '/ui/login',
             '/dashboard'    => '/ui/dashboard',

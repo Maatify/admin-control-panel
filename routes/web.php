@@ -46,22 +46,35 @@ return function (App $app) {
     })->add($webGuestGuard);
 
     // Phase 14 UI Routes
-    $app->group('/ui', function (RouteCollectorProxy $group) {
-        $group->get('/login', [\App\Http\Controllers\Ui\UiLoginController::class, 'index']);
-        $group->post('/login', [\App\Http\Controllers\Ui\UiLoginController::class, 'login']);
+    $app->group('/ui', function (RouteCollectorProxy $group) use ($webGuestGuard) {
+        // Guest Routes
+        $group->group('', function (RouteCollectorProxy $guestGroup) {
+            $guestGroup->get('/login', [\App\Http\Controllers\Ui\UiLoginController::class, 'index']);
+            $guestGroup->post('/login', [\App\Http\Controllers\Ui\UiLoginController::class, 'login']);
 
-        $group->get('/verify-email', [\App\Http\Controllers\Ui\UiVerificationController::class, 'index']);
-        $group->post('/verify-email', [\App\Http\Controllers\Ui\UiVerificationController::class, 'verify']);
-        $group->post('/verify-email/resend', [\App\Http\Controllers\Ui\UiVerificationController::class, 'resend']);
+            $guestGroup->get('/verify-email', [\App\Http\Controllers\Ui\UiVerificationController::class, 'index']);
+            $guestGroup->post('/verify-email', [\App\Http\Controllers\Ui\UiVerificationController::class, 'verify']);
+            $guestGroup->post('/verify-email/resend', [\App\Http\Controllers\Ui\UiVerificationController::class, 'resend']);
 
-        // Error page
-        $group->get('/error', [\App\Http\Controllers\Ui\UiErrorController::class, 'index']);
-    })->add($webGuestGuard);
+            $guestGroup->get('/error', [\App\Http\Controllers\Ui\UiErrorController::class, 'index']);
+        })->add($webGuestGuard);
 
-    $app->group('/ui', function (RouteCollectorProxy $group) {
-        $group->get('/2fa/verify', [\App\Http\Controllers\Ui\UiStepUpController::class, 'verify']);
-        $group->post('/2fa/verify', [\App\Http\Controllers\Ui\UiStepUpController::class, 'doVerify']);
-    })->add(SessionGuardMiddleware::class);
+        // Step-Up Verification (Session only, no Active check)
+        $group->group('', function (RouteCollectorProxy $stepUpGroup) {
+            $stepUpGroup->get('/2fa/verify', [\App\Http\Controllers\Ui\UiStepUpController::class, 'verify']);
+            $stepUpGroup->post('/2fa/verify', [\App\Http\Controllers\Ui\UiStepUpController::class, 'doVerify']);
+        })->add(SessionGuardMiddleware::class);
+
+        // Protected UI Routes (Dashboard)
+        $group->group('', function (RouteCollectorProxy $protectedGroup) {
+            $protectedGroup->get('/dashboard', [\App\Http\Controllers\Ui\UiDashboardController::class, 'index']);
+        })
+        ->add(\App\Http\Middleware\ScopeGuardMiddleware::class)
+        ->add(\App\Http\Middleware\SessionStateGuardMiddleware::class)
+        ->add(SessionGuardMiddleware::class)
+        ->add(\App\Http\Middleware\RememberMeMiddleware::class);
+
+    })->add(\App\Http\Middleware\UiRedirectNormalizationMiddleware::class);
 
     // Protected Routes
     $app->group('', function (RouteCollectorProxy $group) {
