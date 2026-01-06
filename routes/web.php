@@ -35,18 +35,8 @@ return function (App $app) {
             ->withStatus(200);
     });
 
-    // Web Routes
-    $app->group('', function (RouteCollectorProxy $group) {
-        $group->get('/login', [\App\Http\Controllers\Web\LoginController::class, 'index']);
-        $group->post('/login', [\App\Http\Controllers\Web\LoginController::class, 'login']);
-
-        $group->get('/verify-email', [\App\Http\Controllers\Web\EmailVerificationController::class, 'index']);
-        $group->post('/verify-email', [\App\Http\Controllers\Web\EmailVerificationController::class, 'verify']);
-        $group->post('/verify-email/resend', [\App\Http\Controllers\Web\EmailVerificationController::class, 'resend']);
-    })->add($webGuestGuard);
-
-    // Phase 14 UI Routes
-    $app->group('/ui', function (RouteCollectorProxy $group) use ($webGuestGuard) {
+    // User-facing UI Routes (Clean URLs)
+    $app->group('', function (RouteCollectorProxy $group) use ($webGuestGuard) {
         // Guest Routes
         $group->group('', function (RouteCollectorProxy $guestGroup) {
             $guestGroup->get('/login', [\App\Http\Controllers\Ui\UiLoginController::class, 'index']);
@@ -68,6 +58,10 @@ return function (App $app) {
         // Protected UI Routes (Dashboard)
         $group->group('', function (RouteCollectorProxy $protectedGroup) {
             $protectedGroup->get('/dashboard', [\App\Http\Controllers\Ui\UiDashboardController::class, 'index']);
+
+            // Allow logout from UI
+            $protectedGroup->post('/logout', [\App\Http\Controllers\Web\LogoutController::class, 'logout'])
+                ->setName('auth.logout');
         })
         ->add(\App\Http\Middleware\ScopeGuardMiddleware::class)
         ->add(\App\Http\Middleware\SessionStateGuardMiddleware::class)
@@ -76,87 +70,73 @@ return function (App $app) {
 
     })->add(\App\Http\Middleware\UiRedirectNormalizationMiddleware::class);
 
-    // Protected Routes
-    $app->group('', function (RouteCollectorProxy $group) {
-        $group->get('/dashboard', [\App\Http\Controllers\Web\DashboardController::class, 'index']);
+    // API Routes (JSON only)
+    $app->group('/api', function (RouteCollectorProxy $api) use ($apiGuestGuard) {
+        // Public API
+        $api->post('/auth/login', [AuthController::class, 'login'])
+            ->add($apiGuestGuard);
 
-        // Phase 13.1
-        $group->get('/2fa/setup', [\App\Http\Controllers\Web\TwoFactorController::class, 'setup'])
-            ->setName('2fa.setup');
-        $group->post('/2fa/setup', [\App\Http\Controllers\Web\TwoFactorController::class, 'doSetup']);
-
-        $group->get('/2fa/verify', [\App\Http\Controllers\Web\TwoFactorController::class, 'verify'])
-            ->setName('2fa.verify');
-        $group->post('/2fa/verify', [\App\Http\Controllers\Web\TwoFactorController::class, 'doVerify']);
-
-        // Phase 13.3
-        $group->get('/notifications/telegram/connect', [\App\Http\Controllers\Web\TelegramConnectController::class, 'index']);
-
-        $group->post('/admins', [AdminController::class, 'create'])
-            ->setName('admin.create')
-            ->add(AuthorizationGuardMiddleware::class);
-
-        $group->post('/admins/{id}/emails', [AdminController::class, 'addEmail'])
-            ->setName('email.add')
-            ->add(AuthorizationGuardMiddleware::class);
-
-        $group->post('/admin-identifiers/email/lookup', [AdminController::class, 'lookupEmail'])
-            ->setName('email.lookup')
-            ->add(AuthorizationGuardMiddleware::class);
-
-        $group->get('/admins/{id}/emails', [AdminController::class, 'getEmail'])
-            ->setName('email.read')
-            ->add(AuthorizationGuardMiddleware::class);
-
-        // Phase 3.4
-        $group->post('/admins/{id}/emails/verify', [AdminEmailVerificationController::class, 'verify'])
-            ->setName('email.verify')
-            ->add(AuthorizationGuardMiddleware::class);
-
-        // Phase 8.4
-        $group->get('/notifications', [NotificationQueryController::class, 'index'])
-            ->setName('notifications.list')
-            ->add(AuthorizationGuardMiddleware::class);
-
-        // Phase 11.1
-        $group->get('/admins/{admin_id}/preferences', [AdminNotificationPreferenceController::class, 'getPreferences'])
-            ->setName('admin.preferences.read')
-            ->add(AuthorizationGuardMiddleware::class);
-
-        $group->put('/admins/{admin_id}/preferences', [AdminNotificationPreferenceController::class, 'upsertPreference'])
-            ->setName('admin.preferences.write')
-            ->add(AuthorizationGuardMiddleware::class);
-
-        // Phase 11.2
-        $group->get('/admins/{admin_id}/notifications', [\App\Http\Controllers\AdminNotificationHistoryController::class, 'index'])
-            ->setName('admin.notifications.history')
-            ->add(AuthorizationGuardMiddleware::class);
-
-        $group->post('/admin/notifications/{id}/read', [\App\Http\Controllers\AdminNotificationReadController::class, 'markAsRead'])
-            ->setName('admin.notifications.read')
-            ->add(AuthorizationGuardMiddleware::class);
-
-        // Phase 13.4
-        $group->post('/logout', [\App\Http\Controllers\Web\LogoutController::class, 'logout'])
-            ->setName('auth.logout');
-    })
-    ->add(\App\Http\Middleware\ScopeGuardMiddleware::class)
-    ->add(\App\Http\Middleware\SessionStateGuardMiddleware::class) // Phase 12 Session State Guard
-    ->add(SessionGuardMiddleware::class)
-    ->add(\App\Http\Middleware\RememberMeMiddleware::class); // Phase 13.5 Remember Me
-
-    // Phase 4
-    $app->post('/auth/login', [AuthController::class, 'login'])
-        ->add($apiGuestGuard);
-
-    // Phase 13.3 (Fix)
-    $app->post('/webhooks/telegram', [\App\Http\Controllers\TelegramWebhookController::class, 'handle']);
-
-    // Phase 12
-    $app->group('/auth', function (RouteCollectorProxy $group) {
-        $group->post('/step-up', [\App\Http\Controllers\StepUpController::class, 'verify'])
+        // Step-Up API
+        $api->post('/auth/step-up', [\App\Http\Controllers\StepUpController::class, 'verify'])
+            ->add(SessionGuardMiddleware::class)
             ->setName('auth.stepup.verify');
-    })->add(SessionGuardMiddleware::class);
+
+        // Protected API
+        $api->group('', function (RouteCollectorProxy $group) {
+            // Notifications / Admins / Etc.
+            $group->post('/admins', [AdminController::class, 'create'])
+                ->setName('admin.create')
+                ->add(AuthorizationGuardMiddleware::class);
+
+            $group->post('/admins/{id}/emails', [AdminController::class, 'addEmail'])
+                ->setName('email.add')
+                ->add(AuthorizationGuardMiddleware::class);
+
+            $group->post('/admin-identifiers/email/lookup', [AdminController::class, 'lookupEmail'])
+                ->setName('email.lookup')
+                ->add(AuthorizationGuardMiddleware::class);
+
+            $group->get('/admins/{id}/emails', [AdminController::class, 'getEmail'])
+                ->setName('email.read')
+                ->add(AuthorizationGuardMiddleware::class);
+
+            $group->post('/admins/{id}/emails/verify', [AdminEmailVerificationController::class, 'verify'])
+                ->setName('email.verify')
+                ->add(AuthorizationGuardMiddleware::class);
+
+            $group->get('/notifications', [NotificationQueryController::class, 'index'])
+                ->setName('notifications.list')
+                ->add(AuthorizationGuardMiddleware::class);
+
+            $group->get('/admins/{admin_id}/preferences', [AdminNotificationPreferenceController::class, 'getPreferences'])
+                ->setName('admin.preferences.read')
+                ->add(AuthorizationGuardMiddleware::class);
+
+            $group->put('/admins/{admin_id}/preferences', [AdminNotificationPreferenceController::class, 'upsertPreference'])
+                ->setName('admin.preferences.write')
+                ->add(AuthorizationGuardMiddleware::class);
+
+            $group->get('/admins/{admin_id}/notifications', [\App\Http\Controllers\AdminNotificationHistoryController::class, 'index'])
+                ->setName('admin.notifications.history')
+                ->add(AuthorizationGuardMiddleware::class);
+
+            $group->post('/admin/notifications/{id}/read', [\App\Http\Controllers\AdminNotificationReadController::class, 'markAsRead'])
+                ->setName('admin.notifications.read')
+                ->add(AuthorizationGuardMiddleware::class);
+
+            // Note: 2FA Setup/Verify API endpoints could be added here if needed, but currently Web 2FA controller handles UI logic.
+            // Keeping them exposed as API requires separate controllers or careful handling.
+            // For now, moving existing Web controllers to API path if they were intended for API, but mostly they were mixed.
+            // The prompt says "GET /api/admins".
+            // I've moved the admin routes here.
+        })
+        ->add(\App\Http\Middleware\ScopeGuardMiddleware::class)
+        ->add(\App\Http\Middleware\SessionStateGuardMiddleware::class)
+        ->add(SessionGuardMiddleware::class);
+    });
+
+    // Webhooks
+    $app->post('/webhooks/telegram', [\App\Http\Controllers\TelegramWebhookController::class, 'handle']);
 
     $app->add(\App\Http\Middleware\RecoveryStateMiddleware::class);
 };
