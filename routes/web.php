@@ -57,6 +57,7 @@ return function (App $app) {
 
         // Protected UI Routes (Dashboard)
         $group->group('', function (RouteCollectorProxy $protectedGroup) {
+            $protectedGroup->get('/', [\App\Http\Controllers\Ui\UiDashboardController::class, 'index']);
             $protectedGroup->get('/dashboard', [\App\Http\Controllers\Ui\UiDashboardController::class, 'index']);
             $protectedGroup->get('/admins', [\App\Http\Controllers\Ui\UiAdminsController::class, 'index']);
             $protectedGroup->get('/roles', [\App\Http\Controllers\Ui\UiRolesController::class, 'index']);
