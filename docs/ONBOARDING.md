@@ -1,4 +1,4 @@
-# Onboarding Guide
+# Onboarding Guide — Reality Aligned
 
 **Project:** Admin Control Panel
 **Status:** Current State — Infrastructure-First
@@ -74,11 +74,13 @@ git pull origin main --rebase
 
 * PHP 8.2+
 * Extensions:
-
     * pdo
     * openssl
     * redis
     * mbstring
+    * readline
+    * json
+    * intl
 * Composer
 
 ---
@@ -98,15 +100,12 @@ composer install
   ```
   .env.example → .env
   ```
-* Configure database connection values.
-
-### 🔐 Security Note About Keys
-
-```
-All cryptographic keys must be generated using a secure random source (CSPRNG).
-❌ Do NOT use passwords or manual strings.
-If unsure, ask the core team.
-```
+* Configure database connection values (`DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`).
+* **Critical Security Keys:**
+  You must set the following keys in `.env` for the system to function. Use a secure random generator (e.g., `openssl rand -hex 32`).
+  * `ENCRYPTION_KEY`
+  * `EMAIL_BLIND_INDEX_KEY`
+  * `PASSWORD_PEPPER`
 
 ---
 
@@ -116,170 +115,111 @@ Before running the system, the database **must be created and initialized**.
 
 ### SQL Schema File
 
-* The project includes an official SQL schema file
+* Location: `database/schema.sql`
 * It contains:
-
     * Tables
     * Constraints
     * Indexes
 * It does NOT contain:
-
     * Default admins
     * Seed data
     * Demo accounts
 
 ---
 
-### Import Methods
-
-#### Using phpMyAdmin
-
-1. Create an empty database (e.g. `admin_control_panel`)
-2. Open phpMyAdmin
-3. Select the database
-4. Click **Import**
-5. Choose the `.sql` file
-6. Execute
-
-#### Using CLI (optional)
+### Import Command
 
 ```bash
-mysql -u USER -p DB_NAME < schema.sql
+mysql -u USER -p DB_NAME < database/schema.sql
 ```
 
 ### 📌 Important
 
 After import:
-
 * The database will contain **no admin users**
-* The system will remain **LOCKED**
-* This behavior is **expected and correct**
+* An empty database is expected
 
 ---
 
 ## 5️⃣ First Admin Creation (Bootstrap) — **CRITICAL**
 
-> ⚠️ This is the most important step in the entire system.
+> ⚠️ This is the most important step for setting up a new environment.
 
-The system always starts in:
-
-```
-BOOTSTRAP_REQUIRED
-```
-
-* ❌ No default admin exists
-* ❌ No registration endpoint exists
-* ❌ Admins must NOT be created via SQL
-
----
+The system does **not** have a web-based registration or bootstrap UI.
 
 ### The Only Correct Method
 
-#### 1️⃣ Generate Bootstrap Token (CLI)
+#### 1️⃣ Run the Bootstrap Script (CLI)
 
-* A **dedicated CLI command** exists in the project
-* The command:
+```bash
+php scripts/bootstrap_admin.php
+```
 
-    * Generates a one-time token
-    * Applies a TTL
-    * Stores only a hashed version in the database
+#### 2️⃣ Follow the Prompts
 
-> Do not guess or repeat this command without consulting the core team.
+1. The script will verify that no admins currently exist.
+2. Enter the **Email** and **Password** for the first admin.
+3. The script will generate a **TOTP Secret** and display it.
+4. **Configure your Authenticator App** (Google Authenticator, Authy, etc.) with the displayed secret.
+5. Enter the **OTP Code** from your app to verify.
+6. Upon success, the admin is created, and the email is marked as verified.
 
-**Frontend developers:**
-You are NOT required to execute this step.
-You only need to understand that it happens once.
+### ⚠️ Security Warning
+
+> Running this script more than once is considered a security violation.
+> The script will automatically exit if any admin already exists in the database.
+> Do NOT attempt to bypass this check.
 
 ---
 
-#### 2️⃣ Use the Token in the Browser
+## 6️⃣ Local Server Startup
 
-1. Open:
+To start the local development server:
 
-   ```
-   http://localhost:8080
-   ```
-2. A page requesting a **Bootstrap Token** will appear
-3. Enter the token generated via CLI
+```bash
+php -S 0.0.0.0:8080 -t public
+```
+
+*   Access the application at: `http://localhost:8080`
+*   This command is for **local development only**.
+*   It assumes PHP 8.2+ is available in your shell.
 
 ---
 
-#### 3️⃣ Create the First Admin
+## 7️⃣ Currently Exposed Routes (Subject to Change)
 
-After token validation:
+The following routes are currently exposed in `routes/web.php`.
 
-* Enter email and password
-* A fixed role is assigned (`system.owner`)
-* TOTP (2FA) setup is **mandatory**
+### Public / Guest
+*   `GET  /health`
+*   `GET  /login`
+*   `POST /login`
+*   `GET  /verify-email`
+*   `POST /verify-email`
+*   `POST /verify-email/resend`
+*   `POST /auth/login` (API)
 
-After completion:
+### Protected (Web & API)
+*   `GET  /dashboard`
+*   `GET  /2fa/setup`
+*   `POST /2fa/setup`
+*   `GET  /2fa/verify`
+*   `POST /2fa/verify`
+*   `GET  /notifications/telegram/connect`
+*   `POST /logout`
+*   `POST /admins`
+*   `POST /admins/{id}/emails`
+*   `GET  /admins/{id}/emails`
+*   `POST /admins/{id}/emails/verify`
+*   `POST /admin-identifiers/email/lookup`
+*   `GET  /notifications`
+*   `GET  /admins/{admin_id}/preferences`
+*   `PUT  /admins/{admin_id}/preferences`
+*   `GET  /admins/{admin_id}/notifications`
+*   `POST /admin/notifications/{id}/read`
+*   `POST /auth/step-up`
 
-* The token is invalidated permanently
-* The system transitions:
-
-```
-LOCKED → ACTIVE
-```
-
-### ❌ Warning
-
-```
-Creating admins directly in the database is considered a backdoor
-and will be detected by audit and security guards.
-```
-
----
-
-## 6️⃣ Database Access (phpMyAdmin)
-
-### Important Tables
-
-* `admins`
-* `identifiers`
-* `sessions`
-* `audit_outbox`
-
-### ❌ Golden Rule
-
-```
-Manual modification of security tables is considered tampering.
-The system may:
-- Invalidate sessions
-- Block access
-- Record a critical security audit event
-```
-
----
-
-## 7️⃣ Current API Endpoints (ONLY THESE)
-
-### Authentication
-
-```
-POST /auth/login
-POST /auth/logout
-POST /auth/totp/verify
-```
-
-### Admins
-
-```
-GET  /admins
-POST /admins
-PUT  /admins/{id}
-```
-
-### Sessions
-
-```
-GET  /sessions
-POST /sessions/{id}/revoke
-```
-
-📌 Notes:
-
-* Any endpoint not listed here is unavailable
-* This is NOT a final UI contract
+📌 **Note:** Any endpoint not listed here is unavailable.
 
 ---
 
@@ -303,6 +243,10 @@ templates/
 4. Use translation keys only
 5. Do not assume DTO field order or presence
 
+### Frontend Notes
+*   **No First-Run UI:** The frontend assumes the bootstrap process (CLI) has already been completed. There is no UI for creating the first admin.
+*   **State:** Do not assume any specific system state. Handle 401/403 errors gracefully.
+
 ---
 
 ## 9️⃣ Golden Rules for All Developers
@@ -325,25 +269,12 @@ templates/
 * Sessions
 * TOTP / Step-Up Authentication
 * Transactional Audit Outbox
+* Notification Infrastructure
 
 **Not Allowed Yet**
 
-* Business logic
+* Business logic (beyond admin management)
 * Product-specific features
-
----
-
-## ⚠️ Important Note for Frontend Developers (.env)
-
-The `.env` file contains sensitive settings.
-
-Frontend developers must:
-
-* Change database connection values only
-* NOT modify encryption keys
-* NOT enable recovery or security flags
-
-If something breaks — contact the core team.
 
 ---
 
@@ -355,5 +286,3 @@ This document is the **single source of truth** for running the project.
 * Any feature request → outside this guide
 
 **Work carefully — the system will work with you 🔒**
-
----
