@@ -67,6 +67,11 @@ use App\Http\Controllers\Web\LoginController;
 use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Controllers\Web\TelegramConnectController;
 use App\Http\Controllers\Web\TwoFactorController;
+use App\Http\Controllers\Ui\UiAdminsController;
+use App\Http\Controllers\Ui\UiDashboardController;
+use App\Http\Controllers\Ui\UiPermissionsController;
+use App\Http\Controllers\Ui\UiRolesController;
+use App\Http\Controllers\Ui\UiSettingsController;
 use App\Http\Middleware\RememberMeMiddleware;
 use App\Http\Middleware\ScopeGuardMiddleware;
 use App\Http\Middleware\SessionStateGuardMiddleware;
@@ -542,6 +547,31 @@ class Container
                 assert($handler instanceof TelegramHandler);
                 assert($logger instanceof LoggerInterface);
                 return new TelegramWebhookController($handler, $logger);
+            },
+            UiAdminsController::class => function (ContainerInterface $c) {
+                $view = $c->get(Twig::class);
+                assert($view instanceof Twig);
+                return new UiAdminsController($view);
+            },
+            UiDashboardController::class => function (ContainerInterface $c) {
+                $webDashboard = $c->get(DashboardController::class);
+                assert($webDashboard instanceof DashboardController);
+                return new UiDashboardController($webDashboard);
+            },
+            UiPermissionsController::class => function (ContainerInterface $c) {
+                $view = $c->get(Twig::class);
+                assert($view instanceof Twig);
+                return new UiPermissionsController($view);
+            },
+            UiRolesController::class => function (ContainerInterface $c) {
+                $view = $c->get(Twig::class);
+                assert($view instanceof Twig);
+                return new UiRolesController($view);
+            },
+            UiSettingsController::class => function (ContainerInterface $c) {
+                $view = $c->get(Twig::class);
+                assert($view instanceof Twig);
+                return new UiSettingsController($view);
             },
             TelegramHandler::class => function (ContainerInterface $c) {
                 $validator = $c->get(VerificationCodeValidatorInterface::class);

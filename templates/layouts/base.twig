@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Panel{% endblock %}</title>
+    <style>
+        /* Minimal CSS for layout structure */
+        body { font-family: system-ui, -apple-system, sans-serif; margin: 0; display: flex; min-height: 100vh; flex-direction: column; }
+        header { background: #1a202c; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        header .logo { font-weight: bold; font-size: 1.2rem; }
+        .main-container { display: flex; flex: 1; }
+        nav { width: 250px; background: #f7fafc; padding: 1rem; border-right: 1px solid #e2e8f0; }
+        nav ul { list-style: none; padding: 0; margin: 0; }
+        nav li { margin-bottom: 0.25rem; }
+        nav a { text-decoration: none; color: #4a5568; display: block; padding: 0.75rem 1rem; border-radius: 0.375rem; transition: background 0.2s; }
+        nav a:hover { background: #edf2f7; color: #2d3748; }
+        main { flex: 1; padding: 2rem; background: #fff; }
+        footer { background: #f7fafc; text-align: center; padding: 1rem; font-size: 0.875rem; color: #718096; border-top: 1px solid #e2e8f0; }
+        .logout-btn { background: #e53e3e; border: none; color: white; padding: 0.5rem 1rem; cursor: pointer; border-radius: 0.375rem; font-size: 0.875rem; transition: background 0.2s; }
+        .logout-btn:hover { background: #c53030; }
+        h1 { margin-top: 0; color: #2d3748; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">Admin Control Panel</div>
+        <div class="user-menu">
+            <form method="post" action="/logout" style="margin: 0;">
+                <button type="submit" class="logout-btn">Logout</button>
+            </form>
+        </div>
+    </header>
+    <div class="main-container">
+        <nav>
+            <ul>
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/admins">Admins</a></li>
+                <li><a href="/roles">Roles</a></li>
+                <li><a href="/permissions">Permissions</a></li>
+                <li><a href="/settings">Settings</a></li>
+            </ul>
+        </nav>
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    <footer>
+        &copy; {{ "now"|date("Y") }} Admin Control Panel
+    </footer>
+</body>
+</html>
