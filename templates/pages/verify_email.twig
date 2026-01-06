@@ -8,12 +8,12 @@
 {% if message %}
     <div style="color: green;">{{ message }}</div>
 {% endif %}
-<form method="post" action="/ui/verify-email">
+<form method="post" action="/verify-email">
     <input type="hidden" name="email" value="{{ email }}">
     <label>Code: <input type="text" name="otp" required></label><br>
     <button type="submit">Verify</button>
 </form>
-<form method="post" action="/ui/verify-email/resend">
+<form method="post" action="/verify-email/resend">
     <input type="hidden" name="email" value="{{ email }}">
     <button type="submit">Resend Code</button>
 </form>
