@@ -10,11 +10,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const paginationControls = document.getElementById('pagination-controls');
     const searchForm = document.getElementById('sessions-search-form');
     const resetButton = document.getElementById('btn-reset');
+    const perPageSelect = document.getElementById('per-page-select');
 
     // Init
     loadSessions();
 
     // Event Listeners
+    perPageSelect.addEventListener('change', function() {
+        perPage = parseInt(this.value, 10);
+        currentPage = 1; // Reset to first page
+        loadSessions();
+    });
+
     searchForm.addEventListener('submit', function(e) {
         e.preventDefault();
         filters = {

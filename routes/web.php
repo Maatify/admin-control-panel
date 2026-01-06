@@ -65,7 +65,9 @@ return function (App $app) {
             $protectedGroup->get('/settings', [\App\Http\Controllers\Ui\UiSettingsController::class, 'index']);
 
             // Phase 14.3: Sessions LIST
-            $protectedGroup->get('/sessions', [\App\Http\Controllers\Ui\SessionListController::class, '__invoke']);
+            $protectedGroup->get('/sessions', [\App\Http\Controllers\Ui\SessionListController::class, '__invoke'])
+                ->setName('sessions.list')
+                ->add(AuthorizationGuardMiddleware::class);
 
             // Allow logout from UI
             $protectedGroup->post('/logout', [\App\Http\Controllers\Web\LogoutController::class, 'logout'])
