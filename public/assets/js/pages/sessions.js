@@ -173,7 +173,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     ${getActionButtons(item)}
                 </td>
             </tr>
-        `).join('');
+        `;
+        }).join('');
 
         // Update select all checkbox state if all selectable items are selected
         updateSelectAllState();
