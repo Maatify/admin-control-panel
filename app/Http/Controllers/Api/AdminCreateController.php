@@ -32,6 +32,10 @@ class AdminCreateController
         $dto = AdminCreateRequestDTO::fromArray($body);
 
         $token = $request->getCookieParams()['auth_token'] ?? '';
+        if (!is_string($token)) {
+             $token = '';
+        }
+
         if ($token === '') {
              // Should not happen due to Middleware
              throw new \RuntimeException("Missing auth token");

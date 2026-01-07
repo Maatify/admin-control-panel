@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Domain\Contracts\AdminManagementInterface;
-use App\Domain\DTO\Admin\AdminUpdateRequestDTO;
 use App\Domain\Service\AuthorizationService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-class AdminUpdateController
+class AdminDisableController
 {
     public function __construct(
         private AdminManagementInterface $adminManagement,
@@ -27,22 +26,15 @@ class AdminUpdateController
 
         $targetAdminId = (int)($args['id'] ?? 0);
 
-        $this->authorizationService->checkPermission($actorId, 'admins.edit');
+        $this->authorizationService->checkPermission($actorId, 'admins.disable');
 
-        $body = $request->getParsedBody();
-        if (!is_array($body)) {
-            $body = [];
+        // Self-disable check
+        if ($actorId === $targetAdminId) {
+            $response->getBody()->write(json_encode(['error' => 'Cannot disable yourself.'], JSON_THROW_ON_ERROR));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
-        $dto = AdminUpdateRequestDTO::fromArray($body);
-
-        $token = $request->getCookieParams()['auth_token'] ?? '';
-        if (!is_string($token)) {
-             $token = '';
-        }
-        $sessionId = hash('sha256', $token);
-
-        $this->adminManagement->updateAdmin($targetAdminId, $dto, $actorId, $sessionId);
+        $this->adminManagement->disableAdmin($targetAdminId, $actorId);
 
         return $response->withStatus(204);
     }

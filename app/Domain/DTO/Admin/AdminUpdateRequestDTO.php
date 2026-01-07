@@ -20,7 +20,12 @@ class AdminUpdateRequestDTO
     {
         $roleIds = null;
         if (array_key_exists('role_ids', $data) && is_array($data['role_ids'])) {
-            $roleIds = array_map('intval', $data['role_ids']);
+            $roleIds = [];
+            foreach ($data['role_ids'] as $id) {
+                if (is_int($id) || is_numeric($id)) {
+                    $roleIds[] = (int)$id;
+                }
+            }
         }
 
         return new self($roleIds);

@@ -20,10 +20,10 @@ class AdminListQueryDTO
      */
     public static function fromArray(array $data): self
     {
-        return new self(
-            (int)($data['page'] ?? 1),
-            (int)($data['per_page'] ?? 20),
-            isset($data['filters']) && is_array($data['filters']) ? $data['filters'] : []
-        );
+        $page = isset($data['page']) && is_numeric($data['page']) ? (int)$data['page'] : 1;
+        $perPage = isset($data['per_page']) && is_numeric($data['per_page']) ? (int)$data['per_page'] : 20;
+        $filters = isset($data['filters']) && is_array($data['filters']) ? $data['filters'] : [];
+
+        return new self($page, $perPage, $filters);
     }
 }
