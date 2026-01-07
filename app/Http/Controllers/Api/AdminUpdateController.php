@@ -22,28 +22,33 @@ class AdminUpdateController
      */
     public function __invoke(Request $request, Response $response, array $args): Response
     {
-        $actorId = $request->getAttribute('admin_id');
-        assert(is_int($actorId));
+        try {
+            $actorId = $request->getAttribute('admin_id');
+            assert(is_int($actorId));
 
-        $targetAdminId = (int)($args['id'] ?? 0);
+            $targetAdminId = (int)($args['id'] ?? 0);
 
-        $this->authorizationService->checkPermission($actorId, 'admins.edit');
+            $this->authorizationService->checkPermission($actorId, 'admins.edit');
 
-        $body = $request->getParsedBody();
-        if (!is_array($body)) {
-            $body = [];
+            $body = $request->getParsedBody();
+            if (!is_array($body)) {
+                $body = [];
+            }
+
+            $dto = AdminUpdateRequestDTO::fromArray($body);
+
+            $token = $request->getCookieParams()['auth_token'] ?? '';
+            if (!is_string($token)) {
+                 $token = '';
+            }
+            // Pass RAW token to Service
+            $this->adminManagement->updateAdmin($targetAdminId, $dto, $actorId, $token);
+
+            return $response->withStatus(204);
+        } catch (\Throwable $e) {
+            $status = $e instanceof \App\Domain\Exception\PermissionDeniedException ? 403 : 500;
+            $response->getBody()->write(json_encode(['error' => $e->getMessage()], JSON_THROW_ON_ERROR));
+            return $response->withStatus($status)->withHeader('Content-Type', 'application/json');
         }
-
-        $dto = AdminUpdateRequestDTO::fromArray($body);
-
-        $token = $request->getCookieParams()['auth_token'] ?? '';
-        if (!is_string($token)) {
-             $token = '';
-        }
-        $sessionId = hash('sha256', $token);
-
-        $this->adminManagement->updateAdmin($targetAdminId, $dto, $actorId, $sessionId);
-
-        return $response->withStatus(204);
     }
 }

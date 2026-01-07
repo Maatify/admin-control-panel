@@ -19,20 +19,26 @@ class AdminsQueryController
 
     public function __invoke(Request $request, Response $response): Response
     {
-        $adminId = $request->getAttribute('admin_id');
-        assert(is_int($adminId));
+        try {
+            $adminId = $request->getAttribute('admin_id');
+            assert(is_int($adminId));
 
-        $this->authorizationService->checkPermission($adminId, 'admins.list');
+            $this->authorizationService->checkPermission($adminId, 'admins.list');
 
-        $body = $request->getParsedBody();
-        if (!is_array($body)) {
-            $body = [];
+            $body = $request->getParsedBody();
+            if (!is_array($body)) {
+                $body = [];
+            }
+
+            $query = AdminListQueryDTO::fromArray($body);
+            $result = $this->reader->getAdmins($query);
+
+            $response->getBody()->write(json_encode($result, JSON_THROW_ON_ERROR));
+            return $response->withHeader('Content-Type', 'application/json');
+        } catch (\Throwable $e) {
+            $status = $e instanceof \App\Domain\Exception\PermissionDeniedException ? 403 : 500;
+            $response->getBody()->write(json_encode(['error' => $e->getMessage()], JSON_THROW_ON_ERROR));
+            return $response->withStatus($status)->withHeader('Content-Type', 'application/json');
         }
-
-        $query = AdminListQueryDTO::fromArray($body);
-        $result = $this->reader->getAdmins($query);
-
-        $response->getBody()->write(json_encode($result, JSON_THROW_ON_ERROR));
-        return $response->withHeader('Content-Type', 'application/json');
     }
 }

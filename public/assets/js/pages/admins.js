@@ -18,6 +18,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Init List
     if (tableBody) {
+        // Check for actions in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('action') === 'created') {
+            showAlert('Admin created successfully.', 'success');
+            // Clean URL
+            window.history.replaceState({}, document.title, '/admins');
+        } else if (urlParams.get('action') === 'updated') {
+            showAlert('Admin updated successfully.', 'success');
+            window.history.replaceState({}, document.title, '/admins');
+        }
+
         loadAdmins();
 
         // Event Listeners for List
@@ -210,7 +221,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             if (response.ok) {
-                window.location.href = '/admins';
+                window.location.href = '/admins?action=created';
             } else {
                 const json = await response.json();
                 showAlert(json.error || 'Failed to create admin', 'danger');
@@ -236,7 +247,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             if (response.ok) {
-                window.location.href = '/admins';
+                window.location.href = '/admins?action=updated';
             } else {
                 const json = await response.json();
                 showAlert(json.error || 'Failed to update admin', 'danger');
