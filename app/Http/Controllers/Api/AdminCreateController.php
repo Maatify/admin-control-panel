@@ -40,9 +40,8 @@ class AdminCreateController
              // Should not happen due to Middleware
              throw new \RuntimeException("Missing auth token");
         }
-        $sessionId = hash('sha256', $token);
-
-        $newAdminId = $this->adminManagement->createAdmin($dto, $adminId, $sessionId);
+        // Pass RAW token to Service, which handles hashing for Audit/Repo
+        $newAdminId = $this->adminManagement->createAdmin($dto, $adminId, $token);
 
         $response->getBody()->write(json_encode(['id' => $newAdminId], JSON_THROW_ON_ERROR));
         return $response->withStatus(201)->withHeader('Content-Type', 'application/json');

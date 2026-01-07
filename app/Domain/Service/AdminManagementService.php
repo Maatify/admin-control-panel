@@ -9,14 +9,19 @@ use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
 use App\Domain\Contracts\AdminManagementInterface;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
 use App\Domain\Contracts\AdminRepositoryInterface;
+use App\Domain\Contracts\AdminRoleRepositoryInterface;
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\Contracts\ClientInfoProviderInterface;
+use App\Domain\Contracts\StepUpGrantRepositoryInterface;
 use App\Domain\DTO\Admin\AdminCreateRequestDTO;
 use App\Domain\DTO\Admin\AdminUpdateRequestDTO;
 use App\Domain\DTO\AdminConfigDTO;
 use App\Domain\DTO\AuditEventDTO;
+use App\Domain\Enum\Scope;
+use App\Domain\Exception\PermissionDeniedException;
 use DateTimeImmutable;
+use LogicException;
 use PDO;
 use RuntimeException;
 
@@ -28,7 +33,11 @@ class AdminManagementService implements AdminManagementInterface
         private AdminEmailVerificationRepositoryInterface $emailVerification,
         private AdminPasswordRepositoryInterface $passwordRepository,
         private AdminSessionValidationRepositoryInterface $sessionRepository,
-        private RoleAssignmentService $roleAssignmentService,
+        private AdminRoleRepositoryInterface $roleRepository,
+        private StepUpService $stepUpService,
+        private StepUpGrantRepositoryInterface $grantRepository,
+        private RoleHierarchyComparator $hierarchyComparator,
+        private RecoveryStateService $recoveryState,
         private AuthoritativeSecurityAuditWriterInterface $auditWriter,
         private PasswordService $passwordService,
         private AdminConfigDTO $config,
@@ -36,7 +45,7 @@ class AdminManagementService implements AdminManagementInterface
         private PDO $pdo
     ) {}
 
-    public function createAdmin(AdminCreateRequestDTO $dto, int $actorId, string $actorSessionId): int
+    public function createAdmin(AdminCreateRequestDTO $dto, int $actorId, string $actorToken): int
     {
         $this->pdo->beginTransaction();
         try {
@@ -54,13 +63,7 @@ class AdminManagementService implements AdminManagementInterface
 
             $this->emailPersistence->addEmail($adminId, $blindIndex, $encryptedEmail);
 
-            // Auto-verify created admin? Or force pending?
-            // Usually manually created admins are trusted or need verification.
-            // If we have a password, we likely auto-verify OR send verification email.
-            // Prompt doesn't specify. Standard practice: Admin creates Admin -> Verified.
-            // Or Admin creates Invite -> Pending.
-            // Given "password" is in DTO, we are setting credentials directly.
-            // So we mark as VERIFIED to allow login.
+            // Auto-verify created admin
             $this->emailVerification->markVerified($adminId, (new DateTimeImmutable())->format('Y-m-d H:i:s'));
 
             // 3. Password
@@ -88,37 +91,183 @@ class AdminManagementService implements AdminManagementInterface
             throw $e;
         }
 
-        // 5. Assign Roles (Separate Transactions via Service)
+        // 5. Assign Roles (Separate Transactions via internal logic)
         foreach ($dto->roleIds as $roleId) {
-            // We let RoleAssignmentService handle audit and checks.
-            // If this fails, the admin exists but lacks roles.
-            $this->roleAssignmentService->assignRole($actorId, $adminId, (int)$roleId, $actorSessionId);
+            $this->assignRoleInternal($actorId, $adminId, (int)$roleId, $actorToken);
         }
 
         return $adminId;
     }
 
-    public function updateAdmin(int $adminId, AdminUpdateRequestDTO $dto, int $actorId, string $actorSessionId): void
+    public function updateAdmin(int $adminId, AdminUpdateRequestDTO $dto, int $actorId, string $actorToken): void
     {
-        // Currently only roles are updatable via DTO
         if ($dto->roleIds !== null) {
-            // We need to diff? RoleAssignmentService only has "assign".
-            // Does it have "revoke"?
-            // I need to check RoleAssignmentService.
-            // If not, I can't easily sync roles using just RoleAssignmentService.
-            // I'd need to manually revoke and assign.
-            // But RoleAssignmentService is the Authority.
-            // If it lacks revoke, I can't fully implement update roles.
-            // Let's assume for now we only ADD roles or I need to check RoleAssignmentService again.
+            $currentRoles = $this->roleRepository->getRoleIds($adminId);
+            $newRoles = $dto->roleIds;
 
-            // Checked RoleAssignmentService: Only assignRole().
-            // I need to read `App\Domain\Service\RoleRevocationService.php` if it exists.
-            // Or `RoleAssignmentService` handles revocation? No.
-            // Canonical Template implies "Edit" allows changing roles.
+            $toAdd = array_diff($newRoles, $currentRoles);
+            $toRemove = array_diff($currentRoles, $newRoles);
 
-            // If I cannot revoke roles via Domain Service, I cannot implement full sync.
-            // I will skip Role Update implementation in this step and mark as TODO/Limitations
-            // OR I check for `RoleRevocationService`.
+            foreach ($toAdd as $roleId) {
+                $this->assignRoleInternal($actorId, $adminId, (int)$roleId, $actorToken);
+            }
+
+            foreach ($toRemove as $roleId) {
+                $this->revokeRoleInternal($actorId, $adminId, (int)$roleId, $actorToken);
+            }
+        }
+    }
+
+    private function assignRoleInternal(int $actorId, int $targetAdminId, int $roleId, string $actorToken): void
+    {
+        // 1. Recovery State Check
+        $sessionId = hash('sha256', $actorToken);
+        try {
+            $this->recoveryState->enforce(RecoveryStateService::ACTION_ROLE_ASSIGNMENT, $actorId);
+        } catch (\Exception $e) {
+             $hasScope = $this->stepUpService->hasGrant($actorId, $actorToken, Scope::SECURITY);
+             $this->logDenial($actorId, $targetAdminId, $roleId, $actorToken, 'recovery_locked', $hasScope, 'unknown');
+             throw $e;
+        }
+
+        // 2. Verify Actor != Target (No Self-Assignment)
+        if ($actorId === $targetAdminId) {
+            $hasScope = $this->stepUpService->hasGrant($actorId, $actorToken, Scope::SECURITY);
+            $this->logDenial($actorId, $targetAdminId, $roleId, $actorToken, 'self_assignment_forbidden', $hasScope, 'equal');
+            throw new PermissionDeniedException("Self-assignment of roles is forbidden.");
+        }
+
+        // 3. Require Step-Up Grant (Scope::SECURITY)
+        // Pass RAW TOKEN to hasGrant
+        if (!$this->stepUpService->hasGrant($actorId, $actorToken, Scope::SECURITY)) {
+            $this->logDenial($actorId, $targetAdminId, $roleId, $actorToken, 'step_up_required', false, 'unknown');
+            throw new PermissionDeniedException("Step-Up authentication required for role assignment.");
+        }
+
+        // 4. Verify Role Hierarchy
+        try {
+            $this->hierarchyComparator->guardInvariants($actorId, $roleId);
+        } catch (LogicException $e) {
+             $this->logDenial($actorId, $targetAdminId, $roleId, $actorToken, 'hierarchy_ambiguous', true, 'ambiguous');
+             throw new PermissionDeniedException("Role hierarchy is ambiguous. Assignment denied.");
+        }
+
+        if (!$this->hierarchyComparator->canAssign($actorId, $roleId)) {
+            $this->logDenial($actorId, $targetAdminId, $roleId, $actorToken, 'hierarchy_violation', true, 'insufficient');
+            throw new PermissionDeniedException("Insufficient privilege to assign this role.");
+        }
+
+        $riskHash = $this->getRiskHash();
+
+        $this->pdo->beginTransaction();
+        try {
+            // 6. Persist Assignment
+            $this->roleRepository->assign($targetAdminId, $roleId);
+
+            // 7. Authoritative Audit (Success)
+            $this->auditWriter->write(new AuditEventDTO(
+                $actorId,
+                'role_assigned',
+                'admin',
+                $targetAdminId,
+                'CRITICAL',
+                [
+                    'role_id' => $roleId,
+                    'session_id' => $sessionId, // HASHED
+                    'risk_context_hash' => $riskHash
+                ],
+                bin2hex(random_bytes(16)),
+                new DateTimeImmutable()
+            ));
+
+            // 9. Invalidate Step-Up Grants
+            $this->grantRepository->revokeAll($targetAdminId);
+            $this->grantRepository->revoke($actorId, $sessionId, Scope::SECURITY);
+
+            $this->pdo->commit();
+        } catch (\Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+
+    private function revokeRoleInternal(int $actorId, int $targetAdminId, int $roleId, string $actorToken): void
+    {
+        // Require Step-Up
+        if (!$this->stepUpService->hasGrant($actorId, $actorToken, Scope::SECURITY)) {
+            throw new PermissionDeniedException("Step-Up authentication required for role revocation.");
+        }
+
+        // Hierarchy check
+        if (!$this->hierarchyComparator->canAssign($actorId, $roleId)) {
+             throw new PermissionDeniedException("Insufficient privilege to revoke this role.");
+        }
+
+        $sessionId = hash('sha256', $actorToken);
+
+        $this->pdo->beginTransaction();
+        try {
+            $this->roleRepository->revoke($targetAdminId, $roleId);
+
+            $this->auditWriter->write(new AuditEventDTO(
+                $actorId,
+                'role_revoked',
+                'admin',
+                $targetAdminId,
+                'CRITICAL',
+                [
+                    'role_id' => $roleId,
+                    'session_id' => $sessionId,
+                    'reason' => 'admin_update'
+                ],
+                bin2hex(random_bytes(16)),
+                new DateTimeImmutable()
+            ));
+
+            $this->grantRepository->revokeAll($targetAdminId);
+            $this->grantRepository->revoke($actorId, $sessionId, Scope::SECURITY);
+
+            $this->pdo->commit();
+        } catch (\Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+
+    private function logDenial(int $actorId, int $targetAdminId, int $roleId, string $actorToken, string $reason, bool $scopeState, string $hierarchyResult): void
+    {
+        $sessionId = hash('sha256', $actorToken);
+        $startedTransaction = false;
+        try {
+            if (!$this->pdo->inTransaction()) {
+                $this->pdo->beginTransaction();
+                $startedTransaction = true;
+            }
+
+            $this->auditWriter->write(new AuditEventDTO(
+                $actorId,
+                'role_assignment_denied',
+                'admin',
+                $targetAdminId,
+                'CRITICAL',
+                [
+                    'role_id' => $roleId,
+                    'session_id' => $sessionId,
+                    'reason' => $reason,
+                    'scope_security' => $scopeState ? 'present' : 'missing',
+                    'hierarchy_result' => $hierarchyResult
+                ],
+                bin2hex(random_bytes(16)),
+                new DateTimeImmutable()
+            ));
+
+            if ($startedTransaction) {
+                $this->pdo->commit();
+            }
+        } catch (\Throwable $e) {
+            if ($startedTransaction) {
+                $this->pdo->rollBack();
+            }
         }
     }
 
@@ -126,13 +275,9 @@ class AdminManagementService implements AdminManagementInterface
     {
         $this->pdo->beginTransaction();
         try {
-            // 1. Mark Email as Failed (effectively disabled)
             $this->emailVerification->markFailed($adminId);
-
-            // 2. Revoke All Sessions
             $this->sessionRepository->revokeAllSessions($adminId);
 
-            // 3. Audit
             $this->auditWriter->write(new AuditEventDTO(
                 $actorId,
                 'admin_disabled',
@@ -165,5 +310,12 @@ class AdminManagementService implements AdminManagementInterface
         // Use OPENSSL_RAW_DATA for compatibility with AdminController
         $encrypted = openssl_encrypt($email, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag);
         return base64_encode($iv . $tag . $encrypted);
+    }
+
+    private function getRiskHash(): string
+    {
+        $ip = $this->clientInfoProvider->getIpAddress();
+        $ua = $this->clientInfoProvider->getUserAgent();
+        return hash('sha256', $ip . '|' . $ua);
     }
 }

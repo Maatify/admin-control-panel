@@ -9,7 +9,7 @@ use App\Domain\DTO\Admin\AdminUpdateRequestDTO;
 
 interface AdminManagementInterface
 {
-    public function createAdmin(AdminCreateRequestDTO $dto, int $actorId, string $actorSessionId): int;
-    public function updateAdmin(int $adminId, AdminUpdateRequestDTO $dto, int $actorId, string $actorSessionId): void;
+    public function createAdmin(AdminCreateRequestDTO $dto, int $actorId, string $actorToken): int;
+    public function updateAdmin(int $adminId, AdminUpdateRequestDTO $dto, int $actorId, string $actorToken): void;
     public function disableAdmin(int $adminId, int $actorId): void;
 }
