@@ -102,6 +102,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(sessions): complete global sessions management with admin filtering, safe revoke, and auditing
 - docs(phase): close sessions management phase with full audit verification
 - docs(project): add canonical project context and execution task checklist
+- docs(audit): add Phase 14 readiness optimization & refactor audit
 
 ---
 
