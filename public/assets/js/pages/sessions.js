@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentPage = 1;
     let perPage = 20;
     let filters = {};
+    let selectedSessions = new Set(); // Store hashes
 
     // Elements
     const tableBody = document.querySelector('#sessions-table tbody');
@@ -11,8 +12,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchForm = document.getElementById('sessions-search-form');
     const resetButton = document.getElementById('btn-reset');
     const perPageSelect = document.getElementById('per-page-select');
+    const adminSelect = document.getElementById('filter-admin-id');
+    const selectAllCheckbox = document.getElementById('select-all');
+    const bulkRevokeBtn = document.getElementById('btn-bulk-revoke');
+    const selectedCountBadge = document.getElementById('selected-count');
 
     // Init
+    loadAdmins();
     loadSessions();
 
     // Event Listeners
@@ -26,23 +32,81 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         filters = {
             session_id: document.getElementById('filter-session-id').value,
+            admin_id: document.getElementById('filter-admin-id').value,
             status: document.getElementById('filter-status').value
         };
         currentPage = 1; // Reset to first page on search
+        selectedSessions.clear(); // Reset selection on filter change
+        updateBulkUI();
         loadSessions();
     });
 
     resetButton.addEventListener('click', function() {
         document.getElementById('filter-session-id').value = '';
+        document.getElementById('filter-admin-id').value = '';
         document.getElementById('filter-status').value = '';
         filters = {};
         currentPage = 1;
+        selectedSessions.clear();
+        updateBulkUI();
         loadSessions();
     });
+
+    selectAllCheckbox.addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.session-select:not(:disabled)');
+        const isChecked = this.checked;
+
+        checkboxes.forEach(cb => {
+            cb.checked = isChecked;
+            const hash = cb.value;
+            if (isChecked) {
+                selectedSessions.add(hash);
+            } else {
+                selectedSessions.delete(hash);
+            }
+        });
+        updateBulkUI();
+    });
+
+    bulkRevokeBtn.addEventListener('click', async function() {
+        if (selectedSessions.size === 0) return;
+
+        if (confirm('Are you sure you want to revoke ' + selectedSessions.size + ' session(s)?')) {
+            await revokeBulk();
+        }
+    });
+
+    async function loadAdmins() {
+        try {
+            const response = await fetch('/api/admins/list', {
+                headers: { 'Content-Type': 'application/json' }
+            });
+            if (response.ok) {
+                const result = await response.json();
+                const admins = result.data || [];
+
+                // Clear existing options except first
+                while (adminSelect.options.length > 1) {
+                    adminSelect.remove(1);
+                }
+
+                admins.forEach(admin => {
+                    const option = document.createElement('option');
+                    option.value = admin.id;
+                    option.textContent = admin.identifier;
+                    adminSelect.appendChild(option);
+                });
+            }
+        } catch (e) {
+            console.error('Failed to load admins', e);
+        }
+    }
 
     // Main Load Function
     async function loadSessions() {
         setLoading();
+        // Reset header checkbox state for new page
+        selectAllCheckbox.checked = false;
 
         try {
             const response = await fetch('/api/sessions/query', {
@@ -68,22 +132,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } catch (error) {
             console.error('Error:', error);
-            tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error loading data: ' + error.message + '</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error loading data: ' + error.message + '</td></tr>';
         }
     }
 
     function setLoading() {
-        tableBody.innerHTML = '<tr><td colspan="6" class="text-center">Loading...</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="7" class="text-center">Loading...</td></tr>';
     }
 
     function renderTable(data) {
         if (!data || data.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No sessions found</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No sessions found</td></tr>';
             return;
         }
 
         tableBody.innerHTML = data.map(item => `
             <tr class="${item.is_current ? 'table-info' : ''}">
+                <td>
+                    <input type="checkbox"
+                           class="form-check-input session-select"
+                           value="${escapeHtml(item.session_id)}"
+                           ${item.is_current ? 'disabled' : ''}
+                           ${selectedSessions.has(item.session_id) ? 'checked' : ''}
+                    >
+                </td>
                 <td><code>${escapeHtml(item.session_id)}</code></td>
                 <td>
                     ${escapeHtml(item.admin_identifier)}
@@ -97,6 +169,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 </td>
             </tr>
         `).join('');
+
+        // Update select all checkbox state if all selectable items are selected
+        updateSelectAllState();
+    }
+
+    function updateSelectAllState() {
+        const checkboxes = document.querySelectorAll('.session-select:not(:disabled)');
+        if (checkboxes.length > 0) {
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            selectAllCheckbox.checked = allChecked;
+        } else {
+            selectAllCheckbox.checked = false;
+        }
+    }
+
+    function updateBulkUI() {
+        selectedCountBadge.textContent = selectedSessions.size;
+        bulkRevokeBtn.disabled = selectedSessions.size === 0;
     }
 
     function getStatusBadge(status) {
@@ -118,7 +208,20 @@ document.addEventListener('DOMContentLoaded', function() {
         return '';
     }
 
-    // Delegation for dynamic buttons
+    // Delegation for dynamic buttons/checkboxes
+    tableBody.addEventListener('change', function(e) {
+        if (e.target.classList.contains('session-select')) {
+            const hash = e.target.value;
+            if (e.target.checked) {
+                selectedSessions.add(hash);
+            } else {
+                selectedSessions.delete(hash);
+            }
+            updateSelectAllState();
+            updateBulkUI();
+        }
+    });
+
     tableBody.addEventListener('click', async function(e) {
         if (e.target.classList.contains('btn-revoke')) {
             const sessionId = e.target.getAttribute('data-id');
@@ -138,7 +241,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             if (response.ok) {
+                selectedSessions.delete(sessionId);
+                updateBulkUI();
                 loadSessions(); // Reload table
+                showAlert('Session revoked successfully.');
             } else {
                 try {
                     const data = await response.json();
@@ -150,6 +256,38 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (e) {
             console.error(e);
             alert('Error revoking session');
+        }
+    }
+
+    async function revokeBulk() {
+        try {
+             const response = await fetch('/api/sessions/revoke-bulk', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    session_ids: Array.from(selectedSessions)
+                })
+            });
+
+             if (response.ok) {
+                const count = selectedSessions.size;
+                selectedSessions.clear();
+                updateBulkUI();
+                loadSessions(); // Reload table
+                showAlert(count + ' sessions revoked successfully.');
+            } else {
+                try {
+                    const data = await response.json();
+                    alert('Failed to bulk revoke: ' + (data.error || 'Unknown error'));
+                } catch (e) {
+                    alert('Failed to bulk revoke');
+                }
+            }
+        } catch (e) {
+             console.error(e);
+             alert('Error performing bulk revoke');
         }
     }
 
@@ -205,5 +343,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function getAuthToken() {
         return '';
+    }
+
+    function showAlert(message, type = 'success') {
+        const alertContainer = document.getElementById('alert-container');
+        if (alertContainer) {
+            alertContainer.innerHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+        }
     }
 });
