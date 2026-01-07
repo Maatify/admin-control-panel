@@ -143,8 +143,10 @@ class Container
 
         // Load ENV
         $dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
-        $dotenv->load();
+        $dotenv->safeLoad();
         $dotenv->required([
+            'APP_ENV',
+            'APP_DEBUG',
             'DB_HOST',
             'DB_NAME',
             'DB_USER',
@@ -157,8 +159,8 @@ class Container
 
         // Create Config DTO
         $config = new AdminConfigDTO(
-            appEnv: $_ENV['APP_ENV'] ?? 'production',
-            appDebug: ($_ENV['APP_DEBUG'] ?? 'false') === 'true',
+            appEnv: $_ENV['APP_ENV'],
+            appDebug: $_ENV['APP_DEBUG'] === 'true',
             timezone: $_ENV['APP_TIMEZONE'],
             passwordPepper: $_ENV['PASSWORD_PEPPER'],
             passwordPepperOld: $_ENV['PASSWORD_PEPPER_OLD'] ?? null,

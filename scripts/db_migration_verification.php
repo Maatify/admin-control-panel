@@ -11,12 +11,14 @@ if (file_exists('/tmp/vendor/autoload.php')) {
 }
 
 use App\Bootstrap\Container;
+use PDO;
 
 // Use Container to handle ENV and Config
 // This ensures strict adherence to AdminConfigDTO logic
 try {
     $container = Container::create();
     $pdo = $container->get(PDO::class);
+    assert($pdo instanceof PDO);
 
     echo "Connected to database via Container/AdminConfigDTO.\n";
 
