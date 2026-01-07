@@ -406,3 +406,87 @@ Retrieves a list of admins for UI filtering.
       ]
     }
     ```
+
+## 👥 Admin Management
+
+### List Admins (DataTables)
+Server-side pagination for admin list.
+
+**Endpoint:** `POST /api/admins/query`
+**Auth Required:** Yes (Permission `admins.list`)
+
+**Request Model:**
+```json
+{
+  "page": 1,
+  "per_page": 20,
+  "filters": {
+    "id": 123
+  }
+}
+```
+
+**Response Model:**
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "identifier": "admin@example.com",
+      "verification_status": "verified",
+      "created_at": "2024-01-01 10:00:00",
+      "roles": ["SUPER_ADMIN"],
+      "is_system_owner": true
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "per_page": 20,
+    "total": 50
+  }
+}
+```
+
+### Create Admin
+Creates a new admin with credentials and roles.
+
+**Endpoint:** `POST /api/admins/create`
+**Auth Required:** Yes (Permission `admins.create`)
+
+**Request Model:**
+```json
+{
+  "email": "new@example.com",
+  "password": "strongpassword",
+  "role_ids": [1, 2]
+}
+```
+
+**Response:**
+*   **Success (201):** `{"id": 123}`
+*   **Error (400/500):** Generic error message.
+
+### Update Admin (Roles)
+Updates an existing admin. Currently supports appending roles only.
+
+**Endpoint:** `POST /api/admins/{id}/update`
+**Auth Required:** Yes (Permission `admins.edit`)
+
+**Request Model:**
+```json
+{
+  "role_ids": [3]
+}
+```
+
+**Response:**
+*   **Success (204):** No content.
+
+### Disable Admin
+Disables an admin (revokes sessions and marks email as failed/invalid).
+
+**Endpoint:** `POST /api/admins/{id}/disable`
+**Auth Required:** Yes (Permission `admins.disable`)
+
+**Response:**
+*   **Success (204):** No content.

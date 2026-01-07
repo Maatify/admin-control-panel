@@ -59,7 +59,16 @@ return function (App $app) {
         $group->group('', function (RouteCollectorProxy $protectedGroup) {
             $protectedGroup->get('/', [\App\Http\Controllers\Ui\UiDashboardController::class, 'index']);
             $protectedGroup->get('/dashboard', [\App\Http\Controllers\Ui\UiDashboardController::class, 'index']);
-            $protectedGroup->get('/admins', [\App\Http\Controllers\Ui\UiAdminsController::class, 'index']);
+            $protectedGroup->get('/admins', [\App\Http\Controllers\Ui\UiAdminsController::class, 'list'])
+                ->setName('admins.list')
+                ->add(AuthorizationGuardMiddleware::class);
+            $protectedGroup->get('/admins/create', [\App\Http\Controllers\Ui\UiAdminsController::class, 'create'])
+                ->setName('admins.create')
+                ->add(AuthorizationGuardMiddleware::class);
+            $protectedGroup->get('/admins/{id}/edit', [\App\Http\Controllers\Ui\UiAdminsController::class, 'edit'])
+                ->setName('admins.edit')
+                ->add(AuthorizationGuardMiddleware::class);
+
             $protectedGroup->get('/roles', [\App\Http\Controllers\Ui\UiRolesController::class, 'index']);
             $protectedGroup->get('/permissions', [\App\Http\Controllers\Ui\UiPermissionsController::class, 'index']);
             $protectedGroup->get('/settings', [\App\Http\Controllers\Ui\UiSettingsController::class, 'index']);
@@ -109,6 +118,20 @@ return function (App $app) {
 
             $group->get('/admins/list', [\App\Http\Controllers\Api\AdminListController::class, '__invoke'])
                 ->setName('sessions.view_all')
+                ->add(AuthorizationGuardMiddleware::class);
+
+            // Phase 1: Admin Management
+            $group->post('/admins/query', [\App\Http\Controllers\Api\AdminsQueryController::class, '__invoke'])
+                ->setName('admins.list')
+                ->add(AuthorizationGuardMiddleware::class);
+            $group->post('/admins/create', [\App\Http\Controllers\Api\AdminCreateController::class, '__invoke'])
+                ->setName('admins.create')
+                ->add(AuthorizationGuardMiddleware::class);
+            $group->post('/admins/{id}/update', [\App\Http\Controllers\Api\AdminUpdateController::class, '__invoke'])
+                ->setName('admins.edit')
+                ->add(AuthorizationGuardMiddleware::class);
+            $group->post('/admins/{id}/disable', [\App\Http\Controllers\Api\AdminDisableController::class, '__invoke'])
+                ->setName('admins.disable')
                 ->add(AuthorizationGuardMiddleware::class);
 
             // Notifications / Admins / Etc.
