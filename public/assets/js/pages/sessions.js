@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } catch (error) {
             console.error('Error:', error);
-            tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error loading data: ' + error.message + '</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-red-500">Error loading data: ' + error.message + '</td></tr>';
         }
     }
 
@@ -309,22 +309,30 @@ document.addEventListener('DOMContentLoaded', function() {
         let html = '';
 
         // Prev
-        html += '<li class="page-item ' + (page === 1 ? 'disabled' : '') + '">';
-        html += '<button class="page-link" onclick="changePage(' + (page - 1) + ')">Previous</button></li>';
+        html += '<a class="page-item ' + (page === 1 ? 'disabled' : '') + '">';
+        html += `
+        <button class="px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" onclick="changePage(' + (page - 1) + ')">
+								Previous
+							</button>
+                           </a>`;
 
         // Simple pagination logic
         for (let i = 1; i <= totalPages; i++) {
              if (i === 1 || i === totalPages || (i >= page - 2 && i <= page + 2)) {
-                html += '<li class="page-item ' + (i === page ? 'active' : '') + '">';
-                html += '<button class="page-link" onclick="changePage(' + i + ')">' + i + '</button></li>';
+                html += '<a class="page-item ' + (i === page ? 'active' : '') + '">';
+                html += '<button class="px-3 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50" onclick="changePage(' + i + ')">' + i + '</button></a>';
              } else if (i === page - 3 || i === page + 3) {
-                 html += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                 html += '<a cclass="px-3 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled"><span class="page-link">...</span></a>';
              }
         }
 
         // Next
-        html += '<li class="page-item ' + (page === totalPages || total === 0 ? 'disabled' : '') + '">';
-        html += '<button class="page-link" onclick="changePage(' + (page + 1) + ')">Next</button></li>';
+        html += '<a class="page-item ' + (page === totalPages || total === 0 ? 'disabled' : '') + '">';
+        html += `
+        <button class="px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"  onclick="changePage(' + (page + 1) + ') ">
+								Next
+							</button>
+                        </a>`;
 
         paginationControls.innerHTML = html;
 

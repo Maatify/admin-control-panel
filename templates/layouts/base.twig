@@ -1,54 +1,187 @@
 <!DOCTYPE html>
+{{ app.request.uri }}
+{# URL الكامل #}
+{{ app.request.pathinfo }}
+{# المسار فقط #}
+{{ app.request.baseUrl }}
+{% set current_route = app.request.attributes.get('_route') %}
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Admin Panel{% endblock %}</title>
-    <style>
-        /* Minimal CSS for layout structure */
-        body { font-family: system-ui, -apple-system, sans-serif; margin: 0; display: flex; min-height: 100vh; flex-direction: column; }
-        header { background: #1a202c; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-        header .logo { font-weight: bold; font-size: 1.2rem; }
-        .main-container { display: flex; flex: 1; }
-        nav { width: 250px; background: #f7fafc; padding: 1rem; border-right: 1px solid #e2e8f0; }
-        nav ul { list-style: none; padding: 0; margin: 0; }
-        nav li { margin-bottom: 0.25rem; }
-        nav a { text-decoration: none; color: #4a5568; display: block; padding: 0.75rem 1rem; border-radius: 0.375rem; transition: background 0.2s; }
-        nav a:hover { background: #edf2f7; color: #2d3748; }
-        main { flex: 1; padding: 2rem; background: #fff; }
-        footer { background: #f7fafc; text-align: center; padding: 1rem; font-size: 0.875rem; color: #718096; border-top: 1px solid #e2e8f0; }
-        .logout-btn { background: #e53e3e; border: none; color: white; padding: 0.5rem 1rem; cursor: pointer; border-radius: 0.375rem; font-size: 0.875rem; transition: background 0.2s; }
-        .logout-btn:hover { background: #c53030; }
-        h1 { margin-top: 0; color: #2d3748; }
-    </style>
-</head>
-<body>
-    <header>
-        <div class="logo">Admin Control Panel</div>
-        <div class="user-menu">
-            <form method="post" action="/logout" style="margin: 0;">
-                <button type="submit" class="logout-btn">Logout</button>
-            </form>
-        </div>
-    </header>
-    <div class="main-container">
-        <nav>
-            <ul>
-                <li><a href="/dashboard">Dashboard</a></li>
-                <li><a href="/admins">Admins</a></li>
-                <li><a href="/sessions">Sessions</a></li>
-                <li><a href="/roles">Roles</a></li>
-                <li><a href="/permissions">Permissions</a></li>
-                <li><a href="/settings">Settings</a></li>
-            </ul>
-        </nav>
-        <main>
-            {% block content %}{% endblock %}
-        </main>
-    </div>
-    <footer>
-        &copy; {{ "now"|date("Y") }} Admin Control Panel
-    </footer>
-    {% block scripts %}{% endblock %}
-</body>
-</html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>
+			{% block title %}
+				Admin Panel
+			{% endblock %}
+		</title>
+		<script src="https://cdn.tailwindcss.com"></script>
+	</head>
+<style>
+    .sidebar.collapsed ul li a:hover  {
+        position: relative;
+       span{
+        position: absolute;
+        display: block;
+        top: 0px;
+  left: 138%;
+  background: white;
+  width: fit-content;
+  padding: 7px 20px;
+  border: 1px solid #80808024;
+    border-left-width: 1px;
+    border-left-style: solid;
+    border-left-color: rgba(128, 128, 128, 0.14);
+  border-top-right-radius: 9px;
+  border-bottom-right-radius: 9px;
+  border-left: none;
+}
+       
+    }
+</style>
+
+
+
+	<body class="bg-blue-50/15 flex flex-col min-h-screen ">
+		<header class="header-section fixed top-0  right-0 z-[11111] w-[82%] [&.collapsed]:w-[95%]  max-w-[calc(100%-50px)] bg-white h-16 px-4 shadow-blue-200/40 shadow-sm  mb-5 transition-all duration-300 flex items-center justify-between">
+			<div class="flex w-[40%] items-center">
+				<span class="p-1  mr-3 rounded-md flex items-center justify-center cursor-pointer border border-border">
+					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 cursor-pointer m-[2px] stroke-gray-500" onclick="toggleSidebar()">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h16.5"/>
+					</svg>
+				</span>
+
+				<input type="search" placeholder="Search or type command..." aria-label="Search" class="border border-border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-main/50 text-sm w-full"/>
+			</div>
+			<div>
+				<form method="post" action="/logout" class="m-0">
+                
+
+					<button type="submit" class="bg-white border border-border py-1 px-2 shadow-sm rounded font-medium">
+						<svg class="w-6 h-6 text-gray-500 cursor-pointer " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H8m12 0-4 4m4-4-4-4M9 4H7a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h2"/>
+</svg>
+					</button>
+				</form>
+			</div>
+		</header>
+
+		<nav class="sidebar fixed top-0 left-0 h-full w-[18%] bg-white text-main flex flex-col py-5 transition-[width] transition-all duration-300 shadow-md z-[1111] [&.collapsed]:w-[5%] [&.collapsed_.li-text]:hidden [&.collapsed_.arrow-icon]:hidden [&.collapsed_.logo]:text-base min-w-[50px] ">
+			<div class="logo text-center text-xl font-bold whitespace-nowrap flex items-center justify-center gap-2">
+				<img src="./assets/images/logo-small.png" alt="logo" class="w-12 h-12 mb-[-10px]  mr-2 ">
+				<span>MyApp</span>
+				<hr class="mt-6 mb-5 border-gray-200"/>
+			</div>
+			<ul class="space-y-2 px-4 mt-5">
+				<li>
+					<a href="/dashboard" class="
+                      flex items-center justify-start gap-2 text-gray-900 hover:bg-gray-100  p-2  rounded-md hover:[>span]:text-blue-600">
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25Z"/>
+						</svg>
+						<span>Dashboard</span>
+					</a>
+				</li>
+				<li>
+					<a href="/admins" class="block text-gray-900 hover:bg-gray-100  rounded flex items-center justify-start gap-2 p-2 rounded-md">
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/>
+						</svg>
+						<span>Admins</span>
+					</a>
+				</li>
+				<li>
+					<a href="/sessions" class="block text-gray-900 hover:bg-gray-100  rounded flex items-center justify-start gap-2 p-2 rounded-md">
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z"/>
+							<path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z"/>
+						</svg>
+						<span>Sessions</span>
+					</a>
+				</li>
+				<li>
+					<a href="/roles" class="block text-gray-900 hover:bg-gray-100  rounded flex items-center justify-start gap-2 p-2 rounded-md">
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5m.75-9 3-3 2.148 2.148A12.061 12.061 0 0 1 16.5 7.605"/>
+						</svg>
+						<span>Roles</span>
+
+					</a>
+				</li>
+				<li>
+					<a href="/permissions" class="block text-gray-900 hover:bg-gray-100 rounded flex items-center justify-start gap-2 p-2    rounded-md">
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Zm6-10.125a1.875 1.875 0 1 1-3.75 0 1.875 1.875 0 0 1 3.75 0Zm1.294 6.336a6.721 6.721 0 0 1-3.17.789 6.721 6.721 0 0 1-3.168-.789 3.376 3.376 0 0 1 6.338 0Z"/>
+						</svg>
+						<span>Permissions</span>
+
+					</a>
+				</li>
+				<li>
+					<a href="/settings" class="block text-gray-900 hover:bg-gray-100  rounded flex items-center justify-start gap-2 p-2 rounded-md">
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0 0 15 0m-15 0a7.5 7.5 0 1 1 15 0m-15 0H3m16.5 0H21m-1.5 0H12m-8.457 3.077 1.41-.513m14.095-5.13 1.41-.513M5.106 17.785l1.15-.964m11.49-9.642 1.149-.964M7.501 19.795l.75-1.3m7.5-12.99.75-1.3m-6.063 16.658.26-1.477m2.605-14.772.26-1.477m0 17.726-.26-1.477M10.698 4.614l-.26-1.477M16.5 19.794l-.75-1.299M7.5 4.205 12 12m6.894 5.785-1.149-.964M6.256 7.178l-1.15-.964m15.352 8.864-1.41-.513M4.954 9.435l-1.41-.514M12.002 12l-3.75 6.495"/>
+						</svg>
+						<span>Settings</span>
+
+					</a>
+				</li>
+			</ul>
+		</nav>
+
+		<main class="page-content flex-1 p-6  sm:p-6 mt-12 text-gray-600 w-[82%] [&.collapsed]:w-[92%] sm:[&.collapsed]:w-[95%] ml-[18%] [&.collapsed]:ml-[8%] sm:[&.collapsed]:ml-[5%] transition-all duration-300"> {% block content %}{% endblock %}
+			</main>
+
+			<footer class="bg-white text-center py-4 text-gray-600 border-t border-gray-100">
+				&copy;
+				{{ "now"|date("Y") }}
+				Admin Control Panel
+			</footer>
+
+			{% block scripts %}{% endblock %}
+
+
+			<script>
+
+                    function toggleSidebar() {
+    document.querySelector(".sidebar").classList.toggle("collapsed");
+    document.querySelector(".page-content").classList.toggle("collapsed");
+    document.querySelector(".header-section ").classList.toggle("collapsed");
+    document.querySelector(".logo span").classList.toggle("hidden");
+
+    if (document.querySelector(".sidebar").classList.contains("collapsed")) {
+    document.querySelector(".sidebar").querySelectorAll("a").forEach(link => {
+    link.querySelector("span").classList.add("hidden");
+    });
+    } else {
+    document.querySelector(".sidebar").querySelectorAll("a").forEach(link => {
+    link.querySelector("span").classList.remove("hidden");
+    });
+    }
+
+    }
+
+
+    function setActiveNavItem() {
+    const currentPath = window.location.pathname;
+
+    const navLinks = document.querySelectorAll('nav a');
+
+    navLinks.forEach(link => {
+    link.classList.remove('bg-blue-300/40');
+    });
+
+    navLinks.forEach(link => {
+    const linkPath = link.getAttribute('href');
+
+    if (linkPath === currentPath) {
+    link.classList.add('bg-blue-300/40');
+    } else if (currentPath.startsWith(linkPath) && linkPath !== '/') {
+    link.classList.add('bg-blue-300/40');
+}
+});
+}
+
+document.addEventListener('DOMContentLoaded', setActiveNavItem);
+			</script>
+		</body>
+	</html>
