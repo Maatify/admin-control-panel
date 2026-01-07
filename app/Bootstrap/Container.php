@@ -40,6 +40,7 @@ use App\Domain\Contracts\VerificationCodeGeneratorInterface;
 use App\Domain\Contracts\VerificationCodePolicyResolverInterface;
 use App\Domain\Contracts\VerificationCodeRepositoryInterface;
 use App\Domain\Contracts\VerificationCodeValidatorInterface;
+use App\Domain\DTO\AdminConfigDTO;
 use App\Domain\Ownership\SystemOwnershipRepositoryInterface;
 use App\Domain\Service\AdminAuthenticationService;
 use App\Domain\Service\AdminEmailVerificationService;
@@ -54,6 +55,7 @@ use App\Domain\Service\StepUpService;
 use App\Domain\Service\VerificationCodeGenerator;
 use App\Domain\Service\VerificationCodePolicyResolver;
 use App\Domain\Service\VerificationCodeValidator;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminNotificationHistoryController;
 use App\Http\Controllers\AdminNotificationPreferenceController;
 use App\Http\Controllers\AdminNotificationReadController;
@@ -128,6 +130,7 @@ use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Slim\Views\Twig;
 use Psr\Log\AbstractLogger;
+use Dotenv\Dotenv;
 
 class Container
 {
@@ -138,7 +141,43 @@ class Container
     {
         $containerBuilder = new ContainerBuilder();
 
+        // Load ENV
+        $dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
+        $dotenv->load();
+        $dotenv->required([
+            'DB_HOST',
+            'DB_NAME',
+            'DB_USER',
+            'DB_PASS',
+            'PASSWORD_PEPPER',
+            'EMAIL_BLIND_INDEX_KEY',
+            'APP_TIMEZONE',
+            'EMAIL_ENCRYPTION_KEY'
+        ])->notEmpty();
+
+        // Create Config DTO
+        $config = new AdminConfigDTO(
+            appEnv: $_ENV['APP_ENV'] ?? 'production',
+            appDebug: ($_ENV['APP_DEBUG'] ?? 'false') === 'true',
+            timezone: $_ENV['APP_TIMEZONE'],
+            passwordPepper: $_ENV['PASSWORD_PEPPER'],
+            passwordPepperOld: $_ENV['PASSWORD_PEPPER_OLD'] ?? null,
+            emailBlindIndexKey: $_ENV['EMAIL_BLIND_INDEX_KEY'],
+            emailEncryptionKey: $_ENV['EMAIL_ENCRYPTION_KEY'],
+            dbHost: $_ENV['DB_HOST'],
+            dbName: $_ENV['DB_NAME'],
+            dbUser: $_ENV['DB_USER'],
+            dbPass: $_ENV['DB_PASS'],
+            isRecoveryMode: ($_ENV['RECOVERY_MODE'] ?? 'false') === 'true'
+        );
+
+        // Enforce Timezone
+        date_default_timezone_set($config->timezone);
+
         $containerBuilder->addDefinitions([
+            AdminConfigDTO::class => function () use ($config) {
+                return $config;
+            },
             \App\Domain\Service\AuthorizationService::class => function (ContainerInterface $c) {
                 $adminRoleRepo = $c->get(AdminRoleRepositoryInterface::class);
                 $rolePermissionRepo = $c->get(RolePermissionRepositoryInterface::class);
@@ -170,19 +209,32 @@ class Container
                 return Twig::create(__DIR__ . '/../../templates', ['cache' => false]);
             },
             PDO::class => function (ContainerInterface $c) {
-                // Ensure environment variables are loaded before this is called
-                $host = $_ENV['DB_HOST'] ?? 'localhost';
-                $dbName = $_ENV['DB_NAME'] ?? 'test';
-                $user = $_ENV['DB_USER'] ?? 'root';
-                $pass = $_ENV['DB_PASS'] ?? '';
+                $config = $c->get(AdminConfigDTO::class);
+                assert($config instanceof AdminConfigDTO);
 
-                $factory = new PDOFactory($host, $dbName, $user, $pass);
+                $factory = new PDOFactory(
+                    $config->dbHost,
+                    $config->dbName,
+                    $config->dbUser,
+                    $config->dbPass
+                );
                 return $factory->create();
             },
             AdminRepository::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new AdminRepository($pdo);
+            },
+            AdminController::class => function (ContainerInterface $c) {
+                $adminRepo = $c->get(AdminRepository::class);
+                $emailRepo = $c->get(AdminEmailRepository::class);
+                $config = $c->get(AdminConfigDTO::class);
+
+                assert($adminRepo instanceof AdminRepository);
+                assert($emailRepo instanceof AdminEmailRepository);
+                assert($config instanceof AdminConfigDTO);
+
+                return new AdminController($adminRepo, $emailRepo, $config);
             },
             AdminEmailRepository::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
@@ -255,12 +307,10 @@ class Container
                 return new AdminPasswordRepository($pdo);
             },
             PasswordService::class => function (ContainerInterface $c) {
-                $pepper = $_ENV['PASSWORD_PEPPER'] ?? '';
-                $oldPepper = $_ENV['PASSWORD_PEPPER_OLD'] ?? null;
-                if ($pepper === '') {
-                    throw new Exception('PASSWORD_PEPPER env var is required');
-                }
-                return new PasswordService($pepper, $oldPepper);
+                $config = $c->get(AdminConfigDTO::class);
+                assert($config instanceof AdminConfigDTO);
+
+                return new PasswordService($config->passwordPepper, $config->passwordPepperOld);
             },
             AdminAuthenticationService::class => function (ContainerInterface $c) {
                 $lookup = $c->get(AdminIdentifierLookupInterface::class);
@@ -503,25 +553,30 @@ class Container
             },
             AuthController::class => function (ContainerInterface $c) {
                 $authService = $c->get(AdminAuthenticationService::class);
+                $config = $c->get(AdminConfigDTO::class);
                 assert($authService instanceof AdminAuthenticationService);
-                $blindIndexKey = $_ENV['EMAIL_BLIND_INDEX_KEY'] ?? '';
-                return new AuthController($authService, $blindIndexKey);
+                assert($config instanceof AdminConfigDTO);
+
+                return new AuthController($authService, $config->emailBlindIndexKey);
             },
             LoginController::class => function (ContainerInterface $c) {
                 $authService = $c->get(AdminAuthenticationService::class);
                 $sessionRepo = $c->get(AdminSessionValidationRepositoryInterface::class);
                 $rememberMeService = $c->get(RememberMeService::class);
                 $view = $c->get(Twig::class);
+                $config = $c->get(AdminConfigDTO::class);
+
                 assert($authService instanceof AdminAuthenticationService);
                 assert($sessionRepo instanceof AdminSessionValidationRepositoryInterface);
                 assert($rememberMeService instanceof RememberMeService);
                 assert($view instanceof Twig);
-                $blindIndexKey = $_ENV['EMAIL_BLIND_INDEX_KEY'] ?? '';
+                assert($config instanceof AdminConfigDTO);
+
                 return new LoginController(
                     $authService,
                     $sessionRepo,
                     $rememberMeService,
-                    $blindIndexKey,
+                    $config->emailBlindIndexKey,
                     $view
                 );
             },
@@ -553,7 +608,7 @@ class Container
                 $lookup = $c->get(AdminIdentifierLookupInterface::class);
                 $view = $c->get(Twig::class);
                 $logger = $c->get(LoggerInterface::class);
-                $blindIndexKey = $_ENV['EMAIL_BLIND_INDEX_KEY'] ?? '';
+                $config = $c->get(AdminConfigDTO::class);
 
                 assert($validator instanceof VerificationCodeValidatorInterface);
                 assert($generator instanceof VerificationCodeGeneratorInterface);
@@ -561,6 +616,7 @@ class Container
                 assert($lookup instanceof AdminIdentifierLookupInterface);
                 assert($view instanceof Twig);
                 assert($logger instanceof LoggerInterface);
+                assert($config instanceof AdminConfigDTO);
 
                 return new EmailVerificationController(
                     $validator,
@@ -569,7 +625,7 @@ class Container
                     $lookup,
                     $view,
                     $logger,
-                    $blindIndexKey
+                    $config->emailBlindIndexKey
                 );
             },
             TelegramConnectController::class => function (ContainerInterface $c) {
@@ -785,12 +841,14 @@ class Container
                 $auditWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
                 $securityLogger = $c->get(SecurityEventLoggerInterface::class);
                 $pdo = $c->get(PDO::class);
+                $config = $c->get(AdminConfigDTO::class);
 
                 assert($auditWriter instanceof AuthoritativeSecurityAuditWriterInterface);
                 assert($securityLogger instanceof SecurityEventLoggerInterface);
                 assert($pdo instanceof PDO);
+                assert($config instanceof AdminConfigDTO);
 
-                return new RecoveryStateService($auditWriter, $securityLogger, $pdo);
+                return new RecoveryStateService($auditWriter, $securityLogger, $pdo, $config);
             },
             \App\Http\Middleware\RecoveryStateMiddleware::class => function (ContainerInterface $c) {
                 $service = $c->get(RecoveryStateService::class);

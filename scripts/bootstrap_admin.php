@@ -3,7 +3,6 @@
 require __DIR__ . '/../vendor/autoload.php';
 
 use App\Bootstrap\Container;
-use Dotenv\Dotenv;
 use App\Infrastructure\Repository\AdminRepository;
 use App\Infrastructure\Repository\AdminEmailRepository;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
@@ -11,14 +10,11 @@ use App\Domain\Contracts\TotpSecretRepositoryInterface;
 use App\Domain\Contracts\TotpServiceInterface;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\DTO\AuditEventDTO;
+use App\Domain\DTO\AdminConfigDTO;
 use App\Domain\Service\PasswordService;
 use App\Domain\Ownership\SystemOwnershipRepositoryInterface;
 
-// Load Env
-$dotenv = Dotenv::createImmutable(__DIR__ . '/../');
-$dotenv->safeLoad();
-
-// Container
+// Container (Loads ENV)
 $container = Container::create();
 
 // Check if admins exist
@@ -28,6 +24,9 @@ if ($stmt->fetchColumn() > 0) {
     echo "Bootstrap disabled: Admins already exist.\n";
     exit(1);
 }
+
+// Get Config
+$config = $container->get(AdminConfigDTO::class);
 
 // Inputs
 echo "Bootstrap First Admin\n";
@@ -60,16 +59,18 @@ try {
 
     // 2. Email
     $emailRepo = $container->get(AdminEmailRepository::class);
-    $blindIndexKey = $_ENV['EMAIL_BLIND_INDEX_KEY'] ?? '';
+    $blindIndexKey = $config->emailBlindIndexKey;
     if (strlen($blindIndexKey) < 32) {
         throw new RuntimeException("EMAIL_BLIND_INDEX_KEY missing or weak");
     }
     $blindIndex = hash_hmac('sha256', $email, $blindIndexKey);
 
     // Encryption
-    $encryptionKey = $_ENV['ENCRYPTION_KEY'] ?? '';
+    // Note: scripts/bootstrap_admin.php previously used ENCRYPTION_KEY.
+    // Assuming AdminConfigDTO->emailEncryptionKey maps to this as per memory.
+    $encryptionKey = $config->emailEncryptionKey;
     if (strlen($encryptionKey) < 32) {
-         throw new RuntimeException("ENCRYPTION_KEY missing or weak. Set it in .env");
+         throw new RuntimeException("EMAIL_ENCRYPTION_KEY missing or weak. Set it in .env");
     }
     $iv = random_bytes(12);
     $tag = "";

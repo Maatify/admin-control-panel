@@ -3,16 +3,11 @@
 declare(strict_types=1);
 
 use App\Bootstrap\Container;
-use Dotenv\Dotenv;
 use Slim\Factory\AppFactory;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-// Load Environment Variables
-$dotenv = Dotenv::createImmutable(__DIR__ . '/../');
-$dotenv->safeLoad();
-
-// Create Container
+// Create Container (This handles ENV loading and AdminConfigDTO)
 $container = Container::create();
 
 // Create App

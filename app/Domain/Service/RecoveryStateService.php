@@ -6,6 +6,7 @@ namespace App\Domain\Service;
 
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
+use App\Domain\DTO\AdminConfigDTO;
 use App\Domain\DTO\AuditEventDTO;
 use App\Domain\DTO\SecurityEventDTO;
 use App\Domain\Enum\RecoveryTransitionReason;
@@ -39,7 +40,8 @@ class RecoveryStateService
     public function __construct(
         private AuthoritativeSecurityAuditWriterInterface $auditWriter,
         private SecurityEventLoggerInterface $securityLogger,
-        private PDO $pdo
+        private PDO $pdo,
+        private AdminConfigDTO $config
     ) {
     }
 
@@ -60,11 +62,11 @@ class RecoveryStateService
 
     private function isEnvLocked(): bool
     {
-        if (($_ENV['RECOVERY_MODE'] ?? 'false') === 'true') {
+        if ($this->config->isRecoveryMode) {
             return true;
         }
 
-        $key = $_ENV['EMAIL_BLIND_INDEX_KEY'] ?? '';
+        $key = $this->config->emailBlindIndexKey;
         // Basic length check for security
         if (empty($key) || strlen($key) < 32) {
             return true;
@@ -95,7 +97,7 @@ class RecoveryStateService
         if ($storedState === self::SYSTEM_STATE_ACTIVE && $isEnvLocked) {
             // Reason derivation
             $reason = RecoveryTransitionReason::ENVIRONMENT_OVERRIDE;
-            $key = $_ENV['EMAIL_BLIND_INDEX_KEY'] ?? '';
+            $key = $this->config->emailBlindIndexKey;
             if (empty($key) || strlen($key) < 32) {
                 $reason = RecoveryTransitionReason::WEAK_CRYPTO_KEY;
             }
