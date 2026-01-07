@@ -7,6 +7,7 @@ namespace App\Infrastructure\Repository;
 use App\Domain\Contracts\AdminQueryReaderInterface;
 use App\Domain\DTO\Admin\AdminListItemDTO;
 use App\Domain\DTO\Admin\AdminListQueryDTO;
+use App\Domain\DTO\Admin\AdminListResponseDTO;
 use App\Domain\DTO\AdminConfigDTO;
 use PDO;
 
@@ -17,10 +18,10 @@ class PdoAdminListReader implements AdminQueryReaderInterface
         private AdminConfigDTO $config
     ) {}
 
-    public function getAdmins(AdminListQueryDTO $query): array
+    public function getAdmins(AdminListQueryDTO $query): AdminListResponseDTO
     {
         $page = max(1, $query->page);
-        $perPage = max(1, $query->perPage);
+        $perPage = max(1, $query->per_page);
         $offset = ($page - 1) * $perPage;
 
         // Build Query
@@ -93,14 +94,14 @@ class PdoAdminListReader implements AdminQueryReaderInterface
             );
         }
 
-        return [
-            'data' => $items,
-            'pagination' => [
+        return new AdminListResponseDTO(
+            $items,
+            [
                 'page' => $page,
                 'per_page' => $perPage,
                 'total' => $total
             ]
-        ];
+        );
     }
 
     private function decryptEmail(string $encryptedPayload): string
@@ -120,7 +121,7 @@ class PdoAdminListReader implements AdminQueryReaderInterface
         $tag = substr($data, 12, 16);
         $ciphertext = substr($data, 28);
 
-        $result = openssl_decrypt($ciphertext, 'aes-256-gcm', $key, 0, $iv, $tag);
+        $result = openssl_decrypt($ciphertext, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag);
 
         return $result !== false ? $result : 'DECRYPTION_FAILED';
     }
