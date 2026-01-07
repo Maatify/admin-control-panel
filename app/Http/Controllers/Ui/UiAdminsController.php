@@ -15,8 +15,18 @@ readonly class UiAdminsController
     ) {
     }
 
-    public function index(Request $request, Response $response): Response
+    public function list(Request $request, Response $response): Response
     {
         return $this->view->render($response, 'pages/admins.twig');
+    }
+
+    public function create(Request $request, Response $response): Response
+    {
+        return $this->view->render($response, 'pages/admin_create.twig');
+    }
+
+    public function edit(Request $request, Response $response, array $args): Response
+    {
+        return $this->view->render($response, 'pages/admin_edit.twig', ['target_admin_id' => $args['id']]);
     }
 }
