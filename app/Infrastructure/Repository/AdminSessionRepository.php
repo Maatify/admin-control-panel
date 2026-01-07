@@ -106,4 +106,27 @@ class AdminSessionRepository implements AdminSessionRepositoryInterface, AdminSe
         $stmt = $this->pdo->prepare("UPDATE admin_sessions SET is_revoked = 1 WHERE admin_id = ?");
         $stmt->execute([$adminId]);
     }
+
+    public function revokeSessionsByHash(array $hashes): void
+    {
+        if (empty($hashes)) {
+            return;
+        }
+        $placeholders = implode(',', array_fill(0, count($hashes), '?'));
+        $stmt = $this->pdo->prepare("UPDATE admin_sessions SET is_revoked = 1 WHERE session_id IN ($placeholders)");
+        $stmt->execute($hashes);
+    }
+
+    public function findAdminsBySessionHashes(array $hashes): array
+    {
+        if (empty($hashes)) {
+            return [];
+        }
+        $placeholders = implode(',', array_fill(0, count($hashes), '?'));
+        $stmt = $this->pdo->prepare("SELECT session_id, admin_id FROM admin_sessions WHERE session_id IN ($placeholders)");
+        $stmt->execute($hashes);
+
+        $results = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+        return $results !== false ? $results : [];
+    }
 }
