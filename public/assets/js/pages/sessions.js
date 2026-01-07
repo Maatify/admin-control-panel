@@ -146,15 +146,20 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        tableBody.innerHTML = data.map(item => `
+        tableBody.innerHTML = data.map(item => {
+            const isRevocable = item.status === 'active' && !item.is_current;
+            const checkboxHtml = isRevocable ? `
+                <input type="checkbox"
+                       class="form-check-input session-select"
+                       value="${escapeHtml(item.session_id)}"
+                       ${selectedSessions.has(item.session_id) ? 'checked' : ''}
+                >
+            ` : '';
+
+            return `
             <tr class="${item.is_current ? 'table-info' : ''}">
-                <td>
-                    <input type="checkbox"
-                           class="form-check-input session-select"
-                           value="${escapeHtml(item.session_id)}"
-                           ${item.is_current ? 'disabled' : ''}
-                           ${selectedSessions.has(item.session_id) ? 'checked' : ''}
-                    >
+                <td class="text-center">
+                    ${checkboxHtml}
                 </td>
                 <td><code>${escapeHtml(item.session_id)}</code></td>
                 <td>
