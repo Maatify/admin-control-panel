@@ -217,6 +217,65 @@ MUST be treated as a **breaking security change** and requires:
 
 ---
 
+---
+
+## Appendix A — Optional Future Hardening (NOT IMPLEMENTED)
+
+The following items are **documented for future consideration only**.
+
+They are **NOT part of the active authentication model** and are
+**explicitly excluded from the current security guarantees**.
+
+Implementing any of the following requires:
+- a new dedicated phase
+- architectural approval
+- privacy impact review
+- explicit configuration controls
+
+---
+
+### A.1 IP / Device Binding Extensions (Optional)
+
+**Concept:**
+In addition to the existing User-Agent binding used in `remember_me` tokens,
+the system MAY optionally introduce additional device or network binding.
+
+Possible signals include:
+- IP address (exact or subnet-based)
+- Device fingerprint (e.g., via FingerprintJS or equivalent)
+- Hybrid risk scoring (IP + UA + behavior)
+
+**Intended Purpose:**
+- Reduce risk of session hijacking
+- Detect anomalous token reuse
+- Strengthen protection for internal APIs that do not support remember-me
+
+**Expected Behavior (If Implemented):**
+- On significant IP or fingerprint change:
+  - Invalidate the restored session
+  - Force re-authentication or Step-Up verification
+- Enforcement MUST be fail-closed for suspicious transitions
+
+**Privacy & Stability Considerations:**
+- IP binding MUST be tolerant to NAT, mobile networks, and VPN changes
+- Fingerprinting MUST be:
+  - optional
+  - configurable
+  - explicitly disclosed
+- Hard binding MUST NOT be enabled by default
+
+**Canonical Status:**
+- ❌ Not implemented
+- ❌ Not enforced
+- ❌ Not required for compliance
+- ❌ Must NOT affect current audit conclusions
+- ✅ Documented to prevent architectural drift
+
+Any attempt to implement this without a dedicated phase
+is considered a security policy violation.
+
+---
+
 **Status:** LOCKED
 **Scope:** Admin Control Panel
 **Classification:** Security-Critical Architecture Document
