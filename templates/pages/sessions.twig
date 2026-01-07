@@ -8,7 +8,9 @@
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">Sessions</h1>
         <div class="btn-toolbar mb-2 mb-md-0">
-            {# Actions if any #}
+            <button class="btn btn-danger" id="btn-bulk-revoke" disabled>
+                Revoke Selected <span id="selected-count" class="badge bg-light text-dark ms-1">0</span>
+            </button>
         </div>
     </div>
     <p class="text-muted">Manage active admin sessions</p>
@@ -17,11 +19,18 @@
     <div class="card mb-4">
         <div class="card-body">
             <form id="sessions-search-form" class="row g-3">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="filter-session-id" class="form-label">Session ID</label>
                     <input type="text" class="form-control" id="filter-session-id" placeholder="Search by ID fragment">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <label for="filter-admin-id" class="form-label">Filter by Admin</label>
+                    <select class="form-select" id="filter-admin-id">
+                        <option value="">All Admins</option>
+                        <option disabled>Loading...</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
                     <label for="filter-status" class="form-label">Status</label>
                     <select class="form-select" id="filter-status">
                         <option value="">All</option>
@@ -30,7 +39,7 @@
                         <option value="expired">Expired</option>
                     </select>
                 </div>
-                <div class="col-md-4 d-flex align-items-end">
+                <div class="col-md-3 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary me-2">Search</button>
                     <button type="button" class="btn btn-secondary" id="btn-reset">Reset</button>
                 </div>
@@ -45,6 +54,7 @@
                 <table class="table table-striped table-hover" id="sessions-table">
                     <thead>
                         <tr>
+                            <th style="width: 40px;"><input type="checkbox" class="form-check-input" id="select-all"></th>
                             <th>Session ID</th>
                             <th>Owner</th>
                             <th>Created At</th>
@@ -56,7 +66,7 @@
                     <tbody>
                         {# Content loaded via API #}
                         <tr>
-                            <td colspan="6" class="text-center">Loading...</td>
+                            <td colspan="7" class="text-center">Loading...</td>
                         </tr>
                     </tbody>
                 </table>

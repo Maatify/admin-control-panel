@@ -39,11 +39,15 @@ class SessionQueryController
         $token = isset($cookies['auth_token']) ? (string)$cookies['auth_token'] : '';
         $currentSessionHash = $token !== '' ? hash('sha256', $token) : '';
 
+        // Extract admin_id from filters if present
+        $adminIdFilter = isset($filters['admin_id']) && $filters['admin_id'] !== '' ? (int)$filters['admin_id'] : null;
+
         $query = new SessionListQueryDTO(
             page: $page,
             per_page: $perPage,
             filters: $filters,
-            current_session_id: $currentSessionHash
+            current_session_id: $currentSessionHash,
+            admin_id: $adminIdFilter
         );
 
         $result = $this->reader->getSessions($query);

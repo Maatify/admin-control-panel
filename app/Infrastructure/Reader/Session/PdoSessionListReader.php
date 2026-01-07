@@ -42,6 +42,11 @@ class PdoSessionListReader implements SessionListReaderInterface
             }
         }
 
+        if ($query->admin_id !== null) {
+            $conditions[] = "s.admin_id = :admin_id";
+            $params[':admin_id'] = $query->admin_id;
+        }
+
         $whereClause = !empty($conditions) ? " WHERE " . implode(' AND ', $conditions) : "";
 
         // 2. Count Total
