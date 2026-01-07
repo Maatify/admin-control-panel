@@ -38,7 +38,7 @@ class SessionStateGuardMiddleware implements MiddlewareInterface
         // STRICT Detection: Same as SessionGuardMiddleware
         $isApi = AuthSurface::isApi($request);
 
-        $sessionId = $this->getSessionIdFromRequest($request, $isApi);
+        $sessionId = $this->getSessionIdFromRequest($request);
         if ($sessionId === null) {
              // Inconsistent state: admin_id present but no token found by this guard?
              // Should only happen if SessionGuard extraction differs or context lost.
@@ -84,18 +84,11 @@ class SessionStateGuardMiddleware implements MiddlewareInterface
         return $handler->handle($request);
     }
 
-    private function getSessionIdFromRequest(ServerRequestInterface $request, bool $isApi): ?string
+    private function getSessionIdFromRequest(ServerRequestInterface $request): ?string
     {
-        if ($isApi) {
-            $header = $request->getHeaderLine('Authorization');
-            if (preg_match('/Bearer\s+(.*)$/i', $header, $matches)) {
-                return $matches[1];
-            }
-        } else {
-            $cookies = $request->getCookieParams();
-            if (isset($cookies['auth_token'])) {
-                return (string)$cookies['auth_token'];
-            }
+        $cookies = $request->getCookieParams();
+        if (isset($cookies['auth_token'])) {
+            return (string)$cookies['auth_token'];
         }
 
         return null;

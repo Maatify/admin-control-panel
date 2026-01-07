@@ -61,9 +61,9 @@ class StepUpController
     private function getSessionIdFromRequest(Request $request): ?string
     {
         // Must match extraction logic used elsewhere
-        $header = $request->getHeaderLine('Authorization');
-        if (preg_match('/Bearer\s+(.*)$/i', $header, $matches)) {
-            return $matches[1];
+        $cookies = $request->getCookieParams();
+        if (isset($cookies['auth_token'])) {
+            return (string)$cookies['auth_token'];
         }
         return null;
     }
