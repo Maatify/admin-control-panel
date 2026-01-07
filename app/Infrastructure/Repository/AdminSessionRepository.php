@@ -61,32 +61,44 @@ class AdminSessionRepository implements AdminSessionRepositoryInterface, AdminSe
     public function findSession(string $token): ?array
     {
         $tokenHash = hash('sha256', $token);
+        return $this->findSessionByHash($tokenHash);
+    }
+
+    /**
+     * @return array{admin_id: int, expires_at: string, is_revoked: int}|null
+     */
+    public function findSessionByHash(string $hash): ?array
+    {
         $stmt = $this->pdo->prepare("
             SELECT admin_id, expires_at, is_revoked
             FROM admin_sessions
             WHERE session_id = ?
         ");
-        $stmt->execute([$tokenHash]);
+        $stmt->execute([$hash]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($result === false) {
             return null;
         }
 
-        /** @var array{admin_id: string, expires_at: string, is_revoked: string} $result */
+        /** @var array{admin_id: string|int, expires_at: string, is_revoked: string|int} $result */
         return [
             'admin_id' => (int) $result['admin_id'],
             'expires_at' => $result['expires_at'],
             'is_revoked' => (int) $result['is_revoked'],
         ];
-
     }
 
     public function revokeSession(string $token): void
     {
         $tokenHash = hash('sha256', $token);
+        $this->revokeSessionByHash($tokenHash);
+    }
+
+    public function revokeSessionByHash(string $hash): void
+    {
         $stmt = $this->pdo->prepare("UPDATE admin_sessions SET is_revoked = 1 WHERE session_id = ?");
-        $stmt->execute([$tokenHash]);
+        $stmt->execute([$hash]);
     }
 
     public function revokeAllSessions(int $adminId): void

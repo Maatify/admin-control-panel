@@ -13,5 +13,12 @@ interface AdminSessionValidationRepositoryInterface
 
     public function revokeSession(string $token): void;
 
+    public function revokeSessionByHash(string $hash): void;
+
     public function revokeAllSessions(int $adminId): void;
+
+    /**
+     * @return array{admin_id: int, expires_at: string, is_revoked: int}|null
+     */
+    public function findSessionByHash(string $hash): ?array;
 }

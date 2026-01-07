@@ -95,9 +95,13 @@ return function (App $app) {
         $api->group('', function (RouteCollectorProxy $group) {
             // Phase 14.3: Sessions Query
             $group->post('/sessions/query', [\App\Http\Controllers\Api\SessionQueryController::class, '__invoke'])
-                ->setName('sessions.list')
+                ->setName('sessions.view_all')
                 ->add(AuthorizationGuardMiddleware::class)
             ;
+
+            $group->delete('/sessions/{session_id}', [\App\Http\Controllers\Api\SessionRevokeController::class, '__invoke'])
+                ->setName('sessions.revoke')
+                ->add(AuthorizationGuardMiddleware::class);
 
             // Notifications / Admins / Etc.
             $group->post('/admins', [AdminController::class, 'create'])
