@@ -99,6 +99,18 @@ return function (App $app) {
                 ->add(AuthorizationGuardMiddleware::class)
             ;
 
+            $group->delete('/sessions/{session_id}', [\App\Http\Controllers\Api\SessionRevokeController::class, '__invoke'])
+                ->setName('sessions.revoke')
+                ->add(AuthorizationGuardMiddleware::class);
+
+            $group->post('/sessions/revoke-bulk', [\App\Http\Controllers\Api\SessionBulkRevokeController::class, '__invoke'])
+                ->setName('sessions.revoke')
+                ->add(AuthorizationGuardMiddleware::class);
+
+            $group->get('/admins/list', [\App\Http\Controllers\Api\AdminListController::class, '__invoke'])
+                ->setName('sessions.view_all')
+                ->add(AuthorizationGuardMiddleware::class);
+
             // Notifications / Admins / Etc.
             $group->post('/admins', [AdminController::class, 'create'])
                 ->setName('admin.create')

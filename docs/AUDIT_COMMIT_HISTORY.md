@@ -99,6 +99,7 @@ Entries MUST NOT be rewritten or reordered.
 - docs(security): document canonical auth model and future session hardening options
 - docs(history): add full chronological commit history and generation reference
 - refactor(config): lock env handling via AdminConfig DTO and clean bootstrap artifacts
+- feat(sessions): complete global sessions management with admin filtering, safe revoke, and auditing
 
 ---
 

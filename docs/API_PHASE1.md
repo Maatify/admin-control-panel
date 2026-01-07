@@ -306,6 +306,12 @@ Simple status check.
 
 ## 📅 Sessions
 
+### Sessions Page (Web)
+Renders the sessions management UI with filtering and bulk actions.
+
+**Endpoint:** `GET /sessions`
+**Auth Required:** Yes
+
 ### List Sessions (API)
 Server-side pagination and filtering for sessions list.
 
@@ -319,6 +325,7 @@ Server-side pagination and filtering for sessions list.
   "per_page": 20,
   "filters": {
     "session_id": "optional_id_fragment",
+    "admin_id": 123, // Optional (Requires sessions.view_all)
     "status": "active|revoked|expired|all"
   }
 }
@@ -330,9 +337,12 @@ Server-side pagination and filtering for sessions list.
   "data": [
     {
       "session_id": "abc123hash...",
+      "admin_id": 123,
+      "admin_identifier": "admin@example.com",
       "created_at": "2024-01-01 10:00:00",
       "expires_at": "2024-01-02 10:00:00",
-      "status": "active"
+      "status": "active",
+      "is_current": true
     }
   ],
   "pagination": {
@@ -346,4 +356,53 @@ Server-side pagination and filtering for sessions list.
 **Notes:**
 *   Pagination is mandatory.
 *   Status is derived on backend.
-*   Filters are optional.
+*   `admin_id` filter is permission-gated (ignored if user lacks `sessions.view_all`).
+*   `is_current` indicates the session executing the request.
+
+### Revoke Session (Single)
+Revokes a specific session by ID (Hash).
+
+**Endpoint:** `DELETE /api/sessions/{session_id}`
+**Auth Required:** Yes (Permission `sessions.revoke`)
+
+**Response:**
+*   **Success (200):** JSON confirmation.
+*   **Error (400):** Invalid ID or Attempt to revoke current session.
+*   **Error (404):** Session not found.
+
+### Bulk Revoke Sessions
+Revokes multiple sessions in a single transaction.
+
+**Endpoint:** `POST /api/sessions/revoke-bulk`
+**Auth Required:** Yes (Permission `sessions.revoke`)
+
+**Request Model:**
+```json
+{
+  "session_ids": [
+    "hash1...",
+    "hash2..."
+  ]
+}
+```
+
+**Response:**
+*   **Success (200):** JSON confirmation.
+*   **Error (400):** If current session is included in the list.
+
+### List Admins (Filter Helper)
+Retrieves a list of admins for UI filtering.
+
+**Endpoint:** `GET /api/admins/list`
+**Auth Required:** Yes (Permission `sessions.view_all`)
+
+**Response:**
+*   **Success (200):**
+    ```json
+    {
+      "data": [
+        { "id": 1, "identifier": "admin@example.com" },
+        { "id": 2, "identifier": "other@example.com" }
+      ]
+    }
+    ```

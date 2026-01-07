@@ -743,8 +743,10 @@ class Container
             // Phase 14.3: Sessions
             SessionListReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
+                $config = $c->get(AdminConfigDTO::class);
                 assert($pdo instanceof PDO);
-                return new PdoSessionListReader($pdo);
+                assert($config instanceof AdminConfigDTO);
+                return new PdoSessionListReader($pdo, $config);
             },
             SessionListController::class => function (ContainerInterface $c) {
                 $twig = $c->get(Twig::class);
@@ -753,8 +755,38 @@ class Container
             },
             SessionQueryController::class => function (ContainerInterface $c) {
                 $reader = $c->get(SessionListReaderInterface::class);
+                $auth = $c->get(\App\Domain\Service\AuthorizationService::class);
                 assert($reader instanceof SessionListReaderInterface);
-                return new SessionQueryController($reader);
+                assert($auth instanceof \App\Domain\Service\AuthorizationService);
+                return new SessionQueryController($reader, $auth);
+            },
+            \App\Http\Controllers\Api\SessionRevokeController::class => function (ContainerInterface $c) {
+                $service = $c->get(\App\Domain\Service\SessionRevocationService::class);
+                $auth = $c->get(\App\Domain\Service\AuthorizationService::class);
+                assert($service instanceof \App\Domain\Service\SessionRevocationService);
+                assert($auth instanceof \App\Domain\Service\AuthorizationService);
+                return new \App\Http\Controllers\Api\SessionRevokeController($service, $auth);
+            },
+            \App\Domain\Contracts\AdminListReaderInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                $config = $c->get(AdminConfigDTO::class);
+                assert($pdo instanceof PDO);
+                assert($config instanceof AdminConfigDTO);
+                return new \App\Infrastructure\Reader\Admin\PdoAdminListReader($pdo, $config);
+            },
+            \App\Http\Controllers\Api\AdminListController::class => function (ContainerInterface $c) {
+                $reader = $c->get(\App\Domain\Contracts\AdminListReaderInterface::class);
+                $auth = $c->get(\App\Domain\Service\AuthorizationService::class);
+                assert($reader instanceof \App\Domain\Contracts\AdminListReaderInterface);
+                assert($auth instanceof \App\Domain\Service\AuthorizationService);
+                return new \App\Http\Controllers\Api\AdminListController($reader, $auth);
+            },
+            \App\Http\Controllers\Api\SessionBulkRevokeController::class => function (ContainerInterface $c) {
+                $service = $c->get(\App\Domain\Service\SessionRevocationService::class);
+                $auth = $c->get(\App\Domain\Service\AuthorizationService::class);
+                assert($service instanceof \App\Domain\Service\SessionRevocationService);
+                assert($auth instanceof \App\Domain\Service\AuthorizationService);
+                return new \App\Http\Controllers\Api\SessionBulkRevokeController($service, $auth);
             },
 
             // Phase 12
