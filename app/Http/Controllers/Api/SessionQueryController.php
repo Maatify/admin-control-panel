@@ -23,8 +23,6 @@ class SessionQueryController
         $adminId = $request->getAttribute('admin_id');
         assert(is_int($adminId));
 
-        $this->authorizationService->checkPermission($adminId, 'sessions.view_all');
-
         $body = $request->getParsedBody();
         if (!is_array($body)) {
             $body = [];
@@ -34,13 +32,19 @@ class SessionQueryController
         $perPage = isset($body['per_page']) ? (int)$body['per_page'] : 20;
         $filters = isset($body['filters']) && is_array($body['filters']) ? $body['filters'] : [];
 
+        // Permission-based Admin Filter Logic
+        if ($this->authorizationService->hasPermission($adminId, 'sessions.view_all')) {
+            // Allowed to filter by any admin
+            $adminIdFilter = isset($filters['admin_id']) && $filters['admin_id'] !== '' ? (int)$filters['admin_id'] : null;
+        } else {
+            // Restricted to self
+            $adminIdFilter = $adminId;
+        }
+
         // Fetch Current Session Hash
         $cookies = $request->getCookieParams();
         $token = isset($cookies['auth_token']) ? (string)$cookies['auth_token'] : '';
         $currentSessionHash = $token !== '' ? hash('sha256', $token) : '';
-
-        // Extract admin_id from filters if present
-        $adminIdFilter = isset($filters['admin_id']) && $filters['admin_id'] !== '' ? (int)$filters['admin_id'] : null;
 
         $query = new SessionListQueryDTO(
             page: $page,

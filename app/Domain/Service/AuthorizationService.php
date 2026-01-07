@@ -122,4 +122,29 @@ readonly class AuthorizationService
         ));
         throw new PermissionDeniedException("Admin $adminId lacks permission '$permission'.");
     }
+
+    public function hasPermission(int $adminId, string $permission): bool
+    {
+        // 0. System Owner Bypass
+        if ($this->systemOwnershipRepository->isOwner($adminId)) {
+            return true;
+        }
+
+        if (!$this->rolePermissionRepository->permissionExists($permission)) {
+            return false;
+        }
+
+        // 1. Direct Permissions (Explicit Deny/Allow)
+        $directPermissions = $this->directPermissionRepository->getActivePermissions($adminId);
+        foreach ($directPermissions as $direct) {
+            if ($direct['permission'] === $permission) {
+                return (bool)$direct['is_allowed'];
+            }
+        }
+
+        // 2. Role Permissions
+        $roleIds = $this->adminRoleRepository->getRoleIds($adminId);
+
+        return $this->rolePermissionRepository->hasPermission($roleIds, $permission);
+    }
 }

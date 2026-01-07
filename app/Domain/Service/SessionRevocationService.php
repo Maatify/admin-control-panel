@@ -57,6 +57,64 @@ class SessionRevocationService
         }
     }
 
+    /**
+     * @param string[] $hashes
+     */
+    public function revokeBulk(array $hashes, string $currentSessionHash): void
+    {
+        if (empty($hashes)) {
+            return;
+        }
+
+        if (in_array($currentSessionHash, $hashes, true)) {
+            throw new DomainException('Cannot revoke own session via bulk operation.');
+        }
+
+        $this->pdo->beginTransaction();
+        try {
+            // Fetch affected admins for audit
+            $sessionAdminMap = $this->repository->findAdminsBySessionHashes($hashes);
+
+            // Filter only sessions that actually exist (security/audit accuracy)
+            $validHashes = array_keys($sessionAdminMap);
+            $affectedAdminIds = array_unique(array_values($sessionAdminMap));
+
+            if (empty($validHashes)) {
+                 $this->pdo->commit();
+                 return;
+            }
+
+            // Revoke
+            $this->repository->revokeSessionsByHash($validHashes);
+
+            // Audit
+            // We need actor ID.
+            $currentSession = $this->repository->findSessionByHash($currentSessionHash);
+            $actorId = $currentSession ? (int)$currentSession['admin_id'] : 0;
+
+            $this->auditWriter->write(new AuditEventDTO(
+                $actorId,
+                'sessions_bulk_revoked',
+                'session',
+                null,
+                'MEDIUM',
+                [
+                    'count' => count($validHashes),
+                    'affected_admin_ids' => array_values($affectedAdminIds),
+                    'session_id_prefixes' => array_map(fn($h) => substr($h, 0, 8) . '...', $validHashes),
+                    'ip_address' => $this->clientInfoProvider->getIpAddress(),
+                ],
+                bin2hex(random_bytes(16)),
+                new DateTimeImmutable()
+            ));
+
+            $this->pdo->commit();
+        } catch (\Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+
     public function revokeByHash(string $targetHash, string $currentSessionHash): void
     {
         if (hash_equals($targetHash, $currentSessionHash)) {
