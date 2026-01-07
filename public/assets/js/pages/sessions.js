@@ -68,23 +68,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } catch (error) {
             console.error('Error:', error);
-            tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error loading data: ' + error.message + '</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error loading data: ' + error.message + '</td></tr>';
         }
     }
 
     function setLoading() {
-        tableBody.innerHTML = '<tr><td colspan="5" class="text-center">Loading...</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="6" class="text-center">Loading...</td></tr>';
     }
 
     function renderTable(data) {
         if (!data || data.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="5" class="text-center">No sessions found</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No sessions found</td></tr>';
             return;
         }
 
         tableBody.innerHTML = data.map(item => `
-            <tr>
+            <tr class="${item.is_current ? 'table-info' : ''}">
                 <td><code>${escapeHtml(item.session_id)}</code></td>
+                <td>
+                    ${escapeHtml(item.admin_identifier)}
+                    ${item.is_current ? ' <span class="badge bg-primary ms-1">Current</span>' : ''}
+                </td>
                 <td>${escapeHtml(item.created_at)}</td>
                 <td>${escapeHtml(item.expires_at)}</td>
                 <td>${getStatusBadge(item.status)}</td>
@@ -105,6 +109,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function getActionButtons(item) {
+        if (item.is_current) {
+            return '<button class="btn btn-sm btn-outline-secondary" disabled title="You cannot revoke the session you are currently using">Revoke</button>';
+        }
         if (item.status === 'active') {
              return '<button class="btn btn-sm btn-outline-danger btn-revoke" data-id="' + item.session_id + '">Revoke</button>';
         }
@@ -123,8 +130,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function revokeSession(sessionId) {
         try {
-            const response = await fetch('/api/sessions/' + sessionId + '/revoke', {
-                method: 'POST',
+            const response = await fetch('/api/sessions/' + sessionId, {
+                method: 'DELETE',
                  headers: {
                     'Content-Type': 'application/json'
                 }
@@ -133,7 +140,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (response.ok) {
                 loadSessions(); // Reload table
             } else {
-                alert('Failed to revoke session');
+                try {
+                    const data = await response.json();
+                    alert('Failed to revoke session: ' + (data.error || 'Unknown error'));
+                } catch (e) {
+                    alert('Failed to revoke session');
+                }
             }
         } catch (e) {
             console.error(e);
