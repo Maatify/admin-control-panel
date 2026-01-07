@@ -13,6 +13,4 @@ interface AdminRoleRepositoryInterface
     public function getRoleIds(int $adminId): array;
 
     public function assign(int $adminId, int $roleId): void;
-
-    public function revoke(int $adminId, int $roleId): void;
 }

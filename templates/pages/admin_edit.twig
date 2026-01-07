@@ -1,0 +1,33 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}Edit Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Edit Admin (ID: {{ target_admin_id }})</h1>
+    </div>
+
+    <div id="alert-container"></div>
+
+    <div class="card">
+        <div class="card-body">
+            <form id="admin-edit-form">
+                <input type="hidden" id="admin-id" value="{{ target_admin_id }}">
+                <div class="mb-3">
+                    <label for="roles" class="form-label">Role IDs (Comma separated)</label>
+                    <input type="text" class="form-control" id="roles" placeholder="e.g. 1, 2">
+                    <div class="form-text">Role updates are Append-Only in this version.</div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Update Admin</button>
+                <a href="/admins" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/assets/js/pages/admins.js"></script>
+{% endblock %}

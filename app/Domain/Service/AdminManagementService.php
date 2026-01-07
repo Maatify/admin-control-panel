@@ -106,14 +106,11 @@ class AdminManagementService implements AdminManagementInterface
             $newRoles = $dto->roleIds;
 
             $toAdd = array_diff($newRoles, $currentRoles);
-            $toRemove = array_diff($currentRoles, $newRoles);
+            // Role revocation is strictly forbidden in this domain model.
+            // Roles can only be added (Append-Only).
 
             foreach ($toAdd as $roleId) {
                 $this->assignRoleInternal($actorId, $adminId, (int)$roleId, $actorToken);
-            }
-
-            foreach ($toRemove as $roleId) {
-                $this->revokeRoleInternal($actorId, $adminId, (int)$roleId, $actorToken);
             }
         }
     }
@@ -181,49 +178,6 @@ class AdminManagementService implements AdminManagementInterface
             ));
 
             // 9. Invalidate Step-Up Grants
-            $this->grantRepository->revokeAll($targetAdminId);
-            $this->grantRepository->revoke($actorId, $sessionId, Scope::SECURITY);
-
-            $this->pdo->commit();
-        } catch (\Throwable $e) {
-            $this->pdo->rollBack();
-            throw $e;
-        }
-    }
-
-    private function revokeRoleInternal(int $actorId, int $targetAdminId, int $roleId, string $actorToken): void
-    {
-        // Require Step-Up
-        if (!$this->stepUpService->hasGrant($actorId, $actorToken, Scope::SECURITY)) {
-            throw new PermissionDeniedException("Step-Up authentication required for role revocation.");
-        }
-
-        // Hierarchy check
-        if (!$this->hierarchyComparator->canAssign($actorId, $roleId)) {
-             throw new PermissionDeniedException("Insufficient privilege to revoke this role.");
-        }
-
-        $sessionId = hash('sha256', $actorToken);
-
-        $this->pdo->beginTransaction();
-        try {
-            $this->roleRepository->revoke($targetAdminId, $roleId);
-
-            $this->auditWriter->write(new AuditEventDTO(
-                $actorId,
-                'role_revoked',
-                'admin',
-                $targetAdminId,
-                'CRITICAL',
-                [
-                    'role_id' => $roleId,
-                    'session_id' => $sessionId,
-                    'reason' => 'admin_update'
-                ],
-                bin2hex(random_bytes(16)),
-                new DateTimeImmutable()
-            ));
-
             $this->grantRepository->revokeAll($targetAdminId);
             $this->grantRepository->revoke($actorId, $sessionId, Scope::SECURITY);
 
