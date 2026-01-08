@@ -462,5 +462,6 @@ Creates a new admin account with email and password.
     ```
 
 **Notes:**
+*   This endpoint supports the "Admin Create Modal" pattern.
 *   Created admin is in `PENDING_STEP_UP` state (no TOTP configured).
 *   TOTP setup is required on first login.
