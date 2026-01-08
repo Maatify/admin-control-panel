@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Domain\Contracts\AdminListReaderInterface;
 use App\Domain\DTO\AdminList\AdminListQueryDTO;
-use App\Infrastructure\Reader\Admin\PdoAdminListReader;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
 readonly class AdminListController
 {
     public function __construct(
-        private PdoAdminListReader $adminListReader
+        private AdminListReaderInterface $adminListReader
     ) {
     }
 

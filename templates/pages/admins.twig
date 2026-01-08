@@ -41,29 +41,17 @@
                             <th>Created At</th>
                         </tr>
                     </thead>
-                    <tbody id="admins-table-body">
+                    <tbody>
                         {# Content loaded via API #}
-                        <tr id="loading-row">
+                        <tr>
                             <td colspan="3" class="text-center">Loading...</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
-            {# Empty State (Hidden by default) #}
-            <div id="empty-state" class="text-center py-5 d-none">
-                <h4 class="text-muted">No admins found</h4>
-                <p class="text-secondary">Try adjusting your search criteria.</p>
-            </div>
-
-            {# Error State (Hidden by default) #}
-            <div id="error-state" class="text-center py-5 d-none">
-                <h4 class="text-danger">Error loading admins</h4>
-                <p class="text-secondary">Please try refreshing the page.</p>
-            </div>
-
             {# Pagination #}
-            <nav aria-label="Admins pagination" class="d-flex justify-content-between align-items-center mt-3" id="pagination-container">
+            <nav aria-label="Admins pagination" class="d-flex justify-content-between align-items-center mt-3">
                 <div class="d-flex align-items-center">
                     <select class="form-select form-select-sm me-2" id="per-page-select" style="width: auto;">
                         <option value="10">10</option>

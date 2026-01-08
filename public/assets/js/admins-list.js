@@ -1,18 +1,45 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const tableBody = document.querySelector('#admins-table-body');
-    const searchInput = document.querySelector('#search-input');
-    const paginationContainer = document.querySelector('#pagination-container');
-    const emptyState = document.querySelector('#empty-state');
-    const tableContainer = document.querySelector('#table-container');
-    const errorState = document.querySelector('#error-state');
-
+document.addEventListener('DOMContentLoaded', function() {
+    // State
     let currentPage = 1;
     let perPage = 10;
     let currentSearch = '';
 
-    const fetchAdmins = async () => {
-        // Show loading state
-        tableBody.style.opacity = '0.5';
+    // Elements
+    const tableBody = document.querySelector('#admins-table tbody');
+    const paginationInfo = document.getElementById('pagination-info');
+    const paginationControls = document.getElementById('pagination-controls');
+    const searchForm = document.getElementById('admins-search-form');
+    const searchInput = document.getElementById('filter-search');
+    const resetButton = document.getElementById('btn-reset');
+    const perPageSelect = document.getElementById('per-page-select');
+
+    // Init
+    loadAdmins();
+
+    // Event Listeners
+    perPageSelect.addEventListener('change', function() {
+        perPage = parseInt(this.value, 10);
+        currentPage = 1; // Reset to first page
+        loadAdmins();
+    });
+
+    searchForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        currentSearch = searchInput.value;
+        currentPage = 1; // Reset to first page
+        loadAdmins();
+    });
+
+    resetButton.addEventListener('click', function() {
+        searchInput.value = '';
+        currentSearch = '';
+        currentPage = 1;
+        loadAdmins();
+    });
+
+    // Main Load Function
+    async function loadAdmins() {
+        setLoading();
 
         // Build query string
         const params = new URLSearchParams({
@@ -24,7 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Updated to match route /api/admins
             const response = await fetch(`/api/admins?${params.toString()}`, {
                 method: 'GET',
                 headers: {
@@ -34,102 +60,99 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                throw new Error('Failed to load admins');
             }
 
             const result = await response.json();
             renderTable(result.data);
             renderPagination(result.meta);
 
-            // Toggle Empty/Table/Error
-            if (result.data.length === 0) {
-                tableContainer.classList.add('hidden');
-                emptyState.classList.remove('hidden');
-            } else {
-                tableContainer.classList.remove('hidden');
-                emptyState.classList.add('hidden');
-            }
-            errorState.classList.add('hidden');
-
         } catch (error) {
-            console.error('Error fetching admins:', error);
-            tableContainer.classList.add('hidden');
-            emptyState.classList.add('hidden');
-            errorState.classList.remove('hidden');
-        } finally {
-            tableBody.style.opacity = '1';
+            console.error('Error:', error);
+            tableBody.innerHTML = '<tr><td colspan="3" class="text-center text-danger">Error loading data: ' + escapeHtml(error.message) + '</td></tr>';
         }
-    };
+    }
 
-    const renderTable = (admins) => {
-        tableBody.innerHTML = '';
-        admins.forEach(admin => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${admin.id}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${escapeHtml(admin.email)}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${admin.created_at}</td>
-            `;
-            tableBody.appendChild(row);
-        });
-    };
+    function setLoading() {
+        tableBody.innerHTML = '<tr><td colspan="3" class="text-center">Loading...</td></tr>';
+    }
 
-    const escapeHtml = (str) => {
-        if (!str) return '';
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-    };
+    function renderTable(data) {
+        if (!data || data.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="3" class="text-center">No admins found</td></tr>';
+            return;
+        }
 
-    const renderPagination = (meta) => {
-        paginationContainer.innerHTML = '';
+        tableBody.innerHTML = data.map(admin => {
+            return `
+            <tr>
+                <td>${escapeHtml(admin.id)}</td>
+                <td>${escapeHtml(admin.email)}</td>
+                <td>${escapeHtml(admin.created_at)}</td>
+            </tr>
+        `;
+        }).join('');
+    }
 
-        if (meta.total_pages <= 1) return;
+    function renderPagination(meta) {
+        const { page, per_page, total, total_pages } = meta;
 
-        // Previous
-        const prevBtn = document.createElement('button');
-        prevBtn.innerText = 'Previous';
-        prevBtn.className = `relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${meta.page === 1 ? 'text-gray-300 bg-gray-50 cursor-not-allowed' : 'text-gray-700 bg-white hover:bg-gray-50'}`;
-        prevBtn.disabled = meta.page === 1;
-        prevBtn.addEventListener('click', () => {
-            if (currentPage > 1) {
-                currentPage--;
-                fetchAdmins();
-            }
-        });
-        paginationContainer.appendChild(prevBtn);
+        const start = total === 0 ? 0 : (page - 1) * per_page + 1;
+        const end = Math.min(page * per_page, total);
 
-        // Page Info
-        const info = document.createElement('span');
-        info.className = 'mx-4 text-sm text-gray-700 self-center';
-        info.innerText = `Page ${meta.page} of ${meta.total_pages}`;
-        paginationContainer.appendChild(info);
+        paginationInfo.textContent = 'Showing ' + start + ' to ' + end + ' of ' + total + ' entries';
+
+        let html = '';
+        const totalPages = total_pages;
+
+        // Prev
+        html += '<li class="page-item ' + (page === 1 ? 'disabled' : '') + '">';
+        html += '<button class="page-link" onclick="changePage(' + (page - 1) + ')">Previous</button></li>';
+
+        // Simple pagination logic (matching Sessions JS)
+        for (let i = 1; i <= totalPages; i++) {
+             if (i === 1 || i === totalPages || (i >= page - 2 && i <= page + 2)) {
+                html += '<li class="page-item ' + (i === page ? 'active' : '') + '">';
+                html += '<button class="page-link" onclick="changePage(' + i + ')">' + i + '</button></li>';
+             } else if (i === page - 3 || i === page + 3) {
+                 html += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+             }
+        }
 
         // Next
-        const nextBtn = document.createElement('button');
-        nextBtn.innerText = 'Next';
-        nextBtn.className = `relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${meta.page === meta.total_pages ? 'text-gray-300 bg-gray-50 cursor-not-allowed' : 'text-gray-700 bg-white hover:bg-gray-50'}`;
-        nextBtn.disabled = meta.page === meta.total_pages;
-        nextBtn.addEventListener('click', () => {
-            if (currentPage < meta.total_pages) {
-                currentPage++;
-                fetchAdmins();
+        html += '<li class="page-item ' + (page === totalPages || total === 0 ? 'disabled' : '') + '">';
+        html += '<button class="page-link" onclick="changePage(' + (page + 1) + ')">Next</button></li>';
+
+        paginationControls.innerHTML = html;
+
+        // Expose changePage globally for onclick
+        window.changePage = function(newPage) {
+            if (newPage > 0 && newPage <= totalPages) {
+                currentPage = newPage;
+                loadAdmins();
             }
-        });
-        paginationContainer.appendChild(nextBtn);
-    };
+        }
+    }
 
-    // Event Listeners
-    let debounceTimer;
-    searchInput.addEventListener('input', (e) => {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-            currentSearch = e.target.value;
-            currentPage = 1; // Reset to page 1 on search
-            fetchAdmins();
-        }, 300);
-    });
+    function escapeHtml(text) {
+        if (text == null) return '';
+        return text.toString()
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
 
-    // Initial Load
-    fetchAdmins();
+    function showAlert(message, type = 'success') {
+        const alertContainer = document.getElementById('alert-container');
+        if (alertContainer) {
+            alertContainer.innerHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+        }
+    }
 });
