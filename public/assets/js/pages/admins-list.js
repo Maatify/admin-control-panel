@@ -17,8 +17,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Create Admin Elements
     const createBtn = document.getElementById('btn-create-admin');
+    const createModalEl = document.getElementById('createAdminModal');
     // @ts-ignore
-    const createModal = new bootstrap.Modal(document.getElementById('createAdminModal'));
+    const createModal = createModalEl ? new bootstrap.Modal(createModalEl) : null;
     const createForm = document.getElementById('create-admin-form');
     const createError = document.getElementById('create-admin-error');
     const saveBtn = document.getElementById('btn-save-admin');
@@ -27,12 +28,19 @@ document.addEventListener('DOMContentLoaded', function() {
     loadAdmins();
 
     // Event Listeners
-    if (createBtn) {
+    if (createBtn && createModal) {
         createBtn.addEventListener('click', function() {
             createForm.reset();
             createError.classList.add('d-none');
             createError.textContent = '';
             createModal.show();
+        });
+    }
+
+    if (createModalEl) {
+        createModalEl.addEventListener('hidden.bs.modal', function () {
+            createForm.reset();
+            createError.classList.add('d-none');
         });
     }
 
@@ -63,7 +71,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     throw new Error(result.error || 'Failed to create admin');
                 }
 
-                createModal.hide();
+                if (createModal) {
+                    createModal.hide();
+                }
                 showAlert('Admin created successfully! ID: ' + result.id);
                 loadAdmins();
 

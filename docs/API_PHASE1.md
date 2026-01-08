@@ -429,6 +429,10 @@ Creates a new system administrator with email and password.
 }
 ```
 
+**Error Responses:**
+*   **422 Unprocessable Entity:** Validation failed (e.g., Invalid email format, Password too short).
+*   **409 Conflict:** Email already registered.
+
 **Notes:**
 *   Email must be unique.
 *   Password must be at least 8 characters.

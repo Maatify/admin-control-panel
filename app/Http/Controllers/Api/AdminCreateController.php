@@ -45,11 +45,11 @@ class AdminCreateController
             $password = $data['password'] ?? '';
 
             if (!is_string($email) || $email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                return $this->error($response, 'Invalid email address', 400);
+                return $this->error($response, 'Invalid email address', 422);
             }
 
             if (!is_string($password) || strlen($password) < 8) {
-                return $this->error($response, 'Password must be at least 8 characters long', 400);
+                return $this->error($response, 'Password must be at least 8 characters long', 422);
             }
 
             $dto = new CreateAdminRequestDTO($email, $password);
@@ -76,9 +76,11 @@ class AdminCreateController
                 assert(is_int($ivLen) && $ivLen > 0);
                 $iv = random_bytes($ivLen);
                 $tag = '';
-                // @phpstan-ignore-next-line
+                /** @var string|false $ciphertext */
                 $ciphertext = openssl_encrypt($dto->email, $cipher, $encryptionKey, OPENSSL_RAW_DATA, $iv, $tag);
-                assert(is_string($ciphertext));
+                if ($ciphertext === false) {
+                    throw new RuntimeException('Encryption failed');
+                }
                 $encryptedEmail = base64_encode($iv . $tag . $ciphertext);
 
                 $this->adminEmailRepository->addEmail($adminId, $blindIndex, $encryptedEmail);
