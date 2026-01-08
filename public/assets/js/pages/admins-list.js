@@ -15,10 +15,68 @@ document.addEventListener('DOMContentLoaded', function() {
     const resetButton = document.getElementById('btn-reset');
     const perPageSelect = document.getElementById('per-page-select');
 
+    // Create Admin Elements
+    const createBtn = document.getElementById('btn-create-admin');
+    // @ts-ignore
+    const createModal = new bootstrap.Modal(document.getElementById('createAdminModal'));
+    const createForm = document.getElementById('create-admin-form');
+    const createError = document.getElementById('create-admin-error');
+    const saveBtn = document.getElementById('btn-save-admin');
+
     // Init
     loadAdmins();
 
     // Event Listeners
+    if (createBtn) {
+        createBtn.addEventListener('click', function() {
+            createForm.reset();
+            createError.classList.add('d-none');
+            createError.textContent = '';
+            createModal.show();
+        });
+    }
+
+    if (createForm) {
+        createForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            createError.classList.add('d-none');
+
+            const email = document.getElementById('create-email').value;
+            const password = document.getElementById('create-password').value;
+
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
+
+            try {
+                const response = await fetch('/api/admins/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Failed to create admin');
+                }
+
+                createModal.hide();
+                showAlert('Admin created successfully! ID: ' + result.id);
+                loadAdmins();
+
+            } catch (error) {
+                createError.textContent = error.message;
+                createError.classList.remove('d-none');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Create Admin';
+            }
+        });
+    }
+
     perPageSelect.addEventListener('change', function() {
         perPage = parseInt(this.value, 10);
         currentPage = 1; // Reset to first page

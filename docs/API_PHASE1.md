@@ -406,3 +406,31 @@ Retrieves a list of admins for UI filtering.
       ]
     }
     ```
+
+### Create Admin
+Creates a new system administrator with email and password.
+
+**Endpoint:** `POST /api/admins/create`
+**Auth Required:** Yes (Permission `admins.create`)
+
+**Request Model:**
+```json
+{
+  "email": "new.admin@example.com",
+  "password": "SecurePassword123!"
+}
+```
+
+**Response Model:**
+```json
+{
+  "id": 123,
+  "created_at": "2024-01-01 12:00:00"
+}
+```
+
+**Notes:**
+*   Email must be unique.
+*   Password must be at least 8 characters.
+*   The new admin is created with a verified email address.
+*   TOTP/2FA is not set up automatically; the new admin must set it up on first login (pending step-up).
