@@ -17,97 +17,127 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Modal Elements
     const createModalEl = document.getElementById('create-admin-modal');
-    // @ts-ignore
-    const createModal = new bootstrap.Modal(createModalEl);
     const createBtn = document.getElementById('btn-create-admin');
     const createForm = document.getElementById('create-admin-form');
     const submitBtn = document.getElementById('btn-submit-create');
     const createAlerts = document.getElementById('create-admin-alerts');
 
+    // Bootstrap Modal Instance (Initialized lazily or safely)
+    let createModal = null;
+
     // Init
     loadAdmins();
 
     // Event Listeners
-    perPageSelect.addEventListener('change', function() {
-        perPage = parseInt(this.value, 10);
-        currentPage = 1; // Reset to first page
-        loadAdmins();
-    });
+    if (perPageSelect) {
+        perPageSelect.addEventListener('change', function() {
+            perPage = parseInt(this.value, 10);
+            currentPage = 1; // Reset to first page
+            loadAdmins();
+        });
+    }
 
-    searchForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        currentAdminId = adminIdInput.value;
-        currentEmail = emailInput.value;
-        currentPage = 1; // Reset to first page
-        loadAdmins();
-    });
+    if (searchForm) {
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (adminIdInput) currentAdminId = adminIdInput.value;
+            if (emailInput) currentEmail = emailInput.value;
+            currentPage = 1; // Reset to first page
+            loadAdmins();
+        });
+    }
 
-    resetButton.addEventListener('click', function() {
-        adminIdInput.value = '';
-        emailInput.value = '';
-        currentAdminId = '';
-        currentEmail = '';
-        currentPage = 1;
-        loadAdmins();
-    });
+    if (resetButton) {
+        resetButton.addEventListener('click', function() {
+            if (adminIdInput) adminIdInput.value = '';
+            if (emailInput) emailInput.value = '';
+            currentAdminId = '';
+            currentEmail = '';
+            currentPage = 1;
+            loadAdmins();
+        });
+    }
 
     // Create Modal Logic
-    createBtn.addEventListener('click', function() {
-        createForm.reset();
-        clearValidationErrors();
-        createAlerts.innerHTML = '';
-        createModal.show();
-    });
-
-    createForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        clearValidationErrors();
-        createAlerts.innerHTML = '';
-
-        const formData = new FormData(createForm);
-        const data = Object.fromEntries(formData.entries());
-
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Creating...';
-
-        try {
-            const response = await fetch('/api/admins/create', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                if (response.status === 422 && result.errors) {
-                    showValidationErrors(result.errors);
-                } else {
-                    throw new Error(result.message || 'Failed to create admin');
-                }
-            } else {
-                // Success
-                createModal.hide();
-                showAlert('Admin created successfully', 'success');
-                createForm.reset();
-                loadAdmins();
+    if (createBtn) {
+        createBtn.addEventListener('click', function() {
+            // Check for Bootstrap availability
+            // @ts-ignore
+            if (typeof bootstrap === 'undefined') {
+                console.error('Bootstrap JS is not loaded. Cannot open modal.');
+                alert('System Error: Bootstrap JS missing.');
+                return;
             }
-        } catch (error) {
-            console.error('Create error:', error);
-            createAlerts.innerHTML = `
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    ${escapeHtml(error.message)}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            `;
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Create Admin';
-        }
-    });
+
+            if (!createModal) {
+                 // @ts-ignore
+                 createModal = new bootstrap.Modal(createModalEl);
+            }
+
+            if (createForm) createForm.reset();
+            clearValidationErrors();
+            if (createAlerts) createAlerts.innerHTML = '';
+            createModal.show();
+        });
+    }
+
+    if (createForm) {
+        createForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            clearValidationErrors();
+            if (createAlerts) createAlerts.innerHTML = '';
+
+            const formData = new FormData(createForm);
+            const data = Object.fromEntries(formData.entries());
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Creating...';
+            }
+
+            try {
+                const response = await fetch('/api/admins/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    if (response.status === 422 && result.errors) {
+                        showValidationErrors(result.errors);
+                    } else {
+                        throw new Error(result.message || 'Failed to create admin');
+                    }
+                } else {
+                    // Success
+                    if (createModal) createModal.hide();
+                    showAlert('Admin created successfully', 'success');
+                    if (createForm) createForm.reset();
+                    loadAdmins();
+                }
+            } catch (error) {
+                console.error('Create error:', error);
+                if (createAlerts) {
+                    createAlerts.innerHTML = `
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            ${escapeHtml(error.message)}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    `;
+                }
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Create Admin';
+                }
+            }
+        });
+    }
 
     function clearValidationErrors() {
         document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
@@ -135,6 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Main Load Function
     async function loadAdmins() {
+        if (!tableBody) return;
         setLoading();
 
         // Build query string
@@ -173,10 +204,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function setLoading() {
-        tableBody.innerHTML = '<tr><td colspan="3" class="text-center">Loading...</td></tr>';
+        if (tableBody) tableBody.innerHTML = '<tr><td colspan="3" class="text-center">Loading...</td></tr>';
     }
 
     function renderTable(data) {
+        if (!tableBody) return;
+
         if (!data || data.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="3" class="text-center">No admins found</td></tr>';
             return;
@@ -194,6 +227,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function renderPagination(meta) {
+        if (!paginationInfo || !paginationControls) return;
+
         const { page, per_page, total, total_pages } = meta;
 
         const start = total === 0 ? 0 : (page - 1) * per_page + 1;
