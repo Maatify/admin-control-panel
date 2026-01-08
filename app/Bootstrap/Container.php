@@ -126,6 +126,17 @@ use App\Infrastructure\Repository\SecurityEventRepository;
 use App\Infrastructure\Security\WebClientInfoProvider;
 use App\Infrastructure\Service\Google2faTotpService;
 use App\Infrastructure\UX\AdminActivityMapper;
+use App\Modules\Crypto\KeyRotation\KeyRotationService;
+use App\Modules\Crypto\KeyRotation\Providers\InMemoryKeyProvider;
+use App\Modules\Crypto\KeyRotation\Policy\StrictSingleActiveKeyPolicy;
+use App\Modules\Crypto\KeyRotation\DTO\CryptoKeyDTO;
+use App\Modules\Crypto\KeyRotation\KeyStatusEnum;
+use App\Modules\Crypto\HKDF\HKDFService;
+use App\Modules\Crypto\Reversible\Registry\ReversibleCryptoAlgorithmRegistry;
+use App\Modules\Crypto\Reversible\Algorithms\Aes256GcmAlgorithm;
+use App\Modules\Crypto\DX\CryptoDirectFactory;
+use App\Modules\Crypto\DX\CryptoContextFactory;
+use App\Modules\Crypto\DX\CryptoProvider;
 use DI\ContainerBuilder;
 use Exception;
 use PDO;
@@ -920,6 +931,73 @@ class Container
                 $service = $c->get(RememberMeService::class);
                 assert($service instanceof RememberMeService);
                 return new RememberMeMiddleware($service);
+            },
+
+            // Crypto
+            ReversibleCryptoAlgorithmRegistry::class => function (ContainerInterface $c) {
+                $registry = new ReversibleCryptoAlgorithmRegistry();
+                $registry->register(new Aes256GcmAlgorithm());
+                return $registry;
+            },
+            KeyRotationService::class => function (ContainerInterface $c) {
+                $config = $c->get(AdminConfigDTO::class);
+                assert($config instanceof AdminConfigDTO);
+
+                // Check if key is hex or raw.
+                // Assuming it's hex if it looks like hex, otherwise raw.
+                // Actually, standard is usually hex for ENV keys.
+                // Let's assume hex and try to convert, or raw.
+                // Safest: try hex2bin if ctype_xdigit, else use raw.
+                $rawKey = $config->emailEncryptionKey;
+                if (ctype_xdigit($rawKey)) {
+                    $rawKey = hex2bin($rawKey);
+                }
+
+                $keys = [
+                    new CryptoKeyDTO(
+                        'v1',
+                        (string) $rawKey,
+                        KeyStatusEnum::ACTIVE,
+                        new \DateTimeImmutable()
+                    ),
+                ];
+
+                $provider = new InMemoryKeyProvider($keys);
+                $policy = new StrictSingleActiveKeyPolicy();
+
+                return new KeyRotationService($provider, $policy);
+            },
+            HKDFService::class => function (ContainerInterface $c) {
+                return new HKDFService();
+            },
+            CryptoDirectFactory::class => function (ContainerInterface $c) {
+                $rotation = $c->get(KeyRotationService::class);
+                $registry = $c->get(ReversibleCryptoAlgorithmRegistry::class);
+                assert($rotation instanceof KeyRotationService);
+                assert($registry instanceof ReversibleCryptoAlgorithmRegistry);
+
+                return new CryptoDirectFactory($rotation, $registry);
+            },
+            CryptoContextFactory::class => function (ContainerInterface $c) {
+                $rotation = $c->get(KeyRotationService::class);
+                $hkdf = $c->get(HKDFService::class);
+                $registry = $c->get(ReversibleCryptoAlgorithmRegistry::class);
+                assert($rotation instanceof KeyRotationService);
+                assert($hkdf instanceof HKDFService);
+                assert($registry instanceof ReversibleCryptoAlgorithmRegistry);
+
+                return new CryptoContextFactory($rotation, $hkdf, $registry);
+            },
+            CryptoProvider::class => function (ContainerInterface $c) {
+                $contextFactory = $c->get(CryptoContextFactory::class);
+                $directFactory = $c->get(CryptoDirectFactory::class);
+                $passwordService = $c->get(PasswordService::class);
+
+                assert($contextFactory instanceof CryptoContextFactory);
+                assert($directFactory instanceof CryptoDirectFactory);
+                assert($passwordService instanceof PasswordService);
+
+                return new CryptoProvider($contextFactory, $directFactory, $passwordService);
             },
         ]);
 
