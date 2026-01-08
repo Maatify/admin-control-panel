@@ -778,6 +778,20 @@ class Container
                 return new \App\Http\Controllers\Api\SessionBulkRevokeController($service, $auth);
             },
 
+            // Admin List
+            \App\Domain\Contracts\AdminListReaderInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                $config = $c->get(AdminConfigDTO::class);
+                assert($pdo instanceof PDO);
+                assert($config instanceof AdminConfigDTO);
+                return new \App\Infrastructure\Reader\Admin\PdoAdminListReader($pdo, $config);
+            },
+            \App\Http\Controllers\Api\AdminListController::class => function (ContainerInterface $c) {
+                $reader = $c->get(\App\Domain\Contracts\AdminListReaderInterface::class);
+                assert($reader instanceof \App\Domain\Contracts\AdminListReaderInterface);
+                return new \App\Http\Controllers\Api\AdminListController($reader);
+            },
+
             // Phase 12
             StepUpGrantRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
