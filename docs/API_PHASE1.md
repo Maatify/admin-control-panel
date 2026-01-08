@@ -406,3 +406,41 @@ Retrieves a list of admins for UI filtering.
       ]
     }
     ```
+
+---
+
+## 👤 Admins (New)
+
+### Create Admin
+Creates a new admin with an initial email and password.
+
+**Endpoint:** `POST /api/admins/create`
+**Auth Required:** Yes (Permission `admins.create`)
+
+**Request Model (JSON):**
+```json
+{
+  "email": "newadmin@example.com",
+  "password": "secure_password",
+  "password_confirmation": "secure_password"
+}
+```
+
+**Response:**
+*   **Success (200):**
+    ```json
+    {
+      "status": "ok",
+      "admin_id": 123
+    }
+    ```
+*   **Error (422):** Validation error (e.g., email exists, passwords mismatch).
+    ```json
+    {
+      "status": "error",
+      "message": "Validation failed",
+      "errors": {
+        "email": "Email already exists"
+      }
+    }
+    ```

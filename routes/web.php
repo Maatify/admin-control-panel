@@ -117,6 +117,10 @@ return function (App $app) {
                 ->add(AuthorizationGuardMiddleware::class);
 
             // Notifications / Admins / Etc.
+            $group->post('/admins/create', \App\Http\Controllers\Api\AdminCreateController::class)
+                ->setName('admins.create')
+                ->add(AuthorizationGuardMiddleware::class);
+
             $group->post('/admins', [AdminController::class, 'create'])
                 ->setName('admin.create')
                 ->add(AuthorizationGuardMiddleware::class);

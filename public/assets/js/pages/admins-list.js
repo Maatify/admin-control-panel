@@ -15,6 +15,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const resetButton = document.getElementById('btn-reset');
     const perPageSelect = document.getElementById('per-page-select');
 
+    // Modal Elements
+    const createModalEl = document.getElementById('create-admin-modal');
+    // @ts-ignore
+    const createModal = new bootstrap.Modal(createModalEl);
+    const createBtn = document.getElementById('btn-create-admin');
+    const createForm = document.getElementById('create-admin-form');
+    const submitBtn = document.getElementById('btn-submit-create');
+    const createAlerts = document.getElementById('create-admin-alerts');
+
     // Init
     loadAdmins();
 
@@ -42,14 +51,96 @@ document.addEventListener('DOMContentLoaded', function() {
         loadAdmins();
     });
 
+    // Create Modal Logic
+    createBtn.addEventListener('click', function() {
+        createForm.reset();
+        clearValidationErrors();
+        createAlerts.innerHTML = '';
+        createModal.show();
+    });
+
+    createForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        clearValidationErrors();
+        createAlerts.innerHTML = '';
+
+        const formData = new FormData(createForm);
+        const data = Object.fromEntries(formData.entries());
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating...';
+
+        try {
+            const response = await fetch('/api/admins/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                if (response.status === 422 && result.errors) {
+                    showValidationErrors(result.errors);
+                } else {
+                    throw new Error(result.message || 'Failed to create admin');
+                }
+            } else {
+                // Success
+                createModal.hide();
+                showAlert('Admin created successfully', 'success');
+                createForm.reset();
+                loadAdmins();
+            }
+        } catch (error) {
+            console.error('Create error:', error);
+            createAlerts.innerHTML = `
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    ${escapeHtml(error.message)}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Create Admin';
+        }
+    });
+
+    function clearValidationErrors() {
+        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        document.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+    }
+
+    function showValidationErrors(errors) {
+        for (const [field, message] of Object.entries(errors)) {
+            const input = document.getElementById(`create-${field}`);
+            const errorDiv = document.getElementById(`error-${field}`);
+            if (input && errorDiv) {
+                input.classList.add('is-invalid');
+                errorDiv.textContent = message;
+            } else if (field === 'password_confirmation') {
+                // Fallback for underscore mismatch if any
+                 const inputConf = document.getElementById('create-password-confirmation');
+                 const errorDivConf = document.getElementById('error-password-confirmation');
+                 if (inputConf && errorDivConf) {
+                    inputConf.classList.add('is-invalid');
+                    errorDivConf.textContent = message;
+                 }
+            }
+        }
+    }
+
     // Main Load Function
     async function loadAdmins() {
         setLoading();
 
         // Build query string
         const params = new URLSearchParams({
-            page: currentPage,
-            per_page: perPage,
+            page: currentPage.toString(),
+            per_page: perPage.toString(),
         });
         if (currentAdminId) {
             params.append('id', currentAdminId);
@@ -115,13 +206,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Prev
         html += '<li class="page-item ' + (page === 1 ? 'disabled' : '') + '">';
-        html += '<button class="page-link" onclick="changePage(' + (page - 1) + ')">Previous</button></li>';
+        html += '<button class="page-link" onclick="window.changePage(' + (page - 1) + ')">Previous</button></li>';
 
         // Simple pagination logic (matching Sessions JS)
         for (let i = 1; i <= totalPages; i++) {
              if (i === 1 || i === totalPages || (i >= page - 2 && i <= page + 2)) {
                 html += '<li class="page-item ' + (i === page ? 'active' : '') + '">';
-                html += '<button class="page-link" onclick="changePage(' + i + ')">' + i + '</button></li>';
+                html += '<button class="page-link" onclick="window.changePage(' + i + ')">' + i + '</button></li>';
              } else if (i === page - 3 || i === page + 3) {
                  html += '<li class="page-item disabled"><span class="page-link">...</span></li>';
              }
@@ -129,11 +220,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Next
         html += '<li class="page-item ' + (page === totalPages || total === 0 ? 'disabled' : '') + '">';
-        html += '<button class="page-link" onclick="changePage(' + (page + 1) + ')">Next</button></li>';
+        html += '<button class="page-link" onclick="window.changePage(' + (page + 1) + ')">Next</button></li>';
 
         paginationControls.innerHTML = html;
 
         // Expose changePage globally for onclick
+        // @ts-ignore
         window.changePage = function(newPage) {
             if (newPage > 0 && newPage <= totalPages) {
                 currentPage = newPage;
