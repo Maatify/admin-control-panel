@@ -106,6 +106,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(admins): finalize Admins List (pagination, search, UI/JS parity)
 - feat(crypto): add reversible crypto engine (fail-closed, library-grade)
 - feat(crypto): introduce key rotation module with strict policy and tests
+- feat(crypto): add HKDF module with context-based key derivation
 
 ---
 
