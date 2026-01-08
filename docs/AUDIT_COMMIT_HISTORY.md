@@ -107,6 +107,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(crypto): add reversible crypto engine (fail-closed, library-grade)
 - feat(crypto): introduce key rotation module with strict policy and tests
 - feat(crypto): add HKDF module with context-based key derivation
+- feat(crypto/password): introduce DI-based Argon2id + pepper password hashing module
 
 ---
 
