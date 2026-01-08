@@ -6,6 +6,7 @@ use App\Domain\Service\SessionValidationService;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminEmailVerificationController;
 use App\Http\Controllers\AdminNotificationPreferenceController;
+use App\Http\Controllers\Api\AdminListController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NotificationQueryController;
 use App\Http\Middleware\AuthorizationGuardMiddleware;
@@ -59,7 +60,11 @@ return function (App $app) {
         $group->group('', function (RouteCollectorProxy $protectedGroup) {
             $protectedGroup->get('/', [\App\Http\Controllers\Ui\UiDashboardController::class, 'index']);
             $protectedGroup->get('/dashboard', [\App\Http\Controllers\Ui\UiDashboardController::class, 'index']);
-            $protectedGroup->get('/admins', [\App\Http\Controllers\Ui\UiAdminsController::class, 'index']);
+
+            $protectedGroup->get('/admins', [\App\Http\Controllers\Ui\UiAdminsController::class, 'index'])
+                ->setName('admins.list')
+                ->add(AuthorizationGuardMiddleware::class);
+
             $protectedGroup->get('/roles', [\App\Http\Controllers\Ui\UiRolesController::class, 'index']);
             $protectedGroup->get('/permissions', [\App\Http\Controllers\Ui\UiPermissionsController::class, 'index']);
             $protectedGroup->get('/settings', [\App\Http\Controllers\Ui\UiSettingsController::class, 'index']);
@@ -107,8 +112,8 @@ return function (App $app) {
                 ->setName('sessions.revoke')
                 ->add(AuthorizationGuardMiddleware::class);
 
-            $group->get('/admins/list', [\App\Http\Controllers\Api\AdminListController::class, '__invoke'])
-                ->setName('sessions.view_all')
+            $group->get('/admins', [AdminListController::class, '__invoke'])
+                ->setName('admins.list')
                 ->add(AuthorizationGuardMiddleware::class);
 
             // Notifications / Admins / Etc.
@@ -152,11 +157,6 @@ return function (App $app) {
                 ->setName('admin.notifications.read')
                 ->add(AuthorizationGuardMiddleware::class);
 
-            // Note: 2FA Setup/Verify API endpoints could be added here if needed, but currently Web 2FA controller handles UI logic.
-            // Keeping them exposed as API requires separate controllers or careful handling.
-            // For now, moving existing Web controllers to API path if they were intended for API, but mostly they were mixed.
-            // The prompt says "GET /api/admins".
-            // I've moved the admin routes here.
         })
         ->add(\App\Http\Middleware\ScopeGuardMiddleware::class)
         ->add(\App\Http\Middleware\SessionStateGuardMiddleware::class)

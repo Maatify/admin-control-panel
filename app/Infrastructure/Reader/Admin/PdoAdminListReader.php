@@ -6,6 +6,9 @@ namespace App\Infrastructure\Reader\Admin;
 
 use App\Domain\Contracts\AdminListReaderInterface;
 use App\Domain\DTO\AdminConfigDTO;
+use App\Domain\DTO\AdminList\AdminListItemDTO;
+use App\Domain\DTO\AdminList\AdminListQueryDTO;
+use App\Domain\DTO\AdminList\AdminListResponseDTO;
 use PDO;
 
 class PdoAdminListReader implements AdminListReaderInterface
@@ -61,6 +64,97 @@ class PdoAdminListReader implements AdminListReaderInterface
         }
 
         return $admins;
+    }
+
+    public function listAdmins(AdminListQueryDTO $query): AdminListResponseDTO
+    {
+        $params = [];
+        $whereClauses = ["1=1"];
+
+        if ($query->search !== null && $query->search !== '') {
+            if (is_numeric($query->search)) {
+                $whereClauses[] = "a.id = :search_id";
+                $params['search_id'] = (int)$query->search;
+            } else {
+                // Blind Index Search
+                // Note: We assume standard normalization (lowercase + trim) before hashing,
+                // matching the likely implementation in AdminAuthenticationService.
+                $normalizedEmail = strtolower(trim($query->search));
+                $blindIndex = hash_hmac('sha256', $normalizedEmail, $this->config->emailBlindIndexKey);
+
+                $whereClauses[] = "ae.email_blind_index = :blind_index";
+                $params['blind_index'] = $blindIndex;
+            }
+        }
+
+        $whereSql = implode(' AND ', $whereClauses);
+
+        // Count Total
+        $countSql = "
+            SELECT COUNT(DISTINCT a.id)
+            FROM admins a
+            LEFT JOIN admin_emails ae ON a.id = ae.admin_id
+            WHERE {$whereSql}
+        ";
+
+        $stmt = $this->pdo->prepare($countSql);
+        $stmt->execute($params);
+        $total = (int)$stmt->fetchColumn();
+
+        // Fetch Data
+        $sql = "
+            SELECT
+                a.id,
+                a.created_at,
+                (SELECT email_encrypted FROM admin_emails WHERE admin_id = a.id ORDER BY id ASC LIMIT 1) as email_encrypted
+            FROM admins a
+            LEFT JOIN admin_emails ae ON a.id = ae.admin_id
+            WHERE {$whereSql}
+            GROUP BY a.id
+            ORDER BY a.created_at DESC
+            LIMIT :limit OFFSET :offset
+        ";
+
+        $stmt = $this->pdo->prepare($sql);
+        foreach ($params as $key => $val) {
+            $stmt->bindValue($key, $val);
+        }
+        $stmt->bindValue('limit', $query->perPage, PDO::PARAM_INT);
+        $stmt->bindValue('offset', ($query->page - 1) * $query->perPage, PDO::PARAM_INT);
+
+        $stmt->execute();
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $dtos = [];
+        foreach ($rows as $row) {
+            /** @var array{id: int|string, created_at: string, email_encrypted: ?string} $row */
+
+            $email = 'N/A';
+            if (!empty($row['email_encrypted'])) {
+                $decrypted = $this->decryptEmail($row['email_encrypted']);
+                if ($decrypted !== null) {
+                    $email = $decrypted;
+                }
+            }
+
+            $dtos[] = new AdminListItemDTO(
+                id: (int)$row['id'],
+                email: $email,
+                createdAt: $row['created_at']
+            );
+        }
+
+        $totalPages = $total > 0 ? (int)ceil($total / $query->perPage) : 1;
+
+        return new AdminListResponseDTO(
+            data: $dtos,
+            meta: [
+                'page' => $query->page,
+                'per_page' => $query->perPage,
+                'total' => $total,
+                'total_pages' => $totalPages
+            ]
+        );
     }
 
     private function decryptEmail(string $encryptedEmail): ?string
