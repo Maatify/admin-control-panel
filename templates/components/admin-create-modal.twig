@@ -1,0 +1,33 @@
+{# templates/components/admin-create-modal.twig #}
+<div class="modal fade" id="modal-create-admin" tabindex="-1" aria-labelledby="modalCreateAdminLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCreateAdminLabel">Create New Admin</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-create-admin" novalidate>
+                    <div id="create-admin-errors" class="alert alert-danger d-none"></div>
+
+                    <div class="mb-3">
+                        <label for="create-admin-email" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="create-admin-email" name="email" required>
+                        <div class="invalid-feedback" id="error-create-admin-email"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="create-admin-password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="create-admin-password" name="password" minlength="8" required>
+                        <div class="form-text">Must be at least 8 characters.</div>
+                        <div class="invalid-feedback" id="error-create-admin-password"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="form-create-admin" class="btn btn-primary" id="btn-submit-create-admin">Create Admin</button>
+            </div>
+        </div>
+    </div>
+</div>

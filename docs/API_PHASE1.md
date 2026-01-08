@@ -406,3 +406,61 @@ Retrieves a list of admins for UI filtering.
       ]
     }
     ```
+
+---
+
+## 👤 Admins
+
+### Create Admin
+Creates a new admin account with email and password.
+
+**Endpoint:** `POST /api/admins/create`
+**Auth Required:** Yes (Permission `admins.create`)
+
+**Request Model:**
+```json
+{
+  "email": "string",
+  "password": "string"
+}
+```
+
+**Response Models:**
+
+*   **Success (201):**
+    ```json
+    {
+      "status": "success"
+    }
+    ```
+
+*   **Validation Error (422):**
+    ```json
+    {
+      "status": "error",
+      "errors": {
+        "email": ["Invalid email"],
+        "password": ["Too short"]
+      }
+    }
+    ```
+
+*   **Conflict (409):**
+    ```json
+    {
+      "status": "error",
+      "message": "Admin already exists"
+    }
+    ```
+
+*   **Server Error (500):**
+    ```json
+    {
+      "status": "error",
+      "message": "Unable to create admin"
+    }
+    ```
+
+**Notes:**
+*   Created admin is in `PENDING_STEP_UP` state (no TOTP configured).
+*   TOTP setup is required on first login.

@@ -116,7 +116,14 @@ return function (App $app) {
                 ->setName('admins.list')
                 ->add(AuthorizationGuardMiddleware::class);
 
+            $group->post('/admins/create', \App\Http\Controllers\Api\AdminCreateController::class)
+                ->setName('admins.create')
+                ->add(AuthorizationGuardMiddleware::class);
+
             // Notifications / Admins / Etc.
+            // Old generic admin create - REMOVE if conflicting, but prompt says "implement from scratch".
+            // The existing one points to `AdminController::class`, which might be legacy.
+            // I will keep the new one specific and authoritative.
             $group->post('/admins', [AdminController::class, 'create'])
                 ->setName('admin.create')
                 ->add(AuthorizationGuardMiddleware::class);

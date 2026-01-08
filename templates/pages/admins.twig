@@ -7,6 +7,11 @@
     {# Header #}
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">Admins</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <button type="button" class="btn btn-sm btn-primary" id="btn-create-admin">
+                Create New Admin
+            </button>
+        </div>
     </div>
 
     <div id="alert-container"></div>
@@ -74,8 +79,11 @@
         </div>
     </div>
 </div>
+
+{% include 'components/admin-create-modal.twig' %}
 {% endblock %}
 
 {% block scripts %}
+<script src="/assets/js/admin-create.js"></script>
 <script src="/assets/js/pages/admins-list.js"></script>
 {% endblock %}

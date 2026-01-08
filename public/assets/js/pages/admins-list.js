@@ -18,6 +18,23 @@ document.addEventListener('DOMContentLoaded', function() {
     // Init
     loadAdmins();
 
+    // Wire up AdminCreate if available
+    const btnCreate = document.getElementById('btn-create-admin');
+    if (btnCreate) {
+        btnCreate.addEventListener('click', function() {
+            if (window.AdminCreate) {
+                window.AdminCreate.open();
+            }
+        });
+    }
+
+    if (window.AdminCreate) {
+        window.AdminCreate.onSuccess(function() {
+            showAlert('Admin created successfully');
+            loadAdmins();
+        });
+    }
+
     // Event Listeners
     perPageSelect.addEventListener('change', function() {
         perPage = parseInt(this.value, 10);
