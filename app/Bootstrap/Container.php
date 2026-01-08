@@ -7,6 +7,7 @@ namespace App\Bootstrap;
 use App\Domain\Contracts\AdminActivityQueryInterface;
 use App\Domain\Contracts\AdminDirectPermissionRepositoryInterface;
 use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
+use App\Domain\Contracts\AdminListReaderInterface;
 use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\AdminNotificationChannelRepositoryInterface;
 use App\Domain\Contracts\AdminNotificationHistoryReaderInterface;
@@ -69,6 +70,7 @@ use App\Http\Controllers\Web\EmailVerificationController;
 use App\Http\Controllers\Web\LoginController;
 use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Controllers\Web\TelegramConnectController;
+use App\Http\Controllers\Api\AdminListController;
 use App\Http\Controllers\Web\TwoFactorController;
 use App\Http\Controllers\Ui\UiAdminsController;
 use App\Http\Controllers\Ui\UiDashboardController;
@@ -89,6 +91,7 @@ use App\Infrastructure\Audit\PdoAdminTargetedAuditReader;
 use App\Infrastructure\Audit\PdoAuthoritativeAuditWriter;
 use App\Infrastructure\Database\PDOFactory;
 use App\Infrastructure\Notification\TelegramHandler;
+use App\Infrastructure\Reader\Admin\PdoAdminListReader;
 use App\Infrastructure\Repository\AdminActivityQueryRepository;
 use App\Infrastructure\Repository\AdminEmailRepository;
 use App\Infrastructure\Repository\AdminNotificationChannelRepository;
@@ -767,6 +770,15 @@ class Container
                 assert($auth instanceof \App\Domain\Service\AuthorizationService);
                 return new \App\Http\Controllers\Api\SessionRevokeController($service, $auth);
             },
+            \App\Http\Controllers\Api\SessionBulkRevokeController::class => function (ContainerInterface $c) {
+                $service = $c->get(\App\Domain\Service\SessionRevocationService::class);
+                $auth = $c->get(\App\Domain\Service\AuthorizationService::class);
+                assert($service instanceof \App\Domain\Service\SessionRevocationService);
+                assert($auth instanceof \App\Domain\Service\AuthorizationService);
+                return new \App\Http\Controllers\Api\SessionBulkRevokeController($service, $auth);
+            },
+
+            // Admin List
             \App\Domain\Contracts\AdminListReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 $config = $c->get(AdminConfigDTO::class);
@@ -776,17 +788,8 @@ class Container
             },
             \App\Http\Controllers\Api\AdminListController::class => function (ContainerInterface $c) {
                 $reader = $c->get(\App\Domain\Contracts\AdminListReaderInterface::class);
-                $auth = $c->get(\App\Domain\Service\AuthorizationService::class);
                 assert($reader instanceof \App\Domain\Contracts\AdminListReaderInterface);
-                assert($auth instanceof \App\Domain\Service\AuthorizationService);
-                return new \App\Http\Controllers\Api\AdminListController($reader, $auth);
-            },
-            \App\Http\Controllers\Api\SessionBulkRevokeController::class => function (ContainerInterface $c) {
-                $service = $c->get(\App\Domain\Service\SessionRevocationService::class);
-                $auth = $c->get(\App\Domain\Service\AuthorizationService::class);
-                assert($service instanceof \App\Domain\Service\SessionRevocationService);
-                assert($auth instanceof \App\Domain\Service\AuthorizationService);
-                return new \App\Http\Controllers\Api\SessionBulkRevokeController($service, $auth);
+                return new \App\Http\Controllers\Api\AdminListController($reader);
             },
 
             // Phase 12

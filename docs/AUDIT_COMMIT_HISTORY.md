@@ -103,6 +103,7 @@ Entries MUST NOT be rewritten or reordered.
 - docs(phase): close sessions management phase with full audit verification
 - docs(project): add canonical project context and execution task checklist
 - docs(audit): add Phase 14 readiness optimization & refactor audit
+- feat(admins): finalize Admins List (pagination, search, UI/JS parity)
 
 ---
 
