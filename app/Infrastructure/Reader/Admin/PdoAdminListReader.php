@@ -71,20 +71,16 @@ class PdoAdminListReader implements AdminListReaderInterface
         $params = [];
         $whereClauses = ["1=1"];
 
-        if ($query->search !== null && $query->search !== '') {
-            if (is_numeric($query->search)) {
-                $whereClauses[] = "a.id = :search_id";
-                $params['search_id'] = (int)$query->search;
-            } else {
-                // Blind Index Search
-                // Note: We assume standard normalization (lowercase + trim) before hashing,
-                // matching the likely implementation in AdminAuthenticationService.
-                $normalizedEmail = strtolower(trim($query->search));
-                $blindIndex = hash_hmac('sha256', $normalizedEmail, $this->config->emailBlindIndexKey);
+        if ($query->adminId !== null) {
+            $whereClauses[] = "a.id = :admin_id";
+            $params['admin_id'] = $query->adminId;
+        }
 
-                $whereClauses[] = "ae.email_blind_index = :blind_index";
-                $params['blind_index'] = $blindIndex;
-            }
+        if ($query->email !== null) {
+            $normalizedEmail = strtolower(trim($query->email));
+            $blindIndex = hash_hmac('sha256', $normalizedEmail, $this->config->emailBlindIndexKey);
+            $whereClauses[] = "ae.email_blind_index = :blind_index";
+            $params['blind_index'] = $blindIndex;
         }
 
         $whereSql = implode(' AND ', $whereClauses);
@@ -106,7 +102,7 @@ class PdoAdminListReader implements AdminListReaderInterface
             SELECT
                 a.id,
                 a.created_at,
-                (SELECT email_encrypted FROM admin_emails WHERE admin_id = a.id ORDER BY id ASC LIMIT 1) as email_encrypted
+                (SELECT email_encrypted FROM admin_emails ae2 WHERE ae2.admin_id = a.id ORDER BY ae2.id ASC LIMIT 1) as email_encrypted
             FROM admins a
             LEFT JOIN admin_emails ae ON a.id = ae.admin_id
             WHERE {$whereSql}

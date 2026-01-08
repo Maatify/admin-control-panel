@@ -2,14 +2,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // State
     let currentPage = 1;
     let perPage = 10;
-    let currentSearch = '';
+    let currentAdminId = '';
+    let currentEmail = '';
 
     // Elements
     const tableBody = document.querySelector('#admins-table tbody');
     const paginationInfo = document.getElementById('pagination-info');
     const paginationControls = document.getElementById('pagination-controls');
     const searchForm = document.getElementById('admins-search-form');
-    const searchInput = document.getElementById('filter-search');
+    const adminIdInput = document.getElementById('filter-admin-id');
+    const emailInput = document.getElementById('filter-email');
     const resetButton = document.getElementById('btn-reset');
     const perPageSelect = document.getElementById('per-page-select');
 
@@ -25,14 +27,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     searchForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        currentSearch = searchInput.value;
+        currentAdminId = adminIdInput.value;
+        currentEmail = emailInput.value;
         currentPage = 1; // Reset to first page
         loadAdmins();
     });
 
     resetButton.addEventListener('click', function() {
-        searchInput.value = '';
-        currentSearch = '';
+        adminIdInput.value = '';
+        emailInput.value = '';
+        currentAdminId = '';
+        currentEmail = '';
         currentPage = 1;
         loadAdmins();
     });
@@ -46,8 +51,11 @@ document.addEventListener('DOMContentLoaded', function() {
             page: currentPage,
             per_page: perPage,
         });
-        if (currentSearch) {
-            params.append('search', currentSearch);
+        if (currentAdminId) {
+            params.append('id', currentAdminId);
+        }
+        if (currentEmail) {
+            params.append('email', currentEmail);
         }
 
         try {
