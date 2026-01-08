@@ -8,7 +8,7 @@ use App\Domain\Contracts\AdminPasswordRepositoryInterface;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\DTO\AdminConfigDTO;
 use App\Domain\DTO\AuditEventDTO;
-use App\Domain\DTO\Request\CreateAdminRequestDTO;
+use App\Domain\Exception\InvalidIdentifierFormatException;
 use App\Domain\Service\PasswordService;
 use App\Infrastructure\Repository\AdminEmailRepository;
 use App\Infrastructure\Repository\AdminRepository;
@@ -40,10 +40,28 @@ class AdminCreateController
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
+        // Validate Input Inline (No DTO)
+        $email = $data['email'] ?? null;
+        $password = $data['password'] ?? null;
+        $passwordConfirmation = $data['password_confirmation'] ?? null;
+
         try {
-            $dto = new CreateAdminRequestDTO($data);
-        } catch (\App\Domain\Exception\InvalidIdentifierFormatException $e) {
-            // Email error
+            if (!is_string($email) || trim($email) === '') {
+                throw new InvalidIdentifierFormatException('Invalid or missing email');
+            }
+            $email = trim(strtolower($email));
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                throw new InvalidIdentifierFormatException('Invalid email format');
+            }
+
+            if (!is_string($password) || $password === '') {
+                throw new InvalidArgumentException('Password is required');
+            }
+
+            if ($password !== $passwordConfirmation) {
+                throw new InvalidArgumentException('Passwords do not match');
+            }
+        } catch (InvalidIdentifierFormatException $e) {
             $response->getBody()->write((string)json_encode([
                 'status' => 'error',
                 'message' => $e->getMessage(),
@@ -51,12 +69,10 @@ class AdminCreateController
             ]));
             return $response->withStatus(422)->withHeader('Content-Type', 'application/json');
         } catch (InvalidArgumentException $e) {
-            // Password or other validation error
             $field = 'password';
             if (str_contains(strtolower($e->getMessage()), 'match')) {
                 $field = 'password_confirmation';
             }
-
             $response->getBody()->write((string)json_encode([
                 'status' => 'error',
                 'message' => $e->getMessage(),
@@ -66,9 +82,8 @@ class AdminCreateController
         }
 
         $creatorId = $request->getAttribute('admin_id');
-        // Type assertion for PHPStan
         if (!is_int($creatorId)) {
-             $creatorId = 0; // Should not happen behind middleware
+             $creatorId = 0;
         }
 
         try {
@@ -76,7 +91,7 @@ class AdminCreateController
 
             // 1. Check if email exists
             $blindIndexKey = $this->config->emailBlindIndexKey;
-            $blindIndex = hash_hmac('sha256', $dto->email, $blindIndexKey);
+            $blindIndex = hash_hmac('sha256', $email, $blindIndexKey);
 
             if ($this->adminEmailRepository->findByBlindIndex($blindIndex) !== null) {
                 $this->pdo->rollBack();
@@ -97,9 +112,9 @@ class AdminCreateController
             $ivLen = openssl_cipher_iv_length($cipher);
             assert(is_int($ivLen) && $ivLen > 0);
             $iv = random_bytes($ivLen);
-            $tag = ''; // Passed by reference
+            $tag = '';
             // @phpstan-ignore-next-line
-            $encryptedEmailRaw = openssl_encrypt($dto->email, $cipher, $encryptionKey, OPENSSL_RAW_DATA, $iv, $tag);
+            $encryptedEmailRaw = openssl_encrypt($email, $cipher, $encryptionKey, OPENSSL_RAW_DATA, $iv, $tag);
             if ($encryptedEmailRaw === false) {
                  throw new \RuntimeException("Encryption failed");
             }
@@ -109,7 +124,7 @@ class AdminCreateController
             $this->adminEmailRepository->markVerified($newAdminId, (new DateTimeImmutable())->format('Y-m-d H:i:s'));
 
             // 4. Password
-            $hash = $this->passwordService->hash($dto->password);
+            $hash = $this->passwordService->hash($password);
             $this->adminPasswordRepository->savePassword($newAdminId, $hash);
 
             // 5. Audit
@@ -118,7 +133,7 @@ class AdminCreateController
                 'admin_created',
                 'admin',
                 $newAdminId,
-                'WARNING', // Admin creation is sensitive
+                'WARNING',
                 ['email_hash' => substr($blindIndex, 0, 8) . '...'],
                 bin2hex(random_bytes(16)),
                 new DateTimeImmutable()
@@ -133,8 +148,8 @@ class AdminCreateController
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
             }
-            // Log error internally if needed, but return generic error to user
-            $response->getBody()->write((string)json_encode(['status' => 'error', 'message' => 'Internal Server Error: ' . $e->getMessage()]));
+            // Log error internally if needed
+            $response->getBody()->write((string)json_encode(['status' => 'error', 'message' => 'Internal Server Error']));
             return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
         }
     }
