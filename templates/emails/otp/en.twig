@@ -4,9 +4,10 @@
 
 {% block body %}
     <h2>Your Verification Code</h2>
-    <p>Please use the following code to complete your verification:</p>
+    <p>Hello {{ display_name }},</p>
+    <p>Here is your {{ purpose }} code:</p>
     <div style="font-size: 24px; font-weight: bold; letter-spacing: 5px; padding: 15px; background-color: #e9ecef; border-radius: 5px; display: inline-block;">
-        {{ code }}
+        {{ otp_code }}
     </div>
-    <p>This code will expire shortly.</p>
+    <p>This code expires in {{ expires_in_minutes }} minutes.</p>
 {% endblock %}
