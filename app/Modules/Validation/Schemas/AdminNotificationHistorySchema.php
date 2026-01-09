@@ -14,6 +14,7 @@ class AdminNotificationHistorySchema extends AbstractSchema
         return [
             'admin_id' => [v::intVal(), ValidationErrorCodeEnum::REQUIRED_FIELD],
             'page' => [v::optional(v::intVal()->min(1)), ValidationErrorCodeEnum::REQUIRED_FIELD],
+            'per_page' => [v::optional(v::intVal()->min(1)->max(100)), ValidationErrorCodeEnum::REQUIRED_FIELD],
             'limit' => [v::optional(v::intVal()->min(1)), ValidationErrorCodeEnum::REQUIRED_FIELD],
             'notification_type' => [v::optional(v::stringType()), ValidationErrorCodeEnum::REQUIRED_FIELD],
             'is_read' => [v::optional(v::boolVal()), ValidationErrorCodeEnum::REQUIRED_FIELD],

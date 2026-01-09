@@ -14,8 +14,12 @@ class NotificationQuerySchema extends AbstractSchema
         return [
             'status' => [v::optional(v::stringType()), ValidationErrorCodeEnum::REQUIRED_FIELD],
             'channel' => [v::optional(v::stringType()), ValidationErrorCodeEnum::REQUIRED_FIELD],
+            'page' => [v::optional(v::intVal()->min(1)), ValidationErrorCodeEnum::REQUIRED_FIELD],
+            'per_page' => [v::optional(v::intVal()->min(1)->max(100)), ValidationErrorCodeEnum::REQUIRED_FIELD],
             'from' => [v::optional(v::date()), ValidationErrorCodeEnum::REQUIRED_FIELD],
             'to' => [v::optional(v::date()), ValidationErrorCodeEnum::REQUIRED_FIELD],
+            'from_date' => [v::optional(v::date()), ValidationErrorCodeEnum::REQUIRED_FIELD],
+            'to_date' => [v::optional(v::date()), ValidationErrorCodeEnum::REQUIRED_FIELD],
             'admin_id' => [v::optional(v::intVal()), ValidationErrorCodeEnum::REQUIRED_FIELD],
         ];
     }
