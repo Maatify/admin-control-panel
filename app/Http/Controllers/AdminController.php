@@ -13,6 +13,10 @@ use App\Domain\Enum\IdentifierType;
 use App\Domain\Exception\InvalidIdentifierFormatException;
 use App\Infrastructure\Repository\AdminEmailRepository;
 use App\Infrastructure\Repository\AdminRepository;
+use App\Modules\Validation\Guard\ValidationGuard;
+use App\Modules\Validation\Schemas\AdminAddEmailSchema;
+use App\Modules\Validation\Schemas\AdminGetEmailSchema;
+use App\Modules\Validation\Schemas\AdminLookupEmailSchema;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Random\RandomException;
@@ -24,7 +28,8 @@ class AdminController
     public function __construct(
         private AdminRepository $adminRepository,
         private AdminEmailRepository $adminEmailRepository,
-        private AdminConfigDTO $config
+        private AdminConfigDTO $config,
+        private ValidationGuard $validationGuard
     ) {
     }
 
@@ -54,19 +59,19 @@ class AdminController
     {
         $adminId = (int)$args['id'];
         
-        $data = $request->getParsedBody();
-        if (!is_array($data)) {
-            throw new HttpBadRequestException($request, 'Invalid JSON body.');
-        }
+        $data = (array)$request->getParsedBody();
+
+        $input = array_merge($data, $args);
+
+        $this->validationGuard->check(new AdminAddEmailSchema(), $input);
 
         $emailInput = $data[IdentifierType::EMAIL->value] ?? null;
-        if (!is_string($emailInput) || $emailInput === '') {
-            throw new HttpBadRequestException($request, 'Invalid or missing email.');
-        }
 
         try {
             $requestDto = new CreateAdminEmailRequestDTO($emailInput);
         } catch (InvalidIdentifierFormatException $e) {
+            // Should be caught by validation guard technically, but if schema checks v::email(), it is good.
+            // But we keep this just in case.
             throw new HttpBadRequestException($request, 'Invalid email format.');
         }
         $email = $requestDto->email;
@@ -113,19 +118,16 @@ class AdminController
      */
     public function lookupEmail(Request $request, Response $response): Response
     {
-        $data = $request->getParsedBody();
-        if (!is_array($data)) {
-            throw new HttpBadRequestException($request, 'Invalid JSON body.');
-        }
+        $data = (array)$request->getParsedBody();
+
+        $this->validationGuard->check(new AdminLookupEmailSchema(), $data);
         
         $emailInput = $data[IdentifierType::EMAIL->value] ?? null;
-        if (!is_string($emailInput) || $emailInput === '') {
-             throw new HttpBadRequestException($request, 'Invalid or missing email.');
-        }
 
         try {
             $requestDto = new VerifyAdminEmailRequestDTO($emailInput);
         } catch (InvalidIdentifierFormatException $e) {
+             // Redundant with validation but safe
             throw new HttpBadRequestException($request, 'Invalid email format.');
         }
         $email = $requestDto->email;
@@ -158,6 +160,8 @@ class AdminController
      */
     public function getEmail(Request $request, Response $response, array $args): Response
     {
+        $this->validationGuard->check(new AdminGetEmailSchema(), $args);
+
         $adminId = (int)$args['id'];
 
         $encryptedEmail = $this->adminEmailRepository->getEncryptedEmail($adminId);

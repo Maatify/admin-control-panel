@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Domain\Service\SessionRevocationService;
 use App\Domain\Service\AuthorizationService;
+use App\Modules\Validation\Guard\ValidationGuard;
+use App\Modules\Validation\Schemas\SessionBulkRevokeSchema;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use DomainException;
@@ -14,7 +16,8 @@ class SessionBulkRevokeController
 {
     public function __construct(
         private SessionRevocationService $revocationService,
-        private AuthorizationService $authorizationService
+        private AuthorizationService $authorizationService,
+        private ValidationGuard $validationGuard
     ) {
     }
 
@@ -25,26 +28,11 @@ class SessionBulkRevokeController
 
         $this->authorizationService->checkPermission($adminId, 'sessions.revoke');
 
-        $body = $request->getParsedBody();
+        $body = (array)$request->getParsedBody();
 
-        $hashes = [];
-        if (is_array($body) && isset($body['session_ids']) && is_array($body['session_ids'])) {
-            $hashes = $body['session_ids'];
-        }
+        $this->validationGuard->check(new SessionBulkRevokeSchema(), $body);
 
-
-        if (!is_array($hashes)) {
-            $response->getBody()->write(json_encode(['error' => 'Invalid payload'], JSON_THROW_ON_ERROR));
-            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
-        }
-
-        // Validate content
-        foreach ($hashes as $hash) {
-            if (!is_string($hash)) {
-                 $response->getBody()->write(json_encode(['error' => 'Invalid session ID format'], JSON_THROW_ON_ERROR));
-                 return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
-            }
-        }
+        $hashes = $body['session_ids'];
 
         // Fetch Current Session Hash
         $cookies = $request->getCookieParams();

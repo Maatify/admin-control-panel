@@ -9,6 +9,9 @@ use App\Domain\Contracts\AdminNotificationPreferenceWriterInterface;
 use App\Domain\DTO\Notification\Preference\GetAdminPreferencesQueryDTO;
 use App\Domain\DTO\Notification\Preference\UpdateAdminNotificationPreferenceDTO;
 use App\Domain\Notification\NotificationChannelType;
+use App\Modules\Validation\Guard\ValidationGuard;
+use App\Modules\Validation\Schemas\AdminPreferenceGetSchema;
+use App\Modules\Validation\Schemas\AdminPreferenceUpsertSchema;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -16,7 +19,8 @@ class AdminNotificationPreferenceController
 {
     public function __construct(
         private AdminNotificationPreferenceReaderInterface $reader,
-        private AdminNotificationPreferenceWriterInterface $writer
+        private AdminNotificationPreferenceWriterInterface $writer,
+        private ValidationGuard $validationGuard
     ) {
     }
 
@@ -26,6 +30,9 @@ class AdminNotificationPreferenceController
         if (!is_int($adminId)) {
             throw new \RuntimeException('Invalid admin_id');
         }
+
+        $this->validationGuard->check(new AdminPreferenceGetSchema(), ['admin_id' => $adminId]);
+
         $query = new GetAdminPreferencesQueryDTO($adminId);
         $preferences = $this->reader->getPreferences($query);
 
@@ -45,20 +52,14 @@ class AdminNotificationPreferenceController
             throw new \RuntimeException('Invalid admin_id');
         }
         /** @var array<string, mixed> $body */
-        $body = $request->getParsedBody();
+        $body = (array)$request->getParsedBody();
+        $body['admin_id'] = $adminId;
 
-        $notificationType = $body['notification_type'] ?? null;
-        $channelTypeStr = $body['channel_type'] ?? null;
-        $isEnabled = $body['is_enabled'] ?? null;
+        $this->validationGuard->check(new AdminPreferenceUpsertSchema(), $body);
 
-        if (!is_string($notificationType) || !is_string($channelTypeStr) || !is_bool($isEnabled)) {
-            $errorPayload = json_encode(['error' => 'Invalid input']);
-            if ($errorPayload === false) {
-                throw new \RuntimeException('JSON encoding failed');
-            }
-            $response->getBody()->write($errorPayload);
-            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
-        }
+        $notificationType = $body['notification_type'];
+        $channelTypeStr = $body['channel_type'];
+        $isEnabled = $body['is_enabled'];
 
         $channelType = NotificationChannelType::tryFrom($channelTypeStr);
         if ($channelType === null) {

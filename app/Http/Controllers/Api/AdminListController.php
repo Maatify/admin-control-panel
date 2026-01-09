@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Domain\Contracts\AdminListReaderInterface;
 use App\Domain\DTO\AdminList\AdminListQueryDTO;
+use App\Modules\Validation\Guard\ValidationGuard;
+use App\Modules\Validation\Schemas\AdminListSchema;
 use DomainException;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -14,7 +16,8 @@ use Throwable;
 readonly class AdminListController
 {
     public function __construct(
-        private AdminListReaderInterface $adminListReader
+        private AdminListReaderInterface $adminListReader,
+        private ValidationGuard $validationGuard
     ) {
     }
 
@@ -23,22 +26,13 @@ readonly class AdminListController
         try {
             $params = $request->getQueryParams();
 
+            $this->validationGuard->check(new AdminListSchema(), $params);
+
             $page = isset($params['page']) ? (int)$params['page'] : 1;
             $perPage = isset($params['per_page']) ? (int)$params['per_page'] : 10;
 
             $adminId = isset($params['id']) && $params['id'] !== '' ? (int)$params['id'] : null;
             $email = isset($params['email']) && $params['email'] !== '' ? (string)$params['email'] : null;
-
-            // Validation limits
-            if ($page < 1) {
-                $page = 1;
-            }
-            if ($perPage < 1) {
-                $perPage = 10;
-            }
-            if ($perPage > 100) {
-                $perPage = 100;
-            }
 
             $query = new AdminListQueryDTO(
                 page: $page,

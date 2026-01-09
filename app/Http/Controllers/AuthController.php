@@ -9,6 +9,8 @@ use App\Domain\DTO\LoginResponseDTO;
 use App\Domain\Exception\AuthStateException;
 use App\Domain\Exception\InvalidCredentialsException;
 use App\Domain\Service\AdminAuthenticationService;
+use App\Modules\Validation\Guard\ValidationGuard;
+use App\Modules\Validation\Schemas\AuthLoginSchema;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -16,18 +18,16 @@ readonly class AuthController
 {
     public function __construct(
         private AdminAuthenticationService $authService,
-        private string $blindIndexKey
+        private string $blindIndexKey,
+        private ValidationGuard $validationGuard
     ) {
     }
 
     public function login(Request $request, Response $response): Response
     {
-        $data = $request->getParsedBody();
-        // Assuming $data is an array. In a real app we'd validate this.
-        if (!is_array($data) || !isset($data['email']) || !isset($data['password'])) {
-            $response->getBody()->write((string)json_encode(['error' => 'Invalid request']));
-            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
-        }
+        $data = (array)$request->getParsedBody();
+
+        $this->validationGuard->check(new AuthLoginSchema(), $data);
 
         $dto = new LoginRequestDTO((string)$data['email'], (string)$data['password']);
 

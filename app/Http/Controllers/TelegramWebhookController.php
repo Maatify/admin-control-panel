@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Infrastructure\Notification\TelegramHandler;
+use App\Modules\Validation\Guard\ValidationGuard;
+use App\Modules\Validation\Schemas\TelegramWebhookSchema;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
@@ -13,18 +15,21 @@ readonly class TelegramWebhookController
 {
     public function __construct(
         private TelegramHandler $handler,
-        private LoggerInterface $logger
+        private LoggerInterface $logger,
+        private ValidationGuard $validationGuard
     ) {
     }
 
     public function handle(Request $request, Response $response): Response
     {
-        $data = $request->getParsedBody();
+        $data = (array)$request->getParsedBody();
 
-        if (!is_array($data)) {
-            $this->logger->warning('telegram_webhook_invalid_payload', ['payload' => $data]);
-            return $response->withStatus(200); // Always 200 for Webhooks
-        }
+        // Webhook specific: validation failure shouldn't 400 crash but we must guard it.
+        // Actually ValidationGuard throws Exception which results in error response.
+        // For webhooks, we usually want to return 200 OK even on error to stop retries from provider (Telegram).
+        // BUT the task rule says "Controllers MUST NOT catch ValidationFailedException".
+        // So I must let it bubble.
+        $this->validationGuard->check(new TelegramWebhookSchema(), $data);
 
         // Extract Message
         $message = $data['message'] ?? null;

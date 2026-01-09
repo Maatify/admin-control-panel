@@ -6,6 +6,8 @@ namespace App\Http\Controllers;
 
 use App\Domain\Contracts\AdminNotificationHistoryReaderInterface;
 use App\Domain\DTO\Notification\History\AdminNotificationHistoryQueryDTO;
+use App\Modules\Validation\Guard\ValidationGuard;
+use App\Modules\Validation\Schemas\AdminNotificationHistorySchema;
 use DateTimeImmutable;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -13,7 +15,8 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 final class AdminNotificationHistoryController
 {
     public function __construct(
-        private readonly AdminNotificationHistoryReaderInterface $reader
+        private readonly AdminNotificationHistoryReaderInterface $reader,
+        private ValidationGuard $validationGuard
     ) {
     }
 
@@ -35,6 +38,11 @@ final class AdminNotificationHistoryController
         }
 
         $queryParams = $request->getQueryParams();
+
+        // Pass raw input + injected route param
+        $input = array_merge($queryParams, ['admin_id' => $routeAdminId]);
+
+        $this->validationGuard->check(new AdminNotificationHistorySchema(), $input);
 
         $page = isset($queryParams['page']) ? (int)$queryParams['page'] : 1;
         $limit = isset($queryParams['limit']) ? (int)$queryParams['limit'] : 20;

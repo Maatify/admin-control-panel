@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Api;
 use App\Domain\DTO\Session\SessionListQueryDTO;
 use App\Domain\Session\Reader\SessionListReaderInterface;
 use App\Domain\Service\AuthorizationService;
+use App\Modules\Validation\Guard\ValidationGuard;
+use App\Modules\Validation\Schemas\SessionQuerySchema;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -14,7 +16,8 @@ class SessionQueryController
 {
     public function __construct(
         private SessionListReaderInterface $reader,
-        private AuthorizationService $authorizationService
+        private AuthorizationService $authorizationService,
+        private ValidationGuard $validationGuard
     ) {
     }
 
@@ -23,10 +26,9 @@ class SessionQueryController
         $adminId = $request->getAttribute('admin_id');
         assert(is_int($adminId));
 
-        $body = $request->getParsedBody();
-        if (!is_array($body)) {
-            $body = [];
-        }
+        $body = (array)$request->getParsedBody();
+
+        $this->validationGuard->check(new SessionQuerySchema(), $body);
 
         $page = isset($body['page']) ? (int)$body['page'] : 1;
         $perPage = isset($body['per_page']) ? (int)$body['per_page'] : 20;

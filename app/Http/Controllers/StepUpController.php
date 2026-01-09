@@ -5,22 +5,25 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Service\StepUpService;
+use App\Modules\Validation\Guard\ValidationGuard;
+use App\Modules\Validation\Schemas\StepUpVerifySchema;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
 class StepUpController
 {
     public function __construct(
-        private StepUpService $stepUpService
+        private StepUpService $stepUpService,
+        private ValidationGuard $validationGuard
     ) {
     }
 
     public function verify(Request $request, Response $response): Response
     {
-        $data = $request->getParsedBody();
-        if (!is_array($data)) {
-            $data = [];
-        }
+        $data = (array)$request->getParsedBody();
+
+        $this->validationGuard->check(new StepUpVerifySchema(), $data);
+
         $code = isset($data['code']) ? (string)$data['code'] : '';
         $scopeStr = isset($data['scope']) ? (string)$data['scope'] : null;
 

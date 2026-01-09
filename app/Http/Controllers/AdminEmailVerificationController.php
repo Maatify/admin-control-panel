@@ -8,6 +8,8 @@ use App\Domain\DTO\Response\VerificationResponseDTO;
 use App\Domain\Exception\IdentifierNotFoundException;
 use App\Domain\Service\AdminEmailVerificationService;
 use App\Infrastructure\Repository\AdminEmailRepository;
+use App\Modules\Validation\Guard\ValidationGuard;
+use App\Modules\Validation\Schemas\AdminEmailVerifySchema;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Slim\Exception\HttpNotFoundException;
@@ -16,7 +18,8 @@ readonly class AdminEmailVerificationController
 {
     public function __construct(
         private AdminEmailVerificationService $service,
-        private AdminEmailRepository $repository
+        private AdminEmailRepository $repository,
+        private ValidationGuard $validationGuard
     ) {
     }
 
@@ -25,6 +28,8 @@ readonly class AdminEmailVerificationController
      */
     public function verify(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
+        $this->validationGuard->check(new AdminEmailVerifySchema(), $args);
+
         $adminId = (int)$args['id'];
 
         try {

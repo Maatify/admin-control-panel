@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Domain\Service\SessionRevocationService;
 use App\Domain\Service\AuthorizationService;
+use App\Modules\Validation\Guard\ValidationGuard;
+use App\Modules\Validation\Schemas\SessionRevokeSchema;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use DomainException;
@@ -15,7 +17,8 @@ class SessionRevokeController
 {
     public function __construct(
         private SessionRevocationService $revocationService,
-        private AuthorizationService $authorizationService
+        private AuthorizationService $authorizationService,
+        private ValidationGuard $validationGuard
     ) {
     }
 
@@ -29,11 +32,9 @@ class SessionRevokeController
 
         $this->authorizationService->checkPermission($adminId, 'sessions.revoke');
 
-        $targetSessionHash = $args['session_id'] ?? null;
-        if (!is_string($targetSessionHash) || $targetSessionHash === '') {
-            $response->getBody()->write(json_encode(['error' => 'Invalid session ID'], JSON_THROW_ON_ERROR));
-            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
-        }
+        $this->validationGuard->check(new SessionRevokeSchema(), $args);
+
+        $targetSessionHash = $args['session_id'];
 
         // Fetch Current Session Hash
         $cookies = $request->getCookieParams();

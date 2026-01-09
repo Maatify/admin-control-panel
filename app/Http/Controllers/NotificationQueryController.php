@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Contracts\NotificationReadRepositoryInterface;
+use App\Modules\Validation\Guard\ValidationGuard;
+use App\Modules\Validation\Schemas\NotificationQuerySchema;
 use DateTimeImmutable;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -12,13 +14,16 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 class NotificationQueryController
 {
     public function __construct(
-        private NotificationReadRepositoryInterface $repository
+        private NotificationReadRepositoryInterface $repository,
+        private ValidationGuard $validationGuard
     ) {
     }
 
     public function index(Request $request, Response $response): Response
     {
         $params = $request->getQueryParams();
+
+        $this->validationGuard->check(new NotificationQuerySchema(), $params);
 
         $notifications = [];
 

@@ -6,13 +6,16 @@ namespace App\Http\Controllers;
 
 use App\Domain\Contracts\AdminNotificationReadMarkerInterface;
 use App\Domain\DTO\Notification\History\MarkNotificationReadDTO;
+use App\Modules\Validation\Guard\ValidationGuard;
+use App\Modules\Validation\Schemas\AdminNotificationReadSchema;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
 final class AdminNotificationReadController
 {
     public function __construct(
-        private readonly AdminNotificationReadMarkerInterface $marker
+        private readonly AdminNotificationReadMarkerInterface $marker,
+        private ValidationGuard $validationGuard
     ) {
     }
 
@@ -25,6 +28,8 @@ final class AdminNotificationReadController
         if (!is_int($adminId)) {
             throw new \RuntimeException('Admin ID not found in request attributes');
         }
+
+        $this->validationGuard->check(new AdminNotificationReadSchema(), $args);
 
         $notificationId = (int)$args['id'];
 
