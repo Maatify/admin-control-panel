@@ -74,7 +74,7 @@ App/Modules/Validation/
 │
 ├── Schemas/
 │   ├── AbstractSchema.php
-│   ├── LoginSchema.php
+│   ├── AuthLoginSchema.php
 │   └── AdminCreateSchema.php
 │
 └── Validator/
@@ -126,13 +126,13 @@ Schemas describe **request-level validation**.
 Example:
 
 ```php
-final class LoginSchema extends AbstractSchema
+final class AuthLoginSchema extends AbstractSchema
 {
     protected function rules(): array
     {
         return [
-            'email' => [EmailRule::rule(), ValidationErrorCodeEnum::INVALID_EMAIL],
-            'password' => [PasswordRule::rule(), ValidationErrorCodeEnum::INVALID_PASSWORD],
+            'email' => [v::email(), ValidationErrorCodeEnum::INVALID_EMAIL],
+            'password' => [CredentialInputRule::rule(), ValidationErrorCodeEnum::INVALID_PASSWORD],
         ];
     }
 }
