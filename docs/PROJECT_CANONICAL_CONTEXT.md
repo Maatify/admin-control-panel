@@ -131,39 +131,46 @@ The system enforces a strict separation between "What Changed" (Audit) and "What
 
 ---
 
-## 📄 F) Pagination Contract (Canonical)
+## 📄 F) Pagination & Filtering Contract (Canonical)
 
-Defined by `SessionQueryController` implementation.
+Defined by `SessionQueryController` implementation
+and enforced across **ALL LIST APIs**.
 
-### 0. Pagination Contract — Architectural Decision (LOCKED)
+---
 
-**Status:** LOCKED / MANDATORY  
+### 0. Pagination & Filtering — Architectural Decision (LOCKED)
+
+**Status:** LOCKED / MANDATORY
 **Applies to:** All LIST APIs (Sessions, Admins, Roles, and future resources)
 
-The Admin Control Panel enforces a **single canonical pagination model**
-shared across all list-based APIs.
+The Admin Control Panel enforces a **single canonical model** for:
 
-Pagination is an architectural concern and **MUST NOT** be implemented
-using anonymous or inline arrays.
+* Pagination
+* Searching
+* Column filtering
+* Optional date range filtering
 
-#### Canonical DTO
+These concerns are **architectural**, not UI conveniences.
+
+---
+
+## 1. Canonical Pagination DTO
 
 Pagination MUST be represented using the shared Domain DTO:
 
 ```
-
 App\Domain\DTO\Common\PaginationDTO
-
-````
+```
 
 This DTO is the **only allowed representation** of pagination data
 inside the application.
 
-#### Hard Rules
+### Hard Rules
 
 * Pagination MUST NOT be represented as anonymous arrays
 * All LIST responses MUST expose pagination via `PaginationDTO`
 * `PaginationDTO`:
+
   * Lives in the Domain layer
   * Implements `JsonSerializable`
   * Defines an explicit array shape in `jsonSerialize()`
@@ -174,40 +181,190 @@ Any deviation from this contract is considered a **Canonical Violation**.
 
 ---
 
+## 2. Canonical LIST Request Contract
+
 ### Request (JSON)
 
 ```json
 {
   "page": 1,
   "per_page": 20,
-  "filters": {
-    "status": "active",
-    "search": "..."
+
+  "search": {
+    "global": "",
+    "columns": {}
+  },
+
+  "date": {
+    "from": "YYYY-MM-DD",
+    "to": "YYYY-MM-DD"
   }
 }
-````
+```
 
 ---
+
+## 3. Search Semantics (LOCKED)
+
+### 3.1 Global Search
+
+* `search.global` represents a **free-text search**
+* Applied as **OR** across a predefined whitelist of searchable columns
+* Backend defines the searchable columns explicitly
+* UI MUST NOT decide which columns are searchable
+
+**Rules:**
+
+* Global search is OPTIONAL
+* Empty or missing value MUST be ignored
+* Search is **server-side only**
+
+---
+
+### 3.2 Column-Based Filters
+
+* `search.columns` is a key-value map
+* Each key represents a **specific column filter**
+* Applied as **AND** conditions
+
+**Rules:**
+
+* Only documented columns are allowed
+* Unknown columns MUST be ignored or rejected
+* Empty values MUST be ignored
+* UI MUST NOT send undocumented filters
+
+---
+
+## 4. Date Range Filtering (OPTIONAL / CAPABILITY-BASED)
+
+### 4.1 Purpose
+
+Some LIST resources are **time-based** (e.g. sessions, audit logs),
+while others are not.
+
+Date filtering is therefore **optional** and **capability-driven**.
+
+---
+
+### 4.2 Request Shape
+
+```json
+"date": {
+  "from": "YYYY-MM-DD",
+  "to": "YYYY-MM-DD"
+}
+```
+
+**Rules:**
+
+* `date` object is OPTIONAL
+* `from` and `to` are OPTIONAL and independent
+* One-sided ranges are allowed
+* Backend is responsible for validation and normalization
+
+---
+
+### 4.3 Backend Capability Declaration (MANDATORY)
+
+Each LIST API MUST explicitly declare whether it supports date filtering.
+
+**Backend-owned decision only.**
+
+Example (conceptual):
+
+```
+supportsDateFilter = true | false
+dateColumn = "created_at"
+```
+
+**Rules:**
+
+* UI MUST NOT assume date support
+* UI MUST NOT send `date` filters unless explicitly supported
+* Date filtering applies to **ONE predefined column only**
+* Dynamic date columns are FORBIDDEN
+
+---
+
+### 4.4 Unsupported Date Filters
+
+If a LIST API does NOT support date filtering:
+
+* `date` input MUST be:
+
+  * Ignored silently
+    **OR**
+  * Rejected with validation error (`date_filter_not_supported`)
+
+The chosen behavior MUST be consistent per API.
+
+---
+
+## 5. Canonical LIST Response Contract
 
 ### Response (JSON)
 
 ```json
 {
   "data": [ ... ],
+
   "pagination": {
     "page": 1,
     "per_page": 20,
-    "total": 100
+    "total": 500,
+    "filtered": 37
   }
 }
 ```
 
-> Internally, `pagination` is always represented as `PaginationDTO`
-> and converted to JSON only via `jsonSerialize()`.
+---
 
-* **Implementation**: Server-side only. `LIMIT :limit OFFSET :offset`.
+## 6. Pagination Fields Semantics
+
+| Field      | Meaning                                |
+|------------|----------------------------------------|
+| `page`     | Current page number                    |
+| `per_page` | Rows per page                          |
+| `total`    | Total rows in the dataset (no filters) |
+| `filtered` | Rows count after ALL filters applied   |
+
+**Important:**
+
+* `filtered` reflects:
+
+  * Global search
+  * Column filters
+  * Date range filters (if supported)
 
 ---
+
+## 7. Hard Prohibitions (SECURITY & CONSISTENCY)
+
+❌ Client-side pagination
+❌ Client-side searching
+❌ UI-defined searchable columns
+❌ Dynamic SQL column injection
+❌ Multiple date columns per LIST
+❌ Implicit date filtering
+
+---
+
+## 8. Enforcement Summary
+
+* LIST APIs MUST follow this contract
+* UI reflects backend-declared capabilities
+* Backend owns all filtering logic
+* Any deviation is a **Canonical Violation**
+
+---
+
+## ✅ Status
+
+**Pagination, Search, and Date Filtering Contract: LOCKED**
+
+---
+
 
 ## 🎨 G) UI/Twig Contract
 
