@@ -1,0 +1,15 @@
+{% extends "emails/layouts/base.twig" %}
+
+{% block subject %}تحقق من عنوان بريدك الإلكتروني{% endblock %}
+
+{% block body %}
+    <div dir="rtl" style="text-align: right;">
+        <h2>تحقق من عنوان بريدك الإلكتروني</h2>
+        <p>يرجى النقر على الرابط أدناه للتحقق من عنوان بريدك الإلكتروني:</p>
+        <p>
+            <a href="{{ url }}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: #ffffff; text-decoration: none; border-radius: 5px;">تحقق من البريد الإلكتروني</a>
+        </p>
+        <p>أو انسخ هذا الرابط والصقه في متصفحك:</p>
+        <p style="direction: ltr; text-align: left;">{{ url }}</p>
+    </div>
+{% endblock %}
