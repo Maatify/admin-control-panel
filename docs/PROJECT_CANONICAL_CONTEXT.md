@@ -57,21 +57,44 @@ The project is a secure Admin Control Panel built with **PHP 8.2+, Slim 4, PHP-D
 *   **Recovery Mode**: If `RECOVERY_MODE=true`, strict lock-down is enforced by `RecoveryStateService`.
 *   **Session State**: Sessions default to `PENDING_STEP_UP`. `ACTIVE` state requires `Scope::LOGIN`.
 
+---
+
 ### 2. Middleware Pipeline (Observed)
 All protected routes passed through `routes/web.php` groups are observed to follow this sequence:
 1.  `UiRedirectNormalizationMiddleware` (UI only)
 2.  `RememberMeMiddleware`
 3.  `SessionGuardMiddleware` (Identity)
-4.  `SessionStateGuardMiddleware` (State/Step-Up)
+4.  `SessionStateGuardMiddleware` (State / Step-Up)
 5.  `ScopeGuardMiddleware` (Context)
 6.  `AuthorizationGuardMiddleware` (RBAC)
 
-### 3. Auditing (Authority & Security Only)
+---
+
+### 3. Authorization & Permission Semantics (Canonical)
+
+This project enforces a **strict, explicit, non-hierarchical authorization model**.
+
+*   Permissions are **flat and non-hierarchical**.
+*   **No permission implicitly grants another permission**.
+*   Authorization decisions are made **exclusively at the route level**, using the route name as the permission identifier.
+*   Backend services, shared methods, filters, or internal implementation details MUST NOT influence authorization decisions.
+*   There is **no automatic permission linking**, implication, or inheritance.
+
+#### Supporting / Select Permissions
+*   Any list or dataset required **only for selection purposes** (e.g. dropdowns, autocomplete, filters) MUST be exposed via:
+  *   A **dedicated endpoint**
+  *   A **dedicated explicit permission** (e.g. `products.select`, `admins.select`)
+*   Granting a mutation permission (e.g. `products.price.edit`) does NOT grant selection or listing permissions implicitly.
+*   If a UI operation requires both selecting an entity and performing an action, the role MUST explicitly include **both permissions**.
+
+This rule is **SECURITY-CRITICAL** and MUST NOT be bypassed, inferred, or altered without an explicit architectural decision and documentation update.
+
+---
+
+### 4. Auditing (Authority & Security Only)
 *   **Scope**: `audit_logs` are strictly reserved for **Authority Changes**, **Security-Impacting Actions**, and **Admin Responsibility Events**.
 *   **Exclusion**: Routine non-security CRUD or UI-driven mutations are **NOT** automatically audit entries unless they impact authority or security posture.
 *   **Mechanism**: When required, auditing uses `AuthoritativeSecurityAuditWriterInterface` within the same `PDO` transaction as the mutation.
-
----
 
 ## 🪵 D) Logging Policy (HARD)
 
