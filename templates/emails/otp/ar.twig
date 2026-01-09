@@ -1,0 +1,17 @@
+{% extends "emails/layouts/base.twig" %}
+
+{% block html_lang %}lang="ar" dir="rtl"{% endblock %}
+
+{% block subject %}رمز التحقق الخاص بك{% endblock %}
+
+{% block body %}
+    <div dir="rtl" style="text-align: right;">
+        <h2>رمز التحقق الخاص بك</h2>
+        <p>مرحباً {{ display_name }}،</p>
+        <p>إليك رمز {{ purpose }} الخاص بك:</p>
+        <div style="font-size: 24px; font-weight: bold; letter-spacing: 5px; padding: 15px; background-color: #e9ecef; border-radius: 5px; display: inline-block;">
+            {{ otp_code }}
+        </div>
+        <p>تنتهي صلاحية هذا الرمز خلال {{ expires_in_minutes }} دقيقة.</p>
+    </div>
+{% endblock %}

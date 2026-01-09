@@ -1,0 +1,18 @@
+{% extends "emails/layouts/base.twig" %}
+
+{% block html_lang %}lang="ar" dir="rtl"{% endblock %}
+
+{% block subject %}تحقق من عنوان بريدك الإلكتروني{% endblock %}
+
+{% block body %}
+    <div dir="rtl" style="text-align: right;">
+        <h2>تحقق من عنوان بريدك الإلكتروني</h2>
+        <p>مرحباً {{ display_name }}،</p>
+        <p>يرجى استخدام الرمز التالي للتحقق من عنوان بريدك الإلكتروني:</p>
+        <div style="font-size: 24px; font-weight: bold; letter-spacing: 5px; padding: 15px; background-color: #e9ecef; border-radius: 5px; display: inline-block;">
+            {{ verification_code }}
+        </div>
+        <p>تنتهي صلاحية هذا الرمز خلال {{ expires_in_minutes }} دقيقة.</p>
+        <p>إذا كان لديك أي أسئلة، يرجى الاتصال بنا على {{ support_email }}.</p>
+    </div>
+{% endblock %}

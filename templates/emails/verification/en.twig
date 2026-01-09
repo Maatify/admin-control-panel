@@ -1,0 +1,16 @@
+{% extends "emails/layouts/base.twig" %}
+
+{% block html_lang %}lang="en"{% endblock %}
+
+{% block subject %}Verify your email address{% endblock %}
+
+{% block body %}
+    <h2>Verify Your Email Address</h2>
+    <p>Hello {{ display_name }},</p>
+    <p>Please use the following code to verify your email address:</p>
+    <div style="font-size: 24px; font-weight: bold; letter-spacing: 5px; padding: 15px; background-color: #e9ecef; border-radius: 5px; display: inline-block;">
+        {{ verification_code }}
+    </div>
+    <p>This code expires in {{ expires_in_minutes }} minutes.</p>
+    <p>If you have any questions, please contact us at {{ support_email }}.</p>
+{% endblock %}

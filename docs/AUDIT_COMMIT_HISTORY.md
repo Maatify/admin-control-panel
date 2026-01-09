@@ -120,6 +120,7 @@ Entries MUST NOT be rewritten or reordered.
 - refactor(pagination): introduce PaginationDTO and unify list pagination across admin and session lists
 - docs(canonical): lock PaginationDTO usage in canonical pagination contract
 - docs(security): formalize explicit non-hierarchical permission model
+- feat(email): add canonical email payload DTOs and twig templates
 
 ---
 
