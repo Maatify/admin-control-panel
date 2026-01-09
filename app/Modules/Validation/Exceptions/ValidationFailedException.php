@@ -15,8 +15,23 @@ declare(strict_types=1);
 
 namespace App\Modules\Validation\Exceptions;
 
+use App\Modules\Validation\DTO\ValidationResultDTO;
+use App\Modules\Validation\Enum\ValidationErrorCodeEnum;
 use RuntimeException;
 
 final class ValidationFailedException extends RuntimeException
 {
+    public function __construct(
+        private readonly ValidationResultDTO $result
+    ) {
+        parent::__construct('Validation failed.');
+    }
+
+    /**
+     * @return array<string, list<ValidationErrorCodeEnum>>
+     */
+    public function getErrors(): array
+    {
+        return $this->result->getErrors();
+    }
 }
