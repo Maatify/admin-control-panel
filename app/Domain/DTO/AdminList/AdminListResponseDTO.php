@@ -4,28 +4,29 @@ declare(strict_types=1);
 
 namespace App\Domain\DTO\AdminList;
 
+use App\Domain\DTO\Common\PaginationDTO;
 use JsonSerializable;
 
 readonly class AdminListResponseDTO implements JsonSerializable
 {
     /**
      * @param AdminListItemDTO[] $data
-     * @param array{page: int, per_page: int, total: int, total_pages: int} $meta
+     * @param PaginationDTO $pagination
      */
     public function __construct(
         public array $data,
-        public array $meta
+        public PaginationDTO $pagination
     ) {
     }
 
     /**
-     * @return array{data: array<array{id: int, email: string, created_at: string}>, meta: array{page: int, per_page: int, total: int, total_pages: int}}
+     * @return array{data: AdminListItemDTO[], pagination: PaginationDTO}
      */
     public function jsonSerialize(): array
     {
         return [
-            'data' => array_map(fn(AdminListItemDTO $dto) => $dto->jsonSerialize(), $this->data),
-            'meta' => $this->meta,
+            'data' => $this->data,
+            'pagination' => $this->pagination,
         ];
     }
 }

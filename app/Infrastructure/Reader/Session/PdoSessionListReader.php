@@ -9,6 +9,7 @@ use App\Domain\DTO\Session\SessionListItemDTO;
 use App\Domain\DTO\Session\SessionListQueryDTO;
 use App\Domain\DTO\Session\SessionListResponseDTO;
 use App\Domain\Session\Reader\SessionListReaderInterface;
+use App\Domain\DTO\Common\PaginationDTO;
 use PDO;
 
 class PdoSessionListReader implements SessionListReaderInterface
@@ -130,11 +131,11 @@ class PdoSessionListReader implements SessionListReaderInterface
 
         return new SessionListResponseDTO(
             data: $items,
-            pagination: [
-                'page' => $query->page,
-                'per_page' => $query->per_page,
-                'total' => $total,
-            ]
+            pagination: new PaginationDTO(
+                page: $query->page,
+                perPage: $query->per_page,
+                total: $total
+            )
         );
     }
 

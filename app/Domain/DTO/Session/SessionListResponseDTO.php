@@ -4,22 +4,23 @@ declare(strict_types=1);
 
 namespace App\Domain\DTO\Session;
 
+use App\Domain\DTO\Common\PaginationDTO;
 use JsonSerializable;
 
 class SessionListResponseDTO implements JsonSerializable
 {
     /**
      * @param SessionListItemDTO[] $data
-     * @param array{page: int, per_page: int, total: int} $pagination
+     * @param PaginationDTO $pagination
      */
     public function __construct(
         public array $data,
-        public array $pagination
+        public PaginationDTO $pagination
     ) {
     }
 
     /**
-     * @return array{data: SessionListItemDTO[], pagination: array{page: int, per_page: int, total: int}}
+     * @return array{data: SessionListItemDTO[], pagination: PaginationDTO}
      */
     public function jsonSerialize(): array
     {

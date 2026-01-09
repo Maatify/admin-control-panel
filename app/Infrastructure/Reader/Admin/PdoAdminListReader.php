@@ -9,6 +9,7 @@ use App\Domain\DTO\AdminConfigDTO;
 use App\Domain\DTO\AdminList\AdminListItemDTO;
 use App\Domain\DTO\AdminList\AdminListQueryDTO;
 use App\Domain\DTO\AdminList\AdminListResponseDTO;
+use App\Domain\DTO\Common\PaginationDTO;
 use PDO;
 
 class PdoAdminListReader implements AdminListReaderInterface
@@ -144,12 +145,11 @@ class PdoAdminListReader implements AdminListReaderInterface
 
         return new AdminListResponseDTO(
             data: $dtos,
-            meta: [
-                'page' => $query->page,
-                'per_page' => $query->perPage,
-                'total' => $total,
-                'total_pages' => $totalPages
-            ]
+            pagination: new PaginationDTO(
+                page: $query->page,
+                perPage: $query->perPage,
+                total: $totalPages
+            )
         );
     }
 
