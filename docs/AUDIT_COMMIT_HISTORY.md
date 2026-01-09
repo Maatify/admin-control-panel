@@ -127,6 +127,7 @@ Entries MUST NOT be rewritten or reordered.
 - docs(validation): analyze schema contracts and inconsistencies
 - docs(canonical): lock pagination, search, and optional date filtering contract for LIST APIs
 - docs(canonical): lock pagination, filtering, and reusable LIST infrastructure
+- feat(list): introduce canonical reusable LIST infrastructure
 
 ---
 
