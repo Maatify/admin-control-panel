@@ -15,6 +15,8 @@ use App\Infrastructure\Repository\AdminRepository;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Random\RandomException;
+use RuntimeException;
+use Slim\Exception\HttpBadRequestException;
 
 class AdminController
 {
@@ -35,8 +37,7 @@ class AdminController
             createdAt: $createdAt
         );
 
-        $json = json_encode($dto->jsonSerialize());
-        assert($json !== false);
+        $json = json_encode($dto->jsonSerialize(), JSON_THROW_ON_ERROR);
         $response->getBody()->write($json);
         return $response
             ->withHeader('Content-Type', 'application/json')
@@ -46,34 +47,46 @@ class AdminController
     /**
      * @param array<string, string> $args
      * @throws RandomException
+     * @throws HttpBadRequestException
      */
     public function addEmail(Request $request, Response $response, array $args): Response
     {
         $adminId = (int)$args['id'];
-        $data = json_decode((string)$request->getBody(), true);
-        assert(is_array($data));
         
-        $emailInput = $data[IdentifierType::EMAIL->value] ?? '';
-        assert(is_string($emailInput));
+        $data = $request->getParsedBody();
+        if (!is_array($data)) {
+            throw new HttpBadRequestException($request, 'Invalid JSON body.');
+        }
+
+        $emailInput = $data[IdentifierType::EMAIL->value] ?? null;
+        if (!is_string($emailInput) || $emailInput === '') {
+            throw new HttpBadRequestException($request, 'Invalid or missing email.');
+        }
+
         $requestDto = new CreateAdminEmailRequestDTO($emailInput);
         $email = $requestDto->email;
 
         // Blind Index
         $blindIndexKey = $this->config->emailBlindIndexKey;
         $blindIndex = hash_hmac('sha256', $email, $blindIndexKey);
-        assert(is_string($blindIndex));
 
         // Encryption
         $encryptionKey = $this->config->emailEncryptionKey;
         
         $cipher = 'aes-256-gcm';
         $ivLen = openssl_cipher_iv_length($cipher);
-        assert(is_int($ivLen) && $ivLen > 0);
+        if ($ivLen === false || $ivLen <= 0) {
+            throw new RuntimeException('Failed to get IV length.');
+        }
+
         $iv = random_bytes($ivLen);
-        assert(is_string($iv));
-        $tag = '';
+        $tag = ''; // Passed by reference
         $ciphertext = openssl_encrypt($email, $cipher, $encryptionKey, OPENSSL_RAW_DATA, $iv, $tag);
-        assert(is_string($ciphertext));
+
+        if ($ciphertext === false) {
+             throw new RuntimeException('Encryption failed.');
+        }
+
         $encryptedEmail = base64_encode($iv . $tag . $ciphertext);
 
         $this->adminEmailRepository->addEmail($adminId, $blindIndex, $encryptedEmail);
@@ -83,28 +96,33 @@ class AdminController
             emailAdded: true,
         );
 
-        $json = json_encode($responseDto->jsonSerialize());
-        assert($json !== false);
+        $json = json_encode($responseDto->jsonSerialize(), JSON_THROW_ON_ERROR);
         $response->getBody()->write($json);
         return $response
             ->withHeader('Content-Type', 'application/json')
             ->withStatus(200);
     }
 
+    /**
+     * @throws HttpBadRequestException
+     */
     public function lookupEmail(Request $request, Response $response): Response
     {
-        $data = json_decode((string)$request->getBody(), true);
-        assert(is_array($data));
+        $data = $request->getParsedBody();
+        if (!is_array($data)) {
+            throw new HttpBadRequestException($request, 'Invalid JSON body.');
+        }
         
-        $emailInput = $data[IdentifierType::EMAIL->value] ?? '';
-        assert(is_string($emailInput));
+        $emailInput = $data[IdentifierType::EMAIL->value] ?? null;
+        if (!is_string($emailInput) || $emailInput === '') {
+             throw new HttpBadRequestException($request, 'Invalid or missing email.');
+        }
+
         $requestDto = new VerifyAdminEmailRequestDTO($emailInput);
         $email = $requestDto->email;
 
         $blindIndexKey = $this->config->emailBlindIndexKey;
-        assert(is_string($blindIndexKey));
         $blindIndex = hash_hmac('sha256', $email, $blindIndexKey);
-        assert(is_string($blindIndex));
 
         $adminId = $this->adminEmailRepository->findByBlindIndex($blindIndex);
 
@@ -119,8 +137,7 @@ class AdminController
             );
         }
 
-        $json = json_encode($responseDto->jsonSerialize());
-        assert($json !== false);
+        $json = json_encode($responseDto->jsonSerialize(), JSON_THROW_ON_ERROR);
         $response->getBody()->write($json);
         return $response
             ->withHeader('Content-Type', 'application/json')
@@ -137,18 +154,25 @@ class AdminController
         $encryptedEmail = $this->adminEmailRepository->getEncryptedEmail($adminId);
 
         $encryptionKey = $this->config->emailEncryptionKey;
-        assert(is_string($encryptionKey));
         $cipher = 'aes-256-gcm';
-        $data = base64_decode((string)$encryptedEmail);
-        assert(is_string($data));
+
+        $data = base64_decode((string)$encryptedEmail, true);
+        if ($data === false) {
+             throw new RuntimeException('Base64 decode failed.');
+        }
+
         $ivLen = openssl_cipher_iv_length($cipher);
-        assert(is_int($ivLen));
+        if ($ivLen === false || $ivLen <= 0) {
+            throw new RuntimeException('Failed to get IV length.');
+        }
+
+        if (strlen($data) < ($ivLen + 16)) {
+             throw new RuntimeException('Invalid encrypted data length.');
+        }
+
         $iv = substr($data, 0, $ivLen);
-        assert(is_string($iv));
         $tag = substr($data, $ivLen, 16);
-        assert(is_string($tag));
         $ciphertext = substr($data, $ivLen + 16);
-        assert(is_string($ciphertext));
 
         $email = openssl_decrypt($ciphertext, $cipher, $encryptionKey, OPENSSL_RAW_DATA, $iv, $tag);
 
@@ -158,8 +182,7 @@ class AdminController
 
         $responseDto = new AdminEmailResponseDTO($adminId, $email);
 
-        $json = json_encode($responseDto->jsonSerialize());
-        assert($json !== false);
+        $json = json_encode($responseDto->jsonSerialize(), JSON_THROW_ON_ERROR);
         $response->getBody()->write($json);
         return $response
             ->withHeader('Content-Type', 'application/json')
