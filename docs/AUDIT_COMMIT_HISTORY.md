@@ -123,6 +123,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(email): add canonical email payload DTOs and twig templates
 - feat(email): add canonical email_queue schema and document email messaging system
 - feat(crypto): introduce canonical crypto facade, context registry, and lock crypto usage
+- fix(auth): harden login input validation and remove legacy LoginSchema
 
 ---
 

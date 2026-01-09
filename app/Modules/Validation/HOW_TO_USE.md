@@ -17,7 +17,7 @@ It assumes:
 Each endpoint must have **one schema** representing its input.
 
 Example:
-- Login → `LoginSchema`
+- Login → `AuthLoginSchema`
 - Create Admin → `AdminCreateSchema`
 
 ---
@@ -26,14 +26,14 @@ Example:
 
 ```php
 use App\Modules\Validation\Validator\RespectValidator;
-use app\Modules\Validation\Schemas\LoginSchema;
+use app\Modules\Validation\Schemas\AuthLoginSchema;
 use app\Modules\Validation\ErrorMapper\SystemApiErrorMapper;
 
 /** @var array<string, mixed> $input */
 $input = (array) $request->getParsedBody();
 
 $validator = new RespectValidator();
-$schema = new LoginSchema();
+$schema = new AuthLoginSchema();
 
 $result = $validator->validate($schema, $input);
 ```
