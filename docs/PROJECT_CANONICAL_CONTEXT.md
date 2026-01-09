@@ -154,7 +154,7 @@ These concerns are **architectural**, not UI conveniences.
 
 ---
 
-## 1. Canonical Pagination DTO
+### 1. Canonical Pagination DTO
 
 Pagination MUST be represented using the shared Domain DTO:
 
@@ -165,7 +165,7 @@ App\Domain\DTO\Common\PaginationDTO
 This DTO is the **only allowed representation** of pagination data
 inside the application.
 
-### Hard Rules
+#### Hard Rules
 
 * Pagination MUST NOT be represented as anonymous arrays
 * All LIST responses MUST expose pagination via `PaginationDTO`
@@ -181,9 +181,9 @@ Any deviation from this contract is considered a **Canonical Violation**.
 
 ---
 
-## 2. Canonical LIST Request Contract
+### 2. Canonical LIST Request Contract
 
-### Request (JSON)
+#### Request (JSON)
 
 ```json
 {
@@ -204,9 +204,9 @@ Any deviation from this contract is considered a **Canonical Violation**.
 
 ---
 
-## 3. Search Semantics (LOCKED)
+### 3. Search Semantics (LOCKED)
 
-### 3.1 Global Search
+#### 3.1 Global Search
 
 * `search.global` represents a **free-text search**
 * Applied as **OR** across a predefined whitelist of searchable columns
@@ -221,7 +221,7 @@ Any deviation from this contract is considered a **Canonical Violation**.
 
 ---
 
-### 3.2 Column-Based Filters
+#### 3.2 Column-Based Filters
 
 * `search.columns` is a key-value map
 * Each key represents a **specific column filter**
@@ -236,9 +236,9 @@ Any deviation from this contract is considered a **Canonical Violation**.
 
 ---
 
-## 4. Date Range Filtering (OPTIONAL / CAPABILITY-BASED)
+### 4. Date Range Filtering (OPTIONAL / CAPABILITY-BASED)
 
-### 4.1 Purpose
+#### 4.1 Purpose
 
 Some LIST resources are **time-based** (e.g. sessions, audit logs),
 while others are not.
@@ -247,7 +247,7 @@ Date filtering is therefore **optional** and **capability-driven**.
 
 ---
 
-### 4.2 Request Shape
+#### 4.2 Request Shape
 
 ```json
 "date": {
@@ -265,7 +265,7 @@ Date filtering is therefore **optional** and **capability-driven**.
 
 ---
 
-### 4.3 Backend Capability Declaration (MANDATORY)
+#### 4.3 Backend Capability Declaration (MANDATORY)
 
 Each LIST API MUST explicitly declare whether it supports date filtering.
 
@@ -287,7 +287,7 @@ dateColumn = "created_at"
 
 ---
 
-### 4.4 Unsupported Date Filters
+#### 4.4 Unsupported Date Filters
 
 If a LIST API does NOT support date filtering:
 
@@ -301,9 +301,9 @@ The chosen behavior MUST be consistent per API.
 
 ---
 
-## 5. Canonical LIST Response Contract
+### 5. Canonical LIST Response Contract
 
-### Response (JSON)
+#### Response (JSON)
 
 ```json
 {
@@ -320,7 +320,7 @@ The chosen behavior MUST be consistent per API.
 
 ---
 
-## 6. Pagination Fields Semantics
+### 6. Pagination Fields Semantics
 
 | Field      | Meaning                                |
 |------------|----------------------------------------|
@@ -339,7 +339,7 @@ The chosen behavior MUST be consistent per API.
 
 ---
 
-## 7. Hard Prohibitions (SECURITY & CONSISTENCY)
+### 7. Hard Prohibitions (SECURITY & CONSISTENCY)
 
 ❌ Client-side pagination
 ❌ Client-side searching
@@ -350,7 +350,7 @@ The chosen behavior MUST be consistent per API.
 
 ---
 
-## 8. Enforcement Summary
+### 8. Enforcement Summary
 
 * LIST APIs MUST follow this contract
 * UI reflects backend-declared capabilities
@@ -365,6 +365,175 @@ The chosen behavior MUST be consistent per API.
 
 ---
 
+## 🧩 F.1) Reusable LIST Infrastructure (Canonical)
+
+**Status:** ARCHITECTURE-LOCKED
+**Applies to:** All current and future LIST APIs
+
+To avoid duplication, inconsistency, and security drift, the Admin Control Panel
+defines a **reusable, capability-driven infrastructure** for all LIST queries.
+
+Reuse is achieved through **shared contracts and orchestration**,
+**NOT** through generic SQL builders or magic helpers.
+
+---
+
+### 1. Core Principle
+
+> **LIST behavior is reusable by contract, not by copy-paste.**
+
+All LIST APIs MUST share:
+
+* The same request structure
+* The same pagination model
+* The same filtering semantics
+
+While allowing:
+
+* Per-resource capabilities
+* Per-resource column control
+* Per-resource SQL ownership
+
+---
+
+### 2. Canonical LIST Query DTO (MANDATORY)
+
+All LIST APIs MUST accept a unified request DTO representing list intent.
+
+**Conceptual DTO:**
+
+```
+App\Domain\DTO\Common\ListQueryDTO
+```
+
+**Responsibilities:**
+
+* Page number
+* Page size
+* Global search term
+* Column-based filters
+* Optional date range
+
+**Non-Responsibilities (STRICT):**
+❌ No SQL logic
+❌ No column knowledge
+❌ No table awareness
+❌ No authorization logic
+
+This DTO defines **shape only**, not behavior.
+
+---
+
+### 3. Capability-Driven Design (MANDATORY)
+
+Each LIST resource MUST explicitly declare its supported capabilities.
+
+Capabilities are **backend-owned** and **resource-specific**.
+
+Conceptual capability set:
+
+* Supports global search (yes/no)
+* Supported searchable columns (explicit whitelist)
+* Supports column-based filters (yes/no)
+* Supports date filtering (yes/no)
+* Date column name (single, predefined)
+
+**Rules:**
+
+* UI MUST NOT assume capabilities
+* UI reflects backend-declared capabilities only
+* Capabilities MUST NOT be inferred dynamically
+* Capabilities MUST be documented per resource
+
+---
+
+### 4. Centralized Filter Resolution (REUSABLE CORE)
+
+Filtering logic MUST be centralized in a reusable resolver.
+
+**Conceptual component:**
+
+```
+App\Infrastructure\Query\ListFilterResolver
+```
+
+**Responsibilities:**
+
+* Validate incoming filters against declared capabilities
+* Normalize search input
+* Ignore or reject unsupported filters
+* Produce a **structured, SQL-agnostic filter model**
+
+**Non-Responsibilities (STRICT):**
+❌ No SQL generation
+❌ No PDO usage
+❌ No table or column names
+❌ No pagination math
+
+The resolver prepares **safe intent**, not queries.
+
+---
+
+### 5. Repository Responsibility (STRICT)
+
+Repositories remain **fully responsible** for SQL execution.
+
+Each Repository:
+
+* Knows exactly ONE table
+* Knows its allowed columns
+* Applies resolved filters explicitly
+* Constructs `PaginationDTO`
+* Executes queries using PDO only
+
+**Prohibited:**
+❌ Generic repositories
+❌ Shared SQL builders
+❌ Cross-table list handlers
+
+---
+
+### 6. Reference Implementation Rule
+
+At least ONE LIST API MUST act as a **reference implementation**
+for this infrastructure.
+
+Current reference:
+
+* `Sessions` LIST API
+
+All future LIST APIs MUST:
+
+* Follow the same structure
+* Reuse the same DTOs and resolver
+* Differ ONLY in declared capabilities and repository logic
+
+---
+
+### 7. Hard Prohibitions
+
+❌ Copy-pasting list logic across controllers
+❌ UI-driven filtering logic
+❌ Generic SQL helpers
+❌ Dynamic column selection
+❌ Implicit capabilities
+
+---
+
+### 8. Enforcement Summary
+
+* LIST reuse is **structural**, not procedural
+* Capabilities are explicit and backend-owned
+* Repositories remain simple and predictable
+* Any deviation is a **Canonical Violation**
+
+---
+
+## ✅ Status
+
+**Reusable LIST Infrastructure: LOCKED**
+
+---
 
 ## 🎨 G) UI/Twig Contract
 

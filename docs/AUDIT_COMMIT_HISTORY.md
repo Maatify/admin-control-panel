@@ -126,6 +126,7 @@ Entries MUST NOT be rewritten or reordered.
 - fix(auth): harden login input validation and remove legacy LoginSchema
 - docs(validation): analyze schema contracts and inconsistencies
 - docs(canonical): lock pagination, search, and optional date filtering contract for LIST APIs
+- docs(canonical): lock pagination, filtering, and reusable LIST infrastructure
 
 ---
 
