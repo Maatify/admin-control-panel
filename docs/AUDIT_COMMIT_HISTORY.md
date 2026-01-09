@@ -121,6 +121,7 @@ Entries MUST NOT be rewritten or reordered.
 - docs(canonical): lock PaginationDTO usage in canonical pagination contract
 - docs(security): formalize explicit non-hierarchical permission model
 - feat(email): add canonical email payload DTOs and twig templates
+- feat(email): add canonical email_queue schema and document email messaging system
 
 ---
 

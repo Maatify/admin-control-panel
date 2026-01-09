@@ -309,9 +309,16 @@ Any deviation from this contract is considered a **Canonical Violation**.
 
 ---
 
+تمام، ده **Section M كامل بعد التحديث**
+جاهز **copy-paste** من غير ما يكسّر أي حاجة موجودة، وبيضيف Email Messaging كنظام Canonical رسمي.
+
+---
+
 ## 🧩 M) Cross-Cutting Concerns (Canonical)
 
 The system defines several modules that cross application boundaries and affect multiple layers.
+
+---
 
 ### **1. Input Validation (NEW)**
 
@@ -342,6 +349,142 @@ The system defines several modules that cross application boundaries and affect 
 **Library Decision:**
 
 > `respect/validation` selected to implement rule sets
+
+---
+
+### **2. Email Messaging & Delivery (NEW)**
+
+**Status:** ARCHITECTURE-APPROVED / ACTIVE
+**Phase:** 14+ (Async Infrastructure, Non-Auth)
+
+The system implements a **fully asynchronous, encrypted email delivery pipeline**
+used for verification, OTP delivery, and system notifications.
+
+This module is **NOT** part of Authentication logic and **MUST NOT**
+alter or short-circuit any Auth, Session, or Step-Up behavior.
+
+---
+
+#### Email Queue (Canonical Infrastructure)
+
+* Email sending is **NEVER synchronous**
+* All emails MUST be enqueued in the `email_queue` table
+* Controllers and Services MUST NOT send emails directly
+* Email delivery is handled by background workers / cron jobs
+
+The email queue is treated as **Infrastructure Output**, not a Domain Event.
+
+---
+
+#### Domain Binding (Entity Traceability)
+
+Each queued email MUST be bound to a domain entity:
+
+* `entity_type`: `admin` | `user` | `system` | `external`
+* `entity_id`: string or integer (casted)
+
+This binding exists for:
+
+* Debugging & support
+* Failure tracing
+* Correlation with domain actions
+* Multi-domain reuse of the same queue
+
+This binding is **NOT** used for authorization or access control.
+
+---
+
+#### Encryption Policy (Mandatory)
+
+All sensitive email data is stored **encrypted at rest**:
+
+* Recipient email address → AES-GCM encrypted
+* Rendered email payload (subject + body) → AES-GCM encrypted
+* No plaintext email content is stored in the database
+
+Decryption is allowed **ONLY at send-time** by the email delivery worker.
+
+This rule is **SECURITY-CRITICAL** and MUST NOT be bypassed.
+
+---
+
+#### Email Templates (Twig-Based)
+
+* All email content is rendered using **Twig templates**
+* Templates are language-specific and presentation-only
+* No HTML is constructed dynamically in PHP code
+
+**Location:**
+
+```
+templates/
+└── emails/
+    ├── layouts/
+    │   └── base.twig
+    ├── otp/
+    │   ├── en.twig
+    │   └── ar.twig
+    └── verification/
+        ├── en.twig
+        └── ar.twig
+```
+
+**Rules:**
+
+* No business logic in templates
+* No database access
+* No permission-based conditionals
+* Templates consume DTO-provided variables only
+
+---
+
+#### Payload DTO Responsibility
+
+Email Payload DTOs are **independent** of Twig templates:
+
+* DTOs define semantic fields (e.g. `display_name`, `otp_code`, `expires_in_minutes`)
+* Templates map DTO fields to presentation
+* No formatting, localization, or rendering logic exists in DTOs
+
+This separation allows:
+
+* Safe template refactoring
+* Multi-channel reuse (Email now, Telegram later)
+* Deterministic alignment via static contracts
+
+---
+
+#### Execution Model & Failure Semantics
+
+* Queue rows transition through:
+  `pending → processing → sent | failed | skipped`
+* Retry logic is infrastructure-level only
+* Failures MUST NOT block UI or API flows
+* Email delivery does **NOT** emit audit logs by default
+
+---
+
+#### Explicit Non-Goals
+
+Email Messaging does **NOT**:
+
+* Affect authentication or authorization state
+* Trigger `audit_logs`
+* Block user-facing requests
+* Perform business decisions
+
+---
+
+### **Status Summary**
+
+* Input Validation → **ACTIVE**
+* Email Messaging & Delivery → **ACTIVE / CANONICAL**
+
+Any change to these cross-cutting concerns requires:
+
+* Explicit architectural decision
+* Documentation update
+* Security review where applicable
 
 ---
 

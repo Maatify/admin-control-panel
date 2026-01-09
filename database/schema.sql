@@ -19,6 +19,7 @@ DROP TABLE IF EXISTS admin_sessions;
 DROP TABLE IF EXISTS admin_passwords;
 DROP TABLE IF EXISTS admin_emails;
 DROP TABLE IF EXISTS admins;
+DROP TABLE IF EXISTS email_queue;
 
 SET FOREIGN_KEY_CHECKS=1;
 
@@ -240,3 +241,57 @@ CREATE TABLE system_state (
     state_value VARCHAR(64) NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `email_queue` (
+                               `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+
+    /* ===== Entity Binding (Domain Trace) ===== */
+                               `entity_type` VARCHAR(32) NOT NULL COMMENT 'admin | user | system | external',
+                               `entity_id` VARCHAR(64) DEFAULT NULL COMMENT 'Domain entity identifier (string or int casted)',
+
+    /* ===== Recipient (Encrypted) ===== */
+                               `recipient_encrypted` VARBINARY(512) NOT NULL,
+                               `recipient_iv` VARBINARY(16) NOT NULL,
+                               `recipient_tag` VARBINARY(16) NOT NULL,
+                               `recipient_key_id` VARCHAR(64) NOT NULL,
+
+    /* ===== Payload (Encrypted rendered output) ===== */
+                               `payload_encrypted` LONGBLOB NOT NULL,
+                               `payload_iv` VARBINARY(16) NOT NULL,
+                               `payload_tag` VARBINARY(16) NOT NULL,
+                               `payload_key_id` VARCHAR(64) NOT NULL,
+
+    /* ===== Template Binding ===== */
+                               `template_key` VARCHAR(100) NOT NULL,
+                               `language` VARCHAR(5) NOT NULL,
+
+    /* ===== Delivery Metadata ===== */
+                               `sender_type` TINYINT UNSIGNED NOT NULL COMMENT 'system-defined sender profile',
+                               `priority` TINYINT UNSIGNED NOT NULL DEFAULT 5 COMMENT 'lower = higher priority',
+
+    /* ===== Queue State ===== */
+                               `status` ENUM('pending','processing','sent','failed','skipped') NOT NULL DEFAULT 'pending',
+                               `attempts` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+                               `last_error` VARCHAR(128) NOT NULL DEFAULT '',
+
+    /* ===== Scheduling ===== */
+                               `scheduled_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                               `sent_at` DATETIME DEFAULT NULL,
+
+    /* ===== Timestamps ===== */
+                               `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                               `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+                               PRIMARY KEY (`id`),
+
+    /* ===== Indexes ===== */
+                               KEY `idx_email_queue_status_schedule` (`status`, `scheduled_at`),
+                               KEY `idx_email_queue_entity` (`entity_type`, `entity_id`),
+                               KEY `idx_email_queue_template` (`template_key`),
+                               KEY `idx_email_queue_language` (`language`)
+
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_uca1400_ai_ci
+    COMMENT='Encrypted async email delivery queue';
+
