@@ -112,6 +112,7 @@ Entries MUST NOT be rewritten or reordered.
 - docs(crypto): add consolidated README and HOW_TO_USE for library extraction
 - feat(validation): finalize validation module with strict semantics and library-grade structure
 - fix(security): replace assertion-based validation with explicit input guards in AdminController
+- fix(validation): map DTO semantic validation errors to explicit HTTP 4xx responses
 
 ---
 

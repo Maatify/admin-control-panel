@@ -10,6 +10,7 @@ use App\Domain\DTO\Request\VerifyAdminEmailRequestDTO;
 use App\Domain\DTO\Response\ActionResultResponseDTO;
 use App\Domain\DTO\Response\AdminEmailResponseDTO;
 use App\Domain\Enum\IdentifierType;
+use App\Domain\Exception\InvalidIdentifierFormatException;
 use App\Infrastructure\Repository\AdminEmailRepository;
 use App\Infrastructure\Repository\AdminRepository;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -63,7 +64,11 @@ class AdminController
             throw new HttpBadRequestException($request, 'Invalid or missing email.');
         }
 
-        $requestDto = new CreateAdminEmailRequestDTO($emailInput);
+        try {
+            $requestDto = new CreateAdminEmailRequestDTO($emailInput);
+        } catch (InvalidIdentifierFormatException $e) {
+            throw new HttpBadRequestException($request, 'Invalid email format.');
+        }
         $email = $requestDto->email;
 
         // Blind Index
@@ -118,7 +123,11 @@ class AdminController
              throw new HttpBadRequestException($request, 'Invalid or missing email.');
         }
 
-        $requestDto = new VerifyAdminEmailRequestDTO($emailInput);
+        try {
+            $requestDto = new VerifyAdminEmailRequestDTO($emailInput);
+        } catch (InvalidIdentifierFormatException $e) {
+            throw new HttpBadRequestException($request, 'Invalid email format.');
+        }
         $email = $requestDto->email;
 
         $blindIndexKey = $this->config->emailBlindIndexKey;
