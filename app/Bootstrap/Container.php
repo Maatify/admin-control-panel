@@ -56,6 +56,8 @@ use App\Domain\Service\StepUpService;
 use App\Domain\Service\VerificationCodeGenerator;
 use App\Domain\Service\VerificationCodePolicyResolver;
 use App\Domain\Service\VerificationCodeValidator;
+use App\Domain\Service\SessionRevocationService;
+use App\Domain\Service\AuthorizationService;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminNotificationHistoryController;
 use App\Http\Controllers\AdminNotificationPreferenceController;
@@ -65,12 +67,18 @@ use App\Http\Controllers\AdminSelfAuditController;
 use App\Http\Controllers\AdminTargetedAuditController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\StepUpController;
+use App\Http\Controllers\NotificationQueryController;
+use App\Http\Controllers\AdminEmailVerificationController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\EmailVerificationController;
 use App\Http\Controllers\Web\LoginController;
+use App\Http\Controllers\Web\LogoutController;
 use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Controllers\Web\TelegramConnectController;
 use App\Http\Controllers\Api\AdminListController;
+use App\Http\Controllers\Api\SessionQueryController;
+use App\Http\Controllers\Api\SessionRevokeController;
+use App\Http\Controllers\Api\SessionBulkRevokeController;
 use App\Http\Controllers\Web\TwoFactorController;
 use App\Http\Controllers\Ui\UiAdminsController;
 use App\Http\Controllers\Ui\UiDashboardController;
@@ -78,7 +86,6 @@ use App\Http\Controllers\Ui\UiPermissionsController;
 use App\Http\Controllers\Ui\UiRolesController;
 use App\Http\Controllers\Ui\UiSettingsController;
 use App\Http\Controllers\Ui\SessionListController;
-use App\Http\Controllers\Api\SessionQueryController;
 use App\Domain\Session\Reader\SessionListReaderInterface;
 use App\Infrastructure\Reader\Session\PdoSessionListReader;
 use App\Http\Middleware\RememberMeMiddleware;
@@ -137,6 +144,9 @@ use App\Modules\Crypto\Reversible\Algorithms\Aes256GcmAlgorithm;
 use App\Modules\Crypto\DX\CryptoDirectFactory;
 use App\Modules\Crypto\DX\CryptoContextFactory;
 use App\Modules\Crypto\DX\CryptoProvider;
+use App\Modules\Validation\Contracts\ValidatorInterface;
+use App\Modules\Validation\Guard\ValidationGuard;
+use App\Modules\Validation\Validator\RespectValidator;
 use DI\ContainerBuilder;
 use Exception;
 use PDO;
@@ -145,6 +155,7 @@ use Psr\Log\LoggerInterface;
 use Slim\Views\Twig;
 use Psr\Log\AbstractLogger;
 use Dotenv\Dotenv;
+use App\Http\Middleware\RecoveryStateMiddleware;
 
 class Container
 {
@@ -194,7 +205,15 @@ class Container
             AdminConfigDTO::class => function () use ($config) {
                 return $config;
             },
-            \App\Domain\Service\AuthorizationService::class => function (ContainerInterface $c) {
+            ValidatorInterface::class => function (ContainerInterface $c) {
+                return new RespectValidator();
+            },
+            ValidationGuard::class => function (ContainerInterface $c) {
+                $validator = $c->get(ValidatorInterface::class);
+                assert($validator instanceof ValidatorInterface);
+                return new ValidationGuard($validator);
+            },
+            AuthorizationService::class => function (ContainerInterface $c) {
                 $adminRoleRepo = $c->get(AdminRoleRepositoryInterface::class);
                 $rolePermissionRepo = $c->get(RolePermissionRepositoryInterface::class);
                 $directPermissionRepo = $c->get(AdminDirectPermissionRepositoryInterface::class);
@@ -211,7 +230,7 @@ class Container
                 assert($clientInfo instanceof ClientInfoProviderInterface);
                 assert($ownershipRepo instanceof SystemOwnershipRepositoryInterface);
 
-                return new \App\Domain\Service\AuthorizationService(
+                return new AuthorizationService(
                     $adminRoleRepo,
                     $rolePermissionRepo,
                     $directPermissionRepo,
@@ -245,12 +264,14 @@ class Container
                 $adminRepo = $c->get(AdminRepository::class);
                 $emailRepo = $c->get(AdminEmailRepository::class);
                 $config = $c->get(AdminConfigDTO::class);
+                $validationGuard = $c->get(ValidationGuard::class);
 
                 assert($adminRepo instanceof AdminRepository);
                 assert($emailRepo instanceof AdminEmailRepository);
                 assert($config instanceof AdminConfigDTO);
+                assert($validationGuard instanceof ValidationGuard);
 
-                return new AdminController($adminRepo, $emailRepo, $config);
+                return new AdminController($adminRepo, $emailRepo, $config, $validationGuard);
             },
             AdminEmailRepository::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
@@ -375,7 +396,7 @@ class Container
             AdminSessionValidationRepositoryInterface::class => function (ContainerInterface $c) {
                 return $c->get(AdminSessionRepositoryInterface::class);
             },
-            \App\Domain\Service\SessionRevocationService::class => function (ContainerInterface $c) {
+            SessionRevocationService::class => function (ContainerInterface $c) {
                 $repo = $c->get(AdminSessionValidationRepositoryInterface::class);
                 $auditWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
                 $clientInfo = $c->get(ClientInfoProviderInterface::class);
@@ -386,7 +407,7 @@ class Container
                 assert($clientInfo instanceof ClientInfoProviderInterface);
                 assert($pdo instanceof PDO);
 
-                return new \App\Domain\Service\SessionRevocationService($repo, $auditWriter, $clientInfo, $pdo);
+                return new SessionRevocationService($repo, $auditWriter, $clientInfo, $pdo);
             },
             RememberMeRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
@@ -570,10 +591,12 @@ class Container
             AuthController::class => function (ContainerInterface $c) {
                 $authService = $c->get(AdminAuthenticationService::class);
                 $config = $c->get(AdminConfigDTO::class);
+                $validationGuard = $c->get(ValidationGuard::class);
                 assert($authService instanceof AdminAuthenticationService);
                 assert($config instanceof AdminConfigDTO);
+                assert($validationGuard instanceof ValidationGuard);
 
-                return new AuthController($authService, $config->emailBlindIndexKey);
+                return new AuthController($authService, $config->emailBlindIndexKey, $validationGuard);
             },
             LoginController::class => function (ContainerInterface $c) {
                 $authService = $c->get(AdminAuthenticationService::class);
@@ -596,7 +619,7 @@ class Container
                     $view
                 );
             },
-            \App\Http\Controllers\Web\LogoutController::class => function (ContainerInterface $c) {
+            LogoutController::class => function (ContainerInterface $c) {
                 $sessionRepo = $c->get(AdminSessionValidationRepositoryInterface::class);
                 $rememberMeService = $c->get(RememberMeService::class);
                 $logger = $c->get(SecurityEventLoggerInterface::class);
@@ -609,7 +632,7 @@ class Container
                 assert($clientInfo instanceof ClientInfoProviderInterface);
                 assert($authService instanceof AdminAuthenticationService);
 
-                return new \App\Http\Controllers\Web\LogoutController(
+                return new LogoutController(
                     $sessionRepo,
                     $rememberMeService,
                     $logger,
@@ -654,9 +677,11 @@ class Container
             TelegramWebhookController::class => function (ContainerInterface $c) {
                 $handler = $c->get(TelegramHandler::class);
                 $logger = $c->get(LoggerInterface::class);
+                $validationGuard = $c->get(ValidationGuard::class);
                 assert($handler instanceof TelegramHandler);
                 assert($logger instanceof LoggerInterface);
-                return new TelegramWebhookController($handler, $logger);
+                assert($validationGuard instanceof ValidationGuard);
+                return new TelegramWebhookController($handler, $logger, $validationGuard);
             },
             UiAdminsController::class => function (ContainerInterface $c) {
                 $view = $c->get(Twig::class);
@@ -709,19 +734,41 @@ class Container
             AdminNotificationPreferenceController::class => function (ContainerInterface $c) {
                 $reader = $c->get(AdminNotificationPreferenceReaderInterface::class);
                 $writer = $c->get(AdminNotificationPreferenceWriterInterface::class);
+                $validationGuard = $c->get(ValidationGuard::class);
                 assert($reader instanceof AdminNotificationPreferenceReaderInterface);
                 assert($writer instanceof AdminNotificationPreferenceWriterInterface);
-                return new AdminNotificationPreferenceController($reader, $writer);
+                assert($validationGuard instanceof ValidationGuard);
+                return new AdminNotificationPreferenceController($reader, $writer, $validationGuard);
             },
             AdminNotificationHistoryController::class => function (ContainerInterface $c) {
                 $reader = $c->get(AdminNotificationHistoryReaderInterface::class);
+                $validationGuard = $c->get(ValidationGuard::class);
                 assert($reader instanceof AdminNotificationHistoryReaderInterface);
-                return new AdminNotificationHistoryController($reader);
+                assert($validationGuard instanceof ValidationGuard);
+                return new AdminNotificationHistoryController($reader, $validationGuard);
             },
             AdminNotificationReadController::class => function (ContainerInterface $c) {
                 $marker = $c->get(AdminNotificationReadMarkerInterface::class);
+                $validationGuard = $c->get(ValidationGuard::class);
                 assert($marker instanceof AdminNotificationReadMarkerInterface);
-                return new AdminNotificationReadController($marker);
+                assert($validationGuard instanceof ValidationGuard);
+                return new AdminNotificationReadController($marker, $validationGuard);
+            },
+            NotificationQueryController::class => function (ContainerInterface $c) {
+                $repository = $c->get(NotificationReadRepositoryInterface::class);
+                $validationGuard = $c->get(ValidationGuard::class);
+                assert($repository instanceof NotificationReadRepositoryInterface);
+                assert($validationGuard instanceof ValidationGuard);
+                return new NotificationQueryController($repository, $validationGuard);
+            },
+            AdminEmailVerificationController::class => function (ContainerInterface $c) {
+                $service = $c->get(AdminEmailVerificationService::class);
+                $repo = $c->get(AdminEmailRepository::class);
+                $validationGuard = $c->get(ValidationGuard::class);
+                assert($service instanceof AdminEmailVerificationService);
+                assert($repo instanceof AdminEmailRepository);
+                assert($validationGuard instanceof ValidationGuard);
+                return new AdminEmailVerificationController($service, $repo, $validationGuard);
             },
             AdminSelfAuditReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
@@ -769,38 +816,46 @@ class Container
             },
             SessionQueryController::class => function (ContainerInterface $c) {
                 $reader = $c->get(SessionListReaderInterface::class);
-                $auth = $c->get(\App\Domain\Service\AuthorizationService::class);
+                $auth = $c->get(AuthorizationService::class);
+                $validationGuard = $c->get(ValidationGuard::class);
                 assert($reader instanceof SessionListReaderInterface);
-                assert($auth instanceof \App\Domain\Service\AuthorizationService);
-                return new SessionQueryController($reader, $auth);
+                assert($auth instanceof AuthorizationService);
+                assert($validationGuard instanceof ValidationGuard);
+                return new SessionQueryController($reader, $auth, $validationGuard);
             },
-            \App\Http\Controllers\Api\SessionRevokeController::class => function (ContainerInterface $c) {
-                $service = $c->get(\App\Domain\Service\SessionRevocationService::class);
-                $auth = $c->get(\App\Domain\Service\AuthorizationService::class);
-                assert($service instanceof \App\Domain\Service\SessionRevocationService);
-                assert($auth instanceof \App\Domain\Service\AuthorizationService);
-                return new \App\Http\Controllers\Api\SessionRevokeController($service, $auth);
+            SessionRevokeController::class => function (ContainerInterface $c) {
+                $service = $c->get(SessionRevocationService::class);
+                $auth = $c->get(AuthorizationService::class);
+                $validationGuard = $c->get(ValidationGuard::class);
+                assert($service instanceof SessionRevocationService);
+                assert($auth instanceof AuthorizationService);
+                assert($validationGuard instanceof ValidationGuard);
+                return new SessionRevokeController($service, $auth, $validationGuard);
             },
-            \App\Http\Controllers\Api\SessionBulkRevokeController::class => function (ContainerInterface $c) {
-                $service = $c->get(\App\Domain\Service\SessionRevocationService::class);
-                $auth = $c->get(\App\Domain\Service\AuthorizationService::class);
-                assert($service instanceof \App\Domain\Service\SessionRevocationService);
-                assert($auth instanceof \App\Domain\Service\AuthorizationService);
-                return new \App\Http\Controllers\Api\SessionBulkRevokeController($service, $auth);
+            SessionBulkRevokeController::class => function (ContainerInterface $c) {
+                $service = $c->get(SessionRevocationService::class);
+                $auth = $c->get(AuthorizationService::class);
+                $validationGuard = $c->get(ValidationGuard::class);
+                assert($service instanceof SessionRevocationService);
+                assert($auth instanceof AuthorizationService);
+                assert($validationGuard instanceof ValidationGuard);
+                return new SessionBulkRevokeController($service, $auth, $validationGuard);
             },
 
             // Admin List
-            \App\Domain\Contracts\AdminListReaderInterface::class => function (ContainerInterface $c) {
+            AdminListReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 $config = $c->get(AdminConfigDTO::class);
                 assert($pdo instanceof PDO);
                 assert($config instanceof AdminConfigDTO);
-                return new \App\Infrastructure\Reader\Admin\PdoAdminListReader($pdo, $config);
+                return new PdoAdminListReader($pdo, $config);
             },
-            \App\Http\Controllers\Api\AdminListController::class => function (ContainerInterface $c) {
-                $reader = $c->get(\App\Domain\Contracts\AdminListReaderInterface::class);
-                assert($reader instanceof \App\Domain\Contracts\AdminListReaderInterface);
-                return new \App\Http\Controllers\Api\AdminListController($reader);
+            AdminListController::class => function (ContainerInterface $c) {
+                $reader = $c->get(AdminListReaderInterface::class);
+                $validationGuard = $c->get(ValidationGuard::class);
+                assert($reader instanceof AdminListReaderInterface);
+                assert($validationGuard instanceof ValidationGuard);
+                return new AdminListController($reader, $validationGuard);
             },
 
             // Phase 12
@@ -860,8 +915,10 @@ class Container
             },
             StepUpController::class => function (ContainerInterface $c) {
                 $service = $c->get(StepUpService::class);
+                $validationGuard = $c->get(ValidationGuard::class);
                 assert($service instanceof StepUpService);
-                return new StepUpController($service);
+                assert($validationGuard instanceof ValidationGuard);
+                return new StepUpController($service, $validationGuard);
             },
 
             // Phase Sx: Verification Code Infrastructure
@@ -898,10 +955,10 @@ class Container
 
                 return new RecoveryStateService($auditWriter, $securityLogger, $pdo, $config);
             },
-            \App\Http\Middleware\RecoveryStateMiddleware::class => function (ContainerInterface $c) {
+            RecoveryStateMiddleware::class => function (ContainerInterface $c) {
                 $service = $c->get(RecoveryStateService::class);
                 assert($service instanceof RecoveryStateService);
-                return new \App\Http\Middleware\RecoveryStateMiddleware($service);
+                return new RecoveryStateMiddleware($service);
             },
             RememberMeService::class => function (ContainerInterface $c) {
                 $rememberMeRepo = $c->get(RememberMeRepositoryInterface::class);

@@ -57,8 +57,11 @@ class AdminNotificationPreferenceController
 
         $this->validationGuard->check(new AdminPreferenceUpsertSchema(), $body);
 
+        /** @var string $notificationType */
         $notificationType = $body['notification_type'];
+        /** @var string $channelTypeStr */
         $channelTypeStr = $body['channel_type'];
+        /** @var bool $isEnabled */
         $isEnabled = $body['is_enabled'];
 
         $channelType = NotificationChannelType::tryFrom($channelTypeStr);
