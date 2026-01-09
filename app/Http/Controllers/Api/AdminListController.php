@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Domain\Contracts\AdminListReaderInterface;
 use App\Domain\DTO\AdminList\AdminListQueryDTO;
+use DomainException;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Throwable;
@@ -53,6 +54,12 @@ readonly class AdminListController
 
             return $response->withHeader('Content-Type', 'application/json');
 
+        } catch (DomainException $e) {
+            $errorPayload = json_encode(['error' => $e->getMessage()], JSON_THROW_ON_ERROR);
+            $response->getBody()->write($errorPayload);
+            return $response
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(400);
         } catch (Throwable $e) {
             $errorPayload = json_encode(['error' => $e->getMessage()], JSON_THROW_ON_ERROR);
             $response->getBody()->write($errorPayload);
