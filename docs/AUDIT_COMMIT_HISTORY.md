@@ -141,6 +141,7 @@ Entries MUST NOT be rewritten or reordered.
 - docs(api): isolate legacy endpoints and scope canonical LIST / QUERY contract
 - docs(adr): align input normalization date keys with canonical LIST contract
 - docs(context): clarify scope of canonical LIST / QUERY pagination contract
+- fix(input-normalization): map legacy date keys into canonical nested date shape
 
 ---
 

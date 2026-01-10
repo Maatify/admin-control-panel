@@ -15,14 +15,25 @@ final class InputNormalizer implements InputNormalizerInterface
             $input['per_page'] = $input['limit'];
         }
 
-        // Date Range: from_date wins over from
-        if (!array_key_exists('from_date', $input) && array_key_exists('from', $input)) {
-            $input['from_date'] = $input['from'];
+        // Date Range: date.from wins over from
+        // We must ensure 'date' is an array (or missing) to avoid scalar overwrites/crashes
+        if (array_key_exists('from', $input)) {
+            if (!array_key_exists('date', $input)) {
+                $input['date'] = [];
+            }
+            if (is_array($input['date']) && !array_key_exists('from', $input['date'])) {
+                $input['date']['from'] = $input['from'];
+            }
         }
 
-        // Date Range: to_date wins over to
-        if (!array_key_exists('to_date', $input) && array_key_exists('to', $input)) {
-            $input['to_date'] = $input['to'];
+        // Date Range: date.to wins over to
+        if (array_key_exists('to', $input)) {
+            if (!array_key_exists('date', $input)) {
+                $input['date'] = [];
+            }
+            if (is_array($input['date']) && !array_key_exists('to', $input['date'])) {
+                $input['date']['to'] = $input['to'];
+            }
         }
 
         return $input;
