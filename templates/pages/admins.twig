@@ -17,13 +17,9 @@
     <div class="card mb-4">
         <div class="card-body">
             <form id="admins-search-form" class="row g-3">
-                <div class="col-md-3">
-                    <label for="filter-admin-id" class="form-label">Admin ID</label>
-                    <input type="text" class="form-control" id="filter-admin-id" placeholder="Search by ID">
-                </div>
-                <div class="col-md-3">
-                    <label for="filter-email" class="form-label">Email</label>
-                    <input type="text" class="form-control" id="filter-email" placeholder="Search by Email">
+                <div class="col-md-6">
+                    <label for="search-global" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="search-global" placeholder="Search...">
                 </div>
                 <div class="col-md-6 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary me-2">Search</button>
@@ -59,7 +55,7 @@
                 <div class="d-flex align-items-center">
                     <select class="form-select form-select-sm me-2" id="per-page-select" style="width: auto;">
                         <option value="10">10</option>
-                        <option value="20">20</option>
+                        <option value="20" selected>20</option>
                         <option value="50">50</option>
                         <option value="100">100</option>
                     </select>

@@ -1,17 +1,15 @@
 document.addEventListener('DOMContentLoaded', function() {
     // State
     let currentPage = 1;
-    let perPage = 10;
-    let currentAdminId = '';
-    let currentEmail = '';
+    let perPage = 20;
+    let searchQuery = '';
 
     // Elements
     const tableBody = document.querySelector('#admins-table tbody');
     const paginationInfo = document.getElementById('pagination-info');
     const paginationControls = document.getElementById('pagination-controls');
     const searchForm = document.getElementById('admins-search-form');
-    const adminIdInput = document.getElementById('filter-admin-id');
-    const emailInput = document.getElementById('filter-email');
+    const searchInput = document.getElementById('search-global');
     const resetButton = document.getElementById('btn-reset');
     const perPageSelect = document.getElementById('per-page-select');
 
@@ -27,17 +25,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     searchForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        currentAdminId = adminIdInput.value;
-        currentEmail = emailInput.value;
+        searchQuery = searchInput.value.trim();
         currentPage = 1; // Reset to first page
         loadAdmins();
     });
 
     resetButton.addEventListener('click', function() {
-        adminIdInput.value = '';
-        emailInput.value = '';
-        currentAdminId = '';
-        currentEmail = '';
+        searchInput.value = '';
+        searchQuery = '';
         currentPage = 1;
         loadAdmins();
     });
@@ -46,25 +41,28 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadAdmins() {
         setLoading();
 
-        // Build query string
-        const params = new URLSearchParams({
+        // Build canonical payload
+        const payload = {
             page: currentPage,
-            per_page: perPage,
-        });
-        if (currentAdminId) {
-            params.append('id', currentAdminId);
-        }
-        if (currentEmail) {
-            params.append('email', currentEmail);
+            per_page: perPage
+        };
+
+        if (searchQuery) {
+            payload.search = {
+                global: searchQuery
+            };
         }
 
+        console.log(payload);
+
         try {
-            const response = await fetch(`/api/admins?${params.toString()}`, {
-                method: 'GET',
+            const response = await fetch('/api/admins/query', {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
-                }
+                },
+                body: JSON.stringify(payload)
             });
 
             if (!response.ok) {
@@ -72,8 +70,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const result = await response.json();
+
+            // Validate response shape per Canonical Contract
+            if (!result.data || !result.pagination) {
+                 throw new Error('Invalid response format: Missing data or pagination');
+            }
+
             renderTable(result.data);
-            renderPagination(result.meta);
+            renderPagination(result.pagination);
 
         } catch (error) {
             console.error('Error:', error);
@@ -102,8 +106,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }).join('');
     }
 
-    function renderPagination(meta) {
-        const { page, per_page, total, total_pages } = meta;
+    function renderPagination(pagination) {
+        const { page, per_page, total } = pagination;
 
         const start = total === 0 ? 0 : (page - 1) * per_page + 1;
         const end = Math.min(page * per_page, total);
@@ -111,13 +115,13 @@ document.addEventListener('DOMContentLoaded', function() {
         paginationInfo.textContent = 'Showing ' + start + ' to ' + end + ' of ' + total + ' entries';
 
         let html = '';
-        const totalPages = total_pages;
+        const totalPages = Math.ceil(total / per_page);
 
         // Prev
         html += '<li class="page-item ' + (page === 1 ? 'disabled' : '') + '">';
         html += '<button class="page-link" onclick="changePage(' + (page - 1) + ')">Previous</button></li>';
 
-        // Simple pagination logic (matching Sessions JS)
+        // Pagination Rendering Logic
         for (let i = 1; i <= totalPages; i++) {
              if (i === 1 || i === totalPages || (i >= page - 2 && i <= page + 2)) {
                 html += '<li class="page-item ' + (i === page ? 'active' : '') + '">';
@@ -150,17 +154,5 @@ document.addEventListener('DOMContentLoaded', function() {
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
-    }
-
-    function showAlert(message, type = 'success') {
-        const alertContainer = document.getElementById('alert-container');
-        if (alertContainer) {
-            alertContainer.innerHTML = `
-                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            `;
-        }
     }
 });
