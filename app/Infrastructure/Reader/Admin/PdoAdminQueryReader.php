@@ -134,7 +134,7 @@ final readonly class PdoAdminQueryReader implements AdminQueryReaderInterface
             {$whereSql}
             GROUP BY a.id
             ORDER BY a.created_at DESC 
-            `LIMIT` :limit OFFSET :offset
+            LIMIT :limit OFFSET :offset
         ";
 
         $stmt = $this->pdo->prepare($sql);
