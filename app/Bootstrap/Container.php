@@ -183,12 +183,12 @@ class Container
             'EMAIL_BLIND_INDEX_KEY',
             'APP_TIMEZONE',
             'EMAIL_ENCRYPTION_KEY',
-            'SMTP_HOST',
-            'SMTP_PORT',
-            'SMTP_USERNAME',
-            'SMTP_PASSWORD',
-            'SMTP_FROM_ADDRESS',
-            'SMTP_FROM_NAME',
+            'MAIL_HOST',
+            'MAIL_PORT',
+            'MAIL_USERNAME',
+            'MAIL_PASSWORD',
+            'MAIL_FROM_ADDRESS',
+            'MAIL_FROM_NAME',
         ])->notEmpty();
 
         // Create Config DTO
@@ -222,16 +222,16 @@ class Container
 
         // Create Email Config DTO
         $emailConfig = new EmailTransportConfigDTO(
-            host: $_ENV['SMTP_HOST'],
-            port: (int)$_ENV['SMTP_PORT'],
-            username: $_ENV['SMTP_USERNAME'],
-            password: $_ENV['SMTP_PASSWORD'],
-            fromAddress: $_ENV['SMTP_FROM_ADDRESS'],
-            fromName: $_ENV['SMTP_FROM_NAME'],
-            encryption: $_ENV['SMTP_ENCRYPTION'] ?? null,
-            timeoutSeconds: isset($_ENV['SMTP_TIMEOUT']) ? (int)$_ENV['SMTP_TIMEOUT'] : 10,
-            charset: $_ENV['SMTP_CHARSET'] ?? 'UTF-8',
-            debugLevel: isset($_ENV['SMTP_DEBUG']) ? (int)$_ENV['SMTP_DEBUG'] : 0
+            host: $_ENV['MAIL_HOST'],
+            port: (int)$_ENV['MAIL_PORT'],
+            username: $_ENV['MAIL_USERNAME'],
+            password: $_ENV['MAIL_PASSWORD'],
+            fromAddress: $_ENV['MAIL_FROM_ADDRESS'],
+            fromName: $_ENV['MAIL_FROM_NAME'],
+            encryption: $_ENV['MAIL_ENCRYPTION'] ?? null,
+            timeoutSeconds: isset($_ENV['MAIL_TIMEOUT_SECONDS']) ? (int)$_ENV['MAIL_TIMEOUT_SECONDS'] : 10,
+            charset: $_ENV['MAIL_CHARSET'] ?? 'UTF-8',
+            debugLevel: isset($_ENV['MAIL_DEBUG_LEVEL']) ? (int)$_ENV['MAIL_DEBUG_LEVEL'] : 0
         );
 
         // Enforce Timezone
