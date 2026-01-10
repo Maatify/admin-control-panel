@@ -19,8 +19,7 @@ readonly class PdoSessionListReader implements SessionListReaderInterface
     public function __construct(
         private PDO $pdo,
         private AdminConfigDTO $config
-    ) {
-    }
+    ) {}
 
     public function getSessions(
         ListQueryDTO $query,
@@ -29,24 +28,47 @@ readonly class PdoSessionListReader implements SessionListReaderInterface
         string $currentSessionHash
     ): SessionListResponseDTO
     {
-        $where = [];
+        $where  = [];
         $params = [];
 
-        // Global search
+        // ─────────────────────────────
+        // Global search (session_id only)
+        // ─────────────────────────────
         if ($filters->globalSearch !== null) {
             $where[] = 's.session_id LIKE :global';
             $params['global'] = '%' . $filters->globalSearch . '%';
         }
 
+        // ─────────────────────────────
         // Column filters
+        // ─────────────────────────────
         foreach ($filters->columnFilters as $column => $value) {
+
             if ($column === 'session_id') {
                 $where[] = 's.session_id LIKE :session_id';
                 $params['session_id'] = '%' . $value . '%';
             }
+
+            if ($column === 'status') {
+                switch ($value) {
+                    case 'active':
+                        $where[] = 's.is_revoked = 0 AND s.expires_at > NOW()';
+                        break;
+
+                    case 'revoked':
+                        $where[] = 's.is_revoked = 1';
+                        break;
+
+                    case 'expired':
+                        $where[] = 's.is_revoked = 0 AND s.expires_at <= NOW()';
+                        break;
+                }
+            }
         }
 
-        // Date filters
+        // ─────────────────────────────
+        // Date range
+        // ─────────────────────────────
         if ($filters->dateFrom !== null) {
             $where[] = 's.created_at >= :date_from';
             $params['date_from'] = $filters->dateFrom->format('Y-m-d 00:00:00');
@@ -57,7 +79,9 @@ readonly class PdoSessionListReader implements SessionListReaderInterface
             $params['date_to'] = $filters->dateTo->format('Y-m-d 23:59:59');
         }
 
-        // Admin restriction
+        // ─────────────────────────────
+        // Admin scope enforcement (HARD)
+        // ─────────────────────────────
         if ($adminIdFilter !== null) {
             $where[] = 's.admin_id = :admin_id';
             $params['admin_id'] = $adminIdFilter;
@@ -65,25 +89,30 @@ readonly class PdoSessionListReader implements SessionListReaderInterface
 
         $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
+        // ─────────────────────────────
         // Total (no filters)
+        // ─────────────────────────────
         $totalStmt = $this->pdo->query('SELECT COUNT(*) FROM admin_sessions');
 
         if ($totalStmt === false) {
             throw new RuntimeException('Failed to execute total count query');
         }
 
-        $totalColumn = $totalStmt->fetchColumn();
-        $total = $totalColumn !== false ? (int) $totalColumn : 0;
+        $total = (int) $totalStmt->fetchColumn();
 
+        // ─────────────────────────────
         // Filtered
+        // ─────────────────────────────
         $stmtFiltered = $this->pdo->prepare(
             "SELECT COUNT(*) FROM admin_sessions s {$whereSql}"
         );
         $stmtFiltered->execute($params);
-        $filtered = (int)$stmtFiltered->fetchColumn();
+        $filtered = (int) $stmtFiltered->fetchColumn();
 
+        // ─────────────────────────────
         // Data
-        $limit = $query->perPage;
+        // ─────────────────────────────
+        $limit  = $query->perPage;
         $offset = ($query->page - 1) * $limit;
 
         $sql = "
@@ -97,18 +126,18 @@ readonly class PdoSessionListReader implements SessionListReaderInterface
                     WHEN s.is_revoked = 1 THEN 'revoked'
                     WHEN s.expires_at <= NOW() THEN 'expired'
                     ELSE 'active'
-                END as status,
+                END AS status,
                 (
                     SELECT ae.email_encrypted
                     FROM admin_emails ae
                     WHERE ae.admin_id = s.admin_id
                     ORDER BY ae.id ASC
                     LIMIT 1
-                ) as email_encrypted
+                ) AS email_encrypted
             FROM admin_sessions s
             {$whereSql}
             ORDER BY s.created_at DESC
-            `LIMIT` :limit OFFSET :offset
+            LIMIT :limit OFFSET :offset
         ";
 
         $stmt = $this->pdo->prepare($sql);
@@ -124,34 +153,36 @@ readonly class PdoSessionListReader implements SessionListReaderInterface
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $items = [];
+
         foreach ($rows ?: [] as $row) {
-            $adminId = (int)$row['admin_id'];
+            $adminId    = (int) $row['admin_id'];
             $identifier = 'Admin #' . $adminId;
 
             if (!empty($row['email_encrypted'])) {
-                $decrypted = $this->decryptEmail((string)$row['email_encrypted']);
+                $decrypted = $this->decryptEmail((string) $row['email_encrypted']);
                 if ($decrypted !== null) {
                     $identifier = $decrypted;
                 }
             }
 
             $items[] = new SessionListItemDTO(
-                session_id: (string)$row['session_id'],
-                admin_id: $adminId,
-                admin_identifier: $identifier,
-                created_at: (string)$row['created_at'],
-                expires_at: (string)$row['expires_at'],
-                status: (string)$row['status'],
-                is_current: hash_equals((string)$row['session_id'], $currentSessionHash)
+                session_id       : (string) $row['session_id'],
+                admin_id         : $adminId,
+                admin_identifier : $identifier,
+                created_at       : (string) $row['created_at'],
+                expires_at       : (string) $row['expires_at'],
+                status            : (string) $row['status'],
+                is_current        : hash_equals((string) $row['session_id'], $currentSessionHash)
             );
         }
-        return new SessionListResponseDTO (
+
+        return new SessionListResponseDTO(
             data: $items,
             pagination: new PaginationDTO(
-                page: $query->page,
-                perPage: $query->perPage,
-                total: $total,
-                filtered: $filtered
+                page     : $query->page,
+                perPage  : $query->perPage,
+                total    : $total,
+                filtered : $filtered
             )
         );
     }
@@ -165,13 +196,14 @@ readonly class PdoSessionListReader implements SessionListReaderInterface
             }
 
             $cipher = 'aes-256-gcm';
-            $ivLen = openssl_cipher_iv_length($cipher);
+            $ivLen  = openssl_cipher_iv_length($cipher);
+
             if ($ivLen === false || strlen($data) < $ivLen + 16) {
                 return null;
             }
 
-            $iv = substr($data, 0, $ivLen);
-            $tag = substr($data, $ivLen, 16);
+            $iv         = substr($data, 0, $ivLen);
+            $tag        = substr($data, $ivLen, 16);
             $ciphertext = substr($data, $ivLen + 16);
 
             $decrypted = openssl_decrypt(
@@ -189,4 +221,3 @@ readonly class PdoSessionListReader implements SessionListReaderInterface
         }
     }
 }
-

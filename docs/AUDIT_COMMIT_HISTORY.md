@@ -129,6 +129,7 @@ Entries MUST NOT be rewritten or reordered.
 - docs(canonical): lock pagination, filtering, and reusable LIST infrastructure
 - feat(list): introduce canonical reusable LIST infrastructure
 - refactor(list-query): replace legacy admin/session lists with canonical query pipeline
+- fix(query): enforce canonical list validation, filtering, and session status handling
 
 ---
 

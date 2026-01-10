@@ -14,7 +14,7 @@ use App\Modules\Validation\Schemas\SharedListQuerySchema;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-readonly class SessionQueryController
+final readonly class SessionQueryController
 {
     public function __construct(
         private SessionListReaderInterface $reader,
@@ -29,48 +29,48 @@ readonly class SessionQueryController
         $adminId = $request->getAttribute('admin_id');
         assert(is_int($adminId));
 
-        $body = (array)$request->getParsedBody();
+        /** @var array<string,mixed> $body */
+        $body = (array) $request->getParsedBody();
 
-        // ✅ Validation (MANDATORY)
+        // 1️⃣ Validate canonical list/query request
         $this->validationGuard->check(new SharedListQuerySchema(), $body);
 
-        // Build canonical ListQueryDTO
+        // 2️⃣ Build canonical DTO
         $query = ListQueryDTO::fromArray($body);
 
-        // Permission-based admin filter
-        if ($this->authorizationService->hasPermission($adminId, 'sessions.view_all')) {
-            $adminIdFilter = isset($body['filters']['admin_id']) && $body['filters']['admin_id'] !== ''
-                ? (int)$body['filters']['admin_id']
-                : null;
-        } else {
-            $adminIdFilter = $adminId;
-        }
+        // 3️⃣ Authorization scope (HARD RULE)
+        $adminIdFilter = $this->authorizationService->hasPermission($adminId, 'sessions.view_all')
+            ? null
+            : $adminId;
 
-        // Current session hash
+        // 4️⃣ Current session hash
         $cookies = $request->getCookieParams();
-        $token = isset($cookies['auth_token']) ? (string)$cookies['auth_token'] : '';
+        $token = isset($cookies['auth_token']) ? (string) $cookies['auth_token'] : '';
         $currentSessionHash = $token !== '' ? hash('sha256', $token) : '';
 
-        // Declare LIST capabilities (Sessions = time-based)
+        // 5️⃣ Declare LIST capabilities (ALIASES ONLY)
         $capabilities = new ListCapabilities(
             supportsGlobalSearch: true,
             searchableColumns: [
-                's.session_id',
+                'session_id',
+                'admin_id',
             ],
 
             supportsColumnFilters: true,
             filterableColumns: [
-                'session_id' => 's.session_id',
-                'status'     => 's.is_revoked',
-                'admin_id'   => 's.admin_id',
+                'session_id' => 'session_id',
+                'status'     => 'status',
+                'admin_id'   => 'admin_id',
             ],
 
             supportsDateFilter: true,
-            dateColumn: 's.created_at'
+            dateColumn: 'created_at'
         );
 
+        // 6️⃣ Resolve allowed filters only
         $resolvedFilters = $this->filterResolver->resolve($query, $capabilities);
 
+        // 7️⃣ Execute reader (Reader enforces SQL + scope)
         $result = $this->reader->getSessions(
             query: $query,
             filters: $resolvedFilters,

@@ -25,35 +25,48 @@ final class ListFilterResolver
         ListCapabilities $capabilities
     ): ResolvedListFilters
     {
+        // ─────────────────────────────
+        // Global search
+        // ─────────────────────────────
         $globalSearch = null;
 
-        if ($capabilities->supportsGlobalSearch && $query->globalSearch !== null) {
+        if (
+            $capabilities->supportsGlobalSearch &&
+            $query->globalSearch !== null
+        ) {
             $globalSearch = $query->globalSearch;
         }
 
+        // ─────────────────────────────
+        // Column filters (STRICT whitelist)
+        // ─────────────────────────────
         $columnFilters = [];
 
         if ($capabilities->supportsColumnFilters) {
-            foreach ($query->columnFilters as $column => $value) {
-                if (in_array($column, $capabilities->searchableColumns, true)) {
-                    $columnFilters[$column] = $value;
+            foreach ($query->columnFilters as $alias => $value) {
+                // ✔️ check AGAINST filterableColumns KEYS
+                if (array_key_exists($alias, $capabilities->filterableColumns)) {
+                    $columnFilters[$alias] = $value;
                 }
             }
         }
 
+        // ─────────────────────────────
+        // Date range
+        // ─────────────────────────────
         $dateFrom = null;
-        $dateTo = null;
+        $dateTo   = null;
 
         if ($capabilities->supportsDateFilter) {
             $dateFrom = $query->dateFrom;
-            $dateTo = $query->dateTo;
+            $dateTo   = $query->dateTo;
         }
 
         return new ResolvedListFilters(
-            $globalSearch,
-            $columnFilters,
-            $dateFrom,
-            $dateTo
+            globalSearch : $globalSearch,
+            columnFilters: $columnFilters,
+            dateFrom     : $dateFrom,
+            dateTo       : $dateTo
         );
     }
 }

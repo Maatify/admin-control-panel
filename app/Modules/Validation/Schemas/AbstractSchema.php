@@ -43,8 +43,11 @@ abstract class AbstractSchema implements SchemaInterface
         foreach ($this->rules() as $field => [$rule, $errorCode]) {
             try {
                 $rule->assert($input[$field] ?? null);
-            } catch (NestedValidationException) {
-            } catch (ValidationException) {  // Catch parent exception for broader coverage without changing behavior
+//            } catch (NestedValidationException) {
+//            } catch (ValidationException) {  // Catch parent exception for broader coverage without changing behavior
+//            }
+            } catch (NestedValidationException | ValidationException) {
+                $errors[$field] = $errorCode;
             }
         }
 
