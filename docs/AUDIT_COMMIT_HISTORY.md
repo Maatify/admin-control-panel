@@ -140,6 +140,7 @@ Entries MUST NOT be rewritten or reordered.
 - docs(architecture): add ADR for crypto key rotation via bootstrap wiring
 - docs(api): isolate legacy endpoints and scope canonical LIST / QUERY contract
 - docs(adr): align input normalization date keys with canonical LIST contract
+- docs(context): clarify scope of canonical LIST / QUERY pagination contract
 
 ---
 

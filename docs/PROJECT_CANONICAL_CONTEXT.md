@@ -134,7 +134,7 @@ The system enforces a strict separation between "What Changed" (Audit) and "What
 ## 📄 F) Pagination & Filtering Contract (Canonical)
 
 Defined by `SessionQueryController` implementation
-and enforced across **ALL LIST APIs**.
+and enforced across **POST-based Canonical LIST / QUERY APIs** only.
 
 ---
 
