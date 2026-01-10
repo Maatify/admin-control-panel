@@ -17,15 +17,33 @@
     <div class="card mb-4">
         <div class="card-body">
             <form id="admins-search-form" class="row g-3">
+                {# Global Search #}
+                <div class="col-md-12">
+                    <label for="search-global" class="form-label">Global Search</label>
+                    <input type="text" class="form-control" id="search-global" placeholder="Search ID or Email...">
+                </div>
+
+                {# Column Filters #}
                 <div class="col-md-3">
-                    <label for="filter-admin-id" class="form-label">Admin ID</label>
-                    <input type="text" class="form-control" id="filter-admin-id" placeholder="Search by ID">
+                    <label for="filter-id" class="form-label">Admin ID</label>
+                    <input type="text" class="form-control" id="filter-id" placeholder="Filter by ID">
                 </div>
                 <div class="col-md-3">
                     <label for="filter-email" class="form-label">Email</label>
-                    <input type="text" class="form-control" id="filter-email" placeholder="Search by Email">
+                    <input type="text" class="form-control" id="filter-email" placeholder="Filter by Email">
                 </div>
-                <div class="col-md-6 d-flex align-items-end">
+
+                {# Date Range #}
+                <div class="col-md-3">
+                    <label for="date-from" class="form-label">Created From</label>
+                    <input type="date" class="form-control" id="date-from">
+                </div>
+                <div class="col-md-3">
+                    <label for="date-to" class="form-label">Created To</label>
+                    <input type="date" class="form-control" id="date-to">
+                </div>
+
+                <div class="col-md-12 d-flex justify-content-end">
                     <button type="submit" class="btn btn-primary me-2">Search</button>
                     <button type="button" class="btn btn-secondary" id="btn-reset">Reset</button>
                 </div>

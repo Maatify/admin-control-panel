@@ -2,16 +2,30 @@ document.addEventListener('DOMContentLoaded', function() {
     // State
     let currentPage = 1;
     let perPage = 10;
-    let currentAdminId = '';
-    let currentEmail = '';
+
+    let currentSearch = {
+        global: '',
+        id: '',
+        email: ''
+    };
+
+    let currentDate = {
+        from: '',
+        to: ''
+    };
 
     // Elements
     const tableBody = document.querySelector('#admins-table tbody');
     const paginationInfo = document.getElementById('pagination-info');
     const paginationControls = document.getElementById('pagination-controls');
+
     const searchForm = document.getElementById('admins-search-form');
-    const adminIdInput = document.getElementById('filter-admin-id');
-    const emailInput = document.getElementById('filter-email');
+    const searchGlobalInput = document.getElementById('search-global');
+    const filterIdInput = document.getElementById('filter-id');
+    const filterEmailInput = document.getElementById('filter-email');
+    const dateFromInput = document.getElementById('date-from');
+    const dateToInput = document.getElementById('date-to');
+
     const resetButton = document.getElementById('btn-reset');
     const perPageSelect = document.getElementById('per-page-select');
 
@@ -27,17 +41,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
     searchForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        currentAdminId = adminIdInput.value;
-        currentEmail = emailInput.value;
+
+        currentSearch = {
+            global: searchGlobalInput.value,
+            id: filterIdInput.value,
+            email: filterEmailInput.value
+        };
+
+        currentDate = {
+            from: dateFromInput.value,
+            to: dateToInput.value
+        };
+
         currentPage = 1; // Reset to first page
         loadAdmins();
     });
 
     resetButton.addEventListener('click', function() {
-        adminIdInput.value = '';
-        emailInput.value = '';
-        currentAdminId = '';
-        currentEmail = '';
+        searchGlobalInput.value = '';
+        filterIdInput.value = '';
+        filterEmailInput.value = '';
+        dateFromInput.value = '';
+        dateToInput.value = '';
+
+        currentSearch = { global: '', id: '', email: '' };
+        currentDate = { from: '', to: '' };
+
         currentPage = 1;
         loadAdmins();
     });
@@ -46,25 +75,48 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadAdmins() {
         setLoading();
 
-        // Build query string
-        const params = new URLSearchParams({
+        // Build Payload
+        const payload = {
             page: currentPage,
-            per_page: perPage,
-        });
-        if (currentAdminId) {
-            params.append('id', currentAdminId);
+            per_page: perPage
+        };
+
+        const filters = {};
+        const columns = {};
+
+        // Global
+        if (currentSearch.global.trim()) {
+            filters.global = currentSearch.global.trim();
         }
-        if (currentEmail) {
-            params.append('email', currentEmail);
+
+        // Columns
+        if (currentSearch.id.trim()) {
+            columns.id = currentSearch.id.trim();
+        }
+        if (currentSearch.email.trim()) {
+            columns.email = currentSearch.email.trim();
+        }
+
+        if (Object.keys(columns).length > 0) {
+            filters.columns = columns;
+        }
+
+        // Date
+        if (currentDate.from) filters.date_from = currentDate.from;
+        if (currentDate.to) filters.date_to = currentDate.to;
+
+        if (Object.keys(filters).length > 0) {
+            payload.filters = filters;
         }
 
         try {
-            const response = await fetch(`/api/admins?${params.toString()}`, {
-                method: 'GET',
+            const response = await fetch('/api/admins/query', {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
-                }
+                },
+                body: JSON.stringify(payload)
             });
 
             if (!response.ok) {
@@ -73,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const result = await response.json();
             renderTable(result.data);
-            renderPagination(result.meta);
+            renderPagination(result.pagination);
 
         } catch (error) {
             console.error('Error:', error);
@@ -102,22 +154,25 @@ document.addEventListener('DOMContentLoaded', function() {
         }).join('');
     }
 
-    function renderPagination(meta) {
-        const { page, per_page, total, total_pages } = meta;
+    function renderPagination(pagination) {
+        if (!pagination) return;
 
-        const start = total === 0 ? 0 : (page - 1) * per_page + 1;
-        const end = Math.min(page * per_page, total);
+        const { page, per_page, total, filtered } = pagination;
+        const effectiveTotal = (typeof filtered !== 'undefined') ? filtered : total;
+        const totalPages = Math.ceil(effectiveTotal / per_page);
 
-        paginationInfo.textContent = 'Showing ' + start + ' to ' + end + ' of ' + total + ' entries';
+        const start = effectiveTotal === 0 ? 0 : (page - 1) * per_page + 1;
+        const end = Math.min(page * per_page, effectiveTotal);
+
+        paginationInfo.textContent = 'Showing ' + start + ' to ' + end + ' of ' + effectiveTotal + ' entries';
 
         let html = '';
-        const totalPages = total_pages;
 
         // Prev
         html += '<li class="page-item ' + (page === 1 ? 'disabled' : '') + '">';
         html += '<button class="page-link" onclick="changePage(' + (page - 1) + ')">Previous</button></li>';
 
-        // Simple pagination logic (matching Sessions JS)
+        // Simple pagination logic
         for (let i = 1; i <= totalPages; i++) {
              if (i === 1 || i === totalPages || (i >= page - 2 && i <= page + 2)) {
                 html += '<li class="page-item ' + (i === page ? 'active' : '') + '">';
@@ -128,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Next
-        html += '<li class="page-item ' + (page === totalPages || total === 0 ? 'disabled' : '') + '">';
+        html += '<li class="page-item ' + (page === totalPages || effectiveTotal === 0 ? 'disabled' : '') + '">';
         html += '<button class="page-link" onclick="changePage(' + (page + 1) + ')">Next</button></li>';
 
         paginationControls.innerHTML = html;
@@ -150,17 +205,5 @@ document.addEventListener('DOMContentLoaded', function() {
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
-    }
-
-    function showAlert(message, type = 'success') {
-        const alertContainer = document.getElementById('alert-container');
-        if (alertContainer) {
-            alertContainer.innerHTML = `
-                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            `;
-        }
     }
 });

@@ -2,23 +2,40 @@ document.addEventListener('DOMContentLoaded', function() {
     // State
     let currentPage = 1;
     let perPage = 20;
-    let filters = {};
+
+    let currentSearch = {
+        global: '',
+        sessionId: '',
+        status: ''
+    };
+
+    let currentDate = {
+        from: '',
+        to: ''
+    };
+
     let selectedSessions = new Set(); // Store hashes
 
     // Elements
     const tableBody = document.querySelector('#sessions-table tbody');
     const paginationInfo = document.getElementById('pagination-info');
     const paginationControls = document.getElementById('pagination-controls');
+
     const searchForm = document.getElementById('sessions-search-form');
+    const searchGlobalInput = document.getElementById('search-global');
+    const filterSessionIdInput = document.getElementById('filter-session-id');
+    const filterStatusSelect = document.getElementById('filter-status');
+    const dateFromInput = document.getElementById('date-from');
+    const dateToInput = document.getElementById('date-to');
+
     const resetButton = document.getElementById('btn-reset');
     const perPageSelect = document.getElementById('per-page-select');
-    const adminSelect = document.getElementById('filter-admin-id');
+
     const selectAllCheckbox = document.getElementById('select-all');
     const bulkRevokeBtn = document.getElementById('btn-bulk-revoke');
     const selectedCountBadge = document.getElementById('selected-count');
 
     // Init
-    loadAdmins();
     loadSessions();
 
     // Event Listeners
@@ -30,11 +47,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     searchForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        filters = {
-            session_id: document.getElementById('filter-session-id').value,
-            admin_id: document.getElementById('filter-admin-id').value,
-            status: document.getElementById('filter-status').value
+
+        currentSearch = {
+            global: searchGlobalInput.value,
+            sessionId: filterSessionIdInput.value,
+            status: filterStatusSelect.value
         };
+
+        currentDate = {
+            from: dateFromInput.value,
+            to: dateToInput.value
+        };
+
         currentPage = 1; // Reset to first page on search
         selectedSessions.clear(); // Reset selection on filter change
         updateBulkUI();
@@ -42,10 +66,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     resetButton.addEventListener('click', function() {
-        document.getElementById('filter-session-id').value = '';
-        document.getElementById('filter-admin-id').value = '';
-        document.getElementById('filter-status').value = '';
-        filters = {};
+        searchGlobalInput.value = '';
+        filterSessionIdInput.value = '';
+        filterStatusSelect.value = '';
+        dateFromInput.value = '';
+        dateToInput.value = '';
+
+        currentSearch = { global: '', sessionId: '', status: '' };
+        currentDate = { from: '', to: '' };
+
         currentPage = 1;
         selectedSessions.clear();
         updateBulkUI();
@@ -76,37 +105,45 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    async function loadAdmins() {
-        try {
-            const response = await fetch('/api/admins/list', {
-                headers: { 'Content-Type': 'application/json' }
-            });
-            if (response.ok) {
-                const result = await response.json();
-                const admins = result.data || [];
-
-                // Clear existing options except first
-                while (adminSelect.options.length > 1) {
-                    adminSelect.remove(1);
-                }
-
-                admins.forEach(admin => {
-                    const option = document.createElement('option');
-                    option.value = admin.id;
-                    option.textContent = admin.identifier;
-                    adminSelect.appendChild(option);
-                });
-            }
-        } catch (e) {
-            console.error('Failed to load admins', e);
-        }
-    }
-
     // Main Load Function
     async function loadSessions() {
         setLoading();
         // Reset header checkbox state for new page
         selectAllCheckbox.checked = false;
+
+        // Build Payload
+        const payload = {
+            page: currentPage,
+            per_page: perPage
+        };
+
+        const filters = {};
+        const columns = {};
+
+        // Global
+        if (currentSearch.global.trim()) {
+            filters.global = currentSearch.global.trim();
+        }
+
+        // Columns
+        if (currentSearch.sessionId.trim()) {
+            columns.session_id = currentSearch.sessionId.trim();
+        }
+        if (currentSearch.status.trim()) {
+            columns.status = currentSearch.status.trim();
+        }
+
+        if (Object.keys(columns).length > 0) {
+            filters.columns = columns;
+        }
+
+        // Date
+        if (currentDate.from) filters.date_from = currentDate.from;
+        if (currentDate.to) filters.date_to = currentDate.to;
+
+        if (Object.keys(filters).length > 0) {
+            payload.filters = filters;
+        }
 
         try {
             const response = await fetch('/api/sessions/query', {
@@ -115,11 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Content-Type': 'application/json',
                     'Authorization': getAuthToken()
                 },
-                body: JSON.stringify({
-                    page: currentPage,
-                    per_page: perPage,
-                    filters: filters
-                })
+                body: JSON.stringify(payload)
             });
 
             if (!response.ok) {
@@ -132,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } catch (error) {
             console.error('Error:', error);
-            tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error loading data: ' + error.message + '</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error loading data: ' + escapeHtml(error.message) + '</td></tr>';
         }
     }
 
@@ -298,13 +331,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function renderPagination(pagination) {
-        const { page, per_page, total } = pagination;
-        const totalPages = Math.ceil(total / per_page);
+        if (!pagination) return;
 
-        const start = (page - 1) * per_page + 1;
-        const end = Math.min(page * per_page, total);
+        const { page, per_page, total, filtered } = pagination;
+        const effectiveTotal = (typeof filtered !== 'undefined') ? filtered : total;
+        const totalPages = Math.ceil(effectiveTotal / per_page);
 
-        paginationInfo.textContent = 'Showing ' + start + ' to ' + end + ' of ' + total + ' entries';
+        const start = effectiveTotal === 0 ? 0 : (page - 1) * per_page + 1;
+        const end = Math.min(page * per_page, effectiveTotal);
+
+        paginationInfo.textContent = 'Showing ' + start + ' to ' + end + ' of ' + effectiveTotal + ' entries';
 
         let html = '';
 
@@ -323,7 +359,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Next
-        html += '<li class="page-item ' + (page === totalPages || total === 0 ? 'disabled' : '') + '">';
+        html += '<li class="page-item ' + (page === totalPages || effectiveTotal === 0 ? 'disabled' : '') + '">';
         html += '<button class="page-link" onclick="changePage(' + (page + 1) + ')">Next</button></li>';
 
         paginationControls.innerHTML = html;
