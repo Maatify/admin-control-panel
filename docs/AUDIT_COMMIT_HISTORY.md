@@ -149,6 +149,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(sessions): support status in global search using derived logic
 - feat(ui): enhance dashboard layout and add async widgets fetch logic
 - docs(ui): move front-end markdown docs into docs/ui structure
+- fix(schema): enforce canonical SharedListQuerySchema validation rules
 
 ---
 
