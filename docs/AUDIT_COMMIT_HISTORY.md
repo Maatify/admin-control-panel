@@ -157,6 +157,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(notification): add queue writer contract for delivery enqueueing
 - feat(notification): add notification-scoped crypto contracts and complete queue writer
 - feat(notification): add delivery worker lifecycle and crypto contracts
+- feat(notification): add sender registry for channel-based delivery resolution
 
 ---
 

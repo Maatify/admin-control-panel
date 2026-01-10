@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Notification\Worker;
 
-use App\Modules\Notification\Contract\NotificationSenderInterface;
+use App\Modules\Notification\Contract\NotificationSenderRegistryInterface;
 use App\Modules\Notification\Crypto\NotificationDecryptorInterface;
 use App\Modules\Notification\Enum\NotificationChannel;
 use PDO;
@@ -33,16 +33,11 @@ use RuntimeException;
  */
 final class NotificationDeliveryWorker implements NotificationDeliveryWorkerInterface
 {
-    /**
-     * @param   NotificationSenderInterface[]  $senders
-     */
     public function __construct(
         private PDO $pdo,
-        private array $senders,
+        private NotificationSenderRegistryInterface $senderRegistry,
         private NotificationDecryptorInterface $decryptor,
-    )
-    {
-    }
+    ){}
 
     public function run(int $limit = 50): void
     {
@@ -80,16 +75,5 @@ SQL
         // 3) Resolve sender by channel
         // 4) Send
         // 5) Update status (sent/failed/skipped)
-    }
-
-    private function resolveSender(NotificationChannel $channel): NotificationSenderInterface
-    {
-        foreach ($this->senders as $sender) {
-            if ($sender->supports($channel)) {
-                return $sender;
-            }
-        }
-
-        throw new RuntimeException('No sender supports channel: ' . $channel->value);
     }
 }
