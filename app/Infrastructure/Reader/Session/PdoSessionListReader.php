@@ -40,6 +40,13 @@ readonly class PdoSessionListReader implements SessionListReaderInterface
             $globalConditions = ['s.session_id LIKE :global'];
             $params['global'] = '%' . $filters->globalSearch . '%';
 
+            // Match status via CASE WHEN logic (Derived Column)
+            $globalConditions[] = "(CASE
+                WHEN s.is_revoked = 1 THEN 'revoked'
+                WHEN s.expires_at <= NOW() THEN 'expired'
+                ELSE 'active'
+            END) LIKE :global";
+
             // Only attempt admin_id match if input is numeric to avoid type mismatches or useless queries
             if (is_numeric($filters->globalSearch)) {
                 $globalConditions[] = 's.admin_id = :global_id';

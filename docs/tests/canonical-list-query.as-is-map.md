@@ -50,10 +50,14 @@ The Canonical Pattern enforces a strict `POST` contract with a validated JSON pa
 
 > **Note on Session Query Features:**
 > The Session Query endpoint explicitly supports `admin_id` search in two modes:
-> 1. **Global Search:** Matches `session_id` (LIKE) OR `admin_id` (Exact, if numeric).
+> 1. **Global Search:** Matches `session_id` (LIKE) OR `admin_id` (Exact, if numeric) OR `status` (derived).
 > 2. **Column Search:** Matches `admin_id` (Exact) via `search.columns.admin_id`.
 >
 > This is an **INTENTIONAL FEATURE ADDITION** and works alongside strict RBAC scope enforcement (AND logic).
+>
+> **Global Search Status Support:**
+> Global search matches `status` by reusing the derived CASE WHEN logic:
+> `(CASE ... END) LIKE :global`.
 
 ---
 
