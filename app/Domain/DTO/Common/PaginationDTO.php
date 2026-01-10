@@ -20,7 +20,8 @@ use JsonSerializable;
  * @phpstan-type PaginationArray array{
  *   page: int,
  *   per_page: int,
- *   total: int
+ *   total: int,
+ *   filtered: int
  * }
  */
 final class PaginationDTO implements JsonSerializable
@@ -28,7 +29,8 @@ final class PaginationDTO implements JsonSerializable
     public function __construct(
         public int $page,
         public int $perPage,
-        public int $total
+        public int $total,
+        public int $filtered
     ) {}
 
     /**
@@ -37,9 +39,10 @@ final class PaginationDTO implements JsonSerializable
     public function jsonSerialize(): array
     {
         return [
-            'page' => $this->page,
+            'page'      => $this->page,
             'per_page' => $this->perPage,
-            'total' => $this->total,
+            'total'    => $this->total,
+            'filtered' => $this->filtered,
         ];
     }
 }

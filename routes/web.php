@@ -6,7 +6,7 @@ use App\Domain\Service\SessionValidationService;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminEmailVerificationController;
 use App\Http\Controllers\AdminNotificationPreferenceController;
-use App\Http\Controllers\Api\AdminListController;
+use App\Http\Controllers\Api\AdminQueryController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NotificationQueryController;
 use App\Http\Middleware\AuthorizationGuardMiddleware;
@@ -115,12 +115,16 @@ return function (App $app) {
                 ->setName('sessions.revoke')
                 ->add(AuthorizationGuardMiddleware::class);
 
-            $group->get('/admins', [AdminListController::class, '__invoke'])
-                ->setName('admins.list')
+//            $group->get('/admins', [AdminListController::class, '__invoke'])
+//                ->setName('admins.query')
+//                ->add(AuthorizationGuardMiddleware::class);
+
+            $group->post('/admins/query', [AdminQueryController::class, '__invoke'])
+                ->setName('admins.query')
                 ->add(AuthorizationGuardMiddleware::class);
 
             // Notifications / Admins / Etc.
-            $group->post('/admins', [AdminController::class, 'create'])
+            $group->post('/admins/create', [AdminController::class, 'create'])
                 ->setName('admin.create')
                 ->add(AuthorizationGuardMiddleware::class);
 

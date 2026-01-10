@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Bootstrap;
 
+use App\Domain\Admin\Reader\AdminQueryReaderInterface;
 use App\Domain\Contracts\AdminActivityQueryInterface;
 use App\Domain\Contracts\AdminDirectPermissionRepositoryInterface;
 use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
-use App\Domain\Contracts\AdminListReaderInterface;
 use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\AdminNotificationChannelRepositoryInterface;
 use App\Domain\Contracts\AdminNotificationHistoryReaderInterface;
@@ -75,7 +75,6 @@ use App\Http\Controllers\Web\LoginController;
 use App\Http\Controllers\Web\LogoutController;
 use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Controllers\Web\TelegramConnectController;
-use App\Http\Controllers\Api\AdminListController;
 use App\Http\Controllers\Api\SessionQueryController;
 use App\Http\Controllers\Api\SessionRevokeController;
 use App\Http\Controllers\Api\SessionBulkRevokeController;
@@ -98,7 +97,6 @@ use App\Infrastructure\Audit\PdoAdminTargetedAuditReader;
 use App\Infrastructure\Audit\PdoAuthoritativeAuditWriter;
 use App\Infrastructure\Database\PDOFactory;
 use App\Infrastructure\Notification\TelegramHandler;
-use App\Infrastructure\Reader\Admin\PdoAdminListReader;
 use App\Infrastructure\Repository\AdminActivityQueryRepository;
 use App\Infrastructure\Repository\AdminEmailRepository;
 use App\Infrastructure\Repository\AdminNotificationChannelRepository;
@@ -156,6 +154,7 @@ use Slim\Views\Twig;
 use Psr\Log\AbstractLogger;
 use Dotenv\Dotenv;
 use App\Http\Middleware\RecoveryStateMiddleware;
+use App\Infrastructure\Reader\Admin\PdoAdminQueryReader;
 
 class Container
 {
@@ -818,10 +817,14 @@ class Container
                 $reader = $c->get(SessionListReaderInterface::class);
                 $auth = $c->get(AuthorizationService::class);
                 $validationGuard = $c->get(ValidationGuard::class);
+                $filterResolver = $c->get(\App\Infrastructure\Query\ListFilterResolver::class);
+
                 assert($reader instanceof SessionListReaderInterface);
                 assert($auth instanceof AuthorizationService);
                 assert($validationGuard instanceof ValidationGuard);
-                return new SessionQueryController($reader, $auth, $validationGuard);
+                assert($filterResolver instanceof \App\Infrastructure\Query\ListFilterResolver);
+
+                return new SessionQueryController($reader, $auth, $validationGuard, $filterResolver);
             },
             SessionRevokeController::class => function (ContainerInterface $c) {
                 $service = $c->get(SessionRevocationService::class);
@@ -843,19 +846,32 @@ class Container
             },
 
             // Admin List
-            AdminListReaderInterface::class => function (ContainerInterface $c) {
+//            AdminListReaderInterface::class => function (ContainerInterface $c) {
+//                $pdo = $c->get(PDO::class);
+//                $config = $c->get(AdminConfigDTO::class);
+//                assert($pdo instanceof PDO);
+//                assert($config instanceof AdminConfigDTO);
+//                return new PdoAdminListReader($pdo, $config);
+//            },
+//            AdminListController::class => function (ContainerInterface $c) {
+//                $reader = $c->get(AdminListReaderInterface::class);
+//                $validationGuard = $c->get(ValidationGuard::class);
+//                assert($reader instanceof AdminListReaderInterface);
+//                assert($validationGuard instanceof ValidationGuard);
+//                return new AdminListController($reader, $validationGuard);
+//            },
+            AdminQueryReaderInterface::class =>
+                function ($c): AdminQueryReaderInterface {
                 $pdo = $c->get(PDO::class);
                 $config = $c->get(AdminConfigDTO::class);
+
                 assert($pdo instanceof PDO);
                 assert($config instanceof AdminConfigDTO);
-                return new PdoAdminListReader($pdo, $config);
-            },
-            AdminListController::class => function (ContainerInterface $c) {
-                $reader = $c->get(AdminListReaderInterface::class);
-                $validationGuard = $c->get(ValidationGuard::class);
-                assert($reader instanceof AdminListReaderInterface);
-                assert($validationGuard instanceof ValidationGuard);
-                return new AdminListController($reader, $validationGuard);
+
+                return new PdoAdminQueryReader(
+                    $pdo,
+                    $config
+                );
             },
 
             // Phase 12

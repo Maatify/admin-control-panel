@@ -16,6 +16,7 @@ declare(strict_types=1);
 namespace App\Domain\List;
 
 use DateTimeImmutable;
+use Exception;
 
 final readonly class ListQueryDTO
 {
@@ -31,6 +32,22 @@ final readonly class ListQueryDTO
     {
     }
 
+    /**
+     * @param   array{
+     *   page?: int,
+     *   per_page?: int,
+     *   search?: array{
+     *     global?: string,
+     *     columns?: array<string, string>
+     *   },
+     *   date?: array{
+     *     from?: string,
+     *     to?: string
+     *   }
+     * }  $input
+     *
+     * @throws Exception
+     */
     public static function fromArray(array $input): self
     {
         $page = max(1, (int)($input['page'] ?? 1));

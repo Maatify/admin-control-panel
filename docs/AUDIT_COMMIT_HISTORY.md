@@ -128,6 +128,7 @@ Entries MUST NOT be rewritten or reordered.
 - docs(canonical): lock pagination, search, and optional date filtering contract for LIST APIs
 - docs(canonical): lock pagination, filtering, and reusable LIST infrastructure
 - feat(list): introduce canonical reusable LIST infrastructure
+- refactor(list-query): replace legacy admin/session lists with canonical query pipeline
 
 ---
 

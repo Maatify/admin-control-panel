@@ -4,20 +4,23 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
-use App\Domain\DTO\Session\SessionListQueryDTO;
+use App\Domain\List\ListCapabilities;
+use App\Domain\List\ListQueryDTO;
 use App\Domain\Session\Reader\SessionListReaderInterface;
 use App\Domain\Service\AuthorizationService;
+use App\Infrastructure\Query\ListFilterResolver;
 use App\Modules\Validation\Guard\ValidationGuard;
-use App\Modules\Validation\Schemas\SessionQuerySchema;
+use App\Modules\Validation\Schemas\SharedListQuerySchema;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-class SessionQueryController
+readonly class SessionQueryController
 {
     public function __construct(
         private SessionListReaderInterface $reader,
         private AuthorizationService $authorizationService,
-        private ValidationGuard $validationGuard
+        private ValidationGuard $validationGuard,
+        private ListFilterResolver $filterResolver
     ) {
     }
 
@@ -28,35 +31,52 @@ class SessionQueryController
 
         $body = (array)$request->getParsedBody();
 
-        $this->validationGuard->check(new SessionQuerySchema(), $body);
+        // ✅ Validation (MANDATORY)
+        $this->validationGuard->check(new SharedListQuerySchema(), $body);
 
-        $page = isset($body['page']) ? (int)$body['page'] : 1;
-        $perPage = isset($body['per_page']) ? (int)$body['per_page'] : 20;
-        $filters = isset($body['filters']) && is_array($body['filters']) ? $body['filters'] : [];
+        // Build canonical ListQueryDTO
+        $query = ListQueryDTO::fromArray($body);
 
-        // Permission-based Admin Filter Logic
+        // Permission-based admin filter
         if ($this->authorizationService->hasPermission($adminId, 'sessions.view_all')) {
-            // Allowed to filter by any admin
-            $adminIdFilter = isset($filters['admin_id']) && $filters['admin_id'] !== '' ? (int)$filters['admin_id'] : null;
+            $adminIdFilter = isset($body['filters']['admin_id']) && $body['filters']['admin_id'] !== ''
+                ? (int)$body['filters']['admin_id']
+                : null;
         } else {
-            // Restricted to self
             $adminIdFilter = $adminId;
         }
 
-        // Fetch Current Session Hash
+        // Current session hash
         $cookies = $request->getCookieParams();
         $token = isset($cookies['auth_token']) ? (string)$cookies['auth_token'] : '';
         $currentSessionHash = $token !== '' ? hash('sha256', $token) : '';
 
-        $query = new SessionListQueryDTO(
-            page: $page,
-            per_page: $perPage,
-            filters: $filters,
-            current_session_id: $currentSessionHash,
-            admin_id: $adminIdFilter
+        // Declare LIST capabilities (Sessions = time-based)
+        $capabilities = new ListCapabilities(
+            supportsGlobalSearch: true,
+            searchableColumns: [
+                's.session_id',
+            ],
+
+            supportsColumnFilters: true,
+            filterableColumns: [
+                'session_id' => 's.session_id',
+                'status'     => 's.is_revoked',
+                'admin_id'   => 's.admin_id',
+            ],
+
+            supportsDateFilter: true,
+            dateColumn: 's.created_at'
         );
 
-        $result = $this->reader->getSessions($query);
+        $resolvedFilters = $this->filterResolver->resolve($query, $capabilities);
+
+        $result = $this->reader->getSessions(
+            query: $query,
+            filters: $resolvedFilters,
+            adminIdFilter: $adminIdFilter,
+            currentSessionHash: $currentSessionHash
+        );
 
         $response->getBody()->write(json_encode($result, JSON_THROW_ON_ERROR));
         return $response->withHeader('Content-Type', 'application/json');
