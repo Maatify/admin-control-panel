@@ -32,6 +32,12 @@ interface NotificationSenderInterface
 
     /**
      * Send a decrypted payload to a decrypted recipient.
+     *
+     * @param   string  $recipient
+     * @param   string  $payload
+     * @param   array<string, mixed>  $channelMeta
+     *
+     * @return NotificationDeliveryResultDTO
      */
     public function send(
         string $recipient,
