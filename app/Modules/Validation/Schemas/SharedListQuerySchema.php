@@ -15,39 +15,86 @@ declare(strict_types=1);
 
 namespace App\Modules\Validation\Schemas;
 
+use App\Modules\Validation\Contracts\SchemaInterface;
+use App\Modules\Validation\DTO\ValidationResultDTO;
 use App\Modules\Validation\Enum\ValidationErrorCodeEnum;
 use App\Modules\Validation\Rules\PaginationRule;
 use App\Modules\Validation\Rules\SearchQueryRule;
-use App\Modules\Validation\Rules\DateRangeRule;
+use Respect\Validation\Exceptions\NestedValidationException;
+use Respect\Validation\Exceptions\ValidationException;
+use Respect\Validation\Validator as v;
 
-final class SharedListQuerySchema extends AbstractSchema
+final class SharedListQuerySchema implements SchemaInterface
 {
-    protected function rules(): array
+    public function validate(array $input): ValidationResultDTO
     {
-        return [
+        $errors = [];
+        $allowedKeys = ['page', 'per_page', 'search', 'date'];
 
-            // Pagination
-            'page' => [
-                PaginationRule::page(),
-                ValidationErrorCodeEnum::INVALID_VALUE,
-            ],
+        // 1. Root Level Validation: Reject forbidden keys
+        $extraKeys = array_diff(array_keys($input), $allowedKeys);
+        if (!empty($extraKeys)) {
+            foreach ($extraKeys as $key) {
+                $errors[$key] = [ValidationErrorCodeEnum::INVALID_VALUE];
+            }
+        }
 
-            'per_page' => [
-                PaginationRule::perPage(100),
-                ValidationErrorCodeEnum::INVALID_VALUE,
-            ],
+        // 2. Validate 'page'
+        if (array_key_exists('page', $input)) {
+            try {
+                PaginationRule::page()->assert($input['page']);
+            } catch (NestedValidationException | ValidationException) {
+                $errors['page'] = [ValidationErrorCodeEnum::INVALID_VALUE];
+            }
+        }
 
-            // Search
-            'search'   => [
-                SearchQueryRule::rule(),
-                ValidationErrorCodeEnum::INVALID_VALUE,
-            ],
+        // 3. Validate 'per_page'
+        if (array_key_exists('per_page', $input)) {
+            try {
+                PaginationRule::perPage(100)->assert($input['per_page']);
+            } catch (NestedValidationException | ValidationException) {
+                $errors['per_page'] = [ValidationErrorCodeEnum::INVALID_VALUE];
+            }
+        }
 
-            // Date range
-            'date'     => [
-                DateRangeRule::rule(),
-                ValidationErrorCodeEnum::INVALID_VALUE,
-            ],
-        ];
+        // 4. Validate 'search'
+        if (array_key_exists('search', $input)) {
+            // Requirement: Reject empty search blocks & Require global OR columns
+            if (empty($input['search']) || !is_array($input['search'])) {
+                $errors['search'] = [ValidationErrorCodeEnum::INVALID_VALUE];
+            } else {
+                $hasGlobal = isset($input['search']['global']);
+                $hasColumns = isset($input['search']['columns']);
+
+                if (! $hasGlobal && ! $hasColumns) {
+                    $errors['search'] = [ValidationErrorCodeEnum::INVALID_VALUE];
+                } else {
+                    // Use existing rule for content validation
+                    try {
+                        SearchQueryRule::rule()->assert($input['search']);
+                    } catch (NestedValidationException | ValidationException) {
+                        $errors['search'] = [ValidationErrorCodeEnum::INVALID_VALUE];
+                    }
+                }
+            }
+        }
+
+        // 5. Validate 'date'
+        if (array_key_exists('date', $input)) {
+            // Requirement: Atomic pair (from AND to)
+            try {
+                v::arrayType()->keySet(
+                    v::key('from', v::date('Y-m-d'), true), // mandatory
+                    v::key('to', v::date('Y-m-d'), true)    // mandatory
+                )->assert($input['date']);
+            } catch (NestedValidationException | ValidationException) {
+                $errors['date'] = [ValidationErrorCodeEnum::INVALID_VALUE];
+            }
+        }
+
+        return new ValidationResultDTO(
+            valid: $errors === [],
+            errors: $errors
+        );
     }
 }
