@@ -155,6 +155,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(notification): add unified delivery queue schema and channel enum
 - feat(notification): add core DTOs for notification intent and delivery
 - feat(notification): add queue writer contract for delivery enqueueing
+- feat(notification): add notification-scoped crypto contracts and complete queue writer
 
 ---
 
