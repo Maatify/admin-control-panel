@@ -81,12 +81,12 @@ document.addEventListener('DOMContentLoaded', function() {
             per_page: perPage
         };
 
-        const filters = {};
+        const search = {};
         const columns = {};
 
         // Global
         if (currentSearch.global.trim()) {
-            filters.global = currentSearch.global.trim();
+            search.global = currentSearch.global.trim();
         }
 
         // Columns
@@ -98,15 +98,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (Object.keys(columns).length > 0) {
-            filters.columns = columns;
+            search.columns = columns;
+        }
+
+        // Add search object if not empty
+        if (Object.keys(search).length > 0) {
+            payload.search = search;
         }
 
         // Date
-        if (currentDate.from) filters.date_from = currentDate.from;
-        if (currentDate.to) filters.date_to = currentDate.to;
+        const date = {};
+        if (currentDate.from) date.from = currentDate.from;
+        if (currentDate.to) date.to = currentDate.to;
 
-        if (Object.keys(filters).length > 0) {
-            payload.filters = filters;
+        // Add date object if not empty
+        if (Object.keys(date).length > 0) {
+            payload.date = date;
         }
 
         try {

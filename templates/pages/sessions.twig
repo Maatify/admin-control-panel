@@ -22,17 +22,18 @@
     <div class="card mb-4">
         <div class="card-body">
             <form id="sessions-search-form" class="row g-3">
+                {# Global Search #}
+                <div class="col-md-12">
+                    <label for="search-global" class="form-label">Global Search</label>
+                    <input type="text" class="form-control" id="search-global" placeholder="Search Session ID...">
+                </div>
+
+                {# Column Filters #}
                 <div class="col-md-3">
                     <label for="filter-session-id" class="form-label">Session ID</label>
-                    <input type="text" class="form-control" id="filter-session-id" placeholder="Search by ID fragment">
+                    <input type="text" class="form-control" id="filter-session-id" placeholder="Filter by ID fragment">
                 </div>
-                <div class="col-md-3">
-                    <label for="filter-admin-id" class="form-label">Filter by Admin</label>
-                    <select class="form-select" id="filter-admin-id">
-                        <option value="">All Admins</option>
-                        <option disabled>Loading...</option>
-                    </select>
-                </div>
+
                 <div class="col-md-3">
                     <label for="filter-status" class="form-label">Status</label>
                     <select class="form-select" id="filter-status">
@@ -42,7 +43,18 @@
                         <option value="expired">Expired</option>
                     </select>
                 </div>
-                <div class="col-md-3 d-flex align-items-end">
+
+                {# Date Range #}
+                <div class="col-md-3">
+                    <label for="date-from" class="form-label">Created From</label>
+                    <input type="date" class="form-control" id="date-from">
+                </div>
+                <div class="col-md-3">
+                    <label for="date-to" class="form-label">Created To</label>
+                    <input type="date" class="form-control" id="date-to">
+                </div>
+
+                <div class="col-md-12 d-flex justify-content-end">
                     <button type="submit" class="btn btn-primary me-2">Search</button>
                     <button type="button" class="btn btn-secondary" id="btn-reset">Reset</button>
                 </div>
