@@ -173,5 +173,9 @@ return function (App $app) {
     // Webhooks
     $app->post('/webhooks/telegram', [\App\Http\Controllers\TelegramWebhookController::class, 'handle']);
 
+    // IMPORTANT:
+    // InputNormalizationMiddleware MUST run before validation and guards.
+    // It is added last to ensure it executes first in Slim's middleware stack.
     $app->add(\App\Http\Middleware\RecoveryStateMiddleware::class);
+    $app->add(\App\Modules\InputNormalization\Middleware\InputNormalizationMiddleware::class);
 };

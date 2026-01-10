@@ -142,6 +142,9 @@ use App\Modules\Crypto\Reversible\Algorithms\Aes256GcmAlgorithm;
 use App\Modules\Crypto\DX\CryptoDirectFactory;
 use App\Modules\Crypto\DX\CryptoContextFactory;
 use App\Modules\Crypto\DX\CryptoProvider;
+use App\Modules\InputNormalization\Contracts\InputNormalizerInterface;
+use App\Modules\InputNormalization\Middleware\InputNormalizationMiddleware;
+use App\Modules\InputNormalization\Normalizer\InputNormalizer;
 use App\Modules\Validation\Contracts\ValidatorInterface;
 use App\Modules\Validation\Guard\ValidationGuard;
 use App\Modules\Validation\Validator\RespectValidator;
@@ -211,6 +214,14 @@ class Container
                 $validator = $c->get(ValidatorInterface::class);
                 assert($validator instanceof ValidatorInterface);
                 return new ValidationGuard($validator);
+            },
+            InputNormalizerInterface::class => function (ContainerInterface $c) {
+                return new InputNormalizer();
+            },
+            InputNormalizationMiddleware::class => function (ContainerInterface $c) {
+                $normalizer = $c->get(InputNormalizerInterface::class);
+                assert($normalizer instanceof InputNormalizerInterface);
+                return new InputNormalizationMiddleware($normalizer);
             },
             AuthorizationService::class => function (ContainerInterface $c) {
                 $adminRoleRepo = $c->get(AdminRoleRepositoryInterface::class);

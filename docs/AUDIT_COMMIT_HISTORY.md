@@ -131,6 +131,7 @@ Entries MUST NOT be rewritten or reordered.
 - refactor(list-query): replace legacy admin/session lists with canonical query pipeline
 - fix(query): enforce canonical list validation, filtering, and session status handling
 - fix(admin-query): remove invalid LIMIT backticks causing SQL syntax error
+- feat(input-normalization): introduce canonical input normalization middleware
 
 ---
 
