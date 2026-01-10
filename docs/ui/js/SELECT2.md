@@ -80,10 +80,10 @@ console.log(value);
 
 ### 4. API Methods
 
-| Method | Description |
-| :--- | :--- |
-| `open()` | Opens the dropdown. |
-| `close()` | Closes the dropdown. |
-| `getValue()` | Returns the selected `value` (ID). |
+| Method          | Description                                        |
+|:----------------|:---------------------------------------------------|
+| `open()`        | Opens the dropdown.                                |
+| `close()`       | Closes the dropdown.                               |
+| `getValue()`    | Returns the selected `value` (ID).                 |
 | `getSelected()` | Returns the selected item object `{value, label}`. |
-| `destroy()` | Removes event listeners. |
+| `destroy()`     | Removes event listeners.                           |
