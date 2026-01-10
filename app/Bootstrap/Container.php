@@ -145,6 +145,7 @@ use App\Modules\Crypto\DX\CryptoProvider;
 use App\Modules\InputNormalization\Contracts\InputNormalizerInterface;
 use App\Modules\InputNormalization\Middleware\InputNormalizationMiddleware;
 use App\Modules\InputNormalization\Normalizer\InputNormalizer;
+use App\Modules\Email\Config\EmailTransportConfigDTO;
 use App\Modules\Validation\Contracts\ValidatorInterface;
 use App\Modules\Validation\Guard\ValidationGuard;
 use App\Modules\Validation\Validator\RespectValidator;
@@ -181,7 +182,13 @@ class Container
             'PASSWORD_PEPPER',
             'EMAIL_BLIND_INDEX_KEY',
             'APP_TIMEZONE',
-            'EMAIL_ENCRYPTION_KEY'
+            'EMAIL_ENCRYPTION_KEY',
+            'SMTP_HOST',
+            'SMTP_PORT',
+            'SMTP_USERNAME',
+            'SMTP_PASSWORD',
+            'SMTP_FROM_ADDRESS',
+            'SMTP_FROM_NAME',
         ])->notEmpty();
 
         // Create Config DTO
@@ -213,12 +220,29 @@ class Container
             activeKeyId: $_ENV['CRYPTO_ACTIVE_KEY_ID'] ?? null
         );
 
+        // Create Email Config DTO
+        $emailConfig = new EmailTransportConfigDTO(
+            host: $_ENV['SMTP_HOST'],
+            port: (int)$_ENV['SMTP_PORT'],
+            username: $_ENV['SMTP_USERNAME'],
+            password: $_ENV['SMTP_PASSWORD'],
+            fromAddress: $_ENV['SMTP_FROM_ADDRESS'],
+            fromName: $_ENV['SMTP_FROM_NAME'],
+            encryption: $_ENV['SMTP_ENCRYPTION'] ?? null,
+            timeoutSeconds: isset($_ENV['SMTP_TIMEOUT']) ? (int)$_ENV['SMTP_TIMEOUT'] : 10,
+            charset: $_ENV['SMTP_CHARSET'] ?? 'UTF-8',
+            debugLevel: isset($_ENV['SMTP_DEBUG']) ? (int)$_ENV['SMTP_DEBUG'] : 0
+        );
+
         // Enforce Timezone
         date_default_timezone_set($config->timezone);
 
         $containerBuilder->addDefinitions([
             AdminConfigDTO::class => function () use ($config) {
                 return $config;
+            },
+            EmailTransportConfigDTO::class => function () use ($emailConfig) {
+                return $emailConfig;
             },
             ValidatorInterface::class => function (ContainerInterface $c) {
                 return new RespectValidator();
