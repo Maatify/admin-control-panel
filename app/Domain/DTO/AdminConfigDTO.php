@@ -19,6 +19,9 @@ readonly class AdminConfigDTO
         public string $dbUser,
         public string $dbPass,
         public bool $isRecoveryMode,
+        /** @var array<int, array{id: string, key: string}> */
+        public array $cryptoKeys = [],
+        public ?string $activeKeyId = null,
     ) {
     }
 }

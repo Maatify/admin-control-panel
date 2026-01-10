@@ -197,7 +197,19 @@ class Container
             dbName: $_ENV['DB_NAME'],
             dbUser: $_ENV['DB_USER'],
             dbPass: $_ENV['DB_PASS'],
-            isRecoveryMode: ($_ENV['RECOVERY_MODE'] ?? 'false') === 'true'
+            isRecoveryMode: ($_ENV['RECOVERY_MODE'] ?? 'false') === 'true',
+            cryptoKeys: (function (): array {
+                if (empty($_ENV['CRYPTO_KEYS'])) {
+                    return [];
+                }
+                /** @var mixed $keys */
+                $keys = json_decode($_ENV['CRYPTO_KEYS'], true, 512, JSON_THROW_ON_ERROR);
+                if (!is_array($keys)) {
+                    throw new \Exception('CRYPTO_KEYS must be a JSON array');
+                }
+                return $keys;
+            })(),
+            activeKeyId: $_ENV['CRYPTO_ACTIVE_KEY_ID'] ?? null
         );
 
         // Enforce Timezone
@@ -1027,24 +1039,56 @@ class Container
                 $config = $c->get(AdminConfigDTO::class);
                 assert($config instanceof AdminConfigDTO);
 
-                // Check if key is hex or raw.
-                // Assuming it's hex if it looks like hex, otherwise raw.
-                // Actually, standard is usually hex for ENV keys.
-                // Let's assume hex and try to convert, or raw.
-                // Safest: try hex2bin if ctype_xdigit, else use raw.
-                $rawKey = $config->emailEncryptionKey;
-                if (ctype_xdigit($rawKey)) {
-                    $rawKey = hex2bin($rawKey);
-                }
+                $keys = [];
 
-                $keys = [
-                    new CryptoKeyDTO(
+                if (!empty($config->cryptoKeys)) {
+                    if ($config->activeKeyId === null) {
+                        throw new \Exception('CRYPTO_ACTIVE_KEY_ID is required when CRYPTO_KEYS is set.');
+                    }
+
+                    foreach ($config->cryptoKeys as $keyData) {
+                        if (!isset($keyData['id'], $keyData['key'])) {
+                            throw new \Exception('Invalid crypto key structure. "id" and "key" are required.');
+                        }
+
+                        $rawKey = (string) $keyData['key'];
+                        if (ctype_xdigit($rawKey)) {
+                            $rawKey = hex2bin($rawKey);
+                        }
+
+                        if ($rawKey === false) {
+                            throw new \Exception('Failed to decode hex key for ID: ' . $keyData['id']);
+                        }
+
+                        $status = ($keyData['id'] === $config->activeKeyId)
+                            ? KeyStatusEnum::ACTIVE
+                            : KeyStatusEnum::INACTIVE;
+
+                        $keys[] = new CryptoKeyDTO(
+                            (string) $keyData['id'],
+                            (string) $rawKey,
+                            $status,
+                            new \DateTimeImmutable()
+                        );
+                    }
+                } else {
+                    // Fallback to legacy single key (v1)
+                    $rawKey = $config->emailEncryptionKey;
+                    if (ctype_xdigit($rawKey)) {
+                        $rawKey = hex2bin($rawKey);
+                    }
+
+                    if ($rawKey === false) {
+                        throw new \Exception('Failed to decode legacy EMAIL_ENCRYPTION_KEY');
+                    }
+
+                    $keys[] = new CryptoKeyDTO(
                         'v1',
                         (string) $rawKey,
                         KeyStatusEnum::ACTIVE,
                         new \DateTimeImmutable()
-                    ),
-                ];
+                    );
+                }
 
                 $provider = new InMemoryKeyProvider($keys);
                 $policy = new StrictSingleActiveKeyPolicy();
