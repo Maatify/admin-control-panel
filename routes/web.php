@@ -174,4 +174,5 @@ return function (App $app) {
     $app->post('/webhooks/telegram', [\App\Http\Controllers\TelegramWebhookController::class, 'handle']);
 
     $app->add(\App\Http\Middleware\RecoveryStateMiddleware::class);
+    $app->add(\App\Modules\InputNormalization\Middleware\InputNormalizationMiddleware::class);
 };
