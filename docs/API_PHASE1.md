@@ -37,7 +37,13 @@ Common HTTP Status Codes:
 
 ## 🔒 Canonical LIST / QUERY Contract (LOCKED)
 
-This section defines the **ONLY VALID contract** for all LIST / QUERY endpoints in the Admin Panel.
+This section defines the **ONLY VALID contract** for
+POST-based `/api/{resource}/query` endpoints
+implemented via the Canonical Query pipeline
+(DTO + Capabilities + Reader).
+
+It does NOT apply to legacy GET list endpoints
+or helper / selector APIs.
 
 ### Canonical Request Model
 ```json
@@ -83,6 +89,8 @@ Any usage of the above is considered a **Canonical Violation**.
 *   **LIMIT**: `:per_page`
 *   **OFFSET**: `(:page - 1) * :per_page`
 *   **total**: Filtered total count.
+
+Pagination is **SERVER-SIDE ONLY** and mandatory for Canonical Query endpoints.
 
 Pagination is **SERVER-SIDE ONLY** and applies to **ALL LIST / QUERY endpoints**.
 
@@ -310,6 +318,17 @@ Retrieves notification history for the authenticated admin.
 **Endpoint:** `GET /admins/{admin_id}/notifications`
 **Auth Required:** Yes (Strictly scoped to `{admin_id}`)
 
+### ⚠️ Legacy / Non-Canonical Endpoint
+
+This endpoint predates the Canonical LIST / QUERY Contract.
+
+- Uses legacy pagination and filtering keys (`limit`, `from_date`, `to_date`)
+- Returns legacy response shape (`items`, `meta`)
+- Does NOT use the Canonical Query pipeline
+
+This endpoint MUST NOT be used as a reference
+for implementing new LIST / QUERY APIs.
+
 **Query Parameters:**
 *   `page` (int, default 1)
 *   `limit` (int, default 20)
@@ -470,11 +489,17 @@ Revokes multiple sessions in a single transaction.
 *   **Success (200):** JSON confirmation.
 *   **Error (400):** If current session is included in the list.
 
-### List Admins (Filter Helper)
+### Select Admins (Helper / Non-Canonical)
 Retrieves a list of admins for UI filtering.
 
 **Endpoint:** `GET /api/admins/list`
 **Auth Required:** Yes (Permission `sessions.view_all`)
+
+This endpoint is a lightweight selector helper and is
+explicitly **EXEMPT** from the Canonical LIST / QUERY Contract.
+
+It is NOT paginated and MUST NOT be treated
+as a standard LIST or QUERY API.
 
 **Response:**
 *   **Success (200):**
