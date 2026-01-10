@@ -45,8 +45,15 @@ The Canonical Pattern enforces a strict `POST` contract with a validated JSON pa
 |:-----------------|:---------------------------------------------------------|:---------------------------------------------------------------------|
 | **Controller**   | `App\Http\Controllers\Api\SessionQueryController`        | Uses `ValidationGuard`. Enforces RBAC scopes manually.               |
 | **Capabilities** | `App\Domain\List\ListCapabilities`                       | Instantiated inline with `session_id`, `status`, `admin_id` filters. |
-| **Reader**       | `App\Infrastructure\Reader\Session\PdoSessionListReader` | Implements session status logic (active/revoked/expired) in SQL.     |
+| **Reader**       | `App\Infrastructure\Reader\Session\PdoSessionListReader` | Implements session status logic (active/revoked/expired) in SQL. Supports `admin_id` in Global and Column search. |
 | **Response**     | `App\Domain\DTO\Session\SessionListResponseDTO`          | Contains `SessionListItemDTO` and `PaginationDTO`.                   |
+
+> **Note on Session Query Features:**
+> The Session Query endpoint explicitly supports `admin_id` search in two modes:
+> 1. **Global Search:** Matches `session_id` (LIKE) OR `admin_id` (Exact, if numeric).
+> 2. **Column Search:** Matches `admin_id` (Exact) via `search.columns.admin_id`.
+>
+> This is an **INTENTIONAL FEATURE ADDITION** and works alongside strict RBAC scope enforcement (AND logic).
 
 ---
 
