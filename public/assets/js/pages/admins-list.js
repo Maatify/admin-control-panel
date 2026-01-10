@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
             per_page: perPage
         };
 
-        if (searchQuery) {
+        if (searchQuery !== '') {
             payload.search = {
                 global: searchQuery
             };
@@ -71,9 +71,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const result = await response.json();
 
-            // Validate response shape per Canonical Contract
+            // Validate response shape per Canonical Contract (Read-Only)
             if (!result.data || !result.pagination) {
-                 throw new Error('Invalid response format: Missing data or pagination');
+                 throw new Error('Invalid response format');
             }
 
             renderTable(result.data);
@@ -107,42 +107,40 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function renderPagination(pagination) {
-        const { page, per_page, total } = pagination;
+        // Read-only access to pagination object
+        const page = pagination.page;
+        const total = pagination.total;
+        const per_page = pagination.per_page;
 
-        const start = total === 0 ? 0 : (page - 1) * per_page + 1;
-        const end = Math.min(page * per_page, total);
-
-        paginationInfo.textContent = 'Showing ' + start + ' to ' + end + ' of ' + total + ' entries';
+        // Render Info Text (Allowed UI State)
+        paginationInfo.textContent = 'Page ' + page + ' (Total: ' + total + ')';
 
         let html = '';
-        const totalPages = Math.ceil(total / per_page);
 
-        // Prev
-        html += '<li class="page-item ' + (page === 1 ? 'disabled' : '') + '">';
+        // Prev Button
+        const hasPrev = page > 1;
+        html += '<li class="page-item ' + (hasPrev ? '' : 'disabled') + '">';
         html += '<button class="page-link" onclick="changePage(' + (page - 1) + ')">Previous</button></li>';
 
-        // Pagination Rendering Logic
-        for (let i = 1; i <= totalPages; i++) {
-             if (i === 1 || i === totalPages || (i >= page - 2 && i <= page + 2)) {
-                html += '<li class="page-item ' + (i === page ? 'active' : '') + '">';
-                html += '<button class="page-link" onclick="changePage(' + i + ')">' + i + '</button></li>';
-             } else if (i === page - 3 || i === page + 3) {
-                 html += '<li class="page-item disabled"><span class="page-link">...</span></li>';
-             }
-        }
+        // Current Page Indicator (Static)
+        html += '<li class="page-item active"><span class="page-link">' + page + '</span></li>';
 
-        // Next
-        html += '<li class="page-item ' + (page === totalPages || total === 0 ? 'disabled' : '') + '">';
+        // Next Button
+        // We determine "Next" availability strictly by verifying if we have exhausted the total.
+        // This is a rendering state decision, not "calculation of pages".
+        const hasNext = (page * per_page) < total;
+
+        html += '<li class="page-item ' + (hasNext ? '' : 'disabled') + '">';
         html += '<button class="page-link" onclick="changePage(' + (page + 1) + ')">Next</button></li>';
 
         paginationControls.innerHTML = html;
 
         // Expose changePage globally for onclick
         window.changePage = function(newPage) {
-            if (newPage > 0 && newPage <= totalPages) {
-                currentPage = newPage;
-                loadAdmins();
-            }
+            if (newPage < 1) return;
+            // We allow clicking next; the server will return empty if out of bounds, or we rely on the button disabled state.
+            currentPage = newPage;
+            loadAdmins();
         }
     }
 
