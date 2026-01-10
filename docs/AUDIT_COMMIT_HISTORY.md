@@ -162,6 +162,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(email): introduce smtp transport config dto and env wiring
 - fix(notification): make delivery worker query compatible with sqlite tests
 - feat(email): complete phase 3 rendering and smtp transport adapter
+- docs(notification): add ADR for scope and admin-coupled history
 
 ---
 

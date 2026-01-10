@@ -32,6 +32,13 @@ use Throwable;
  * - No decryption logic here (delegated)
  * - Lifecycle only
  */
+
+/**
+ * NOTE (ADR-007):
+ * Notification history is intentionally admin-coupled.
+ * This worker writes directly to admin_notifications and assumes entity_type=admin.
+ * Do NOT reuse this module for non-admin entities without refactoring.
+ */
 final class NotificationDeliveryWorker implements NotificationDeliveryWorkerInterface
 {
     public function __construct(
