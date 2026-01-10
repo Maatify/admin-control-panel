@@ -151,6 +151,7 @@ Entries MUST NOT be rewritten or reordered.
 - docs(ui): move front-end markdown docs into docs/ui structure
 - fix(schema): enforce canonical SharedListQuerySchema validation rules
 - test(canonical-sessions): add full contract test suite + docs alignment
+- test(admins): add canonical LIST / QUERY contract tests
 
 ---
 
