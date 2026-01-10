@@ -6,15 +6,27 @@ namespace App\Modules\Email\Renderer;
 
 use App\Domain\DTO\Email\EmailPayloadInterface;
 use App\Modules\Email\DTO\RenderedEmailDTO;
-use App\Modules\Email\Exception\EmailRenderingException;
-use Slim\Views\Twig;
+use App\Modules\Email\Exception\EmailRenderException;
 use Throwable;
+use Twig\Environment;
+use Twig\Loader\FilesystemLoader;
 
 class TwigEmailRenderer implements EmailRendererInterface
 {
-    public function __construct(
-        private Twig $twig
-    ) {
+    private Environment $twig;
+
+    public function __construct()
+    {
+        // Calculate path to templates directory: root/templates
+        // Current file: app/Modules/Email/Renderer/TwigEmailRenderer.php
+        // Depth: 4 (app/Modules/Email/Renderer)
+        $templateDir = dirname(__DIR__, 4) . '/templates';
+
+        $loader = new FilesystemLoader($templateDir);
+        $this->twig = new Environment($loader, [
+            'strict_variables' => true,
+            'cache' => false, // Ensure no caching issues in this environment
+        ]);
     }
 
     public function render(
@@ -22,21 +34,23 @@ class TwigEmailRenderer implements EmailRendererInterface
         string $language,
         EmailPayloadInterface $payload
     ): RenderedEmailDTO {
+        // Enforce path: templates/emails/{templateKey}/{language}.twig
+        // Loader is at templates/, so relative path is emails/...
         $templatePath = sprintf('emails/%s/%s.twig', $templateKey, $language);
         $data = $payload->toArray();
 
         try {
             // Load the template explicitly to extract blocks
-            $template = $this->twig->getEnvironment()->load($templatePath);
+            $template = $this->twig->load($templatePath);
 
             // Attempt to render the 'subject' block
             if (!$template->hasBlock('subject')) {
-                throw new EmailRenderingException("Template '{$templatePath}' is missing required block 'subject'.");
+                throw new EmailRenderException("Template '{$templatePath}' is missing required block 'subject'.");
             }
 
             $subject = trim($template->renderBlock('subject', $data));
             if ($subject === '') {
-                throw new EmailRenderingException("Subject block in '{$templatePath}' rendered empty string.");
+                throw new EmailRenderException("Subject block in '{$templatePath}' rendered empty string.");
             }
 
             // Render the full body (which includes the layout via extends)
@@ -49,10 +63,10 @@ class TwigEmailRenderer implements EmailRendererInterface
                 language: $language
             );
 
-        } catch (EmailRenderingException $e) {
+        } catch (EmailRenderException $e) {
             throw $e;
         } catch (Throwable $e) {
-            throw new EmailRenderingException(
+            throw new EmailRenderException(
                 "Failed to render email template '{$templateKey}' ({$language}): " . $e->getMessage(),
                 0,
                 $e

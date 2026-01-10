@@ -6,6 +6,6 @@ namespace App\Modules\Email\Exception;
 
 use RuntimeException;
 
-class EmailRenderingException extends RuntimeException
+class EmailRenderException extends RuntimeException
 {
 }

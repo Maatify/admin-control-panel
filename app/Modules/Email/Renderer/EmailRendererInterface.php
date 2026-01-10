@@ -6,12 +6,12 @@ namespace App\Modules\Email\Renderer;
 
 use App\Domain\DTO\Email\EmailPayloadInterface;
 use App\Modules\Email\DTO\RenderedEmailDTO;
-use App\Modules\Email\Exception\EmailRenderingException;
+use App\Modules\Email\Exception\EmailRenderException;
 
 interface EmailRendererInterface
 {
     /**
-     * @throws EmailRenderingException
+     * @throws EmailRenderException
      */
     public function render(
         string $templateKey,
