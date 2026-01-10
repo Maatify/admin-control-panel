@@ -117,40 +117,48 @@ document.addEventListener('DOMContentLoaded', function() {
             per_page: perPage
         };
 
+        // --- FILTER & SEARCH LOGIC ---
         const search = {};
         const columns = {};
 
-        // Global
-        if (currentSearch.global.trim()) {
-            search.global = currentSearch.global.trim();
+        // 1. Global Search - Trim and only add if present
+        const globalVal = (currentSearch.global || '').trim();
+        if (globalVal) {
+            search.global = globalVal;
         }
 
-        // Columns
-        if (currentSearch.sessionId.trim()) {
-            columns.session_id = currentSearch.sessionId.trim();
-        }
-        if (currentSearch.status.trim()) {
-            columns.status = currentSearch.status.trim();
+        // 2. Columns - Trim and only add if present
+        const sessionIdVal = (currentSearch.sessionId || '').trim();
+        if (sessionIdVal) {
+            columns.session_id = sessionIdVal;
         }
 
+        const statusVal = (currentSearch.status || '').trim();
+        if (statusVal) {
+            columns.status = statusVal;
+        }
+
+        // Only add 'columns' block if not empty
         if (Object.keys(columns).length > 0) {
             search.columns = columns;
         }
 
-        // Add search object if not empty
+        // Only add 'search' block if not empty
         if (Object.keys(search).length > 0) {
             payload.search = search;
         }
 
-        // Date
-        const date = {};
-        if (currentDate.from) date.from = currentDate.from;
-        if (currentDate.to) date.to = currentDate.to;
+        // 3. Date Logic - STRICT: Both or Neither
+        const dateFrom = (currentDate.from || '').trim();
+        const dateTo = (currentDate.to || '').trim();
 
-        // Add date object if not empty
-        if (Object.keys(date).length > 0) {
-            payload.date = date;
+        if (dateFrom && dateTo) {
+            payload.date = {
+                from: dateFrom,
+                to: dateTo
+            };
         }
+        // If only one is present, we DO NOT send the date block at all (as per requirements)
 
         try {
             const response = await fetch('/api/sessions/query', {
