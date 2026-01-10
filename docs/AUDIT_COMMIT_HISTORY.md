@@ -160,6 +160,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(notification): add sender registry for channel-based delivery resolution
 - feat(notification): implement delivery worker processRow lifecycle
 - feat(email): introduce smtp transport config dto and env wiring
+- fix(notification): make delivery worker query compatible with sqlite tests
 
 ---
 

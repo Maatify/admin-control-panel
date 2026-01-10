@@ -44,17 +44,35 @@ final class NotificationDeliveryWorker implements NotificationDeliveryWorkerInte
     {
         $this->pdo->beginTransaction();
 
-        $stmt = $this->pdo->prepare(
-            <<<SQL
+//        $stmt = $this->pdo->prepare(
+//            <<<SQL
+//SELECT *
+//FROM notification_delivery_queue
+//WHERE status = 'pending'
+//  AND scheduled_at <= NOW()
+//ORDER BY priority ASC, scheduled_at ASC
+//LIMIT :limit
+//FOR UPDATE SKIP LOCKED
+//SQL
+//        );
+
+        $driver = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+        $sql = <<<SQL
 SELECT *
 FROM notification_delivery_queue
 WHERE status = 'pending'
   AND scheduled_at <= NOW()
 ORDER BY priority ASC, scheduled_at ASC
 LIMIT :limit
-FOR UPDATE SKIP LOCKED
-SQL
-        );
+SQL;
+
+        if ($driver !== 'sqlite') {
+            $sql .= ' FOR UPDATE SKIP LOCKED';
+        }
+
+        $stmt = $this->pdo->prepare($sql);
+
 
         $stmt->bindValue('limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
