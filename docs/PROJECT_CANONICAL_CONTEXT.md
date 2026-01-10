@@ -403,7 +403,7 @@ All LIST APIs MUST accept a unified request DTO representing list intent.
 **Conceptual DTO:**
 
 ```
-App\Domain\DTO\Common\ListQueryDTO
+App\Domain\List\ListQueryDTO
 ```
 
 **Responsibilities:**
