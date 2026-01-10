@@ -144,6 +144,7 @@ Entries MUST NOT be rewritten or reordered.
 - fix(input-normalization): map legacy date keys into canonical nested date shape
 - docs(canonical): align ListQueryDTO namespace with implemented domain structure
 - docs(tests): document AS-IS state of canonical vs legacy list/query patterns
+- feat(sessions): enable admin_id search (global numeric + column alias)
 
 ---
 

@@ -32,11 +32,21 @@ readonly class PdoSessionListReader implements SessionListReaderInterface
         $params = [];
 
         // ─────────────────────────────
-        // Global search (session_id only)
+        // Global search (session_id OR admin_id)
         // ─────────────────────────────
         if ($filters->globalSearch !== null) {
-            $where[] = 's.session_id LIKE :global';
+            // Global search applies to session_id (string) AND admin_id (int)
+            // We use OR logic here.
+            $globalConditions = ['s.session_id LIKE :global'];
             $params['global'] = '%' . $filters->globalSearch . '%';
+
+            // Only attempt admin_id match if input is numeric to avoid type mismatches or useless queries
+            if (is_numeric($filters->globalSearch)) {
+                $globalConditions[] = 's.admin_id = :global_id';
+                $params['global_id'] = (int) $filters->globalSearch;
+            }
+
+            $where[] = '(' . implode(' OR ', $globalConditions) . ')';
         }
 
         // ─────────────────────────────
@@ -47,6 +57,11 @@ readonly class PdoSessionListReader implements SessionListReaderInterface
             if ($column === 'session_id') {
                 $where[] = 's.session_id LIKE :session_id';
                 $params['session_id'] = '%' . $value . '%';
+            }
+
+            if ($column === 'admin_id') {
+                $where[] = 's.admin_id = :search_admin_id';
+                $params['search_admin_id'] = (int) $value;
             }
 
             if ($column === 'status') {
