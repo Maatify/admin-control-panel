@@ -862,6 +862,131 @@ Any of the following requires:
 
 ---
 
+### **3. Cryptography & Secrets Handling (NEW)**
+
+**Status:** ARCHITECTURE-LOCKED / ACTIVE
+**Scope:** All application layers (Domain, Infrastructure, Workers)
+
+The system defines a **single, unified cryptography contract** for handling
+all sensitive data, secrets, identifiers, and encrypted payloads.
+
+Cryptography is treated as an **infrastructure capability**, not a feature.
+
+---
+
+#### Single Entry Point (Mandatory)
+
+All cryptographic operations **MUST** go through the canonical facade:
+
+```
+
+App\Domain\Contracts\CryptoFacadeInterface
+
+```
+
+❌ Direct usage of:
+* OpenSSL
+* HKDF
+* Key rotation services
+* Random generators
+
+is **STRICTLY FORBIDDEN** outside the Crypto module.
+
+---
+
+#### Crypto Context Registry (LOCKED)
+
+All reversible encryption operations **MUST** use a predefined,
+versioned crypto context.
+
+Allowed contexts are defined exclusively in:
+
+```
+
+App\Domain\Security\CryptoContext
+
+```
+
+Rules:
+
+* Contexts MUST be versioned (`:vX`)
+* Contexts MUST NOT be user-defined
+* Contexts MUST be static and documented
+* Dynamic or runtime contexts are forbidden
+
+---
+
+#### Reversible Encryption (Data-at-Rest)
+
+Used for:
+
+* Email recipients & payloads
+* TOTP seeds
+* Encrypted identifiers (PII)
+
+Characteristics:
+
+* Encryption is reversible
+* Uses Key Rotation
+* Uses context-based key derivation (HKDF)
+* Stores `key_id` with encrypted payload
+* Decryption MUST fail hard if key is missing
+
+Encrypted outputs are represented exclusively by:
+
+```
+
+App\Domain\DTO\Crypto\EncryptedPayloadDTO
+
+```
+
+---
+
+#### One-Way Secrets (Passwords & OTP)
+
+Used for:
+
+* Passwords
+* OTP codes
+* Verification codes
+
+Rules:
+
+* One-way hashing only
+* No reversible encryption
+* Pepper is REQUIRED for passwords
+* Secrets are never decrypted
+
+Passwords and OTP **MUST NOT** use the reversible encryption pipeline.
+
+---
+
+#### Usage Matrix (LOCKED)
+
+| Use Case           | Method     | Context            |
+|--------------------|------------|--------------------|
+| Passwords          | hashSecret | ❌                  |
+| OTP / Verification | hashSecret | ❌                  |
+| Email recipient    | encrypt    | EMAIL_RECIPIENT_V1 |
+| Email payload      | encrypt    | EMAIL_PAYLOAD_V1   |
+| TOTP seed          | encrypt    | TOTP_SEED_V1       |
+| PII identifiers    | encrypt    | IDENTIFIER_*_V1    |
+
+Any deviation from this matrix is a **Canonical Violation**.
+
+---
+
+#### Enforcement
+
+* Application services depend **ONLY** on `CryptoFacadeInterface`
+* Workers (Email, Notifications) are consumers, not cryptography owners
+* Cryptography logic MUST NOT appear in Controllers or Domain Services
+
+This contract is **SECURITY-CRITICAL** and MUST NOT be altered
+without an explicit architectural decision and documentation update.
+
+---
+
 ## 🔐 Cryptography — Canonical Implementation (As-Built)
 
 ### Entry Point
