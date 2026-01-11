@@ -92,9 +92,12 @@ This rule is **SECURITY-CRITICAL** and MUST NOT be bypassed, inferred, or altere
 ---
 
 ### 4. Auditing (Authority & Security Only)
-*   **Scope**: `audit_logs` are strictly reserved for **Authority Changes**, **Security-Impacting Actions**, and **Admin Responsibility Events**.
-*   **Exclusion**: Routine non-security CRUD or UI-driven mutations are **NOT** automatically audit entries unless they impact authority or security posture.
-*   **Mechanism**: When required, auditing uses `AuthoritativeSecurityAuditWriterInterface` within the same `PDO` transaction as the mutation.
+
+* **Scope**: `audit_logs` are strictly reserved for **Authority Changes**, **Security-Impacting Actions**, and **Admin Responsibility Events**.
+* **Exclusion**: Routine non-security CRUD or UI-driven mutations are **NOT** automatically audit entries unless they impact authority or security posture.
+* **Mechanism**: When required, auditing uses `AuthoritativeSecurityAuditWriterInterface` within the same `PDO` transaction as the mutation.
+
+---
 
 ## 🪵 D) Logging Policy (HARD)
 
@@ -112,6 +115,7 @@ Logging is **NOT a single concern** in this system.
 * **Interface**: `AuthoritativeSecurityAuditWriterInterface`
 * **Storage**: Database only (`audit_logs` table).
 * **Schema**:
+
   * Actor (admin_id)
   * Target Type (string)
   * Target ID
@@ -121,9 +125,11 @@ Logging is **NOT a single concern** in this system.
 **Hard Requirements:**
 
 * Audit logs MUST be written:
+
   * Inside the same `PDO` transaction as the mutation
   * Fail-closed (any failure aborts the transaction)
 * Audit logs MUST NOT:
+
   * Use filesystem logging
   * Use PSR-3
   * Be asynchronous
@@ -135,7 +141,8 @@ Any deviation is a **SECURITY VIOLATION**.
 
 ### D.2 Security Events (`security_events`) — Observational
 
-* **Purpose**: High-volume security signals and activity tracking.
+* **Purpose**: High-volume **security signals and security-related events**.
+
   * Login
   * Logout
   * Failed authentication
@@ -144,8 +151,9 @@ Any deviation is a **SECURITY VIOLATION**.
 * **Storage**: Database only (`security_events` table).
 * **Severity**: Info / Warning / Error
 * **Behavior**:
+
   * Best-effort
-  * MUST NOT block user-facing flows except for CRITICAL failures
+  * MUST NOT block user-facing flows except for **CRITICAL** failures
 
 **Rules:**
 
@@ -164,15 +172,17 @@ The system allows the use of a **PSR-3 compliant logger** strictly for
 #### Approved Implementation
 
 * `maatify/psr-logger` MAY be used as the concrete implementation of:
+
   * `Psr\Log\LoggerInterface`
 * Binding MUST occur **only in the Dependency Injection Container**.
 
 **Approved Container Binding Example:**
+
 ```php
 LoggerInterface::class => function () {
     return \Maatify\PsrLogger\LoggerFactory::create('slim/app');
 },
-````
+```
 
 #### Explicitly ALLOWED
 
@@ -238,11 +248,12 @@ This exception **does NOT apply** to runtime application logic.
 
 ---
 
-### D.5 Log Retention & Cleanup (PSR-3 Only)
+### D.5 Log Retention & Cleanup
 
-* Log rotation and cleanup (e.g. `LogCleaner`) apply **ONLY** to:
+* Log rotation and cleanup apply **ONLY** to:
 
-  * Application & infrastructure logs
+  * Application & infrastructure logs (PSR-3)
+  * Activity logs (`activity_logs`)
 * Retention policies MUST NOT be applied to:
 
   * `audit_logs`
@@ -259,9 +270,204 @@ explicit legal and architectural approval.
 |------------------|------------|---------------|-------|
 | Audit Logs       | Database   | YES (HARD)    | ❌ NO  |
 | Security Events  | Database   | NO            | ❌ NO  |
+| Activity Logs    | Database   | NO            | ❌ NO  |
 | App / Infra Logs | Filesystem | NO            | ✅ YES |
 
 This separation is **ARCHITECTURE-LOCKED**.
+
+---
+
+## 🧾 D.7 Activity Logs (`activity_logs`) — Operational User Activity Tracking
+
+**Status:** ARCHITECTURE-APPROVED / ACTIVE
+**Scope:** Admin Panel (UI + API Mutations)
+**Nature:** Observational / Non-Authoritative
+**Audience:** Operations, Management, Compliance, Support
+
+---
+
+## 📌 Purpose (Why this exists)
+
+`activity_logs` provide a **human-readable, queryable trail**
+of **what admins and employees do inside the system**.
+
+They answer questions such as:
+
+* مين عمل تعديل؟
+* عمل تعديل فين؟
+* عدّل بيانات مين؟
+* إمتى التعديل حصل؟
+* هل التعديل كان Create / Update / Delete؟
+* إيه الصفحة أو المورد اللي حصل فيه التغيير؟
+
+`activity_logs` are **NOT** a security mechanism
+and **NOT** a legal source of truth.
+
+They exist purely for **staff activity tracking and operational transparency**.
+
+---
+
+## 🧭 What Activity Logs Are (and Are NOT)
+
+### ✅ Activity Logs ARE
+
+* A **staff activity timeline**
+* A **management & monitoring tool**
+* A way to understand **who changed what**
+* A bridge between raw DB changes and human understanding
+
+### ❌ Activity Logs are NOT
+
+* Audit logs
+* Security events
+* Authorization records
+* Transaction guards
+* A replacement for `audit_logs`
+
+---
+
+## 🧱 Storage & Interface
+
+* **Storage:** Database (`activity_logs` table)
+* **Nature:** Best-effort (non-transactional)
+* **Interface:** `ActivityLoggerInterface` (Infrastructure concern)
+
+### Required Core Fields (Conceptual)
+
+| Field             | Meaning                                  |
+|-------------------|------------------------------------------|
+| `actor_admin_id`  | Who performed the action                 |
+| `actor_role`      | Role at time of action (snapshot)        |
+| `action`          | create / update / delete / view          |
+| `resource_type`   | admins, users, products, orders, etc     |
+| `resource_id`     | ID of the affected entity                |
+| `target_admin_id` | If acting *on another admin*             |
+| `summary`         | Human-readable description               |
+| `changes`         | Lightweight before/after diff (optional) |
+| `source`          | ui / api                                 |
+| `created_at`      | Timestamp                                |
+
+---
+
+## 🧠 Canonical Use Cases (MANDATORY)
+
+Activity Logs MUST be written for:
+
+* CRUD operations performed by admins
+* Editing another admin’s data
+* Editing user/customer data
+* Assigning or modifying business data (prices, products, settings)
+* Any action where **management may later ask “who did this?”**
+
+---
+
+## 🚫 Explicit Exclusions (NON-NEGOTIABLE)
+
+Activity Logs MUST NOT be used for:
+
+❌ Authentication attempts
+❌ Login / logout
+❌ Permission changes
+❌ Role grants / revokes
+❌ Security failures
+❌ Step-Up / OTP / Recovery Mode
+❌ System bootstrap actions
+
+These belong to:
+
+| Concern              | Correct Log       |
+|----------------------|-------------------|
+| Authority decisions  | `audit_logs`      |
+| Security attempts    | `security_events` |
+| Crashes / exceptions | PSR-3 logs        |
+
+---
+
+## 🔄 Relationship to Audit Logs (CRITICAL DISTINCTION)
+
+| Aspect           | Audit Logs            | Activity Logs           |
+|------------------|-----------------------|-------------------------|
+| Purpose          | Authority & Security  | Staff behavior tracking |
+| Transactional    | YES (HARD)            | NO                      |
+| Fail-Closed      | YES                   | NO                      |
+| Legal / Forensic | YES                   | NO                      |
+| Volume           | Low                   | High                    |
+| Audience         | Security / Compliance | Management / Ops        |
+
+> **Rule:**
+> If both logs apply → **BOTH are written**
+> (Audit for authority, Activity for visibility)
+
+---
+
+## ⚙️ Executor Responsibilities
+
+### Backend Executors (Controllers / Services)
+
+* MUST emit Activity Logs for:
+
+  * Successful CRUD mutations
+* MUST NOT:
+
+  * Block execution if activity logging fails
+  * Wrap activity logging inside DB transactions
+  * Treat activity logs as authoritative
+
+---
+
+### Notification / Delivery Executors
+
+* ❌ MUST NOT write Activity Logs
+
+---
+
+### System / CLI Executors
+
+* ❌ MUST NOT write Activity Logs
+  (Bootstrap, migrations, maintenance are out of scope)
+
+---
+
+## 🧪 Testing Rules
+
+* Tests MAY assert presence of activity logs
+* Tests MUST NOT fail if activity logging is unavailable
+* Activity logs are **non-blocking by design**
+
+---
+
+## 🧠 Design Rationale
+
+We intentionally separate:
+
+* **Authority (Audit)**
+* **Security (Security Events)**
+* **Operations (Activity Logs)**
+
+To avoid:
+
+* Audit log pollution
+* Legal ambiguity
+* Security signal noise
+* Misuse of PSR-3 logs
+
+This separation is **ARCHITECTURE-INTENTIONAL**.
+
+---
+
+## 🔒 Architectural Status
+
+* This section is **APPROVED**
+* This section does **NOT** weaken existing audit or security guarantees
+* This section introduces **zero coupling** with Auth or Security layers
+
+Any change requires:
+
+* Architectural review
+* Documentation update
+* Explicit approval
+
+---
 
 ## 🚦 E) Routing & Middleware Contract
 
