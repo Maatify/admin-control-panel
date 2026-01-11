@@ -576,7 +576,9 @@ class Container
                 return new NotificationFailureHandler($repo);
             },
             EmailNotificationSender::class => function (ContainerInterface $c) {
-                return new EmailNotificationSender();
+                $queueWriter = $c->get(EmailQueueWriterInterface::class);
+                assert($queueWriter instanceof EmailQueueWriterInterface);
+                return new EmailNotificationSender($queueWriter);
             },
             FakeNotificationSender::class => function (ContainerInterface $c) {
                 return new FakeNotificationSender();
