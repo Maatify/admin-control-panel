@@ -150,6 +150,8 @@ use App\Modules\Email\Queue\EmailQueueWriterInterface;
 use App\Modules\Email\Queue\PdoEmailQueueWriter;
 use App\Modules\Email\Renderer\EmailRendererInterface;
 use App\Modules\Email\Renderer\TwigEmailRenderer;
+use App\Modules\Email\Transport\EmailTransportInterface;
+use App\Modules\Email\Transport\SmtpEmailTransport;
 use App\Modules\Validation\Contracts\ValidatorInterface;
 use App\Modules\Validation\Guard\ValidationGuard;
 use App\Modules\Validation\Validator\RespectValidator;
@@ -1156,6 +1158,11 @@ class Container
             },
             EmailRendererInterface::class => function (ContainerInterface $c) {
                 return new TwigEmailRenderer();
+            },
+            EmailTransportInterface::class => function (ContainerInterface $c) {
+                $config = $c->get(EmailTransportConfigDTO::class);
+                assert($config instanceof EmailTransportConfigDTO);
+                return new SmtpEmailTransport($config);
             },
         ]);
 
