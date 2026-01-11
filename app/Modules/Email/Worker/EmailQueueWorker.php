@@ -6,9 +6,12 @@ namespace App\Modules\Email\Worker;
 
 use App\Modules\Crypto\DX\CryptoProvider;
 use App\Modules\Crypto\Reversible\DTO\ReversibleCryptoMetadataDTO;
+use App\Modules\Crypto\Reversible\Exceptions\CryptoDecryptionFailedException;
 use App\Modules\Crypto\Reversible\ReversibleCryptoAlgorithmEnum;
 use App\Modules\Email\DTO\RenderedEmailDTO;
+use App\Modules\Email\Exception\EmailTransportException;
 use App\Modules\Email\Transport\EmailTransportInterface;
+use JsonException;
 use PDO;
 use Throwable;
 
@@ -26,31 +29,57 @@ class EmailQueueWorker
 
     public function processBatch(int $limit = 50): void
     {
-        // 1. Select pending rows
-        // We select more than limit to increase chance of finding unlocked rows if we were using SKIP LOCKED,
-        // but here we use optimistic locking so limit is fine.
-        $sql = <<<'SQL'
-            SELECT
-                id,
-                recipient_encrypted, recipient_iv, recipient_tag, recipient_key_id,
-                payload_encrypted, payload_iv, payload_tag, payload_key_id,
-                attempts
-            FROM email_queue
-            WHERE status = 'pending'
-              AND scheduled_at <= NOW()
-            ORDER BY priority ASC, id ASC
-            LIMIT :limit
-        SQL;
+        // 1. Transactional Selection & Locking (Option A)
+        $this->pdo->beginTransaction();
 
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->execute();
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $sql = <<<'SQL'
+                SELECT
+                    id,
+                    recipient_encrypted, recipient_iv, recipient_tag, recipient_key_id,
+                    payload_encrypted, payload_iv, payload_tag, payload_key_id
+                FROM email_queue
+                WHERE status = 'pending'
+                  AND scheduled_at <= NOW()
+                ORDER BY priority ASC, id ASC
+                LIMIT :limit
+                FOR UPDATE
+            SQL;
 
-        if (empty($rows)) {
-            return;
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if (empty($rows)) {
+                $this->pdo->commit();
+                return;
+            }
+
+            // Extract IDs for bulk update
+            $ids = array_column($rows, 'id');
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+
+            // 2. Immediate State Transition
+            $updateSql = <<<SQL
+                UPDATE email_queue
+                SET status = 'processing',
+                    attempts = attempts + 1
+                WHERE id IN ($placeholders)
+            SQL;
+
+            $updateStmt = $this->pdo->prepare($updateSql);
+            $updateStmt->execute($ids);
+
+            $this->pdo->commit();
+        } catch (Throwable $e) {
+            $this->pdo->rollBack();
+            // In a real worker, we might log this critical failure, but instructions forbid logging frameworks.
+            // We just exit/rethrow to stop the worker run.
+            throw $e;
         }
 
+        // 3. Process Locked Rows
         foreach ($rows as $row) {
             $this->processRow($row);
         }
@@ -63,46 +92,43 @@ class EmailQueueWorker
     {
         $id = (int)$row['id'];
 
-        // 2. Lock / State Transition
-        // Optimistic locking: try to set to processing. If zero rows updated, someone else got it.
-        $updateStmt = $this->pdo->prepare(
-            "UPDATE email_queue SET status = 'processing', attempts = attempts + 1 WHERE id = :id AND status = 'pending'"
-        );
-        $updateStmt->execute(['id' => $id]);
-
-        if ($updateStmt->rowCount() === 0) {
-            return; // Already picked up by another worker
-        }
-
         try {
             // 3. Decryption
 
             // Decrypt Recipient
-            $recipientCrypto = $this->cryptoProvider->context(self::RECIPIENT_CONTEXT);
-            $recipient = $recipientCrypto->decrypt(
-                (string)$row['recipient_encrypted'],
-                (string)$row['recipient_key_id'],
-                ReversibleCryptoAlgorithmEnum::AES_256_GCM,
-                new ReversibleCryptoMetadataDTO(
-                    (string)$row['recipient_iv'],
-                    (string)$row['recipient_tag']
-                )
-            );
+            try {
+                $recipientCrypto = $this->cryptoProvider->context(self::RECIPIENT_CONTEXT);
+                $recipient = $recipientCrypto->decrypt(
+                    (string)$row['recipient_encrypted'],
+                    (string)$row['recipient_key_id'],
+                    ReversibleCryptoAlgorithmEnum::AES_256_GCM,
+                    new ReversibleCryptoMetadataDTO(
+                        (string)$row['recipient_iv'],
+                        (string)$row['recipient_tag']
+                    )
+                );
 
-            // Decrypt Payload
-            $payloadCrypto = $this->cryptoProvider->context(self::PAYLOAD_CONTEXT);
-            $payloadJson = $payloadCrypto->decrypt(
-                (string)$row['payload_encrypted'],
-                (string)$row['payload_key_id'],
-                ReversibleCryptoAlgorithmEnum::AES_256_GCM,
-                new ReversibleCryptoMetadataDTO(
-                    (string)$row['payload_iv'],
-                    (string)$row['payload_tag']
-                )
-            );
+                // Decrypt Payload
+                $payloadCrypto = $this->cryptoProvider->context(self::PAYLOAD_CONTEXT);
+                $payloadJson = $payloadCrypto->decrypt(
+                    (string)$row['payload_encrypted'],
+                    (string)$row['payload_key_id'],
+                    ReversibleCryptoAlgorithmEnum::AES_256_GCM,
+                    new ReversibleCryptoMetadataDTO(
+                        (string)$row['payload_iv'],
+                        (string)$row['payload_tag']
+                    )
+                );
+            } catch (CryptoDecryptionFailedException $e) {
+                throw new \RuntimeException('crypto_decryption_failed', 0, $e);
+            }
 
-            /** @var array{subject: string, htmlBody: string, templateKey: string, language: string} $payloadData */
-            $payloadData = json_decode($payloadJson, true, 512, JSON_THROW_ON_ERROR);
+            try {
+                /** @var array{subject: string, htmlBody: string, templateKey: string, language: string} $payloadData */
+                $payloadData = json_decode($payloadJson, true, 512, JSON_THROW_ON_ERROR);
+            } catch (JsonException $e) {
+                throw new \RuntimeException('invalid_payload_format', 0, $e);
+            }
 
             // 4. Sending
             $renderedEmail = new RenderedEmailDTO(
@@ -112,7 +138,11 @@ class EmailQueueWorker
                 $payloadData['language']
             );
 
-            $this->transport->send($recipient, $renderedEmail);
+            try {
+                $this->transport->send($recipient, $renderedEmail);
+            } catch (EmailTransportException $e) {
+                throw new \RuntimeException('smtp_transport_error', 0, $e);
+            }
 
             // Success
             $completeStmt = $this->pdo->prepare(
@@ -121,9 +151,13 @@ class EmailQueueWorker
             $completeStmt->execute(['id' => $id]);
 
         } catch (Throwable $e) {
-            // 5. Failure Handling
-            $errorMsg = substr($e->getMessage(), 0, 255); // Truncate to fit if necessary, though TEXT fits more.
-            // Assuming last_error is text or varchar. Prompt says "Write a short error message".
+            // 5. Failure Handling (Fix #2: Error Hygiene)
+            $errorMsg = match ($e->getMessage()) {
+                'crypto_decryption_failed' => 'crypto_decryption_failed',
+                'invalid_payload_format' => 'invalid_payload_format',
+                'smtp_transport_error' => 'smtp_transport_error',
+                default => 'unexpected_worker_error',
+            };
 
             $failStmt = $this->pdo->prepare(
                 "UPDATE email_queue SET status = 'failed', last_error = :error WHERE id = :id"
