@@ -167,6 +167,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(email): complete encrypted email_queue writer with canonical payload contract
 - docs(logging): lock PSR-3 usage policy and adopt maatify/psr-logger as app logger
 - chore(security): remove recovery_state from repo and ignore runtime storage
+- feat(email): implement email queue worker with crypto-safe decryption and smtp transport
 
 ---
 
