@@ -7,23 +7,22 @@ namespace App\Modules\Notification\Worker;
 use App\Domain\DTO\Notification\NotificationDeliveryDTO;
 
 /**
- * AbstractNotificationWorker
+ * ARCHITECTURAL CONTRACT — NOTIFICATION WORKER
  *
- * CONTRACT:
- * This worker acts as a thin orchestration layer.
+ * This worker MUST:
+ * - Decrypt payloads retrieved from notification_delivery_queue
+ * - Delegate execution to existing subsystems (Email, Telegram, etc.)
  *
- * RESPONSIBILITIES:
- * - MUST decrypt queued payloads only.
- * - MUST delegate execution to existing subsystems.
+ * This worker MUST NOT:
+ * - Render templates or messages
+ * - Construct subjects, titles, or bodies
+ * - Perform SMTP, HTTP, or external API calls
+ * - Implement retry, backoff, scheduling, or delivery logic
+ * - Duplicate logic owned by other modules
  *
- * PROHIBITIONS:
- * - MUST NOT render templates.
- * - MUST NOT build subjects or message bodies.
- * - MUST NOT perform SMTP / Telegram / external API calls directly.
- * - MUST NOT implement retry, backoff, scheduling, or state machines.
- * - MUST NOT duplicate logic already owned by Email or Notification subsystems.
+ * UNDER NO CIRCUMSTANCES should this worker contain business logic.
  *
- * All rendering and transport logic is strictly delegated to the specific subsystem.
+ * Any violation of this contract is considered an architectural defect.
  */
 abstract class AbstractNotificationWorker
 {
