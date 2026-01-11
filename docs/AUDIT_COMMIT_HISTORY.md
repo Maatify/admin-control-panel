@@ -180,6 +180,7 @@ Entries MUST NOT be rewritten or reordered.
 - chore: remove unused legacy notification delivery layer
 - docs(index): add canonical documentation index for humans and AI
 - docs(adr): legitimize crypto key rotation wiring and fix canonical references
+- test: remove obsolete tests for deleted notification delivery code
 
 
 ---
