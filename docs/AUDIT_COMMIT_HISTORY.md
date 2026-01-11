@@ -164,6 +164,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(email): complete phase 3 rendering and smtp transport adapter
 - docs(notification): add ADR for scope and admin-coupled history
 - docs(adr): consolidate and formalize architectural decisions
+- feat(email): complete encrypted email_queue writer with canonical payload contract
 
 ---
 

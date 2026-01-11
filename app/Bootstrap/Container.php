@@ -146,6 +146,8 @@ use App\Modules\InputNormalization\Contracts\InputNormalizerInterface;
 use App\Modules\InputNormalization\Middleware\InputNormalizationMiddleware;
 use App\Modules\InputNormalization\Normalizer\InputNormalizer;
 use App\Modules\Email\Config\EmailTransportConfigDTO;
+use App\Modules\Email\Queue\EmailQueueWriterInterface;
+use App\Modules\Email\Queue\PdoEmailQueueWriter;
 use App\Modules\Validation\Contracts\ValidatorInterface;
 use App\Modules\Validation\Guard\ValidationGuard;
 use App\Modules\Validation\Validator\RespectValidator;
@@ -1165,6 +1167,15 @@ class Container
                 assert($passwordService instanceof PasswordService);
 
                 return new CryptoProvider($contextFactory, $directFactory, $passwordService);
+            },
+            EmailQueueWriterInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                $crypto = $c->get(CryptoProvider::class);
+
+                assert($pdo instanceof PDO);
+                assert($crypto instanceof CryptoProvider);
+
+                return new PdoEmailQueueWriter($pdo, $crypto);
             },
         ]);
 
