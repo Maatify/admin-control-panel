@@ -6,6 +6,19 @@ namespace App\Modules\Notification\Worker;
 
 use App\Domain\DTO\Notification\NotificationDeliveryDTO;
 
+/**
+ * TelegramNotificationWorker
+ *
+ * Thin orchestration worker for Telegram notifications.
+ *
+ * RESPONSIBILITIES:
+ * - Decrypts the payload.
+ * - Delegates to the Telegram Sender/Handler.
+ *
+ * PROHIBITIONS:
+ * - NO complex logic.
+ * - NO retry logic.
+ */
 class TelegramNotificationWorker extends AbstractNotificationWorker
 {
     public function process(NotificationDeliveryDTO $delivery): void
