@@ -171,6 +171,8 @@ Entries MUST NOT be rewritten or reordered.
 - docs(canonical): lock Email as cross-domain infrastructure (not notification-owned)
 - docs(env): add comments for PSR-3 logger configuration (path, retention, timezone)
 - feat(email): activate async email pipeline with queue, crypto, worker, and renderer
+- fix(email): finalize canonical DI wiring for Email worker transport
+- test(email,notification): enforce notification-to-email responsibility boundaries
 
 ---
 
