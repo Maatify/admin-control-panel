@@ -61,7 +61,7 @@ or helper / selector APIs.
     "to": "YYYY-MM-DD"
   }
 }
-````
+```
 
 ### Field Semantics (Authoritative)
 
@@ -199,7 +199,7 @@ Submits credentials to establish a session.
 ### API Login
 JSON-based login for API clients.
 
-**Endpoint:** `POST /auth/login`
+**Endpoint:** `POST /api/auth/login`
 **Auth Required:** No (Guest)
 
 **Parameters (JSON Body):**
@@ -275,23 +275,23 @@ Triggers a new OTP email.
 *   **Success (302):** Redirects to `/verify-email` with a generic "sent" message.
 
 ### API Verify Email (Admin Context)
-Verifies an email for a specific admin ID (privileged).
+**Force-verifies** an email for a specific admin ID (privileged).
+This is an administrative override and does **NOT** require an OTP.
 
-**Endpoint:** `POST /admins/{id}/emails/verify`
-**Auth Required:** Yes (Permission Required)
+**Endpoint:** `POST /api/admins/{id}/emails/verify`
+**Permission:** `email.verify`
 
-**Parameters (JSON Body):**
-*   `otp` (required): The verification code.
+**Parameters:** None.
 
 **Response:**
-*   **Success (200):** JSON confirmation.
-*   **Error (422):** Invalid OTP.
+*   **Success (200):** JSON confirmation (`{ "status": "verified" }` or similar).
+*   **Error (404):** Admin not found.
 
 ### API Lookup Email
 Resolves an admin ID from an email (Privileged/Internal).
 
-**Endpoint:** `POST /admin-identifiers/email/lookup`
-**Auth Required:** Yes (Permission Required)
+**Endpoint:** `POST /api/admin-identifiers/email/lookup`
+**Permission:** `email.lookup`
 
 **Parameters (JSON Body):**
 *   `email` (required): Admin email address.
@@ -345,7 +345,7 @@ Submits OTP to elevate session.
 ### API Step-Up
 JSON endpoint to elevate session.
 
-**Endpoint:** `POST /auth/step-up`
+**Endpoint:** `POST /api/auth/step-up`
 **Auth Required:** Yes
 
 **Parameters (JSON Body):**
@@ -381,7 +381,7 @@ Inbound webhook from Telegram Bot. **Machine-to-Machine only.**
 ### List Admin Notifications (API)
 Retrieves notification history for the authenticated admin.
 
-**Endpoint:** `GET /admins/{admin_id}/notifications`
+**Endpoint:** `GET /api/admins/{admin_id}/notifications`
 **Auth Required:** Yes (Strictly scoped to `{admin_id}`)
 
 ### ⚠️ Legacy / Non-Canonical Endpoint
@@ -416,16 +416,39 @@ for implementing new LIST / QUERY APIs.
 ### Mark as Read (API)
 Marks a specific notification as read.
 
-**Endpoint:** `POST /admin/notifications/{id}/read`
-**Auth Required:** Yes (Strictly scoped)
+**Endpoint:** `POST /api/admin/notifications/{id}/read`
+**Permission:** `admin.notifications.read` (Scoped to self)
 
 **Response:**
 *   **Success (204):** No content.
 
+### Get Notification Preferences
+Retrieves the current notification channel preferences for an admin.
+
+**Endpoint:** `GET /api/admins/{admin_id}/preferences`
+**Permission:** `admin.preferences.read`
+
+**Response:**
+*   **Success (200):** List of preferences.
+
+### Update Notification Preferences
+Enables or disables a specific notification channel.
+
+**Endpoint:** `PUT /api/admins/{admin_id}/preferences`
+**Permission:** `admin.preferences.write`
+
+**Parameters (JSON Body):**
+*   `notification_type` (string, required)
+*   `channel_type` (string, required)
+*   `is_enabled` (boolean, required)
+
+**Response:**
+*   **Success (200):** Updated preference object.
+
 ### Global Notifications Query (Legacy / System)
 **WARNING:** Privileged endpoint. Allows global queries.
 
-**Endpoint:** `GET /notifications`
+**Endpoint:** `GET /api/notifications`
 **Auth Required:** Yes (High Privilege Required)
 
 **Query Parameters:**
@@ -438,7 +461,7 @@ Marks a specific notification as read.
 
 ---
 
-## 🩺 System
+## 🩺 System & UI Helpers
 
 ### Health Check
 Simple status check.
@@ -452,6 +475,18 @@ Simple status check.
     {"status": "ok"}
     ```
 
+### UI Error Page
+Renders a generic error page based on a code.
+
+**Endpoint:** `GET /error`
+**Auth Required:** No
+
+**Parameters (Query):**
+*   `code` (string, optional): Error code to display.
+
+**Response:**
+*   **Success (200):** HTML Page.
+
 ---
 
 ## 👥 Admins
@@ -460,7 +495,7 @@ Simple status check.
 Retrieves a paginated list of admins using the Canonical LIST / QUERY Contract.
 
 **Endpoint:** `POST /api/admins/query`
-**Permission:** `admins.list`
+**Permission:** `admins.query`
 
 This endpoint strictly uses the **Canonical LIST / QUERY Contract (LOCKED)**
 defined in this document.
@@ -478,6 +513,52 @@ defined in this document.
 
 **Response Model:**
 > Uses **Canonical Response Envelope**.
+
+### Create Admin (Blank)
+Creates a new admin entity with default state.
+Does not set email or password (use subsequent calls).
+
+**Endpoint:** `POST /api/admins/create`
+**Permission:** `admin.create`
+
+**Parameters:** None.
+
+**Response:**
+*   **Success (200):**
+    ```json
+    {
+      "admin_id": 123,
+      "created_at": "2024-01-01 12:00:00"
+    }
+    ```
+
+### Add Email to Admin
+Associates an email address with an admin.
+
+**Endpoint:** `POST /api/admins/{id}/emails`
+**Permission:** `email.add`
+
+**Parameters (JSON Body):**
+*   `email` (required): valid email address.
+
+**Response:**
+*   **Success (200):** `{ "admin_id": 123, "email_added": true }`
+*   **Error (400):** Invalid email format.
+
+### Get Admin Email
+Retrieves the decrypted email address for an admin.
+
+**Endpoint:** `GET /api/admins/{id}/emails`
+**Permission:** `email.read`
+
+**Response:**
+*   **Success (200):**
+    ```json
+    {
+      "admin_id": 123,
+      "email": "admin@example.com"
+    }
+    ```
 
 ---
 
@@ -556,24 +637,8 @@ Revokes multiple sessions in a single transaction.
 *   **Error (400):** If current session is included in the list.
 
 ### Select Admins (Helper / Non-Canonical)
-Retrieves a list of admins for UI filtering.
+**⚠️ REMOVED / STALE**
+This endpoint is currently disabled in the codebase.
+Use `POST /api/admins/query` instead.
 
 **Endpoint:** `GET /api/admins/list`
-**Auth Required:** Yes (Permission `sessions.view_all`)
-
-This endpoint is a lightweight selector helper and is
-explicitly **EXEMPT** from the Canonical LIST / QUERY Contract.
-
-It is NOT paginated and MUST NOT be treated
-as a standard LIST or QUERY API.
-
-**Response:**
-*   **Success (200):**
-    ```json
-    {
-      "data": [
-        { "id": 1, "identifier": "admin@example.com" },
-        { "id": 2, "identifier": "other@example.com" }
-      ]
-    }
-    ```
