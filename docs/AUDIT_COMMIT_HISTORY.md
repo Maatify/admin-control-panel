@@ -166,6 +166,7 @@ Entries MUST NOT be rewritten or reordered.
 - docs(adr): consolidate and formalize architectural decisions
 - feat(email): complete encrypted email_queue writer with canonical payload contract
 - docs(logging): lock PSR-3 usage policy and adopt maatify/psr-logger as app logger
+- chore(security): remove recovery_state from repo and ignore runtime storage
 
 ---
 
