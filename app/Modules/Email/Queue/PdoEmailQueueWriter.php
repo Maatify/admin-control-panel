@@ -6,7 +6,7 @@ namespace App\Modules\Email\Queue;
 
 use App\Modules\Crypto\DX\CryptoProvider;
 use App\Modules\Crypto\Reversible\DTO\ReversibleCryptoEncryptionResultDTO;
-use App\Modules\Email\DTO\RenderedEmailDTO;
+use App\Modules\Email\Queue\DTO\EmailQueuePayloadDTO;
 use App\Modules\Email\Exception\EmailQueueWriteException;
 use DateTimeInterface;
 use PDO;
@@ -27,30 +27,29 @@ class PdoEmailQueueWriter implements EmailQueueWriterInterface
         string $entityType,
         ?string $entityId,
         string $recipientEmail,
-        RenderedEmailDTO $email,
+        EmailQueuePayloadDTO $payload,
         int $senderType,
         int $priority = 5,
         ?DateTimeInterface $scheduledAt = null
     ): void {
         try {
             // 1. Prepare data
-            $payload = [
-                'subject' => $email->subject,
-                'htmlBody' => $email->htmlBody,
-            ];
-            $serializedPayload = json_encode($payload, JSON_THROW_ON_ERROR);
+            // Use DTO toArray() for the JSON payload as strictly required
+            $serializedPayload = json_encode($payload->toArray(), JSON_THROW_ON_ERROR);
 
             // 2. Encrypt Recipient
             $recipientCrypto = $this->cryptoProvider->context(self::RECIPIENT_CONTEXT);
+            /** @var array{result: ReversibleCryptoEncryptionResultDTO, key_id: string, algorithm: mixed} $recipientEncryptedData */
             $recipientEncryptedData = $recipientCrypto->encrypt($recipientEmail);
-            /** @var ReversibleCryptoEncryptionResultDTO $recipientResult */
+
             $recipientResult = $recipientEncryptedData['result'];
             $recipientKeyId = $recipientEncryptedData['key_id'];
 
             // 3. Encrypt Payload
             $payloadCrypto = $this->cryptoProvider->context(self::PAYLOAD_CONTEXT);
+            /** @var array{result: ReversibleCryptoEncryptionResultDTO, key_id: string, algorithm: mixed} $payloadEncryptedData */
             $payloadEncryptedData = $payloadCrypto->encrypt($serializedPayload);
-            /** @var ReversibleCryptoEncryptionResultDTO $payloadResult */
+
             $payloadResult = $payloadEncryptedData['result'];
             $payloadKeyId = $payloadEncryptedData['key_id'];
 
@@ -88,8 +87,8 @@ class PdoEmailQueueWriter implements EmailQueueWriterInterface
                 'payload_iv' => $payloadResult->iv,
                 'payload_tag' => $payloadResult->tag,
                 'payload_key_id' => $payloadKeyId,
-                'template_key' => $email->templateKey,
-                'language' => $email->language,
+                'template_key' => $payload->templateKey,
+                'language' => $payload->language,
                 'sender_type' => $senderType,
                 'priority' => $priority,
                 'scheduled_at' => $scheduledAt ? $scheduledAt->format('Y-m-d H:i:s') : date('Y-m-d H:i:s'),
