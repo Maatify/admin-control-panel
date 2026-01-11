@@ -719,7 +719,7 @@ Domain / Service
         ↓
    Email Worker (CLI)
         ↓
- SMTP / Transport
+   SMTP / Transport
 ```
 
 ---
@@ -862,128 +862,72 @@ Any of the following requires:
 
 ---
 
-### **3. Cryptography & Secrets Handling (NEW)**
+## 🔐 Cryptography — Canonical Implementation (As-Built)
 
-**Status:** ARCHITECTURE-LOCKED / ACTIVE  
-**Scope:** All application layers (Domain, Infrastructure, Workers)
+### Entry Point
+The application utilizes a unified facade for all cryptographic operations, exposed via `App\Modules\Crypto\DX\CryptoProvider`. This class is registered in the DI container and provides three distinct pipelines:
+1.  **Context-Bound Encryption:** `context(string $context)` returns a `ReversibleCryptoService` derived from root keys using HKDF.
+2.  **Direct Encryption:** `direct()` returns a `ReversibleCryptoService` using root keys directly (Internal/Legacy use only).
+3.  **One-Way Secrets:** `password()` exposes the `PasswordService` for hashing and verification.
 
-The system defines a **single, unified cryptography contract** for handling
-all sensitive data, secrets, identifiers, and encrypted payloads.
+### Reversible Encryption Pipeline (Context-Aware)
+The primary encryption flow adheres to a "Derive-then-Encrypt" model to ensure domain separation.
 
-Cryptography is treated as an **infrastructure capability**, not a feature.
+1.  **Input:** Plaintext string + Context String (e.g., `email:recipient:v1`).
+2.  **Root Key Resolution:** `KeyRotationService` provides the currently `ACTIVE` root key (from `CRYPTO_KEYS` or `EMAIL_ENCRYPTION_KEY`).
+3.  **Key Derivation (HKDF):**
+    *   The `HKDFService` derives a unique 32-byte key for the specific context using `hash_hmac('sha256')` (RFC 5869 expand-only).
+    *   Context strings must strictly contain `:v` to enforce versioning.
+4.  **Encryption (AES-256-GCM):**
+    *   Algorithm: `Aes256GcmAlgorithm` (using `openssl_encrypt`).
+    *   Key: 32-byte derived key.
+    *   IV: 12-byte random binary (96-bit).
+    *   Tag: 16-byte authentication tag (128-bit).
+5.  **Output:** Returns an array containing:
+    *   `result`: `ReversibleCryptoEncryptionResultDTO` (Cipher, IV, Tag).
+    *   `key_id`: The ID of the root key used (e.g., `v1`).
+    *   `algorithm`: Enum `AES_256_GCM`.
 
----
+### One-Way Secrets (Passwords)
+Password handling is managed by `App\Modules\Crypto\Password\PasswordHasher`, delegating to `PasswordService`.
 
-#### Single Entry Point (Mandatory)
+*   **Algorithm:** `Argon2id` (via PHP `password_hash`).
+*   **Peppering:** Mandatory server-side pepper (from `PASSWORD_PEPPER` env).
+    *   Logic: `hash_hmac('sha256', password, pepper, true)` is calculated *before* passing to Argon2id.
+*   **Verification:**
+    1.  Re-calculates the peppered HMAC of the input.
+    2.  Verifies against the stored hash using `password_verify`.
+    3.  Supports rotation via `PASSWORD_PEPPER_OLD`.
 
-All cryptographic operations **MUST** go through the canonical facade:
+### Blind Indexing
+Blind indexes are used to look up encrypted identifiers (e.g., Email) without decryption.
+*   **Algorithm:** `hash_hmac('sha256', raw_value, key)`.
+*   **Key:** `EMAIL_BLIND_INDEX_KEY` (loaded via `AdminConfigDTO`).
+*   **Implementation:** Calculated via `hash_hmac` before being passed to Domain Services or Repositories.
+*   **Purpose:** Allows exact-match lookups (`SELECT ... WHERE blind_index = ?`) on encrypted columns.
 
-```
+### Key Management
+Keys are managed by `App\Modules\Crypto\KeyRotation\KeyRotationService`, populated via `App\Bootstrap\Container`.
 
-App\Domain\Contracts\CryptoFacadeInterface
+*   **Source:** `CRYPTO_KEYS` (JSON array of `{id, key}`) or legacy `EMAIL_ENCRYPTION_KEY`.
+*   **Active Key:** Strictly defined by `CRYPTO_ACTIVE_KEY_ID`.
+*   **States:**
+    *   `ACTIVE`: Used for new encryption and decryption.
+    *   `INACTIVE` / `RETIRED`: Used for decryption only.
+*   **Safety:** The service exposes raw key material only to the `CryptoContextFactory` and `CryptoDirectFactory`, never to application logic.
 
-```
+### Failure Semantics
+The crypto layer enforces strict "fail-closed" behavior:
+*   **Encryption Failure:** Throws `RuntimeException` (e.g., OpenSSL failure).
+*   **Decryption Failure:** Throws `App\Modules\Crypto\Reversible\Exceptions\CryptoDecryptionFailedException` for *any* failure (tag mismatch, wrong key, corruption).
+*   **Missing Key:** Throws `CryptoKeyNotFoundException` if the requested `key_id` is unknown.
+*   **Invalid Context:** Throws `InvalidContextException` if the context string is empty or missing versioning.
 
-❌ Direct usage of:
-* OpenSSL
-* HKDF
-* Key rotation services
-* Random generators
-
-is **STRICTLY FORBIDDEN** outside the Crypto module.
-
----
-
-#### Crypto Context Registry (LOCKED)
-
-All reversible encryption operations **MUST** use a predefined,
-versioned crypto context.
-
-Allowed contexts are defined exclusively in:
-
-```
-
-App\Domain\Security\CryptoContext
-
-```
-
-Rules:
-
-* Contexts MUST be versioned (`:vX`)
-* Contexts MUST NOT be user-defined
-* Contexts MUST be static and documented
-* Dynamic or runtime contexts are forbidden
-
----
-
-#### Reversible Encryption (Data-at-Rest)
-
-Used for:
-
-* Email recipients & payloads
-* TOTP seeds
-* Encrypted identifiers (PII)
-
-Characteristics:
-
-* Encryption is reversible
-* Uses Key Rotation
-* Uses context-based key derivation (HKDF)
-* Stores `key_id` with encrypted payload
-* Decryption MUST fail hard if key is missing
-
-Encrypted outputs are represented exclusively by:
-
-```
-
-App\Domain\DTO\Crypto\EncryptedPayloadDTO
-
-```
-
----
-
-#### One-Way Secrets (Passwords & OTP)
-
-Used for:
-
-* Passwords
-* OTP codes
-* Verification codes
-
-Rules:
-
-* One-way hashing only
-* No reversible encryption
-* Pepper is REQUIRED for passwords
-* Secrets are never decrypted
-
-Passwords and OTP **MUST NOT** use the reversible encryption pipeline.
-
----
-
-#### Usage Matrix (LOCKED)
-
-| Use Case           | Method     | Context            |
-|--------------------|------------|--------------------|
-| Passwords          | hashSecret | ❌                  |
-| OTP / Verification | hashSecret | ❌                  |
-| Email recipient    | encrypt    | EMAIL_RECIPIENT_V1 |
-| Email payload      | encrypt    | EMAIL_PAYLOAD_V1   |
-| TOTP seed          | encrypt    | TOTP_SEED_V1       |
-| PII identifiers    | encrypt    | IDENTIFIER_*_V1    |
-
-Any deviation from this matrix is a **Canonical Violation**.
-
----
-
-#### Enforcement
-
-* Application services depend **ONLY** on `CryptoFacadeInterface`
-* Workers (Email, Notifications) are consumers, not cryptography owners
-* Cryptography logic MUST NOT appear in Controllers or Domain Services
-
-This contract is **SECURITY-CRITICAL** and MUST NOT be altered
-without an explicit architectural decision and documentation update.
+### Explicit Non-Goals
+*   **Key Loading:** The core services (`ReversibleCryptoService`, `KeyRotationService`) do not load configuration or environment variables; they rely on injection.
+*   **Storage:** The crypto layer returns DTOs and does not handle database persistence.
+*   **Serialization:** The layer does not serialize the encrypted payload (e.g., to Base64 or JSON); it returns raw binary DTOs.
+*   **Mixed Mode:** The `ReversibleCryptoService` cannot perform hashing, and the `PasswordService` cannot perform encryption.
 
 ---
 
