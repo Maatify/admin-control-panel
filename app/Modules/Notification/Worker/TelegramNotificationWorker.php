@@ -9,15 +9,19 @@ use App\Domain\DTO\Notification\NotificationDeliveryDTO;
 /**
  * TelegramNotificationWorker
  *
- * Thin orchestration worker for Telegram notifications.
+ * CONTRACT:
+ * This worker acts as a thin orchestration layer for Telegram.
  *
  * RESPONSIBILITIES:
- * - Decrypts the payload.
- * - Delegates to the Telegram Sender/Handler.
+ * - MUST decrypt queued payloads only.
+ * - MUST delegate execution to the Telegram Subsystem.
  *
  * PROHIBITIONS:
- * - NO complex logic.
- * - NO retry logic.
+ * - MUST NOT render templates.
+ * - MUST NOT build subjects or message bodies.
+ * - MUST NOT perform SMTP / Telegram / external API calls directly.
+ * - MUST NOT implement retry, backoff, scheduling, or state machines.
+ * - MUST NOT duplicate logic already owned by Email or Notification subsystems.
  */
 class TelegramNotificationWorker extends AbstractNotificationWorker
 {

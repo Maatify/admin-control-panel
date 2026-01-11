@@ -9,17 +9,19 @@ use App\Domain\DTO\Notification\NotificationDeliveryDTO;
 /**
  * EmailNotificationWorker
  *
- * Thin orchestration worker for Email notifications.
+ * CONTRACT:
+ * This worker acts as a thin orchestration layer for Email.
  *
  * RESPONSIBILITIES:
- * - Decrypts the payload.
- * - Maps the semantic payload to the Email Queue structure.
- * - Delegates actual enqueueing to EmailQueueWriterInterface.
+ * - MUST decrypt queued payloads only.
+ * - MUST delegate execution to the Email Subsystem (EmailQueueWriter).
  *
  * PROHIBITIONS:
- * - NO rendering (must pass semantic data to EmailQueue).
- * - NO direct SMTP usage.
- * - NO retry logic.
+ * - MUST NOT render templates.
+ * - MUST NOT build subjects or message bodies.
+ * - MUST NOT perform SMTP / Telegram / external API calls directly.
+ * - MUST NOT implement retry, backoff, scheduling, or state machines.
+ * - MUST NOT duplicate logic already owned by Email or Notification subsystems.
  */
 class EmailNotificationWorker extends AbstractNotificationWorker
 {

@@ -25,15 +25,20 @@ use Throwable;
 /**
  * NotificationDeliveryWorker
  *
- * CLI worker that processes notification_delivery_queue.
+ * CONTRACT:
+ * This worker acts as a thin orchestration layer for generic notification delivery.
  *
- * NOTE:
- * - No sender implementations here
- * - No decryption logic here (delegated)
- * - Lifecycle only
- */
-
-/**
+ * RESPONSIBILITIES:
+ * - MUST decrypt queued payloads only.
+ * - MUST delegate execution to existing subsystems via the Registry.
+ *
+ * PROHIBITIONS:
+ * - MUST NOT render templates.
+ * - MUST NOT build subjects or message bodies.
+ * - MUST NOT perform SMTP / Telegram / external API calls directly.
+ * - MUST NOT implement retry, backoff, scheduling, or state machines.
+ * - MUST NOT duplicate logic already owned by Email or Notification subsystems.
+ *
  * NOTE (ADR-007):
  * Notification history is intentionally admin-coupled.
  * This worker writes directly to admin_notifications and assumes entity_type=admin.
