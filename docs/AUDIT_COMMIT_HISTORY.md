@@ -187,6 +187,7 @@ Entries MUST NOT be rewritten or reordered.
 - docs(logging): formalize activity logs and refine logging policy boundaries
 - feat(activity-log): complete activity logging write pipeline
 - docs(activity-log): add README and usage guide
+- feat(activity-log): add list reader, controller, integration tests, and docs
 
 ---
 

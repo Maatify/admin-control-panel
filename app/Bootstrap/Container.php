@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Bootstrap;
 
+use App\Domain\ActivityLog\Reader\ActivityLogListReaderInterface;
 use App\Domain\Admin\Reader\AdminQueryReaderInterface;
 use App\Domain\Contracts\AdminActivityQueryInterface;
 use App\Domain\Contracts\AdminDirectPermissionRepositoryInterface;
@@ -83,6 +84,7 @@ use App\Http\Controllers\Ui\UiRolesController;
 use App\Http\Controllers\Ui\UiSettingsController;
 use App\Http\Controllers\Ui\SessionListController;
 use App\Domain\Session\Reader\SessionListReaderInterface;
+use App\Infrastructure\Reader\ActivityLog\PdoActivityLogListReader;
 use App\Infrastructure\Reader\Session\PdoSessionListReader;
 use App\Http\Middleware\RememberMeMiddleware;
 use App\Http\Middleware\ScopeGuardMiddleware;
@@ -539,6 +541,12 @@ class Container
                 assert($pdo instanceof PDO);
 
                 return new MySQLActivityLogWriter($pdo);
+            },
+            ActivityLogListReaderInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+
+                return new PdoActivityLogListReader($pdo);
             },
             TelemetryAuditLoggerInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);

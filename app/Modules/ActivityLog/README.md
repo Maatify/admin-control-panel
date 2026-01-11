@@ -113,6 +113,109 @@ The library is fully testable using:
 
 ---
 
+## 📊 Activity Log Listing & Querying
+
+The Activity Log module supports **read-only listing and querying** of recorded activity events through a canonical LIST pipeline.
+
+This functionality is designed for **administrative visibility and operational monitoring only**.
+
+> ⚠️ **Important:**
+> Activity Logs are **NOT authoritative audit records**.
+> They are **best-effort, fail-open, non-blocking** records intended for observability, not compliance.
+
+---
+
+### Architecture Overview
+
+```
+ActivityLogQueryController
+        ↓
+ActivityLogListReaderInterface
+        ↓
+PdoActivityLogListReader
+        ↓
+activity_logs (MySQL)
+```
+
+---
+
+### Key Characteristics
+
+* **Read-Only**
+  No mutation or side effects are allowed during listing.
+
+* **Authorization-Driven**
+  Access is enforced by the caller (Controller), not by the Reader.
+
+* **Canonical LIST Pipeline**
+  Querying follows the same standardized flow used across the system:
+
+  * `SharedListQuerySchema`
+  * `ListQueryDTO`
+  * `ListCapabilities`
+  * `ListFilterResolver`
+  * `ResolvedListFilters`
+
+* **Strict Filter Whitelisting**
+  Only explicitly declared filters are accepted.
+  Unknown or undeclared filters are ignored or rejected.
+
+* **Date Filtering**
+
+  * Supported via a single trusted column: `occurred_at`
+  * Uses inclusive day boundaries (`00:00:00` → `23:59:59`)
+
+---
+
+### Supported Query Features
+
+* **Global Search**
+
+  * Matches against:
+
+    * `action`
+    * `request_id`
+
+* **Column Filters**
+
+  * `actor_type`
+  * `actor_id`
+  * `action`
+  * `entity_type`
+  * `entity_id`
+  * `request_id`
+
+* **Pagination**
+
+  * Page / per-page based
+  * Includes total vs filtered counts
+
+---
+
+### Security & Scope Notes
+
+* Activity Logs are **security-sensitive** but **non-authoritative**
+* They **do not replace**:
+
+  * `audit_logs`
+  * `security_events`
+* Deletion, mutation, or correction of activity logs is **out of scope**
+
+---
+
+### Intended Use Cases
+
+✔ Admin dashboards
+✔ Operational monitoring
+✔ Debugging and traceability
+✔ User-facing history views (read-only)
+
+❌ Compliance auditing
+❌ Legal or financial authority
+❌ Security enforcement source
+
+---
+
 ## 📄 License
 
 MIT (or project license)
