@@ -182,6 +182,7 @@ Entries MUST NOT be rewritten or reordered.
 - docs(adr): legitimize crypto key rotation wiring and fix canonical references
 - test: remove obsolete tests for deleted notification delivery code
 - docs(api): sync API_PHASE1 with AS-IS routes, permissions, and legacy endpoints
+- docs(api): resync API_PHASE1 with discovered AS-IS routes
 
 ---
 
