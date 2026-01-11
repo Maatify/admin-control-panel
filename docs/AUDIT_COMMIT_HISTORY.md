@@ -188,6 +188,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(activity-log): complete activity logging write pipeline
 - docs(activity-log): add README and usage guide
 - feat(activity-log): add list reader, controller, integration tests, and docs
+- feat(activity-log): wire UI GET route with canonical API POST query
 
 ---
 

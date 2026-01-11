@@ -6,6 +6,7 @@ use App\Domain\Service\SessionValidationService;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminEmailVerificationController;
 use App\Http\Controllers\AdminNotificationPreferenceController;
+use App\Http\Controllers\Api\ActivityLogQueryController;
 use App\Http\Controllers\Api\AdminQueryController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NotificationQueryController;
@@ -77,6 +78,13 @@ return function (App $app) {
                 ->setName('sessions.list')
                 ->add(AuthorizationGuardMiddleware::class);
 
+            // ─────────────────────────────
+            // Activity Logs
+            // ─────────────────────────────
+
+            // UI view
+            $protectedGroup->get('/activity-logs', [\App\Http\Controllers\Ui\ActivityLogListController::class, 'index']);
+
             // Allow logout from UI
             $protectedGroup->post('/logout', [\App\Http\Controllers\Web\LogoutController::class, 'logout'])
                 ->setName('auth.logout');
@@ -121,6 +129,10 @@ return function (App $app) {
 
             $group->post('/admins/query', [AdminQueryController::class, '__invoke'])
                 ->setName('admins.query')
+                ->add(AuthorizationGuardMiddleware::class);
+
+            $group->post('activity-logs/query', [ActivityLogQueryController::class, '__invoke'])
+                ->setName('activity_logs.view')
                 ->add(AuthorizationGuardMiddleware::class);
 
             // Notifications / Admins / Etc.
