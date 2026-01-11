@@ -8,8 +8,11 @@ use App\Modules\Crypto\DX\CryptoProvider;
 use App\Modules\Crypto\Reversible\DTO\ReversibleCryptoMetadataDTO;
 use App\Modules\Crypto\Reversible\Exceptions\CryptoDecryptionFailedException;
 use App\Modules\Crypto\Reversible\ReversibleCryptoAlgorithmEnum;
+use App\Modules\Email\DTO\GenericEmailPayload;
 use App\Modules\Email\DTO\RenderedEmailDTO;
+use App\Modules\Email\Exception\EmailRenderException;
 use App\Modules\Email\Exception\EmailTransportException;
+use App\Modules\Email\Renderer\EmailRendererInterface;
 use App\Modules\Email\Transport\EmailTransportInterface;
 use JsonException;
 use PDO;
@@ -23,6 +26,7 @@ class EmailQueueWorker
     public function __construct(
         private readonly PDO $pdo,
         private readonly CryptoProvider $cryptoProvider,
+        private readonly EmailRendererInterface $renderer,
         private readonly EmailTransportInterface $transport
     ) {
     }
@@ -124,20 +128,25 @@ class EmailQueueWorker
             }
 
             try {
-                /** @var array{subject: string, htmlBody: string, templateKey: string, language: string} $payloadData */
+                /** @var array{context: array<string, mixed>, templateKey: string, language: string} $payloadData */
                 $payloadData = json_decode($payloadJson, true, 512, JSON_THROW_ON_ERROR);
             } catch (JsonException $e) {
                 throw new \RuntimeException('invalid_payload_format', 0, $e);
             }
 
-            // 4. Sending
-            $renderedEmail = new RenderedEmailDTO(
-                $payloadData['subject'],
-                $payloadData['htmlBody'],
-                $payloadData['templateKey'],
-                $payloadData['language']
-            );
+            // 4. Rendering
+            try {
+                $payload = new GenericEmailPayload($payloadData['context']);
+                $renderedEmail = $this->renderer->render(
+                    $payloadData['templateKey'],
+                    $payloadData['language'],
+                    $payload
+                );
+            } catch (EmailRenderException $e) {
+                throw new \RuntimeException('email_render_failed', 0, $e);
+            }
 
+            // 5. Sending
             try {
                 $this->transport->send($recipient, $renderedEmail);
             } catch (EmailTransportException $e) {
@@ -151,10 +160,11 @@ class EmailQueueWorker
             $completeStmt->execute(['id' => $id]);
 
         } catch (Throwable $e) {
-            // 5. Failure Handling (Fix #2: Error Hygiene)
+            // 6. Failure Handling (Fix #2: Error Hygiene)
             $errorMsg = match ($e->getMessage()) {
                 'crypto_decryption_failed' => 'crypto_decryption_failed',
                 'invalid_payload_format' => 'invalid_payload_format',
+                'email_render_failed' => 'email_render_failed',
                 'smtp_transport_error' => 'smtp_transport_error',
                 default => 'unexpected_worker_error',
             };

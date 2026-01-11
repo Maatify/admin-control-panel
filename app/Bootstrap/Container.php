@@ -148,6 +148,8 @@ use App\Modules\InputNormalization\Normalizer\InputNormalizer;
 use App\Modules\Email\Config\EmailTransportConfigDTO;
 use App\Modules\Email\Queue\EmailQueueWriterInterface;
 use App\Modules\Email\Queue\PdoEmailQueueWriter;
+use App\Modules\Email\Renderer\EmailRendererInterface;
+use App\Modules\Email\Renderer\TwigEmailRenderer;
 use App\Modules\Validation\Contracts\ValidatorInterface;
 use App\Modules\Validation\Guard\ValidationGuard;
 use App\Modules\Validation\Validator\RespectValidator;
@@ -1151,6 +1153,9 @@ class Container
                 assert($crypto instanceof CryptoProvider);
 
                 return new PdoEmailQueueWriter($pdo, $crypto);
+            },
+            EmailRendererInterface::class => function (ContainerInterface $c) {
+                return new TwigEmailRenderer();
             },
         ]);
 

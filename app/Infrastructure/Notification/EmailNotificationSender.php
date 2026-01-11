@@ -50,9 +50,14 @@ class EmailNotificationSender implements NotificationSenderInterface
                 ? $delivery->context['language']
                 : 'en';
 
+            // Prepare context: merge title/body for backward compatibility if template needs them,
+            // but primarily rely on context.
+            $context = $delivery->context;
+            $context['title'] = $delivery->title;
+            $context['body'] = $delivery->body;
+
             $payload = new EmailQueuePayloadDTO(
-                $delivery->title,
-                $delivery->body,
+                $context,
                 $templateKey,
                 $language
             );

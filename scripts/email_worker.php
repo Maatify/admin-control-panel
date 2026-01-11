@@ -7,6 +7,7 @@ require __DIR__ . '/../vendor/autoload.php';
 use App\Bootstrap\Container;
 use App\Modules\Crypto\DX\CryptoProvider;
 use App\Modules\Email\Config\EmailTransportConfigDTO;
+use App\Modules\Email\Renderer\EmailRendererInterface;
 use App\Modules\Email\Transport\SmtpEmailTransport;
 use App\Modules\Email\Worker\EmailQueueWorker;
 
@@ -26,6 +27,9 @@ try {
     /** @var CryptoProvider $crypto */
     $crypto = $container->get(CryptoProvider::class);
 
+    /** @var EmailRendererInterface $renderer */
+    $renderer = $container->get(EmailRendererInterface::class);
+
     /** @var EmailTransportConfigDTO $emailConfig */
     $emailConfig = $container->get(EmailTransportConfigDTO::class);
 
@@ -37,7 +41,7 @@ try {
 // 3. Instantiate Transport & Worker
 try {
     $transport = new SmtpEmailTransport($emailConfig);
-    $worker = new EmailQueueWorker($pdo, $crypto, $transport);
+    $worker = new EmailQueueWorker($pdo, $crypto, $renderer, $transport);
 
     // 4. Run Batch
     $worker->processBatch(50);
