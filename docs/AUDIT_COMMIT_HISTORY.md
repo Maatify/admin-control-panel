@@ -177,6 +177,7 @@ Entries MUST NOT be rewritten or reordered.
 - docs(architecture): lock crypto contract and add bounded refactor plan
 - docs(canonical): lock crypto context registry and enforce refactor guardrails
 - docs(testing): formalize canonical testing & verification model
+- chore: remove legacy notification delivery layer (pre Phase 6 rebuild)
 
 
 ---

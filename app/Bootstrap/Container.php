@@ -27,10 +27,8 @@ use App\Domain\Contracts\TelemetryAuditLoggerInterface;
 use App\Domain\Contracts\RememberMeRepositoryInterface;
 use App\Domain\Contracts\ClientInfoProviderInterface;
 use App\Domain\Contracts\FailedNotificationRepositoryInterface;
-use App\Domain\Contracts\NotificationDispatcherInterface;
 use App\Domain\Contracts\NotificationReadRepositoryInterface;
 use App\Domain\Contracts\NotificationRoutingInterface;
-use App\Domain\Contracts\NotificationSenderInterface;
 use App\Domain\Contracts\RolePermissionRepositoryInterface;
 use App\Domain\Contracts\RoleRepositoryInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
@@ -46,7 +44,6 @@ use App\Domain\Ownership\SystemOwnershipRepositoryInterface;
 use App\Domain\Service\AdminAuthenticationService;
 use App\Domain\Service\AdminEmailVerificationService;
 use App\Domain\Service\AdminNotificationRoutingService;
-use App\Domain\Service\NotificationFailureHandler;
 use App\Domain\Service\RecoveryStateService;
 use App\Domain\Service\RememberMeService;
 use App\Domain\Service\RoleAssignmentService;
@@ -114,7 +111,6 @@ use App\Infrastructure\Repository\AdminSessionRepository;
 use App\Infrastructure\Audit\PdoTelemetryAuditLogger;
 use App\Infrastructure\Repository\FailedNotificationRepository;
 use App\Infrastructure\Repository\NotificationReadRepository;
-use App\Infrastructure\Notifications\NullNotificationDispatcher;
 use App\Infrastructure\Repository\PdoAdminNotificationReadMarker;
 use App\Infrastructure\Repository\PdoRoleRepository;
 use App\Infrastructure\Repository\PdoStepUpGrantRepository;
@@ -122,11 +118,7 @@ use App\Infrastructure\Repository\PdoSystemOwnershipRepository;
 use App\Infrastructure\Repository\PdoVerificationCodeRepository;
 use App\Infrastructure\Repository\RedisStepUpGrantRepository;
 use App\Infrastructure\Repository\RolePermissionRepository;
-use App\Domain\Service\NotificationDispatcher;
 use App\Domain\Service\PasswordService;
-use App\Infrastructure\Notification\EmailNotificationSender;
-use App\Infrastructure\Notification\FakeNotificationSender;
-use App\Infrastructure\Notification\NullNotificationSender;
 use App\Infrastructure\Repository\SecurityEventRepository;
 use App\Infrastructure\Security\WebClientInfoProvider;
 use App\Infrastructure\Service\Google2faTotpService;
@@ -561,9 +553,6 @@ class Container
                 $mapper = new AdminActivityMapper();
                 return new AdminActivityQueryRepository($pdo, $mapper);
             },
-            NotificationDispatcherInterface::class => function (ContainerInterface $c) {
-                return new NullNotificationDispatcher();
-            },
             FailedNotificationRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
@@ -573,45 +562,6 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new NotificationReadRepository($pdo);
-            },
-            NotificationFailureHandler::class => function (ContainerInterface $c) {
-                $repo = $c->get(FailedNotificationRepositoryInterface::class);
-                assert($repo instanceof FailedNotificationRepositoryInterface);
-                return new NotificationFailureHandler($repo);
-            },
-            EmailNotificationSender::class => function (ContainerInterface $c) {
-                $queueWriter = $c->get(EmailQueueWriterInterface::class);
-                assert($queueWriter instanceof EmailQueueWriterInterface);
-                return new EmailNotificationSender($queueWriter);
-            },
-            FakeNotificationSender::class => function (ContainerInterface $c) {
-                return new FakeNotificationSender();
-            },
-            NullNotificationSender::class => function (ContainerInterface $c) {
-                return new NullNotificationSender();
-            },
-            NotificationDispatcher::class => function (ContainerInterface $c) {
-                $senders = [
-                    $c->get(EmailNotificationSender::class),
-                    $c->get(FakeNotificationSender::class),
-                    $c->get(NullNotificationSender::class),
-                ];
-                /** @var iterable<mixed, NotificationSenderInterface> $senders */
-                $failureHandler = $c->get(NotificationFailureHandler::class);
-                assert($failureHandler instanceof NotificationFailureHandler);
-
-                $routingService = $c->get(AdminNotificationRoutingService::class);
-                assert($routingService instanceof AdminNotificationRoutingService);
-
-                $channelRepo = $c->get(AdminNotificationChannelRepositoryInterface::class);
-                assert($channelRepo instanceof AdminNotificationChannelRepositoryInterface);
-
-                return new NotificationDispatcher(
-                    $senders,
-                    $failureHandler,
-                    $routingService,
-                    $channelRepo
-                );
             },
             ClientInfoProviderInterface::class => function (ContainerInterface $c) {
                 return new WebClientInfoProvider();
