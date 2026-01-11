@@ -661,128 +661,204 @@ Any deviation is considered an **Architecture Violation**.
 
 ---
 
-### **2. Email Messaging & Delivery (NEW)**
+## **2. Email Messaging & Delivery (CANONICAL INFRASTRUCTURE)**
 
-**Status:** ARCHITECTURE-APPROVED / ACTIVE  
-**Phase:** 14+ (Async Infrastructure, Non-Auth)
-
-The system implements a **fully asynchronous, encrypted email delivery pipeline**
-used for verification, OTP delivery, and system notifications.
-
-This module is **NOT** part of Authentication logic and **MUST NOT**
-alter or short-circuit any Auth, Session, or Step-Up behavior.
+**Status:** ARCHITECTURE-LOCKED / ACTIVE
+**Scope:** Cross-Domain Infrastructure
+**Phase:** 14+ (Async Infrastructure)
 
 ---
 
-#### Email Queue (Canonical Infrastructure)
+### 📌 Architectural Position (CRITICAL)
 
-* Email sending is **NEVER synchronous**
-* All emails MUST be enqueued in the `email_queue` table
-* Controllers and Services MUST NOT send emails directly
-* Email delivery is handled by background workers / cron jobs
+The Email system is a **standalone, cross-domain infrastructure capability**.
 
-The email queue is treated as **Infrastructure Output**, not a Domain Event.
+It is **NOT**:
 
----
+* A sub-module of Notifications
+* A feature tied to user-facing flows
+* A domain-owned service
 
-#### Domain Binding (Entity Traceability)
+It **IS**:
 
-Each queued email MUST be bound to a domain entity:
+* A reusable async delivery pipeline
+* A shared infrastructure used by multiple domains
+* A transport-agnostic message delivery mechanism
 
-* `entity_type`: `admin` | `user` | `system` | `external`
-* `entity_id`: string or integer (casted)
-
-This binding exists for:
-
-* Debugging & support
-* Failure tracing
-* Correlation with domain actions
-* Multi-domain reuse of the same queue
-
-This binding is **NOT** used for authorization or access control.
+This distinction is **ARCHITECTURE-CRITICAL**.
 
 ---
 
-#### Encryption Policy (Mandatory)
+### 🧱 Ownership Model
 
-All sensitive email data is stored **encrypted at rest**:
+| Layer                            | Responsibility                             |
+|----------------------------------|--------------------------------------------|
+| **Email Module**                 | Queueing, Encryption, Rendering, Transport |
+| **Notification System**          | Intent, Routing, Preferences               |
+| **Workers (CLI)**                | Decryption & Physical Delivery             |
+| **Domains (Auth, System, Jobs)** | Produce email intents                      |
 
-* Recipient email address → AES-GCM encrypted
-* Rendered email payload (subject + body) → AES-GCM encrypted
-* No plaintext email content is stored in the database
-
-Decryption is allowed **ONLY at send-time** by the email delivery worker.
-
-This rule is **SECURITY-CRITICAL** and MUST NOT be bypassed.
+**Notifications consume Email.
+Email does NOT depend on Notifications.**
 
 ---
 
-#### Email Templates (Twig-Based)
+### 📤 Email Queue (Canonical Infrastructure)
 
-* All email content is rendered using **Twig templates**
-* Templates are language-specific and presentation-only
-* No HTML is constructed dynamically in PHP code
+* All email delivery is **asynchronous**
+* No service, controller, or domain may send emails directly
+* All emails MUST be enqueued into `email_queue`
+* Queue rows are treated as **infrastructure output**, not domain events
 
-**Location:**
-
+```text
+Domain / Service
+        ↓
+ EmailQueueWriter
+        ↓
+   email_queue (encrypted)
+        ↓
+   Email Worker (CLI)
+        ↓
+ SMTP / Transport
 ```
 
+---
+
+### 🔗 Domain Binding (Traceability Only)
+
+Each email MUST be bound to a domain entity:
+
+* `entity_type`: `admin | user | system | external`
+* `entity_id`: string / int (casted)
+
+Purpose:
+
+* Debugging
+* Support
+* Failure tracing
+* Cross-domain reuse
+
+❌ This binding is NOT used for:
+
+* Authorization
+* Permission checks
+* Business decisions
+
+---
+
+### 🔐 Encryption Policy (MANDATORY)
+
+All sensitive email data is encrypted **at rest**:
+
+| Field            | Encryption                 |
+|------------------|----------------------------|
+| Recipient Email  | AES-GCM                    |
+| Rendered Payload | AES-GCM                    |
+| Subject          | Encrypted (inside payload) |
+| HTML Body        | Encrypted                  |
+
+Rules:
+
+* No plaintext email data in database
+* Encryption uses **context-derived keys (HKDF)**
+* Decryption allowed **only in worker process**
+
+---
+
+### 🧩 Crypto Contexts (LOCKED)
+
+The following contexts are **fixed and versioned**:
+
+| Context              | Usage                       |
+|----------------------|-----------------------------|
+| `email:recipient:v1` | Recipient encryption        |
+| `email:payload:v1`   | Rendered payload encryption |
+
+❌ Dynamic or runtime-generated contexts are forbidden.
+
+---
+
+### 🖼️ Rendering (Twig-Based)
+
+* All email content is rendered via Twig
+* Templates are language-scoped
+* Templates contain **no business logic**
+
+```
 templates/
 └── emails/
     ├── layouts/
-    │   └── base.twig
     ├── otp/
-    │   ├── en.twig
-    │   └── ar.twig
-    └── verification/
-        ├── en.twig
-        └── ar.twig
-
+    ├── verification/
+    └── system/
 ```
 
-**Rules:**
-
-* No business logic in templates
-* No database access
-* No permission-based conditionals
-* Templates consume DTO-provided variables only
+DTOs provide semantic data only.
+Templates control presentation only.
 
 ---
 
-#### Payload DTO Responsibility
+### ⚙️ Execution & Failure Semantics
 
-Email Payload DTOs are **independent** of Twig templates:
+Queue lifecycle:
 
-* DTOs define semantic fields (e.g. `display_name`, `otp_code`, `expires_in_minutes`)
-* Templates map DTO fields to presentation
-* No formatting, localization, or rendering logic exists in DTOs
+```
+pending → processing → sent | failed | skipped
+```
 
-This separation allows:
+Rules:
 
-* Safe template refactoring
-* Multi-channel reuse (Email now, Telegram later)
-* Deterministic alignment via static contracts
-
----
-
-#### Execution Model & Failure Semantics
-
-* Queue rows transition through:  
-  `pending → processing → sent | failed | skipped`
-* Retry logic is infrastructure-level only
 * Failures MUST NOT block UI or API flows
-* Email delivery does **NOT** emit audit logs by default
+* Retry is infrastructure-level only
+* Email delivery does NOT emit audit logs
+* PSR-3 logging is allowed (diagnostic only)
 
 ---
 
-#### Explicit Non-Goals
+### 🚫 Explicit Non-Goals
 
-Email Messaging does **NOT**:
+The Email system MUST NOT:
 
-* Affect authentication or authorization state
-* Trigger `audit_logs`
-* Block user-facing requests
-* Perform business decisions
+* Perform authorization
+* Emit audit logs
+* Influence authentication state
+* Block synchronous requests
+* Contain domain logic
+
+---
+
+### 🔗 Relationship to Notifications (Explicit)
+
+Notifications are a **producer & consumer**, not an owner.
+
+* NotificationDispatcher may enqueue emails
+* Notification routing does NOT control Email execution
+* Email system can be used **without Notifications**
+
+Examples of non-notification email usage:
+
+* OTP delivery
+* Password reset
+* System alerts
+* External integrations
+* Scheduled jobs
+
+---
+
+### 🔒 Architecture Lock
+
+This section is **ARCHITECTURE-LOCKED**.
+
+Any of the following requires:
+
+* Explicit ADR
+* Security review
+* Documentation update
+
+❌ Making Email dependent on Notifications
+❌ Sending emails synchronously
+❌ Storing plaintext email data
+❌ Bypassing crypto contexts
 
 ---
 
