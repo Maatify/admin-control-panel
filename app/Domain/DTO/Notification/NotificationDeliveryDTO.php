@@ -9,21 +9,27 @@ use DateTimeImmutable;
 readonly class NotificationDeliveryDTO
 {
     /**
-     * @param string $notificationId
+     * @param string $intentId
      * @param string $channel
+     * @param string $entityType
+     * @param string $entityId
      * @param string $recipient
-     * @param string $title
-     * @param string $body
-     * @param array<string, scalar> $context
+     * @param array<string, mixed> $payload
+     * @param array<string, mixed> $channelMeta
+     * @param int $priority
+     * @param DateTimeImmutable $scheduledAt
      * @param DateTimeImmutable $createdAt
      */
     public function __construct(
-        public string $notificationId,
+        public string $intentId,
         public string $channel,
+        public string $entityType,
+        public string $entityId,
         public string $recipient,
-        public string $title,
-        public string $body,
-        public array $context,
+        public array $payload,
+        public array $channelMeta,
+        public int $priority,
+        public DateTimeImmutable $scheduledAt,
         public DateTimeImmutable $createdAt
     ) {
     }

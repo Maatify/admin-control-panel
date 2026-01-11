@@ -152,6 +152,8 @@ use App\Modules\Email\Renderer\EmailRendererInterface;
 use App\Modules\Email\Renderer\TwigEmailRenderer;
 use App\Modules\Email\Transport\EmailTransportInterface;
 use App\Modules\Email\Transport\SmtpEmailTransport;
+use App\Modules\Notification\Queue\NotificationQueueWriterInterface;
+use App\Modules\Notification\Queue\PdoNotificationQueueWriter;
 use App\Modules\Validation\Contracts\ValidatorInterface;
 use App\Modules\Validation\Guard\ValidationGuard;
 use App\Modules\Validation\Validator\RespectValidator;
@@ -590,27 +592,29 @@ class Container
             NullNotificationSender::class => function (ContainerInterface $c) {
                 return new NullNotificationSender();
             },
-            NotificationDispatcher::class => function (ContainerInterface $c) {
-                $senders = [
-                    $c->get(EmailNotificationSender::class),
-                    $c->get(FakeNotificationSender::class),
-                    $c->get(NullNotificationSender::class),
-                ];
-                /** @var iterable<mixed, NotificationSenderInterface> $senders */
-                $failureHandler = $c->get(NotificationFailureHandler::class);
-                assert($failureHandler instanceof NotificationFailureHandler);
+            NotificationQueueWriterInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                $crypto = $c->get(CryptoProvider::class);
 
+                assert($pdo instanceof PDO);
+                assert($crypto instanceof CryptoProvider);
+
+                return new PdoNotificationQueueWriter($pdo, $crypto);
+            },
+            NotificationDispatcher::class => function (ContainerInterface $c) {
                 $routingService = $c->get(AdminNotificationRoutingService::class);
                 assert($routingService instanceof AdminNotificationRoutingService);
 
                 $channelRepo = $c->get(AdminNotificationChannelRepositoryInterface::class);
                 assert($channelRepo instanceof AdminNotificationChannelRepositoryInterface);
 
+                $queueWriter = $c->get(NotificationQueueWriterInterface::class);
+                assert($queueWriter instanceof NotificationQueueWriterInterface);
+
                 return new NotificationDispatcher(
-                    $senders,
-                    $failureHandler,
                     $routingService,
-                    $channelRepo
+                    $channelRepo,
+                    $queueWriter
                 );
             },
             ClientInfoProviderInterface::class => function (ContainerInterface $c) {
