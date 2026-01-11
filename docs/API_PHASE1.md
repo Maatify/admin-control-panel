@@ -221,6 +221,7 @@ Terminates the session and revokes tokens.
 
 **Endpoint:** `POST /logout`
 **Auth Required:** Yes
+**Permission:** None (Authenticated only)
 
 **Response:**
 *   **Success (302):** Redirects to `/login`. Clears cookies.
@@ -349,11 +350,12 @@ JSON endpoint to elevate session.
 **Auth Required:** Yes
 
 **Parameters (JSON Body):**
-*   `otp` (required): OTP from authenticator app.
+*   `code` (required): OTP from authenticator app.
+*   `scope` (optional): Requested scope (default: login).
 
 **Response:**
 *   **Success (200):** JSON confirmation.
-*   **Error (422):** Invalid OTP.
+*   **Error (422):** Invalid OTP or Missing parameters.
 
 ---
 
@@ -383,13 +385,14 @@ Retrieves notification history for the authenticated admin.
 
 **Endpoint:** `GET /api/admins/{admin_id}/notifications`
 **Auth Required:** Yes (Strictly scoped to `{admin_id}`)
+**Permission:** `admin.notifications.history` (implied scope check)
 
 ### ⚠️ Legacy / Non-Canonical Endpoint
 
 This endpoint predates the Canonical LIST / QUERY Contract.
 
 - Uses legacy pagination and filtering keys (`limit`, `from_date`, `to_date`)
-- Returns legacy response shape (`items`, `meta`)
+- Returns legacy response shape (`items`, `meta` likely)
 - Does NOT use the Canonical Query pipeline
 
 This endpoint MUST NOT be used as a reference
@@ -404,13 +407,7 @@ for implementing new LIST / QUERY APIs.
 *   `to_date` (Y-m-d, optional)
 
 **Response:**
-*   **Success (200):**
-    ```json
-    {
-      "items": [...],
-      "meta": { "total": ... }
-    }
-    ```
+*   **Success (200):** JSON Array/Object representing history.
 *   **Error (403):** If requesting another admin's history.
 
 ### Mark as Read (API)
@@ -450,11 +447,14 @@ Enables or disables a specific notification channel.
 
 **Endpoint:** `GET /api/notifications`
 **Auth Required:** Yes (High Privilege Required)
+**Permission:** `notifications.list`
 
 **Query Parameters:**
 *   `admin_id` (optional): Filter by admin.
 *   `status` (optional): Filter by status.
 *   `channel` (optional): Filter by channel.
+*   `from` (optional): Start date (YYYY-MM-DD).
+*   `to` (optional): End date (YYYY-MM-DD).
 
 **Response:**
 *   **Success (200):** List of notification summaries.
@@ -489,7 +489,60 @@ Renders a generic error page based on a code.
 
 ---
 
-## 👥 Admins
+## 🖥️ UI Pages (Protected)
+
+### Dashboard
+Main entry point.
+
+**Endpoint:** `GET /` or `GET /dashboard`
+**Auth Required:** Yes
+**Permission:** None (Authenticated)
+
+### Admins List (UI)
+Renders the admins list page.
+
+**Endpoint:** `GET /admins`
+**Auth Required:** Yes
+**Permission:** `admins.list`
+
+### Roles List (UI)
+Renders the roles list page.
+
+**Endpoint:** `GET /roles`
+**Auth Required:** Yes
+**Permission:** None (Authenticated)
+
+### Permissions List (UI)
+Renders the permissions list page.
+
+**Endpoint:** `GET /permissions`
+**Auth Required:** Yes
+**Permission:** None (Authenticated)
+
+### Settings Page (UI)
+Renders the settings page.
+
+**Endpoint:** `GET /settings`
+**Auth Required:** Yes
+**Permission:** None (Authenticated)
+
+### Sessions Page (UI)
+Renders the sessions management UI.
+
+**Endpoint:** `GET /sessions`
+**Auth Required:** Yes
+**Permission:** `sessions.list`
+
+### Sandbox / Examples (UI)
+Non-canonical sandbox page for testing layouts/components.
+
+**Endpoint:** `GET /examples`
+**Auth Required:** Yes
+**Permission:** None (Authenticated)
+
+---
+
+## 👥 Admins (API)
 
 ### List Admins (Query)
 Retrieves a paginated list of admins using the Canonical LIST / QUERY Contract.
@@ -562,13 +615,7 @@ Retrieves the decrypted email address for an admin.
 
 ---
 
-## 📅 Sessions
-
-### Sessions Page (Web)
-Renders the sessions management UI with filtering and bulk actions.
-
-**Endpoint:** `GET /sessions`
-**Auth Required:** Yes
+## 📅 Sessions (API)
 
 ### List Sessions (API)
 Server-side pagination and filtering for sessions list.
@@ -585,6 +632,7 @@ defined in this document.
 **Allowed Search Aliases:**
 *   `session_id`
 *   `status` (active | revoked | expired)
+*   `admin_id` (Integer)
 
 **Notes:**
 *   **Date Filter:** Applies to `created_at`.
