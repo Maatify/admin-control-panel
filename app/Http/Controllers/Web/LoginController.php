@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Context\AdminContext;
+use App\Context\Resolver\RequestContextResolver;
+use App\Domain\ActivityLog\Action\AdminActivityAction;
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Domain\DTO\LoginRequestDTO;
 use App\Domain\Exception\AuthStateException;
 use App\Domain\Exception\InvalidCredentialsException;
 use App\Domain\Service\AdminAuthenticationService;
 use App\Domain\Service\RememberMeService;
+use App\Services\ActivityLog\AdminActivityLogService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
@@ -22,7 +26,9 @@ readonly class LoginController
         private AdminSessionValidationRepositoryInterface $sessionRepository,
         private RememberMeService $rememberMeService,
         private string $blindIndexKey,
-        private Twig $view
+        private Twig $view,
+        private RequestContextResolver $requestContextResolver,
+        private AdminActivityLogService $adminActivityLogService,
     ) {
     }
 
@@ -56,6 +62,21 @@ readonly class LoginController
         try {
             // We get the token.
             $result = $this->authService->login($blindIndex, $dto->password);
+
+            // 🔹 Build contexts
+            $requestContext = $this->requestContextResolver->resolve($request);
+            $adminContext   = new AdminContext($result->adminId);
+
+            // 🔹 Activity Log (SUCCESS)
+            $this->adminActivityLogService->log(
+                adminContext: $adminContext,
+                requestContext: $requestContext,
+                action: AdminActivityAction::LOGIN_SUCCESS,
+                metadata: [
+                    'method' => 'password',
+                    'remember_me' => isset($data['remember_me']) && $data['remember_me'] === 'on',
+                ]
+            );
 
             $token = $result->token;
 

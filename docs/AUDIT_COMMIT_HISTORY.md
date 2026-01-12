@@ -197,6 +197,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(http): introduce RequestIdMiddleware with strict UUID v4 validation
 - feat(context,auth,activity-log): introduce request/admin contexts and admin login result DTO
 - fix(context): harden RequestContextResolver contracts
+- feat(web-auth): log successful admin login via activity log
 
 ---
 

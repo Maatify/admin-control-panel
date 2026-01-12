@@ -614,18 +614,25 @@ class Container
                 $view = $c->get(Twig::class);
                 $config = $c->get(AdminConfigDTO::class);
 
+                $requestContextResolver = $c->get(\App\Context\Resolver\RequestContextResolver::class);
+                $adminActivityLogService = $c->get(\App\Services\ActivityLog\AdminActivityLogService::class);
+
                 assert($authService instanceof AdminAuthenticationService);
                 assert($sessionRepo instanceof AdminSessionValidationRepositoryInterface);
                 assert($rememberMeService instanceof RememberMeService);
                 assert($view instanceof Twig);
                 assert($config instanceof AdminConfigDTO);
+                assert($requestContextResolver instanceof \App\Context\Resolver\RequestContextResolver);
+                assert($adminActivityLogService instanceof \App\Services\ActivityLog\AdminActivityLogService);
 
                 return new LoginController(
                     $authService,
                     $sessionRepo,
                     $rememberMeService,
                     $config->emailBlindIndexKey,
-                    $view
+                    $view,
+                    $requestContextResolver,
+                    $adminActivityLogService
                 );
             },
             LogoutController::class => function (ContainerInterface $c) {
