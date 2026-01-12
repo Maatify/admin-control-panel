@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Context\AdminContext;
 use App\Context\Resolver\RequestContextResolver;
 use App\Domain\ActivityLog\Action\AdminActivityAction;
+use App\Domain\ActivityLog\Service\AdminActivityLogService;
 use App\Domain\DTO\LoginRequestDTO;
 use App\Domain\DTO\LoginResponseDTO;
 use App\Domain\Exception\AuthStateException;
@@ -14,7 +15,6 @@ use App\Domain\Exception\InvalidCredentialsException;
 use App\Domain\Service\AdminAuthenticationService;
 use App\Modules\Validation\Guard\ValidationGuard;
 use App\Modules\Validation\Schemas\AuthLoginSchema;
-use App\Services\ActivityLog\AdminActivityLogService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 

@@ -21,7 +21,6 @@ enum AdminActivityAction: string implements ActivityActionInterface
 {
     // 🔐 Authentication
     case LOGIN_SUCCESS = 'admin.auth.login.success';
-    case LOGIN_FAILED  = 'admin.auth.login.failed';
     case LOGOUT        = 'admin.auth.logout';
 
     // 👤 Admin management

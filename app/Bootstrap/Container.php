@@ -86,6 +86,7 @@ use App\Http\Controllers\Ui\UiRolesController;
 use App\Http\Controllers\Ui\UiSettingsController;
 use App\Http\Controllers\Ui\SessionListController;
 use App\Domain\Session\Reader\SessionListReaderInterface;
+use App\Infrastructure\ActivityLog\MySQLActivityLogWriter;
 use App\Infrastructure\Reader\ActivityLog\PdoActivityLogListReader;
 use App\Infrastructure\Reader\Session\PdoSessionListReader;
 use App\Http\Middleware\RememberMeMiddleware;
@@ -120,7 +121,6 @@ use App\Infrastructure\Repository\PdoRoleRepository;
 use App\Infrastructure\Repository\PdoStepUpGrantRepository;
 use App\Infrastructure\Repository\PdoSystemOwnershipRepository;
 use App\Infrastructure\Repository\PdoVerificationCodeRepository;
-use App\Infrastructure\Repository\RedisStepUpGrantRepository;
 use App\Infrastructure\Repository\RolePermissionRepository;
 use App\Domain\Service\PasswordService;
 use App\Infrastructure\Repository\SecurityEventRepository;
@@ -128,7 +128,8 @@ use App\Infrastructure\Security\WebClientInfoProvider;
 use App\Infrastructure\Service\Google2faTotpService;
 use App\Infrastructure\UX\AdminActivityMapper;
 use App\Modules\ActivityLog\Contracts\ActivityLogWriterInterface;
-use App\Modules\ActivityLog\Drivers\MySQL\MySQLActivityLogWriter;
+use App\Domain\ActivityLog\Service\AdminActivityLogService;
+use App\Modules\ActivityLog\Service\ActivityLogService;
 use App\Modules\Crypto\KeyRotation\KeyRotationService;
 use App\Modules\Crypto\KeyRotation\Providers\InMemoryKeyProvider;
 use App\Modules\Crypto\KeyRotation\Policy\StrictSingleActiveKeyPolicy;
@@ -160,7 +161,6 @@ use PDO;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Slim\Views\Twig;
-use Psr\Log\AbstractLogger;
 use Dotenv\Dotenv;
 use App\Http\Middleware\RecoveryStateMiddleware;
 use App\Infrastructure\Reader\Admin\PdoAdminQueryReader;
@@ -306,6 +306,16 @@ class Container
                     $config->dbPass
                 );
                 return $factory->create();
+            },
+            PDOFactory::class => function (ContainerInterface $c) {
+                $config = $c->get(AdminConfigDTO::class);
+                assert($config instanceof AdminConfigDTO);
+                return new PDOFactory(
+                    $config->dbHost,
+                    $config->dbName,
+                    $config->dbUser,
+                    $config->dbPass
+                );
             },
             AdminRepository::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
@@ -539,10 +549,20 @@ class Container
                 return LoggerFactory::create('slim/app');
             },
             ActivityLogWriterInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
+                $pdoFactory = $c->get(PDOFactory::class);
+                assert($pdoFactory instanceof PDOFactory);
 
-                return new MySQLActivityLogWriter($pdo);
+                return new MySQLActivityLogWriter($pdoFactory);
+            },
+            ActivityLogService::class => function (ContainerInterface $c) {
+                $writer = $c->get(ActivityLogWriterInterface::class);
+                assert($writer instanceof ActivityLogWriterInterface);
+                return new ActivityLogService($writer);
+            },
+            AdminActivityLogService::class => function (ContainerInterface $c) {
+                $service = $c->get(ActivityLogService::class);
+                assert($service instanceof ActivityLogService);
+                return new AdminActivityLogService($service);
             },
             ActivityLogListReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
@@ -589,15 +609,15 @@ class Container
                 $config = $c->get(AdminConfigDTO::class);
                 $validationGuard = $c->get(ValidationGuard::class);
 
-                $requestContextResolver = $c->get(\App\Context\Resolver\RequestContextResolver::class);
+                $requestContextResolver = $c->get(RequestContextResolver::class);
 
-                $adminActivityLogService = $c->get(\App\Services\ActivityLog\AdminActivityLogService::class);
+                $adminActivityLogService = $c->get(AdminActivityLogService::class);
 
                 assert($authService instanceof AdminAuthenticationService);
                 assert($config instanceof AdminConfigDTO);
                 assert($validationGuard instanceof ValidationGuard);
-                assert($requestContextResolver instanceof \App\Context\Resolver\RequestContextResolver);
-                assert($adminActivityLogService instanceof \App\Services\ActivityLog\AdminActivityLogService);
+                assert($requestContextResolver instanceof RequestContextResolver);
+                assert($adminActivityLogService instanceof AdminActivityLogService);
 
                 return new AuthController(
                     $authService,
@@ -614,16 +634,16 @@ class Container
                 $view = $c->get(Twig::class);
                 $config = $c->get(AdminConfigDTO::class);
 
-                $requestContextResolver = $c->get(\App\Context\Resolver\RequestContextResolver::class);
-                $adminActivityLogService = $c->get(\App\Services\ActivityLog\AdminActivityLogService::class);
+                $requestContextResolver = $c->get(RequestContextResolver::class);
+                $adminActivityLogService = $c->get(AdminActivityLogService::class);
 
                 assert($authService instanceof AdminAuthenticationService);
                 assert($sessionRepo instanceof AdminSessionValidationRepositoryInterface);
                 assert($rememberMeService instanceof RememberMeService);
                 assert($view instanceof Twig);
                 assert($config instanceof AdminConfigDTO);
-                assert($requestContextResolver instanceof \App\Context\Resolver\RequestContextResolver);
-                assert($adminActivityLogService instanceof \App\Services\ActivityLog\AdminActivityLogService);
+                assert($requestContextResolver instanceof RequestContextResolver);
+                assert($adminActivityLogService instanceof AdminActivityLogService);
 
                 return new LoginController(
                     $authService,
