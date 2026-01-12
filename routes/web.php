@@ -190,4 +190,5 @@ return function (App $app) {
     // It is added last to ensure it executes first in Slim's middleware stack.
     $app->add(\App\Http\Middleware\RecoveryStateMiddleware::class);
     $app->add(\App\Modules\InputNormalization\Middleware\InputNormalizationMiddleware::class);
+    $app->add(\App\Http\Middleware\RequestIdMiddleware::class);
 };
