@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnBulkRevoke = document.getElementById('btn-bulk-revoke');
 
     let selectedSessions = new Set();
+    let currentStatusFilter = 'all'; // ✅ Track current filter
 
     // ========================================================================
     // Custom Renderers - Define ONCE at the top
@@ -237,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 
                 <div class="flex gap-2">
-                    <span data-status="all" class="cursor-pointer text-sm px-2 py-1 rounded-lg active bg-blue-600 text-white hover:bg-blue-400">All</span>
+                    <span data-status="all" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white">All</span>
                     <span data-status="active" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white">Active</span>
                     <span data-status="expired" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white">Expired</span>
                     <span data-status="revoked" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white">Revoked</span>
@@ -258,10 +259,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const statusBtns = filterContainer.querySelectorAll('[data-status]');
         statusBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                statusBtns.forEach(b => b.classList.remove('active', 'bg-blue-600', 'text-white'));
+            const status = btn.getAttribute('data-status');
+
+            // ✅ Restore active state based on currentStatusFilter
+            if (status === currentStatusFilter) {
                 btn.classList.add('active', 'bg-blue-600', 'text-white');
-                const status = btn.getAttribute('data-status');
+                btn.classList.remove('hover:bg-blue-400', 'hover:text-white');
+            }
+
+            btn.addEventListener('click', () => {
+                console.log("🔘 Clicked status:", status);
+
+                // ✅ Update current filter
+                currentStatusFilter = status;
+
+                // ✅ Remove active from all buttons
+                statusBtns.forEach(b => {
+                    b.classList.remove('active', 'bg-blue-600', 'text-white');
+                    b.classList.add('hover:bg-blue-400', 'hover:text-white');
+                });
+
+                // ✅ Add active to clicked button
+                btn.classList.add('active', 'bg-blue-600', 'text-white');
+                btn.classList.remove('hover:bg-blue-400', 'hover:text-white');
+
                 handleStatusFilter(status);
             });
         });
@@ -282,7 +303,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleStatusFilter(status) {
-        console.log("🔘 Status filter:", status);
+        console.log("🔘 Filtering by status:", status);
+
         const params = buildParams(1, 10);
 
         if (status !== 'all') {
@@ -325,6 +347,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ========================================================================
+    // Pagination Info Callback
+    // ========================================================================
+
+    /**
+     * Custom pagination info - Sessions page business logic
+     * Returns what should be displayed based on filtered/total
+     */
+    function getSessionsPaginationInfo(pagination, params) {
+        console.log("🎯 getSessionsPaginationInfo called with:", pagination);
+
+        const { page = 1, per_page = 10, total = 0, filtered = total } = pagination;
+
+        // Check if we're filtering
+        const hasFilter = params.search &&
+            (params.search.global ||
+                (params.search.columns && Object.keys(params.search.columns).length > 0));
+        const isFiltered = hasFilter && filtered !== total;
+
+        console.log("🔍 Filter status - hasFilter:", hasFilter, "isFiltered:", isFiltered);
+
+        // Calculate based on filtered when applicable
+        const displayCount = isFiltered ? filtered : total;
+        const startItem = displayCount === 0 ? 0 : (page - 1) * per_page + 1;
+        const endItem = Math.min(page * per_page, displayCount);
+
+        // Build info text
+        let infoText = `<span>${startItem} to ${endItem}</span> of <span>${displayCount}</span>`;
+        if (isFiltered) {
+            infoText += ` <span class="text-gray-500 text-xs">(filtered from ${total} total)</span>`;
+        }
+
+        console.log("📤 Returning:", { total: displayCount, info: infoText });
+
+        return {
+            total: displayCount,  // Use filtered count for pagination calculations
+            info: infoText
+        };
+    }
+
+    // ========================================================================
     // Load Sessions
     // ========================================================================
 
@@ -349,11 +411,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     {
                         status: statusRenderer,
                         session_id: sessionIdRenderer
-                    }
+                    },
+                    null, // selectableIds - will set in second call
+                    getSessionsPaginationInfo // ✅ Pass callback
                 );
 
                 if (result && result.success) {
                     console.log("✅ Sessions loaded:", result.data.length);
+                    console.log("📊 Pagination:", result.pagination);
 
                     // ✅ Calculate selectable IDs (ONLY active, NOT expired or current)
                     const selectableIds = result.data
@@ -384,7 +449,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             status: statusRenderer,
                             session_id: sessionIdRenderer
                         },
-                        selectableIds
+                        selectableIds,
+                        getSessionsPaginationInfo // ✅ Pass callback again
                     );
 
                     setupTableFiltersAfterRender();

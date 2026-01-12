@@ -1,6 +1,7 @@
 /**
  * Generic Data Table Component
  * Completely agnostic - doesn't know business logic
+ * Just displays what the API sends
  */
 
 let tableData = [];
@@ -17,20 +18,23 @@ let primaryKeyDefault = 'id';
 let selectedItems = new Set();
 let onSelectionChangeDefault = null;
 let customRenderersDefault = {};
-let selectableIdsDefault = null; // NEW: Set of IDs that are selectable
+let selectableIdsDefault = null;
+let getPaginationInfoDefault = null; // ✅ Add this
 
 /**
  * Generic API call - sends params as-is
  * @param {object} customRenderers - Optional: { columnKey: (value, row) => html }
  * @param {Set|Array} selectableIds - Optional: Set/Array of IDs that can be selected (if null, all are selectable)
+ * @param {function} getPaginationInfo - Optional: (pagination, params) => { total, info } to customize display
  */
-async function createTable(apiUrl, params, headersArg, rowsArg, withSelection = false, primaryKey = 'id', onSelectionChange = null, customRenderers = {}, selectableIds = null) {
+async function createTable(apiUrl, params, headersArg, rowsArg, withSelection = false, primaryKey = 'id', onSelectionChange = null, customRenderers = {}, selectableIds = null, getPaginationInfo = null) {
     apiUrlDefault = apiUrl;
     paramsDefault = JSON.parse(JSON.stringify(params));
     withSelectionDefault = withSelection;
     primaryKeyDefault = primaryKey;
     customRenderersDefault = customRenderers || {};
     selectableIdsDefault = selectableIds ? (selectableIds instanceof Set ? selectableIds : new Set(selectableIds)) : null;
+    getPaginationInfoDefault = getPaginationInfo; // ✅ Store it
     if (onSelectionChange) onSelectionChangeDefault = onSelectionChange;
 
     if (headersArg) headers = headersArg;
@@ -70,19 +74,21 @@ async function createTable(apiUrl, params, headersArg, rowsArg, withSelection = 
         if (!Array.isArray(actualData)) throw new Error("Invalid data format");
 
         tableData = actualData;
-        pagination = {
-            page: actualPagination?.page || params.page || 1,
-            total: actualPagination?.total || actualPagination?.filtered || actualData.length,
-            per_page: actualPagination?.per_page || per_page
+
+        // ✅ Keep FULL pagination from API (including 'filtered')
+        pagination = actualPagination || {
+            page: params.page || 1,
+            total: actualData.length,
+            per_page: per_page
         };
 
         tableCount = pagination.total;
         pageNo = pagination.page;
 
         hideLoadingIndicator();
-        TableComponent(tableData, headers, rows, pagination, "", withSelection, primaryKey, onSelectionChangeDefault, customRenderersDefault, selectableIdsDefault);
+        TableComponent(tableData, headers, rows, actualPagination, "", withSelection, primaryKey, onSelectionChangeDefault, customRenderersDefault, selectableIdsDefault, getPaginationInfoDefault);
 
-        return { success: true, data: actualData, pagination };
+        return { success: true, data: actualData, pagination: actualPagination };
 
     } catch (error) {
         console.error("❌ TABLE ERROR:", error);
@@ -148,10 +154,12 @@ async function refreshTable() {
 
 /**
  * Table Component - renders UI and handles interactions
+ * Pure presentation - just displays what it receives
  * @param {object} customRenderers - Optional: { columnKey: (value, row) => html }
  * @param {Set} selectableIds - Optional: Set of IDs that are selectable
+ * @param {function} getPaginationInfo - Optional: callback to customize pagination display
  */
-function TableComponent(data, columns, rowNames, paginationData, actions = "", withSelection = false, primaryKey = 'id', onSelectionChange = null, customRenderers = {}, selectableIds = null) {
+function TableComponent(data, columns, rowNames, paginationData, actions = "", withSelection = false, primaryKey = 'id', onSelectionChange = null, customRenderers = {}, selectableIds = null, getPaginationInfo = null) {
     headers = columns;
     rows = rowNames;
     primaryKeyDefault = primaryKey;
@@ -163,11 +171,28 @@ function TableComponent(data, columns, rowNames, paginationData, actions = "", w
     let tableContent = [...data];
     let currentSort = { key: null, asc: true };
 
-    const safeTotal = paginationData.total || data.length || 0;
+    // ✅ Let parent decide what to display via callback
+    let displayTotal, infoText;
+    if (getPaginationInfo && typeof getPaginationInfo === 'function') {
+        console.log("🎨 Using custom pagination info callback");
+        const customInfo = getPaginationInfo(paginationData, paramsDefault);
+        displayTotal = customInfo.total;
+        infoText = customInfo.info;
+        console.log("📊 Custom info:", customInfo);
+    } else {
+        console.log("📊 Using default pagination info");
+        // Default behavior
+        displayTotal = paginationData.total || data.length || 0;
+        const safePage = paginationData.page || 1;
+        const safePerPage = per_page || 10;
+        const firstNumber = safePage === 1 ? 1 : 1 + safePerPage * (safePage - 1);
+        const lastItemNumber = Math.min(safePerPage * safePage, displayTotal);
+        infoText = `<span>${firstNumber} to ${lastItemNumber}</span> of <span>${displayTotal}</span>`;
+    }
+
+    const safeTotal = displayTotal;
     const safePage = paginationData.page || 1;
     const safePerPage = per_page || 10;
-    const firstNumber = safePage === 1 ? 1 : 1 + safePerPage * (safePage - 1);
-    const lastItemNumber = Math.min(safePerPage * safePage, safeTotal);
 
     const container = document.querySelector("#table-container");
     if (!container) return;
@@ -199,7 +224,7 @@ function TableComponent(data, columns, rowNames, paginationData, actions = "", w
         </div>
         <footer class="pt-4 p-5 flex flex-wrap justify-between items-center">
             <div class="flex items-center gap-3">
-                <p class="text-sm text-gray-700"><span>${firstNumber} to ${lastItemNumber}</span> of <span>${safeTotal}</span></p>
+                <p class="text-sm text-gray-700">${infoText}</p>
                 <div class="flex gap-1 items-center">
                     <span class="text-sm">show</span>
                     <select class="form-group-select border rounded px-2 py-1 text-sm bg-white cursor-pointer">
