@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Context\AdminContext;
-use App\Context\Resolver\RequestContextResolver;
+use App\Context\ContextProviderInterface;
 use App\Domain\ActivityLog\Action\AdminActivityAction;
 use App\Domain\ActivityLog\Service\AdminActivityLogService;
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
@@ -27,7 +27,7 @@ readonly class LoginController
         private RememberMeService $rememberMeService,
         private string $blindIndexKey,
         private Twig $view,
-        private RequestContextResolver $requestContextResolver,
+        private ContextProviderInterface $contextProvider,
         private AdminActivityLogService $adminActivityLogService,
     ) {
     }
@@ -64,8 +64,9 @@ readonly class LoginController
             $result = $this->authService->login($blindIndex, $dto->password);
 
             // 🔹 Build contexts
-            $requestContext = $this->requestContextResolver->resolve($request);
-            $adminContext   = new AdminContext($result->adminId);
+            // Authoritative construction allowed for LOGIN_SUCCESS
+            $adminContext = AdminContext::fromAdminId($result->adminId);
+            $requestContext = $this->contextProvider->request();
 
             // 🔹 Activity Log (SUCCESS)
             $this->adminActivityLogService->log(

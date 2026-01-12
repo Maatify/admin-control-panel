@@ -636,7 +636,7 @@ class Container
                 $view = $c->get(Twig::class);
                 $config = $c->get(AdminConfigDTO::class);
 
-                $requestContextResolver = $c->get(RequestContextResolver::class);
+                $contextProvider = $c->get(ContextProviderInterface::class);
                 $adminActivityLogService = $c->get(AdminActivityLogService::class);
 
                 assert($authService instanceof AdminAuthenticationService);
@@ -644,7 +644,7 @@ class Container
                 assert($rememberMeService instanceof RememberMeService);
                 assert($view instanceof Twig);
                 assert($config instanceof AdminConfigDTO);
-                assert($requestContextResolver instanceof RequestContextResolver);
+                assert($contextProvider instanceof ContextProviderInterface);
                 assert($adminActivityLogService instanceof AdminActivityLogService);
 
                 return new LoginController(
@@ -653,7 +653,7 @@ class Container
                     $rememberMeService,
                     $config->emailBlindIndexKey,
                     $view,
-                    $requestContextResolver,
+                    $contextProvider,
                     $adminActivityLogService
                 );
             },
