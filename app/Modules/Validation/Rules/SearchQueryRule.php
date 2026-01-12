@@ -22,24 +22,11 @@ final class SearchQueryRule
 {
     public static function rule(): Validatable
     {
-        return v::optional(
-            v::arrayType()->keySet(
-                v::key(
-                    'global',
-                    v::stringType()->length(1, 255),
-                    false
-                ),
-                v::key(
-                    'columns',
-                    v::arrayType()->each(
-                        v::oneOf(
-                            v::stringType()->length(1, 255),
-                            v::intVal()
-                        )
-                    ),
-                    false
-                )
-            )
+        return v::arrayType()->anyOf(
+            // Structure-only validation:
+            // search must contain either `global` or non-empty `columns`
+            v::key('global', v::stringType()->length(1, 255)),
+            v::key('columns', v::arrayType()->notEmpty())
         );
     }
 }

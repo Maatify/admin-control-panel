@@ -192,6 +192,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(sessions-ui): enhance sessions UI interactions and table controls
 - feat(api,bootstrap): add canonical JSON validation error handling and body parsing
 - chore(activity-log): introduce admin-scoped activity log facade (initial scaffold)
+- fix(validation): simplify SearchQueryRule to structure-only validation
 
 ---
 
