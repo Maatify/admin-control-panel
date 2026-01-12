@@ -43,7 +43,12 @@ final class HttpContextProvider implements ContextProviderInterface
 
             $adminId = $this->request->getAttribute('admin_id');
             if (is_int($adminId)) {
-                $this->adminContext = $this->adminResolver->resolve($this->request);
+                // Ensure resolver errors are caught
+                try {
+                    $this->adminContext = $this->adminResolver->resolve($this->request);
+                } catch (\Throwable) {
+                    $this->adminContext = null;
+                }
             } else {
                 $this->adminContext = null;
             }
