@@ -194,6 +194,7 @@ Entries MUST NOT be rewritten or reordered.
 - chore(activity-log): introduce admin-scoped activity log facade (initial scaffold)
 - fix(validation): simplify SearchQueryRule to structure-only validation
 - test(validation): cover numeric and string column search cases
+- feat(http): introduce RequestIdMiddleware with strict UUID v4 validation
 
 ---
 
