@@ -188,6 +188,10 @@ return function (App $app) {
     // IMPORTANT:
     // InputNormalizationMiddleware MUST run before validation and guards.
     // It is added last to ensure it executes first in Slim's middleware stack.
+
+    // Runs after RequestIdMiddleware to inject request into container (with attributes)
+    $app->add(new \App\Http\Middleware\ContextProviderMiddleware($container));
+
     $app->add(\App\Http\Middleware\RecoveryStateMiddleware::class);
     $app->add(\App\Modules\InputNormalization\Middleware\InputNormalizationMiddleware::class);
     $app->add(\App\Http\Middleware\RequestIdMiddleware::class);

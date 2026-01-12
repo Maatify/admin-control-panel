@@ -151,6 +151,8 @@ use App\Modules\Email\Renderer\EmailRendererInterface;
 use App\Modules\Email\Renderer\TwigEmailRenderer;
 use App\Modules\Email\Transport\EmailTransportInterface;
 use App\Modules\Email\Transport\SmtpEmailTransport;
+use App\Context\ContextProviderInterface;
+use App\Context\HttpContextProvider;
 use App\Modules\Validation\Contracts\ValidatorInterface;
 use App\Modules\Validation\Guard\ValidationGuard;
 use App\Modules\Validation\Validator\RespectValidator;
@@ -609,21 +611,21 @@ class Container
                 $config = $c->get(AdminConfigDTO::class);
                 $validationGuard = $c->get(ValidationGuard::class);
 
-                $requestContextResolver = $c->get(RequestContextResolver::class);
+                $contextProvider = $c->get(ContextProviderInterface::class);
 
                 $adminActivityLogService = $c->get(AdminActivityLogService::class);
 
                 assert($authService instanceof AdminAuthenticationService);
                 assert($config instanceof AdminConfigDTO);
                 assert($validationGuard instanceof ValidationGuard);
-                assert($requestContextResolver instanceof RequestContextResolver);
+                assert($contextProvider instanceof ContextProviderInterface);
                 assert($adminActivityLogService instanceof AdminActivityLogService);
 
                 return new AuthController(
                     $authService,
                     $config->emailBlindIndexKey,
                     $validationGuard,
-                    $requestContextResolver,
+                    $contextProvider,
                     $adminActivityLogService
                 );
             },
@@ -1178,6 +1180,18 @@ class Container
 
             AdminContextResolver::class => function () {
                 return new AdminContextResolver();
+            },
+            ContextProviderInterface::class => function (ContainerInterface $c) {
+                // ServerRequestInterface MUST be injected via middleware (request-scoped)
+                $request = $c->get(\Psr\Http\Message\ServerRequestInterface::class);
+                $adminResolver = $c->get(AdminContextResolver::class);
+                $requestResolver = $c->get(RequestContextResolver::class);
+
+                assert($request instanceof \Psr\Http\Message\ServerRequestInterface);
+                assert($adminResolver instanceof AdminContextResolver);
+                assert($requestResolver instanceof RequestContextResolver);
+
+                return new HttpContextProvider($request, $adminResolver, $requestResolver);
             },
         ]);
 
