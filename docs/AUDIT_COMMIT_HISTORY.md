@@ -208,6 +208,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(crypto): add canonical crypto service adapters and DTO fixes
 - crypto: wire canonical crypto services into container (no behavior change)
 - docs(agent): add cryptographic key management & rotation audit baseline
+- docs(agent): add read-only key unification strategy
 
 ---
 
