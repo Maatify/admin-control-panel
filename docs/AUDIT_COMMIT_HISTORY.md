@@ -199,6 +199,7 @@ Entries MUST NOT be rewritten or reordered.
 - fix(context): harden RequestContextResolver contracts
 - feat(web-auth): log successful admin login via activity log
 - refactor(ui-table): improve sessions table rendering and interactions
+- feat(context): complete HTTP context injection and admin activity logging alignment
 
 ---
 

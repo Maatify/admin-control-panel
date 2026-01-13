@@ -131,7 +131,7 @@ return function (App $app) {
                 ->setName('admins.query')
                 ->add(AuthorizationGuardMiddleware::class);
 
-            $group->post('activity-logs/query', [ActivityLogQueryController::class, '__invoke'])
+            $group->post('/activity-logs/query', [ActivityLogQueryController::class, '__invoke'])
                 ->setName('activity_logs.view')
                 ->add(AuthorizationGuardMiddleware::class);
 
@@ -188,6 +188,10 @@ return function (App $app) {
     // IMPORTANT:
     // InputNormalizationMiddleware MUST run before validation and guards.
     // It is added last to ensure it executes first in Slim's middleware stack.
+
+    // Runs after RequestIdMiddleware to inject request into container (with attributes)
+    $app->add(new \App\Http\Middleware\ContextProviderMiddleware($container));
+
     $app->add(\App\Http\Middleware\RecoveryStateMiddleware::class);
     $app->add(\App\Modules\InputNormalization\Middleware\InputNormalizationMiddleware::class);
     $app->add(\App\Http\Middleware\RequestIdMiddleware::class);

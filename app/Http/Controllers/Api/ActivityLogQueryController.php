@@ -68,6 +68,7 @@ final readonly class ActivityLogQueryController
             searchableColumns    : [
                 'action',
                 'request_id',
+                'ip_address',
             ],
 
             supportsColumnFilters: true,
@@ -78,6 +79,7 @@ final readonly class ActivityLogQueryController
                 'entity_type' => 'entity_type',
                 'entity_id'   => 'entity_id',
                 'request_id'  => 'request_id',
+                'ip_address'  => 'ip_address',
             ],
 
             supportsDateFilter   : true,

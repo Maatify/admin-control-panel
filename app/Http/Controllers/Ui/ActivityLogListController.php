@@ -28,6 +28,6 @@ class ActivityLogListController
 
     public function index(Request $request, Response $response): Response
     {
-        return $this->view->render($response, 'pages/activity-logs.twig');
+        return $this->view->render($response, 'pages/activity_logs.twig');
     }
 }
