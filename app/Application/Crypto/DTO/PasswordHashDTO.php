@@ -28,6 +28,11 @@ namespace App\Application\Crypto\DTO;
  */
 final readonly class PasswordHashDTO
 {
+    /**
+     * @param string $hash
+     * @param string $algorithm
+     * @param array<string, int|string|float> $params
+     */
     public function __construct(
         public string $hash,
         public string $algorithm, // e.g. argon2id

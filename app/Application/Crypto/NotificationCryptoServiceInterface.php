@@ -57,9 +57,7 @@ interface NotificationCryptoServiceInterface
     /**
      * Encrypt an email payload.
      *
-     * @param   array  $payload
-     *
-     * @return EncryptedPayloadDTO Encrypted payload DTO
+     * @param array<string, mixed> $payload
      */
     public function encryptPayload(array $payload): EncryptedPayloadDTO;
 
@@ -68,7 +66,7 @@ interface NotificationCryptoServiceInterface
      *
      * @param   EncryptedPayloadDTO  $encryptedPayload
      *
-     * @return array Plain payload
+     * @return array<string, mixed>
      */
     public function decryptPayload(EncryptedPayloadDTO $encryptedPayload): array;
 }
