@@ -1,25 +1,39 @@
-# .idx/dev.nix - ملف لإجبار النظام على إعادة بناء البيئة
+# .idx/dev.nix
 { pkgs, ... }: {
-  # استخدام قناة مستقرة لضمان عدم حدوث مشاكل توافق
-  channel = "stable-23.11";
+  # تحديث القناة لنسخة أحدث لضمان توافق أفضل
+  channel = "stable-24.05";
 
-  # الحزم الأساسية التي يحتاجها المشروع
+  # الحزم: قمت بتوحيد النسخ (PHP 8.2) وإضافة unzip الضروري لـ Composer
   packages = [
-    pkgs.php                  # لغة PHP
-    pkgs.php82Packages.composer # مدير الحزم Composer
+    pkgs.php82
+    pkgs.php82Packages.composer
     pkgs.git
+    pkgs.unzip  # مهم جدًا: بدونه يفشل Composer في فك ضغط المكتبات ويعلق النظام
+    pkgs.curl
   ];
 
-  # إعدادات بيئة العمل
+  # متغيرات البيئة (اختياري لكن مفيد)
+  env = {};
+
   idx = {
+    # إضافات VS Code
     extensions = [
-      "bmewburn.vscode-intelephense-client" # إضافة لدعم PHP
+      "bmewburn.vscode-intelephense-client"
     ];
 
-    # أوامر تعمل تلقائياً عند بناء البيئة (اختياري)
+    # أوامر تجهيز مساحة العمل
     workspace = {
+      # يعمل مرة واحدة فقط عند إنشاء البيئة
       onCreate = {
-        # default-install = "composer install";
+        # قمت بتفعيل الأمر لضمان تثبيت المكتبات فوراً
+        # استخدام --no-interaction يمنع توقف السكربت لسؤالك
+        install-dependencies = "composer install --no-interaction --prefer-dist";
+      };
+
+      # يعمل في كل مرة تعيد تشغيل البيئة
+      onStart = {
+        # أمر اختياري للتأكد من تحديث الـ autoloader
+        dump-autoload = "composer dump-autoload";
       };
     };
   };
