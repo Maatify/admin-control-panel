@@ -65,21 +65,12 @@ try {
     // 2. Email
     $emailRepo = $container->get(AdminEmailRepository::class);
     assert($emailRepo instanceof AdminEmailRepository);
-    $blindIndexKey = $_ENV['EMAIL_BLIND_INDEX_KEY'];
-    if (strlen($blindIndexKey) < 32) {
-        throw new RuntimeException("EMAIL_BLIND_INDEX_KEY missing or weak");
-    }
-    $blindIndex = hash_hmac('sha256', $email, $blindIndexKey);
 
-    // Encryption
-    $encryptionKey = $_ENV['EMAIL_ENCRYPTION_KEY'];
-    if (strlen($encryptionKey) < 32) {
-         throw new RuntimeException("EMAIL_ENCRYPTION_KEY missing or weak. Set it in .env");
-    }
-    $iv = random_bytes(12);
-    $tag = "";
-    $encryptedEmail = openssl_encrypt($email, 'aes-256-gcm', $encryptionKey, 0, $iv, $tag);
-    $encryptedPayload = base64_encode($iv . $tag . $encryptedEmail);
+    $cryptoService = $container->get(App\Application\Crypto\AdminIdentifierCryptoServiceInterface::class);
+    assert($cryptoService instanceof App\Application\Crypto\AdminIdentifierCryptoServiceInterface);
+
+    $blindIndex = $cryptoService->deriveEmailBlindIndex($email);
+    $encryptedPayload = $cryptoService->encryptEmail($email);
 
     $emailRepo->addEmail($adminId, $blindIndex, $encryptedPayload);
     $emailRepo->markVerified($adminId, (new DateTimeImmutable())->format('Y-m-d H:i:s'));

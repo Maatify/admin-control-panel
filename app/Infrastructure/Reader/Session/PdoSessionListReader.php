@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Reader\Session;
 
+use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use App\Domain\DTO\Common\PaginationDTO;
+use App\Domain\DTO\Crypto\EncryptedPayloadDTO;
 use App\Domain\DTO\Session\SessionListItemDTO;
 use App\Domain\DTO\Session\SessionListResponseDTO;
 use App\Domain\List\ListQueryDTO;
@@ -17,7 +19,7 @@ readonly class PdoSessionListReader implements SessionListReaderInterface
 {
     public function __construct(
         private PDO $pdo,
-        private string $emailEncryptionKey
+        private AdminIdentifierCryptoServiceInterface $cryptoService
     ) {}
 
     public function getSessions(
@@ -211,32 +213,20 @@ readonly class PdoSessionListReader implements SessionListReaderInterface
     private function decryptEmail(string $encryptedEmail): ?string
     {
         try {
-            $data = base64_decode($encryptedEmail, true);
-            if ($data === false) {
+            $data = json_decode($encryptedEmail, true, 512, JSON_THROW_ON_ERROR);
+
+            if (!is_array($data) || !isset($data['ciphertext'], $data['iv'], $data['tag'], $data['keyId'])) {
                 return null;
             }
 
-            $cipher = 'aes-256-gcm';
-            $ivLen  = openssl_cipher_iv_length($cipher);
-
-            if ($ivLen === false || strlen($data) < $ivLen + 16) {
-                return null;
-            }
-
-            $iv         = substr($data, 0, $ivLen);
-            $tag        = substr($data, $ivLen, 16);
-            $ciphertext = substr($data, $ivLen + 16);
-
-            $decrypted = openssl_decrypt(
-                $ciphertext,
-                $cipher,
-                $this->emailEncryptionKey,
-                OPENSSL_RAW_DATA,
-                $iv,
-                $tag
+            $dto = new EncryptedPayloadDTO(
+                ciphertext: $data['ciphertext'],
+                iv: $data['iv'],
+                tag: $data['tag'],
+                keyId: $data['keyId']
             );
 
-            return $decrypted !== false ? $decrypted : null;
+            return $this->cryptoService->decryptEmail($dto);
         } catch (\Throwable) {
             return null;
         }

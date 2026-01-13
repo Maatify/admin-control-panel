@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use App\Domain\DTO\Request\CreateAdminEmailRequestDTO;
 use App\Domain\DTO\Request\VerifyAdminEmailRequestDTO;
 use App\Domain\DTO\Response\ActionResultResponseDTO;
@@ -28,8 +29,7 @@ class AdminController
         private AdminRepository $adminRepository,
         private AdminEmailRepository $adminEmailRepository,
         private ValidationGuard $validationGuard,
-        private string $emailBlindIndexKey,
-        private string $emailEncryptionKey
+        private AdminIdentifierCryptoServiceInterface $cryptoService
     ) {
     }
 
@@ -77,29 +77,12 @@ class AdminController
         $email = $requestDto->email;
 
         // Blind Index
-        $blindIndexKey = $this->emailBlindIndexKey;
-        $blindIndex = hash_hmac('sha256', $email, $blindIndexKey);
+        $blindIndex = $this->cryptoService->deriveEmailBlindIndex($email);
 
         // Encryption
-        $encryptionKey = $this->emailEncryptionKey;
-        
-        $cipher = 'aes-256-gcm';
-        $ivLen = openssl_cipher_iv_length($cipher);
-        if ($ivLen === false || $ivLen <= 0) {
-            throw new RuntimeException('Failed to get IV length.');
-        }
+        $encryptedDto = $this->cryptoService->encryptEmail($email);
 
-        $iv = random_bytes($ivLen);
-        $tag = ''; // Passed by reference
-        $ciphertext = openssl_encrypt($email, $cipher, $encryptionKey, OPENSSL_RAW_DATA, $iv, $tag);
-
-        if ($ciphertext === false) {
-             throw new RuntimeException('Encryption failed.');
-        }
-
-        $encryptedEmail = base64_encode($iv . $tag . $ciphertext);
-
-        $this->adminEmailRepository->addEmail($adminId, $blindIndex, $encryptedEmail);
+        $this->adminEmailRepository->addEmail($adminId, $blindIndex, $encryptedDto);
 
         $responseDto = new ActionResultResponseDTO(
             adminId: $adminId,
@@ -132,8 +115,7 @@ class AdminController
         }
         $email = $requestDto->email;
 
-        $blindIndexKey = $this->emailBlindIndexKey;
-        $blindIndex = hash_hmac('sha256', $email, $blindIndexKey);
+        $blindIndex = $this->cryptoService->deriveEmailBlindIndex($email);
 
         $adminId = $this->adminEmailRepository->findByBlindIndex($blindIndex);
 
@@ -164,33 +146,11 @@ class AdminController
 
         $adminId = (int)$args['id'];
 
-        $encryptedEmail = $this->adminEmailRepository->getEncryptedEmail($adminId);
+        $encryptedEmailDto = $this->adminEmailRepository->getEncryptedEmail($adminId);
 
-        $encryptionKey = $this->emailEncryptionKey;
-        $cipher = 'aes-256-gcm';
-
-        $data = base64_decode((string)$encryptedEmail, true);
-        if ($data === false) {
-             throw new RuntimeException('Base64 decode failed.');
-        }
-
-        $ivLen = openssl_cipher_iv_length($cipher);
-        if ($ivLen === false || $ivLen <= 0) {
-            throw new RuntimeException('Failed to get IV length.');
-        }
-
-        if (strlen($data) < ($ivLen + 16)) {
-             throw new RuntimeException('Invalid encrypted data length.');
-        }
-
-        $iv = substr($data, 0, $ivLen);
-        $tag = substr($data, $ivLen, 16);
-        $ciphertext = substr($data, $ivLen + 16);
-
-        $email = openssl_decrypt($ciphertext, $cipher, $encryptionKey, OPENSSL_RAW_DATA, $iv, $tag);
-
-        if ($email === false) {
-            $email = null;
+        $email = null;
+        if ($encryptedEmailDto !== null) {
+            $email = $this->cryptoService->decryptEmail($encryptedEmailDto);
         }
 
         $responseDto = new AdminEmailResponseDTO($adminId, $email);

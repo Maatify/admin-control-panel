@@ -202,7 +202,6 @@ class Container
             'PASSWORD_ARGON2_OPTIONS',
             'EMAIL_BLIND_INDEX_KEY',
             'APP_TIMEZONE',
-            'EMAIL_ENCRYPTION_KEY',
             'MAIL_HOST',
             'MAIL_PORT',
             'MAIL_USERNAME',
@@ -332,17 +331,18 @@ class Container
                 $adminRepo = $c->get(AdminRepository::class);
                 $emailRepo = $c->get(AdminEmailRepository::class);
                 $validationGuard = $c->get(ValidationGuard::class);
+                $cryptoService = $c->get(AdminIdentifierCryptoServiceInterface::class);
 
                 assert($adminRepo instanceof AdminRepository);
                 assert($emailRepo instanceof AdminEmailRepository);
                 assert($validationGuard instanceof ValidationGuard);
+                assert($cryptoService instanceof AdminIdentifierCryptoServiceInterface);
 
                 return new AdminController(
                     $adminRepo,
                     $emailRepo,
                     $validationGuard,
-                    $_ENV['EMAIL_BLIND_INDEX_KEY'], // Direct ENV access
-                    $_ENV['EMAIL_ENCRYPTION_KEY']   // Direct ENV access
+                    $cryptoService
                 );
             },
             AdminEmailRepository::class => function (ContainerInterface $c) {
@@ -883,10 +883,14 @@ class Container
             // Phase 14.3: Sessions
             SessionListReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
+                $cryptoService = $c->get(AdminIdentifierCryptoServiceInterface::class);
+
                 assert($pdo instanceof PDO);
+                assert($cryptoService instanceof AdminIdentifierCryptoServiceInterface);
+
                 return new PdoSessionListReader(
                     $pdo,
-                    $_ENV['EMAIL_ENCRYPTION_KEY'] // Direct ENV access
+                    $cryptoService
                 );
             },
             SessionListController::class => function (ContainerInterface $c) {
@@ -944,13 +948,14 @@ class Container
             AdminQueryReaderInterface::class =>
                 function ($c): AdminQueryReaderInterface {
                 $pdo = $c->get(PDO::class);
+                $cryptoService = $c->get(AdminIdentifierCryptoServiceInterface::class);
 
                 assert($pdo instanceof PDO);
+                assert($cryptoService instanceof AdminIdentifierCryptoServiceInterface);
 
                 return new PdoAdminQueryReader(
                     $pdo,
-                    $_ENV['EMAIL_BLIND_INDEX_KEY'], // Direct ENV access
-                    $_ENV['EMAIL_ENCRYPTION_KEY']   // Direct ENV access
+                    $cryptoService
                 );
             },
 
