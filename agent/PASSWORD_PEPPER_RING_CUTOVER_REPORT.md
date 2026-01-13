@@ -92,3 +92,25 @@ PASSWORD_ACTIVE_PEPPER_ID=v1
 
 ## Conclusion
 The system is now fully cut over to the Pepper Ring architecture. Legacy modes are gone, and the system is ready for secure, zero-downtime key rotation.
+
+---
+
+## Addendum: Hardening Update (2025-02-24)
+
+### 1. PasswordPepperRing Authority
+A dedicated value object `App\Domain\Security\Password\PasswordPepperRing` has been introduced to serve as the single source of truth for pepper management.
+- **Responsibility:** Validates configuration integrity (min length, active ID existence) and provides strict lookup methods.
+- **Fail-Closed:** Throws `RuntimeException` if an invalid or unknown pepper ID is requested.
+
+### 2. Configurable Argon2id Options
+Argon2id cost parameters are now fully configurable via the environment variable `PASSWORD_ARGON2_OPTIONS`.
+- **Format:** JSON object (e.g., `{"memory_cost":65536,"time_cost":4,"threads":1}`).
+- **Validation:** The container enforces strict integer type checks and positive values at boot time.
+- **Defaults:** Falls back to secure defaults if not set, but fails if set incorrectly.
+
+### 3. Enhanced Upgrade-on-Login
+The upgrade-on-login logic in `AdminAuthenticationService` has been expanded to detect **two** triggers for rehashing:
+1. **Pepper Rotation:** If the stored `pepper_id` differs from the active one.
+2. **Parameter Rotation:** If the stored hash's Argon2 parameters (memory, time, threads) differ from the current configuration (via `password_needs_rehash`).
+
+This ensures that increasing security requirements (e.g., raising memory cost) will automatically propagate to users upon their next login, atomically and transparently.

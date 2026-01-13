@@ -92,8 +92,8 @@ readonly class AdminAuthenticationService
         // 4. Transactional Login (Upgrade + Session)
         $this->pdo->beginTransaction();
         try {
-            // 4.1 Upgrade-on-Login (Rehash if pepper changed)
-            if ($this->passwordService->needsRehash($record->pepperId)) {
+            // 4.1 Upgrade-on-Login (Rehash if pepper changed OR Argon2 params changed)
+            if ($this->passwordService->needsRehash($record->hash, $record->pepperId)) {
                 $newHash = $this->passwordService->hash($password);
                 $this->passwordRepository->savePassword($adminId, $newHash['hash'], $newHash['pepper_id']);
             }

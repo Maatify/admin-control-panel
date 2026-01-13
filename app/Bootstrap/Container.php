@@ -48,6 +48,7 @@ use App\Domain\Contracts\VerificationCodeRepositoryInterface;
 use App\Domain\Contracts\VerificationCodeValidatorInterface;
 use App\Domain\DTO\AdminConfigDTO;
 use App\Domain\Ownership\SystemOwnershipRepositoryInterface;
+use App\Domain\Security\Password\PasswordPepperRing;
 use App\Domain\Service\AdminAuthenticationService;
 use App\Domain\Service\AdminEmailVerificationService;
 use App\Domain\Service\AdminNotificationRoutingService;
@@ -196,6 +197,7 @@ class Container
             'DB_PASS',
             'PASSWORD_PEPPERS',
             'PASSWORD_ACTIVE_PEPPER_ID',
+            'PASSWORD_ARGON2_OPTIONS',
             'EMAIL_BLIND_INDEX_KEY',
             'APP_TIMEZONE',
             'EMAIL_ENCRYPTION_KEY',
@@ -464,11 +466,46 @@ class Container
                 assert($pdo instanceof PDO);
                 return new AdminPasswordRepository($pdo);
             },
-            PasswordService::class => function (ContainerInterface $c) {
+            PasswordPepperRing::class => function (ContainerInterface $c) {
                 $config = $c->get(AdminConfigDTO::class);
                 assert($config instanceof AdminConfigDTO);
+                return new PasswordPepperRing($config->passwordPeppers, $config->passwordActivePepperId);
+            },
+            PasswordService::class => function (ContainerInterface $c) {
+                $ring = $c->get(PasswordPepperRing::class);
+                assert($ring instanceof PasswordPepperRing);
 
-                return new PasswordService($config->passwordPeppers, $config->passwordActivePepperId);
+                // Parse Argon2 options from ENV
+                if (empty($_ENV['PASSWORD_ARGON2_OPTIONS'])) {
+                    throw new \Exception('PASSWORD_ARGON2_OPTIONS is required and cannot be empty.');
+                }
+                
+                /** @var mixed $options */
+                $options = json_decode($_ENV['PASSWORD_ARGON2_OPTIONS'], true, 512, JSON_THROW_ON_ERROR);
+                
+                if (!is_array($options)) {
+                    throw new \Exception('PASSWORD_ARGON2_OPTIONS must be a valid JSON object.');
+                }
+
+                // Validate exact keys
+                $requiredKeys = ['memory_cost', 'threads', 'time_cost'];
+                $keys = array_keys($options);
+                sort($keys);
+                sort($requiredKeys);
+                
+                if ($keys !== $requiredKeys) {
+                     throw new \Exception('PASSWORD_ARGON2_OPTIONS must contain exactly: memory_cost, time_cost, threads.');
+                }
+
+                // Validate values
+                foreach ($options as $key => $value) {
+                    if (!is_int($value) || $value <= 0) {
+                        throw new \Exception("PASSWORD_ARGON2_OPTIONS key '$key' must be a positive integer.");
+                    }
+                }
+
+                /** @var array{memory_cost: int, time_cost: int, threads: int} $options */
+                return new PasswordService($ring, $options);
             },
             AdminAuthenticationService::class => function (ContainerInterface $c) {
                 $lookup = $c->get(AdminIdentifierLookupInterface::class);

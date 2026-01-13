@@ -214,6 +214,8 @@ Entries MUST NOT be rewritten or reordered.
 - docs(agent): add crypto services & rotation project inventory report
 - refactor(crypto): unify encrypted payload DTOs and remove unused contracts
 - chore(crypto): enforce fail-closed rotation and add legacy crypto guardrails
+- chore(auth): cut over to pepper ring passwords with transactional upgrade-on-login
+- chore(auth): lock password governance with pepper ring and required Argon2 options
 
 ---
 

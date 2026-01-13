@@ -4,45 +4,34 @@ declare(strict_types=1);
 
 namespace App\Domain\Service;
 
-use RuntimeException;
+use App\Domain\Security\Password\PasswordPepperRing;
 
 class PasswordService
 {
     /**
-     * @param array<string, string> $peppers Map of pepper_id => secret
-     * @param string $activePepperId The ID of the pepper to use for new hashes
+     * @param PasswordPepperRing $ring The authoritative pepper ring
+     * @param array{memory_cost: int, time_cost: int, threads: int} $argonOptions Configured Argon2id options
      */
     public function __construct(
-        private readonly array $peppers,
-        private readonly string $activePepperId
+        private readonly PasswordPepperRing $ring,
+        private readonly array $argonOptions
     ) {
-        if (empty($this->peppers)) {
-            throw new RuntimeException('Password Peppers must be configured.');
-        }
-        if (!isset($this->peppers[$this->activePepperId])) {
-            throw new RuntimeException("Active Pepper ID '{$this->activePepperId}' not found in configured peppers.");
-        }
-        foreach ($this->peppers as $id => $secret) {
-            if (strlen($secret) < 32) {
-                throw new RuntimeException("Pepper secret for ID '{$id}' is too short (min 32 chars).");
-            }
-        }
     }
 
     /**
-     * Hashes a password using the currently active pepper.
+     * Hashes a password using the currently active pepper and configured Argon2id options.
      *
      * @return array{hash: string, pepper_id: string}
      */
     public function hash(string $plain): array
     {
-        $pepper = $this->peppers[$this->activePepperId];
+        $pepper = $this->ring->activeSecret();
         $peppered = hash_hmac('sha256', $plain, $pepper);
-        $hash = password_hash($peppered, PASSWORD_ARGON2ID);
+        $hash = password_hash($peppered, PASSWORD_ARGON2ID, $this->argonOptions);
 
         return [
             'hash' => $hash,
-            'pepper_id' => $this->activePepperId
+            'pepper_id' => $this->ring->activeId()
         ];
     }
 
@@ -56,19 +45,29 @@ class PasswordService
      */
     public function verify(string $plain, string $hash, string $pepperId): bool
     {
-        if (!isset($this->peppers[$pepperId])) {
+        try {
+            $pepper = $this->ring->secret($pepperId);
+        } catch (\RuntimeException) {
             // Fail closed if pepper ID is unknown (cannot verify)
             return false;
         }
 
-        $pepper = $this->peppers[$pepperId];
         $peppered = hash_hmac('sha256', $plain, $pepper);
 
         return password_verify($peppered, $hash);
     }
 
-    public function needsRehash(string $pepperId): bool
+    /**
+     * Checks if the password needs rehash due to pepper rotation OR Argon2 parameter changes.
+     */
+    public function needsRehash(string $hash, string $pepperId): bool
     {
-        return $pepperId !== $this->activePepperId;
+        // 1. Check Pepper Rotation
+        if ($pepperId !== $this->ring->activeId()) {
+            return true;
+        }
+
+        // 2. Check Argon2 Parameter Rotation
+        return password_needs_rehash($hash, PASSWORD_ARGON2ID, $this->argonOptions);
     }
 }
