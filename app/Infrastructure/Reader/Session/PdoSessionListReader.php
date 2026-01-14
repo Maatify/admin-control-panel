@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Reader\Session;
 
+use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use App\Domain\DTO\Common\PaginationDTO;
+use App\Domain\DTO\Crypto\EncryptedPayloadDTO;
 use App\Domain\DTO\Session\SessionListItemDTO;
 use App\Domain\DTO\Session\SessionListResponseDTO;
 use App\Domain\List\ListQueryDTO;
@@ -17,7 +19,7 @@ readonly class PdoSessionListReader implements SessionListReaderInterface
 {
     public function __construct(
         private PDO $pdo,
-        private string $emailEncryptionKey
+        private AdminIdentifierCryptoServiceInterface $cryptoService
     ) {}
 
     public function getSessions(
@@ -148,13 +150,10 @@ readonly class PdoSessionListReader implements SessionListReaderInterface
                     WHEN s.expires_at <= NOW() THEN 'expired'
                     ELSE 'active'
                 END AS status,
-                (
-                    SELECT ae.email_encrypted
-                    FROM admin_emails ae
-                    WHERE ae.admin_id = s.admin_id
-                    ORDER BY ae.id ASC
-                    LIMIT 1
-                ) AS email_encrypted
+                (SELECT email_ciphertext FROM admin_emails ae WHERE ae.admin_id = s.admin_id ORDER BY id ASC LIMIT 1) as email_ciphertext,
+                (SELECT email_iv FROM admin_emails ae WHERE ae.admin_id = s.admin_id ORDER BY id ASC LIMIT 1) as email_iv,
+                (SELECT email_tag FROM admin_emails ae WHERE ae.admin_id = s.admin_id ORDER BY id ASC LIMIT 1) as email_tag,
+                (SELECT email_key_id FROM admin_emails ae WHERE ae.admin_id = s.admin_id ORDER BY id ASC LIMIT 1) as email_key_id
             FROM admin_sessions s
             {$whereSql}
             ORDER BY s.created_at DESC
@@ -179,10 +178,30 @@ readonly class PdoSessionListReader implements SessionListReaderInterface
             $adminId    = (int) $row['admin_id'];
             $identifier = 'Admin #' . $adminId;
 
-            if (!empty($row['email_encrypted'])) {
-                $decrypted = $this->decryptEmail((string) $row['email_encrypted']);
-                if ($decrypted !== null) {
-                    $identifier = $decrypted;
+            if (!empty($row['email_ciphertext'])) {
+                $ciphertext = $row['email_ciphertext'];
+                $iv = $row['email_iv'];
+                $tag = $row['email_tag'];
+
+                if (is_resource($ciphertext)) {
+                    $ciphertext = stream_get_contents($ciphertext);
+                }
+                if (is_resource($iv)) {
+                    $iv = stream_get_contents($iv);
+                }
+                if (is_resource($tag)) {
+                    $tag = stream_get_contents($tag);
+                }
+
+                $dto = new EncryptedPayloadDTO(
+                    ciphertext: (string)$ciphertext,
+                    iv: (string)$iv,
+                    tag: (string)$tag,
+                    keyId: (string)$row['email_key_id']
+                );
+                $decrypted = $this->cryptoService->decryptEmail($dto);
+                if ($decrypted !== '') {
+                     $identifier = $decrypted;
                 }
             }
 
@@ -208,37 +227,4 @@ readonly class PdoSessionListReader implements SessionListReaderInterface
         );
     }
 
-    private function decryptEmail(string $encryptedEmail): ?string
-    {
-        try {
-            $data = base64_decode($encryptedEmail, true);
-            if ($data === false) {
-                return null;
-            }
-
-            $cipher = 'aes-256-gcm';
-            $ivLen  = openssl_cipher_iv_length($cipher);
-
-            if ($ivLen === false || strlen($data) < $ivLen + 16) {
-                return null;
-            }
-
-            $iv         = substr($data, 0, $ivLen);
-            $tag        = substr($data, $ivLen, 16);
-            $ciphertext = substr($data, $ivLen + 16);
-
-            $decrypted = openssl_decrypt(
-                $ciphertext,
-                $cipher,
-                $this->emailEncryptionKey,
-                OPENSSL_RAW_DATA,
-                $iv,
-                $tag
-            );
-
-            return $decrypted !== false ? $decrypted : null;
-        } catch (\Throwable) {
-            return null;
-        }
-    }
 }
