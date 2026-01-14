@@ -22,9 +22,4 @@ final readonly class AdminContext
     )
     {
     }
-
-    public static function fromAdminId(int $adminId): self
-    {
-        return new self($adminId);
-    }
 }

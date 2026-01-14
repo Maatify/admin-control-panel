@@ -6,7 +6,6 @@ namespace App\Http\Middleware;
 
 use App\Domain\Service\SessionValidationService;
 use App\Http\Auth\AuthSurface;
-use DI\Container;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -26,8 +25,7 @@ class SessionGuardMiddleware implements MiddlewareInterface
     private SessionValidationService $sessionValidationService;
 
     public function __construct(
-        SessionValidationService $sessionValidationService,
-        private Container $container
+        SessionValidationService $sessionValidationService
     ) {
         $this->sessionValidationService = $sessionValidationService;
     }
@@ -53,9 +51,6 @@ class SessionGuardMiddleware implements MiddlewareInterface
         try {
             $adminId = $this->sessionValidationService->validate($token);
             $request = $request->withAttribute('admin_id', $adminId);
-
-            // Update container with the authenticated request
-            $this->container->set(ServerRequestInterface::class, $request);
 
             return $handler->handle($request);
         } catch (\App\Domain\Exception\InvalidSessionException | \App\Domain\Exception\ExpiredSessionException | \App\Domain\Exception\RevokedSessionException $e) {
