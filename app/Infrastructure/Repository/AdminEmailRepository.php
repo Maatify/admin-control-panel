@@ -10,6 +10,7 @@ use App\Domain\DTO\Crypto\EncryptedPayloadDTO;
 use App\Domain\Enum\VerificationStatus;
 use App\Domain\Exception\IdentifierNotFoundException;
 use PDO;
+use RuntimeException;
 
 class AdminEmailRepository implements AdminEmailVerificationRepositoryInterface, AdminIdentifierLookupInterface
 {
@@ -52,26 +53,51 @@ class AdminEmailRepository implements AdminEmailVerificationRepositoryInterface,
             return null;
         }
 
-        $ciphertext = $result['email_ciphertext'];
-        $iv = $result['email_iv'];
-        $tag = $result['email_tag'];
+        if (!is_array($result)) {
+            throw new RuntimeException("PDO fetch returned unexpected type.");
+        }
 
-        if (is_resource($ciphertext)) {
-            $ciphertext = stream_get_contents($ciphertext);
+        /** @var array{email_ciphertext: mixed, email_iv: mixed, email_tag: mixed, email_key_id: mixed} $result */
+
+        if (!array_key_exists('email_ciphertext', $result) ||
+            !array_key_exists('email_iv', $result) ||
+            !array_key_exists('email_tag', $result) ||
+            !array_key_exists('email_key_id', $result)
+        ) {
+             throw new RuntimeException("Database result missing required columns.");
         }
-        if (is_resource($iv)) {
-            $iv = stream_get_contents($iv);
-        }
-        if (is_resource($tag)) {
-            $tag = stream_get_contents($tag);
+
+        $ciphertext = $this->normalizeVarbinary($result['email_ciphertext']);
+        $iv         = $this->normalizeVarbinary($result['email_iv']);
+        $tag        = $this->normalizeVarbinary($result['email_tag']);
+        $keyId      = $this->normalizeVarbinary($result['email_key_id']);
+
+        if ($keyId === '') {
+            throw new RuntimeException("Invalid key ID: cannot be empty.");
         }
 
         return new EncryptedPayloadDTO(
-            ciphertext: (string)$ciphertext,
-            iv: (string)$iv,
-            tag: (string)$tag,
-            keyId: (string)$result['email_key_id']
+            ciphertext: $ciphertext,
+            iv: $iv,
+            tag: $tag,
+            keyId: $keyId
         );
+    }
+
+    private function normalizeVarbinary(mixed $value): string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+        if (is_resource($value)) {
+            $content = stream_get_contents($value);
+            if ($content === false) {
+                throw new RuntimeException("Failed to read stream resource.");
+            }
+            return $content;
+        }
+
+        throw new RuntimeException("Invalid data type from DB: expected string or resource.");
     }
 
     public function getVerificationStatus(int $adminId): VerificationStatus
