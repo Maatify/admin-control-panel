@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
 use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\VerificationCodeGeneratorInterface;
@@ -26,7 +27,7 @@ readonly class EmailVerificationController
         private AdminIdentifierLookupInterface $lookupInterface,
         private Twig $view,
         private LoggerInterface $logger,
-        private string $blindIndexKey
+        private AdminIdentifierCryptoServiceInterface $cryptoService
     ) {
     }
 
@@ -155,8 +156,7 @@ readonly class EmailVerificationController
 
         if (!empty($email)) {
             // 1. Compute Blind Index & Lookup Admin
-            $blindIndex = hash_hmac('sha256', $email, $this->blindIndexKey);
-            assert(is_string($blindIndex));
+            $blindIndex = $this->cryptoService->deriveEmailBlindIndex($email);
 
             $adminId = $this->lookupInterface->findByBlindIndex($blindIndex);
 
