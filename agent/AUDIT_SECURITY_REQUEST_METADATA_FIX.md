@@ -45,7 +45,7 @@ The project previously lacked reliable `request_id` propagation in Audit Logs an
 
 ### Audit Logs
 - **Action**: Updated `AuditEventDTO` and `LegacyAuditEventDTO` to explicitly require a `request_id` string in the constructor.
-- **Guarantee**: Every instantiation of an audit event must now provide this ID. If missing, the code will fail to compile or throw a type error.
+- **Guarantee**: Every instantiation of an audit event must now provide this ID. If missing, PHP will throw a `TypeError` at runtime.
 - **Source**: Passed down from `RequestContext->requestId`.
 
 ### Security Events
