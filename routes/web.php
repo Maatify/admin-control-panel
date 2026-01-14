@@ -91,6 +91,7 @@ return function (App $app) {
         })
         ->add(\App\Http\Middleware\ScopeGuardMiddleware::class)
         ->add(\App\Http\Middleware\SessionStateGuardMiddleware::class)
+        ->add(\App\Http\Middleware\AdminContextMiddleware::class)
         ->add(SessionGuardMiddleware::class)
         ->add(\App\Http\Middleware\RememberMeMiddleware::class);
 
@@ -179,6 +180,7 @@ return function (App $app) {
         })
         ->add(\App\Http\Middleware\ScopeGuardMiddleware::class)
         ->add(\App\Http\Middleware\SessionStateGuardMiddleware::class)
+        ->add(\App\Http\Middleware\AdminContextMiddleware::class)
         ->add(SessionGuardMiddleware::class);
     });
 
@@ -189,10 +191,8 @@ return function (App $app) {
     // InputNormalizationMiddleware MUST run before validation and guards.
     // It is added last to ensure it executes first in Slim's middleware stack.
 
-    // Runs after RequestIdMiddleware to inject request into container (with attributes)
-    $app->add(new \App\Http\Middleware\ContextProviderMiddleware($container));
-
     $app->add(\App\Http\Middleware\RecoveryStateMiddleware::class);
     $app->add(\App\Modules\InputNormalization\Middleware\InputNormalizationMiddleware::class);
+    $app->add(\App\Http\Middleware\RequestContextMiddleware::class);
     $app->add(\App\Http\Middleware\RequestIdMiddleware::class);
 };

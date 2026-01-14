@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Context\AdminContext;
 use App\Domain\Contracts\AdminNotificationReadMarkerInterface;
 use App\Domain\DTO\Notification\History\MarkNotificationReadDTO;
 use App\Modules\Validation\Guard\ValidationGuard;
@@ -24,10 +25,11 @@ final class AdminNotificationReadController
      */
     public function markAsRead(Request $request, Response $response, array $args): Response
     {
-        $adminId = $request->getAttribute('admin_id');
-        if (!is_int($adminId)) {
-            throw new \RuntimeException('Admin ID not found in request attributes');
+        $adminContext = $request->getAttribute(AdminContext::class);
+        if (!$adminContext instanceof AdminContext) {
+            throw new \RuntimeException('AdminContext not found in request attributes');
         }
+        $adminId = $adminContext->adminId;
 
         $this->validationGuard->check(new AdminNotificationReadSchema(), $args);
 

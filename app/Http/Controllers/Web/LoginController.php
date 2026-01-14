@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use App\Context\AdminContext;
-use App\Context\ContextProviderInterface;
+use App\Context\RequestContext;
 use App\Domain\ActivityLog\Action\AdminActivityAction;
 use App\Domain\ActivityLog\Service\AdminActivityLogService;
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
@@ -28,7 +28,6 @@ readonly class LoginController
         private RememberMeService $rememberMeService,
         private AdminIdentifierCryptoServiceInterface $cryptoService,
         private Twig $view,
-        private ContextProviderInterface $contextProvider,
         private AdminActivityLogService $adminActivityLogService,
     ) {
     }
@@ -63,10 +62,16 @@ readonly class LoginController
             // We get the token.
             $result = $this->authService->login($blindIndex, $dto->password);
 
-            // 🔹 Build contexts
-            // Authoritative construction allowed for LOGIN_SUCCESS
-            $adminContext = AdminContext::fromAdminId($result->adminId);
-            $requestContext = $this->contextProvider->request();
+            // 🔹 LOGIN_SUCCESS CONTEXT AUGMENTATION
+            // We MUST augment the same request with AdminContext
+            $adminContext = new AdminContext($result->adminId);
+            $request = $request->withAttribute(AdminContext::class, $adminContext);
+
+            // Read context from request attributes
+            /** @var RequestContext $requestContext */
+            $requestContext = $request->getAttribute(RequestContext::class);
+            /** @var AdminContext $adminContext */
+            $adminContext = $request->getAttribute(AdminContext::class);
 
             // 🔹 Activity Log (SUCCESS)
             $this->adminActivityLogService->log(
