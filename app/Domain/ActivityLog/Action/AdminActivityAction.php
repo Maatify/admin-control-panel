@@ -20,7 +20,6 @@ use App\Modules\ActivityLog\Contracts\ActivityActionInterface;
 enum AdminActivityAction: string implements ActivityActionInterface
 {
     // 🔐 Authentication
-    case LOGIN_SUCCESS = 'admin.auth.login.success';
     case LOGOUT        = 'admin.auth.logout';
     case STEP_UP_SUCCESS = 'admin.auth.step_up.success';
 

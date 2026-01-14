@@ -19,7 +19,10 @@ readonly class LegacyAuditEventDTO
         public array $changes,
         public ?string $ipAddress,
         public ?string $userAgent,
-        public DateTimeImmutable $occurredAt
+        public DateTimeImmutable $occurredAt,
+        public ?string $requestId = null,
+        public ?string $routeName = null,
+        public string $severity = 'info'
     ) {
     }
 }

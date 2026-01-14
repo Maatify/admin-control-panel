@@ -93,7 +93,10 @@ readonly class StepUpService
                 ['session_id' => $sessionId],
                 '0.0.0.0',
                 'system',
-                new DateTimeImmutable()
+                new DateTimeImmutable(),
+                null,
+                null,
+                'info'
             ));
 
             $this->outboxWriter->write(new AuditEventDTO(
@@ -140,7 +143,10 @@ readonly class StepUpService
             ['session_id' => $sessionId],
             '0.0.0.0', // Context not available here easily without request stack
             'system',
-            new DateTimeImmutable()
+            new DateTimeImmutable(),
+            null,
+            null,
+            'info'
         ));
 
         $this->outboxWriter->write(new AuditEventDTO(
@@ -179,7 +185,10 @@ readonly class StepUpService
             ['session_id' => $sessionId, 'scope' => $scope->value],
             '0.0.0.0',
             'system',
-            new DateTimeImmutable()
+            new DateTimeImmutable(),
+            null,
+            null,
+            'info'
         ));
 
         $this->outboxWriter->write(new AuditEventDTO(
@@ -210,7 +219,10 @@ readonly class StepUpService
             ],
             '0.0.0.0',
             'system',
-            new DateTimeImmutable()
+            new DateTimeImmutable(),
+            null,
+            null,
+            'warning'
         ));
 
         $this->pdo->beginTransaction();
@@ -284,7 +296,10 @@ readonly class StepUpService
                     ['scope' => $scope->value],
                     '0.0.0.0',
                     'system',
-                    new DateTimeImmutable()
+                    new DateTimeImmutable(),
+                    null,
+                    null,
+                    'info'
                 ));
 
                 $this->outboxWriter->write(new AuditEventDTO(
@@ -345,7 +360,10 @@ readonly class StepUpService
             $context,
             '0.0.0.0',
             'system',
-            new DateTimeImmutable()
+            new DateTimeImmutable(),
+            null,
+            null,
+            'error'
         ));
     }
 

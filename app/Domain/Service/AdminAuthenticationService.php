@@ -103,6 +103,7 @@ readonly class AdminAuthenticationService
             // Hash token to get Session ID (for audit logging)
             $sessionId = hash('sha256', $token);
 
+            // Phase 0.1 Decision: RequestContext not safe here, so passing null for request_id/route_name
             $this->auditLogger->log(new LegacyAuditEventDTO(
                 $adminId, // Actor
                 'admin', // Target Type
@@ -111,7 +112,10 @@ readonly class AdminAuthenticationService
                 [], // Changes
                 $this->clientInfoProvider->getIpAddress(),
                 $this->clientInfoProvider->getUserAgent(),
-                new DateTimeImmutable()
+                new DateTimeImmutable(),
+                null, // requestId
+                null, // routeName
+                'info' // severity
             ));
 
             $this->outboxWriter->write(new AuditEventDTO(

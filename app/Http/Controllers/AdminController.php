@@ -17,6 +17,7 @@ use App\Domain\DTO\Response\ActionResultResponseDTO;
 use App\Domain\DTO\Response\AdminEmailResponseDTO;
 use App\Domain\Enum\IdentifierType;
 use App\Domain\Exception\InvalidIdentifierFormatException;
+use App\Domain\Exception\UnauthorizedException;
 use App\Infrastructure\Repository\AdminEmailRepository;
 use App\Infrastructure\Repository\AdminRepository;
 use App\Modules\Validation\Guard\ValidationGuard;
@@ -28,7 +29,6 @@ use PDO;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Random\RandomException;
-use RuntimeException;
 use Slim\Exception\HttpBadRequestException;
 
 class AdminController
@@ -50,7 +50,7 @@ class AdminController
         $creatorAdminId = $request->getAttribute('admin_id');
         if (!is_int($creatorAdminId)) {
              // Should be handled by Auth Middleware, but for safety
-             throw new \RuntimeException('Authenticated admin required');
+             throw new UnauthorizedException('Authenticated admin required');
         }
 
         $this->pdo->beginTransaction();
@@ -110,7 +110,7 @@ class AdminController
         // Require AdminContext
         $actorAdminId = $request->getAttribute('admin_id');
          if (!is_int($actorAdminId)) {
-             throw new \RuntimeException('Authenticated admin required');
+             throw new UnauthorizedException('Authenticated admin required');
         }
 
         $adminId = (int)$args['id'];

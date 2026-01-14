@@ -43,7 +43,10 @@ readonly class AuthorizationService
                 ['permission' => $permission, 'source' => 'system_owner'],
                 $this->clientInfoProvider->getIpAddress(),
                 $this->clientInfoProvider->getUserAgent(),
-                new DateTimeImmutable()
+                new DateTimeImmutable(),
+                null, // requestId
+                null, // routeName
+                'info'
             ));
             return;
         }
@@ -87,7 +90,10 @@ readonly class AuthorizationService
                     ['permission' => $permission, 'source' => 'direct'],
                     $this->clientInfoProvider->getIpAddress(),
                     $this->clientInfoProvider->getUserAgent(),
-                    new DateTimeImmutable()
+                    new DateTimeImmutable(),
+                    null, // requestId
+                    null, // routeName
+                    'info'
                 ));
                 return;
             }
@@ -105,7 +111,10 @@ readonly class AuthorizationService
                 ['permission' => $permission],
                 $this->clientInfoProvider->getIpAddress(),
                 $this->clientInfoProvider->getUserAgent(),
-                new DateTimeImmutable()
+                new DateTimeImmutable(),
+                null, // requestId
+                null, // routeName
+                'info'
             ));
             return;
         }

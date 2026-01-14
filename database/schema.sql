@@ -413,6 +413,8 @@ CREATE TABLE telemetry_traces (
     event_key VARCHAR(255) NOT NULL,
     severity VARCHAR(20) NOT NULL DEFAULT 'info',
     actor_admin_id INT NULL,
+    ip_address VARCHAR(45) NULL,
+    user_agent VARCHAR(255) NULL,
     route_name VARCHAR(255) NULL,
     request_id VARCHAR(64) NULL,
     metadata JSON NULL,
