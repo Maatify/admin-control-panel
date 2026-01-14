@@ -1,60 +1,45 @@
-# EMAIL_ENCRYPTION_KEY Migration Plan
+# EMAIL_ENCRYPTION_KEY Migration Plan (Split Columns)
 
-## 1. Goal
-Remove all dependencies on `EMAIL_ENCRYPTION_KEY` and legacy `openssl_*` calls, replacing them with `AdminIdentifierCryptoServiceInterface`. Update storage format to JSON-serialized `EncryptedPayloadDTO`.
+## 1. Schema Change (`database/schema.sql`)
+Replace the `admin_emails` table definition to support split columns.
 
-## 2. Component Migration
+**Old:**
+```sql
+CREATE TABLE admin_emails (
+    ...
+    email_encrypted TEXT NOT NULL,
+    ...
+);
+```
 
-### A. Storage Layer (`AdminEmailRepository`)
-- **Modify** `addEmail(int $adminId, string $blindIndex, EncryptedPayloadDTO $encryptedEmail): void`
-  - Serialize `EncryptedPayloadDTO` to JSON (`json_encode`).
-  - Store in `email_encrypted` column.
-- **Modify** `getEncryptedEmail(int $adminId): ?EncryptedPayloadDTO`
-  - Fetch JSON string from `email_encrypted`.
-  - Deserialize (`json_decode`) to array.
-  - Reconstruct and return `EncryptedPayloadDTO`.
-- **Note**: This changes the expected data in the DB. DB reset is assumed/allowed.
+**New:**
+```sql
+CREATE TABLE admin_emails (
+    ...
+    email_ciphertext VARBINARY(512) NOT NULL,
+    email_iv VARBINARY(16) NOT NULL,
+    email_tag VARBINARY(16) NOT NULL,
+    email_key_id VARCHAR(64) NOT NULL,
+    ...
+);
+```
+*Note: Using `VARBINARY` for ciphertext/iv/tag as they are raw bytes from `EncryptedPayloadDTO`. `VARCHAR` for key ID.*
 
-### B. Read Layer (`PdoSessionListReader` & `PdoAdminQueryReader`)
-- **Inject** `AdminIdentifierCryptoServiceInterface`.
-- **Remove** `emailEncryptionKey` (and `emailBlindIndexKey` for `PdoAdminQueryReader`) from constructor/properties.
-- **Refactor** `decryptEmail` (private helper):
-  - Input: JSON string from DB.
-  - Action: Decode JSON to `EncryptedPayloadDTO` -> call `service->decryptEmail($dto)`.
-- **Refactor** `queryAdmins` (`PdoAdminQueryReader`):
-  - Use `service->deriveEmailBlindIndex($email)` for filter logic.
+## 2. Code Migration
 
-### C. Application Layer (`AdminController`)
-- **Inject** `AdminIdentifierCryptoServiceInterface`.
-- **Remove** `emailBlindIndexKey` and `emailEncryptionKey` from constructor.
-- **Refactor** `addEmail`:
-  - `blindIndex` = `service->deriveEmailBlindIndex($email)`.
-  - `encryptedDto` = `service->encryptEmail($email)`.
-  - Call `repo->addEmail(..., $blindIndex, $encryptedDto)`.
-- **Refactor** `lookupEmail`:
-  - `blindIndex` = `service->deriveEmailBlindIndex($email)`.
-- **Refactor** `getEmail`:
-  - `encryptedDto` = `repo->getEncryptedEmail(...)`.
-  - `email` = `service->decryptEmail($encryptedDto)`.
+### A. Repository (`AdminEmailRepository`)
+- **Insert**: Explode `EncryptedPayloadDTO` into the 4 columns.
+- **Select**: Select the 4 columns and reconstruct `EncryptedPayloadDTO`.
+- **Note**: Handle potential type casting if PDO returns strings for VARBINARY (usually fine, but `EncryptedPayloadDTO` expects strings).
 
-### D. Bootstrap Script (`scripts/bootstrap_admin.php`)
-- **Get** `AdminIdentifierCryptoServiceInterface` from container.
-- **Remove** direct `openssl_encrypt` and `$_ENV` access.
-- **Action**:
-  - Derive blind index using service.
-  - Encrypt email using service.
-  - Call `repo->addEmail` with DTO.
+### B. Readers (`PdoSessionListReader` & `PdoAdminQueryReader`)
+- **Query**: Update SQL to fetch `email_ciphertext`, `email_iv`, `email_tag`, `email_key_id` instead of `email_encrypted`.
+- **Reconstruction**: Reconstruct `EncryptedPayloadDTO` from the row data.
+- **Decryption**: Pass DTO to `AdminIdentifierCryptoService`.
 
-### E. Configuration (`Container.php` & `.env`)
-- **Remove** `EMAIL_ENCRYPTION_KEY` from required ENV list.
-- **Remove** `EMAIL_ENCRYPTION_KEY` injection into:
-  - `AdminController`
-  - `PdoSessionListReader`
-  - `PdoAdminQueryReader`
-- **Ensure** `AdminIdentifierCryptoServiceInterface` is correctly bound (it is).
+### C. Services / Controllers
+- No changes required (they operate on DTOs/Interfaces).
 
-## 3. Verification Plan
-1. **Grep Check**: Ensure 0 hits for `EMAIL_ENCRYPTION_KEY`, `openssl_encrypt`, `openssl_decrypt` (except in unrelated/allowed files if any - none expected).
-2. **PHPStan**: Run analysis to ensure type safety (especially with new DTO usage).
-3. **Manual Verification**: Since I cannot run the app, I will rely on unit tests if available, or strict code review. (I'll check for tests).
-4. **Pre-commit**: Run provided pre-commit instructions.
+## 3. Verification
+- `grep` checks (ensure no `email_encrypted` references remain in active code).
+- Verification of schema file.

@@ -1,46 +1,26 @@
-# EMAIL_ENCRYPTION_KEY Inventory Report
+# EMAIL_ENCRYPTION_KEY Inventory Report (Updated)
 
 ## 1. Codebase Occurrences
+*No active usage found in application code.*
+Previous remediation successfully removed `EMAIL_ENCRYPTION_KEY` and direct `openssl_*` calls from:
+- `app/Bootstrap/Container.php`
+- `app/Http/Controllers/AdminController.php`
+- `app/Infrastructure/Reader/Session/PdoSessionListReader.php`
+- `app/Infrastructure/Reader/Admin/PdoAdminQueryReader.php`
+- `scripts/bootstrap_admin.php`
 
-### `app/Bootstrap/Container.php`
-- **Line 64**: `EMAIL_ENCRYPTION_KEY` is required in `.env` validation.
-- **Line 205**: Injected into `AdminController`.
-- **Line 889**: Injected into `PdoSessionListReader`.
-- **Line 953**: Injected into `PdoAdminQueryReader`.
+All hits in `grep` are within documentation, reports, or the allowed low-level algorithm wrapper (`Aes256GcmAlgorithm`).
 
-### `app/Http/Controllers/AdminController.php`
-- **Class**: `AdminController`
-- **Method**: `addEmail`
-- **Operation**: `openssl_encrypt` (Write Path)
-- **Data**: Admin Email
-- **Context**: Encrypting new admin email before storage.
+## 2. Database Status
+Current schema (`admin_emails` table):
+- `email_encrypted`: `TEXT` (Previously used for Base64 blob, currently being used for JSON by recent patch).
 
-- **Method**: `getEmail`
-- **Operation**: `openssl_decrypt` (Read Path)
-- **Data**: Admin Email
-- **Context**: Decrypting admin email for display/response.
+## 3. Requirement Mismatch
+The current implementation uses a single column (`email_encrypted`) storing a JSON string.
+The new requirement strictly demands **split columns**:
+- `email_ciphertext`
+- `email_iv`
+- `email_tag`
+- `email_key_id`
 
-### `app/Infrastructure/Reader/Session/PdoSessionListReader.php`
-- **Class**: `PdoSessionListReader`
-- **Method**: `decryptEmail` (Private helper)
-- **Operation**: `openssl_decrypt` (Read Path)
-- **Data**: Admin Email
-- **Context**: Decrypting admin email for session list display.
-
-### `app/Infrastructure/Reader/Admin/PdoAdminQueryReader.php`
-- **Class**: `PdoAdminQueryReader`
-- **Method**: `decryptEmail` (Private helper)
-- **Operation**: `openssl_decrypt` (Read Path)
-- **Data**: Admin Email
-- **Context**: Decrypting admin email for admin list display.
-
-### `scripts/bootstrap_admin.php`
-- **File**: `scripts/bootstrap_admin.php`
-- **Operation**: `openssl_encrypt` (Write Path)
-- **Data**: Admin Email
-- **Context**: Encrypting admin email during initial bootstrap.
-
-## 2. Database Columns
-- **Table**: `admin_emails`
-- **Column**: `email_encrypted`
-- **Description**: Stores the AES-256-GCM encrypted email, encoded as `base64(iv . tag . ciphertext)`.
+This requires a schema migration and code update.

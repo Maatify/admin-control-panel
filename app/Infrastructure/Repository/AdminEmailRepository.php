@@ -22,15 +22,15 @@ class AdminEmailRepository implements AdminEmailVerificationRepositoryInterface,
 
     public function addEmail(int $adminId, string $blindIndex, EncryptedPayloadDTO $encryptedEmail): void
     {
-        $json = json_encode([
-            'ciphertext' => $encryptedEmail->ciphertext,
-            'iv' => $encryptedEmail->iv,
-            'tag' => $encryptedEmail->tag,
-            'keyId' => $encryptedEmail->keyId,
-        ], JSON_THROW_ON_ERROR);
-
-        $stmt = $this->pdo->prepare("INSERT INTO admin_emails (admin_id, email_blind_index, email_encrypted) VALUES (?, ?, ?)");
-        $stmt->execute([$adminId, $blindIndex, $json]);
+        $stmt = $this->pdo->prepare("INSERT INTO admin_emails (admin_id, email_blind_index, email_ciphertext, email_iv, email_tag, email_key_id) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->execute([
+            $adminId,
+            $blindIndex,
+            $encryptedEmail->ciphertext,
+            $encryptedEmail->iv,
+            $encryptedEmail->tag,
+            $encryptedEmail->keyId
+        ]);
     }
 
     public function findByBlindIndex(string $blindIndex): ?int
@@ -44,29 +44,33 @@ class AdminEmailRepository implements AdminEmailVerificationRepositoryInterface,
 
     public function getEncryptedEmail(int $adminId): ?EncryptedPayloadDTO
     {
-        $stmt = $this->pdo->prepare("SELECT email_encrypted FROM admin_emails WHERE admin_id = ?");
+        $stmt = $this->pdo->prepare("SELECT email_ciphertext, email_iv, email_tag, email_key_id FROM admin_emails WHERE admin_id = ?");
         $stmt->execute([$adminId]);
-        $result = $stmt->fetchColumn();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($result === false) {
             return null;
         }
 
-        try {
-            $data = json_decode((string)$result, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\JsonException) {
-            return null;
-        }
+        $ciphertext = $result['email_ciphertext'];
+        $iv = $result['email_iv'];
+        $tag = $result['email_tag'];
 
-        if (!is_array($data) || !isset($data['ciphertext'], $data['iv'], $data['tag'], $data['keyId'])) {
-            return null;
+        if (is_resource($ciphertext)) {
+            $ciphertext = stream_get_contents($ciphertext);
+        }
+        if (is_resource($iv)) {
+            $iv = stream_get_contents($iv);
+        }
+        if (is_resource($tag)) {
+            $tag = stream_get_contents($tag);
         }
 
         return new EncryptedPayloadDTO(
-            ciphertext: $data['ciphertext'],
-            iv: $data['iv'],
-            tag: $data['tag'],
-            keyId: $data['keyId']
+            ciphertext: (string)$ciphertext,
+            iv: (string)$iv,
+            tag: (string)$tag,
+            keyId: (string)$result['email_key_id']
         );
     }
 

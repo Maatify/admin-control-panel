@@ -115,13 +115,10 @@ final readonly class PdoAdminQueryReader implements AdminQueryReaderInterface
             SELECT
                 a.id,
                 a.created_at,
-                (
-                    SELECT ae2.email_encrypted
-                    FROM admin_emails ae2
-                    WHERE ae2.admin_id = a.id
-                    ORDER BY ae2.id ASC
-                    LIMIT 1
-                ) AS email_encrypted
+                (SELECT email_ciphertext FROM admin_emails ae WHERE ae.admin_id = a.id ORDER BY id ASC LIMIT 1) as email_ciphertext,
+                (SELECT email_iv FROM admin_emails ae WHERE ae.admin_id = a.id ORDER BY id ASC LIMIT 1) as email_iv,
+                (SELECT email_tag FROM admin_emails ae WHERE ae.admin_id = a.id ORDER BY id ASC LIMIT 1) as email_tag,
+                (SELECT email_key_id FROM admin_emails ae WHERE ae.admin_id = a.id ORDER BY id ASC LIMIT 1) as email_key_id
             FROM admins a
             LEFT JOIN admin_emails ae ON ae.admin_id = a.id
             {$whereSql}
@@ -147,9 +144,29 @@ final readonly class PdoAdminQueryReader implements AdminQueryReaderInterface
         foreach ($rows ?: [] as $row) {
             $email = 'N/A';
 
-            if (!empty($row['email_encrypted'])) {
-                $decrypted = $this->decryptEmail((string) $row['email_encrypted']);
-                if ($decrypted !== null) {
+            if (!empty($row['email_ciphertext'])) {
+                $ciphertext = $row['email_ciphertext'];
+                $iv = $row['email_iv'];
+                $tag = $row['email_tag'];
+
+                if (is_resource($ciphertext)) {
+                    $ciphertext = stream_get_contents($ciphertext);
+                }
+                if (is_resource($iv)) {
+                    $iv = stream_get_contents($iv);
+                }
+                if (is_resource($tag)) {
+                    $tag = stream_get_contents($tag);
+                }
+
+                $dto = new EncryptedPayloadDTO(
+                    ciphertext: (string)$ciphertext,
+                    iv: (string)$iv,
+                    tag: (string)$tag,
+                    keyId: (string)$row['email_key_id']
+                );
+                $decrypted = $this->cryptoService->decryptEmail($dto);
+                if ($decrypted !== '') {
                     $email = $decrypted;
                 }
             }
@@ -172,25 +189,4 @@ final readonly class PdoAdminQueryReader implements AdminQueryReaderInterface
         );
     }
 
-    private function decryptEmail(string $encryptedEmail): ?string
-    {
-        try {
-            $data = json_decode($encryptedEmail, true, 512, JSON_THROW_ON_ERROR);
-
-            if (!is_array($data) || !isset($data['ciphertext'], $data['iv'], $data['tag'], $data['keyId'])) {
-                return null;
-            }
-
-            $dto = new EncryptedPayloadDTO(
-                ciphertext: $data['ciphertext'],
-                iv: $data['iv'],
-                tag: $data['tag'],
-                keyId: $data['keyId']
-            );
-
-            return $this->cryptoService->decryptEmail($dto);
-        } catch (\Throwable) {
-            return null;
-        }
-    }
 }

@@ -150,13 +150,10 @@ readonly class PdoSessionListReader implements SessionListReaderInterface
                     WHEN s.expires_at <= NOW() THEN 'expired'
                     ELSE 'active'
                 END AS status,
-                (
-                    SELECT ae.email_encrypted
-                    FROM admin_emails ae
-                    WHERE ae.admin_id = s.admin_id
-                    ORDER BY ae.id ASC
-                    LIMIT 1
-                ) AS email_encrypted
+                (SELECT email_ciphertext FROM admin_emails ae WHERE ae.admin_id = s.admin_id ORDER BY id ASC LIMIT 1) as email_ciphertext,
+                (SELECT email_iv FROM admin_emails ae WHERE ae.admin_id = s.admin_id ORDER BY id ASC LIMIT 1) as email_iv,
+                (SELECT email_tag FROM admin_emails ae WHERE ae.admin_id = s.admin_id ORDER BY id ASC LIMIT 1) as email_tag,
+                (SELECT email_key_id FROM admin_emails ae WHERE ae.admin_id = s.admin_id ORDER BY id ASC LIMIT 1) as email_key_id
             FROM admin_sessions s
             {$whereSql}
             ORDER BY s.created_at DESC
@@ -181,10 +178,30 @@ readonly class PdoSessionListReader implements SessionListReaderInterface
             $adminId    = (int) $row['admin_id'];
             $identifier = 'Admin #' . $adminId;
 
-            if (!empty($row['email_encrypted'])) {
-                $decrypted = $this->decryptEmail((string) $row['email_encrypted']);
-                if ($decrypted !== null) {
-                    $identifier = $decrypted;
+            if (!empty($row['email_ciphertext'])) {
+                $ciphertext = $row['email_ciphertext'];
+                $iv = $row['email_iv'];
+                $tag = $row['email_tag'];
+
+                if (is_resource($ciphertext)) {
+                    $ciphertext = stream_get_contents($ciphertext);
+                }
+                if (is_resource($iv)) {
+                    $iv = stream_get_contents($iv);
+                }
+                if (is_resource($tag)) {
+                    $tag = stream_get_contents($tag);
+                }
+
+                $dto = new EncryptedPayloadDTO(
+                    ciphertext: (string)$ciphertext,
+                    iv: (string)$iv,
+                    tag: (string)$tag,
+                    keyId: (string)$row['email_key_id']
+                );
+                $decrypted = $this->cryptoService->decryptEmail($dto);
+                if ($decrypted !== '') {
+                     $identifier = $decrypted;
                 }
             }
 
@@ -210,25 +227,4 @@ readonly class PdoSessionListReader implements SessionListReaderInterface
         );
     }
 
-    private function decryptEmail(string $encryptedEmail): ?string
-    {
-        try {
-            $data = json_decode($encryptedEmail, true, 512, JSON_THROW_ON_ERROR);
-
-            if (!is_array($data) || !isset($data['ciphertext'], $data['iv'], $data['tag'], $data['keyId'])) {
-                return null;
-            }
-
-            $dto = new EncryptedPayloadDTO(
-                ciphertext: $data['ciphertext'],
-                iv: $data['iv'],
-                tag: $data['tag'],
-                keyId: $data['keyId']
-            );
-
-            return $this->cryptoService->decryptEmail($dto);
-        } catch (\Throwable) {
-            return null;
-        }
-    }
 }
