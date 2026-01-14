@@ -26,7 +26,6 @@ class RememberMeService
         private RememberMeRepositoryInterface $rememberMeRepository,
         private AdminSessionRepositoryInterface $sessionRepository,
         private SecurityEventLoggerInterface $securityEventLogger,
-        private ClientInfoProviderInterface $clientInfoProvider,
         private AuthoritativeSecurityAuditWriterInterface $auditWriter,
         private PDO $pdo
     ) {

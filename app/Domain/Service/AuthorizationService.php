@@ -26,7 +26,6 @@ readonly class AuthorizationService
         private AdminDirectPermissionRepositoryInterface $directPermissionRepository,
         private TelemetryAuditLoggerInterface $auditLogger,
         private SecurityEventLoggerInterface $securityLogger,
-        private ClientInfoProviderInterface $clientInfoProvider,
         private SystemOwnershipRepositoryInterface $systemOwnershipRepository
     ) {
     }

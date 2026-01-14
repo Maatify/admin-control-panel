@@ -25,7 +25,6 @@ class RoleAssignmentService
         private RoleHierarchyComparator $hierarchyComparator,
         private AdminRoleRepositoryInterface $adminRoleRepository,
         private AuthoritativeSecurityAuditWriterInterface $auditWriter,
-        private ClientInfoProviderInterface $clientInfoProvider,
         private PDO $pdo
     ) {
     }

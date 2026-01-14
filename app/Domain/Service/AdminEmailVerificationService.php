@@ -19,7 +19,6 @@ readonly class AdminEmailVerificationService
     public function __construct(
         private AdminEmailVerificationRepositoryInterface $repository,
         private AuthoritativeSecurityAuditWriterInterface $auditWriter,
-        private ClientInfoProviderInterface $clientInfoProvider,
         private PDO $pdo
     ) {
     }

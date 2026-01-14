@@ -19,7 +19,6 @@ class SessionRevocationService
     public function __construct(
         private AdminSessionValidationRepositoryInterface $repository,
         private AuthoritativeSecurityAuditWriterInterface $auditWriter,
-        private ClientInfoProviderInterface $clientInfoProvider,
         private PDO $pdo
     ) {
     }

@@ -19,16 +19,13 @@ class SessionValidationService
 {
     private AdminSessionValidationRepositoryInterface $repository;
     private SecurityEventLoggerInterface $securityLogger;
-    private ClientInfoProviderInterface $clientInfoProvider;
 
     public function __construct(
         AdminSessionValidationRepositoryInterface $repository,
-        SecurityEventLoggerInterface $securityLogger,
-        ClientInfoProviderInterface $clientInfoProvider
+        SecurityEventLoggerInterface $securityLogger
     ) {
         $this->repository = $repository;
         $this->securityLogger = $securityLogger;
-        $this->clientInfoProvider = $clientInfoProvider;
     }
 
     /**

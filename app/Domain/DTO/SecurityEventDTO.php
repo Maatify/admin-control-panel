@@ -8,10 +8,11 @@ use DateTimeImmutable;
 
 readonly class SecurityEventDTO
 {
+    /** @var array<string, mixed> */
     public array $context;
 
     /**
-     * @param array<string, scalar> $context
+     * @param array<string, mixed> $context
      */
     public function __construct(
         public ?int $adminId,

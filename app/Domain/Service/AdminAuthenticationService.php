@@ -32,7 +32,6 @@ readonly class AdminAuthenticationService
         private AdminSessionRepositoryInterface $sessionRepository,
         private TelemetryAuditLoggerInterface $auditLogger,
         private SecurityEventLoggerInterface $securityLogger,
-        private ClientInfoProviderInterface $clientInfoProvider,
         private AuthoritativeSecurityAuditWriterInterface $outboxWriter,
         private RecoveryStateService $recoveryState,
         private PDO $pdo,

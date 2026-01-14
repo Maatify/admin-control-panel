@@ -272,7 +272,6 @@ class Container
                 $directPermissionRepo = $c->get(AdminDirectPermissionRepositoryInterface::class);
                 $auditLogger = $c->get(TelemetryAuditLoggerInterface::class);
                 $securityLogger = $c->get(SecurityEventLoggerInterface::class);
-                $clientInfo = $c->get(ClientInfoProviderInterface::class);
                 $ownershipRepo = $c->get(SystemOwnershipRepositoryInterface::class);
 
                 assert($adminRoleRepo instanceof AdminRoleRepositoryInterface);
@@ -280,7 +279,6 @@ class Container
                 assert($directPermissionRepo instanceof AdminDirectPermissionRepositoryInterface);
                 assert($auditLogger instanceof TelemetryAuditLoggerInterface);
                 assert($securityLogger instanceof SecurityEventLoggerInterface);
-                assert($clientInfo instanceof ClientInfoProviderInterface);
                 assert($ownershipRepo instanceof SystemOwnershipRepositoryInterface);
 
                 return new AuthorizationService(
@@ -289,7 +287,6 @@ class Container
                     $directPermissionRepo,
                     $auditLogger,
                     $securityLogger,
-                    $clientInfo,
                     $ownershipRepo
                 );
             },
@@ -352,15 +349,13 @@ class Container
             AdminEmailVerificationService::class => function (ContainerInterface $c) {
                 $repo = $c->get(AdminEmailVerificationRepositoryInterface::class);
                 $auditWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
-                $clientInfo = $c->get(ClientInfoProviderInterface::class);
                 $pdo = $c->get(PDO::class);
 
                 assert($repo instanceof AdminEmailVerificationRepositoryInterface);
                 assert($auditWriter instanceof AuthoritativeSecurityAuditWriterInterface);
-                assert($clientInfo instanceof ClientInfoProviderInterface);
                 assert($pdo instanceof PDO);
 
-                return new AdminEmailVerificationService($repo, $auditWriter, $clientInfo, $pdo);
+                return new AdminEmailVerificationService($repo, $auditWriter, $pdo);
             },
             AdminIdentifierLookupInterface::class => function (ContainerInterface $c) {
                 return $c->get(AdminEmailRepository::class);
@@ -457,7 +452,6 @@ class Container
                 $sessionRepo = $c->get(AdminSessionRepositoryInterface::class);
                 $auditLogger = $c->get(TelemetryAuditLoggerInterface::class);
                 $securityLogger = $c->get(SecurityEventLoggerInterface::class);
-                $clientInfo = $c->get(ClientInfoProviderInterface::class);
                 $outboxWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
                 $recoveryState = $c->get(RecoveryStateService::class);
                 $pdo = $c->get(PDO::class);
@@ -469,7 +463,6 @@ class Container
                 assert($sessionRepo instanceof AdminSessionRepositoryInterface);
                 assert($auditLogger instanceof TelemetryAuditLoggerInterface);
                 assert($securityLogger instanceof SecurityEventLoggerInterface);
-                assert($clientInfo instanceof ClientInfoProviderInterface);
                 assert($outboxWriter instanceof AuthoritativeSecurityAuditWriterInterface);
                 assert($recoveryState instanceof RecoveryStateService);
                 assert($pdo instanceof PDO);
@@ -482,7 +475,6 @@ class Container
                     $sessionRepo,
                     $auditLogger,
                     $securityLogger,
-                    $clientInfo,
                     $outboxWriter,
                     $recoveryState,
                     $pdo,
@@ -500,15 +492,13 @@ class Container
             SessionRevocationService::class => function (ContainerInterface $c) {
                 $repo = $c->get(AdminSessionValidationRepositoryInterface::class);
                 $auditWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
-                $clientInfo = $c->get(ClientInfoProviderInterface::class);
                 $pdo = $c->get(PDO::class);
 
                 assert($repo instanceof AdminSessionValidationRepositoryInterface);
                 assert($auditWriter instanceof AuthoritativeSecurityAuditWriterInterface);
-                assert($clientInfo instanceof ClientInfoProviderInterface);
                 assert($pdo instanceof PDO);
 
-                return new SessionRevocationService($repo, $auditWriter, $clientInfo, $pdo);
+                return new SessionRevocationService($repo, $auditWriter, $pdo);
             },
             RememberMeRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
@@ -561,7 +551,6 @@ class Container
                 $hierarchyComparator = $c->get(RoleHierarchyComparator::class);
                 $adminRoleRepo = $c->get(AdminRoleRepositoryInterface::class);
                 $auditWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
-                $clientInfo = $c->get(ClientInfoProviderInterface::class);
                 $pdo = $c->get(PDO::class);
 
                 assert($recoveryState instanceof RecoveryStateService);
@@ -570,7 +559,6 @@ class Container
                 assert($hierarchyComparator instanceof RoleHierarchyComparator);
                 assert($adminRoleRepo instanceof AdminRoleRepositoryInterface);
                 assert($auditWriter instanceof AuthoritativeSecurityAuditWriterInterface);
-                assert($clientInfo instanceof ClientInfoProviderInterface);
                 assert($pdo instanceof PDO);
 
                 return new RoleAssignmentService(
@@ -580,7 +568,6 @@ class Container
                     $hierarchyComparator,
                     $adminRoleRepo,
                     $auditWriter,
-                    $clientInfo,
                     $pdo
                 );
             },
@@ -699,20 +686,17 @@ class Container
                 $sessionRepo = $c->get(AdminSessionValidationRepositoryInterface::class);
                 $rememberMeService = $c->get(RememberMeService::class);
                 $logger = $c->get(SecurityEventLoggerInterface::class);
-                $clientInfo = $c->get(ClientInfoProviderInterface::class);
                 $authService = $c->get(AdminAuthenticationService::class);
 
                 assert($sessionRepo instanceof AdminSessionValidationRepositoryInterface);
                 assert($rememberMeService instanceof RememberMeService);
                 assert($logger instanceof SecurityEventLoggerInterface);
-                assert($clientInfo instanceof ClientInfoProviderInterface);
                 assert($authService instanceof AdminAuthenticationService);
 
                 return new LogoutController(
                     $sessionRepo,
                     $rememberMeService,
                     $logger,
-                    $clientInfo,
                     $authService
                 );
             },
@@ -979,7 +963,6 @@ class Container
                  $totpService = $c->get(TotpServiceInterface::class);
                  $auditLogger = $c->get(TelemetryAuditLoggerInterface::class);
                  $outboxWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
-                 $clientInfo = $c->get(ClientInfoProviderInterface::class);
                  $recoveryState = $c->get(RecoveryStateService::class);
                  $pdo = $c->get(PDO::class);
 
@@ -988,7 +971,6 @@ class Container
                  assert($totpService instanceof TotpServiceInterface);
                  assert($auditLogger instanceof TelemetryAuditLoggerInterface);
                  assert($outboxWriter instanceof AuthoritativeSecurityAuditWriterInterface);
-                 assert($clientInfo instanceof ClientInfoProviderInterface);
                  assert($recoveryState instanceof RecoveryStateService);
                  assert($pdo instanceof PDO);
 
@@ -998,7 +980,6 @@ class Container
                      $totpService,
                      $auditLogger,
                      $outboxWriter,
-                     $clientInfo,
                      $recoveryState,
                      $pdo
                  );
@@ -1072,14 +1053,12 @@ class Container
                 $rememberMeRepo = $c->get(RememberMeRepositoryInterface::class);
                 $sessionRepo = $c->get(AdminSessionRepositoryInterface::class);
                 $securityLogger = $c->get(SecurityEventLoggerInterface::class);
-                $clientInfo = $c->get(ClientInfoProviderInterface::class);
                 $auditWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
                 $pdo = $c->get(PDO::class);
 
                 assert($rememberMeRepo instanceof RememberMeRepositoryInterface);
                 assert($sessionRepo instanceof AdminSessionRepositoryInterface);
                 assert($securityLogger instanceof SecurityEventLoggerInterface);
-                assert($clientInfo instanceof ClientInfoProviderInterface);
                 assert($auditWriter instanceof AuthoritativeSecurityAuditWriterInterface);
                 assert($pdo instanceof PDO);
 
@@ -1087,7 +1066,6 @@ class Container
                     $rememberMeRepo,
                     $sessionRepo,
                     $securityLogger,
-                    $clientInfo,
                     $auditWriter,
                     $pdo
                 );

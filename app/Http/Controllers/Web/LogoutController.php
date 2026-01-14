@@ -21,7 +21,6 @@ readonly class LogoutController
         private AdminSessionValidationRepositoryInterface $sessionRepository,
         private RememberMeService $rememberMeService,
         private SecurityEventLoggerInterface $securityEventLogger,
-        private ClientInfoProviderInterface $clientInfoProvider,
         private AdminAuthenticationService $authService
     ) {
     }

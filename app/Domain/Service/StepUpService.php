@@ -29,7 +29,6 @@ readonly class StepUpService
         private TotpServiceInterface $totpService,
         private TelemetryAuditLoggerInterface $auditLogger,
         private AuthoritativeSecurityAuditWriterInterface $outboxWriter,
-        private ClientInfoProviderInterface $clientInfoProvider,
         private RecoveryStateService $recoveryState,
         private PDO $pdo
     ) {
