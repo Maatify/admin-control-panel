@@ -6,6 +6,7 @@ namespace App\Domain\Service;
 
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
+use App\Context\RequestContext;
 use App\Domain\Contracts\ClientInfoProviderInterface;
 use App\Domain\Contracts\RememberMeRepositoryInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
@@ -37,7 +38,7 @@ class RememberMeService
      * @param int $adminId
      * @return string The raw token in format "selector:validator"
      */
-    public function issue(int $adminId): string
+    public function issue(int $adminId, RequestContext $context): string
     {
         try {
             $selector = bin2hex(random_bytes(16)); // 32 chars
@@ -47,7 +48,7 @@ class RememberMeService
         }
 
         $hashedValidator = hash('sha256', $validator);
-        $userAgentHash = hash('sha256', $this->clientInfoProvider->getUserAgent() ?? '');
+        $userAgentHash = hash('sha256', $context->userAgent);
         $expiresAt = (new DateTimeImmutable())->modify('+' . self::TOKEN_EXPIRY_DAYS . ' days');
 
         $tokenDto = new RememberMeTokenDTO(
@@ -62,8 +63,8 @@ class RememberMeService
         try {
             $this->rememberMeRepository->save($tokenDto);
 
-            $this->logEvent($adminId, 'remember_me_issued');
-            $this->writeAudit($adminId, 'remember_me_issued', ['expiration' => $expiresAt->format('Y-m-d H:i:s')]);
+            $this->logEvent($adminId, 'remember_me_issued', $context);
+            $this->writeAudit($adminId, 'remember_me_issued', ['expiration' => $expiresAt->format('Y-m-d H:i:s')], $context);
 
             $this->pdo->commit();
         } catch (\Throwable $e) {
@@ -81,7 +82,7 @@ class RememberMeService
      * @return array{session_token: string, remember_me_token: string}
      * @throws InvalidCredentialsException If token is invalid.
      */
-    public function processAutoLogin(string $rawToken): array
+    public function processAutoLogin(string $rawToken, RequestContext $context): array
     {
         $parts = explode(':', $rawToken);
         if (count($parts) !== 2) {
@@ -104,8 +105,8 @@ class RememberMeService
                 // Suspected theft: Delete this selector immediately
                 $this->rememberMeRepository->deleteBySelector($selector);
 
-                $this->logEvent($tokenDto->adminId, 'remember_me_theft_suspected', ['selector' => $selector]);
-                $this->writeAudit($tokenDto->adminId, 'remember_me_theft_suspected', ['selector' => $selector], 'CRITICAL');
+                $this->logEvent($tokenDto->adminId, 'remember_me_theft_suspected', $context, ['selector' => $selector]);
+                $this->writeAudit($tokenDto->adminId, 'remember_me_theft_suspected', ['selector' => $selector], $context, 'CRITICAL');
 
                 $this->pdo->commit();
                 throw new InvalidCredentialsException('Invalid remember-me validator.');
@@ -129,7 +130,7 @@ class RememberMeService
                 throw new \RuntimeException('Random failure', 0, $e);
             }
             $newHashedValidator = hash('sha256', $newValidator);
-            $newUserAgentHash = hash('sha256', $this->clientInfoProvider->getUserAgent() ?? '');
+            $newUserAgentHash = hash('sha256', $context->userAgent);
             $expiresAt = (new DateTimeImmutable())->modify('+' . self::TOKEN_EXPIRY_DAYS . ' days');
 
             $newTokenDto = new RememberMeTokenDTO(
@@ -144,8 +145,8 @@ class RememberMeService
             // Create Session
             $sessionToken = $this->sessionRepository->createSession($tokenDto->adminId);
 
-            $this->logEvent($tokenDto->adminId, 'remember_me_rotated');
-            $this->writeAudit($tokenDto->adminId, 'remember_me_rotated', ['old_selector' => $selector]);
+            $this->logEvent($tokenDto->adminId, 'remember_me_rotated', $context);
+            $this->writeAudit($tokenDto->adminId, 'remember_me_rotated', ['old_selector' => $selector], $context);
 
             $this->pdo->commit();
 
@@ -163,13 +164,13 @@ class RememberMeService
     }
 
 
-    public function revoke(int $adminId): void
+    public function revoke(int $adminId, RequestContext $context): void
     {
         $this->pdo->beginTransaction();
         try {
             $this->rememberMeRepository->deleteByAdminId($adminId);
-            $this->logEvent($adminId, 'remember_me_revoked');
-            $this->writeAudit($adminId, 'remember_me_revoked_all', [], 'HIGH');
+            $this->logEvent($adminId, 'remember_me_revoked', $context);
+            $this->writeAudit($adminId, 'remember_me_revoked_all', [], $context, 'HIGH');
             $this->pdo->commit();
         } catch (\Throwable $e) {
             $this->pdo->rollBack();
@@ -177,15 +178,15 @@ class RememberMeService
         }
     }
 
-    public function revokeBySelector(string $selector): void
+    public function revokeBySelector(string $selector, RequestContext $context): void
     {
         $this->pdo->beginTransaction();
         try {
             $tokenDto = $this->rememberMeRepository->findBySelector($selector);
             if ($tokenDto !== null) {
                 $this->rememberMeRepository->deleteBySelector($selector);
-                $this->logEvent($tokenDto->adminId, 'remember_me_revoked', ['selector' => $selector]);
-                $this->writeAudit($tokenDto->adminId, 'remember_me_revoked', ['selector' => $selector], 'MEDIUM');
+                $this->logEvent($tokenDto->adminId, 'remember_me_revoked', $context, ['selector' => $selector]);
+                $this->writeAudit($tokenDto->adminId, 'remember_me_revoked', ['selector' => $selector], $context, 'MEDIUM');
             }
             $this->pdo->commit();
         } catch (\Throwable $e) {
@@ -195,25 +196,26 @@ class RememberMeService
     }
 
     /**
-     * @param array<string, bool|float|int|string> $context
+     * @param array<string, bool|float|int|string> $details
      */
-    private function logEvent(int $adminId, string $eventName, array $context = []): void
+    private function logEvent(int $adminId, string $eventName, RequestContext $context, array $details = []): void
     {
         $this->securityEventLogger->log(new SecurityEventDTO(
             $adminId,
             $eventName,
             'info',
-            $context,
-            $this->clientInfoProvider->getIpAddress(),
-            $this->clientInfoProvider->getUserAgent(),
-            new DateTimeImmutable()
+            $details,
+            $context->ipAddress,
+            $context->userAgent,
+            new DateTimeImmutable(),
+            $context->requestId
         ));
     }
 
     /**
      * @param array<string, mixed> $payload
      */
-    private function writeAudit(int $adminId, string $action, array $payload, string $risk = 'LOW'): void
+    private function writeAudit(int $adminId, string $action, array $payload, RequestContext $context, string $risk = 'LOW'): void
     {
         $this->auditWriter->write(new AuditEventDTO(
             $adminId,
@@ -223,6 +225,7 @@ class RememberMeService
             $risk,
             $payload,
             bin2hex(random_bytes(16)),
+            $context->requestId,
             new DateTimeImmutable()
         ));
     }

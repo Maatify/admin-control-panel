@@ -19,6 +19,7 @@ readonly class LegacyAuditEventDTO
         public array $changes,
         public ?string $ipAddress,
         public ?string $userAgent,
+        public string $requestId,
         public DateTimeImmutable $occurredAt
     ) {
     }

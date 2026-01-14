@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Context\RequestContext;
 use App\Domain\Service\AuthorizationService;
 use App\Domain\Exception\UnauthorizedException;
 use Psr\Http\Message\ResponseInterface;
@@ -37,7 +38,12 @@ readonly class AuthorizationGuardMiddleware implements MiddlewareInterface
         $permission = $route->getName();
         assert(is_string($permission) && $permission !== '', 'Permission attribute must be a non-empty string');
 
-        $this->authorizationService->checkPermission($adminId, $permission);
+        $context = $request->getAttribute(RequestContext::class);
+        if (!$context instanceof RequestContext) {
+            throw new \RuntimeException("Request context missing");
+        }
+
+        $this->authorizationService->checkPermission($adminId, $permission, $context);
 
         return $handler->handle($request);
     }

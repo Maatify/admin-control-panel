@@ -6,6 +6,7 @@ namespace App\Domain\Service;
 
 use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
+use App\Context\RequestContext;
 use App\Domain\Contracts\ClientInfoProviderInterface;
 use App\Domain\DTO\AuditEventDTO;
 use App\Domain\Enum\VerificationStatus;
@@ -23,7 +24,7 @@ readonly class AdminEmailVerificationService
     ) {
     }
 
-    public function verify(int $adminId): void
+    public function verify(int $adminId, RequestContext $context): void
     {
         $currentStatus = $this->repository->getVerificationStatus($adminId);
 
@@ -48,10 +49,11 @@ readonly class AdminEmailVerificationService
                 [
                     'previous_status' => $currentStatus->value,
                     'new_status' => VerificationStatus::VERIFIED->value,
-                    'ip_address' => $this->clientInfoProvider->getIpAddress(),
-                    'user_agent' => $this->clientInfoProvider->getUserAgent()
+                    'ip_address' => $context->ipAddress,
+                    'user_agent' => $context->userAgent
                 ],
                 bin2hex(random_bytes(16)),
+                $context->requestId,
                 new DateTimeImmutable()
             ));
 
@@ -62,7 +64,7 @@ readonly class AdminEmailVerificationService
         }
     }
 
-    public function startVerification(int $adminId): void
+    public function startVerification(int $adminId, RequestContext $context): void
     {
         $currentStatus = $this->repository->getVerificationStatus($adminId);
 
@@ -82,9 +84,10 @@ readonly class AdminEmailVerificationService
                 'MEDIUM',
                 [
                     'previous_status' => $currentStatus->value,
-                    'ip_address' => $this->clientInfoProvider->getIpAddress()
+                    'ip_address' => $context->ipAddress
                 ],
                 bin2hex(random_bytes(16)),
+                $context->requestId,
                 new DateTimeImmutable()
             ));
 
@@ -95,7 +98,7 @@ readonly class AdminEmailVerificationService
         }
     }
 
-    public function failVerification(int $adminId): void
+    public function failVerification(int $adminId, RequestContext $context): void
     {
         $currentStatus = $this->repository->getVerificationStatus($adminId);
 
@@ -115,9 +118,10 @@ readonly class AdminEmailVerificationService
                 'HIGH',
                 [
                     'previous_status' => $currentStatus->value,
-                    'ip_address' => $this->clientInfoProvider->getIpAddress()
+                    'ip_address' => $context->ipAddress
                 ],
                 bin2hex(random_bytes(16)),
+                $context->requestId,
                 new DateTimeImmutable()
             ));
 

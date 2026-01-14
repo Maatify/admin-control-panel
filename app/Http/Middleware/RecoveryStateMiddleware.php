@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Context\RequestContext;
 use App\Domain\Service\RecoveryStateService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -22,7 +23,11 @@ final readonly class RecoveryStateMiddleware implements MiddlewareInterface
         RequestHandlerInterface $handler
     ): ResponseInterface {
         // Monitor state transitions on every request to ensure authoritative audit
-        $this->recoveryState->monitorState();
+        $context = $request->getAttribute(RequestContext::class);
+        if (!$context instanceof RequestContext) {
+            throw new \RuntimeException("Request context missing");
+        }
+        $this->recoveryState->monitorState($context);
         return $handler->handle($request);
     }
 }

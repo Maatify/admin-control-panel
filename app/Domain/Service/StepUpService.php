@@ -6,6 +6,7 @@ namespace App\Domain\Service;
 
 use App\Domain\Contracts\TelemetryAuditLoggerInterface;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
+use App\Context\RequestContext;
 use App\Domain\Contracts\ClientInfoProviderInterface;
 use App\Domain\Contracts\StepUpGrantRepositoryInterface;
 use App\Domain\Contracts\TotpSecretRepositoryInterface;
@@ -34,30 +35,30 @@ readonly class StepUpService
     ) {
     }
 
-    public function verifyTotp(int $adminId, string $token, string $code, ?Scope $requestedScope = null): TotpVerificationResultDTO
+    public function verifyTotp(int $adminId, string $token, string $code, RequestContext $context, ?Scope $requestedScope = null): TotpVerificationResultDTO
     {
-        $this->recoveryState->enforce(RecoveryStateService::ACTION_OTP_VERIFY, $adminId);
+        $this->recoveryState->enforce(RecoveryStateService::ACTION_OTP_VERIFY, $adminId, $context);
 
         $sessionId = hash('sha256', $token);
 
         $secret = $this->totpSecretRepository->get($adminId);
         if ($secret === null) {
-             $this->logSecurityEvent($adminId, $sessionId, 'stepup_primary_failed', ['reason' => 'no_totp_enrolled']);
+             $this->logSecurityEvent($adminId, $sessionId, 'stepup_primary_failed', ['reason' => 'no_totp_enrolled'], $context);
              return new TotpVerificationResultDTO(false, 'TOTP not enrolled');
         }
 
         if (!$this->totpService->verify($secret, $code)) {
-            $this->logSecurityEvent($adminId, $sessionId, 'stepup_primary_failed', ['reason' => 'invalid_code']);
+            $this->logSecurityEvent($adminId, $sessionId, 'stepup_primary_failed', ['reason' => 'invalid_code'], $context);
             return new TotpVerificationResultDTO(false, 'Invalid code');
         }
 
         $this->pdo->beginTransaction();
         try {
             if ($requestedScope !== null && $requestedScope !== Scope::LOGIN) {
-                $this->issueScopedGrant($adminId, $token, $requestedScope);
+                $this->issueScopedGrant($adminId, $token, $requestedScope, $context);
             } else {
                 // Issue Primary Grant
-                $this->issuePrimaryGrant($adminId, $token);
+                $this->issuePrimaryGrant($adminId, $token, $context);
             }
             $this->pdo->commit();
         } catch (\Throwable $e) {
@@ -68,14 +69,14 @@ readonly class StepUpService
         return new TotpVerificationResultDTO(true);
     }
 
-    public function enableTotp(int $adminId, string $token, string $secret, string $code): bool
+    public function enableTotp(int $adminId, string $token, string $secret, string $code, RequestContext $context): bool
     {
-        $this->recoveryState->enforce(RecoveryStateService::ACTION_OTP_VERIFY, $adminId);
+        $this->recoveryState->enforce(RecoveryStateService::ACTION_OTP_VERIFY, $adminId, $context);
 
         $sessionId = hash('sha256', $token);
 
         if (!$this->totpService->verify($secret, $code)) {
-            $this->logSecurityEvent($adminId, $sessionId, 'stepup_enroll_failed', ['reason' => 'invalid_code']);
+            $this->logSecurityEvent($adminId, $sessionId, 'stepup_enroll_failed', ['reason' => 'invalid_code'], $context);
             return false;
         }
 
@@ -83,7 +84,7 @@ readonly class StepUpService
         try {
             $this->totpSecretRepository->save($adminId, $secret);
 
-            $this->issuePrimaryGrant($adminId, $token);
+            $this->issuePrimaryGrant($adminId, $token, $context);
 
             $this->auditLogger->log(new LegacyAuditEventDTO(
                 $adminId,
@@ -91,8 +92,9 @@ readonly class StepUpService
                 $adminId,
                 'stepup_enrolled',
                 ['session_id' => $sessionId],
-                '0.0.0.0',
-                'system',
+                $context->ipAddress,
+                $context->userAgent,
+                $context->requestId,
                 new DateTimeImmutable()
             ));
 
@@ -104,6 +106,7 @@ readonly class StepUpService
                 'HIGH',
                 ['session_id' => $sessionId],
                 bin2hex(random_bytes(16)),
+                $context->requestId,
                 new DateTimeImmutable()
             ));
 
@@ -116,7 +119,7 @@ readonly class StepUpService
         return true;
     }
 
-    public function issuePrimaryGrant(int $adminId, string $token): void
+    public function issuePrimaryGrant(int $adminId, string $token, RequestContext $context): void
     {
         $sessionId = hash('sha256', $token);
 
@@ -124,7 +127,7 @@ readonly class StepUpService
             $adminId,
             $sessionId,
             Scope::LOGIN, // Primary Scope
-            $this->getRiskHash(),
+            $this->getRiskHash($context),
             new DateTimeImmutable(),
             new DateTimeImmutable('+2 hours'), // Match session expiry usually
             false
@@ -138,8 +141,9 @@ readonly class StepUpService
             $adminId,
             'stepup_primary_issued',
             ['session_id' => $sessionId],
-            '0.0.0.0', // Context not available here easily without request stack
-            'system',
+            $context->ipAddress,
+            $context->userAgent,
+            $context->requestId,
             new DateTimeImmutable()
         ));
 
@@ -151,11 +155,12 @@ readonly class StepUpService
             'MEDIUM',
             ['session_id' => $sessionId, 'scope' => Scope::LOGIN->value],
             bin2hex(random_bytes(16)),
+            $context->requestId,
             new DateTimeImmutable()
         ));
     }
 
-    public function issueScopedGrant(int $adminId, string $token, Scope $scope): void
+    public function issueScopedGrant(int $adminId, string $token, Scope $scope, RequestContext $context): void
     {
         $sessionId = hash('sha256', $token);
 
@@ -163,7 +168,7 @@ readonly class StepUpService
             $adminId,
             $sessionId,
             $scope,
-            $this->getRiskHash(),
+            $this->getRiskHash($context),
             new DateTimeImmutable(),
             new DateTimeImmutable('+15 minutes'), // Scoped grants are short-lived
             false
@@ -177,8 +182,9 @@ readonly class StepUpService
             $adminId,
             'stepup_scoped_issued',
             ['session_id' => $sessionId, 'scope' => $scope->value],
-            '0.0.0.0',
-            'system',
+            $context->ipAddress,
+            $context->userAgent,
+            $context->requestId,
             new DateTimeImmutable()
         ));
 
@@ -190,11 +196,12 @@ readonly class StepUpService
             'MEDIUM',
             ['session_id' => $sessionId, 'scope' => $scope->value],
             bin2hex(random_bytes(16)),
+            $context->requestId,
             new DateTimeImmutable()
         ));
     }
 
-    public function logDenial(int $adminId, string $token, Scope $requiredScope): void
+    public function logDenial(int $adminId, string $token, Scope $requiredScope, RequestContext $context): void
     {
         $sessionId = hash('sha256', $token);
 
@@ -208,8 +215,9 @@ readonly class StepUpService
                 'required_scope' => $requiredScope->value,
                 'severity' => 'warning'
             ],
-            '0.0.0.0',
-            'system',
+            $context->ipAddress,
+            $context->userAgent,
+            $context->requestId,
             new DateTimeImmutable()
         ));
 
@@ -223,6 +231,7 @@ readonly class StepUpService
                 'LOW',
                 ['session_id' => $sessionId, 'required_scope' => $requiredScope->value],
                 bin2hex(random_bytes(16)),
+                $context->requestId,
                 new DateTimeImmutable()
             ));
             $this->pdo->commit();
@@ -232,7 +241,7 @@ readonly class StepUpService
         }
     }
 
-    public function hasGrant(int $adminId, string $token, Scope $scope): bool
+    public function hasGrant(int $adminId, string $token, Scope $scope, RequestContext $context): bool
     {
         $sessionId = hash('sha256', $token);
 
@@ -242,8 +251,8 @@ readonly class StepUpService
         }
 
         // Verify Risk Context
-        if (!hash_equals($grant->riskContextHash, $this->getRiskHash())) {
-            $this->logSecurityEvent($adminId, $sessionId, 'stepup_risk_mismatch', ['reason' => 'context_changed']);
+        if (!hash_equals($grant->riskContextHash, $this->getRiskHash($context))) {
+            $this->logSecurityEvent($adminId, $sessionId, 'stepup_risk_mismatch', ['reason' => 'context_changed'], $context);
             // Invalidate strictly
             $this->pdo->beginTransaction();
             try {
@@ -256,6 +265,7 @@ readonly class StepUpService
                     'HIGH',
                     ['session_id' => $sessionId, 'scope' => $scope->value],
                     bin2hex(random_bytes(16)),
+                    $context->requestId,
                     new DateTimeImmutable()
                 ));
                 $this->pdo->commit();
@@ -282,8 +292,9 @@ readonly class StepUpService
                     $adminId,
                     'stepup_grant_consumed',
                     ['scope' => $scope->value],
-                    '0.0.0.0',
-                    'system',
+                    $context->ipAddress,
+                    $context->userAgent,
+                    $context->requestId,
                     new DateTimeImmutable()
                 ));
 
@@ -295,6 +306,7 @@ readonly class StepUpService
                     'MEDIUM',
                     ['session_id' => $sessionId, 'scope' => $scope->value],
                     bin2hex(random_bytes(16)),
+                    $context->requestId,
                     new DateTimeImmutable()
                 ));
 
@@ -308,7 +320,7 @@ readonly class StepUpService
         return true;
     }
 
-    public function getSessionState(int $adminId, string $token): SessionState
+    public function getSessionState(int $adminId, string $token, RequestContext $context): SessionState
     {
         $sessionId = hash('sha256', $token);
 
@@ -317,7 +329,7 @@ readonly class StepUpService
 
         if ($primaryGrant !== null && $primaryGrant->expiresAt > new DateTimeImmutable()) {
             // Verify Risk Context for Primary Grant too
-            if (hash_equals($primaryGrant->riskContextHash, $this->getRiskHash())) {
+            if (hash_equals($primaryGrant->riskContextHash, $this->getRiskHash($context))) {
                 return SessionState::ACTIVE;
             }
         }
@@ -328,31 +340,32 @@ readonly class StepUpService
     /**
      * @param array<string, scalar> $details
      */
-    private function logSecurityEvent(int $adminId, string $sessionId, string $event, array $details): void
+    private function logSecurityEvent(int $adminId, string $sessionId, string $event, array $details, RequestContext $context): void
     {
         $details['session_id'] = $sessionId;
         $details['scope'] = Scope::LOGIN->value;
         $details['severity'] = 'error';
 
-        /** @var array<string, scalar> $context */
-        $context = $details;
+        /** @var array<string, scalar> $logContext */
+        $logContext = $details;
 
         $this->auditLogger->log(new LegacyAuditEventDTO(
             $adminId,
             'security',
             $adminId,
             $event,
-            $context,
-            '0.0.0.0',
-            'system',
+            $logContext,
+            $context->ipAddress,
+            $context->userAgent,
+            $context->requestId,
             new DateTimeImmutable()
         ));
     }
 
-    private function getRiskHash(): string
+    private function getRiskHash(RequestContext $context): string
     {
-        $ip = $this->clientInfoProvider->getIpAddress();
-        $ua = $this->clientInfoProvider->getUserAgent();
+        $ip = $context->ipAddress;
+        $ua = $context->userAgent;
         return hash('sha256', $ip . '|' . $ua);
     }
 }

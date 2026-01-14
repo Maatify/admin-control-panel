@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Web;
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Domain\Contracts\ClientInfoProviderInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
+use App\Context\RequestContext;
 use App\Domain\DTO\SecurityEventDTO;
 use App\Domain\Service\AdminAuthenticationService;
 use App\Domain\Service\RememberMeService;
@@ -33,6 +34,15 @@ readonly class LogoutController
         $cookies = $request->getCookieParams();
         $token = isset($cookies['auth_token']) ? (string)$cookies['auth_token'] : null;
 
+        $context = $request->getAttribute(RequestContext::class);
+        // During logout, we should have context if RequestContextMiddleware runs.
+        if (!$context instanceof RequestContext) {
+             // Fallback for logout if something is weird, but strict mode says fail closed.
+             // But if context is missing, we might not be able to log securely.
+             // We'll throw.
+             throw new \RuntimeException("Request context missing");
+        }
+
         // Perform logout logic only if we have an identified admin
         if (is_int($adminId)) {
             // Log the logout event
@@ -41,9 +51,10 @@ readonly class LogoutController
                 'admin_logout',
                 'info',
                 [], // Context
-                $this->clientInfoProvider->getIpAddress(),
-                $this->clientInfoProvider->getUserAgent(),
-                new DateTimeImmutable()
+                $context->ipAddress,
+                $context->userAgent,
+                new DateTimeImmutable(),
+                $context->requestId
             ));
 
             // Token + Identity Binding Check
@@ -52,7 +63,7 @@ readonly class LogoutController
 
                 // Only invalidate if the session belongs to the current admin
                 if ($session !== null && (int)$session['admin_id'] === $adminId) {
-                    $this->authService->logoutSession($adminId, $token);
+                    $this->authService->logoutSession($adminId, $token, $context);
                 }
             }
 
@@ -60,7 +71,7 @@ readonly class LogoutController
             if (isset($cookies['remember_me'])) {
                 $parts = explode(':', (string)$cookies['remember_me']);
                 if (count($parts) === 2) {
-                    $this->rememberMeService->revokeBySelector($parts[0]);
+                    $this->rememberMeService->revokeBySelector($parts[0], $context);
                 }
             }
         }

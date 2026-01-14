@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Context\RequestContext;
 use App\Domain\Service\StepUpService;
 use App\Modules\Validation\Guard\ValidationGuard;
 use App\Modules\Validation\Schemas\StepUpVerifySchema;
@@ -50,7 +51,12 @@ class StepUpController
              return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
         }
 
-        $result = $this->stepUpService->verifyTotp($adminId, $sessionId, (string)$code, $requestedScope);
+        $context = $request->getAttribute(RequestContext::class);
+        if (!$context instanceof RequestContext) {
+             throw new \RuntimeException("Request context missing");
+        }
+
+        $result = $this->stepUpService->verifyTotp($adminId, $sessionId, (string)$code, $context, $requestedScope);
 
         if ($result->success) {
             $response->getBody()->write((string)json_encode(['status' => 'granted', 'scope' => $requestedScope?->value ?? 'login']));

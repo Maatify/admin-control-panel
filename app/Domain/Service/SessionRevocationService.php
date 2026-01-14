@@ -7,6 +7,7 @@ namespace App\Domain\Service;
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\Contracts\ClientInfoProviderInterface;
+use App\Context\RequestContext;
 use App\Domain\DTO\AuditEventDTO;
 use App\Domain\Exception\IdentifierNotFoundException;
 use DomainException;
@@ -23,7 +24,7 @@ class SessionRevocationService
     ) {
     }
 
-    public function revoke(string $token): void
+    public function revoke(string $token, RequestContext $context): void
     {
         $this->pdo->beginTransaction();
         try {
@@ -43,10 +44,11 @@ class SessionRevocationService
                 [
                     // Log the Session ID prefix (Safe), NOT the Token prefix
                     'session_id_prefix' => substr($sessionId, 0, 8) . '...',
-                    'ip_address' => $this->clientInfoProvider->getIpAddress(),
+                    'ip_address' => $context->ipAddress,
                     'reason' => 'explicit_revocation'
                 ],
                 bin2hex(random_bytes(16)),
+                $context->requestId,
                 new DateTimeImmutable()
             ));
 
@@ -60,7 +62,7 @@ class SessionRevocationService
     /**
      * @param string[] $hashes
      */
-    public function revokeBulk(array $hashes, string $currentSessionHash): void
+    public function revokeBulk(array $hashes, string $currentSessionHash, RequestContext $context): void
     {
         if (empty($hashes)) {
             return;
@@ -102,9 +104,10 @@ class SessionRevocationService
                     'count' => count($validHashes),
                     'affected_admin_ids' => array_values($affectedAdminIds),
                     'session_id_prefixes' => array_map(fn($h) => substr($h, 0, 8) . '...', $validHashes),
-                    'ip_address' => $this->clientInfoProvider->getIpAddress(),
+                    'ip_address' => $context->ipAddress,
                 ],
                 bin2hex(random_bytes(16)),
+                $context->requestId,
                 new DateTimeImmutable()
             ));
 
@@ -115,7 +118,7 @@ class SessionRevocationService
         }
     }
 
-    public function revokeByHash(string $targetHash, string $currentSessionHash): void
+    public function revokeByHash(string $targetHash, string $currentSessionHash, RequestContext $context): void
     {
         if (hash_equals($targetHash, $currentSessionHash)) {
             throw new DomainException('Cannot revoke own session via global view.');
@@ -158,10 +161,11 @@ class SessionRevocationService
                 [
                     'revoked_session_id_prefix' => substr($targetHash, 0, 8) . '...',
                     'target_admin_id' => $targetAdminId,
-                    'ip_address' => $this->clientInfoProvider->getIpAddress(),
+                    'ip_address' => $context->ipAddress,
                     'reason' => 'global_view_revocation'
                 ],
                 bin2hex(random_bytes(16)),
+                $context->requestId,
                 new DateTimeImmutable()
             ));
 
@@ -172,7 +176,7 @@ class SessionRevocationService
         }
     }
 
-    public function revokeAll(int $adminId): void
+    public function revokeAll(int $adminId, RequestContext $context): void
     {
         $this->pdo->beginTransaction();
         try {
@@ -185,10 +189,11 @@ class SessionRevocationService
                 $adminId,
                 'HIGH',
                 [
-                    'ip_address' => $this->clientInfoProvider->getIpAddress(),
+                    'ip_address' => $context->ipAddress,
                     'reason' => 'bulk_revocation'
                 ],
                 bin2hex(random_bytes(16)),
+                $context->requestId,
                 new DateTimeImmutable()
             ));
 

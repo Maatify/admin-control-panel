@@ -7,6 +7,7 @@ namespace App\Http\Middleware;
 use App\Domain\Exception\ExpiredSessionException;
 use App\Domain\Exception\InvalidSessionException;
 use App\Domain\Exception\RevokedSessionException;
+use App\Context\RequestContext;
 use App\Domain\Service\SessionValidationService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -45,7 +46,11 @@ class GuestGuardMiddleware implements MiddlewareInterface
 
         try {
             // Check if session is valid
-            $this->sessionValidationService->validate($token);
+            $context = $request->getAttribute(RequestContext::class);
+            if (!$context instanceof RequestContext) {
+                 throw new \RuntimeException("Request context missing");
+            }
+            $this->sessionValidationService->validate($token, $context);
 
             // Session is valid. Block access.
             if ($isApi) {

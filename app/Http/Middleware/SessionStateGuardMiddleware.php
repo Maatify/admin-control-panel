@@ -7,6 +7,7 @@ namespace App\Http\Middleware;
 use App\Domain\Contracts\TotpSecretRepositoryInterface;
 use App\Domain\Enum\Scope;
 use App\Domain\Enum\SessionState;
+use App\Context\RequestContext;
 use App\Domain\Service\StepUpService;
 use App\Http\Auth\AuthSurface;
 use Psr\Http\Message\ResponseInterface;
@@ -56,12 +57,17 @@ class SessionStateGuardMiddleware implements MiddlewareInterface
             return $handler->handle($request);
         }
 
-        $state = $this->stepUpService->getSessionState($adminId, $sessionId);
+        $context = $request->getAttribute(RequestContext::class);
+        if (!$context instanceof RequestContext) {
+            throw new \RuntimeException("Request context missing");
+        }
+
+        $state = $this->stepUpService->getSessionState($adminId, $sessionId, $context);
 
         if ($state !== SessionState::ACTIVE) {
             if ($isApi) {
                  // API: Deny - Step Up Required (Primary/Login)
-                 $this->stepUpService->logDenial($adminId, $sessionId, Scope::LOGIN);
+                 $this->stepUpService->logDenial($adminId, $sessionId, Scope::LOGIN, $context);
 
                  $response = new \Slim\Psr7\Response();
                  $payload = [

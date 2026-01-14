@@ -21,12 +21,13 @@ class AuditEventDTO implements JsonSerializable
         public readonly string $risk_level,
         public readonly array $payload,
         public readonly string $correlation_id,
+        public readonly string $request_id,
         public readonly DateTimeImmutable $created_at
     ) {
     }
 
     /**
-     * @return array{actor_id: ?int, action: string, target_type: string, target_id: int|string|null, risk_level: string, payload: array<string, mixed>, correlation_id: string, created_at: string}
+     * @return array{actor_id: ?int, action: string, target_type: string, target_id: int|string|null, risk_level: string, payload: array<string, mixed>, correlation_id: string, request_id: string, created_at: string}
      */
     public function jsonSerialize(): array
     {
@@ -38,6 +39,7 @@ class AuditEventDTO implements JsonSerializable
             'risk_level' => $this->risk_level,
             'payload' => $this->payload,
             'correlation_id' => $this->correlation_id,
+            'request_id' => $this->request_id,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
         ];
     }

@@ -59,17 +59,17 @@ readonly class LoginController
         $blindIndex = $this->cryptoService->deriveEmailBlindIndex($dto->email);
 
         try {
-            // We get the token.
-            $result = $this->authService->login($blindIndex, $dto->password);
-
-            // 🔹 Build contexts
-            // Authoritative construction allowed for LOGIN_SUCCESS
-            $adminContext = new AdminContext($result->adminId);
-
             $requestContext = $request->getAttribute(RequestContext::class);
             if (! $requestContext instanceof RequestContext) {
                 throw new \RuntimeException('Request Context not present');
             }
+
+            // We get the token.
+            $result = $this->authService->login($blindIndex, $dto->password, $requestContext);
+
+            // 🔹 Build contexts
+            // Authoritative construction allowed for LOGIN_SUCCESS
+            $adminContext = new AdminContext($result->adminId);
 
             // 🔹 Activity Log (SUCCESS)
             $this->adminActivityLogService->log(
@@ -118,7 +118,7 @@ readonly class LoginController
 
             // Handle Remember Me
             if (isset($data['remember_me']) && $data['remember_me'] === 'on') {
-                $rememberMeToken = $this->rememberMeService->issue((int)$session['admin_id']);
+                $rememberMeToken = $this->rememberMeService->issue((int)$session['admin_id'], $requestContext);
 
                 $rememberMeCookie = sprintf(
                     "remember_me=%s; Path=/; HttpOnly; SameSite=Strict; Max-Age=%d; %s",

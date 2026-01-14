@@ -7,6 +7,7 @@ namespace App\Domain\Service;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\DTO\AdminConfigDTO;
+use App\Context\RequestContext;
 use App\Domain\DTO\AuditEventDTO;
 use App\Domain\DTO\SecurityEventDTO;
 use App\Domain\Enum\RecoveryTransitionReason;
@@ -76,18 +77,18 @@ class RecoveryStateService
         return false;
     }
 
-    public function enforce(string $action, ?int $actorId = null): void
+    public function enforce(string $action, ?int $actorId, RequestContext $context): void
     {
         if (!$this->isLocked()) {
             return;
         }
 
         if (in_array($action, self::BLOCKED_ACTIONS, true)) {
-            $this->handleBlockedAction($action, $actorId);
+            $this->handleBlockedAction($action, $actorId, $context);
         }
     }
 
-    public function monitorState(): void
+    public function monitorState(RequestContext $context): void
     {
         $storedState = $this->readStoredState();
         $isEnvLocked = $this->isEnvLocked();
@@ -103,24 +104,25 @@ class RecoveryStateService
                 $reason = RecoveryTransitionReason::WEAK_CRYPTO_KEY;
             }
 
-            $this->enterRecovery($reason, 0); // System Actor
+            $this->enterRecovery($reason, 0, $context); // System Actor
         }
 
         // Auto-Unlock is FORBIDDEN.
         // If Stored is LOCKED but Env is ACTIVE -> Remain LOCKED until explicit manual exit.
     }
 
-    public function enterRecovery(RecoveryTransitionReason $reason, int $actorId): void
+    public function enterRecovery(RecoveryTransitionReason $reason, int $actorId, RequestContext $context): void
     {
         $this->performTransition(
             self::SYSTEM_STATE_RECOVERY_LOCKED,
             'recovery_entered',
             $reason,
-            $actorId
+            $actorId,
+            $context
         );
     }
 
-    public function exitRecovery(RecoveryTransitionReason $reason, int $actorId): void
+    public function exitRecovery(RecoveryTransitionReason $reason, int $actorId, RequestContext $context): void
     {
         // Prevent manual exit if Environment enforces lock
         if ($this->isEnvLocked()) {
@@ -131,7 +133,8 @@ class RecoveryStateService
             self::SYSTEM_STATE_ACTIVE,
             'recovery_exited',
             $reason,
-            $actorId
+            $actorId,
+            $context
         );
     }
 
@@ -139,7 +142,8 @@ class RecoveryStateService
         string $targetState,
         string $eventType,
         RecoveryTransitionReason $reason,
-        int $actorId
+        int $actorId,
+        RequestContext $context
     ): void {
         $txStarted = false;
         if (!$this->pdo->inTransaction()) {
@@ -160,6 +164,7 @@ class RecoveryStateService
                     'target_state' => $targetState
                 ],
                 bin2hex(random_bytes(16)),
+                $context->requestId,
                 new DateTimeImmutable()
             ));
 
@@ -205,7 +210,7 @@ class RecoveryStateService
         $stmt->execute();
     }
 
-    private function handleBlockedAction(string $action, ?int $actorId): void
+    private function handleBlockedAction(string $action, ?int $actorId, RequestContext $context): void
     {
         // 1. Emit Security Event
         try {
@@ -214,9 +219,10 @@ class RecoveryStateService
                 'recovery_action_blocked',
                 'critical',
                 ['action' => $action, 'reason' => 'recovery_locked_mode'],
-                '0.0.0.0',
-                'system',
-                new DateTimeImmutable()
+                $context->ipAddress,
+                $context->userAgent,
+                new DateTimeImmutable(),
+                $context->requestId
             ));
         } catch (\Throwable $e) {
             // Best effort
@@ -238,6 +244,7 @@ class RecoveryStateService
                 'CRITICAL',
                 ['attempted_action' => $action, 'reason' => 'recovery_locked_mode'],
                 bin2hex(random_bytes(16)),
+                $context->requestId,
                 new DateTimeImmutable()
             ));
 

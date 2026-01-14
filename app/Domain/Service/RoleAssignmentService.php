@@ -6,6 +6,7 @@ namespace App\Domain\Service;
 
 use App\Domain\Contracts\AdminRoleRepositoryInterface;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
+use App\Context\RequestContext;
 use App\Domain\Contracts\ClientInfoProviderInterface;
 use App\Domain\Contracts\StepUpGrantRepositoryInterface;
 use App\Domain\DTO\AuditEventDTO;
@@ -29,31 +30,31 @@ class RoleAssignmentService
     ) {
     }
 
-    public function assignRole(int $actorId, int $targetAdminId, int $roleId, string $sessionId): void
+    public function assignRole(int $actorId, int $targetAdminId, int $roleId, string $sessionId, RequestContext $context): void
     {
         // 1. Recovery State Check
         // FIX 1: Authoritative Audit on Denial Path
         try {
-            $this->recoveryState->enforce(RecoveryStateService::ACTION_ROLE_ASSIGNMENT, $actorId);
+            $this->recoveryState->enforce(RecoveryStateService::ACTION_ROLE_ASSIGNMENT, $actorId, $context);
         } catch (\Exception $e) {
              // We need to check scope for audit even here?
              // "payload MUST include ... scope_security (present|missing)"
              // "If any denial path can still throw without authoritative audit -> TASK IS FAILED"
-             $hasScope = $this->checkScopeForLog($actorId, $sessionId);
-             $this->logDenial($actorId, $targetAdminId, $roleId, $sessionId, 'recovery_locked', $hasScope, 'unknown');
+             $hasScope = $this->checkScopeForLog($actorId, $sessionId, $context);
+             $this->logDenial($actorId, $targetAdminId, $roleId, $sessionId, 'recovery_locked', $hasScope, 'unknown', $context);
              throw $e;
         }
 
         // 2. Verify Actor != Target (No Self-Assignment)
         if ($actorId === $targetAdminId) {
-            $hasScope = $this->checkScopeForLog($actorId, $sessionId);
-            $this->logDenial($actorId, $targetAdminId, $roleId, $sessionId, 'self_assignment_forbidden', $hasScope, 'equal');
+            $hasScope = $this->checkScopeForLog($actorId, $sessionId, $context);
+            $this->logDenial($actorId, $targetAdminId, $roleId, $sessionId, 'self_assignment_forbidden', $hasScope, 'equal', $context);
             throw new PermissionDeniedException("Self-assignment of roles is forbidden.");
         }
 
         // 3. Require Step-Up Grant (Scope::SECURITY)
-        if (!$this->stepUpService->hasGrant($actorId, $sessionId, Scope::SECURITY)) {
-            $this->logDenial($actorId, $targetAdminId, $roleId, $sessionId, 'step_up_required', false, 'unknown');
+        if (!$this->stepUpService->hasGrant($actorId, $sessionId, Scope::SECURITY, $context)) {
+            $this->logDenial($actorId, $targetAdminId, $roleId, $sessionId, 'step_up_required', false, 'unknown', $context);
             throw new PermissionDeniedException("Step-Up authentication required for role assignment.");
         }
 
@@ -62,17 +63,17 @@ class RoleAssignmentService
             $this->hierarchyComparator->guardInvariants($actorId, $roleId);
         } catch (LogicException $e) {
              // Treat ambiguous hierarchy as denial
-             $this->logDenial($actorId, $targetAdminId, $roleId, $sessionId, 'hierarchy_ambiguous', true, 'ambiguous');
+             $this->logDenial($actorId, $targetAdminId, $roleId, $sessionId, 'hierarchy_ambiguous', true, 'ambiguous', $context);
              throw new PermissionDeniedException("Role hierarchy is ambiguous. Assignment denied.");
         }
 
         // 4. Verify Role Hierarchy
         if (!$this->hierarchyComparator->canAssign($actorId, $roleId)) {
-            $this->logDenial($actorId, $targetAdminId, $roleId, $sessionId, 'hierarchy_violation', true, 'insufficient');
+            $this->logDenial($actorId, $targetAdminId, $roleId, $sessionId, 'hierarchy_violation', true, 'insufficient', $context);
             throw new PermissionDeniedException("Insufficient privilege to assign this role.");
         }
 
-        $riskHash = $this->getRiskHash();
+        $riskHash = $this->getRiskHash($context);
 
         $this->pdo->beginTransaction();
         try {
@@ -92,6 +93,7 @@ class RoleAssignmentService
                     'risk_context_hash' => $riskHash
                 ],
                 bin2hex(random_bytes(16)),
+                $context->requestId,
                 new DateTimeImmutable()
             ));
 
@@ -114,7 +116,7 @@ class RoleAssignmentService
         }
     }
 
-    private function logDenial(int $actorId, int $targetAdminId, int $roleId, string $sessionId, string $reason, bool $scopeState, string $hierarchyResult): void
+    private function logDenial(int $actorId, int $targetAdminId, int $roleId, string $sessionId, string $reason, bool $scopeState, string $hierarchyResult, RequestContext $context): void
     {
         $startedTransaction = false;
         try {
@@ -136,6 +138,7 @@ class RoleAssignmentService
                     'hierarchy_result' => $hierarchyResult
                 ],
                 bin2hex(random_bytes(16)),
+                $context->requestId,
                 new DateTimeImmutable()
             ));
 
@@ -159,7 +162,7 @@ class RoleAssignmentService
         }
     }
 
-    private function checkScopeForLog(int $actorId, string $sessionId): bool
+    private function checkScopeForLog(int $actorId, string $sessionId, RequestContext $context): bool
     {
         // Safe check without consuming or side effects? hasGrant usually consumes single-use.
         // StepUpService::hasGrant handles logic.
@@ -169,13 +172,13 @@ class RoleAssignmentService
         // Wait, self-assignment is denied anyway. Recovery is denied anyway.
         // So checking (and potentially consuming) is fine because we are failing.
         // For success path, we check properly.
-        return $this->stepUpService->hasGrant($actorId, $sessionId, Scope::SECURITY);
+        return $this->stepUpService->hasGrant($actorId, $sessionId, Scope::SECURITY, $context);
     }
 
-    private function getRiskHash(): string
+    private function getRiskHash(RequestContext $context): string
     {
-        $ip = $this->clientInfoProvider->getIpAddress();
-        $ua = $this->clientInfoProvider->getUserAgent();
+        $ip = $context->ipAddress;
+        $ua = $context->userAgent;
         return hash('sha256', $ip . '|' . $ua);
     }
 }

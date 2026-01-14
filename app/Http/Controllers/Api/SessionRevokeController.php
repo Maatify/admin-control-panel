@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Domain\Service\SessionRevocationService;
+use App\Context\RequestContext;
 use App\Domain\Service\AuthorizationService;
 use App\Modules\Validation\Guard\ValidationGuard;
 use App\Modules\Validation\Schemas\SessionRevokeSchema;
@@ -30,7 +31,12 @@ class SessionRevokeController
         $adminId = $request->getAttribute('admin_id');
         assert(is_int($adminId));
 
-        $this->authorizationService->checkPermission($adminId, 'sessions.revoke');
+        $context = $request->getAttribute(RequestContext::class);
+        if (!$context instanceof RequestContext) {
+             throw new \RuntimeException("Request context missing");
+        }
+
+        $this->authorizationService->checkPermission($adminId, 'sessions.revoke', $context);
 
         $this->validationGuard->check(new SessionRevokeSchema(), $args);
 
@@ -47,7 +53,7 @@ class SessionRevokeController
         }
 
         try {
-            $this->revocationService->revokeByHash($targetSessionHash, $currentSessionHash);
+            $this->revocationService->revokeByHash($targetSessionHash, $currentSessionHash, $context);
 
             $response->getBody()->write(json_encode(['status' => 'ok'], JSON_THROW_ON_ERROR));
             return $response->withStatus(200)->withHeader('Content-Type', 'application/json');

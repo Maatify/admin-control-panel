@@ -8,6 +8,7 @@ use App\Domain\Contracts\AdminDirectPermissionRepositoryInterface;
 use App\Domain\Contracts\AdminRoleRepositoryInterface;
 use App\Domain\Contracts\TelemetryAuditLoggerInterface;
 use App\Domain\Contracts\ClientInfoProviderInterface;
+use App\Context\RequestContext;
 use App\Domain\Contracts\RolePermissionRepositoryInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\DTO\LegacyAuditEventDTO;
@@ -30,7 +31,7 @@ readonly class AuthorizationService
     ) {
     }
 
-    public function checkPermission(int $adminId, string $permission): void
+    public function checkPermission(int $adminId, string $permission, RequestContext $context): void
     {
         // 0. System Owner Bypass
         if ($this->systemOwnershipRepository->isOwner($adminId)) {
@@ -41,8 +42,9 @@ readonly class AuthorizationService
                 null,
                 'access_granted',
                 ['permission' => $permission, 'source' => 'system_owner'],
-                $this->clientInfoProvider->getIpAddress(),
-                $this->clientInfoProvider->getUserAgent(),
+                $context->ipAddress,
+                $context->userAgent,
+                $context->requestId,
                 new DateTimeImmutable()
             ));
             return;
@@ -54,9 +56,10 @@ readonly class AuthorizationService
                 'permission_denied',
                 'warning',
                 ['reason' => 'unknown_permission', 'permission' => $permission],
-                $this->clientInfoProvider->getIpAddress(),
-                $this->clientInfoProvider->getUserAgent(),
-                new DateTimeImmutable()
+                $context->ipAddress,
+                $context->userAgent,
+                new DateTimeImmutable(),
+                $context->requestId
             ));
             throw new UnauthorizedException("Permission '$permission' does not exist.");
         }
@@ -71,9 +74,10 @@ readonly class AuthorizationService
                         'permission_denied',
                         'warning',
                         ['reason' => 'explicit_deny', 'permission' => $permission],
-                        $this->clientInfoProvider->getIpAddress(),
-                        $this->clientInfoProvider->getUserAgent(),
-                        new DateTimeImmutable()
+                        $context->ipAddress,
+                        $context->userAgent,
+                        new DateTimeImmutable(),
+                        $context->requestId
                     ));
                     throw new PermissionDeniedException("Explicit deny for '$permission'.");
                 }
@@ -85,8 +89,9 @@ readonly class AuthorizationService
                     null,
                     'access_granted',
                     ['permission' => $permission, 'source' => 'direct'],
-                    $this->clientInfoProvider->getIpAddress(),
-                    $this->clientInfoProvider->getUserAgent(),
+                    $context->ipAddress,
+                    $context->userAgent,
+                    $context->requestId,
                     new DateTimeImmutable()
                 ));
                 return;
@@ -103,8 +108,9 @@ readonly class AuthorizationService
                 null,
                 'access_granted',
                 ['permission' => $permission],
-                $this->clientInfoProvider->getIpAddress(),
-                $this->clientInfoProvider->getUserAgent(),
+                $context->ipAddress,
+                $context->userAgent,
+                $context->requestId,
                 new DateTimeImmutable()
             ));
             return;
@@ -116,9 +122,10 @@ readonly class AuthorizationService
             'permission_denied',
             'warning',
             ['reason' => 'missing_permission', 'permission' => $permission],
-            $this->clientInfoProvider->getIpAddress(),
-            $this->clientInfoProvider->getUserAgent(),
-            new DateTimeImmutable()
+            $context->ipAddress,
+            $context->userAgent,
+            new DateTimeImmutable(),
+            $context->requestId
         ));
         throw new PermissionDeniedException("Admin $adminId lacks permission '$permission'.");
     }

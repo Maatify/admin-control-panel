@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Context\RequestContext;
 use App\Domain\DTO\Response\VerificationResponseDTO;
 use App\Domain\Exception\IdentifierNotFoundException;
 use App\Domain\Service\AdminEmailVerificationService;
@@ -32,8 +33,13 @@ readonly class AdminEmailVerificationController
 
         $adminId = (int)$args['id'];
 
+        $context = $request->getAttribute(RequestContext::class);
+        if (!$context instanceof RequestContext) {
+            throw new \RuntimeException("Request context missing");
+        }
+
         try {
-            $this->service->verify($adminId);
+            $this->service->verify($adminId, $context);
 
             $status = $this->repository->getVerificationStatus($adminId);
 

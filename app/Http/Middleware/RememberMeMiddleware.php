@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Context\RequestContext;
 use App\Domain\Service\RememberMeService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -29,7 +30,11 @@ class RememberMeMiddleware implements MiddlewareInterface
         // If auth_token missing AND remember_me cookie exists
         if (isset($cookies['remember_me'])) {
             try {
-                $result = $this->rememberMeService->processAutoLogin($cookies['remember_me']);
+                $context = $request->getAttribute(RequestContext::class);
+                if (!$context instanceof RequestContext) {
+                    throw new \RuntimeException("Request context missing");
+                }
+                $result = $this->rememberMeService->processAutoLogin($cookies['remember_me'], $context);
                 $sessionToken = $result['session_token'];
                 $newRememberMeToken = $result['remember_me_token'];
 

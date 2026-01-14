@@ -11,6 +11,7 @@ use App\Domain\Contracts\VerificationCodeGeneratorInterface;
 use App\Domain\Contracts\VerificationCodeValidatorInterface;
 use App\Domain\Enum\IdentityTypeEnum;
 use App\Domain\Enum\VerificationFailureReasonEnum;
+use App\Context\RequestContext;
 use App\Domain\Enum\VerificationPurposeEnum;
 use App\Domain\Service\AdminEmailVerificationService;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -134,7 +135,11 @@ readonly class EmailVerificationController
 
         // 5. Mark Verified
         try {
-            $this->verificationService->verify($adminId);
+            $context = $request->getAttribute(RequestContext::class);
+            if (!$context instanceof RequestContext) {
+                 throw new \RuntimeException("Request context missing");
+            }
+            $this->verificationService->verify($adminId, $context);
         } catch (\Exception $e) {
              // Already verified or other error
              // We can proceed to login as if success

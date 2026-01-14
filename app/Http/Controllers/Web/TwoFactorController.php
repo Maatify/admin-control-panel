@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Domain\Contracts\TotpServiceInterface;
+use App\Context\RequestContext;
 use App\Domain\Enum\Scope;
 use App\Domain\Service\StepUpService;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -52,7 +53,12 @@ readonly class TwoFactorController
             return $response->withStatus(401);
         }
 
-        if ($this->stepUpService->enableTotp($adminId, $sessionId, $secret, $code)) {
+        $context = $request->getAttribute(RequestContext::class);
+        if (!$context instanceof RequestContext) {
+            throw new \RuntimeException("Request context missing");
+        }
+
+        if ($this->stepUpService->enableTotp($adminId, $sessionId, $secret, $code, $context)) {
             return $response->withHeader('Location', '/dashboard')->withStatus(302);
         }
 
@@ -98,7 +104,12 @@ readonly class TwoFactorController
             return $response->withStatus(401);
         }
 
-        $result = $this->stepUpService->verifyTotp($adminId, $sessionId, $code, Scope::LOGIN);
+        $context = $request->getAttribute(RequestContext::class);
+        if (!$context instanceof RequestContext) {
+             throw new \RuntimeException("Request context missing");
+        }
+
+        $result = $this->stepUpService->verifyTotp($adminId, $sessionId, $code, $context, Scope::LOGIN);
 
         if ($result->success) {
             return $response->withHeader('Location', '/dashboard')->withStatus(302);

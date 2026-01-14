@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Context\RequestContext;
 use App\Domain\Service\SessionValidationService;
 use App\Http\Auth\AuthSurface;
 use Psr\Http\Message\ResponseInterface;
@@ -48,8 +49,13 @@ class SessionGuardMiddleware implements MiddlewareInterface
             return $this->handleFailure($isApi, 'No session token provided.');
         }
 
+        $context = $request->getAttribute(RequestContext::class);
+        if (!$context instanceof RequestContext) {
+            throw new \RuntimeException("Request context missing");
+        }
+
         try {
-            $adminId = $this->sessionValidationService->validate($token);
+            $adminId = $this->sessionValidationService->validate($token, $context);
             $request = $request->withAttribute('admin_id', $adminId);
 
             return $handler->handle($request);

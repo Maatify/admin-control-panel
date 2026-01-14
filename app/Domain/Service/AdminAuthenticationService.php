@@ -9,6 +9,7 @@ use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
 use App\Domain\Contracts\TelemetryAuditLoggerInterface;
+use App\Context\RequestContext;
 use App\Domain\Contracts\ClientInfoProviderInterface;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
@@ -39,9 +40,9 @@ readonly class AdminAuthenticationService
     ) {
     }
 
-    public function login(string $blindIndex, string $password): AdminLoginResultDTO
+    public function login(string $blindIndex, string $password, RequestContext $context): AdminLoginResultDTO
     {
-        $this->recoveryState->enforce(RecoveryStateService::ACTION_LOGIN);
+        $this->recoveryState->enforce(RecoveryStateService::ACTION_LOGIN, null, $context);
 
         // 1. Look up Admin ID by Blind Index
         $adminId = $this->lookupRepository->findByBlindIndex($blindIndex);
@@ -51,9 +52,10 @@ readonly class AdminAuthenticationService
                 'login_failed',
                 'warning',
                 ['reason' => 'user_not_found', 'blind_index' => $blindIndex],
-                $this->clientInfoProvider->getIpAddress(),
-                $this->clientInfoProvider->getUserAgent(),
-                new DateTimeImmutable()
+                $context->ipAddress,
+                $context->userAgent,
+                new DateTimeImmutable(),
+                $context->requestId
             ));
             // Defensive: Do not reveal user existence
             throw new InvalidCredentialsException("Invalid credentials.");
@@ -67,9 +69,10 @@ readonly class AdminAuthenticationService
                 'login_failed',
                 'warning',
                 ['reason' => 'not_verified'],
-                $this->clientInfoProvider->getIpAddress(),
-                $this->clientInfoProvider->getUserAgent(),
-                new DateTimeImmutable()
+                $context->ipAddress,
+                $context->userAgent,
+                new DateTimeImmutable(),
+                $context->requestId
             ));
             throw new AuthStateException("Identifier is not verified.");
         }
@@ -82,9 +85,10 @@ readonly class AdminAuthenticationService
                 'login_failed',
                 'warning',
                 ['reason' => 'invalid_password'],
-                $this->clientInfoProvider->getIpAddress(),
-                $this->clientInfoProvider->getUserAgent(),
-                new DateTimeImmutable()
+                $context->ipAddress,
+                $context->userAgent,
+                new DateTimeImmutable(),
+                $context->requestId
             ));
             throw new InvalidCredentialsException("Invalid credentials.");
         }
@@ -109,8 +113,9 @@ readonly class AdminAuthenticationService
                 $adminId, // Target ID
                 'login_credentials_verified', // Action
                 [], // Changes
-                $this->clientInfoProvider->getIpAddress(),
-                $this->clientInfoProvider->getUserAgent(),
+                $context->ipAddress,
+                $context->userAgent,
+                $context->requestId,
                 new DateTimeImmutable()
             ));
 
@@ -121,12 +126,13 @@ readonly class AdminAuthenticationService
                 $adminId,
                 'LOW',
                 [
-                    'ip_address' => $this->clientInfoProvider->getIpAddress(),
-                    'user_agent' => $this->clientInfoProvider->getUserAgent(),
+                    'ip_address' => $context->ipAddress,
+                    'user_agent' => $context->userAgent,
                     // Log the Session ID prefix (Safe), NOT the Token prefix
                     'session_id_prefix' => substr($sessionId, 0, 8) . '...',
                 ],
                 bin2hex(random_bytes(16)),
+                $context->requestId,
                 new DateTimeImmutable()
             ));
 
@@ -142,7 +148,7 @@ readonly class AdminAuthenticationService
         );
     }
 
-    public function logoutSession(int $adminId, string $token): void
+    public function logoutSession(int $adminId, string $token, RequestContext $context): void
     {
         $this->pdo->beginTransaction();
         try {
@@ -158,10 +164,11 @@ readonly class AdminAuthenticationService
                 [
                     // Log the Session ID prefix (Safe), NOT the Token prefix
                     'session_id_prefix' => substr($sessionId, 0, 8) . '...',
-                    'ip_address' => $this->clientInfoProvider->getIpAddress(),
-                    'user_agent' => $this->clientInfoProvider->getUserAgent(),
+                    'ip_address' => $context->ipAddress,
+                    'user_agent' => $context->userAgent,
                 ],
                 bin2hex(random_bytes(16)),
+                $context->requestId,
                 new DateTimeImmutable()
             ));
 

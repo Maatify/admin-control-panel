@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use App\Domain\Enum\Scope;
 use App\Domain\Security\ScopeRegistry;
+use App\Context\RequestContext;
 use App\Domain\Service\StepUpService;
 use App\Http\Auth\AuthSurface;
 use Psr\Http\Message\ResponseInterface;
@@ -39,12 +40,17 @@ class ScopeGuardMiddleware implements MiddlewareInterface
              return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
         }
 
+        $context = $request->getAttribute(RequestContext::class);
+        if (!$context instanceof RequestContext) {
+            throw new \RuntimeException("Request context missing");
+        }
+
         // Defensive Assertion: Session MUST be ACTIVE here.
         // This ensures middleware order is correct and no one bypassed SessionStateGuard.
-        $state = $this->stepUpService->getSessionState($adminId, $sessionId);
+        $state = $this->stepUpService->getSessionState($adminId, $sessionId, $context);
         if ($state !== \App\Domain\Enum\SessionState::ACTIVE) {
              // Fallback handling if SessionStateGuard was bypassed or failed.
-             $this->stepUpService->logDenial($adminId, $sessionId, Scope::LOGIN);
+             $this->stepUpService->logDenial($adminId, $sessionId, Scope::LOGIN, $context);
 
              $response = new \Slim\Psr7\Response();
              $payload = [
@@ -78,8 +84,8 @@ class ScopeGuardMiddleware implements MiddlewareInterface
         }
 
         // Check Specific Scope
-        if (!$this->stepUpService->hasGrant($adminId, $sessionId, $requiredScope)) {
-             $this->stepUpService->logDenial($adminId, $sessionId, $requiredScope);
+        if (!$this->stepUpService->hasGrant($adminId, $sessionId, $requiredScope, $context)) {
+             $this->stepUpService->logDenial($adminId, $sessionId, $requiredScope, $context);
 
              $response = new \Slim\Psr7\Response();
              $payload = [

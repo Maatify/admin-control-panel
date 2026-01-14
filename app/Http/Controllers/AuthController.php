@@ -43,16 +43,16 @@ readonly class AuthController
         $blindIndex = $this->cryptoService->deriveEmailBlindIndex($dto->email);
 
         try {
-            $result = $this->authService->login($blindIndex, $dto->password);
-
-            // 🔹 Construct Contexts (Canonical)
-            $adminContext = new AdminContext($result->adminId);
-
             $requestContext = $request->getAttribute(RequestContext::class);
             if (! $requestContext instanceof RequestContext) {
                 // Should be caught by middleware hard-fail, but type safety check
                 throw new \RuntimeException('Request Context not present');
             }
+
+            $result = $this->authService->login($blindIndex, $dto->password, $requestContext);
+
+            // 🔹 Construct Contexts (Canonical)
+            $adminContext = new AdminContext($result->adminId);
 
             $this->adminActivityLogService->log(
                 adminContext: $adminContext,
