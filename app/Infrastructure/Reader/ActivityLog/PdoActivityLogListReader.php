@@ -44,7 +44,7 @@ final readonly class PdoActivityLogListReader implements ActivityLogListReaderIn
         // Global search (action OR request_id)
         // ─────────────────────────────
         if ($filters->globalSearch !== null) {
-            $where[] = '(al.action LIKE :global OR al.request_id LIKE :global OR ip_address LIKE global)';
+            $where[] = '(al.action LIKE :global OR al.request_id LIKE :global OR ip_address LIKE :global)';
             $params['global'] = '%' . $filters->globalSearch . '%';
         }
 
