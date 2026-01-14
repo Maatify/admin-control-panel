@@ -23,7 +23,7 @@ The following legacy mechanisms were identified and targeted for removal:
 *   `app/Context/Resolver/AdminContextResolver.php`
 *   `app/Context/Resolver/RequestContextResolver.php`
 *   `app/Http/Middleware/ContextProviderMiddleware.php`
-*   `app/Services/ActivityLog/AdminActivityLogService.php` (Unused duplicate)
+*   `app/Services/ActivityLog/AdminActivityLogService.php`: **DELETED** as it was an unused duplicate of `App\Domain\ActivityLog\Service\AdminActivityLogService`. The Domain service provides the exact same contract and is the one actually used by the application (verified via grep and Container definitions).
 
 ## Middleware Order Decisions
 Slim executes middleware in LIFO order (Last Added, First Executed).
