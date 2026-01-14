@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use App\Context\AdminContext;
 use App\Context\ContextProviderInterface;
 use App\Domain\ActivityLog\Action\AdminActivityAction;
@@ -25,7 +26,7 @@ readonly class LoginController
         private AdminAuthenticationService $authService,
         private AdminSessionValidationRepositoryInterface $sessionRepository,
         private RememberMeService $rememberMeService,
-        private string $blindIndexKey,
+        private AdminIdentifierCryptoServiceInterface $cryptoService,
         private Twig $view,
         private ContextProviderInterface $contextProvider,
         private AdminActivityLogService $adminActivityLogService,
@@ -56,8 +57,7 @@ readonly class LoginController
         $dto = new LoginRequestDTO((string)$data['email'], (string)$data['password']);
 
         // Blind Index Calculation
-        $blindIndex = hash_hmac('sha256', $dto->email, $this->blindIndexKey);
-        assert(is_string($blindIndex));
+        $blindIndex = $this->cryptoService->deriveEmailBlindIndex($dto->email);
 
         try {
             // We get the token.

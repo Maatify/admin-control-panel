@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use App\Context\ContextProviderInterface;
 use App\Domain\ActivityLog\Action\AdminActivityAction;
 use App\Domain\ActivityLog\Service\AdminActivityLogService;
@@ -21,7 +22,7 @@ readonly class AuthController
 {
     public function __construct(
         private AdminAuthenticationService $authService,
-        private string $blindIndexKey,
+        private AdminIdentifierCryptoServiceInterface $cryptoService,
         private ValidationGuard $validationGuard,
         private ContextProviderInterface $contextProvider,
         private AdminActivityLogService $adminActivityLogService,
@@ -39,8 +40,7 @@ readonly class AuthController
         );
 
         // Blind Index Calculation
-        $blindIndex = hash_hmac('sha256', $dto->email, $this->blindIndexKey);
-        assert(is_string($blindIndex));
+        $blindIndex = $this->cryptoService->deriveEmailBlindIndex($dto->email);
 
         try {
             $result = $this->authService->login($blindIndex, $dto->password);

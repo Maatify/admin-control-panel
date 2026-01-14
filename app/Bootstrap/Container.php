@@ -656,15 +656,19 @@ class Container
 
                 $adminActivityLogService = $c->get(AdminActivityLogService::class);
 
+                // NEW: Get crypto service
+                $cryptoService = $c->get(AdminIdentifierCryptoServiceInterface::class);
+
                 assert($authService instanceof AdminAuthenticationService);
                 assert($config instanceof AdminConfigDTO);
                 assert($validationGuard instanceof ValidationGuard);
                 assert($contextProvider instanceof ContextProviderInterface);
                 assert($adminActivityLogService instanceof AdminActivityLogService);
+                assert($cryptoService instanceof AdminIdentifierCryptoServiceInterface);
 
                 return new AuthController(
                     $authService,
-                    $_ENV['EMAIL_BLIND_INDEX_KEY'], // Direct ENV access
+                    $cryptoService, // NEW
                     $validationGuard,
                     $contextProvider,
                     $adminActivityLogService
@@ -680,6 +684,9 @@ class Container
                 $contextProvider = $c->get(ContextProviderInterface::class);
                 $adminActivityLogService = $c->get(AdminActivityLogService::class);
 
+                // NEW: Get crypto service
+                $cryptoService = $c->get(AdminIdentifierCryptoServiceInterface::class);
+
                 assert($authService instanceof AdminAuthenticationService);
                 assert($sessionRepo instanceof AdminSessionValidationRepositoryInterface);
                 assert($rememberMeService instanceof RememberMeService);
@@ -687,12 +694,13 @@ class Container
                 assert($config instanceof AdminConfigDTO);
                 assert($contextProvider instanceof ContextProviderInterface);
                 assert($adminActivityLogService instanceof AdminActivityLogService);
+                assert($cryptoService instanceof AdminIdentifierCryptoServiceInterface);
 
                 return new LoginController(
                     $authService,
                     $sessionRepo,
                     $rememberMeService,
-                    $_ENV['EMAIL_BLIND_INDEX_KEY'], // Direct ENV access
+                    $cryptoService, // NEW
                     $view,
                     $contextProvider,
                     $adminActivityLogService
@@ -728,6 +736,9 @@ class Container
                 $logger = $c->get(LoggerInterface::class);
                 $config = $c->get(AdminConfigDTO::class);
 
+                // NEW: Get crypto service
+                $cryptoService = $c->get(AdminIdentifierCryptoServiceInterface::class);
+
                 assert($validator instanceof VerificationCodeValidatorInterface);
                 assert($generator instanceof VerificationCodeGeneratorInterface);
                 assert($verificationService instanceof AdminEmailVerificationService);
@@ -735,6 +746,7 @@ class Container
                 assert($view instanceof Twig);
                 assert($logger instanceof LoggerInterface);
                 assert($config instanceof AdminConfigDTO);
+                assert($cryptoService instanceof AdminIdentifierCryptoServiceInterface);
 
                 return new EmailVerificationController(
                     $validator,
@@ -743,7 +755,7 @@ class Container
                     $lookup,
                     $view,
                     $logger,
-                    $_ENV['EMAIL_BLIND_INDEX_KEY'] // Direct ENV access
+                    $cryptoService // NEW
                 );
             },
             TelegramConnectController::class => function (ContainerInterface $c) {
@@ -1259,7 +1271,7 @@ class Container
 
             AdminIdentifierCryptoServiceInterface::class => function (ContainerInterface $c) {
                 $cryptoProvider = $c->get(CryptoProvider::class);
-                $blindIndexPepper = $_ENV['ADMIN_IDENTIFIER_PEPPER'] ?? '';
+                $blindIndexPepper = $_ENV['EMAIL_BLIND_INDEX_KEY'] ?? '';
 
                 assert($cryptoProvider instanceof CryptoProvider);
 
