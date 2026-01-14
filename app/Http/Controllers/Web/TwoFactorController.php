@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Context\AdminContext;
+use App\Context\RequestContext;
+use App\Domain\ActivityLog\Action\AdminActivityAction;
+use App\Domain\ActivityLog\Service\AdminActivityLogService;
 use App\Domain\Contracts\TotpServiceInterface;
 use App\Domain\Enum\Scope;
 use App\Domain\Service\StepUpService;
@@ -16,7 +20,8 @@ readonly class TwoFactorController
     public function __construct(
         private StepUpService $stepUpService,
         private TotpServiceInterface $totpService,
-        private Twig $view
+        private Twig $view,
+        private AdminActivityLogService $adminActivityLogService
     ) {
     }
 
@@ -101,6 +106,19 @@ readonly class TwoFactorController
         $result = $this->stepUpService->verifyTotp($adminId, $sessionId, $code, Scope::LOGIN);
 
         if ($result->success) {
+            // Log Activity (Best Effort)
+            $requestContext = $request->getAttribute(RequestContext::class);
+            if ($requestContext instanceof RequestContext) {
+                 $this->adminActivityLogService->log(
+                    adminContext: new AdminContext($adminId),
+                    requestContext: $requestContext,
+                    action: AdminActivityAction::STEP_UP_SUCCESS,
+                    metadata: [
+                        'scope' => 'login',
+                    ]
+                );
+            }
+
             return $response->withHeader('Location', '/dashboard')->withStatus(302);
         }
 

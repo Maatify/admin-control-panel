@@ -19,23 +19,28 @@ class PdoTelemetryAuditLogger implements TelemetryAuditLoggerInterface
 
     public function log(LegacyAuditEventDTO $event): void
     {
+        // Retargeted to telemetry_traces (Phase 2)
+        // No longer touches audit_logs
         $stmt = $this->pdo->prepare(
-            'INSERT INTO audit_logs (actor_admin_id, target_type, target_id, action, changes, ip_address, user_agent, occurred_at)
-             VALUES (:actor_admin_id, :target_type, :target_id, :action, :changes, :ip_address, :user_agent, :occurred_at)'
+            'INSERT INTO telemetry_traces (event_key, actor_admin_id, metadata, created_at)
+             VALUES (:event_key, :actor_admin_id, :metadata, :created_at)'
         );
 
-        $changesJson = json_encode($event->changes);
-        assert($changesJson !== false);
+        $metadata = [
+            'target_type' => $event->targetType,
+            'target_id' => $event->targetId,
+            'changes' => $event->changes,
+            'ip_address' => $event->ipAddress,
+            'user_agent' => $event->userAgent,
+        ];
+
+        $metadataJson = json_encode($metadata, JSON_THROW_ON_ERROR);
 
         $stmt->execute([
+            ':event_key' => $event->action,
             ':actor_admin_id' => $event->actorAdminId,
-            ':target_type' => $event->targetType,
-            ':target_id' => $event->targetId,
-            ':action' => $event->action,
-            ':changes' => $changesJson,
-            ':ip_address' => $event->ipAddress,
-            ':user_agent' => $event->userAgent,
-            ':occurred_at' => $event->occurredAt->format('Y-m-d H:i:s'),
+            ':metadata' => $metadataJson,
+            ':created_at' => $event->occurredAt->format('Y-m-d H:i:s.u'),
         ]);
     }
 }

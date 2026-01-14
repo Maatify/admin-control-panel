@@ -5,10 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
-use App\Context\AdminContext;
-use App\Context\RequestContext;
-use App\Domain\ActivityLog\Action\AdminActivityAction;
-use App\Domain\ActivityLog\Service\AdminActivityLogService;
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Domain\DTO\LoginRequestDTO;
 use App\Domain\Exception\AuthStateException;
@@ -28,7 +24,6 @@ readonly class LoginController
         private RememberMeService $rememberMeService,
         private AdminIdentifierCryptoServiceInterface $cryptoService,
         private Twig $view,
-        private AdminActivityLogService $adminActivityLogService,
     ) {
     }
 
@@ -62,25 +57,7 @@ readonly class LoginController
             // We get the token.
             $result = $this->authService->login($blindIndex, $dto->password);
 
-            // 🔹 Build contexts
-            // Authoritative construction allowed for LOGIN_SUCCESS
-            $adminContext = new AdminContext($result->adminId);
-
-            $requestContext = $request->getAttribute(RequestContext::class);
-            if (! $requestContext instanceof RequestContext) {
-                throw new \RuntimeException('Request Context not present');
-            }
-
-            // 🔹 Activity Log (SUCCESS)
-            $this->adminActivityLogService->log(
-                adminContext: $adminContext,
-                requestContext: $requestContext,
-                action: AdminActivityAction::LOGIN_SUCCESS,
-                metadata: [
-                    'method' => 'password',
-                    'remember_me' => isset($data['remember_me']) && $data['remember_me'] === 'on',
-                ]
-            );
+            // Removed forbidden activity logging for login
 
             $token = $result->token;
 

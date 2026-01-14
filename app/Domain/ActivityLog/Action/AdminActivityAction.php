@@ -22,11 +22,13 @@ enum AdminActivityAction: string implements ActivityActionInterface
     // 🔐 Authentication
     case LOGIN_SUCCESS = 'admin.auth.login.success';
     case LOGOUT        = 'admin.auth.logout';
+    case STEP_UP_SUCCESS = 'admin.auth.step_up.success';
 
     // 👤 Admin management
     case ADMIN_CREATE  = 'admin.management.create';
     case ADMIN_UPDATE  = 'admin.management.update';
     case ADMIN_DELETE  = 'admin.management.delete';
+    case ADMIN_EMAIL_ADD = 'admin.management.email.add';
 
     // ⚙️ System (admin-triggered)
     case SETTINGS_UPDATE = 'admin.system.settings.update';

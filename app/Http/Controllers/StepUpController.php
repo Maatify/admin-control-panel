@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Context\AdminContext;
+use App\Context\RequestContext;
+use App\Domain\ActivityLog\Action\AdminActivityAction;
+use App\Domain\ActivityLog\Service\AdminActivityLogService;
 use App\Domain\Service\StepUpService;
 use App\Modules\Validation\Guard\ValidationGuard;
 use App\Modules\Validation\Schemas\StepUpVerifySchema;
@@ -14,7 +18,8 @@ class StepUpController
 {
     public function __construct(
         private StepUpService $stepUpService,
-        private ValidationGuard $validationGuard
+        private ValidationGuard $validationGuard,
+        private AdminActivityLogService $adminActivityLogService
     ) {
     }
 
@@ -53,6 +58,19 @@ class StepUpController
         $result = $this->stepUpService->verifyTotp($adminId, $sessionId, (string)$code, $requestedScope);
 
         if ($result->success) {
+            // Log Activity (Best Effort)
+            $requestContext = $request->getAttribute(RequestContext::class);
+            if ($requestContext instanceof RequestContext) {
+                 $this->adminActivityLogService->log(
+                    adminContext: new AdminContext($adminId),
+                    requestContext: $requestContext,
+                    action: AdminActivityAction::STEP_UP_SUCCESS,
+                    metadata: [
+                        'scope' => $requestedScope?->value ?? 'login',
+                    ]
+                );
+            }
+
             $response->getBody()->write((string)json_encode(['status' => 'granted', 'scope' => $requestedScope?->value ?? 'login']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
         }

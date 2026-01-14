@@ -5,10 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
-use App\Context\AdminContext;
-use App\Context\RequestContext;
-use App\Domain\ActivityLog\Action\AdminActivityAction;
-use App\Domain\ActivityLog\Service\AdminActivityLogService;
 use App\Domain\DTO\LoginRequestDTO;
 use App\Domain\DTO\LoginResponseDTO;
 use App\Domain\Exception\AuthStateException;
@@ -25,7 +21,6 @@ readonly class AuthController
         private AdminAuthenticationService $authService,
         private AdminIdentifierCryptoServiceInterface $cryptoService,
         private ValidationGuard $validationGuard,
-        private AdminActivityLogService $adminActivityLogService,
     ) {}
 
     public function login(Request $request, Response $response): Response
@@ -45,23 +40,7 @@ readonly class AuthController
         try {
             $result = $this->authService->login($blindIndex, $dto->password);
 
-            // 🔹 Construct Contexts (Canonical)
-            $adminContext = new AdminContext($result->adminId);
-
-            $requestContext = $request->getAttribute(RequestContext::class);
-            if (! $requestContext instanceof RequestContext) {
-                // Should be caught by middleware hard-fail, but type safety check
-                throw new \RuntimeException('Request Context not present');
-            }
-
-            $this->adminActivityLogService->log(
-                adminContext: $adminContext,
-                requestContext: $requestContext,
-                action: AdminActivityAction::LOGIN_SUCCESS,
-                metadata: [
-                    'method' => 'password',
-                ]
-            );
+            // Removed forbidden activity logging for login
 
             $responseDto = new LoginResponseDTO($result->token);
             $response->getBody()->write((string) json_encode($responseDto));

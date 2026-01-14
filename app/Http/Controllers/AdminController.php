@@ -5,6 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
+use App\Context\AdminContext;
+use App\Context\RequestContext;
+use App\Domain\ActivityLog\Action\AdminActivityAction;
+use App\Domain\ActivityLog\Service\AdminActivityLogService;
+use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
+use App\Domain\DTO\AuditEventDTO;
 use App\Domain\DTO\Request\CreateAdminEmailRequestDTO;
 use App\Domain\DTO\Request\VerifyAdminEmailRequestDTO;
 use App\Domain\DTO\Response\ActionResultResponseDTO;
@@ -17,6 +23,8 @@ use App\Modules\Validation\Guard\ValidationGuard;
 use App\Modules\Validation\Schemas\AdminAddEmailSchema;
 use App\Modules\Validation\Schemas\AdminGetEmailSchema;
 use App\Modules\Validation\Schemas\AdminLookupEmailSchema;
+use DateTimeImmutable;
+use PDO;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Random\RandomException;
@@ -29,14 +37,56 @@ class AdminController
         private AdminRepository $adminRepository,
         private AdminEmailRepository $adminEmailRepository,
         private ValidationGuard $validationGuard,
-        private AdminIdentifierCryptoServiceInterface $cryptoService
+        private AdminIdentifierCryptoServiceInterface $cryptoService,
+        private AuthoritativeSecurityAuditWriterInterface $outboxWriter,
+        private AdminActivityLogService $adminActivityLogService,
+        private PDO $pdo
     ) {
     }
 
     public function create(Request $request, Response $response): Response
     {
-        $adminId = $this->adminRepository->create();
-        $createdAt = $this->adminRepository->getCreatedAt($adminId);
+        // Require AdminContext (who is creating the admin)
+        $creatorAdminId = $request->getAttribute('admin_id');
+        if (!is_int($creatorAdminId)) {
+             // Should be handled by Auth Middleware, but for safety
+             throw new \RuntimeException('Authenticated admin required');
+        }
+
+        $this->pdo->beginTransaction();
+        try {
+            $adminId = $this->adminRepository->create();
+            $createdAt = $this->adminRepository->getCreatedAt($adminId);
+
+            // Audit Log (Authoritative, Fail-Closed)
+            $this->outboxWriter->write(new AuditEventDTO(
+                actorAdminId: $creatorAdminId,
+                action: 'admin_create',
+                targetType: 'admin',
+                targetId: $adminId,
+                riskLevel: 'HIGH',
+                payload: [],
+                correlationId: bin2hex(random_bytes(16)),
+                occurredAt: new DateTimeImmutable()
+            ));
+
+            $this->pdo->commit();
+        } catch (\Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+
+        // Activity Log (Best Effort)
+        $requestContext = $request->getAttribute(RequestContext::class);
+        if ($requestContext instanceof RequestContext) {
+             $this->adminActivityLogService->log(
+                adminContext: new AdminContext($creatorAdminId),
+                requestContext: $requestContext,
+                action: AdminActivityAction::ADMIN_CREATE,
+                entityType: 'admin',
+                entityId: $adminId
+            );
+        }
 
         $dto = new ActionResultResponseDTO(
             adminId: $adminId,
@@ -57,6 +107,12 @@ class AdminController
      */
     public function addEmail(Request $request, Response $response, array $args): Response
     {
+        // Require AdminContext
+        $actorAdminId = $request->getAttribute('admin_id');
+         if (!is_int($actorAdminId)) {
+             throw new \RuntimeException('Authenticated admin required');
+        }
+
         $adminId = (int)$args['id'];
         
         $data = (array)$request->getParsedBody();
@@ -82,7 +138,39 @@ class AdminController
         // Encryption
         $encryptedDto = $this->cryptoService->encryptEmail($email);
 
-        $this->adminEmailRepository->addEmail($adminId, $blindIndex, $encryptedDto);
+        $this->pdo->beginTransaction();
+        try {
+            $this->adminEmailRepository->addEmail($adminId, $blindIndex, $encryptedDto);
+
+            // Audit Log (Authoritative, Fail-Closed)
+            $this->outboxWriter->write(new AuditEventDTO(
+                actorAdminId: $actorAdminId,
+                action: 'admin_email_add',
+                targetType: 'admin',
+                targetId: $adminId,
+                riskLevel: 'HIGH',
+                payload: ['key_id' => $encryptedDto->keyId], // Log non-sensitive metadata
+                correlationId: bin2hex(random_bytes(16)),
+                occurredAt: new DateTimeImmutable()
+            ));
+
+            $this->pdo->commit();
+        } catch (\Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+
+        // Activity Log (Best Effort)
+        $requestContext = $request->getAttribute(RequestContext::class);
+        if ($requestContext instanceof RequestContext) {
+             $this->adminActivityLogService->log(
+                adminContext: new AdminContext($actorAdminId),
+                requestContext: $requestContext,
+                action: AdminActivityAction::ADMIN_EMAIL_ADD,
+                entityType: 'admin',
+                entityId: $adminId
+            );
+        }
 
         $responseDto = new ActionResultResponseDTO(
             adminId: $adminId,
