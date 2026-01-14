@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use App\Context\AdminContext;
-use App\Context\ContextProviderInterface;
+use App\Context\RequestContext;
 use App\Domain\ActivityLog\Action\AdminActivityAction;
 use App\Domain\ActivityLog\Service\AdminActivityLogService;
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
@@ -28,7 +28,6 @@ readonly class LoginController
         private RememberMeService $rememberMeService,
         private AdminIdentifierCryptoServiceInterface $cryptoService,
         private Twig $view,
-        private ContextProviderInterface $contextProvider,
         private AdminActivityLogService $adminActivityLogService,
     ) {
     }
@@ -65,8 +64,12 @@ readonly class LoginController
 
             // 🔹 Build contexts
             // Authoritative construction allowed for LOGIN_SUCCESS
-            $adminContext = AdminContext::fromAdminId($result->adminId);
-            $requestContext = $this->contextProvider->request();
+            $adminContext = new AdminContext($result->adminId);
+
+            $requestContext = $request->getAttribute(RequestContext::class);
+            if (! $requestContext instanceof RequestContext) {
+                throw new \RuntimeException('Request Context not present');
+            }
 
             // 🔹 Activity Log (SUCCESS)
             $this->adminActivityLogService->log(

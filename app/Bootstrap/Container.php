@@ -8,8 +8,6 @@ use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use App\Application\Crypto\NotificationCryptoServiceInterface;
 use App\Application\Crypto\PasswordCryptoServiceInterface;
 use App\Application\Crypto\TotpSecretCryptoServiceInterface;
-use App\Context\Resolver\AdminContextResolver;
-use App\Context\Resolver\RequestContextResolver;
 use App\Domain\ActivityLog\Reader\ActivityLogListReaderInterface;
 use App\Domain\Admin\Reader\AdminQueryReaderInterface;
 use App\Domain\Contracts\AdminActivityQueryInterface;
@@ -162,8 +160,6 @@ use App\Modules\Email\Renderer\EmailRendererInterface;
 use App\Modules\Email\Renderer\TwigEmailRenderer;
 use App\Modules\Email\Transport\EmailTransportInterface;
 use App\Modules\Email\Transport\SmtpEmailTransport;
-use App\Context\ContextProviderInterface;
-use App\Context\HttpContextProvider;
 use App\Modules\Validation\Contracts\ValidatorInterface;
 use App\Modules\Validation\Guard\ValidationGuard;
 use App\Modules\Validation\Validator\RespectValidator;
@@ -652,8 +648,6 @@ class Container
                 $config = $c->get(AdminConfigDTO::class);
                 $validationGuard = $c->get(ValidationGuard::class);
 
-                $contextProvider = $c->get(ContextProviderInterface::class);
-
                 $adminActivityLogService = $c->get(AdminActivityLogService::class);
 
                 // NEW: Get crypto service
@@ -662,7 +656,6 @@ class Container
                 assert($authService instanceof AdminAuthenticationService);
                 assert($config instanceof AdminConfigDTO);
                 assert($validationGuard instanceof ValidationGuard);
-                assert($contextProvider instanceof ContextProviderInterface);
                 assert($adminActivityLogService instanceof AdminActivityLogService);
                 assert($cryptoService instanceof AdminIdentifierCryptoServiceInterface);
 
@@ -670,7 +663,6 @@ class Container
                     $authService,
                     $cryptoService, // NEW
                     $validationGuard,
-                    $contextProvider,
                     $adminActivityLogService
                 );
             },
@@ -681,7 +673,6 @@ class Container
                 $view = $c->get(Twig::class);
                 $config = $c->get(AdminConfigDTO::class);
 
-                $contextProvider = $c->get(ContextProviderInterface::class);
                 $adminActivityLogService = $c->get(AdminActivityLogService::class);
 
                 // NEW: Get crypto service
@@ -692,7 +683,6 @@ class Container
                 assert($rememberMeService instanceof RememberMeService);
                 assert($view instanceof Twig);
                 assert($config instanceof AdminConfigDTO);
-                assert($contextProvider instanceof ContextProviderInterface);
                 assert($adminActivityLogService instanceof AdminActivityLogService);
                 assert($cryptoService instanceof AdminIdentifierCryptoServiceInterface);
 
@@ -702,7 +692,6 @@ class Container
                     $rememberMeService,
                     $cryptoService, // NEW
                     $view,
-                    $contextProvider,
                     $adminActivityLogService
                 );
             },
@@ -1231,25 +1220,6 @@ class Container
                 $config = $c->get(EmailTransportConfigDTO::class);
                 assert($config instanceof EmailTransportConfigDTO);
                 return new SmtpEmailTransport($config);
-            },
-            RequestContextResolver::class => function () {
-                return new RequestContextResolver();
-            },
-
-            AdminContextResolver::class => function () {
-                return new AdminContextResolver();
-            },
-            ContextProviderInterface::class => function (ContainerInterface $c) {
-                // ServerRequestInterface MUST be injected via middleware (request-scoped)
-                $request = $c->get(\Psr\Http\Message\ServerRequestInterface::class);
-                $adminResolver = $c->get(AdminContextResolver::class);
-                $requestResolver = $c->get(RequestContextResolver::class);
-
-                assert($request instanceof \Psr\Http\Message\ServerRequestInterface);
-                assert($adminResolver instanceof AdminContextResolver);
-                assert($requestResolver instanceof RequestContextResolver);
-
-                return new HttpContextProvider($request, $adminResolver, $requestResolver);
             },
 
             NotificationCryptoServiceInterface::class => function (ContainerInterface $c) {

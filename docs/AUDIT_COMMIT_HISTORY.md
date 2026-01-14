@@ -224,6 +224,7 @@ Entries MUST NOT be rewritten or reordered.
 - docs(agent): finalize crypto/password closure audit after controller fix
 - docs(canonical): lock cryptography, password, and logging architecture post-audit
 - Fix request-scoped context propagation after session authentication
+- refactor(context): remove legacy HttpContextProvider wiring from container
 
 ---
 

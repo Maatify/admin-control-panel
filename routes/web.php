@@ -55,7 +55,9 @@ return function (App $app) {
         $group->group('', function (RouteCollectorProxy $stepUpGroup) {
             $stepUpGroup->get('/2fa/verify', [\App\Http\Controllers\Ui\UiStepUpController::class, 'verify']);
             $stepUpGroup->post('/2fa/verify', [\App\Http\Controllers\Ui\UiStepUpController::class, 'doVerify']);
-        })->add(SessionGuardMiddleware::class);
+        })
+        ->add(\App\Http\Middleware\AdminContextMiddleware::class)
+        ->add(SessionGuardMiddleware::class);
 
         // Protected UI Routes (Dashboard)
         $group->group('', function (RouteCollectorProxy $protectedGroup) {
@@ -91,6 +93,7 @@ return function (App $app) {
         })
         ->add(\App\Http\Middleware\ScopeGuardMiddleware::class)
         ->add(\App\Http\Middleware\SessionStateGuardMiddleware::class)
+        ->add(\App\Http\Middleware\AdminContextMiddleware::class)
         ->add(SessionGuardMiddleware::class)
         ->add(\App\Http\Middleware\RememberMeMiddleware::class);
 
@@ -104,6 +107,7 @@ return function (App $app) {
 
         // Step-Up API
         $api->post('/auth/step-up', [\App\Http\Controllers\StepUpController::class, 'verify'])
+            ->add(\App\Http\Middleware\AdminContextMiddleware::class)
             ->add(SessionGuardMiddleware::class)
             ->setName('auth.stepup.verify');
 
@@ -179,6 +183,7 @@ return function (App $app) {
         })
         ->add(\App\Http\Middleware\ScopeGuardMiddleware::class)
         ->add(\App\Http\Middleware\SessionStateGuardMiddleware::class)
+        ->add(\App\Http\Middleware\AdminContextMiddleware::class)
         ->add(SessionGuardMiddleware::class);
     });
 
@@ -189,10 +194,8 @@ return function (App $app) {
     // InputNormalizationMiddleware MUST run before validation and guards.
     // It is added last to ensure it executes first in Slim's middleware stack.
 
-    // Runs after RequestIdMiddleware to inject request into container (with attributes)
-    $app->add(new \App\Http\Middleware\ContextProviderMiddleware($container));
-
     $app->add(\App\Http\Middleware\RecoveryStateMiddleware::class);
     $app->add(\App\Modules\InputNormalization\Middleware\InputNormalizationMiddleware::class);
+    $app->add(\App\Http\Middleware\RequestContextMiddleware::class);
     $app->add(\App\Http\Middleware\RequestIdMiddleware::class);
 };
