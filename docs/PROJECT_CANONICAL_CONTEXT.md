@@ -527,7 +527,7 @@ These concerns are **architectural**, not UI conveniences.
     "to": "YYYY-MM-DD"
   }
 }
-````
+```
 
 **Field Semantics:**
 
@@ -639,16 +639,16 @@ Where:
 
 The following are **strictly forbidden** on Canonical LIST APIs:
 
-❌ `filters`  
-❌ `limit`  
-❌ `items` / `meta`  
-❌ `from_date` / `to_date`  
-❌ client-side pagination  
-❌ client-side filtering  
-❌ UI-defined searchable columns  
-❌ dynamic SQL column injection  
-❌ multiple date columns  
-❌ implicit filtering  
+❌ `filters`
+❌ `limit`
+❌ `items` / `meta`
+❌ `from_date` / `to_date`
+❌ client-side pagination
+❌ client-side filtering
+❌ UI-defined searchable columns
+❌ dynamic SQL column injection
+❌ multiple date columns
+❌ implicit filtering
 ❌ undocumented request keys
 
 Any usage of the above is a **Canonical Violation**.
@@ -722,12 +722,13 @@ Any deviation is a **Canonical Violation**.
 * **Transactions**: Services manage transactions, Repositories accept `PDO` in constructor (shared connection).
 
 ---
+
 ## 🧪 I) Testing & Verification Model (CANONICAL)
 
-**Status:** ARCHITECTURE-LOCKED / MANDATORY  
+**Status:** ARCHITECTURE-LOCKED / MANDATORY
 **Applies to:** All API endpoints, security-sensitive flows, and database-backed operations
 
-Testing in this project is **not optional** and **not advisory**.  
+Testing in this project is **not optional** and **not advisory**.
 It is a **core architectural mechanism** used to verify correctness, security, and fail-closed behavior of the system.
 
 Any implementation that violates the rules in this section is considered an
@@ -745,7 +746,7 @@ The system recognizes the following test categories:
 | Integration Tests    | Services + Repositories + DB               | Required      |
 | Endpoint / E2E Tests | Full HTTP pipeline verification            | **MANDATORY** |
 
-**Endpoint / Integration Tests are the authoritative verification mechanism**  
+**Endpoint / Integration Tests are the authoritative verification mechanism**
 for system behavior.
 
 Unit tests alone are **insufficient** for validating this system.
@@ -771,7 +772,7 @@ Endpoint Tests MUST:
 * Use real request objects, headers, cookies, and payloads
 * Exercise real controllers, services, repositories, and guards
 
-❌ Calling services or repositories directly is **FORBIDDEN**  
+❌ Calling services or repositories directly is **FORBIDDEN**
 ❌ Bypassing middleware is **FORBIDDEN**
 
 ---
@@ -852,13 +853,13 @@ A test that only asserts “success paths” is considered **INCOMPLETE**.
 
 The following are **STRICTLY FORBIDDEN** in tests:
 
-❌ Mocking authorization decisions  
-❌ Mocking audit writers  
-❌ Mocking security event loggers  
-❌ Skipping middleware  
-❌ Direct service invocation instead of HTTP  
-❌ Sharing database state across tests  
-❌ Tests that depend on execution order  
+❌ Mocking authorization decisions
+❌ Mocking audit writers
+❌ Mocking security event loggers
+❌ Skipping middleware
+❌ Direct service invocation instead of HTTP
+❌ Sharing database state across tests
+❌ Tests that depend on execution order
 ❌ Tests without cleanup or rollback
 
 Violations invalidate the test regardless of assertions.
@@ -908,11 +909,11 @@ Ad-hoc or convenience-based testing approaches are **NOT ACCEPTABLE**.
 
 * **Compliance**:
 
-    * `Sessions` (Phase 14.3) is fully compliant.
+  * `Sessions` (Phase 14.3) is fully compliant.
 * **Gaps (Observed)**:
 
-    * `Admins`, `Roles`, `Permissions` pages are currently placeholders (`coming soon`). They do not yet implement the Canonical API-First pattern.
-    * Legacy `Web\*Controller` classes (e.g., `LogoutController`) exist alongside `Ui*Controller` wrappers.
+  * `Admins`, `Roles`, `Permissions` pages are currently placeholders (`coming soon`). They do not yet implement the Canonical API-First pattern.
+  * Legacy `Web\*Controller` classes (e.g., `LogoutController`) exist alongside `Ui*Controller` wrappers.
 
 ---
 
@@ -922,26 +923,26 @@ Ad-hoc or convenience-based testing approaches are **NOT ACCEPTABLE**.
 
 * **Files**:
 
-    * Create `app/Http/Controllers/Ui/Ui{Resource}Controller.php`.
-    * Create `templates/pages/{resource}.twig`.
-    * Update `routes/web.php` (Group: Protected UI).
+  * Create `app/Http/Controllers/Ui/Ui{Resource}Controller.php`.
+  * Create `templates/pages/{resource}.twig`.
+  * Update `routes/web.php` (Group: Protected UI).
 * **Target**: Follow the Canonical Template pattern (View -> API).
 
 ### 2. Add New Protected API Endpoint
 
 * **Files**:
 
-    * Create `app/Http/Controllers/Api/{Resource}{Action}Controller.php`.
-    * Create `App/Domain/DTO/{Resource}/{Action}RequestDTO.php`.
-    * Update `routes/web.php` (Group: `/api`, Middleware: `AuthorizationGuardMiddleware`).
+  * Create `app/Http/Controllers/Api/{Resource}{Action}Controller.php`.
+  * Create `App/Domain/DTO/{Resource}/{Action}RequestDTO.php`.
+  * Update `routes/web.php` (Group: `/api`, Middleware: `AuthorizationGuardMiddleware`).
 * **Security**: Ensure `AuthorizationGuardMiddleware` and proper Permission name.
 
 ### 3. Add New DB Table
 
 * **Files**:
 
-    * Update `database/schema.sql` (Canonical Schema).
-    * Create `scripts/migrations/xxx_add_table.sql` (if strict migration required).
+  * Update `database/schema.sql` (Canonical Schema).
+  * Create `scripts/migrations/xxx_add_table.sql` (if strict migration required).
 * **Code**: Create `app/Infrastructure/Repository/Pdo{Resource}Repository.php` and Interface in `app/Domain/Contracts/`.
 
 ---
@@ -950,8 +951,8 @@ Ad-hoc or convenience-based testing approaches are **NOT ACCEPTABLE**.
 
 * **Web vs Ui Controllers**: `app/Http/Controllers/Web/` contains legacy logic. `app/Http/Controllers/Ui/` is the new standard.
 
-    * *Conflict*: `LoginController` is in `Web` but wrapped by `UiLoginController`.
-    * *Resolution*: Prefer `Ui` controllers for all new UI routes. Keep `Web` only for legacy support until fully migrated.
+  * *Conflict*: `LoginController` is in `Web` but wrapped by `UiLoginController`.
+  * *Resolution*: Prefer `Ui` controllers for all new UI routes. Keep `Web` only for legacy support until fully migrated.
 
 ---
 
@@ -970,8 +971,8 @@ The system defines several modules that cross application boundaries and affect 
 
 ### **0. Input Normalization (CANONICAL BOUNDARY)**
 
-**Status:** ARCHITECTURE-LOCKED / MANDATORY  
-**Applies to:** All Web & API requests  
+**Status:** ARCHITECTURE-LOCKED / MANDATORY
+**Applies to:** All Web & API requests
 **Authoritative Decision:** `docs/adr/ADR-006-input-normalization.md`
 
 The Admin Control Panel enforces a **mandatory input normalization boundary**
@@ -985,9 +986,9 @@ Input Normalization is responsible for:
 
 And is **strictly forbidden** from performing:
 
-❌ Validation  
-❌ Sanitization  
-❌ Business logic  
+❌ Validation
+❌ Sanitization
+❌ Business logic
 ❌ Default value injection
 
 All downstream layers (Validation, DTOs, Controllers, Services)
@@ -1001,14 +1002,14 @@ By definition:
 
 Any deviation is considered an **Architecture Violation**.
 
-> Full rationale, scope, and non-goals are defined in  
+> Full rationale, scope, and non-goals are defined in
 > `docs/adr/ADR-006-input-normalization.md`
 
 ---
 
 ### **1. Input Validation (NEW)**
 
-**Status:** ARCHITECTURE-APPROVED / ACTIVE  
+**Status:** ARCHITECTURE-APPROVED / ACTIVE
 **Canonical Spec:** `docs/architecture/input-validation.md`
 
 **Rules:**
@@ -1239,61 +1240,75 @@ Any of the following requires:
 
 ---
 
-### **3. Cryptography & Secrets Handling (NEW)**
+### **3. Cryptography & Secrets Handling (CANONICAL)**
 
-**Status:** ARCHITECTURE-LOCKED / ACTIVE
-**Scope:** All application layers (Domain, Infrastructure, Workers)
+**Status:** ARCHITECTURE-LOCKED / CLOSED (Post-Audit)
+**Scope:** All layers (Controllers, Readers, Domain, Infrastructure, Workers)
 
-The system defines a **single, unified cryptography contract** for handling
-all sensitive data, secrets, identifiers, and encrypted payloads.
+The system defines a **single, unified cryptography contract** for handling:
+sensitive data, secrets, identifiers, encrypted payloads, and key rotation.
 
 Cryptography is treated as an **infrastructure capability**, not a feature.
 
 ---
 
-#### Single Entry Point (Mandatory)
+#### Authority Boundary (HARD RULE)
 
-All cryptographic operations **MUST** go through the canonical facade:
+Controllers, Readers, and Repositories MUST NOT:
 
-```
+❌ Perform cryptographic operations (hashing/encryption/decryption)
+❌ Know cryptographic algorithms
+❌ Receive or access key material (direct ENV keys)
+❌ Call low-level crypto primitives (`openssl_*`, `hash_*`, `random_bytes`, HKDF)
 
-App\Domain\Contracts\CryptoFacadeInterface
+**Exception (explicitly allowed):**
 
-```
+* Low-level primitives MAY exist **only** inside approved Crypto modules and the canonical password service (e.g., HKDF implementation, PasswordService internals).
+* Application layers must treat crypto as an intent-driven capability and MUST NOT re-implement primitives.
 
-❌ Direct usage of:
-* OpenSSL
-* HKDF
-* Key rotation services
-* Random generators
+All reversible-encryption and identifier-crypto intent MUST be executed via **Crypto Application Services** only.
 
-is **STRICTLY FORBIDDEN** outside the Crypto module.
+---
+
+#### Crypto Application Services (MANDATORY ABSTRACTION)
+
+Crypto Application Services are the ONLY allowed entry point for **application-layer intent** involving:
+
+* Reversible encryption / decryption (data-at-rest)
+* Identifier encryption / decryption
+* Blind index derivation
+
+**Allowed services:**
+
+* `App\Application\Crypto\AdminIdentifierCryptoServiceInterface`
+* `App\Application\Crypto\NotificationCryptoServiceInterface`
+* `App\Application\Crypto\TotpSecretCryptoServiceInterface`
+
+**Password note (canonical exception):**
+
+* Password hashing/verification is governed by `App\Domain\Service\PasswordService` (Argon2id + Pepper Ring).
+* `App\Application\Crypto\PasswordCryptoServiceInterface` MAY exist as a wrapper/adapter, but password correctness and policy remain owned by `PasswordService`.
+
+Rules:
+
+* These services are thin adapters (intent → crypto operation).
+* They MAY use the Crypto pipeline (`CryptoProvider`, `CryptoContext`, rotation, HKDF) internally.
+* They MUST NOT contain business logic.
+* Controllers/Readers/Repositories MUST NOT derive blind indexes, encrypt, or decrypt directly.
 
 ---
 
 #### Crypto Context Registry (LOCKED)
 
-All reversible encryption operations **MUST** use a predefined,
-versioned crypto context.
+All reversible encryption operations MUST use predefined, versioned contexts from:
 
-##### Canonical Context Source (NON-NEGOTIABLE)
-
-`App\Domain\Security\CryptoContext` is the **single and exclusive source of truth**
-for all cryptographic context identifiers.
+`App\Domain\Security\CryptoContext`
 
 Rules:
 
-* All encryption contexts MUST be referenced via constants from `CryptoContext`
-* Literal or inline context strings are STRICTLY FORBIDDEN
-* No layer (Controller, Service, Repository, Worker) may define or modify contexts
-* Adding or changing a context REQUIRES:
-  - Explicit architectural decision
-  - Documentation update
-  - Security review
-* Crypto Application Services MUST reference contexts ONLY via `CryptoContext`
-
-Any usage of a string-based context outside `CryptoContext`
-is considered a **SECURITY AND ARCHITECTURE VIOLATION**.
+* Contexts MUST be referenced via `CryptoContext` constants only.
+* Inline/literal context strings are STRICTLY FORBIDDEN.
+* Adding/changing a context requires ADR + security review.
 
 ---
 
@@ -1307,38 +1322,54 @@ Used for:
 
 Characteristics:
 
-* Encryption is reversible
+* Reversible (AES-GCM)
 * Uses Key Rotation
 * Uses context-based key derivation (HKDF)
 * Stores `key_id` with encrypted payload
-* Decryption MUST fail hard if key is missing
+* Decryption fails hard if key is missing or payload is invalid
 
 Encrypted outputs are represented exclusively by:
 
-```
-
-App\Domain\DTO\Crypto\EncryptedPayloadDTO
-
-```
+`App\Domain\DTO\Crypto\EncryptedPayloadDTO`
 
 ---
 
-#### One-Way Secrets (Passwords & OTP)
+#### One-Way Secrets (Passwords)
 
 Used for:
 
-* Passwords
-* OTP codes
-* Verification codes
+* Passwords (Argon2id + pepper)
+* OTP/verifications (one-way hashing as applicable)
 
 Rules:
 
-* One-way hashing only
-* No reversible encryption
+* No reversible encryption for passwords/OTP
 * Pepper is REQUIRED for passwords
-* Secrets are never decrypted
+* Password verification is deterministic
 
-Passwords and OTP **MUST NOT** use the reversible encryption pipeline.
+**Pepper Ring (LOCKED):**
+
+* `PASSWORD_PEPPERS` (JSON map of pepper_id → pepper_secret)
+* `PASSWORD_ACTIVE_PEPPER_ID`
+* Stored hashes retain their `pepper_id`
+* Verification uses stored `pepper_id` (NO trial across peppers)
+* Upgrade-on-login upgrades legacy/old pepper_id to active pepper_id
+
+---
+
+#### Blind Indexing (Identifiers)
+
+Blind indexes are used for exact-match lookup without decryption.
+
+Rules:
+
+* Blind index derivation MUST occur ONLY inside `AdminIdentifierCryptoService`.
+* Controllers MUST NOT compute blind indexes.
+* Controllers MUST NOT receive `EMAIL_BLIND_INDEX_KEY` or any blind-index secret.
+
+Key:
+
+* `EMAIL_BLIND_INDEX_KEY` (env) is read internally by `AdminIdentifierCryptoService` and is never injected into controllers.
 
 ---
 
@@ -1353,159 +1384,86 @@ Passwords and OTP **MUST NOT** use the reversible encryption pipeline.
 | TOTP seed          | encrypt    | TOTP_SEED_V1       |
 | PII identifiers    | encrypt    | IDENTIFIER_*_V1    |
 
-Any deviation from this matrix is a **Canonical Violation**.
+Any deviation is a **Canonical Violation**.
 
 ---
 
-#### Enforcement
+#### ENV & Boot Fail-Closed (HARD)
 
-* Application services depend **ONLY** on `CryptoFacadeInterface`
-* Workers (Email, Notifications) are consumers, not cryptography owners
-* Cryptography logic MUST NOT appear in Controllers or Domain Services
+The application MUST fail-closed if required crypto or password env is missing or malformed.
 
-This contract is **SECURITY-CRITICAL** and MUST NOT be altered
-without an explicit architectural decision and documentation update.
+Required (conceptual):
 
-#### Crypto Application Services (MANDATORY ABSTRACTION)
+* `CRYPTO_KEYS`
+* `CRYPTO_ACTIVE_KEY_ID`
+* `EMAIL_BLIND_INDEX_KEY`
+* `PASSWORD_PEPPERS`
+* `PASSWORD_ACTIVE_PEPPER_ID`
+* Argon2 options / password hashing options as configured
 
-To prevent crypto leakage and uncontrolled refactoring, the system defines
-**Crypto Application Services** as the ONLY allowed entry point for
-application-level cryptographic intent.
+Legacy env sources MUST NOT be used:
 
-These services act as **thin adapters** between domain intent and the
-CryptoFacade.
-
-Rules:
-
-* Crypto Application Services:
-  - MAY depend on `CryptoFacadeInterface`
-  - MAY reference `CryptoContext`
-  - MUST NOT contain business logic
-  - MUST NOT expose crypto primitives
-* Controllers, Domain Services, and Repositories:
-  - MUST NOT call CryptoFacade directly
-  - MUST NOT reference CryptoContext directly
-
-Typical responsibilities include:
-* Identifier encryption / decryption
-* Blind index derivation
-* Payload encryption for queues or storage
-* Any violation MUST be treated as a refactor blocker
-
-This layer is REQUIRED before any cryptographic refactor work.
-
-> ⚠️ **IMPORTANT — DESCRIPTIVE ONLY**
->
-> The following section documents the **current implementation (as-built)**.
-> It is **NOT** a source of architectural authority and MUST NOT be used
-> to justify refactoring, redesign, or deviation from the rules defined above.
+* `EMAIL_ENCRYPTION_KEY` (forbidden / removed)
 
 ---
-
-> 🔒 Refactor Guardrail
->
-> Any refactor involving cryptography or database access MUST comply with
-> the constraints defined in:
->
-> `REFACTOR PLAN — CRYPTO & DATABASE CENTRALIZATION`
->
-> Refactor work that bypasses Crypto Application Services or CryptoContext
-> is INVALID and MUST be rejected.
-
-This guardrail applies to:
-- Human contributors
-- AI executors (Jules, Codex, Claude)
-- Emergency hotfixes
-
 
 ## 🔐 Cryptography — Canonical Implementation (As-Built)
 
-This implementation strictly conforms to the rules defined in
-**"3. Cryptography & Secrets Handling (ARCHITECTURE-LOCKED)"** above.
+> ⚠️ **IMPORTANT — DESCRIPTIVE ONLY**
+>
+> This section documents the **current implementation (as-built)**.
+> It is **NOT** a source of architectural authority and MUST NOT be used
+> to justify refactoring, redesign, or deviation from the rules above.
 
-### Entry Point
-The application utilizes a unified facade for all cryptographic operations, exposed via `App\Modules\Crypto\DX\CryptoProvider`. This class is registered in the DI container and provides three distinct pipelines:
-1.  **Context-Bound Encryption:** `context(string $context)` returns a `ReversibleCryptoService` derived from root keys using HKDF.
-2.  **Direct Encryption:** `direct()` returns a `ReversibleCryptoService` using root keys directly (Internal/Legacy use only).
-3.  **One-Way Secrets:** `password()` exposes the `PasswordService` for hashing and verification.
+### Entry Points (Observed)
+
+Reversible encryption and identifier crypto are performed through the Crypto pipeline (internally consumed by the crypto application services):
+
+* `App\Modules\Crypto\DX\CryptoProvider`
+
+  * `context(string $context)` → reversible crypto service (HKDF-derived key)
+  * Key rotation is handled internally via `KeyRotationService`
+
+Password hashing/verification is performed via the canonical password service:
+
+* `App\Domain\Service\PasswordService`
+
+  * Argon2id + Pepper Ring
+  * deterministic verification using stored `pepper_id`
+  * upgrade-on-login to active pepper
 
 ### Reversible Encryption Pipeline (Context-Aware)
-The primary encryption flow adheres to a "Derive-then-Encrypt" model to ensure domain separation.
 
-1.  **Input:** Plaintext string + Context String (e.g., `email:recipient:v1`).
-2.  **Root Key Resolution:** `KeyRotationService` provides the currently `ACTIVE` root key (from `CRYPTO_KEYS` or `EMAIL_ENCRYPTION_KEY`).
-3.  **Key Derivation (HKDF):**
-    *   The `HKDFService` derives a unique 32-byte key for the specific context using `hash_hmac('sha256')` (RFC 5869 expand-only).
-    *   Context strings must strictly contain `:v` to enforce versioning.
-4.  **Encryption (AES-256-GCM):**
-    *   Algorithm: `Aes256GcmAlgorithm` (using `openssl_encrypt`).
-    *   Key: 32-byte derived key.
-    *   IV: 12-byte random binary (96-bit).
-    *   Tag: 16-byte authentication tag (128-bit).
-5.  **Output:** Returns an array containing:
-    *   `result`: `ReversibleCryptoEncryptionResultDTO` (Cipher, IV, Tag).
-    *   `key_id`: The ID of the root key used (e.g., `v1`).
-    *   `algorithm`: Enum `AES_256_GCM`.
+1. **Input:** Plaintext string + `CryptoContext::*` constant
+2. **Root Key Resolution:** `KeyRotationService` resolves current ACTIVE key from:
 
-### One-Way Secrets (Passwords)
-Password handling is managed by `App\Modules\Crypto\Password\PasswordHasher`, delegating to `PasswordService`.
+  * `CRYPTO_KEYS` + `CRYPTO_ACTIVE_KEY_ID` (ONLY)
+3. **Key Derivation (HKDF):**
 
-*   **Algorithm:** `Argon2id` (via PHP `password_hash`).
-*   **Peppering:** Mandatory server-side pepper (from `PASSWORD_PEPPER` env).
-    *   Logic: `hash_hmac('sha256', password, pepper, true)` is calculated *before* passing to Argon2id.
-*   **Verification:**
-    1.  Re-calculates the peppered HMAC of the input.
-    2.  Verifies against the stored hash using `password_verify`.
-    3.  Supports rotation via `PASSWORD_PEPPER_OLD`.
+  * Uses `hash_hmac('sha256')` in the approved HKDF implementation
+  * Context must include versioning (e.g., `:v1`)
+4. **Encryption:** AES-256-GCM (OpenSSL), with IV and TAG
+5. **Output:** encryption metadata + `key_id`, mapped into `EncryptedPayloadDTO` by the application crypto services
 
-### Blind Indexing
-Blind indexes are used to look up encrypted identifiers (e.g., Email) without decryption.
-*   **Algorithm:** `hash_hmac('sha256', raw_value, key)`.
-*   **Key:** `EMAIL_BLIND_INDEX_KEY` (loaded via `AdminConfigDTO`).
-*   **Implementation:** Calculated via `hash_hmac` before being passed to Domain Services or Repositories.
-*   **Purpose:** Allows exact-match lookups (`SELECT ... WHERE blind_index = ?`) on encrypted columns.
+### Failure Semantics (Fail-Closed)
 
-### Key Management
-Keys are managed by `App\Modules\Crypto\KeyRotation\KeyRotationService`, populated via `App\Bootstrap\Container`.
-
-*   **Source:** `CRYPTO_KEYS` (JSON array of `{id, key}`) or legacy `EMAIL_ENCRYPTION_KEY`.
-*   **Active Key:** Strictly defined by `CRYPTO_ACTIVE_KEY_ID`.
-*   **States:**
-    *   `ACTIVE`: Used for new encryption and decryption.
-    *   `INACTIVE` / `RETIRED`: Used for decryption only.
-*   **Safety:** The service exposes raw key material only to the `CryptoContextFactory` and `CryptoDirectFactory`, never to application logic.
-
-### Failure Semantics
-The crypto layer enforces strict "fail-closed" behavior:
-*   **Encryption Failure:** Throws `RuntimeException` (e.g., OpenSSL failure).
-*   **Decryption Failure:** Throws `App\Modules\Crypto\Reversible\Exceptions\CryptoDecryptionFailedException` for *any* failure (tag mismatch, wrong key, corruption).
-*   **Missing Key:** Throws `CryptoKeyNotFoundException` if the requested `key_id` is unknown.
-*   **Invalid Context:** Throws `InvalidContextException` if the context string is empty or missing versioning.
-
-### Explicit Non-Goals
-*   **Key Loading:** The core services (`ReversibleCryptoService`, `KeyRotationService`) do not load configuration or environment variables; they rely on injection.
-*   **Storage:** The crypto layer returns DTOs and does not handle database persistence.
-*   **Serialization:** The layer does not serialize the encrypted payload (e.g., to Base64 or JSON); it returns raw binary DTOs.
-*   **Mixed Mode:** The `ReversibleCryptoService` cannot perform hashing, and the `PasswordService` cannot perform encryption.
+* Encryption failure → throws (runtime exception)
+* Decryption failure → throws (crypto-specific failure exception)
+* Missing key_id → throws (key not found)
+* Invalid/malformed context → throws (invalid context)
 
 ---
 
-### **Status Summary**
+### Architectural Closure Statement (LOCKED)
 
-* Input Validation → **ACTIVE**
-* Email Messaging & Delivery → **ACTIVE / CANONICAL**
-* Cryptography & Secrets Handling → **ACTIVE / LOCKED**
-* Normative Rules → Section 3 (LOCKED)
-* Implementation Reference → Cryptography — Canonical Implementation (As-Built)
+As of the latest closure audit, controller-level crypto has been eliminated and the authority boundary is enforced:
 
+* Controllers do not perform crypto
+* Controllers do not receive key material
+* Blind index derivation exists only inside `AdminIdentifierCryptoService`
+* Crypto Application Services are the sole authority for reversible/identifier crypto intent
 
-Any change to these cross-cutting concerns requires:
-
-* Explicit architectural decision
-* Documentation update
-* Security review where applicable
-
----
+Further discussion/refactor on this topic is **FORBIDDEN** unless a new ADR is opened.
 
 ## 🔎 Evidence Index
 
