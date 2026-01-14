@@ -49,6 +49,7 @@ class RequestContextMiddlewareTest extends TestCase
     public function testItFailsWithoutRequestId(): void
     {
         $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('RequestContextMiddleware called without valid request_id. Ensure RequestIdMiddleware runs before RequestContextMiddleware.');
 
         $request = $this->createMock(ServerRequestInterface::class);
         $handler = $this->createMock(RequestHandlerInterface::class);

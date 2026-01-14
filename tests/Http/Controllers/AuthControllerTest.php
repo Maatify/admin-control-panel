@@ -55,7 +55,7 @@ class AuthControllerTest extends TestCase
         $loginResult = new AdminLoginResultDTO(123, 'token-xyz');
         $authService->method('login')->willReturn($loginResult);
 
-        // EXPECTATION: Activity Log called with correct contexts
+        // EXPECTATION: Activity Log called with correct contexts and 6 arguments
         $adminActivityLogService->expects($this->once())
             ->method('log')
             ->with(
@@ -66,7 +66,9 @@ class AuthControllerTest extends TestCase
                     return $ctx->requestId === 'req-123';
                 }),
                 AdminActivityAction::LOGIN_SUCCESS,
-                $this->anything()
+                null, // entityType
+                null, // entityId
+                $this->anything() // metadata
             );
 
         $controller->login($request, $response);

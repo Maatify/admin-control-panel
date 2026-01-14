@@ -14,29 +14,35 @@ final class RequestContextMiddleware implements MiddlewareInterface
 {
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        // 1. Get Request ID
         $requestId = $request->getAttribute('request_id');
+
         if (!is_string($requestId) || $requestId === '') {
-            // Hard Fail as per spec
-            throw new \RuntimeException('Critical: Request ID missing in RequestContextMiddleware. Ensure RequestIdMiddleware runs first.');
+            throw new \RuntimeException(
+                'RequestContextMiddleware called without valid request_id. ' .
+                'Ensure RequestIdMiddleware runs before RequestContextMiddleware.'
+            );
         }
 
-        // 2. Get IP and User Agent
         $serverParams = $request->getServerParams();
-        $ipAddress = $serverParams['REMOTE_ADDR'] ?? '0.0.0.0';
-        $userAgent = $serverParams['HTTP_USER_AGENT'] ?? 'Unknown';
 
-        // 3. Create Context
+        $ipAddress = $serverParams['REMOTE_ADDR'] ?? '0.0.0.0';
+        if (!is_string($ipAddress) || $ipAddress === '') {
+            $ipAddress = '0.0.0.0';
+        }
+
+        $userAgent = $serverParams['HTTP_USER_AGENT'] ?? 'unknown';
+        if (!is_string($userAgent) || $userAgent === '') {
+            $userAgent = 'unknown';
+        }
+
         $context = new RequestContext(
             requestId: $requestId,
-            ipAddress: (string)$ipAddress,
-            userAgent: (string)$userAgent
+            ipAddress: $ipAddress,
+            userAgent: $userAgent
         );
 
-        // 4. Attach to Request
         $request = $request->withAttribute(RequestContext::class, $context);
 
-        // 5. Proceed
         return $handler->handle($request);
     }
 }
