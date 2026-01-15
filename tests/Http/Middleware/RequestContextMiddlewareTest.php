@@ -11,30 +11,41 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Message\ResponseInterface;
 
-class RequestContextMiddlewareTest extends TestCase
+final class RequestContextMiddlewareTest extends TestCase
 {
     public function testItCreatesRequestContext(): void
     {
-        $request = $this->createMock(ServerRequestInterface::class);
-        $handler = $this->createMock(RequestHandlerInterface::class);
+        $request  = $this->createMock(ServerRequestInterface::class);
+        $handler  = $this->createMock(RequestHandlerInterface::class);
         $response = $this->createMock(ResponseInterface::class);
 
-        $request->expects($this->once())
-            ->method('getAttribute')
-            ->with('request_id')
-            ->willReturn('123-abc');
+        // Allow multiple getAttribute() calls with different keys
+        $request->method('getAttribute')
+            ->willReturnCallback(static function (string $name, mixed $default = null) {
+                return match ($name) {
+                    'request_id' => '123-abc',
+                    '__route__'  => null, // route may or may not exist
+                    default      => $default,
+                };
+            });
 
         $request->expects($this->once())
             ->method('getServerParams')
-            ->willReturn(['REMOTE_ADDR' => '127.0.0.1', 'HTTP_USER_AGENT' => 'TestAgent']);
+            ->willReturn([
+                'REMOTE_ADDR'     => '127.0.0.1',
+                'HTTP_USER_AGENT' => 'TestAgent',
+            ]);
 
         $request->expects($this->once())
             ->method('withAttribute')
-            ->with(RequestContext::class, $this->callback(function (RequestContext $context) {
-                return $context->requestId === '123-abc'
-                    && $context->ipAddress === '127.0.0.1'
-                    && $context->userAgent === 'TestAgent';
-            }))
+            ->with(
+                RequestContext::class,
+                $this->callback(static function (RequestContext $context): bool {
+                    return $context->requestId === '123-abc'
+                           && $context->ipAddress === '127.0.0.1'
+                           && $context->userAgent === 'TestAgent';
+                })
+            )
             ->willReturnSelf();
 
         $handler->expects($this->once())
@@ -49,15 +60,17 @@ class RequestContextMiddlewareTest extends TestCase
     public function testItFailsWithoutRequestId(): void
     {
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('RequestContextMiddleware called without valid request_id. Ensure RequestIdMiddleware runs before RequestContextMiddleware.');
+        $this->expectExceptionMessage(
+            'RequestContextMiddleware called without valid request_id. Ensure RequestIdMiddleware runs before RequestContextMiddleware.'
+        );
 
         $request = $this->createMock(ServerRequestInterface::class);
         $handler = $this->createMock(RequestHandlerInterface::class);
 
-        $request->expects($this->once())
-            ->method('getAttribute')
-            ->with('request_id')
-            ->willReturn(null);
+        $request->method('getAttribute')
+            ->willReturnCallback(static function (string $name, mixed $default = null) {
+                return $name === 'request_id' ? null : $default;
+            });
 
         $middleware = new RequestContextMiddleware();
         $middleware->process($request, $handler);
