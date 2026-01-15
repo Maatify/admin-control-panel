@@ -38,8 +38,11 @@ final readonly class ActivityLogQueryController
 
     public function __invoke(Request $request, Response $response): Response
     {
-        $adminId = $request->getAttribute('admin_id');
-        assert(is_int($adminId));
+        $adminContext = $request->getAttribute(\App\Context\AdminContext::class);
+        if (!$adminContext instanceof \App\Context\AdminContext) {
+             throw new \RuntimeException("AdminContext missing");
+        }
+        $adminId = $adminContext->adminId;
 
         /** @var array<string,mixed> $body */
         $body = (array)$request->getParsedBody();

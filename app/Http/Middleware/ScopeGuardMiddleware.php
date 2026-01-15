@@ -25,12 +25,13 @@ class ScopeGuardMiddleware implements MiddlewareInterface
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $adminId = $request->getAttribute('admin_id');
-        if (!is_int($adminId)) {
+        $adminContext = $request->getAttribute(\App\Context\AdminContext::class);
+        if (!$adminContext instanceof \App\Context\AdminContext) {
             $response = new \Slim\Psr7\Response();
             $response->getBody()->write((string)json_encode(['error' => 'Authentication required'], JSON_THROW_ON_ERROR));
             return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
         }
+        $adminId = $adminContext->adminId;
 
         $sessionId = $this->getSessionIdFromRequest($request);
         if ($sessionId === null) {

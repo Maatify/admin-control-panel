@@ -7,7 +7,6 @@ namespace App\Domain\Service;
 use App\Domain\Contracts\AdminDirectPermissionRepositoryInterface;
 use App\Domain\Contracts\AdminRoleRepositoryInterface;
 use App\Domain\Contracts\TelemetryAuditLoggerInterface;
-use App\Domain\Contracts\ClientInfoProviderInterface;
 use App\Context\RequestContext;
 use App\Domain\Contracts\RolePermissionRepositoryInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;

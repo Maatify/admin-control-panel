@@ -10,7 +10,6 @@ use App\Domain\Contracts\AdminPasswordRepositoryInterface;
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
 use App\Domain\Contracts\TelemetryAuditLoggerInterface;
 use App\Context\RequestContext;
-use App\Domain\Contracts\ClientInfoProviderInterface;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\DTO\AdminLoginResultDTO;

@@ -6,7 +6,6 @@ namespace App\Domain\Service;
 
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
-use App\Domain\Contracts\ClientInfoProviderInterface;
 use App\Context\RequestContext;
 use App\Domain\DTO\AuditEventDTO;
 use App\Domain\Exception\IdentifierNotFoundException;

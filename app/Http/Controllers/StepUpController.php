@@ -37,12 +37,13 @@ class StepUpController
             }
         }
 
-        $adminId = $request->getAttribute('admin_id');
-        if (!is_int($adminId)) {
+        $adminContext = $request->getAttribute(\App\Context\AdminContext::class);
+        if (!$adminContext instanceof \App\Context\AdminContext) {
              $payload = json_encode(['error' => 'Authentication required']);
              $response->getBody()->write((string)$payload);
              return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
         }
+        $adminId = $adminContext->adminId;
 
         $sessionId = $this->getSessionIdFromRequest($request);
         if ($sessionId === null) {

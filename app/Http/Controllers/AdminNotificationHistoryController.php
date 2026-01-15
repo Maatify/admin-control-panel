@@ -25,10 +25,11 @@ final class AdminNotificationHistoryController
      */
     public function index(Request $request, Response $response, array $args): Response
     {
-        $authAdminId = $request->getAttribute('admin_id');
-        if (!is_int($authAdminId)) {
-            throw new \RuntimeException('Admin ID not found in request attributes');
+        $adminContext = $request->getAttribute(\App\Context\AdminContext::class);
+        if (!$adminContext instanceof \App\Context\AdminContext) {
+            throw new \RuntimeException('AdminContext missing');
         }
+        $authAdminId = $adminContext->adminId;
 
         $routeAdminId = (int)$args['admin_id'];
 

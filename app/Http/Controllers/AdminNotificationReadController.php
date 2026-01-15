@@ -24,10 +24,11 @@ final class AdminNotificationReadController
      */
     public function markAsRead(Request $request, Response $response, array $args): Response
     {
-        $adminId = $request->getAttribute('admin_id');
-        if (!is_int($adminId)) {
-            throw new \RuntimeException('Admin ID not found in request attributes');
+        $adminContext = $request->getAttribute(\App\Context\AdminContext::class);
+        if (!$adminContext instanceof \App\Context\AdminContext) {
+            throw new \RuntimeException('AdminContext missing');
         }
+        $adminId = $adminContext->adminId;
 
         $this->validationGuard->check(new AdminNotificationReadSchema(), $args);
 

@@ -19,11 +19,12 @@ class AdminSecurityEventController
 
     public function getMySecurityEvents(Request $request, Response $response): Response
     {
-        $adminId = $request->getAttribute('admin_id');
-        if (!is_int($adminId)) {
+        $adminContext = $request->getAttribute(\App\Context\AdminContext::class);
+        if (!$adminContext instanceof \App\Context\AdminContext) {
             $response->getBody()->write(json_encode(['error' => 'Unauthorized']) ?: '');
             return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
         }
+        $adminId = $adminContext->adminId;
 
         $params = $request->getQueryParams();
         $page = isset($params['page']) ? (int)$params['page'] : 1;

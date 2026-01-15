@@ -22,12 +22,11 @@ readonly class AuthorizationGuardMiddleware implements MiddlewareInterface
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $adminId = $request->getAttribute('admin_id');
-
-        if (empty($adminId) || !is_int($adminId)) {
-             // Should have been enforced by SessionGuardMiddleware
-             throw new UnauthorizedException("Authenticated session required.");
+        $adminContext = $request->getAttribute(\App\Context\AdminContext::class);
+        if (!$adminContext instanceof \App\Context\AdminContext) {
+            throw new \RuntimeException('AdminContext missing');
         }
+        $adminId = $adminContext->adminId;
 
         $route = RouteContext::fromRequest($request)->getRoute();
 

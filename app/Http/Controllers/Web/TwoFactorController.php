@@ -41,11 +41,12 @@ readonly class TwoFactorController
              return $this->view->render($response, '2fa-setup.twig', ['error' => 'Invalid input', 'secret' => is_string($secret) ? $secret : '']);
         }
 
-        $adminId = $request->getAttribute('admin_id');
-        if (!is_int($adminId)) {
+        $adminContext = $request->getAttribute(\App\Context\AdminContext::class);
+        if (!$adminContext instanceof \App\Context\AdminContext) {
             $response->getBody()->write('Unauthorized');
             return $response->withStatus(401);
         }
+        $adminId = $adminContext->adminId;
 
         $sessionId = $this->getSessionIdFromRequest($request);
          if ($sessionId === null) {
@@ -92,11 +93,12 @@ readonly class TwoFactorController
              return $this->view->render($response, $template, ['error' => 'Invalid input']);
         }
 
-        $adminId = $request->getAttribute('admin_id');
-        if (!is_int($adminId)) {
+        $adminContext = $request->getAttribute(\App\Context\AdminContext::class);
+        if (!$adminContext instanceof \App\Context\AdminContext) {
             $response->getBody()->write('Unauthorized');
             return $response->withStatus(401);
         }
+        $adminId = $adminContext->adminId;
 
         $sessionId = $this->getSessionIdFromRequest($request);
         if ($sessionId === null) {

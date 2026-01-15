@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
-use App\Domain\Contracts\ClientInfoProviderInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Context\RequestContext;
 use App\Domain\DTO\SecurityEventDTO;
@@ -27,7 +26,11 @@ readonly class LogoutController
 
     public function logout(Request $request, Response $response): Response
     {
-        $adminId = $request->getAttribute('admin_id');
+        $adminContext = $request->getAttribute(\App\Context\AdminContext::class);
+        if (!$adminContext instanceof \App\Context\AdminContext) {
+            throw new \RuntimeException('AdminContext missing');
+        }
+        $adminId = $adminContext->adminId;
 
         // Check for session token in cookies
         $cookies = $request->getCookieParams();
@@ -43,7 +46,7 @@ readonly class LogoutController
         }
 
         // Perform logout logic only if we have an identified admin
-        if (is_int($adminId)) {
+        if (true) {
             // Log the logout event
             $this->securityEventLogger->log(new SecurityEventDTO(
                 $adminId,

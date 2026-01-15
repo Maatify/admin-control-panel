@@ -26,15 +26,13 @@ class SessionStateGuardMiddleware implements MiddlewareInterface
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $adminId = $request->getAttribute('admin_id');
-
-        // Defensive check: If SessionGuard failed or wasn't run, admin_id might be missing.
-        // SessionGuard should block this, but we maintain the defense.
-        if (!is_int($adminId)) {
-             $response = new \Slim\Psr7\Response();
-             $response->getBody()->write((string)json_encode(['error' => 'Authentication required'], JSON_THROW_ON_ERROR));
-             return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
+        $adminContext = $request->getAttribute(\App\Context\AdminContext::class);
+        if (!$adminContext instanceof \App\Context\AdminContext) {
+            $response = new \Slim\Psr7\Response();
+            $response->getBody()->write((string)json_encode(['error' => 'Authentication required'], JSON_THROW_ON_ERROR));
+            return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
         }
+        $adminId = $adminContext->adminId;
 
         // STRICT Detection: Same as SessionGuardMiddleware
         $isApi = AuthSurface::isApi($request);

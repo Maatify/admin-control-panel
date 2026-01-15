@@ -7,7 +7,6 @@ namespace App\Domain\Service;
 use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Context\RequestContext;
-use App\Domain\Contracts\ClientInfoProviderInterface;
 use App\Domain\DTO\AuditEventDTO;
 use App\Domain\Enum\VerificationStatus;
 use App\Domain\Exception\InvalidIdentifierStateException;

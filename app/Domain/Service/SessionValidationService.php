@@ -6,7 +6,6 @@ namespace App\Domain\Service;
 
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Context\RequestContext;
-use App\Domain\Contracts\ClientInfoProviderInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\DTO\SecurityEventDTO;
 use App\Domain\Exception\ExpiredSessionException;

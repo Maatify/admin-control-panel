@@ -23,11 +23,12 @@ readonly class TelegramConnectController
     public function index(Request $request, Response $response): Response
     {
         // Admin ID must be present (SessionGuardMiddleware ensures this for protected routes)
-        $adminId = $request->getAttribute('admin_id');
-        if (!is_int($adminId)) {
-            // Should not happen if middleware is correct
-            throw new RuntimeException('Admin ID not found in request');
+        $adminContext = $request->getAttribute(\App\Context\AdminContext::class);
+        if (!$adminContext instanceof \App\Context\AdminContext) {
+            // Fail-closed if AdminContext is missing
+            throw new RuntimeException('AdminContext missing');
         }
+        $adminId = $adminContext->adminId;
 
         // Generate OTP
         // Identity: admin, ID: adminId

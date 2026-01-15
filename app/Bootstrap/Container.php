@@ -30,7 +30,6 @@ use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Domain\Contracts\AdminTargetedAuditReaderInterface;
 use App\Domain\Contracts\TelemetryAuditLoggerInterface;
 use App\Domain\Contracts\RememberMeRepositoryInterface;
-use App\Domain\Contracts\ClientInfoProviderInterface;
 use App\Domain\Contracts\FailedNotificationRepositoryInterface;
 use App\Domain\Contracts\NotificationReadRepositoryInterface;
 use App\Domain\Contracts\NotificationRoutingInterface;
@@ -133,7 +132,6 @@ use App\Infrastructure\Repository\PdoVerificationCodeRepository;
 use App\Infrastructure\Repository\RolePermissionRepository;
 use App\Domain\Service\PasswordService;
 use App\Infrastructure\Repository\SecurityEventRepository;
-use App\Infrastructure\Security\WebClientInfoProvider;
 use App\Infrastructure\Service\Google2faTotpService;
 use App\Infrastructure\UX\AdminActivityMapper;
 use App\Modules\ActivityLog\Contracts\ActivityLogWriterInterface;
@@ -626,9 +624,6 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new NotificationReadRepository($pdo);
-            },
-            ClientInfoProviderInterface::class => function (ContainerInterface $c) {
-                return new WebClientInfoProvider();
             },
             AuthController::class => function (ContainerInterface $c) {
                 $authService = $c->get(AdminAuthenticationService::class);
