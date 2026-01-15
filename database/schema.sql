@@ -198,17 +198,32 @@ CREATE TABLE audit_logs (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE security_events (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    admin_id INT NULL,
-    event_name VARCHAR(255) NOT NULL,
-    context JSON NOT NULL,
-    ip_address VARCHAR(45) NULL,
-    user_agent TEXT NULL,
-    occurred_at DATETIME NOT NULL,
-    INDEX idx_security_admin_id (admin_id),
-    INDEX idx_security_event_name (event_name),
-    INDEX idx_security_occurred_at (occurred_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+                                 id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+                                 actor_type VARCHAR(32) NOT NULL,
+                                 actor_id BIGINT UNSIGNED NULL,
+
+                                 event_type VARCHAR(100) NOT NULL,
+                                 severity VARCHAR(20) NOT NULL,
+
+                                 request_id VARCHAR(64) NULL,
+                                 route_name VARCHAR(255) NULL,
+
+                                 ip_address VARCHAR(45) NULL,
+                                 user_agent TEXT NULL,
+
+                                 metadata JSON NOT NULL,
+
+                                 occurred_at DATETIME NOT NULL,
+
+                                 INDEX idx_security_actor (actor_type, actor_id),
+                                 INDEX idx_security_event_type (event_type),
+                                 INDEX idx_security_severity (severity),
+                                 INDEX idx_security_request_id (request_id),
+                                 INDEX idx_security_occurred_at (occurred_at)
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE admin_remember_me_tokens (
     selector CHAR(32) NOT NULL PRIMARY KEY,

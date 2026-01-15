@@ -232,6 +232,7 @@ Entries MUST NOT be rewritten or reordered.
 - db(schema): add telemetry_traces table for high-volume tracing logs
 - http: enrich RequestContext with route, method, and path metadata
 - security-events: introduce write-side module with contracts, DTOs, and mysql repository
+- db: refactor security_events schema (actor_type, actor_id, severity, request context)
 
 ---
 
