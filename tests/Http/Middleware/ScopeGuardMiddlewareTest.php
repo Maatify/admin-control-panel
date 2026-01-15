@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Http\Middleware;
 
+use App\Context\AdminContext;
+use App\Context\RequestContext;
 use App\Domain\Enum\Scope;
 use App\Domain\Service\StepUpService;
 use App\Http\Middleware\ScopeGuardMiddleware;
@@ -11,9 +13,11 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Interfaces\RouteParserInterface;
 use Slim\Psr7\Response;
 use Slim\Routing\Route;
 use Slim\Routing\RouteContext;
+use Slim\Routing\RoutingResults;
 
 class ScopeGuardMiddlewareTest extends TestCase
 {
@@ -29,7 +33,8 @@ class ScopeGuardMiddlewareTest extends TestCase
     public function testDeniesAccessWhenNoAdminId(): void
     {
         $request = $this->createMock(ServerRequestInterface::class);
-        $request->method('getAttribute')->with('admin_id')->willReturn(null);
+        // Expect AdminContext::class and return null
+        $request->method('getAttribute')->with(AdminContext::class)->willReturn(null);
         $handler = $this->createMock(RequestHandlerInterface::class);
 
         $response = $this->middleware->process($request, $handler);
@@ -39,19 +44,29 @@ class ScopeGuardMiddlewareTest extends TestCase
     public function testAllowsAccessWithValidGrant(): void
     {
         $request = $this->createMock(ServerRequestInterface::class);
-        $request->method('getAttribute')->with('admin_id')->willReturn(123);
-        $request->method('getHeaderLine')->with('Authorization')->willReturn('Bearer token123');
+        $request->method('getCookieParams')->willReturn(['auth_token' => 'token123']);
 
         // Mock a route requiring SECURITY scope
         $route = $this->createMock(Route::class);
         $route->method('getName')->willReturn('admin.create'); // Mapped to SECURITY in Registry
 
+        $routeParser = $this->createMock(RouteParserInterface::class);
+        $routingResults = $this->createMock(RoutingResults::class);
+
         $request->method('getAttribute')->will($this->returnValueMap([
-            ['admin_id', null, 123],
-            [RouteContext::ROUTE, null, $route]
+            [AdminContext::class, null, new AdminContext(123)],
+            [RouteContext::ROUTE, null, $route],
+            [RouteContext::ROUTE_PARSER, null, $routeParser],
+            [RouteContext::ROUTING_RESULTS, null, $routingResults],
+            [RequestContext::class, null, new RequestContext('req-123', '127.0.0.1', 'phpunit')]
         ]));
 
         // Expect hasGrant call for SECURITY scope
+        // Note: middleware checks session state first. We need to mock getSessionState returns ACTIVE
+        $this->stepUpService->expects($this->once())
+            ->method('getSessionState')
+            ->willReturn(\App\Domain\Enum\SessionState::ACTIVE);
+
         $this->stepUpService->expects($this->once())
             ->method('hasGrant')
             ->with(123, 'token123', Scope::SECURITY)

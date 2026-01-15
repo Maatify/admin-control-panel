@@ -8,6 +8,7 @@ use App\Context\RequestContext;
 use App\Http\Middleware\RequestContextMiddleware;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\UriInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -18,11 +19,17 @@ class RequestContextMiddlewareTest extends TestCase
         $request = $this->createMock(ServerRequestInterface::class);
         $handler = $this->createMock(RequestHandlerInterface::class);
         $response = $this->createMock(ResponseInterface::class);
+        $uri = $this->createMock(UriInterface::class);
+        $uri->method('getPath')->willReturn('/test');
 
-        $request->expects($this->once())
-            ->method('getAttribute')
-            ->with('request_id')
-            ->willReturn('123-abc');
+        $request->method('getAttribute')->will($this->returnValueMap([
+            ['request_id', null, '123-abc'],
+            ['__route__', null, null],
+            ['route', null, null],
+        ]));
+
+        $request->method('getMethod')->willReturn('GET');
+        $request->method('getUri')->willReturn($uri);
 
         $request->expects($this->once())
             ->method('getServerParams')
