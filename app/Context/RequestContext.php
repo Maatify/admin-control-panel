@@ -15,12 +15,27 @@ declare(strict_types=1);
 
 namespace App\Context;
 
+/**
+ * Request-scoped context carrying request metadata for logging,
+ * auditing, and tracing purposes.
+ *
+ * NOTE:
+ * - This object is request-scoped.
+ * - It must NOT be injected into domain services.
+ * - It is intended to be created in HTTP middleware
+ *   and propagated via request attributes.
+ */
 final readonly class RequestContext
 {
     public function __construct(
         public string $requestId,
         public string $ipAddress,
         public string $userAgent,
+
+        // Extended (optional – backward compatible)
+        public ?string $routeName = null,
+        public ?string $method = null,
+        public ?string $path = null,
     )
     {
     }

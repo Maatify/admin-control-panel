@@ -35,10 +35,35 @@ final class RequestContextMiddleware implements MiddlewareInterface
             $userAgent = 'unknown';
         }
 
+        /**
+         * Route metadata (optional, best-effort)
+         *
+         * We intentionally keep these nullable to avoid
+         * coupling RequestContext to routing internals.
+         */
+        $routeName = null;
+        $method = $request->getMethod();
+        $path = $request->getUri()->getPath();
+
+        $route = $request->getAttribute('__route__')
+                 ?? $request->getAttribute('route');
+
+        if (is_object($route)) {
+            if (method_exists($route, 'getName')) {
+                $name = $route->getName();
+                if (is_string($name) && $name !== '') {
+                    $routeName = $name;
+                }
+            }
+        }
+
         $context = new RequestContext(
             requestId: $requestId,
             ipAddress: $ipAddress,
-            userAgent: $userAgent
+            userAgent: $userAgent,
+            routeName: $routeName,
+            method: $method !== '' ? $method : null,
+            path: $path !== '' ? $path : null
         );
 
         $request = $request->withAttribute(RequestContext::class, $context);
