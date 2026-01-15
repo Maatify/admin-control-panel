@@ -28,6 +28,14 @@ use App\Modules\SecurityEvents\Enum\SecurityEventSeverityEnum;
 final readonly class SecurityEventDTO
 {
     public function __construct(
+
+        /**
+         * Actor identifier related to the event.
+         * Null when the actor is anonymous or unknown.
+         */
+        public string $actorType,
+        public ?int $actorId,
+
         /**
          * Type of the security event (e.g. LOGIN_FAILED, STEP_UP_FAILED).
          */
@@ -37,12 +45,6 @@ final readonly class SecurityEventDTO
          * Severity level of the event.
          */
         public SecurityEventSeverityEnum $severity,
-
-        /**
-         * Actor identifier related to the event.
-         * Null when the actor is anonymous or unknown.
-         */
-        public ?int $actorAdminId,
 
         /**
          * Correlation identifier for the request lifecycle.

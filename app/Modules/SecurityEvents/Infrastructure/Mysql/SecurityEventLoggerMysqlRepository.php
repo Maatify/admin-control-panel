@@ -16,16 +16,19 @@ declare(strict_types=1);
 namespace App\Modules\SecurityEvents\Infrastructure\Mysql;
 
 use App\Modules\SecurityEvents\Contracts\SecurityEventLoggerInterface;
+use App\Modules\SecurityEvents\Exceptions\SecurityEventStorageException;
 use App\Modules\SecurityEvents\Infrastructure\Contracts\SecurityEventStorageInterface;
 use App\Modules\SecurityEvents\DTO\SecurityEventDTO;
+use DateTimeImmutable;
 use PDO;
 use Throwable;
 
 /**
  * MySQL-based repository for persisting security events.
  *
- * This implementation is best-effort and MUST NOT throw
- * exceptions that affect the main execution flow.
+ * Best-effort logger:
+ * - MUST NOT throw
+ * - MUST NOT affect authentication / authorization flow
  */
 final readonly class SecurityEventLoggerMysqlRepository implements
     SecurityEventLoggerInterface,
@@ -33,8 +36,7 @@ final readonly class SecurityEventLoggerMysqlRepository implements
 {
     public function __construct(
         private PDO $pdo
-    )
-    {
+    ) {
     }
 
     /**
@@ -54,23 +56,25 @@ final readonly class SecurityEventLoggerMysqlRepository implements
             $stmt = $this->pdo->prepare(
                 <<<SQL
                 INSERT INTO security_events (
+                    actor_type,
+                    actor_id,
                     event_type,
                     severity,
-                    actor_admin_id,
                     request_id,
+                    route_name,
                     ip_address,
                     user_agent,
-                    route_name,
                     metadata,
                     occurred_at
                 ) VALUES (
+                    :actor_type,
+                    :actor_id,
                     :event_type,
                     :severity,
-                    :actor_admin_id,
                     :request_id,
+                    :route_name,
                     :ip_address,
                     :user_agent,
-                    :route_name,
                     :metadata,
                     :occurred_at
                 )
@@ -78,29 +82,32 @@ final readonly class SecurityEventLoggerMysqlRepository implements
             );
 
             $stmt->execute([
-                'event_type'     => $event->eventType->value,
-                'severity'       => $event->severity->value,
-                'actor_admin_id' => $event->actorAdminId,
-                'request_id'     => $event->requestId,
-                'ip_address'     => $event->ipAddress,
-                'user_agent'     => $event->userAgent,
-                'route_name'     => $event->routeName,
-                'metadata'       => json_encode(
-                    $event->metadata,
+                'actor_type' => $event->actorType,
+                'actor_id'   => $event->actorId,
+
+                'event_type' => $event->eventType->value,
+                'severity'   => $event->severity->value,
+
+                'request_id' => $event->requestId,
+                'route_name' => $event->routeName,
+
+                'ip_address' => $event->ipAddress,
+                'user_agent' => $event->userAgent,
+
+                // metadata is NOT NULL in schema → always encode array
+                'metadata'   => json_encode(
+                    $event->metadata ?? [],
                     JSON_THROW_ON_ERROR
                 ),
-                'occurred_at'    => ($event->occurredAt ?? new \DateTimeImmutable())
+
+                'occurred_at' => ($event->occurredAt ?? new DateTimeImmutable())
                     ->format('Y-m-d H:i:s'),
             ]);
-        } catch (Throwable) {
-            /**
-             * Best-effort logging:
-             * - Swallow all exceptions
-             * - Never break authentication / authorization flow
-             *
-             * Optional:
-             * - PSR-3 logger hook can be added later
-             */
+        } catch (Throwable $e) {
+            throw new SecurityEventStorageException(
+                'Failed to store security event',
+                $e
+            );
         }
     }
 }

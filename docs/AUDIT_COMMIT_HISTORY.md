@@ -234,6 +234,7 @@ Entries MUST NOT be rewritten or reordered.
 - security-events: introduce write-side module with contracts, DTOs, and mysql repository
 - db: refactor security_events schema (actor_type, actor_id, severity, request context)
 - security-events(reader): add module-level MySQL reader with pagination and strict row mapping
+- security-events(module): align DTO with actor model and introduce explicit storage failure signaling
 
 ---
 
