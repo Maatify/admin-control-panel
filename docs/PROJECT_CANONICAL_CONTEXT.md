@@ -68,6 +68,45 @@ All protected routes passed through `routes/web.php` groups are observed to foll
 5.  `ScopeGuardMiddleware` (Context)
 6.  `AuthorizationGuardMiddleware` (RBAC)
 
+**Execution Model Note:**
+
+The middleware pipeline follows Slim’s **LIFO (Last-In-First-Out)** execution model.
+
+This guarantees:
+
+* `RequestIdMiddleware` runs BEFORE `RequestContextMiddleware`
+* `SessionGuardMiddleware` runs BEFORE `AdminContextMiddleware`
+
+Middleware order MUST be evaluated based on execution order,
+not registration order.
+---
+
+### 2.1 Internal Context Plumbing (LOCKED)
+
+The request attribute `admin_id` is a **strictly internal implementation detail**
+used exclusively for context transformation between middleware layers.
+
+**Rules (NON-NEGOTIABLE):**
+
+* `admin_id` MAY ONLY be:
+  * **Produced** by `SessionGuardMiddleware`
+  * **Consumed** by `AdminContextMiddleware`
+* Controllers, Services, Readers, and Guards MUST NOT:
+  * Access `getAttribute('admin_id')`
+  * Depend on `admin_id` directly in any form
+
+**Authoritative Identity Source:**
+
+* All application layers MUST consume:
+  ```php
+  $request->getAttribute(\App\Context\AdminContext::class)
+  ```
+
+* `AdminContext` is the **single source of truth** for admin identity beyond middleware.
+
+Any direct usage of `admin_id` outside the middleware boundary is a
+**CANONICAL VIOLATION**.
+
 ---
 
 ### 3. Authorization & Permission Semantics (Canonical)
@@ -161,6 +200,22 @@ Any deviation is a **SECURITY VIOLATION**.
 * They are **queryable and aggregatable**
 * They MUST NOT replace or duplicate audit logs
 * Filesystem logging is **FORBIDDEN** for security events
+
+---
+
+### Context Injection Rule (HARD)
+
+* All **Audit** and **Security** events MUST receive `request_id`
+  via **constructor injection**.
+* `request_id` MUST NOT be:
+  * Optional
+  * Nullable
+  * Generated lazily
+* Missing or invalid `request_id` MUST cause the operation to
+  **fail-closed immediately**.
+
+This rule is enforced at the DTO level and is considered
+**SECURITY-CRITICAL**.
 
 ---
 
@@ -483,6 +538,18 @@ Any change requires:
 *   **Web (`/`)**: Returns HTML/Twig. Redirects on error (`UiRedirectNormalizationMiddleware`).
 *   **API (`/api`)**: Returns JSON. Returns 401/403 JSON on error.
 *   **Auth**: Both share the same `auth_token` cookie. No Bearer tokens observed.
+
+**Execution Model Note:**
+
+The middleware pipeline follows Slim’s **LIFO (Last-In-First-Out)** execution model.
+
+This guarantees:
+
+* `RequestIdMiddleware` runs BEFORE `RequestContextMiddleware`
+* `SessionGuardMiddleware` runs BEFORE `AdminContextMiddleware`
+
+Middleware order MUST be evaluated based on execution order,
+not registration order.
 
 ---
 

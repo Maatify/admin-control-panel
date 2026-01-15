@@ -228,6 +228,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(logging): synchronize activity logging with existing audit flow
 - fix(audit,security): propagate RequestContext and enforce request_id across critical flows
 - chore(context): finalize AdminContext closure and fix obsolete tests
+- docs(context): close context injection audit & harden canonical contracts
 
 ---
 
