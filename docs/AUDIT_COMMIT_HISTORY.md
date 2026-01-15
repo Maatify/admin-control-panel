@@ -236,6 +236,7 @@ Entries MUST NOT be rewritten or reordered.
 - security-events(reader): add module-level MySQL reader with pagination and strict row mapping
 - security-events(module): align DTO with actor model and introduce explicit storage failure signaling
 - security-events: add complete write pipeline (module, domain, http recorder)
+- telemetry: introduce write-side module with domain recorder and http enrichment
 
 ---
 
