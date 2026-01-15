@@ -42,9 +42,8 @@ final readonly class TelemetryLoggerMysqlRepository implements TelemetryLoggerIn
         try {
             $stmt = $this->pdo->prepare(
                 'INSERT INTO telemetry_traces (
-                    actor_type,
-                    actor_id,
-                    event_type,
+                    actor_admin_id,
+                    event_key,
                     severity,
                     request_id,
                     route_name,
@@ -53,9 +52,8 @@ final readonly class TelemetryLoggerMysqlRepository implements TelemetryLoggerIn
                     metadata,
                     occurred_at
                 ) VALUES (
-                    :actor_type,
-                    :actor_id,
-                    :event_type,
+                    :actor_admin_id,
+                    :event_key,
                     :severity,
                     :request_id,
                     :route_name,
@@ -69,16 +67,15 @@ final readonly class TelemetryLoggerMysqlRepository implements TelemetryLoggerIn
             $metadataJson = $dto->metadata === [] ? null : json_encode($dto->metadata, JSON_THROW_ON_ERROR);
 
             $stmt->execute([
-                ':actor_type'  => $dto->actorType,
-                ':actor_id'    => $dto->actorId,
-                ':event_type'  => $dto->eventType->value,
-                ':severity'    => $dto->severity->value,
-                ':request_id'  => $dto->requestId,
-                ':route_name'  => $dto->routeName,
-                ':ip_address'  => $dto->ipAddress,
-                ':user_agent'  => $dto->userAgent,
-                ':metadata'    => $metadataJson,
-                ':occurred_at' => $dto->occurredAt->format('Y-m-d H:i:s.u'),
+                ':actor_admin_id' => $dto->actorId,
+                ':event_key'      => $dto->eventType->value,
+                ':severity'       => $dto->severity->value,
+                ':request_id'     => $dto->requestId,
+                ':route_name'     => $dto->routeName,
+                ':ip_address'     => $dto->ipAddress,
+                ':user_agent'     => $dto->userAgent,
+                ':metadata'       => $metadataJson,
+                ':occurred_at'    => $dto->occurredAt->format('Y-m-d H:i:s.u'),
             ]);
         } catch (Throwable $e) {
             throw new TelemetryStorageException('Telemetry storage failed (mysql insert).', 0, $e);

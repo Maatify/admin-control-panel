@@ -29,6 +29,10 @@ use App\Domain\Contracts\AdminRoleRepositoryInterface;
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Domain\Contracts\AdminTargetedAuditReaderInterface;
 use App\Domain\Contracts\TelemetryAuditLoggerInterface;
+use App\Domain\Telemetry\Recorder\TelemetryRecorderInterface;
+use App\Domain\Telemetry\Recorder\TelemetryRecorder;
+use App\Modules\Telemetry\Contracts\TelemetryLoggerInterface as ModuleTelemetryLoggerInterface;
+use App\Modules\Telemetry\Infrastructure\Mysql\TelemetryLoggerMysqlRepository;
 use App\Domain\Contracts\RememberMeRepositoryInterface;
 use App\Domain\Contracts\FailedNotificationRepositoryInterface;
 use App\Domain\Contracts\NotificationReadRepositoryInterface;
@@ -858,6 +862,18 @@ class Container
                 $securityReader = $c->get(AdminSecurityEventReaderInterface::class);
                 assert($securityReader instanceof AdminSecurityEventReaderInterface);
                 return new AdminSecurityEventController($securityReader);
+            },
+
+            // Telemetry
+            ModuleTelemetryLoggerInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new TelemetryLoggerMysqlRepository($pdo);
+            },
+            TelemetryRecorderInterface::class => function (ContainerInterface $c) {
+                $logger = $c->get(ModuleTelemetryLoggerInterface::class);
+                assert($logger instanceof ModuleTelemetryLoggerInterface);
+                return new TelemetryRecorder($logger);
             },
 
             // Phase 14.3: Sessions
