@@ -10,13 +10,29 @@
 
     <!-- Test Suites -->
     <testsuites>
-        <testsuite name="Unit">
+        <testsuite name="Application">
+            <directory>tests/Application</directory>
+        </testsuite>
+
+<!--        <testsuite name="Canonical">-->
+<!--            <directory>tests/Canonical</directory>-->
+<!--        </testsuite>-->
+
+        <testsuite name="Http">
+            <directory>tests/Http</directory>
+        </testsuite>
+
+        <testsuite name="Modules">
             <directory>tests/Modules</directory>
         </testsuite>
 
         <testsuite name="Integration">
             <directory>tests/Integration</directory>
         </testsuite>
+
+<!--        <testsuite name="Validation">-->
+<!--            <directory>tests/Validation</directory>-->
+<!--        </testsuite>-->
     </testsuites>
 
     <php>
