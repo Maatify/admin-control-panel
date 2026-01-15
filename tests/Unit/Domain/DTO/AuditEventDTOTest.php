@@ -10,6 +10,9 @@ use PHPUnit\Framework\TestCase;
 
 class AuditEventDTOTest extends TestCase
 {
+    /**
+     * Test request_id enforcement.
+     */
     public function test_it_includes_request_id_in_serialization(): void
     {
         $dto = new AuditEventDTO(

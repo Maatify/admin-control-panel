@@ -12,6 +12,7 @@
     <testsuites>
         <testsuite name="Unit">
             <directory>tests/Modules</directory>
+            <directory>tests/Unit</directory>
         </testsuite>
 
         <testsuite name="Integration">

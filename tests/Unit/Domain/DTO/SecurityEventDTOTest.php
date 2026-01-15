@@ -10,6 +10,9 @@ use PHPUnit\Framework\TestCase;
 
 class SecurityEventDTOTest extends TestCase
 {
+    /**
+     * Test request_id enforcement.
+     */
     public function test_it_injects_request_id_into_context(): void
     {
         $dto = new SecurityEventDTO(
