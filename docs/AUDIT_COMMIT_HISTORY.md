@@ -259,6 +259,8 @@ Entries MUST NOT be rewritten or reordered.
 - fix(telemetry): stabilize HttpRequestTelemetryMiddleware control flow
 - fix(telemetry): harden legacy PDO loggers to be best-effort
 - fix(telemetry): remove catch and prevent return overwrite in HttpRequestTelemetryMiddleware
+- fix(telemetry): instrument TwoFactorController web flow
+
 
 ---
 

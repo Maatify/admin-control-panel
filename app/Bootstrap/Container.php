@@ -800,10 +800,20 @@ class Container
                 $stepUp = $c->get(StepUpService::class);
                 $totp = $c->get(TotpServiceInterface::class);
                 $view = $c->get(Twig::class);
+
+                // Telemetry
+                $telemetryFactory = $c->get(\App\Application\Telemetry\HttpTelemetryRecorderFactory::class);
+
                 assert($stepUp instanceof StepUpService);
                 assert($totp instanceof TotpServiceInterface);
                 assert($view instanceof Twig);
-                return new TwoFactorController($stepUp, $totp, $view);
+                assert($telemetryFactory instanceof \App\Application\Telemetry\HttpTelemetryRecorderFactory);
+
+                return new TwoFactorController(
+                    $stepUp,
+                    $totp,
+                    $view,
+                    $telemetryFactory);
             },
             AdminNotificationPreferenceController::class => function (ContainerInterface $c) {
                 $reader = $c->get(AdminNotificationPreferenceReaderInterface::class);
