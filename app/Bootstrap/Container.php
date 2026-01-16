@@ -632,8 +632,12 @@ class Container
 
                 $adminActivityLogService = $c->get(AdminActivityLogService::class);
 
-                // NEW: Get crypto service
+                // Crypto
                 $cryptoService = $c->get(AdminIdentifierCryptoServiceInterface::class);
+
+                // Telemetry
+                $telemetryFactory = $c->get(\App\Application\Telemetry\HttpTelemetryRecorderFactory::class);
+                $telemetryEmailHasher = $c->get(\App\Application\Telemetry\Contracts\TelemetryEmailHasherInterface::class);
 
                 assert($authService instanceof AdminAuthenticationService);
                 assert($config instanceof AdminConfigDTO);
@@ -641,13 +645,19 @@ class Container
                 assert($adminActivityLogService instanceof AdminActivityLogService);
                 assert($cryptoService instanceof AdminIdentifierCryptoServiceInterface);
 
+                assert($telemetryFactory instanceof \App\Application\Telemetry\HttpTelemetryRecorderFactory);
+                assert($telemetryEmailHasher instanceof \App\Application\Telemetry\Contracts\TelemetryEmailHasherInterface);
+
                 return new AuthController(
                     $authService,
-                    $cryptoService, // NEW
+                    $cryptoService,
                     $validationGuard,
-                    $adminActivityLogService
+                    $adminActivityLogService,
+                    $telemetryFactory,
+                    $telemetryEmailHasher
                 );
             },
+
             LoginController::class => function (ContainerInterface $c) {
                 $authService = $c->get(AdminAuthenticationService::class);
                 $sessionRepo = $c->get(AdminSessionValidationRepositoryInterface::class);

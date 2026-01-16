@@ -247,6 +247,7 @@ Entries MUST NOT be rewritten or reordered.
 - telemetry(di): register telemetry email hasher service
 - telemetry(http): add system recorder and extend factory for guest flows
 - telemetry(crypto): fix phpstan by removing impossible empty-string checks in email hasher
+- telemetry(auth): wire login telemetry and update container controller binding
 
 ---
 
