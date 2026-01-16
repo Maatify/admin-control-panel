@@ -4,18 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Http\Controllers\Web;
 
-use App\Application\Telemetry\HttpTelemetryRecorderFactory;
 use App\Context\AdminContext;
 use App\Context\RequestContext;
 use App\Domain\Contracts\TotpServiceInterface;
 use App\Domain\Service\StepUpService;
 use App\Http\Controllers\Web\TwoFactorController;
+use App\Modules\Telemetry\Enum\TelemetryEventTypeEnum;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use ReflectionClass;
-use ReflectionNamedType;
 use Slim\Views\Twig;
+use Tests\Support\TelemetryTestHelper;
 
 final class TwoFactorControllerTest extends TestCase
 {
@@ -24,7 +23,10 @@ final class TwoFactorControllerTest extends TestCase
         $stepUpService = $this->createMock(StepUpService::class);
         $totpService = $this->createMock(TotpServiceInterface::class);
         $view = $this->createMock(Twig::class);
-        $telemetryFactory = $this->makeFinalTelemetryFactory();
+
+        $helper = TelemetryTestHelper::makeFactoryWithSpyRecorder();
+        $telemetryFactory = $helper['factory'];
+        $spy = $helper['recorder'];
 
         $controller = new TwoFactorController(
             $stepUpService,
@@ -58,32 +60,9 @@ final class TwoFactorControllerTest extends TestCase
 
         $controller->doSetup($request, $response);
 
-        $this->assertTrue(true);
-    }
-
-    private function makeFinalTelemetryFactory(): HttpTelemetryRecorderFactory
-    {
-        $ref = new ReflectionClass(HttpTelemetryRecorderFactory::class);
-        /** @var HttpTelemetryRecorderFactory $factory */
-        $factory = $ref->newInstanceWithoutConstructor();
-
-        $recorder = new class implements \App\Domain\Telemetry\Recorder\TelemetryRecorderInterface {
-            public function record(\App\Domain\Telemetry\DTO\TelemetryRecordDTO $dto): void {}
-        };
-
-        foreach ($ref->getProperties() as $prop) {
-            $type = $prop->getType();
-            if (!$type instanceof ReflectionNamedType || $type->isBuiltin()) {
-                continue;
-            }
-
-            $typeName = $type->getName();
-            // Assign dummy recorder
-            if (str_contains($typeName, 'TelemetryRecorder') || str_contains($typeName, 'RecorderInterface')) {
-                 $prop->setAccessible(true);
-                 $prop->setValue($factory, $recorder);
-            }
-        }
-        return $factory;
+        // Assert
+        $this->assertCount(1, $spy->records);
+        $this->assertEquals(TelemetryEventTypeEnum::RESOURCE_MUTATION, $spy->records[0]->eventType);
+        $this->assertEquals('2fa_setup', $spy->records[0]->metadata['action']);
     }
 }

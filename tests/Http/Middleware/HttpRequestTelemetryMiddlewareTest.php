@@ -15,13 +15,16 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Tests\Support\TelemetryTestHelper;
 
 final class HttpRequestTelemetryMiddlewareTest extends TestCase
 {
     public function testEmitsRequestEndOnSuccess(): void
     {
-        $recorderMock = $this->createMock(TelemetryRecorderInterface::class);
-        $factory = new HttpTelemetryRecorderFactory($recorderMock);
+        $helper = TelemetryTestHelper::makeFactoryWithSpyRecorder();
+        $factory = $helper['factory'];
+        $recorderSpy = $helper['recorder'];
+
         $middleware = new HttpRequestTelemetryMiddleware($factory);
 
         $request = $this->createMock(ServerRequestInterface::class);
@@ -41,22 +44,20 @@ final class HttpRequestTelemetryMiddlewareTest extends TestCase
 
         $handler->method('handle')->willReturn($response);
 
-        // Expect record call
-        $recorderMock->expects($this->once())
-            ->method('record')
-            ->with($this->callback(function (TelemetryRecordDTO $dto) {
-                return $dto->eventType === TelemetryEventTypeEnum::HTTP_REQUEST_END
-                    && $dto->metadata['status_code'] === 200;
-            }));
-
         $result = $middleware->process($request, $handler);
         $this->assertSame($response, $result);
+
+        $this->assertCount(1, $recorderSpy->records);
+        $this->assertEquals(TelemetryEventTypeEnum::HTTP_REQUEST_END, $recorderSpy->records[0]->eventType);
+        $this->assertEquals(200, $recorderSpy->records[0]->metadata['status_code']);
     }
 
     public function testEmitsRequestEndOnHandlerException(): void
     {
-        $recorderMock = $this->createMock(TelemetryRecorderInterface::class);
-        $factory = new HttpTelemetryRecorderFactory($recorderMock);
+        $helper = TelemetryTestHelper::makeFactoryWithSpyRecorder();
+        $factory = $helper['factory'];
+        $recorderSpy = $helper['recorder'];
+
         $middleware = new HttpRequestTelemetryMiddleware($factory);
 
         $request = $this->createMock(ServerRequestInterface::class);
@@ -73,18 +74,38 @@ final class HttpRequestTelemetryMiddlewareTest extends TestCase
 
         $handler->method('handle')->willThrowException(new \RuntimeException('fail'));
 
-        $recorderMock->expects($this->never())->method('record');
-
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('fail');
 
-        $middleware->process($request, $handler);
+        try {
+            $middleware->process($request, $handler);
+        } finally {
+            $this->assertCount(0, $recorderSpy->records);
+        }
     }
 
     public function testSwallowsTelemetryException(): void
     {
-        $recorderMock = $this->createMock(TelemetryRecorderInterface::class);
-        $factory = new HttpTelemetryRecorderFactory($recorderMock);
+        // To test swallowing, we need a recorder that THROWS, not a Spy.
+        // We can create an anonymous class for this specific test, or extend Spy to ThrowingSpy.
+
+        $throwingRecorder = new class implements TelemetryRecorderInterface {
+             public function record(TelemetryRecordDTO $dto): void {
+                 throw new \Exception('Recorder broken');
+             }
+        };
+
+        // We use the helper logic but inject our throwing recorder manually
+        $ref = new \ReflectionClass(HttpTelemetryRecorderFactory::class);
+        $factory = $ref->newInstanceWithoutConstructor();
+        foreach ($ref->getProperties() as $prop) {
+            $type = $prop->getType();
+            if ($type && (str_contains($type->getName(), 'TelemetryRecorder') || str_contains($type->getName(), 'RecorderInterface'))) {
+                 $prop->setAccessible(true);
+                 $prop->setValue($factory, $throwingRecorder);
+            }
+        }
+
         $middleware = new HttpRequestTelemetryMiddleware($factory);
 
         $request = $this->createMock(ServerRequestInterface::class);
@@ -103,10 +124,7 @@ final class HttpRequestTelemetryMiddlewareTest extends TestCase
 
         $handler->method('handle')->willReturn($response);
 
-        // Recorder throws
-        $recorderMock->method('record')->willThrowException(new \Exception('Recorder broken'));
-
-        // Middleware should not throw
+        // Middleware should not throw despite recorder failing
         $result = $middleware->process($request, $handler);
         $this->assertSame($response, $result);
     }

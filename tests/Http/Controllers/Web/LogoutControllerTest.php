@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Http\Controllers\Web;
 
-use App\Application\Telemetry\HttpTelemetryRecorderFactory;
 use App\Context\AdminContext;
 use App\Context\RequestContext;
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
@@ -12,12 +11,12 @@ use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\Service\AdminAuthenticationService;
 use App\Domain\Service\RememberMeService;
 use App\Http\Controllers\Web\LogoutController;
+use App\Modules\Telemetry\Enum\TelemetryEventTypeEnum;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
-use ReflectionClass;
-use ReflectionNamedType;
+use Tests\Support\TelemetryTestHelper;
 
 final class LogoutControllerTest extends TestCase
 {
@@ -27,7 +26,10 @@ final class LogoutControllerTest extends TestCase
         $rememberMe = $this->createMock(RememberMeService::class);
         $securityLogger = $this->createMock(SecurityEventLoggerInterface::class);
         $authService = $this->createMock(AdminAuthenticationService::class);
-        $telemetryFactory = $this->makeFinalTelemetryFactory();
+
+        $helper = TelemetryTestHelper::makeFactoryWithSpyRecorder();
+        $telemetryFactory = $helper['factory'];
+        $spy = $helper['recorder'];
 
         $controller = new LogoutController(
             $sessionRepo,
@@ -60,32 +62,9 @@ final class LogoutControllerTest extends TestCase
         // Act
         $controller->logout($request, $response);
 
-        $this->assertTrue(true);
-    }
-
-    private function makeFinalTelemetryFactory(): HttpTelemetryRecorderFactory
-    {
-        $ref = new ReflectionClass(HttpTelemetryRecorderFactory::class);
-        /** @var HttpTelemetryRecorderFactory $factory */
-        $factory = $ref->newInstanceWithoutConstructor();
-
-        $recorder = new class implements \App\Domain\Telemetry\Recorder\TelemetryRecorderInterface {
-            public function record(\App\Domain\Telemetry\DTO\TelemetryRecordDTO $dto): void {}
-        };
-
-        foreach ($ref->getProperties() as $prop) {
-            $type = $prop->getType();
-            if (!$type instanceof ReflectionNamedType || $type->isBuiltin()) {
-                continue;
-            }
-
-            $typeName = $type->getName();
-            // Assign dummy recorder
-            if (str_contains($typeName, 'TelemetryRecorder') || str_contains($typeName, 'RecorderInterface')) {
-                 $prop->setAccessible(true);
-                 $prop->setValue($factory, $recorder);
-            }
-        }
-        return $factory;
+        // Assert
+        $this->assertCount(1, $spy->records);
+        $this->assertEquals(TelemetryEventTypeEnum::RESOURCE_MUTATION, $spy->records[0]->eventType);
+        $this->assertEquals('self_logout', $spy->records[0]->metadata['action']);
     }
 }

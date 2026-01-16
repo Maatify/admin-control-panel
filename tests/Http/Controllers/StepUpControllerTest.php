@@ -7,19 +7,15 @@ namespace Tests\Http\Controllers;
 use App\Application\Telemetry\HttpTelemetryRecorderFactory;
 use App\Context\AdminContext;
 use App\Context\RequestContext;
-use App\Domain\DTO\TotpVerificationResultDTO;
 use App\Domain\Service\StepUpService;
 use App\Http\Controllers\StepUpController;
 use App\Modules\Telemetry\Enum\TelemetryEventTypeEnum;
-use App\Modules\Telemetry\Enum\TelemetrySeverityEnum;
 use App\Modules\Validation\Guard\ValidationGuard;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
-use ReflectionClass;
-use ReflectionNamedType;
-use Throwable;
+use Tests\Support\TelemetryTestHelper;
 
 final class StepUpControllerTest extends TestCase
 {
@@ -28,10 +24,12 @@ final class StepUpControllerTest extends TestCase
         $stepUpService = $this->createMock(StepUpService::class);
 
         $validator = $this->createMock(\App\Modules\Validation\Contracts\ValidatorInterface::class);
-        $validator->method('validate')->willReturn(new \App\Modules\Validation\DTO\ValidationResultDTO(true));
+        $validator->method('validate')->willReturn(TelemetryTestHelper::makeValidValidationResultDTO());
         $validationGuard = new ValidationGuard($validator);
 
-        $telemetryFactory = $this->makeFinalTelemetryFactory();
+        $helper = TelemetryTestHelper::makeFactoryWithSpyRecorder();
+        $telemetryFactory = $helper['factory'];
+        $spy = $helper['recorder'];
 
         $controller = new StepUpController(
             $stepUpService,
@@ -54,12 +52,7 @@ final class StepUpControllerTest extends TestCase
             [RequestContext::class, null, $requestContext],
         ]);
 
-        // Mock result DTO
-        // TotpVerificationResultDTO might be readonly or have private properties.
-        // We need to instantiate it correctly.
-        // Assuming: public function __construct(public bool $success, public ?string $errorReason = null)
-        $resultDto = new TotpVerificationResultDTO(true);
-
+        $resultDto = TelemetryTestHelper::makeTotpVerificationResultDTO(true);
         $stepUpService->method('verifyTotp')->willReturn($resultDto);
 
         $response->method('getBody')->willReturn($stream);
@@ -69,33 +62,9 @@ final class StepUpControllerTest extends TestCase
         // Act
         $controller->verify($request, $response);
 
-        // Assert: execution finished without throwing exceptions
-        $this->assertTrue(true);
-    }
-
-    private function makeFinalTelemetryFactory(): HttpTelemetryRecorderFactory
-    {
-        $ref = new ReflectionClass(HttpTelemetryRecorderFactory::class);
-        /** @var HttpTelemetryRecorderFactory $factory */
-        $factory = $ref->newInstanceWithoutConstructor();
-
-        $recorder = new class implements \App\Domain\Telemetry\Recorder\TelemetryRecorderInterface {
-            public function record(\App\Domain\Telemetry\DTO\TelemetryRecordDTO $dto): void {}
-        };
-
-        foreach ($ref->getProperties() as $prop) {
-            $type = $prop->getType();
-            if (!$type instanceof ReflectionNamedType || $type->isBuiltin()) {
-                continue;
-            }
-
-            $typeName = $type->getName();
-            // Assign dummy recorder
-            if (str_contains($typeName, 'TelemetryRecorder') || str_contains($typeName, 'RecorderInterface')) {
-                 $prop->setAccessible(true);
-                 $prop->setValue($factory, $recorder);
-            }
-        }
-        return $factory;
+        // Assert
+        $this->assertCount(1, $spy->records);
+        $this->assertEquals(TelemetryEventTypeEnum::AUTH_STEPUP_SUCCESS, $spy->records[0]->eventType);
+        $this->assertEquals(123, $spy->records[0]->actorId);
     }
 }

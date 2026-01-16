@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 namespace Tests\Http\Controllers\Api;
 
-use App\Application\Telemetry\HttpTelemetryRecorderFactory;
 use App\Context\AdminContext;
 use App\Context\RequestContext;
 use App\Domain\Service\AuthorizationService;
 use App\Domain\Service\SessionRevocationService;
 use App\Http\Controllers\Api\SessionRevokeController;
+use App\Modules\Telemetry\Enum\TelemetryEventTypeEnum;
 use App\Modules\Validation\Guard\ValidationGuard;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
-use ReflectionClass;
-use ReflectionNamedType;
+use Tests\Support\TelemetryTestHelper;
 
 final class SessionRevokeControllerTest extends TestCase
 {
@@ -26,10 +25,12 @@ final class SessionRevokeControllerTest extends TestCase
         $authzService = $this->createMock(AuthorizationService::class);
 
         $validator = $this->createMock(\App\Modules\Validation\Contracts\ValidatorInterface::class);
-        $validator->method('validate')->willReturn(new \App\Modules\Validation\DTO\ValidationResultDTO(true));
+        $validator->method('validate')->willReturn(TelemetryTestHelper::makeValidValidationResultDTO());
         $validationGuard = new ValidationGuard($validator);
 
-        $telemetryFactory = $this->makeFinalTelemetryFactory();
+        $helper = TelemetryTestHelper::makeFactoryWithSpyRecorder();
+        $telemetryFactory = $helper['factory'];
+        $spy = $helper['recorder'];
 
         $controller = new SessionRevokeController(
             $revocationService,
@@ -59,32 +60,9 @@ final class SessionRevokeControllerTest extends TestCase
         // Act
         $controller($request, $response, ['session_id' => 'hash-456']);
 
-        $this->assertTrue(true);
-    }
-
-    private function makeFinalTelemetryFactory(): HttpTelemetryRecorderFactory
-    {
-        $ref = new ReflectionClass(HttpTelemetryRecorderFactory::class);
-        /** @var HttpTelemetryRecorderFactory $factory */
-        $factory = $ref->newInstanceWithoutConstructor();
-
-        $recorder = new class implements \App\Domain\Telemetry\Recorder\TelemetryRecorderInterface {
-            public function record(\App\Domain\Telemetry\DTO\TelemetryRecordDTO $dto): void {}
-        };
-
-        foreach ($ref->getProperties() as $prop) {
-            $type = $prop->getType();
-            if (!$type instanceof ReflectionNamedType || $type->isBuiltin()) {
-                continue;
-            }
-
-            $typeName = $type->getName();
-            // Assign dummy recorder
-            if (str_contains($typeName, 'TelemetryRecorder') || str_contains($typeName, 'RecorderInterface')) {
-                 $prop->setAccessible(true);
-                 $prop->setValue($factory, $recorder);
-            }
-        }
-        return $factory;
+        // Assert
+        $this->assertCount(1, $spy->records);
+        $this->assertEquals(TelemetryEventTypeEnum::RESOURCE_MUTATION, $spy->records[0]->eventType);
+        $this->assertEquals('session_revoke', $spy->records[0]->metadata['action']);
     }
 }

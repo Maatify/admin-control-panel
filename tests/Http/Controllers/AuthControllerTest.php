@@ -16,6 +16,7 @@ use App\Http\Controllers\AuthController;
 use App\Modules\ActivityLog\Contracts\ActivityLogWriterInterface;
 use App\Modules\ActivityLog\DTO\ActivityLogDTO;
 use App\Modules\ActivityLog\Service\ActivityLogService;
+use App\Modules\Telemetry\Enum\TelemetryEventTypeEnum;
 use App\Modules\Validation\Contracts\SchemaInterface;
 use App\Modules\Validation\Contracts\ValidatorInterface;
 use App\Modules\Validation\DTO\ValidationResultDTO;
@@ -24,9 +25,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
-use ReflectionClass;
-use ReflectionNamedType;
-use Throwable;
+use Tests\Support\TelemetryTestHelper;
 
 final class AuthControllerTest extends TestCase
 {
@@ -45,28 +44,7 @@ final class AuthControllerTest extends TestCase
         $validator = new class implements ValidatorInterface {
             public function validate(SchemaInterface $schema, array $input): ValidationResultDTO
             {
-                // Create a DTO instance without assuming constructor.
-                $ref = new \ReflectionClass(ValidationResultDTO::class);
-                $dto = $ref->newInstanceWithoutConstructor();
-
-                // Best-effort hydrate "validated" payload if properties exist
-                $obj = new \ReflectionObject($dto);
-                foreach (['validatedData', 'validated', 'data', 'payload', 'input'] as $propName) {
-                    if ($obj->hasProperty($propName)) {
-                        $p = $obj->getProperty($propName);
-                        $p->setAccessible(true);
-                        try { $p->setValue($dto, $input); } catch (\Throwable) {}
-                    }
-                }
-                foreach (['ok', 'success', 'isValid', 'valid'] as $propName) {
-                    if ($obj->hasProperty($propName)) {
-                        $p = $obj->getProperty($propName);
-                        $p->setAccessible(true);
-                        try { $p->setValue($dto, true); } catch (\Throwable) {}
-                    }
-                }
-
-                return $dto;
+                return TelemetryTestHelper::makeValidValidationResultDTO($input);
             }
         };
 
@@ -88,7 +66,9 @@ final class AuthControllerTest extends TestCase
 
         // ---- Telemetry deps (AuthController now expects 6 args) ----
         $telemetryEmailHasher = $this->createMock(TelemetryEmailHasherInterface::class);
-        $telemetryFactory = $this->makeFinalTelemetryFactory($telemetryEmailHasher);
+        $helper = TelemetryTestHelper::makeFactoryWithSpyRecorder($telemetryEmailHasher);
+        $telemetryFactory = $helper['factory'];
+        $spyRecorder = $helper['recorder'];
 
         $controller = new AuthController(
             $authService,
@@ -140,65 +120,11 @@ final class AuthControllerTest extends TestCase
         self::assertSame('req-123', $dto->requestId);
         self::assertSame('127.0.0.1', $dto->ipAddress);
         self::assertSame('PHPUnit', $dto->userAgent);
-    }
 
-    private function makeFinalTelemetryFactory(TelemetryEmailHasherInterface $emailHasher): HttpTelemetryRecorderFactory
-    {
-        /**
-         * HttpTelemetryRecorderFactory is final => cannot be mocked.
-         * We create an instance without calling constructor, then best-effort fill its typed properties.
-         */
-        $ref = new ReflectionClass(HttpTelemetryRecorderFactory::class);
-        /** @var HttpTelemetryRecorderFactory $factory */
-        $factory = $ref->newInstanceWithoutConstructor();
-
-        // best-effort recorder that accepts any record(...) signature
-        $recorder = new class {
-            public function record(mixed ...$args): void
-            {
-                // no-op
-            }
-        };
-
-        foreach ($ref->getProperties() as $prop) {
-            $type = $prop->getType();
-            if (!$type instanceof ReflectionNamedType) {
-                continue;
-            }
-
-            $typeName = $type->getName();
-            if ($type->isBuiltin()) {
-                continue;
-            }
-
-            $value = null;
-
-            // Prefer exact known deps first
-            if ($typeName === TelemetryEmailHasherInterface::class) {
-                $value = $emailHasher;
-            } elseif (str_contains($typeName, 'TelemetryRecorder') || str_contains($typeName, 'RecorderInterface')) {
-                // Recorder-ish dependency (best-effort)
-                $value = $this->createMock($typeName);
-                if (method_exists($value, 'record')) {
-                    // leave as mock; no expectations
-                } else {
-                    $value = $recorder;
-                }
-            } elseif (interface_exists($typeName) || class_exists($typeName)) {
-                // Any other object dep: permissive mock
-                $value = $this->createMock($typeName);
-            }
-
-            if ($value !== null) {
-                try {
-                    $prop->setAccessible(true);
-                    $prop->setValue($factory, $value);
-                } catch (Throwable) {
-                    // swallow — test helper must not crash
-                }
-            }
-        }
-
-        return $factory;
+        // Assert Telemetry
+        self::assertCount(1, $spyRecorder->records);
+        $telemetry = $spyRecorder->records[0];
+        self::assertEquals(TelemetryEventTypeEnum::AUTH_LOGIN_SUCCESS, $telemetry->eventType);
+        self::assertSame(123, $telemetry->actorId);
     }
 }
