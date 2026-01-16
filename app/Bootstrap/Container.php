@@ -62,6 +62,7 @@ use App\Domain\Service\VerificationCodePolicyResolver;
 use App\Domain\Service\VerificationCodeValidator;
 use App\Domain\Service\SessionRevocationService;
 use App\Domain\Service\AuthorizationService;
+use App\Domain\Telemetry\Contracts\TelemetryListReaderInterface;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminNotificationHistoryController;
 use App\Http\Controllers\AdminNotificationPreferenceController;
@@ -598,6 +599,11 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new PdoTelemetryAuditLogger($pdo);
+            },
+            \App\Domain\Telemetry\Contracts\TelemetryListReaderInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \App\Domain\Telemetry\Reader\PdoTelemetryListReader($pdo);
             },
             AuthoritativeSecurityAuditWriterInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
