@@ -305,6 +305,21 @@ final class StepUpFailureSecurityEventsTest extends TestCase
                     created_at DATETIME NOT NULL
                 )'
             );
+            $this->pdo->exec(
+                'CREATE TABLE IF NOT EXISTS security_events (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    actor_type VARCHAR(32) NOT NULL,
+                    actor_id INTEGER NULL,
+                    event_type VARCHAR(100) NOT NULL,
+                    severity VARCHAR(20) NOT NULL,
+                    request_id VARCHAR(64) NULL,
+                    route_name VARCHAR(255) NULL,
+                    metadata TEXT NOT NULL,
+                    ip_address VARCHAR(45) NULL,
+                    user_agent TEXT NULL,
+                    occurred_at DATETIME NOT NULL
+                )'
+            );
             return;
         }
 
@@ -339,6 +354,21 @@ final class StepUpFailureSecurityEventsTest extends TestCase
                 payload JSON NOT NULL,
                 correlation_id CHAR(36) NOT NULL,
                 created_at DATETIME NOT NULL
+            )'
+        );
+        $this->pdo->exec(
+            'CREATE TABLE IF NOT EXISTS security_events (
+                id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                actor_type VARCHAR(32) NOT NULL,
+                actor_id BIGINT NULL,
+                event_type VARCHAR(100) NOT NULL,
+                severity VARCHAR(20) NOT NULL,
+                request_id VARCHAR(64) NULL,
+                route_name VARCHAR(255) NULL,
+                metadata JSON NOT NULL,
+                ip_address VARCHAR(45) NULL,
+                user_agent TEXT NULL,
+                occurred_at DATETIME NOT NULL
             )'
         );
     }

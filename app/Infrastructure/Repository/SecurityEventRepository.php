@@ -47,12 +47,6 @@ class SecurityEventRepository implements SecurityEventLoggerInterface
             );
 
             $metadata = $event->context;
-            $requestId = null;
-            if (isset($metadata['request_id']) && is_string($metadata['request_id'])) {
-                $requestId = $metadata['request_id'];
-                unset($metadata['request_id']);
-            }
-
             $metadataJson = json_encode($metadata, JSON_THROW_ON_ERROR);
 
             $stmt->execute([
@@ -60,7 +54,7 @@ class SecurityEventRepository implements SecurityEventLoggerInterface
                 ':actor_id'    => $event->adminId,
                 ':event_type'  => $event->eventName,
                 ':severity'    => $event->severity,
-                ':request_id'  => $requestId,
+                ':request_id'  => $event->requestId,
                 ':route_name'  => null,
                 ':ip_address'  => $event->ipAddress,
                 ':user_agent'  => $event->userAgent,
@@ -68,7 +62,7 @@ class SecurityEventRepository implements SecurityEventLoggerInterface
                 ':occurred_at' => $event->occurredAt->format('Y-m-d H:i:s'),
             ]);
         } catch (\Throwable $e) {
-            // swallow — telemetry MUST NOT break flow
+            // swallow — security events are best-effort and must not break flow
         }
     }
 }

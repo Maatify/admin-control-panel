@@ -22,7 +22,7 @@ readonly class SecurityEventDTO
         public ?string $ipAddress,
         public ?string $userAgent,
         public DateTimeImmutable $occurredAt,
-        string $requestId
+        public string $requestId
     ) {
         $this->context = array_merge($context, ['request_id' => $requestId]);
     }
