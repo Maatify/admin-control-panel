@@ -266,6 +266,7 @@ Entries MUST NOT be rewritten or reordered.
 - fix(telemetry): realign telemetry_traces schema with canonical actor model
 - feat(telemetry): add domain reader contracts and strict DTOs
 - feat(telemetry): rebuild telemetry reader using session-style list schema
+- feat(telemetry): add telemetry list query controller with authorization and activity logging
 
 
 ---

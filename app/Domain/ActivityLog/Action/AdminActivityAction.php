@@ -27,6 +27,7 @@ enum AdminActivityAction: string implements ActivityActionInterface
     case ADMIN_CREATE  = 'admin.management.create';
     case ADMIN_UPDATE  = 'admin.management.update';
     case ADMIN_DELETE  = 'admin.management.delete';
+    case TELEMETRY_LIST  = 'admin.telemetry.list';
 
     // ⚙️ System (admin-triggered)
     case SETTINGS_UPDATE = 'admin.system.settings.update';
