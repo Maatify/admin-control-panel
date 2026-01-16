@@ -5,7 +5,7 @@
  * @Library     maatify/admin-control-panel
  * @Project     maatify:admin-control-panel
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
- * @since       2026-01-15 13:09
+ * @since       2026-01-16 13:28
  * @see         https://www.maatify.dev Maatify.dev
  * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
  * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
@@ -13,15 +13,19 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Telemetry\Enum;
+namespace App\Domain\Telemetry\DTO;
 
-/**
- * Actor type for telemetry correlation.
- * Keep it minimal and stable.
- */
-enum TelemetryActorTypeEnum: string
+use App\Domain\DTO\Common\PaginationDTO;
+
+final readonly class TelemetryListResponseDTO
 {
-    case ADMIN   = 'admin';
-    case SYSTEM  = 'system';
-    case SERVICE = 'service';
+    /**
+     * @param   array<int, TelemetryViewDTO>  $data
+     */
+    public function __construct(
+        public array $data,
+        public PaginationDTO $pagination
+    )
+    {
+    }
 }
