@@ -261,6 +261,7 @@ Entries MUST NOT be rewritten or reordered.
 - fix(telemetry): remove catch and prevent return overwrite in HttpRequestTelemetryMiddleware
 - fix(telemetry): instrument TwoFactorController web flow
 - fix(routes): add HttpRequestTelemetryMiddleware and remove duplicate RequestIdMiddleware
+- telemetry(reader-module): add mysql trace reader contracts and dto
 
 
 ---
