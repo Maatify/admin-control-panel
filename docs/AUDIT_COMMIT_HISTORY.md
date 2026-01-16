@@ -274,6 +274,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(telemetry): expose has_metadata in list DTO and reader mapping
 - test(telemetry): add coverage for PdoTelemetryListReader
 - refactor(audit): disable telemetry-based audit logging and mark authoritative TODOs
+- schema(audit): add actor_type to audit_outbox for authoritative audit events
 
 
 ---

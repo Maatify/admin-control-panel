@@ -236,16 +236,26 @@ CREATE TABLE admin_remember_me_tokens (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE audit_outbox (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  actor_id BIGINT NULL,
-  action VARCHAR(128) NOT NULL,
-  target_type VARCHAR(64) NOT NULL,
-  target_id BIGINT NULL,
-  risk_level ENUM('LOW','MEDIUM','HIGH','CRITICAL') NOT NULL,
-  payload JSON NOT NULL,
-  correlation_id CHAR(36) NOT NULL,
-  created_at DATETIME NOT NULL
+                              id BIGINT AUTO_INCREMENT PRIMARY KEY,
+
+                              actor_type VARCHAR(32) NOT NULL,
+                              actor_id BIGINT NULL,
+
+                              action VARCHAR(128) NOT NULL,
+                              target_type VARCHAR(64) NOT NULL,
+                              target_id BIGINT NULL,
+
+                              risk_level ENUM('LOW','MEDIUM','HIGH','CRITICAL') NOT NULL,
+                              payload JSON NOT NULL,
+
+                              correlation_id CHAR(36) NOT NULL,
+                              created_at DATETIME NOT NULL,
+
+                              INDEX idx_audit_actor (actor_type, actor_id),
+                              INDEX idx_audit_target (target_type, target_id),
+                              INDEX idx_audit_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 CREATE TABLE step_up_grants (
     admin_id INT NOT NULL,
