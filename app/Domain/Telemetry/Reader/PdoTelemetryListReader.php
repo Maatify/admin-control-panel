@@ -158,7 +158,8 @@ final readonly class PdoTelemetryListReader implements TelemetryListReaderInterf
                 route_name : $row['route_name'] !== null ? (string)$row['route_name'] : null,
                 request_id : $row['request_id'] !== null ? (string)$row['request_id'] : null,
                 ip_address : $row['ip_address'] !== null ? (string)$row['ip_address'] : null,
-                occurred_at: (string)$row['occurred_at']
+                occurred_at: (string)$row['occurred_at'],
+                has_metadata: (bool)$row['has_metadata']
             );
         }
 

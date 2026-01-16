@@ -245,4 +245,30 @@ class PdoTelemetryListReaderTest extends TestCase
         $this->assertSame('e5', $result->data[0]->event_key);
         $this->assertSame('e1', $result->data[4]->event_key);
     }
+
+    public function testMetadataPresence(): void
+    {
+        $this->seedTelemetry([
+            ['event_key' => 'with_meta',    'metadata' => ['foo' => 'bar']],
+            ['event_key' => 'empty_meta',   'metadata' => []],
+            ['event_key' => 'null_meta',    'metadata' => null],
+        ]);
+
+        $query = new ListQueryDTO(1, 20, null, [], null, null);
+        $filters = new ResolvedListFilters(null, [], null, null);
+
+        $result = $this->reader->getTelemetry($query, $filters);
+
+        $this->assertCount(3, $result->data);
+
+        // Find items by key
+        $items = [];
+        foreach ($result->data as $item) {
+            $items[$item->event_key] = $item;
+        }
+
+        $this->assertTrue($items['with_meta']->has_metadata);
+        $this->assertFalse($items['empty_meta']->has_metadata);
+        $this->assertFalse($items['null_meta']->has_metadata);
+    }
 }

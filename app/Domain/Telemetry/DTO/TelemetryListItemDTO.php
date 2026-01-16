@@ -26,7 +26,8 @@ final readonly class TelemetryListItemDTO
         public ?string $route_name,
         public ?string $request_id,
         public ?string $ip_address,
-        public string $occurred_at
+        public string $occurred_at,
+        public bool $has_metadata
     )
     {
     }
