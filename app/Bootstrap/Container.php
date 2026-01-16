@@ -893,13 +893,16 @@ class Container
                 $auth = $c->get(AuthorizationService::class);
                 $validationGuard = $c->get(ValidationGuard::class);
                 $filterResolver = $c->get(\App\Infrastructure\Query\ListFilterResolver::class);
+                $telemetryFactory = $c->get(\App\Application\Telemetry\HttpTelemetryRecorderFactory::class);
 
                 assert($reader instanceof SessionListReaderInterface);
                 assert($auth instanceof AuthorizationService);
                 assert($validationGuard instanceof ValidationGuard);
                 assert($filterResolver instanceof \App\Infrastructure\Query\ListFilterResolver);
+                assert($telemetryFactory instanceof \App\Application\Telemetry\HttpTelemetryRecorderFactory);
 
-                return new SessionQueryController($reader, $auth, $validationGuard, $filterResolver);
+
+                return new SessionQueryController($reader, $auth, $validationGuard, $filterResolver, $telemetryFactory);
             },
             SessionRevokeController::class => function (ContainerInterface $c) {
                 $service = $c->get(SessionRevocationService::class);

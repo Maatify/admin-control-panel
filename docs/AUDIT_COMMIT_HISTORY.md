@@ -249,6 +249,7 @@ Entries MUST NOT be rewritten or reordered.
 - telemetry(crypto): fix phpstan by removing impossible empty-string checks in email hasher
 - telemetry(auth): wire login telemetry and update container controller binding
 - telemetry(stepup): record step-up verify outcome via admin recorder
+- telemetry(sessions): record sessions query execution (best-effort)
 
 ---
 

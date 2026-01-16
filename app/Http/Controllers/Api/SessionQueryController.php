@@ -4,26 +4,28 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Application\Telemetry\HttpTelemetryRecorderFactory;
+use App\Context\RequestContext;
 use App\Domain\List\ListCapabilities;
 use App\Domain\List\ListQueryDTO;
 use App\Domain\Session\Reader\SessionListReaderInterface;
 use App\Domain\Service\AuthorizationService;
 use App\Infrastructure\Query\ListFilterResolver;
+use App\Modules\Telemetry\Enum\TelemetryEventTypeEnum;
+use App\Modules\Telemetry\Enum\TelemetrySeverityEnum;
 use App\Modules\Validation\Guard\ValidationGuard;
 use App\Modules\Validation\Schemas\SharedListQuerySchema;
-use Maatify\PsrLogger\Traits\StaticLoggerTrait;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
 final readonly class SessionQueryController
 {
-
-//    use StaticLoggerTrait;
     public function __construct(
         private SessionListReaderInterface $reader,
         private AuthorizationService $authorizationService,
         private ValidationGuard $validationGuard,
-        private ListFilterResolver $filterResolver
+        private ListFilterResolver $filterResolver,
+        private HttpTelemetryRecorderFactory $telemetryFactory
     ) {
     }
 
@@ -31,15 +33,17 @@ final readonly class SessionQueryController
     {
         $adminContext = $request->getAttribute(\App\Context\AdminContext::class);
         if (!$adminContext instanceof \App\Context\AdminContext) {
-             throw new \RuntimeException("AdminContext missing");
+            throw new \RuntimeException("AdminContext missing");
         }
         $adminId = $adminContext->adminId;
 
+        $context = $request->getAttribute(RequestContext::class);
+        if (!$context instanceof RequestContext) {
+            throw new \RuntimeException("Request context missing");
+        }
+
         /** @var array<string,mixed> $body */
         $body = (array) $request->getParsedBody();
-
-//        $logger = self::getLogger('bootstrap/init');
-//        $logger->info('SessionQueryController', $body);
 
         // 1️⃣ Validate canonical list/query request
         $this->validationGuard->check(new SharedListQuerySchema(), $body);
@@ -60,7 +64,7 @@ final readonly class SessionQueryController
             ? null
             : $adminId;
 
-        // 4️⃣ Current session hash
+        // 4️⃣ Current session hash (never store raw token)
         $cookies = $request->getCookieParams();
         $token = isset($cookies['auth_token']) ? (string) $cookies['auth_token'] : '';
         $currentSessionHash = $token !== '' ? hash('sha256', $token) : '';
@@ -94,6 +98,29 @@ final readonly class SessionQueryController
             adminIdFilter: $adminIdFilter,
             currentSessionHash: $currentSessionHash
         );
+
+        // ✅ Telemetry (best-effort)
+        try {
+            $metadata = [
+                'query' => $canonicalInput,
+                'filters' => $resolvedFilters,
+                'scope' => $adminIdFilter === null ? 'view_all' : 'self_only',
+                'current_session_hash_present' => $currentSessionHash !== '',
+                'result_count' => count($result->data),
+            ];
+
+            $this->telemetryFactory
+                ->admin($context)
+                ->record(
+                    actorId: $adminId,
+                    eventType: TelemetryEventTypeEnum::DATA_QUERY_EXECUTED,
+                    severity: TelemetrySeverityEnum::INFO,
+                    metadata: $metadata
+                );
+        } catch (\Throwable) {
+            // swallow
+        }
+
 
         $response->getBody()->write(json_encode($result, JSON_THROW_ON_ERROR));
         return $response->withHeader('Content-Type', 'application/json');
