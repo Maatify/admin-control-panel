@@ -24,6 +24,6 @@ readonly class SecurityEventDTO
         public DateTimeImmutable $occurredAt,
         public string $requestId
     ) {
-        $this->context = array_merge($context, ['request_id' => $requestId]);
+        $this->context = $context;
     }
 }

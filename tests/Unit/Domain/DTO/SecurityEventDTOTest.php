@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 
 class SecurityEventDTOTest extends TestCase
 {
-    public function test_it_injects_request_id_into_context(): void
+    public function test_it_does_not_inject_request_id_into_context(): void
     {
         $dto = new SecurityEventDTO(
             1,
@@ -23,11 +23,10 @@ class SecurityEventDTOTest extends TestCase
             'req_123'
         );
 
-        $this->assertArrayHasKey('request_id', $dto->context);
-        $this->assertSame('req_123', $dto->context['request_id']);
+        $this->assertArrayNotHasKey('request_id', $dto->context);
     }
 
-    public function test_it_overrides_existing_request_id_in_context(): void
+    public function test_it_preserves_existing_request_id_in_context(): void
     {
         $dto = new SecurityEventDTO(
             1,
@@ -40,7 +39,7 @@ class SecurityEventDTOTest extends TestCase
             'req_new'
         );
 
-        $this->assertSame('req_new', $dto->context['request_id']);
+        $this->assertSame('old_id', $dto->context['request_id']);
     }
 
     public function test_it_preserves_other_context_fields(): void
@@ -58,6 +57,6 @@ class SecurityEventDTOTest extends TestCase
 
         $this->assertSame('bar', $dto->context['foo']);
         $this->assertSame(123, $dto->context['baz']);
-        $this->assertSame('req_123', $dto->context['request_id']);
+        $this->assertArrayNotHasKey('request_id', $dto->context);
     }
 }
