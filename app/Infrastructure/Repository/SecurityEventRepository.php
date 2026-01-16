@@ -28,10 +28,7 @@ class SecurityEventRepository implements SecurityEventLoggerInterface
             $context = $event->context;
             $context['severity'] = $event->severity;
 
-            $contextJson = json_encode($context);
-            if ($contextJson === false) {
-                $contextJson = '{}';
-            }
+            $contextJson = json_encode($context, JSON_THROW_ON_ERROR);
 
             $stmt->execute([
                 ':admin_id'    => $event->adminId,
