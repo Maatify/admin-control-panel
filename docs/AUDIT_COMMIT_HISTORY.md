@@ -245,6 +245,7 @@ Entries MUST NOT be rewritten or reordered.
 - telemetry(di): wire module logger, domain recorder, and http recorder factory
 - telemetry(crypto): add HKDF-based email hash DTO, contract, and service
 - telemetry(di): register telemetry email hasher service
+- telemetry(http): add system recorder and extend factory for guest flows
 
 ---
 
