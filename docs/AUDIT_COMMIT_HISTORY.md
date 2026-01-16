@@ -252,6 +252,7 @@ Entries MUST NOT be rewritten or reordered.
 - telemetry(sessions): record sessions query execution (best-effort)
 - telemetry(error): record validation failures and psr-log telemetry write errors
 - telemetry(http): add global HTTP request end telemetry middleware
+- telemetry(http): add global HTTP request end telemetry middleware
 
 ---
 

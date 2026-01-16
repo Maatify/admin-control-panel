@@ -198,4 +198,5 @@ return function (App $app) {
     $app->add(\App\Modules\InputNormalization\Middleware\InputNormalizationMiddleware::class);
     $app->add(\App\Http\Middleware\RequestContextMiddleware::class);
     $app->add(\App\Http\Middleware\RequestIdMiddleware::class);
+    $app->add(\App\Http\Middleware\RequestIdMiddleware::class);
 };

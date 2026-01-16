@@ -93,6 +93,52 @@ $errorMiddleware->setErrorHandler(
     }
 );
 
+$errorMiddleware->setErrorHandler(
+    Throwable::class,
+    function (
+        \Psr\Http\Message\ServerRequestInterface $request,
+        Throwable $exception,
+        bool $displayErrorDetails
+    ) use ($app) {
+        try {
+            /** @var RequestContext|null $context */
+            $context = $request->getAttribute(RequestContext::class);
+
+            if ($context instanceof RequestContext) {
+                /** @var HttpTelemetryRecorderFactory $factory */
+                $factory = $app->getContainer()->get(HttpTelemetryRecorderFactory::class);
+
+                $factory
+                    ->system($context)
+                    ->record(
+                        TelemetryEventTypeEnum::SYSTEM_EXCEPTION,
+                        TelemetrySeverityEnum::ERROR,
+                        [
+                            'exception_class' => $exception::class,
+                            'message'         => $exception->getMessage(),
+                            'file'            => $exception->getFile(),
+                            'line'            => $exception->getLine(),
+                            'route_name'      => $context->getRouteName(),
+                        ]
+                    );
+            }
+        } catch (Throwable $telemetryFailure) {
+            try {
+                /** @var \Psr\Log\LoggerInterface $logger */
+                $logger = $app->getContainer()->get(\Psr\Log\LoggerInterface::class);
+                $logger->warning('Telemetry failure while handling Throwable', [
+                    'exception_class' => $telemetryFailure::class,
+                    'message' => $telemetryFailure->getMessage(),
+                ]);
+            } catch (Throwable) {
+                // swallow
+            }
+        }
+
+        throw $exception;
+    }
+);
+
 
 // Register Routes
 $routes = require __DIR__ . '/../routes/web.php';
