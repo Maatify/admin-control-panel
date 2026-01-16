@@ -49,9 +49,10 @@ final class MySQLActivityLogWriterTest extends TestCase
 
         $writer->write($dto);
 
-        $count = (int) $pdo
-            ->query('SELECT COUNT(*) FROM activity_logs WHERE action = "test.insert"')
-            ->fetchColumn();
+        $stmt = $pdo->query("SELECT COUNT(*) FROM activity_logs WHERE action = 'test.insert'");
+        $this->assertNotFalse($stmt);
+
+        $count = (int) $stmt->fetchColumn();
 
         $this->assertSame(1, $count);
     }
