@@ -10,7 +10,6 @@ use App\Domain\Contracts\TelemetryAuditLoggerInterface;
 use App\Context\RequestContext;
 use App\Domain\Contracts\RolePermissionRepositoryInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
-use App\Domain\DTO\LegacyAuditEventDTO;
 use App\Domain\DTO\SecurityEventDTO;
 use App\Domain\Exception\PermissionDeniedException;
 use App\Domain\Exception\UnauthorizedException;
@@ -23,7 +22,15 @@ readonly class AuthorizationService
         private AdminRoleRepositoryInterface $adminRoleRepository,
         private RolePermissionRepositoryInterface $rolePermissionRepository,
         private AdminDirectPermissionRepositoryInterface $directPermissionRepository,
+
+        // NOTE: Kept intentionally for now.
+        // TODO[AUDIT][BLOCKER]:
+        // audit_outbox
+        // TelemetryAuditLoggerInterface is currently injected but MUST NOT be used
+        // for authorization decisions. It will be fully replaced by
+        // NewAuthoritativeAuditLogger in a dedicated phase.
         private TelemetryAuditLoggerInterface $auditLogger,
+
         private SecurityEventLoggerInterface $securityLogger,
         private SystemOwnershipRepositoryInterface $systemOwnershipRepository
     ) {
@@ -33,18 +40,13 @@ readonly class AuthorizationService
     {
         // 0. System Owner Bypass
         if ($this->systemOwnershipRepository->isOwner($adminId)) {
-            // Log access grant for audit purposes, but bypass all checks
-            $this->auditLogger->log(new LegacyAuditEventDTO(
-                $adminId,
-                'system_capability',
-                null,
-                'access_granted',
-                ['permission' => $permission, 'source' => 'system_owner'],
-                $context->ipAddress,
-                $context->userAgent,
-                $context->requestId,
-                new DateTimeImmutable()
-            ));
+            // TODO[AUDIT][BLOCKER]:
+            // audit_outbox
+            // Authorization decision (system owner bypass) was previously logged
+            // via TelemetryAuditLogger (best-effort, non-authoritative).
+            // This MUST be replaced with NewAuthoritativeAuditLogger.
+            // Original logger: TelemetryAuditLoggerInterface / PdoTelemetryAuditLogger.
+            // Ref: Logging Architecture Audit – AuthorizationService::checkPermission
             return;
         }
 
@@ -80,18 +82,11 @@ readonly class AuthorizationService
                     throw new PermissionDeniedException("Explicit deny for '$permission'.");
                 }
 
-                // Explicit Allow
-                $this->auditLogger->log(new LegacyAuditEventDTO(
-                    $adminId,
-                    'system_capability',
-                    null,
-                    'access_granted',
-                    ['permission' => $permission, 'source' => 'direct'],
-                    $context->ipAddress,
-                    $context->userAgent,
-                    $context->requestId,
-                    new DateTimeImmutable()
-                ));
+                // TODO[AUDIT][BLOCKER]:
+                // audit_outbox
+                // Explicit permission allow was previously logged via TelemetryAuditLogger.
+                // This is an AUTHORITY decision and MUST use Authoritative Audit Logging.
+                // Ref: Logging Architecture Audit – AuthorizationService::checkPermission
                 return;
             }
         }
@@ -100,17 +95,11 @@ readonly class AuthorizationService
         $roleIds = $this->adminRoleRepository->getRoleIds($adminId);
 
         if ($this->rolePermissionRepository->hasPermission($roleIds, $permission)) {
-            $this->auditLogger->log(new LegacyAuditEventDTO(
-                $adminId,
-                'system_capability',
-                null,
-                'access_granted',
-                ['permission' => $permission],
-                $context->ipAddress,
-                $context->userAgent,
-                $context->requestId,
-                new DateTimeImmutable()
-            ));
+            // TODO[AUDIT][BLOCKER]:
+            // audit_outbox
+            // Role-based access grant was previously logged via TelemetryAuditLogger.
+            // This MUST be replaced with NewAuthoritativeAuditLogger.
+            // Ref: Logging Architecture Audit – AuthorizationService::checkPermission
             return;
         }
 
@@ -143,7 +132,7 @@ readonly class AuthorizationService
         $directPermissions = $this->directPermissionRepository->getActivePermissions($adminId);
         foreach ($directPermissions as $direct) {
             if ($direct['permission'] === $permission) {
-                return (bool)$direct['is_allowed'];
+                return (bool) $direct['is_allowed'];
             }
         }
 

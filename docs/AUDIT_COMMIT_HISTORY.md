@@ -273,6 +273,7 @@ Entries MUST NOT be rewritten or reordered.
 - test(telemetry): add full telemetry coverage and fix AuthControllerTest
 - feat(telemetry): expose has_metadata in list DTO and reader mapping
 - test(telemetry): add coverage for PdoTelemetryListReader
+- refactor(audit): disable telemetry-based audit logging and mark authoritative TODOs
 
 
 ---

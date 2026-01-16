@@ -14,7 +14,6 @@ use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\DTO\AdminLoginResultDTO;
 use App\Domain\DTO\AuditEventDTO;
-use App\Domain\DTO\LegacyAuditEventDTO;
 use App\Domain\DTO\SecurityEventDTO;
 use App\Domain\Enum\VerificationStatus;
 use App\Domain\Exception\AuthStateException;
@@ -29,7 +28,15 @@ readonly class AdminAuthenticationService
         private AdminEmailVerificationRepositoryInterface $verificationRepository,
         private AdminPasswordRepositoryInterface $passwordRepository,
         private AdminSessionRepositoryInterface $sessionRepository,
+
+        // NOTE: Kept intentionally for now.
+        // TODO[AUDIT][BLOCKER]:
+        // audit_outbox
+        // TelemetryAuditLoggerInterface MUST NOT be used for authentication
+        // or authority-related logging. It will be fully removed once
+        // the new authoritative audit logger is introduced.
         private TelemetryAuditLoggerInterface $auditLogger,
+
         private SecurityEventLoggerInterface $securityLogger,
         private AuthoritativeSecurityAuditWriterInterface $outboxWriter,
         private RecoveryStateService $recoveryState,
@@ -55,7 +62,6 @@ readonly class AdminAuthenticationService
                 new DateTimeImmutable(),
                 $context->requestId
             ));
-            // Defensive: Do not reveal user existence
             throw new InvalidCredentialsException("Invalid credentials.");
         }
 
@@ -94,29 +100,26 @@ readonly class AdminAuthenticationService
         // 4. Transactional Login (Upgrade + Session)
         $this->pdo->beginTransaction();
         try {
-            // 4.1 Upgrade-on-Login (Rehash if pepper changed OR Argon2 params changed)
+            // 4.1 Upgrade-on-Login
             if ($this->passwordService->needsRehash($record->hash, $record->pepperId)) {
                 $newHash = $this->passwordService->hash($password);
-                $this->passwordRepository->savePassword($adminId, $newHash['hash'], $newHash['pepper_id']);
+                $this->passwordRepository->savePassword(
+                    $adminId,
+                    $newHash['hash'],
+                    $newHash['pepper_id']
+                );
             }
 
             // 4.2 Create Session
             $token = $this->sessionRepository->createSession($adminId);
-            // Hash token to get Session ID (for audit logging)
             $sessionId = hash('sha256', $token);
 
-            $this->auditLogger->log(new LegacyAuditEventDTO(
-                $adminId, // Actor
-                'admin', // Target Type
-                $adminId, // Target ID
-                'login_credentials_verified', // Action
-                [], // Changes
-                $context->ipAddress,
-                $context->userAgent,
-                $context->requestId,
-                new DateTimeImmutable()
-            ));
-
+            // TODO[AUDIT][NOTE]:
+            // audit_outbox
+            // login_credentials_verified was previously double-written:
+            // 1) TelemetryAuditLogger -> audit_logs (non-authoritative, best-effort)
+            // 2) Authoritative audit outbox (correct source of truth)
+            // Telemetry audit MUST NOT be reintroduced.
             $this->outboxWriter->write(new AuditEventDTO(
                 $adminId,
                 'login_credentials_verified',
@@ -126,7 +129,6 @@ readonly class AdminAuthenticationService
                 [
                     'ip_address' => $context->ipAddress,
                     'user_agent' => $context->userAgent,
-                    // Log the Session ID prefix (Safe), NOT the Token prefix
                     'session_id_prefix' => substr($sessionId, 0, 8) . '...',
                 ],
                 bin2hex(random_bytes(16)),
@@ -160,7 +162,6 @@ readonly class AdminAuthenticationService
                 $adminId,
                 'LOW',
                 [
-                    // Log the Session ID prefix (Safe), NOT the Token prefix
                     'session_id_prefix' => substr($sessionId, 0, 8) . '...',
                     'ip_address' => $context->ipAddress,
                     'user_agent' => $context->userAgent,

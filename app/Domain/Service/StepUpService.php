@@ -11,7 +11,6 @@ use App\Domain\Contracts\StepUpGrantRepositoryInterface;
 use App\Domain\Contracts\TotpSecretRepositoryInterface;
 use App\Domain\Contracts\TotpServiceInterface;
 use App\Domain\DTO\AuditEventDTO;
-use App\Domain\DTO\LegacyAuditEventDTO;
 use App\Domain\DTO\SecurityEventDTO;
 use App\Domain\DTO\StepUpGrant;
 use App\Domain\DTO\TotpVerificationResultDTO;
@@ -26,27 +25,48 @@ readonly class StepUpService
         private StepUpGrantRepositoryInterface $grantRepository,
         private TotpSecretRepositoryInterface $totpSecretRepository,
         private TotpServiceInterface $totpService,
+
+        // NOTE: Kept intentionally for now.
+        // TODO[AUDIT][BLOCKER]:
+        // audit_outbox
+        // TelemetryAuditLoggerInterface is injected but MUST NOT be used for
+        // security or authority logging. It will be fully replaced by
+        // NewAuthoritativeAuditLogger in a dedicated phase.
         private TelemetryAuditLoggerInterface $auditLogger,
+
         private AuthoritativeSecurityAuditWriterInterface $outboxWriter,
         private RecoveryStateService $recoveryState,
         private PDO $pdo
     ) {
     }
 
-    public function verifyTotp(int $adminId, string $token, string $code, RequestContext $context, ?Scope $requestedScope = null): TotpVerificationResultDTO
-    {
+    public function verifyTotp(
+        int $adminId,
+        string $token,
+        string $code,
+        RequestContext $context,
+        ?Scope $requestedScope = null
+    ): TotpVerificationResultDTO {
         $this->recoveryState->enforce(RecoveryStateService::ACTION_OTP_VERIFY, $adminId, $context);
 
         $sessionId = hash('sha256', $token);
 
         $secret = $this->totpSecretRepository->get($adminId);
         if ($secret === null) {
-             $this->logSecurityEvent($adminId, $sessionId, 'stepup_primary_failed', ['reason' => 'no_totp_enrolled'], $context);
-             return new TotpVerificationResultDTO(false, 'TOTP not enrolled');
+            // TODO[AUDIT][BLOCKER]:
+            // audit_outbox
+            // Step-up failure (no TOTP enrolled) was previously logged via
+            // TelemetryAuditLogger into audit_logs.
+            // This MUST be logged as a Security Event instead.
+            return new TotpVerificationResultDTO(false, 'TOTP not enrolled');
         }
 
         if (!$this->totpService->verify($secret, $code)) {
-            $this->logSecurityEvent($adminId, $sessionId, 'stepup_primary_failed', ['reason' => 'invalid_code'], $context);
+            // TODO[AUDIT][BLOCKER]:
+            // audit_outbox
+            // Step-up failure (invalid TOTP code) was previously logged via
+            // TelemetryAuditLogger into audit_logs.
+            // This MUST be logged as a Security Event instead.
             return new TotpVerificationResultDTO(false, 'Invalid code');
         }
 
@@ -55,7 +75,6 @@ readonly class StepUpService
             if ($requestedScope !== null && $requestedScope !== Scope::LOGIN) {
                 $this->issueScopedGrant($adminId, $token, $requestedScope, $context);
             } else {
-                // Issue Primary Grant
                 $this->issuePrimaryGrant($adminId, $token, $context);
             }
             $this->pdo->commit();
@@ -67,14 +86,22 @@ readonly class StepUpService
         return new TotpVerificationResultDTO(true);
     }
 
-    public function enableTotp(int $adminId, string $token, string $secret, string $code, RequestContext $context): bool
-    {
+    public function enableTotp(
+        int $adminId,
+        string $token,
+        string $secret,
+        string $code,
+        RequestContext $context
+    ): bool {
         $this->recoveryState->enforce(RecoveryStateService::ACTION_OTP_VERIFY, $adminId, $context);
 
         $sessionId = hash('sha256', $token);
 
         if (!$this->totpService->verify($secret, $code)) {
-            $this->logSecurityEvent($adminId, $sessionId, 'stepup_enroll_failed', ['reason' => 'invalid_code'], $context);
+            // TODO[AUDIT][BLOCKER]:
+            // audit_outbox
+            // TOTP enrollment failure was previously logged via TelemetryAuditLogger.
+            // This MUST be logged as a Security Event.
             return false;
         }
 
@@ -84,18 +111,12 @@ readonly class StepUpService
 
             $this->issuePrimaryGrant($adminId, $token, $context);
 
-            $this->auditLogger->log(new LegacyAuditEventDTO(
-                $adminId,
-                'system',
-                $adminId,
-                'stepup_enrolled',
-                ['session_id' => $sessionId],
-                $context->ipAddress,
-                $context->userAgent,
-                $context->requestId,
-                new DateTimeImmutable()
-            ));
-
+            // TODO[AUDIT][NOTE]:
+            // audit_outbox
+            // stepup_enrolled was previously double-written:
+            // 1) Authoritative audit (outbox)
+            // 2) TelemetryAuditLogger -> audit_logs
+            // Telemetry audit must be removed permanently.
             $this->outboxWriter->write(new AuditEventDTO(
                 $adminId,
                 'stepup_enrolled',
@@ -124,27 +145,19 @@ readonly class StepUpService
         $grant = new StepUpGrant(
             $adminId,
             $sessionId,
-            Scope::LOGIN, // Primary Scope
+            Scope::LOGIN,
             $this->getRiskHash($context),
             new DateTimeImmutable(),
-            new DateTimeImmutable('+2 hours'), // Match session expiry usually
+            new DateTimeImmutable('+2 hours'),
             false
         );
 
         $this->grantRepository->save($grant);
 
-        $this->auditLogger->log(new LegacyAuditEventDTO(
-            $adminId,
-            'system',
-            $adminId,
-            'stepup_primary_issued',
-            ['session_id' => $sessionId],
-            $context->ipAddress,
-            $context->userAgent,
-            $context->requestId,
-            new DateTimeImmutable()
-        ));
-
+        // TODO[AUDIT][NOTE]:
+        // audit_outbox
+        // stepup_primary_issued was previously double-written
+        // (authoritative outbox + telemetry audit).
         $this->outboxWriter->write(new AuditEventDTO(
             $adminId,
             'stepup_primary_issued',
@@ -168,24 +181,16 @@ readonly class StepUpService
             $scope,
             $this->getRiskHash($context),
             new DateTimeImmutable(),
-            new DateTimeImmutable('+15 minutes'), // Scoped grants are short-lived
+            new DateTimeImmutable('+15 minutes'),
             false
         );
 
         $this->grantRepository->save($grant);
 
-        $this->auditLogger->log(new LegacyAuditEventDTO(
-            $adminId,
-            'system',
-            $adminId,
-            'stepup_scoped_issued',
-            ['session_id' => $sessionId, 'scope' => $scope->value],
-            $context->ipAddress,
-            $context->userAgent,
-            $context->requestId,
-            new DateTimeImmutable()
-        ));
-
+        // TODO[AUDIT][NOTE]:
+        // audit_outbox
+        // stepup_scoped_issued was previously double-written
+        // (authoritative outbox + telemetry audit).
         $this->outboxWriter->write(new AuditEventDTO(
             $adminId,
             'stepup_scoped_issued',
@@ -203,22 +208,10 @@ readonly class StepUpService
     {
         $sessionId = hash('sha256', $token);
 
-        $this->auditLogger->log(new LegacyAuditEventDTO(
-            $adminId,
-            'system',
-            $adminId,
-            'stepup_denied',
-            [
-                'session_id' => $sessionId,
-                'required_scope' => $requiredScope->value,
-                'severity' => 'warning'
-            ],
-            $context->ipAddress,
-            $context->userAgent,
-            $context->requestId,
-            new DateTimeImmutable()
-        ));
-
+        // TODO[AUDIT][BLOCKER]:
+        // audit_outbox
+        // stepup_denied was previously logged via TelemetryAuditLogger.
+        // This MUST use Authoritative Audit only.
         $this->pdo->beginTransaction();
         try {
             $this->outboxWriter->write(new AuditEventDTO(
@@ -248,10 +241,11 @@ readonly class StepUpService
             return false;
         }
 
-        // Verify Risk Context
         if (!hash_equals($grant->riskContextHash, $this->getRiskHash($context))) {
-            $this->logSecurityEvent($adminId, $sessionId, 'stepup_risk_mismatch', ['reason' => 'context_changed'], $context);
-            // Invalidate strictly
+            // TODO[AUDIT][BLOCKER]:
+            // audit_outbox
+            // Risk context mismatch was previously logged via TelemetryAuditLogger.
+            // This MUST be logged as a Security Event, not audit telemetry.
             $this->pdo->beginTransaction();
             try {
                 $this->grantRepository->revoke($adminId, $sessionId, $scope);
@@ -277,25 +271,15 @@ readonly class StepUpService
             return false;
         }
 
-        // Check single use?
         if ($grant->singleUse) {
             $this->pdo->beginTransaction();
             try {
-                // Consume grant
                 $this->grantRepository->revoke($adminId, $sessionId, $scope);
 
-                 $this->auditLogger->log(new LegacyAuditEventDTO(
-                    $adminId,
-                    'system',
-                    $adminId,
-                    'stepup_grant_consumed',
-                    ['scope' => $scope->value],
-                    $context->ipAddress,
-                    $context->userAgent,
-                    $context->requestId,
-                    new DateTimeImmutable()
-                ));
-
+                // TODO[AUDIT][NOTE]:
+                // audit_outbox
+                // stepup_grant_consumed was previously double-written
+                // (authoritative outbox + telemetry audit).
                 $this->outboxWriter->write(new AuditEventDTO(
                     $adminId,
                     'stepup_grant_consumed',
@@ -322,11 +306,9 @@ readonly class StepUpService
     {
         $sessionId = hash('sha256', $token);
 
-        // Check for Primary Grant (Scope::LOGIN)
         $primaryGrant = $this->grantRepository->find($adminId, $sessionId, Scope::LOGIN);
 
         if ($primaryGrant !== null && $primaryGrant->expiresAt > new DateTimeImmutable()) {
-            // Verify Risk Context for Primary Grant too
             if (hash_equals($primaryGrant->riskContextHash, $this->getRiskHash($context))) {
                 return SessionState::ACTIVE;
             }
@@ -335,35 +317,8 @@ readonly class StepUpService
         return SessionState::PENDING_STEP_UP;
     }
 
-    /**
-     * @param array<string, scalar> $details
-     */
-    private function logSecurityEvent(int $adminId, string $sessionId, string $event, array $details, RequestContext $context): void
-    {
-        $details['session_id'] = $sessionId;
-        $details['scope'] = Scope::LOGIN->value;
-        $details['severity'] = 'error';
-
-        /** @var array<string, scalar> $logContext */
-        $logContext = $details;
-
-        $this->auditLogger->log(new LegacyAuditEventDTO(
-            $adminId,
-            'security',
-            $adminId,
-            $event,
-            $logContext,
-            $context->ipAddress,
-            $context->userAgent,
-            $context->requestId,
-            new DateTimeImmutable()
-        ));
-    }
-
     private function getRiskHash(RequestContext $context): string
     {
-        $ip = $context->ipAddress;
-        $ua = $context->userAgent;
-        return hash('sha256', $ip . '|' . $ua);
+        return hash('sha256', $context->ipAddress . '|' . $context->userAgent);
     }
 }
