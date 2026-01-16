@@ -15,12 +15,15 @@ declare(strict_types=1);
 
 namespace App\Domain\Telemetry\Contracts;
 
+use App\Domain\DTO\Common\PaginationDTO;
+use App\Domain\List\ListQueryDTO;
 use App\Domain\Telemetry\DTO\TelemetryListResponseDTO;
-use App\Domain\Telemetry\DTO\TelemetryQueryDTO;
+use App\Infrastructure\Query\ResolvedListFilters;
 
-interface TelemetryReaderInterface
+interface TelemetryListReaderInterface
 {
     public function getTelemetry(
-        TelemetryQueryDTO $query
+        ListQueryDTO $query,
+        ResolvedListFilters $filters
     ): TelemetryListResponseDTO;
 }

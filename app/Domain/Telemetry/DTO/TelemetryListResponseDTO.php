@@ -20,12 +20,11 @@ use App\Domain\DTO\Common\PaginationDTO;
 final readonly class TelemetryListResponseDTO
 {
     /**
-     * @param   array<int, TelemetryViewDTO>  $data
+     * @param array<int,TelemetryListItemDTO> $data
      */
     public function __construct(
         public array $data,
         public PaginationDTO $pagination
-    )
-    {
-    }
+    ) {}
 }
+
