@@ -7,6 +7,7 @@ namespace App\Domain\Service;
 use App\Domain\Contracts\TelemetryAuditLoggerInterface;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Context\RequestContext;
+use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\Contracts\StepUpGrantRepositoryInterface;
 use App\Domain\Contracts\TotpSecretRepositoryInterface;
 use App\Domain\Contracts\TotpServiceInterface;
@@ -27,6 +28,7 @@ readonly class StepUpService
         private TotpSecretRepositoryInterface $totpSecretRepository,
         private TotpServiceInterface $totpService,
         private TelemetryAuditLoggerInterface $auditLogger,
+        private SecurityEventLoggerInterface $securityLogger,
         private AuthoritativeSecurityAuditWriterInterface $outboxWriter,
         private RecoveryStateService $recoveryState,
         private PDO $pdo
@@ -342,21 +344,18 @@ readonly class StepUpService
     {
         $details['session_id'] = $sessionId;
         $details['scope'] = Scope::LOGIN->value;
-        $details['severity'] = 'error';
 
-        /** @var array<string, scalar> $logContext */
-        $logContext = $details;
+        $severity = $event === 'stepup_risk_mismatch' ? 'error' : 'warning';
 
-        $this->auditLogger->log(new LegacyAuditEventDTO(
-            $adminId,
-            'security',
+        $this->securityLogger->log(new SecurityEventDTO(
             $adminId,
             $event,
-            $logContext,
+            $severity,
+            $details,
             $context->ipAddress,
             $context->userAgent,
-            $context->requestId,
-            new DateTimeImmutable()
+            new DateTimeImmutable(),
+            $context->requestId
         ));
     }
 

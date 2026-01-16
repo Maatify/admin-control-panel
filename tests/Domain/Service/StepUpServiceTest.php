@@ -6,6 +6,7 @@ namespace Tests\Domain\Service;
 
 use App\Context\RequestContext;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
+use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\Contracts\StepUpGrantRepositoryInterface;
 use App\Domain\Contracts\TelemetryAuditLoggerInterface;
 use App\Domain\Contracts\TotpSecretRepositoryInterface;
@@ -25,6 +26,7 @@ class StepUpServiceTest extends TestCase
     private TotpSecretRepositoryInterface&MockObject $secretRepository;
     private TotpServiceInterface&MockObject $totpService;
     private TelemetryAuditLoggerInterface&MockObject $auditLogger;
+    private SecurityEventLoggerInterface&MockObject $securityLogger;
     private AuthoritativeSecurityAuditWriterInterface&MockObject $outboxWriter;
     private RecoveryStateService&MockObject $recoveryState;
     private PDO&MockObject $pdo;
@@ -37,6 +39,7 @@ class StepUpServiceTest extends TestCase
         $this->secretRepository = $this->createMock(TotpSecretRepositoryInterface::class);
         $this->totpService = $this->createMock(TotpServiceInterface::class);
         $this->auditLogger = $this->createMock(TelemetryAuditLoggerInterface::class);
+        $this->securityLogger = $this->createMock(SecurityEventLoggerInterface::class);
         $this->outboxWriter = $this->createMock(AuthoritativeSecurityAuditWriterInterface::class);
         $this->recoveryState = $this->createMock(RecoveryStateService::class);
         $this->pdo = $this->createMock(PDO::class);
@@ -51,6 +54,7 @@ class StepUpServiceTest extends TestCase
             $this->secretRepository,
             $this->totpService,
             $this->auditLogger,
+            $this->securityLogger,
             $this->outboxWriter,
             $this->recoveryState,
             $this->pdo
@@ -164,8 +168,8 @@ class StepUpServiceTest extends TestCase
             ->method('get')
             ->willReturn(null);
 
-        $this->auditLogger->expects($this->once())
-            ->method('log'); // Security event
+        $this->securityLogger->expects($this->once())
+            ->method('log');
 
         $result = $this->service->verifyTotp(1, 'token', 'c', $context);
         $this->assertFalse($result->success);
@@ -182,8 +186,8 @@ class StepUpServiceTest extends TestCase
         $this->secretRepository->method('get')->willReturn('secret');
         $this->totpService->method('verify')->willReturn(false);
 
-        $this->auditLogger->expects($this->once())
-            ->method('log'); // Security event
+        $this->securityLogger->expects($this->once())
+            ->method('log');
 
         $result = $this->service->verifyTotp(1, 'token', 'c', $context);
         $this->assertFalse($result->success);

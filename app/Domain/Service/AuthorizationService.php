@@ -6,16 +6,17 @@ namespace App\Domain\Service;
 
 use App\Domain\Contracts\AdminDirectPermissionRepositoryInterface;
 use App\Domain\Contracts\AdminRoleRepositoryInterface;
-use App\Domain\Contracts\TelemetryAuditLoggerInterface;
+use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Context\RequestContext;
 use App\Domain\Contracts\RolePermissionRepositoryInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
-use App\Domain\DTO\LegacyAuditEventDTO;
+use App\Domain\DTO\AuditEventDTO;
 use App\Domain\DTO\SecurityEventDTO;
 use App\Domain\Exception\PermissionDeniedException;
 use App\Domain\Exception\UnauthorizedException;
 use App\Domain\Ownership\SystemOwnershipRepositoryInterface;
 use DateTimeImmutable;
+use PDO;
 
 readonly class AuthorizationService
 {
@@ -23,9 +24,10 @@ readonly class AuthorizationService
         private AdminRoleRepositoryInterface $adminRoleRepository,
         private RolePermissionRepositoryInterface $rolePermissionRepository,
         private AdminDirectPermissionRepositoryInterface $directPermissionRepository,
-        private TelemetryAuditLoggerInterface $auditLogger,
+        private AuthoritativeSecurityAuditWriterInterface $auditWriter,
         private SecurityEventLoggerInterface $securityLogger,
-        private SystemOwnershipRepositoryInterface $systemOwnershipRepository
+        private SystemOwnershipRepositoryInterface $systemOwnershipRepository,
+        private PDO $pdo
     ) {
     }
 
@@ -34,24 +36,14 @@ readonly class AuthorizationService
         // 0. System Owner Bypass
         if ($this->systemOwnershipRepository->isOwner($adminId)) {
             // Log access grant for audit purposes, but bypass all checks
-            $this->auditLogger->log(new LegacyAuditEventDTO(
-                $adminId,
-                'system_capability',
-                null,
-                'access_granted',
-                ['permission' => $permission, 'source' => 'system_owner'],
-                $context->ipAddress,
-                $context->userAgent,
-                $context->requestId,
-                new DateTimeImmutable()
-            ));
+            $this->logAccessGranted($adminId, $permission, 'system_owner', $context);
             return;
         }
 
         if (!$this->rolePermissionRepository->permissionExists($permission)) {
             $this->securityLogger->log(new SecurityEventDTO(
                 $adminId,
-                'permission_denied',
+                'authorization_denied',
                 'warning',
                 ['reason' => 'unknown_permission', 'permission' => $permission],
                 $context->ipAddress,
@@ -69,7 +61,7 @@ readonly class AuthorizationService
                 if (!$direct['is_allowed']) {
                     $this->securityLogger->log(new SecurityEventDTO(
                         $adminId,
-                        'permission_denied',
+                        'authorization_denied',
                         'warning',
                         ['reason' => 'explicit_deny', 'permission' => $permission],
                         $context->ipAddress,
@@ -81,17 +73,7 @@ readonly class AuthorizationService
                 }
 
                 // Explicit Allow
-                $this->auditLogger->log(new LegacyAuditEventDTO(
-                    $adminId,
-                    'system_capability',
-                    null,
-                    'access_granted',
-                    ['permission' => $permission, 'source' => 'direct'],
-                    $context->ipAddress,
-                    $context->userAgent,
-                    $context->requestId,
-                    new DateTimeImmutable()
-                ));
+                $this->logAccessGranted($adminId, $permission, 'direct', $context);
                 return;
             }
         }
@@ -100,24 +82,14 @@ readonly class AuthorizationService
         $roleIds = $this->adminRoleRepository->getRoleIds($adminId);
 
         if ($this->rolePermissionRepository->hasPermission($roleIds, $permission)) {
-            $this->auditLogger->log(new LegacyAuditEventDTO(
-                $adminId,
-                'system_capability',
-                null,
-                'access_granted',
-                ['permission' => $permission],
-                $context->ipAddress,
-                $context->userAgent,
-                $context->requestId,
-                new DateTimeImmutable()
-            ));
+            $this->logAccessGranted($adminId, $permission, 'role', $context);
             return;
         }
 
         // Default Deny
         $this->securityLogger->log(new SecurityEventDTO(
             $adminId,
-            'permission_denied',
+            'authorization_denied',
             'warning',
             ['reason' => 'missing_permission', 'permission' => $permission],
             $context->ipAddress,
@@ -151,5 +123,37 @@ readonly class AuthorizationService
         $roleIds = $this->adminRoleRepository->getRoleIds($adminId);
 
         return $this->rolePermissionRepository->hasPermission($roleIds, $permission);
+    }
+
+    private function logAccessGranted(int $adminId, string $permission, string $source, RequestContext $context): void
+    {
+        $startedTransaction = false;
+        if (!$this->pdo->inTransaction()) {
+            $this->pdo->beginTransaction();
+            $startedTransaction = true;
+        }
+
+        try {
+            $this->auditWriter->write(new AuditEventDTO(
+                $adminId,
+                'access_granted',
+                'system_capability',
+                null,
+                'LOW',
+                ['permission' => $permission, 'source' => $source],
+                bin2hex(random_bytes(16)),
+                $context->requestId,
+                new DateTimeImmutable()
+            ));
+
+            if ($startedTransaction) {
+                $this->pdo->commit();
+            }
+        } catch (\Throwable $e) {
+            if ($startedTransaction) {
+                $this->pdo->rollBack();
+            }
+            throw $e;
+        }
     }
 }

@@ -89,15 +89,18 @@ SQL
         $pdo->exec(<<<SQL
             CREATE TABLE IF NOT EXISTS security_events (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                actor_type VARCHAR(32) NOT NULL CHECK(length(actor_type) <= 32),
+                actor_type VARCHAR(32) NULL CHECK(length(actor_type) <= 32),
                 actor_id INTEGER NULL,
-                event_type VARCHAR(100) NOT NULL,
-                severity VARCHAR(20) NOT NULL,
+                event_type VARCHAR(100) NULL,
+                severity VARCHAR(20) NULL,
                 request_id VARCHAR(64) NULL,
                 route_name VARCHAR(255) NULL,
+                metadata TEXT NULL,
+                admin_id INTEGER NULL,
+                event_name VARCHAR(100) NULL,
+                context TEXT NULL,
                 ip_address VARCHAR(45) NULL,
                 user_agent TEXT NULL,
-                metadata TEXT NOT NULL,
                 occurred_at DATETIME NOT NULL
             );
 SQL

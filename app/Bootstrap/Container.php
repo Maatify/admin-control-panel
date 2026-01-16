@@ -269,24 +269,27 @@ class Container
                 $adminRoleRepo = $c->get(AdminRoleRepositoryInterface::class);
                 $rolePermissionRepo = $c->get(RolePermissionRepositoryInterface::class);
                 $directPermissionRepo = $c->get(AdminDirectPermissionRepositoryInterface::class);
-                $auditLogger = $c->get(TelemetryAuditLoggerInterface::class);
+                $auditWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
                 $securityLogger = $c->get(SecurityEventLoggerInterface::class);
                 $ownershipRepo = $c->get(SystemOwnershipRepositoryInterface::class);
+                $pdo = $c->get(PDO::class);
 
                 assert($adminRoleRepo instanceof AdminRoleRepositoryInterface);
                 assert($rolePermissionRepo instanceof RolePermissionRepositoryInterface);
                 assert($directPermissionRepo instanceof AdminDirectPermissionRepositoryInterface);
-                assert($auditLogger instanceof TelemetryAuditLoggerInterface);
+                assert($auditWriter instanceof AuthoritativeSecurityAuditWriterInterface);
                 assert($securityLogger instanceof SecurityEventLoggerInterface);
                 assert($ownershipRepo instanceof SystemOwnershipRepositoryInterface);
+                assert($pdo instanceof PDO);
 
                 return new AuthorizationService(
                     $adminRoleRepo,
                     $rolePermissionRepo,
                     $directPermissionRepo,
-                    $auditLogger,
+                    $auditWriter,
                     $securityLogger,
-                    $ownershipRepo
+                    $ownershipRepo,
+                    $pdo
                 );
             },
             Twig::class => function (ContainerInterface $c) {
@@ -1008,6 +1011,7 @@ class Container
                  $secretRepo = $c->get(TotpSecretRepositoryInterface::class);
                  $totpService = $c->get(TotpServiceInterface::class);
                  $auditLogger = $c->get(TelemetryAuditLoggerInterface::class);
+                 $securityLogger = $c->get(SecurityEventLoggerInterface::class);
                  $outboxWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
                  $recoveryState = $c->get(RecoveryStateService::class);
                  $pdo = $c->get(PDO::class);
@@ -1016,6 +1020,7 @@ class Container
                  assert($secretRepo instanceof TotpSecretRepositoryInterface);
                  assert($totpService instanceof TotpServiceInterface);
                  assert($auditLogger instanceof TelemetryAuditLoggerInterface);
+                 assert($securityLogger instanceof SecurityEventLoggerInterface);
                  assert($outboxWriter instanceof AuthoritativeSecurityAuditWriterInterface);
                  assert($recoveryState instanceof RecoveryStateService);
                  assert($pdo instanceof PDO);
@@ -1025,6 +1030,7 @@ class Container
                      $secretRepo,
                      $totpService,
                      $auditLogger,
+                     $securityLogger,
                      $outboxWriter,
                      $recoveryState,
                      $pdo
