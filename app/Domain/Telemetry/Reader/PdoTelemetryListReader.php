@@ -125,7 +125,9 @@ final readonly class PdoTelemetryListReader implements TelemetryListReaderInterf
                 route_name,
                 request_id,
                 ip_address,
-                occurred_at
+                occurred_at,
+                IF(metadata IS NOT NULL AND JSON_LENGTH(metadata) > 0, 1, 0) AS has_metadata
+            
             FROM telemetry_traces
             {$whereSql}
             ORDER BY occurred_at DESC
