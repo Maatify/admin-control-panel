@@ -4,18 +4,20 @@ declare(strict_types=1);
 
 namespace Tests\Http\Middleware;
 
+use App\Context\AdminContext;
+use App\Context\RequestContext;
 use App\Domain\Enum\Scope;
-use App\Domain\Service\StepUpService;
+use App\Domain\Enum\SessionState;
 use App\Http\Middleware\ScopeGuardMiddleware;
+use App\Domain\Service\StepUpService;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Factory\AppFactory;
+use Slim\Psr7\Factory\ServerRequestFactory;
 use Slim\Psr7\Response;
-use Slim\Routing\Route;
-use Slim\Routing\RouteContext;
 
-class ScopeGuardMiddlewareTest extends TestCase
+final class ScopeGuardMiddlewareTest extends TestCase
 {
     private StepUpService $stepUpService;
     private ScopeGuardMiddleware $middleware;
@@ -23,43 +25,100 @@ class ScopeGuardMiddlewareTest extends TestCase
     protected function setUp(): void
     {
         $this->stepUpService = $this->createMock(StepUpService::class);
-        $this->middleware = new ScopeGuardMiddleware($this->stepUpService);
+        $this->middleware   = new ScopeGuardMiddleware($this->stepUpService);
     }
 
-    public function testDeniesAccessWhenNoAdminId(): void
+    public function testDeniesAccessWhenNoAdminContext(): void
     {
         $request = $this->createMock(ServerRequestInterface::class);
-        $request->method('getAttribute')->with('admin_id')->willReturn(null);
         $handler = $this->createMock(RequestHandlerInterface::class);
 
+        $request->expects($this->any())
+            ->method('getAttribute')
+            ->willReturnCallback(static function (string $name, mixed $default = null) {
+                return match ($name) {
+                    'request_id' => '123-abc',
+                    '__route__'  => null,
+                    default      => $default,
+                };
+            });
+
+
         $response = $this->middleware->process($request, $handler);
-        $this->assertEquals(401, $response->getStatusCode());
+
+        $this->assertSame(401, $response->getStatusCode());
     }
 
     public function testAllowsAccessWithValidGrant(): void
     {
-        $request = $this->createMock(ServerRequestInterface::class);
-        $request->method('getAttribute')->with('admin_id')->willReturn(123);
-        $request->method('getHeaderLine')->with('Authorization')->willReturn('Bearer token123');
+        // =========================
+        // Arrange
+        // =========================
 
-        // Mock a route requiring SECURITY scope
-        $route = $this->createMock(Route::class);
-        $route->method('getName')->willReturn('admin.create'); // Mapped to SECURITY in Registry
+        $stepUpService = $this->createMock(StepUpService::class);
 
-        $request->method('getAttribute')->will($this->returnValueMap([
-            ['admin_id', null, 123],
-            [RouteContext::ROUTE, null, $route]
-        ]));
+        $stepUpService->expects($this->once())
+            ->method('getSessionState')
+            ->willReturn(SessionState::ACTIVE);
 
-        // Expect hasGrant call for SECURITY scope
-        $this->stepUpService->expects($this->once())
+        $stepUpService->expects($this->once())
             ->method('hasGrant')
-            ->with(123, 'token123', Scope::SECURITY)
+            ->with(
+                123,
+                'session123',
+                Scope::SECURITY,
+                $this->isInstanceOf(RequestContext::class)
+            )
             ->willReturn(true);
 
-        $handler = $this->createMock(RequestHandlerInterface::class);
-        $handler->expects($this->once())->method('handle')->willReturn(new \Slim\Psr7\Response());
+        $app = AppFactory::create();
 
-        $this->middleware->process($request, $handler);
+        // 2️⃣ then your middleware
+        $app->add(new ScopeGuardMiddleware($stepUpService));
+
+        // 1️⃣ routing FIRST
+        $app->addRoutingMiddleware();
+
+        // 3️⃣ routes
+        $app->get('/admins', function () {
+            return new Response();
+        })->setName('admins.create');
+
+        // =========================
+        // Build real request
+        // =========================
+
+        $request = (new ServerRequestFactory())
+            ->createServerRequest('GET', '/admins');
+
+        // Inject required context attributes
+        $request = $request
+            ->withAttribute(AdminContext::class, new AdminContext(123))
+            ->withAttribute(
+                RequestContext::class,
+                new RequestContext(
+                    requestId: 'req-123',
+                    ipAddress: '127.0.0.1',
+                    userAgent: 'PHPUnit',
+                    routeName: 'admins.create',
+                    method: 'GET',
+                    path: '/admins'
+                )
+            )
+            ->withCookieParams([
+                'auth_token' => 'session123',
+            ]);
+
+        // =========================
+        // Act
+        // =========================
+
+        $response = $app->handle($request);
+
+        // =========================
+        // Assert
+        // =========================
+
+        $this->assertSame(200, $response->getStatusCode());
     }
 }
