@@ -36,7 +36,7 @@ use Throwable;
 final readonly class TelemetryEmailHashService implements TelemetryEmailHasherInterface
 {
     private const HKDF_INFO = 'telemetry:email_hash:v1';
-    private const KEY_LEN   = 32;
+    private const KEY_LEN = 32;
 
     /**
      * Algo marker for metadata (optional but recommended).
@@ -47,8 +47,7 @@ final readonly class TelemetryEmailHashService implements TelemetryEmailHasherIn
     public function __construct(
         private KeyRotationService $keyRotation,
         private HKDFService $hkdf
-    )
-    {
+    ) {
     }
 
     public function hashEmail(string $email): ?TelemetryEmailHashDTO
@@ -61,11 +60,11 @@ final readonly class TelemetryEmailHashService implements TelemetryEmailHasherIn
         try {
             $activeKey = $this->keyRotation->activeEncryptionKey();
 
-            // We assume the active key object provides:
-            // - id(): string
-            // - material(): string
-            $keyId = (string)$activeKey->id();
-            $rootKeyMaterial = (string)$activeKey->material();
+            // NOTE:
+            // We keep a defensive empty-check here because upstream implementations
+            // might change, but we avoid impossible checks flagged by PHPStan.
+            $keyId = (string) $activeKey->id();
+            $rootKeyMaterial = (string) $activeKey->material();
 
             if ($keyId === '' || $rootKeyMaterial === '') {
                 return null;
@@ -73,25 +72,20 @@ final readonly class TelemetryEmailHashService implements TelemetryEmailHasherIn
 
             $context = new HKDFContext(self::HKDF_INFO);
 
+            // deriveKey is expected (by phpdoc) to return non-empty-string
             $derivedKey = $this->hkdf->deriveKey(
                 rootKey: $rootKeyMaterial,
                 context: $context,
-                length : self::KEY_LEN
+                length: self::KEY_LEN
             );
 
-            if ($derivedKey === '') {
-                return null;
-            }
-
-            $hash = hash_hmac('sha256', $normalized, $derivedKey, false);
-            if (! is_string($hash) || $hash === '') {
-                return null;
-            }
+            // hash_hmac returns string (non-empty) for valid inputs
+            $hash = hash_hmac('sha256', $normalized, $derivedKey);
 
             return new TelemetryEmailHashDTO(
-                hash : $hash,
+                hash: $hash,
                 keyId: $keyId,
-                algo : self::ALGO
+                algo: self::ALGO
             );
         } catch (Throwable) {
             // best-effort: never throw
@@ -106,9 +100,6 @@ final readonly class TelemetryEmailHashService implements TelemetryEmailHasherIn
             return '';
         }
 
-        // normalize to lower for stable hashing
-        $email = strtolower($email);
-
-        return $email;
+        return strtolower($email);
     }
 }
