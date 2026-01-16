@@ -928,10 +928,21 @@ class Container
                 $service = $c->get(SessionRevocationService::class);
                 $auth = $c->get(AuthorizationService::class);
                 $validationGuard = $c->get(ValidationGuard::class);
+
+                // Telemetry
+                $telemetryFactory = $c->get(\App\Application\Telemetry\HttpTelemetryRecorderFactory::class);
+
                 assert($service instanceof SessionRevocationService);
                 assert($auth instanceof AuthorizationService);
                 assert($validationGuard instanceof ValidationGuard);
-                return new SessionBulkRevokeController($service, $auth, $validationGuard);
+                assert($telemetryFactory instanceof \App\Application\Telemetry\HttpTelemetryRecorderFactory);
+
+                return new SessionBulkRevokeController(
+                    $service,
+                    $auth,
+                    $validationGuard,
+                    $telemetryFactory
+                );
             },
 
             // Admin List

@@ -254,6 +254,7 @@ Entries MUST NOT be rewritten or reordered.
 - telemetry(http): add global HTTP request end telemetry middleware
 - feat(security, telemetry): add admin self-logout telemetry and wire canonical error handlers
 - feat(security, sessions): add admin-initiated single session revoke with canonical guards
+- feat(security, telemetry): add admin bulk session revoke telemetry
 
 ---
 
