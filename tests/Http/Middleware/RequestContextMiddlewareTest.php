@@ -22,11 +22,11 @@ class RequestContextMiddlewareTest extends TestCase
         $uri = $this->createMock(UriInterface::class);
         $uri->method('getPath')->willReturn('/test');
 
-        $request->method('getAttribute')->will($this->returnValueMap([
+        $request->method('getAttribute')->willReturnMap([
             ['request_id', null, '123-abc'],
             ['__route__', null, null],
             ['route', null, null],
-        ]));
+        ]);
 
         $request->method('getMethod')->willReturn('GET');
         $request->method('getUri')->willReturn($uri);

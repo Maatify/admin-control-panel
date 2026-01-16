@@ -53,13 +53,13 @@ class ScopeGuardMiddlewareTest extends TestCase
         $routeParser = $this->createMock(RouteParserInterface::class);
         $routingResults = $this->createMock(RoutingResults::class);
 
-        $request->method('getAttribute')->will($this->returnValueMap([
+        $request->method('getAttribute')->willReturnMap([
             [AdminContext::class, null, new AdminContext(123)],
             [RouteContext::ROUTE, null, $route],
             [RouteContext::ROUTE_PARSER, null, $routeParser],
             [RouteContext::ROUTING_RESULTS, null, $routingResults],
             [RequestContext::class, null, new RequestContext('req-123', '127.0.0.1', 'phpunit')]
-        ]));
+        ]);
 
         // Expect hasGrant call for SECURITY scope
         // Note: middleware checks session state first. We need to mock getSessionState returns ACTIVE
