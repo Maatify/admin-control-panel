@@ -276,6 +276,7 @@ Entries MUST NOT be rewritten or reordered.
 - refactor(audit): disable telemetry-based audit logging and mark authoritative TODOs
 - schema(audit): add actor_type to audit_outbox for authoritative audit events
 - foundation(audit): establish authoritative audit write-side (frozen)
+- refactor(security): route step-up failures to security_events and remove telemetry
 
 
 ---

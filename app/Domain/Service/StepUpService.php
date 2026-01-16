@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Service;
 
+use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\Contracts\TelemetryAuditLoggerInterface;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Context\RequestContext;
@@ -16,6 +17,11 @@ use App\Domain\DTO\StepUpGrant;
 use App\Domain\DTO\TotpVerificationResultDTO;
 use App\Domain\Enum\Scope;
 use App\Domain\Enum\SessionState;
+use App\Domain\SecurityEvents\DTO\SecurityEventRecordDTO;
+use App\Domain\SecurityEvents\Enum\SecurityEventActorTypeEnum;
+use App\Domain\SecurityEvents\Recorder\SecurityEventRecorderInterface;
+use App\Modules\SecurityEvents\Enum\SecurityEventSeverityEnum;
+use App\Modules\SecurityEvents\Enum\SecurityEventTypeEnum;
 use DateTimeImmutable;
 use PDO;
 
@@ -25,16 +31,8 @@ readonly class StepUpService
         private StepUpGrantRepositoryInterface $grantRepository,
         private TotpSecretRepositoryInterface $totpSecretRepository,
         private TotpServiceInterface $totpService,
-
-        // NOTE: Kept intentionally for now.
-        // TODO[AUDIT][BLOCKER]:
-        // audit_outbox
-        // TelemetryAuditLoggerInterface is injected but MUST NOT be used for
-        // security or authority logging. It will be fully replaced by
-        // NewAuthoritativeAuditLogger in a dedicated phase.
-        private TelemetryAuditLoggerInterface $auditLogger,
-
         private AuthoritativeSecurityAuditWriterInterface $outboxWriter,
+        private SecurityEventRecorderInterface $securityEventRecorder,
         private RecoveryStateService $recoveryState,
         private PDO $pdo
     ) {
@@ -53,20 +51,48 @@ readonly class StepUpService
 
         $secret = $this->totpSecretRepository->get($adminId);
         if ($secret === null) {
-            // TODO[AUDIT][BLOCKER]:
-            // audit_outbox
-            // Step-up failure (no TOTP enrolled) was previously logged via
-            // TelemetryAuditLogger into audit_logs.
-            // This MUST be logged as a Security Event instead.
+            $this->securityEventRecorder->record(
+                new SecurityEventRecordDTO(
+                    actorType: SecurityEventActorTypeEnum::ADMIN,
+                    actorId: $adminId,
+                    eventType: SecurityEventTypeEnum::STEP_UP_NOT_ENROLLED,
+                    severity: SecurityEventSeverityEnum::ERROR,
+                    requestId: $context->requestId,
+                    routeName: $context->routeName ?? null,
+                    ipAddress: $context->ipAddress,
+                    userAgent: $context->userAgent,
+                    metadata: [
+                        'reason' => 'no_totp_enrolled',
+                        'session_id' => $sessionId,
+                        'scope' => Scope::LOGIN->value,
+                    ]
+                )
+            );
+
             return new TotpVerificationResultDTO(false, 'TOTP not enrolled');
         }
 
         if (!$this->totpService->verify($secret, $code)) {
-            // TODO[AUDIT][BLOCKER]:
-            // audit_outbox
-            // Step-up failure (invalid TOTP code) was previously logged via
-            // TelemetryAuditLogger into audit_logs.
-            // This MUST be logged as a Security Event instead.
+            $this->securityEventRecorder->record(
+                new SecurityEventRecordDTO(
+                    actorType: SecurityEventActorTypeEnum::ADMIN,
+                    actorId: $adminId,
+
+                    eventType: SecurityEventTypeEnum::STEP_UP_INVALID_CODE,
+                    severity: SecurityEventSeverityEnum::ERROR,
+
+                    requestId: $context->requestId,
+                    routeName: $context->routeName,
+                    ipAddress: $context->ipAddress,
+                    userAgent: $context->userAgent,
+
+                    metadata: [
+                        'session_id' => $sessionId,
+                        'scope' => Scope::LOGIN->value,
+                    ]
+                )
+            );
+
             return new TotpVerificationResultDTO(false, 'Invalid code');
         }
 
@@ -98,10 +124,27 @@ readonly class StepUpService
         $sessionId = hash('sha256', $token);
 
         if (!$this->totpService->verify($secret, $code)) {
-            // TODO[AUDIT][BLOCKER]:
-            // audit_outbox
-            // TOTP enrollment failure was previously logged via TelemetryAuditLogger.
-            // This MUST be logged as a Security Event.
+            $this->securityEventRecorder->record(
+                new SecurityEventRecordDTO(
+                    actorType: SecurityEventActorTypeEnum::ADMIN,
+                    actorId: $adminId,
+
+                    eventType: SecurityEventTypeEnum::STEP_UP_ENROLL_FAILED,
+                    severity: SecurityEventSeverityEnum::ERROR,
+
+                    requestId: $context->requestId,
+                    routeName: $context->routeName,
+                    ipAddress: $context->ipAddress,
+                    userAgent: $context->userAgent,
+
+                    metadata: [
+                        'session_id' => $sessionId,
+                        'scope' => Scope::LOGIN->value,
+                        'reason' => 'invalid_code',
+                    ]
+                )
+            );
+
             return false;
         }
 
@@ -242,13 +285,33 @@ readonly class StepUpService
         }
 
         if (!hash_equals($grant->riskContextHash, $this->getRiskHash($context))) {
-            // TODO[AUDIT][BLOCKER]:
-            // audit_outbox
-            // Risk context mismatch was previously logged via TelemetryAuditLogger.
-            // This MUST be logged as a Security Event, not audit telemetry.
+            $this->securityEventRecorder->record(
+                new SecurityEventRecordDTO(
+                    actorType: SecurityEventActorTypeEnum::ADMIN,
+                    actorId: $adminId,
+
+                    eventType: SecurityEventTypeEnum::STEP_UP_RISK_MISMATCH,
+                    severity: SecurityEventSeverityEnum::CRITICAL,
+
+                    requestId: $context->requestId,
+                    routeName: $context->routeName,
+                    ipAddress: $context->ipAddress,
+                    userAgent: $context->userAgent,
+
+                    metadata: [
+                        'session_id' => $sessionId,
+                        'scope' => $scope->value,
+                        'expected_risk' => $grant->riskContextHash,
+                        'actual_risk' => $this->getRiskHash($context),
+                    ]
+                )
+            );
+
+            // Invalidate grant strictly (authoritative)
             $this->pdo->beginTransaction();
             try {
                 $this->grantRepository->revoke($adminId, $sessionId, $scope);
+
                 $this->outboxWriter->write(new AuditEventDTO(
                     $adminId,
                     'stepup_revoked_risk',
@@ -260,12 +323,15 @@ readonly class StepUpService
                     $context->requestId,
                     new DateTimeImmutable()
                 ));
+
                 $this->pdo->commit();
             } catch (\Throwable $e) {
                 $this->pdo->rollBack();
             }
+
             return false;
         }
+
 
         if ($grant->expiresAt < new DateTimeImmutable()) {
             return false;

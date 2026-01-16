@@ -32,6 +32,11 @@ enum SecurityEventTypeEnum: string
     case STEP_UP_FAILED = 'step_up_failed';
     case STEP_UP_SUCCEEDED = 'step_up_succeeded';
 
+    case STEP_UP_NOT_ENROLLED = 'step_up_not_enrolled';
+    case STEP_UP_INVALID_CODE = 'step_up_invalid_code';
+    case STEP_UP_RISK_MISMATCH = 'step_up_risk_mismatch';
+    case STEP_UP_ENROLL_FAILED = 'step_up_enroll_failed';
+
     // Authorization
     case PERMISSION_DENIED = 'permission_denied';
 

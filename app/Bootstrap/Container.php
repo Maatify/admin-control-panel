@@ -48,6 +48,7 @@ use App\Domain\Ownership\SystemOwnershipRepositoryInterface;
 use App\Domain\Security\Crypto\CryptoKeyRingConfig;
 use App\Domain\Security\Password\PasswordPepperRing;
 use App\Domain\Security\Password\PasswordPepperRingConfig;
+use App\Domain\SecurityEvents\Recorder\SecurityEventRecorderInterface;
 use App\Domain\Service\AdminAuthenticationService;
 use App\Domain\Service\AdminEmailVerificationService;
 use App\Domain\Service\AdminNotificationRoutingService;
@@ -1004,31 +1005,32 @@ class Container
                 return new Google2faTotpService();
             },
             StepUpService::class => function (ContainerInterface $c) {
-                 $grantRepo = $c->get(StepUpGrantRepositoryInterface::class);
-                 $secretRepo = $c->get(TotpSecretRepositoryInterface::class);
-                 $totpService = $c->get(TotpServiceInterface::class);
-                 $auditLogger = $c->get(TelemetryAuditLoggerInterface::class);
-                 $outboxWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
-                 $recoveryState = $c->get(RecoveryStateService::class);
-                 $pdo = $c->get(PDO::class);
+                $grantRepo = $c->get(StepUpGrantRepositoryInterface::class);
+                $secretRepo = $c->get(TotpSecretRepositoryInterface::class);
+                $totpService = $c->get(TotpServiceInterface::class);
+                $securityEventRecorder = $c->get(SecurityEventRecorderInterface::class);
 
-                 assert($grantRepo instanceof StepUpGrantRepositoryInterface);
-                 assert($secretRepo instanceof TotpSecretRepositoryInterface);
-                 assert($totpService instanceof TotpServiceInterface);
-                 assert($auditLogger instanceof TelemetryAuditLoggerInterface);
-                 assert($outboxWriter instanceof AuthoritativeSecurityAuditWriterInterface);
-                 assert($recoveryState instanceof RecoveryStateService);
-                 assert($pdo instanceof PDO);
+                $outboxWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
+                $recoveryState = $c->get(RecoveryStateService::class);
+                $pdo = $c->get(PDO::class);
 
-                 return new StepUpService(
-                     $grantRepo,
-                     $secretRepo,
-                     $totpService,
-                     $auditLogger,
-                     $outboxWriter,
-                     $recoveryState,
-                     $pdo
-                 );
+                assert($grantRepo instanceof StepUpGrantRepositoryInterface);
+                assert($secretRepo instanceof TotpSecretRepositoryInterface);
+                assert($totpService instanceof TotpServiceInterface);
+                assert($securityEventRecorder instanceof SecurityEventRecorderInterface);
+                assert($outboxWriter instanceof AuthoritativeSecurityAuditWriterInterface);
+                assert($recoveryState instanceof RecoveryStateService);
+                assert($pdo instanceof PDO);
+
+                return new StepUpService(
+                    $grantRepo,
+                    $secretRepo,
+                    $totpService,
+                    $outboxWriter,
+                    $securityEventRecorder,    // ✅ real security logging
+                    $recoveryState,
+                    $pdo
+                );
             },
             SessionStateGuardMiddleware::class => function (ContainerInterface $c) {
                 $service = $c->get(StepUpService::class);

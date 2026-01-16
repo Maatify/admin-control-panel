@@ -50,6 +50,12 @@ enum SecurityEventSeverityEnum: string
     case WARNING = 'warning';
 
     /**
+     * Security failure that MUST be recorded
+     * but does not yet represent an incident.
+     */
+    case ERROR = 'error';
+
+    /**
      * High-risk security incident or repeated abuse pattern.
      *
      * Example:
