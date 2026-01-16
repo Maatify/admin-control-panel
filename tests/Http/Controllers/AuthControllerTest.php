@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Http\Controllers;
 
 use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
+use App\Application\Telemetry\Contracts\TelemetryEmailHasherInterface;
+use App\Application\Telemetry\HttpTelemetryRecorderFactory;
 use App\Context\RequestContext;
 use App\Domain\ActivityLog\Action\AdminActivityAction;
 use App\Domain\ActivityLog\Service\AdminActivityLogService;
@@ -22,6 +24,9 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
+use ReflectionClass;
+use ReflectionNamedType;
+use Throwable;
 
 final class AuthControllerTest extends TestCase
 {
@@ -81,11 +86,17 @@ final class AuthControllerTest extends TestCase
         $activityLogService = new ActivityLogService($writer);
         $adminActivityLogService = new AdminActivityLogService($activityLogService);
 
+        // ---- Telemetry deps (AuthController now expects 6 args) ----
+        $telemetryEmailHasher = $this->createMock(TelemetryEmailHasherInterface::class);
+        $telemetryFactory = $this->makeFinalTelemetryFactory($telemetryEmailHasher);
+
         $controller = new AuthController(
             $authService,
             $cryptoService,
             $validationGuard,
-            $adminActivityLogService
+            $adminActivityLogService,
+            $telemetryFactory,
+            $telemetryEmailHasher
         );
 
         // ---- Request / Response mocks ----
@@ -129,5 +140,65 @@ final class AuthControllerTest extends TestCase
         self::assertSame('req-123', $dto->requestId);
         self::assertSame('127.0.0.1', $dto->ipAddress);
         self::assertSame('PHPUnit', $dto->userAgent);
+    }
+
+    private function makeFinalTelemetryFactory(TelemetryEmailHasherInterface $emailHasher): HttpTelemetryRecorderFactory
+    {
+        /**
+         * HttpTelemetryRecorderFactory is final => cannot be mocked.
+         * We create an instance without calling constructor, then best-effort fill its typed properties.
+         */
+        $ref = new ReflectionClass(HttpTelemetryRecorderFactory::class);
+        /** @var HttpTelemetryRecorderFactory $factory */
+        $factory = $ref->newInstanceWithoutConstructor();
+
+        // best-effort recorder that accepts any record(...) signature
+        $recorder = new class {
+            public function record(mixed ...$args): void
+            {
+                // no-op
+            }
+        };
+
+        foreach ($ref->getProperties() as $prop) {
+            $type = $prop->getType();
+            if (!$type instanceof ReflectionNamedType) {
+                continue;
+            }
+
+            $typeName = $type->getName();
+            if ($type->isBuiltin()) {
+                continue;
+            }
+
+            $value = null;
+
+            // Prefer exact known deps first
+            if ($typeName === TelemetryEmailHasherInterface::class) {
+                $value = $emailHasher;
+            } elseif (str_contains($typeName, 'TelemetryRecorder') || str_contains($typeName, 'RecorderInterface')) {
+                // Recorder-ish dependency (best-effort)
+                $value = $this->createMock($typeName);
+                if (method_exists($value, 'record')) {
+                    // leave as mock; no expectations
+                } else {
+                    $value = $recorder;
+                }
+            } elseif (interface_exists($typeName) || class_exists($typeName)) {
+                // Any other object dep: permissive mock
+                $value = $this->createMock($typeName);
+            }
+
+            if ($value !== null) {
+                try {
+                    $prop->setAccessible(true);
+                    $prop->setValue($factory, $value);
+                } catch (Throwable) {
+                    // swallow — test helper must not crash
+                }
+            }
+        }
+
+        return $factory;
     }
 }
