@@ -52,6 +52,9 @@ class SecurityEventRepository implements SecurityEventLoggerInterface
                 $routeName = $metadata['route_name'];
                 unset($metadata['route_name']);
             }
+            if (array_key_exists('request_id', $metadata)) {
+                unset($metadata['request_id']);
+            }
             $metadataJson = json_encode($metadata, JSON_THROW_ON_ERROR);
 
             $stmt->execute([

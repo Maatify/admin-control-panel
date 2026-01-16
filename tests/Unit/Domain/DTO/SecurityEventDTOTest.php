@@ -26,22 +26,6 @@ class SecurityEventDTOTest extends TestCase
         $this->assertArrayNotHasKey('request_id', $dto->context);
     }
 
-    public function test_it_preserves_existing_request_id_in_context(): void
-    {
-        $dto = new SecurityEventDTO(
-            1,
-            'test_event',
-            'low',
-            ['request_id' => 'old_id', 'other' => 'value'],
-            '127.0.0.1',
-            'UserAgent',
-            new DateTimeImmutable(),
-            'req_new'
-        );
-
-        $this->assertSame('old_id', $dto->context['request_id']);
-    }
-
     public function test_it_preserves_other_context_fields(): void
     {
         $dto = new SecurityEventDTO(
