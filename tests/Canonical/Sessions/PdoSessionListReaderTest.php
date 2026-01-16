@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Canonical\Sessions;
 
-use App\Domain\DTO\AdminConfigDTO;
+use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use App\Domain\List\ListQueryDTO;
 use App\Infrastructure\Query\ResolvedListFilters;
 use App\Infrastructure\Reader\Session\PdoSessionListReader;
@@ -16,14 +16,14 @@ use PHPUnit\Framework\TestCase;
 class PdoSessionListReaderTest extends TestCase
 {
     private PdoSessionListReader $reader;
-    private MockObject|PDO $pdo;
-    private MockObject|AdminConfigDTO $config;
+    private PDO&MockObject $pdo;
+    private AdminIdentifierCryptoServiceInterface&MockObject $cryptoService;
 
     protected function setUp(): void
     {
         $this->pdo = $this->createMock(PDO::class);
-        $this->config = $this->createMock(AdminConfigDTO::class);
-        $this->reader = new PdoSessionListReader($this->pdo, $this->config);
+        $this->cryptoService = $this->createMock(AdminIdentifierCryptoServiceInterface::class);
+        $this->reader = new PdoSessionListReader($this->pdo, $this->cryptoService);
     }
 
     private function createQuery(): ListQueryDTO
@@ -173,6 +173,7 @@ class PdoSessionListReaderTest extends TestCase
     // Helper
     // ─────────────────────────────
 
+    /** @param string[] $snippets */
     private function expectSqlContains(array $snippets): void
     {
         $stmt = $this->createMock(PDOStatement::class);
@@ -198,6 +199,7 @@ class PdoSessionListReaderTest extends TestCase
             ->willReturn($stmt);
     }
 
+    /** @param string[] $snippets */
     private function expectSqlDoesNotContain(array $snippets): void
     {
         $stmt = $this->createMock(PDOStatement::class);

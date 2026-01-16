@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Canonical\Admins;
 
+use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use App\Domain\DTO\AdminConfigDTO;
 use App\Domain\List\AdminListCapabilities;
 use App\Domain\List\ListQueryDTO;
@@ -167,22 +168,6 @@ class AdminsQueryContractTest extends TestCase
         $this->assertEmpty($resolvedInvalid->columnFilters, 'Real column names must be filtered out by resolver');
     }
 
-    private function getFakeConfig(): AdminConfigDTO {
-        return new AdminConfigDTO(
-             appEnv: 'test',
-             appDebug: true,
-             timezone: 'UTC',
-             passwordActivePepperId: 'v1',
-             dbHost: '',
-             dbName: '',
-             dbUser: '',
-             isRecoveryMode: false,
-             activeKeyId: 'v1',
-             hasCryptoKeyRing: false,
-             hasPasswordPepperRing: false
-        );
-    }
-
     /**
      * @description Reader applies Global Search (ID match)
      */
@@ -191,7 +176,7 @@ class AdminsQueryContractTest extends TestCase
     {
         $pdo = $this->createMock(PDO::class);
         $stmt = $this->createMock(PDOStatement::class);
-        $config = $this->getFakeConfig();
+        $crypto = $this->createMock(AdminIdentifierCryptoServiceInterface::class);
 
         // Setup DTO and capabilities
         $dto = ListQueryDTO::fromArray(['search' => ['global' => '123']]);
@@ -208,7 +193,7 @@ class AdminsQueryContractTest extends TestCase
              return $stmt;
         });
 
-        $reader = new PdoAdminQueryReader($pdo, $config, 'blind_key', 'enc_key');
+        $reader = new PdoAdminQueryReader($pdo, $crypto);
 
         // Just calling it to trigger the mock callbacks
         $stmt->method('fetchColumn')->willReturn(0);
@@ -234,11 +219,13 @@ class AdminsQueryContractTest extends TestCase
     {
         $pdo = $this->createMock(PDO::class);
         $stmt = $this->createMock(PDOStatement::class);
-        $realConfig = $this->getFakeConfig();
+        $crypto = $this->createMock(AdminIdentifierCryptoServiceInterface::class);
 
         $pdo->method('query')->willReturn($this->createMock(PDOStatement::class));
         $stmt->method('fetchColumn')->willReturn(0);
         $stmt->method('fetchAll')->willReturn([]);
+
+        $crypto->method('deriveEmailBlindIndex')->willReturn('blind_index_mock');
 
         $sqlLog = [];
         $pdo->method('prepare')->willReturnCallback(function ($sql) use ($stmt, &$sqlLog) {
@@ -246,7 +233,7 @@ class AdminsQueryContractTest extends TestCase
             return $stmt;
         });
 
-        $reader = new PdoAdminQueryReader($pdo, $realConfig, 'blind_key', 'enc_key');
+        $reader = new PdoAdminQueryReader($pdo, $crypto);
 
         $dto = ListQueryDTO::fromArray(['search' => ['global' => 'test@example.com']]);
         $capabilities = AdminListCapabilities::define();
@@ -273,7 +260,7 @@ class AdminsQueryContractTest extends TestCase
     {
         $pdo = $this->createMock(PDO::class);
         $stmt = $this->createMock(PDOStatement::class);
-        $realConfig = $this->getFakeConfig();
+        $crypto = $this->createMock(AdminIdentifierCryptoServiceInterface::class);
 
         $pdo->method('query')->willReturn($this->createMock(PDOStatement::class));
         $stmt->method('fetchColumn')->willReturn(0);
@@ -285,7 +272,7 @@ class AdminsQueryContractTest extends TestCase
             return $stmt;
         });
 
-        $reader = new PdoAdminQueryReader($pdo, $realConfig, 'blind_key', 'enc_key');
+        $reader = new PdoAdminQueryReader($pdo, $crypto);
 
         $dto = ListQueryDTO::fromArray(['search' => ['global' => 'alice']]); // Not an ID, Not an Email
         $capabilities = AdminListCapabilities::define();
@@ -312,7 +299,7 @@ class AdminsQueryContractTest extends TestCase
     {
         $pdo = $this->createMock(PDO::class);
         $stmt = $this->createMock(PDOStatement::class);
-        $realConfig = $this->getFakeConfig();
+        $crypto = $this->createMock(AdminIdentifierCryptoServiceInterface::class);
 
         $pdo->method('query')->willReturn($this->createMock(PDOStatement::class));
         $stmt->method('fetchColumn')->willReturn(0);
@@ -324,7 +311,7 @@ class AdminsQueryContractTest extends TestCase
             return $stmt;
         });
 
-        $reader = new PdoAdminQueryReader($pdo, $realConfig, 'blind_key', 'enc_key');
+        $reader = new PdoAdminQueryReader($pdo, $crypto);
 
         $dto = ListQueryDTO::fromArray(['search' => ['columns' => ['id' => '123']]]);
         $capabilities = AdminListCapabilities::define();
@@ -351,11 +338,13 @@ class AdminsQueryContractTest extends TestCase
     {
         $pdo = $this->createMock(PDO::class);
         $stmt = $this->createMock(PDOStatement::class);
-        $realConfig = $this->getFakeConfig();
+        $crypto = $this->createMock(AdminIdentifierCryptoServiceInterface::class);
 
         $pdo->method('query')->willReturn($this->createMock(PDOStatement::class));
         $stmt->method('fetchColumn')->willReturn(0);
         $stmt->method('fetchAll')->willReturn([]);
+
+        $crypto->method('deriveEmailBlindIndex')->willReturn('blind_index_mock');
 
         $sqlLog = [];
         $pdo->method('prepare')->willReturnCallback(function ($sql) use ($stmt, &$sqlLog) {
@@ -363,7 +352,7 @@ class AdminsQueryContractTest extends TestCase
             return $stmt;
         });
 
-        $reader = new PdoAdminQueryReader($pdo, $realConfig, 'blind_key', 'enc_key');
+        $reader = new PdoAdminQueryReader($pdo, $crypto);
 
         $dto = ListQueryDTO::fromArray(['search' => ['columns' => ['email' => 'test@example.com']]]);
         $capabilities = AdminListCapabilities::define();
@@ -390,7 +379,7 @@ class AdminsQueryContractTest extends TestCase
     {
         $pdo = $this->createMock(PDO::class);
         $stmt = $this->createMock(PDOStatement::class);
-        $realConfig = $this->getFakeConfig();
+        $crypto = $this->createMock(AdminIdentifierCryptoServiceInterface::class);
 
         $pdo->method('query')->willReturn($this->createMock(PDOStatement::class));
         $stmt->method('fetchColumn')->willReturn(0);
@@ -402,7 +391,7 @@ class AdminsQueryContractTest extends TestCase
             return $stmt;
         });
 
-        $reader = new PdoAdminQueryReader($pdo, $realConfig, 'blind_key', 'enc_key');
+        $reader = new PdoAdminQueryReader($pdo, $crypto);
 
         $dto = ListQueryDTO::fromArray(['date' => ['from' => '2023-01-01', 'to' => '2023-01-31']]);
         $capabilities = AdminListCapabilities::define();

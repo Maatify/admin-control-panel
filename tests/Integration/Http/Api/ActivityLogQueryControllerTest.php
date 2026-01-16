@@ -15,8 +15,13 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Http\Api;
 
-use App\Bootstrap\Container;
+use App\Domain\Service\AuthorizationService;
 use App\Http\Controllers\Api\ActivityLogQueryController;
+use App\Infrastructure\Query\ListFilterResolver;
+use App\Infrastructure\Reader\ActivityLog\PdoActivityLogListReader;
+use App\Modules\Validation\Contracts\ValidatorInterface;
+use App\Modules\Validation\Guard\ValidationGuard;
+use App\Modules\Validation\Validator\RespectValidator;
 use DateTimeImmutable;
 use PDO;
 use PHPUnit\Framework\TestCase;
@@ -27,20 +32,33 @@ use Tests\Support\MySQLTestHelper;
 final class ActivityLogQueryControllerTest extends TestCase
 {
     private PDO $pdo;
-    private \Psr\Container\ContainerInterface $container;
+    private ActivityLogQueryController $controller;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        // ✅ CORRECT container bootstrap
-        $this->container = Container::create();
-
-        $this->pdo = $this->container->get(PDO::class);
-
+        $this->pdo = MySQLTestHelper::pdo();
         MySQLTestHelper::truncate('activity_logs');
-
         $this->seed();
+
+        // Dependencies
+        $reader = new PdoActivityLogListReader($this->pdo);
+
+        $auth = $this->createMock(AuthorizationService::class);
+        $auth->method('hasPermission')->willReturn(true); // Allow access
+
+        $validator = new RespectValidator();
+        $guard = new ValidationGuard($validator);
+
+        $resolver = new ListFilterResolver();
+
+        $this->controller = new ActivityLogQueryController(
+            $reader,
+            $auth,
+            $guard,
+            $resolver
+        );
     }
 
     private function seed(): void
@@ -83,9 +101,6 @@ final class ActivityLogQueryControllerTest extends TestCase
 
     public function test_activity_log_query_controller_returns_filtered_result(): void
     {
-        /** @var ActivityLogQueryController $controller */
-        $controller = $this->container->get(ActivityLogQueryController::class);
-
         $request = (new ServerRequestFactory())
             ->createServerRequest('POST', '/api/activity-logs/query')
             ->withParsedBody([
@@ -101,10 +116,11 @@ final class ActivityLogQueryControllerTest extends TestCase
             ])
             ->withAttribute(\App\Context\AdminContext::class, new \App\Context\AdminContext(1));
 
-        $response = $controller($request, new Response());
+        $response = ($this->controller)($request, new Response());
 
         $this->assertSame(200, $response->getStatusCode());
 
+        /** @var array{data: array<int, array{action: string}>, pagination: array{filtered: int, total: int}} $payload */
         $payload = json_decode(
             (string) $response->getBody(),
             true,
@@ -112,6 +128,7 @@ final class ActivityLogQueryControllerTest extends TestCase
             JSON_THROW_ON_ERROR
         );
 
+        $this->assertIsArray($payload);
         $this->assertArrayHasKey('data', $payload);
         $this->assertArrayHasKey('pagination', $payload);
 

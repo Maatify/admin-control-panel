@@ -20,15 +20,31 @@ use RuntimeException;
 
 final class MySQLTestHelper
 {
+    private static ?PDO $pdo = null;
+
     public static function pdo(): PDO
     {
+        if (self::$pdo !== null) {
+            return self::$pdo;
+        }
+
         $host = getenv('DB_HOST');
+
+        if ($host === false || $host === '') {
+             // Fallback to SQLite in-memory
+             self::$pdo = new PDO('sqlite::memory:');
+             self::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+             self::$pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+             self::bootstrapDatabase(self::$pdo);
+             return self::$pdo;
+        }
+
         $name = getenv('DB_NAME');
         $user = getenv('DB_USER');
         $pass = getenv('DB_PASS');
 
-        if ($host === false || $name === false || $user === false) {
-            throw new RuntimeException('Database environment variables are not configured.');
+        if ($name === false || $user === false) {
+             throw new RuntimeException('Database environment variables are not configured fully (DB_HOST present but others missing).');
         }
 
         $dsn = sprintf(
@@ -37,7 +53,7 @@ final class MySQLTestHelper
             $name
         );
 
-        return new PDO(
+        self::$pdo = new PDO(
             $dsn,
             $user,
             $pass ?: null,
@@ -46,11 +62,59 @@ final class MySQLTestHelper
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             ]
         );
+
+        return self::$pdo;
     }
 
+    private static function bootstrapDatabase(PDO $pdo): void
+    {
+        // Minimal schema for tests
+        $pdo->exec(<<<SQL
+            CREATE TABLE IF NOT EXISTS activity_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                actor_type VARCHAR(32) NOT NULL,
+                actor_id INTEGER NULL,
+                action VARCHAR(128) NOT NULL,
+                entity_type VARCHAR(64) NULL,
+                entity_id INTEGER NULL,
+                metadata TEXT NULL,
+                ip_address VARCHAR(45) NULL,
+                user_agent VARCHAR(255) NULL,
+                request_id VARCHAR(64) NULL,
+                occurred_at DATETIME NOT NULL
+            );
+SQL
+        );
+
+        $pdo->exec(<<<SQL
+            CREATE TABLE IF NOT EXISTS security_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                actor_type VARCHAR(32) NOT NULL CHECK(length(actor_type) <= 32),
+                actor_id INTEGER NULL,
+                event_type VARCHAR(100) NOT NULL,
+                severity VARCHAR(20) NOT NULL,
+                request_id VARCHAR(64) NULL,
+                route_name VARCHAR(255) NULL,
+                ip_address VARCHAR(45) NULL,
+                user_agent TEXT NULL,
+                metadata TEXT NOT NULL,
+                occurred_at DATETIME NOT NULL
+            );
+SQL
+        );
+    }
 
     public static function truncate(string $table): void
     {
-        self::pdo()->exec('TRUNCATE TABLE ' . $table);
+        $pdo = self::pdo();
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+        if ($driver === 'sqlite') {
+            $pdo->exec('DELETE FROM ' . $table);
+            // Optional: Reset sequence
+            $pdo->exec("DELETE FROM sqlite_sequence WHERE name='$table'");
+        } else {
+            $pdo->exec('TRUNCATE TABLE ' . $table);
+        }
     }
 }
