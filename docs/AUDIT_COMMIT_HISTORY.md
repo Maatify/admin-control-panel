@@ -241,6 +241,7 @@ Entries MUST NOT be rewritten or reordered.
 - test(security-events): add recorder + mysql repo integration coverage
 - telemetry(app): add request-scoped HTTP telemetry recorder factory
 - telemetry(enum): add auth, query, and exception event types
+- telemetry(enum): expand event taxonomy for auth, queries, mutations, and exceptions
 
 ---
 

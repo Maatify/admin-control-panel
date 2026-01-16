@@ -49,6 +49,9 @@ enum TelemetryEventTypeEnum: string
     case EXTERNAL_CALL_SLOW = 'external_call_slow';
     case EXTERNAL_CALL_FAIL = 'external_call_fail';
 
+    // Resource mutations (admin operations)
+    case RESOURCE_MUTATION = 'resource_mutation';
+
     // System exceptions
     case SYSTEM_EXCEPTION = 'system_exception';
 
