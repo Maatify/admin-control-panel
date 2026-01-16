@@ -269,27 +269,21 @@ class Container
                 $adminRoleRepo = $c->get(AdminRoleRepositoryInterface::class);
                 $rolePermissionRepo = $c->get(RolePermissionRepositoryInterface::class);
                 $directPermissionRepo = $c->get(AdminDirectPermissionRepositoryInterface::class);
-                $auditWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
                 $securityLogger = $c->get(SecurityEventLoggerInterface::class);
                 $ownershipRepo = $c->get(SystemOwnershipRepositoryInterface::class);
-                $pdo = $c->get(PDO::class);
 
                 assert($adminRoleRepo instanceof AdminRoleRepositoryInterface);
                 assert($rolePermissionRepo instanceof RolePermissionRepositoryInterface);
                 assert($directPermissionRepo instanceof AdminDirectPermissionRepositoryInterface);
-                assert($auditWriter instanceof AuthoritativeSecurityAuditWriterInterface);
                 assert($securityLogger instanceof SecurityEventLoggerInterface);
                 assert($ownershipRepo instanceof SystemOwnershipRepositoryInterface);
-                assert($pdo instanceof PDO);
 
                 return new AuthorizationService(
                     $adminRoleRepo,
                     $rolePermissionRepo,
                     $directPermissionRepo,
-                    $auditWriter,
                     $securityLogger,
-                    $ownershipRepo,
-                    $pdo
+                    $ownershipRepo
                 );
             },
             Twig::class => function (ContainerInterface $c) {

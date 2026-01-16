@@ -81,16 +81,21 @@ final class StepUpFailureSecurityEventsTest extends TestCase
 
         $this->assertSame(403, $response->getStatusCode());
 
-        $row = $this->pdo->query('SELECT event_name, context FROM security_events')->fetch(PDO::FETCH_ASSOC);
+        $row = $this->pdo->query(
+            'SELECT actor_type, actor_id, event_type, severity, request_id, metadata FROM security_events'
+        )->fetch(PDO::FETCH_ASSOC);
         if (!is_array($row)) {
             $this->fail('Expected security event row to exist.');
         }
 
-        $this->assertSame('stepup_primary_failed', $row['event_name']);
+        $this->assertSame('admin', $row['actor_type']);
+        $this->assertSame(1, (int)$row['actor_id']);
+        $this->assertSame('stepup_primary_failed', $row['event_type']);
+        $this->assertSame('warning', $row['severity']);
+        $this->assertSame('req-stepup', $row['request_id']);
 
         /** @var array{severity: string, reason: string} $context */
-        $context = json_decode((string)$row['context'], true, 512, JSON_THROW_ON_ERROR);
-        $this->assertSame('warning', $context['severity']);
+        $context = json_decode((string)$row['metadata'], true, 512, JSON_THROW_ON_ERROR);
         $this->assertSame('no_totp_enrolled', $context['reason']);
     }
 
@@ -105,16 +110,21 @@ final class StepUpFailureSecurityEventsTest extends TestCase
 
         $this->assertSame(403, $response->getStatusCode());
 
-        $row = $this->pdo->query('SELECT event_name, context FROM security_events')->fetch(PDO::FETCH_ASSOC);
+        $row = $this->pdo->query(
+            'SELECT actor_type, actor_id, event_type, severity, request_id, metadata FROM security_events'
+        )->fetch(PDO::FETCH_ASSOC);
         if (!is_array($row)) {
             $this->fail('Expected security event row to exist.');
         }
 
-        $this->assertSame('stepup_primary_failed', $row['event_name']);
+        $this->assertSame('admin', $row['actor_type']);
+        $this->assertSame(1, (int)$row['actor_id']);
+        $this->assertSame('stepup_primary_failed', $row['event_type']);
+        $this->assertSame('warning', $row['severity']);
+        $this->assertSame('req-stepup', $row['request_id']);
 
         /** @var array{severity: string, reason: string} $context */
-        $context = json_decode((string)$row['context'], true, 512, JSON_THROW_ON_ERROR);
-        $this->assertSame('warning', $context['severity']);
+        $context = json_decode((string)$row['metadata'], true, 512, JSON_THROW_ON_ERROR);
         $this->assertSame('invalid_code', $context['reason']);
     }
 
@@ -162,16 +172,21 @@ final class StepUpFailureSecurityEventsTest extends TestCase
 
         $this->assertSame(403, $response->getStatusCode());
 
-        $row = $this->pdo->query('SELECT event_name, context FROM security_events')->fetch(PDO::FETCH_ASSOC);
+        $row = $this->pdo->query(
+            'SELECT actor_type, actor_id, event_type, severity, request_id, metadata FROM security_events'
+        )->fetch(PDO::FETCH_ASSOC);
         if (!is_array($row)) {
             $this->fail('Expected security event row to exist.');
         }
 
-        $this->assertSame('stepup_risk_mismatch', $row['event_name']);
+        $this->assertSame('admin', $row['actor_type']);
+        $this->assertSame(1, (int)$row['actor_id']);
+        $this->assertSame('stepup_risk_mismatch', $row['event_type']);
+        $this->assertSame('error', $row['severity']);
+        $this->assertSame('req-risk', $row['request_id']);
 
         /** @var array{severity: string, reason: string} $context */
-        $context = json_decode((string)$row['context'], true, 512, JSON_THROW_ON_ERROR);
-        $this->assertSame('error', $context['severity']);
+        $context = json_decode((string)$row['metadata'], true, 512, JSON_THROW_ON_ERROR);
         $this->assertSame('context_changed', $context['reason']);
     }
 

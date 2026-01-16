@@ -7,7 +7,6 @@ namespace Tests\Integration\Http;
 use App\Context\RequestContext;
 use App\Domain\Exception\PermissionDeniedException;
 use App\Domain\Service\AuthorizationService;
-use App\Infrastructure\Audit\PdoAuthoritativeAuditWriter;
 use App\Infrastructure\Repository\AdminRoleRepository;
 use App\Infrastructure\Repository\PdoAdminDirectPermissionRepository;
 use App\Infrastructure\Repository\PdoSystemOwnershipRepository;
@@ -35,10 +34,8 @@ final class AuthorizationServiceSecurityEventsTest extends TestCase
             new AdminRoleRepository($this->pdo),
             new RolePermissionRepository($this->pdo),
             new PdoAdminDirectPermissionRepository($this->pdo),
-            new PdoAuthoritativeAuditWriter($this->pdo),
             new SecurityEventRepository($this->pdo),
-            new PdoSystemOwnershipRepository($this->pdo),
-            $this->pdo
+            new PdoSystemOwnershipRepository($this->pdo)
         );
     }
 
@@ -58,16 +55,20 @@ final class AuthorizationServiceSecurityEventsTest extends TestCase
 
         $this->assertSame(403, $response->getStatusCode());
 
-        $row = $this->pdo->query('SELECT event_name, context FROM security_events')->fetch(PDO::FETCH_ASSOC);
+        $row = $this->pdo->query('SELECT actor_type, actor_id, event_type, severity, request_id, metadata FROM security_events')
+            ->fetch(PDO::FETCH_ASSOC);
         if (!is_array($row)) {
             $this->fail('Expected security event row to exist.');
         }
 
-        $this->assertSame('authorization_denied', $row['event_name']);
+        $this->assertSame('admin', $row['actor_type']);
+        $this->assertSame(1, (int)$row['actor_id']);
+        $this->assertSame('permission_denied', $row['event_type']);
+        $this->assertSame('warning', $row['severity']);
+        $this->assertSame('req-1', $row['request_id']);
 
         /** @var array{severity: string, reason: string, permission: string} $loggedContext */
-        $loggedContext = json_decode((string)$row['context'], true, 512, JSON_THROW_ON_ERROR);
-        $this->assertSame('warning', $loggedContext['severity']);
+        $loggedContext = json_decode((string)$row['metadata'], true, 512, JSON_THROW_ON_ERROR);
         $this->assertSame('missing_permission', $loggedContext['reason']);
         $this->assertSame('reports.view', $loggedContext['permission']);
     }
