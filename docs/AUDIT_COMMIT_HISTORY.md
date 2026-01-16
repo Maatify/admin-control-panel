@@ -253,6 +253,7 @@ Entries MUST NOT be rewritten or reordered.
 - telemetry(error): record validation failures and psr-log telemetry write errors
 - telemetry(http): add global HTTP request end telemetry middleware
 - telemetry(http): add global HTTP request end telemetry middleware
+- feat(security, telemetry): add admin self-logout telemetry and wire canonical error handlers
 
 ---
 

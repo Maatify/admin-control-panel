@@ -693,16 +693,21 @@ class Container
                 $logger = $c->get(SecurityEventLoggerInterface::class);
                 $authService = $c->get(AdminAuthenticationService::class);
 
+                // Telemetry
+                $telemetryFactory = $c->get(\App\Application\Telemetry\HttpTelemetryRecorderFactory::class);
+
                 assert($sessionRepo instanceof AdminSessionValidationRepositoryInterface);
                 assert($rememberMeService instanceof RememberMeService);
                 assert($logger instanceof SecurityEventLoggerInterface);
                 assert($authService instanceof AdminAuthenticationService);
+                assert($telemetryFactory instanceof \App\Application\Telemetry\HttpTelemetryRecorderFactory);
 
                 return new LogoutController(
                     $sessionRepo,
                     $rememberMeService,
                     $logger,
-                    $authService
+                    $authService,
+                    $telemetryFactory
                 );
             },
             EmailVerificationController::class => function (ContainerInterface $c) {
