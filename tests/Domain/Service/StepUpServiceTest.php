@@ -7,7 +7,7 @@ namespace Tests\Domain\Service;
 use App\Context\RequestContext;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\Contracts\StepUpGrantRepositoryInterface;
-use App\Domain\Contracts\TotpSecretRepositoryInterface;
+use App\Domain\Contracts\AdminTotpSecretStoreInterface;
 use App\Domain\Contracts\TotpServiceInterface;
 use App\Domain\DTO\StepUpGrant;
 use App\Domain\Enum\Scope;
@@ -22,7 +22,7 @@ use PHPUnit\Framework\TestCase;
 class StepUpServiceTest extends TestCase
 {
     private StepUpGrantRepositoryInterface&MockObject $grantRepository;
-    private TotpSecretRepositoryInterface&MockObject $secretRepository;
+    private AdminTotpSecretStoreInterface&MockObject $totpSecretStore;
     private TotpServiceInterface&MockObject $totpService;
     private AuthoritativeSecurityAuditWriterInterface&MockObject $outboxWriter;
     private SecurityEventRecorderInterface&MockObject $securityEventRecorder;
@@ -34,7 +34,7 @@ class StepUpServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->grantRepository = $this->createMock(StepUpGrantRepositoryInterface::class);
-        $this->secretRepository = $this->createMock(TotpSecretRepositoryInterface::class);
+        $this->totpSecretStore = $this->createMock(AdminTotpSecretStoreInterface::class);
         $this->totpService = $this->createMock(TotpServiceInterface::class);
         $this->outboxWriter = $this->createMock(AuthoritativeSecurityAuditWriterInterface::class);
         $this->securityEventRecorder = $this->createMock(SecurityEventRecorderInterface::class);
@@ -48,7 +48,7 @@ class StepUpServiceTest extends TestCase
 
         $this->service = new StepUpService(
             $this->grantRepository,
-            $this->secretRepository,
+            $this->totpSecretStore,
             $this->totpService,
             $this->outboxWriter,
             $this->securityEventRecorder,
@@ -85,8 +85,8 @@ class StepUpServiceTest extends TestCase
         $this->recoveryState->expects($this->once())
             ->method('enforce');
 
-        $this->secretRepository->expects($this->once())
-            ->method('get')
+        $this->totpSecretStore->expects($this->once())
+            ->method('retrieve')
             ->with($adminId)
             ->willReturn($secret);
 
@@ -124,8 +124,8 @@ class StepUpServiceTest extends TestCase
         $this->recoveryState->expects($this->once())
             ->method('enforce');
 
-        $this->secretRepository->expects($this->once())
-            ->method('get')
+        $this->totpSecretStore->expects($this->once())
+            ->method('retrieve')
             ->willReturn($secret);
 
         $this->totpService->expects($this->once())
@@ -154,8 +154,8 @@ class StepUpServiceTest extends TestCase
         $this->recoveryState->expects($this->once())
             ->method('enforce');
 
-        $this->secretRepository->expects($this->once())
-            ->method('get')
+        $this->totpSecretStore->expects($this->once())
+            ->method('retrieve')
             ->willReturn(null);
 
         $this->securityEventRecorder->expects($this->once())
@@ -173,7 +173,7 @@ class StepUpServiceTest extends TestCase
         $this->recoveryState->expects($this->once())
             ->method('enforce');
 
-        $this->secretRepository->method('get')->willReturn('secret');
+        $this->totpSecretStore->method('retrieve')->willReturn('secret');
         $this->totpService->method('verify')->willReturn(false);
 
         $this->securityEventRecorder->expects($this->once())

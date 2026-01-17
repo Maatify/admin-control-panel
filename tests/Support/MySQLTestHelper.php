@@ -35,6 +35,19 @@ final class MySQLTestHelper
              self::$pdo = new PDO('sqlite::memory:');
              self::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
              self::$pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+
+             self::$pdo->sqliteCreateFunction('IF', function ($condition, $true, $false) {
+                 return $condition ? $true : $false;
+             });
+
+             self::$pdo->sqliteCreateFunction('JSON_LENGTH', function ($json) {
+                 if ($json === null || $json === '') {
+                     return null;
+                 }
+                 $data = json_decode($json, true);
+                 return is_array($data) ? count($data) : 0;
+             });
+
              self::bootstrapDatabase(self::$pdo);
              return self::$pdo;
         }
@@ -98,6 +111,23 @@ SQL
                 ip_address VARCHAR(45) NULL,
                 user_agent TEXT NULL,
                 metadata TEXT NOT NULL,
+                occurred_at DATETIME NOT NULL
+            );
+SQL
+        );
+
+        $pdo->exec(<<<SQL
+            CREATE TABLE IF NOT EXISTS telemetry_traces (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                event_key VARCHAR(255) NOT NULL,
+                severity VARCHAR(20) NOT NULL,
+                route_name VARCHAR(255) NULL,
+                request_id VARCHAR(64) NULL,
+                actor_type VARCHAR(32) NOT NULL,
+                actor_id INTEGER NULL,
+                ip_address VARCHAR(45) NULL,
+                user_agent TEXT NULL,
+                metadata TEXT NULL,
                 occurred_at DATETIME NOT NULL
             );
 SQL

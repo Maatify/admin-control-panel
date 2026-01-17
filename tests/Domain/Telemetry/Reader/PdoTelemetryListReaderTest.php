@@ -20,14 +20,6 @@ class PdoTelemetryListReaderTest extends TestCase
     {
         parent::setUp();
 
-        // Ensure env vars are set for MySQLTestHelper if not already present
-        if (!getenv('DB_HOST')) {
-             putenv('DB_HOST=127.0.0.1');
-             putenv('DB_NAME=admin_control_panel');
-             putenv('DB_USER=testuser');
-             putenv('DB_PASS=testpass');
-        }
-
         $pdo = MySQLTestHelper::pdo();
         $this->reader = new PdoTelemetryListReader($pdo);
 

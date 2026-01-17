@@ -6,7 +6,7 @@ namespace Tests\Http\Middleware;
 
 use App\Context\AdminContext;
 use App\Context\RequestContext;
-use App\Domain\Contracts\TotpSecretRepositoryInterface;
+use App\Domain\Contracts\AdminTotpSecretStoreInterface;
 use App\Domain\Enum\SessionState;
 use App\Domain\Service\StepUpService;
 use App\Http\Middleware\SessionStateGuardMiddleware;
@@ -23,16 +23,16 @@ use Slim\Routing\RoutingResults;
 class SessionStateGuardMiddlewareTest extends TestCase
 {
     private StepUpService $stepUpService;
-    private TotpSecretRepositoryInterface $totpSecretRepository;
+    private AdminTotpSecretStoreInterface $totpSecretStore;
     private SessionStateGuardMiddleware $middleware;
 
     protected function setUp(): void
     {
         $this->stepUpService = $this->createMock(StepUpService::class);
-        $this->totpSecretRepository = $this->createMock(TotpSecretRepositoryInterface::class);
+        $this->totpSecretStore = $this->createMock(AdminTotpSecretStoreInterface::class);
         $this->middleware = new SessionStateGuardMiddleware(
             $this->stepUpService,
-            $this->totpSecretRepository
+            $this->totpSecretStore
         );
     }
 
