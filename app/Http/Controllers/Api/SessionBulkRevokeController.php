@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Domain\ActivityLog\Action\AdminActivityAction;
+use App\Domain\ActivityLog\Service\AdminActivityLogService;
 use App\Domain\Service\SessionRevocationService;
 use App\Context\RequestContext;
 use App\Domain\Service\AuthorizationService;
@@ -22,7 +24,8 @@ readonly class SessionBulkRevokeController
         private SessionRevocationService $revocationService,
         private AuthorizationService $authorizationService,
         private ValidationGuard $validationGuard,
-        private HttpTelemetryRecorderFactory $telemetryFactory
+        private HttpTelemetryRecorderFactory $telemetryFactory,
+        private AdminActivityLogService $adminActivityLogService,
     ) {
     }
 
@@ -64,6 +67,18 @@ readonly class SessionBulkRevokeController
                 $hashes,
                 $currentSessionHash,
                 $context
+            );
+
+            // ✅ Activity Log — admin manually revoked multiple sessions
+            $this->adminActivityLogService->log(
+                adminContext: $adminContext,
+                requestContext: $context,
+                action: AdminActivityAction::SESSION_BULK_REVOKE,
+                entityType: 'admin',
+                entityId: null, // bulk operation — no single target
+                metadata: [
+                    'sessions_count' => count($hashes),
+                ]
             );
 
             // ✅ Telemetry — successful bulk revoke

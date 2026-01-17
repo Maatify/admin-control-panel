@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Context\AdminContext;
+use App\Domain\ActivityLog\Action\AdminActivityAction;
+use App\Domain\ActivityLog\Service\AdminActivityLogService;
 use App\Domain\Service\SessionRevocationService;
 use App\Context\RequestContext;
 use App\Domain\Service\AuthorizationService;
@@ -23,7 +26,9 @@ class SessionRevokeController
         private readonly SessionRevocationService $revocationService,
         private readonly AuthorizationService $authorizationService,
         private readonly ValidationGuard $validationGuard,
-        private readonly HttpTelemetryRecorderFactory $telemetryFactory
+        private readonly HttpTelemetryRecorderFactory $telemetryFactory,
+        private AdminActivityLogService $adminActivityLogService,
+
     ) {
     }
 
@@ -62,10 +67,27 @@ class SessionRevokeController
         }
 
         try {
-            $this->revocationService->revokeByHash(
+            $targetAdminId = $this->revocationService->revokeByHash(
                 $targetSessionHash,
                 $currentSessionHash,
                 $context
+            );
+
+            $requestContext = $request->getAttribute(RequestContext::class);
+            if (! $requestContext instanceof RequestContext) {
+                throw new \RuntimeException('Request Context not present');
+            }
+
+            // ✅ Activity Log — admin manually revoked a session
+            $this->adminActivityLogService->log(
+                adminContext: $adminContext,
+                requestContext: $requestContext,
+                action: AdminActivityAction::SESSION_REVOKE,
+                entityType: 'admin',
+                entityId: $targetAdminId,
+                metadata: [
+                    'target_session_id_prefix' => substr($targetSessionHash, 0, 8) . '...',
+                ]
             );
 
             // ✅ Telemetry — successful admin-initiated revoke

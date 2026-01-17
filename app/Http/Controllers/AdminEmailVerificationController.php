@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Context\AdminContext;
 use App\Context\RequestContext;
+use App\Domain\ActivityLog\Action\AdminActivityAction;
+use App\Domain\ActivityLog\Service\AdminActivityLogService;
 use App\Domain\DTO\Response\VerificationResponseDTO;
 use App\Domain\Exception\IdentifierNotFoundException;
 use App\Domain\Service\AdminEmailVerificationService;
@@ -20,34 +23,56 @@ readonly class AdminEmailVerificationController
     public function __construct(
         private AdminEmailVerificationService $service,
         private AdminEmailRepository $repository,
-        private ValidationGuard $validationGuard
+        private ValidationGuard $validationGuard,
+        private AdminActivityLogService $adminActivityLogService,
     ) {
     }
 
     /**
      * @param array<string, string> $args
      */
-    public function verify(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
-    {
+    public function verify(
+        ServerRequestInterface $request,
+        ResponseInterface $response,
+        array $args
+    ): ResponseInterface {
         $this->validationGuard->check(new AdminEmailVerifySchema(), $args);
 
-        $adminId = (int)$args['id'];
-
-        $context = $request->getAttribute(RequestContext::class);
-        if (!$context instanceof RequestContext) {
-            throw new \RuntimeException("Request context missing");
+        $adminContext = $request->getAttribute(AdminContext::class);
+        if (!$adminContext instanceof AdminContext) {
+            throw new \RuntimeException('AdminContext missing');
         }
 
+        $requestContext = $request->getAttribute(RequestContext::class);
+        if (!$requestContext instanceof RequestContext) {
+            throw new \RuntimeException('RequestContext missing');
+        }
+
+        $targetAdminId = (int) $args['id'];
+
         try {
-            $this->service->verify($adminId, $context);
+            // 🔹 Domain operation
+            $this->service->verify($targetAdminId, $requestContext);
 
-            $status = $this->repository->getVerificationStatus($adminId);
+            $status = $this->repository->getVerificationStatus($targetAdminId);
 
-            $dto = new VerificationResponseDTO($adminId, $status);
+            // ✅ Activity Log — admin verified another admin email
+            $this->adminActivityLogService->log(
+                adminContext: $adminContext,
+                requestContext: $requestContext,
+                action: AdminActivityAction::ADMIN_EMAIL_VERIFIED,
+                entityType: 'admin',
+                entityId: $targetAdminId,
+                metadata: [
+                    'verification_status' => $status->value,
+                ]
+            );
 
-            $json = json_encode($dto);
-            assert($json !== false);
+            $dto = new VerificationResponseDTO($targetAdminId, $status);
+
+            $json = json_encode($dto, JSON_THROW_ON_ERROR);
             $response->getBody()->write($json);
+
             return $response->withHeader('Content-Type', 'application/json');
 
         } catch (IdentifierNotFoundException $e) {

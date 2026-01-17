@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
+use App\Context\RequestContext;
+use App\Domain\ActivityLog\Action\AdminActivityAction;
+use App\Domain\ActivityLog\Service\AdminActivityLogService;
 use App\Domain\DTO\Request\CreateAdminEmailRequestDTO;
 use App\Domain\DTO\Request\VerifyAdminEmailRequestDTO;
 use App\Domain\DTO\Response\ActionResultResponseDTO;
@@ -29,7 +32,8 @@ class AdminController
         private AdminRepository $adminRepository,
         private AdminEmailRepository $adminEmailRepository,
         private ValidationGuard $validationGuard,
-        private AdminIdentifierCryptoServiceInterface $cryptoService
+        private AdminIdentifierCryptoServiceInterface $cryptoService,
+        private AdminActivityLogService $adminActivityLogService
     ) {
     }
 
@@ -37,6 +41,25 @@ class AdminController
     {
         $adminId = $this->adminRepository->create();
         $createdAt = $this->adminRepository->getCreatedAt($adminId);
+
+        $adminContext = $request->getAttribute(\App\Context\AdminContext::class);
+        if (!$adminContext instanceof \App\Context\AdminContext) {
+            throw new \RuntimeException('AdminContext missing');
+        }
+
+        $requestContext = $request->getAttribute(RequestContext::class);
+        if (!$requestContext instanceof RequestContext) {
+            throw new \RuntimeException('RequestContext missing');
+        }
+
+        $this->adminActivityLogService->log(
+            adminContext: $adminContext,
+            requestContext: $requestContext,
+            action: AdminActivityAction::ADMIN_CREATE,
+            entityType: 'admin',
+            entityId: $adminId,
+            metadata: []
+        );
 
         $dto = new ActionResultResponseDTO(
             adminId: $adminId,
@@ -83,6 +106,27 @@ class AdminController
         $encryptedDto = $this->cryptoService->encryptEmail($email);
 
         $this->adminEmailRepository->addEmail($adminId, $blindIndex, $encryptedDto);
+
+        $adminContext = $request->getAttribute(\App\Context\AdminContext::class);
+        if (!$adminContext instanceof \App\Context\AdminContext) {
+            throw new \RuntimeException('AdminContext missing');
+        }
+
+        $requestContext = $request->getAttribute(RequestContext::class);
+        if (!$requestContext instanceof RequestContext) {
+            throw new \RuntimeException('RequestContext missing');
+        }
+
+        $this->adminActivityLogService->log(
+            adminContext: $adminContext,
+            requestContext: $requestContext,
+            action: AdminActivityAction::ADMIN_EMAIL_ADDED,
+            entityType: 'admin',
+            entityId: $adminId,
+            metadata: [
+                'identifier_type' => 'email',
+            ]
+        );
 
         $responseDto = new ActionResultResponseDTO(
             adminId: $adminId,

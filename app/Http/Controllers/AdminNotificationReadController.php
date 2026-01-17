@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Context\RequestContext;
+use App\Domain\ActivityLog\Action\AdminActivityAction;
+use App\Domain\ActivityLog\Service\AdminActivityLogService;
 use App\Domain\Contracts\AdminNotificationReadMarkerInterface;
 use App\Domain\DTO\Notification\History\MarkNotificationReadDTO;
 use App\Modules\Validation\Guard\ValidationGuard;
@@ -15,7 +18,8 @@ final class AdminNotificationReadController
 {
     public function __construct(
         private readonly AdminNotificationReadMarkerInterface $marker,
-        private ValidationGuard $validationGuard
+        private ValidationGuard $validationGuard,
+        private AdminActivityLogService $adminActivityLogService,
     ) {
     }
 
@@ -28,6 +32,12 @@ final class AdminNotificationReadController
         if (!$adminContext instanceof \App\Context\AdminContext) {
             throw new \RuntimeException('AdminContext missing');
         }
+
+        $requestContext = $request->getAttribute(RequestContext::class);
+        if (!$requestContext instanceof RequestContext) {
+            throw new \RuntimeException('RequestContext missing');
+        }
+
         $adminId = $adminContext->adminId;
 
         $this->validationGuard->check(new AdminNotificationReadSchema(), $args);
@@ -40,6 +50,16 @@ final class AdminNotificationReadController
         );
 
         $this->marker->markAsRead($dto);
+
+        // ✅ Activity Log — admin marked notification as read
+        $this->adminActivityLogService->log(
+            adminContext: $adminContext,
+            requestContext: $requestContext,
+            action: AdminActivityAction::ADMIN_NOTIFICATION_MARK_READ,
+            entityType: 'notification',
+            entityId: $notificationId,
+            metadata: []
+        );
 
         return $response->withStatus(204);
     }

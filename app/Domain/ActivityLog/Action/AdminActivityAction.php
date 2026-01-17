@@ -27,10 +27,28 @@ enum AdminActivityAction: string implements ActivityActionInterface
     case ADMIN_CREATE  = 'admin.management.create';
     case ADMIN_UPDATE  = 'admin.management.update';
     case ADMIN_DELETE  = 'admin.management.delete';
+    case ADMIN_EMAIL_ADDED = 'admin.management.email.add';
+    const ADMIN_EMAIL_VERIFIED = 'admin.management.email.verify';
+
     case TELEMETRY_LIST  = 'admin.telemetry.list';
+
+    // ───────────────
+    // Sessions
+    // ───────────────
+    case SESSION_REVOKE = 'admin.session.revoked';
+
+    case SESSION_BULK_REVOKE = 'admin.session.bulk_revoked';
+
 
     // ⚙️ System (admin-triggered)
     case SETTINGS_UPDATE = 'admin.system.settings.update';
+
+    case ADMIN_NOTIFICATION_PREFERENCE_UPDATED = 'admin.notification.preference.updated';
+    case ADMIN_NOTIFICATION_MARK_READ = 'admin.notification.mark.read';
+
+    case ROLE_ASSIGN = 'admin.role.assign';
+    case ROLE_ASSIGN_DENIED = 'admin.role.assign.denied';
+
 
     public function toString(): string
     {

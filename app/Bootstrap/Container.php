@@ -63,7 +63,6 @@ use App\Domain\Service\VerificationCodePolicyResolver;
 use App\Domain\Service\VerificationCodeValidator;
 use App\Domain\Service\SessionRevocationService;
 use App\Domain\Service\AuthorizationService;
-use App\Domain\Telemetry\Contracts\TelemetryListReaderInterface;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminNotificationHistoryController;
 use App\Http\Controllers\AdminNotificationPreferenceController;
@@ -72,7 +71,6 @@ use App\Http\Controllers\AdminSecurityEventController;
 use App\Http\Controllers\AdminSelfAuditController;
 use App\Http\Controllers\AdminTargetedAuditController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\StepUpController;
 use App\Http\Controllers\NotificationQueryController;
 use App\Http\Controllers\AdminEmailVerificationController;
 use App\Http\Controllers\Web\DashboardController;
@@ -322,17 +320,20 @@ class Container
                 $emailRepo = $c->get(AdminEmailRepository::class);
                 $validationGuard = $c->get(ValidationGuard::class);
                 $cryptoService = $c->get(AdminIdentifierCryptoServiceInterface::class);
+                $adminActivityLogService = $c->get(AdminActivityLogService::class);
 
                 assert($adminRepo instanceof AdminRepository);
                 assert($emailRepo instanceof AdminEmailRepository);
                 assert($validationGuard instanceof ValidationGuard);
                 assert($cryptoService instanceof AdminIdentifierCryptoServiceInterface);
+                assert($adminActivityLogService instanceof AdminActivityLogService);
 
                 return new AdminController(
                     $adminRepo,
                     $emailRepo,
                     $validationGuard,
-                    $cryptoService
+                    $cryptoService,
+                    $adminActivityLogService
                 );
             },
             AdminEmailRepository::class => function (ContainerInterface $c) {
@@ -820,10 +821,13 @@ class Container
                 $reader = $c->get(AdminNotificationPreferenceReaderInterface::class);
                 $writer = $c->get(AdminNotificationPreferenceWriterInterface::class);
                 $validationGuard = $c->get(ValidationGuard::class);
+                $adminActivityLogService = $c->get(AdminActivityLogService::class);
+
                 assert($reader instanceof AdminNotificationPreferenceReaderInterface);
                 assert($writer instanceof AdminNotificationPreferenceWriterInterface);
                 assert($validationGuard instanceof ValidationGuard);
-                return new AdminNotificationPreferenceController($reader, $writer, $validationGuard);
+                assert($adminActivityLogService instanceof AdminActivityLogService);
+                return new AdminNotificationPreferenceController($reader, $writer, $validationGuard, $adminActivityLogService);
             },
             AdminNotificationHistoryController::class => function (ContainerInterface $c) {
                 $reader = $c->get(AdminNotificationHistoryReaderInterface::class);
@@ -835,9 +839,14 @@ class Container
             AdminNotificationReadController::class => function (ContainerInterface $c) {
                 $marker = $c->get(AdminNotificationReadMarkerInterface::class);
                 $validationGuard = $c->get(ValidationGuard::class);
+
+                $adminActivityLogService = $c->get(AdminActivityLogService::class);
+
                 assert($marker instanceof AdminNotificationReadMarkerInterface);
                 assert($validationGuard instanceof ValidationGuard);
-                return new AdminNotificationReadController($marker, $validationGuard);
+                assert($adminActivityLogService instanceof AdminActivityLogService);
+
+                return new AdminNotificationReadController($marker, $validationGuard, $adminActivityLogService);
             },
             NotificationQueryController::class => function (ContainerInterface $c) {
                 $repository = $c->get(NotificationReadRepositoryInterface::class);
@@ -850,10 +859,13 @@ class Container
                 $service = $c->get(AdminEmailVerificationService::class);
                 $repo = $c->get(AdminEmailRepository::class);
                 $validationGuard = $c->get(ValidationGuard::class);
+                $adminActivityLogService = $c->get(AdminActivityLogService::class);
+
                 assert($service instanceof AdminEmailVerificationService);
                 assert($repo instanceof AdminEmailRepository);
                 assert($validationGuard instanceof ValidationGuard);
-                return new AdminEmailVerificationController($service, $repo, $validationGuard);
+                assert($adminActivityLogService instanceof AdminActivityLogService);
+                return new AdminEmailVerificationController($service, $repo, $validationGuard, $adminActivityLogService);
             },
             AdminSelfAuditReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
@@ -927,12 +939,16 @@ class Container
                 // Telemetry
                 $telemetryFactory = $c->get(\App\Application\Telemetry\HttpTelemetryRecorderFactory::class);
 
+                $adminActivityLogService = $c->get(AdminActivityLogService::class);
+
+
                 assert($service instanceof SessionRevocationService);
                 assert($auth instanceof AuthorizationService);
                 assert($validationGuard instanceof ValidationGuard);
                 assert($telemetryFactory instanceof \App\Application\Telemetry\HttpTelemetryRecorderFactory);
+                assert($adminActivityLogService instanceof AdminActivityLogService);
 
-                return new SessionRevokeController($service, $auth, $validationGuard, $telemetryFactory
+                return new SessionRevokeController($service, $auth, $validationGuard, $telemetryFactory, $adminActivityLogService
                 );
             },
             SessionBulkRevokeController::class => function (ContainerInterface $c) {
@@ -943,16 +959,20 @@ class Container
                 // Telemetry
                 $telemetryFactory = $c->get(\App\Application\Telemetry\HttpTelemetryRecorderFactory::class);
 
+                $adminActivityLogService = $c->get(AdminActivityLogService::class);
+
                 assert($service instanceof SessionRevocationService);
                 assert($auth instanceof AuthorizationService);
                 assert($validationGuard instanceof ValidationGuard);
                 assert($telemetryFactory instanceof \App\Application\Telemetry\HttpTelemetryRecorderFactory);
+                assert($adminActivityLogService instanceof AdminActivityLogService);
 
                 return new SessionBulkRevokeController(
                     $service,
                     $auth,
                     $validationGuard,
-                    $telemetryFactory
+                    $telemetryFactory,
+                    $adminActivityLogService
                 );
             },
 

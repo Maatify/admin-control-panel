@@ -116,7 +116,7 @@ class SessionRevocationService
         }
     }
 
-    public function revokeByHash(string $targetHash, string $currentSessionHash, RequestContext $context): void
+    public function revokeByHash(string $targetHash, string $currentSessionHash, RequestContext $context): int
     {
         if (hash_equals($targetHash, $currentSessionHash)) {
             throw new DomainException('Cannot revoke own session via global view.');
@@ -168,6 +168,7 @@ class SessionRevocationService
             ));
 
             $this->pdo->commit();
+            return $targetAdminId;
         } catch (\Throwable $e) {
             $this->pdo->rollBack();
             throw $e;
