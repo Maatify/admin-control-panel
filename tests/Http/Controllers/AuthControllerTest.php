@@ -50,33 +50,10 @@ final class AuthControllerTest extends TestCase
 
         $validationGuard = new ValidationGuard($validator);
 
-        // ---- Activity logging: real service + spy writer ----
-        $writer = new class implements ActivityLogWriterInterface {
-            /** @var ActivityLogDTO[] */
-            public array $written = [];
-
-            public function write(ActivityLogDTO $activity): void
-            {
-                $this->written[] = $activity;
-            }
-        };
-
-        $activityLogService = new ActivityLogService($writer);
-        $adminActivityLogService = new AdminActivityLogService($activityLogService);
-
-        // ---- Telemetry deps (AuthController now expects 6 args) ----
-        $telemetryEmailHasher = $this->createMock(TelemetryEmailHasherInterface::class);
-        $helper = TelemetryTestHelper::makeFactoryWithSpyRecorder($telemetryEmailHasher);
-        $telemetryFactory = $helper['factory'];
-        $spyRecorder = $helper['recorder'];
-
         $controller = new AuthController(
             $authService,
             $cryptoService,
-            $validationGuard,
-            $adminActivityLogService,
-            $telemetryFactory,
-            $telemetryEmailHasher
+            $validationGuard
         );
 
         // ---- Request / Response mocks ----
@@ -110,21 +87,5 @@ final class AuthControllerTest extends TestCase
         // Assert returned type is correct
         self::assertSame($response, $returned);
 
-        // Assert log written
-        self::assertCount(1, $writer->written);
-
-        $dto = $writer->written[0];
-        self::assertSame(AdminActivityAction::LOGIN_SUCCESS->toString(), $dto->action);
-        self::assertSame('admin', $dto->actorType);
-        self::assertSame(123, $dto->actorId);
-        self::assertSame('req-123', $dto->requestId);
-        self::assertSame('127.0.0.1', $dto->ipAddress);
-        self::assertSame('PHPUnit', $dto->userAgent);
-
-        // Assert Telemetry
-        self::assertCount(1, $spyRecorder->records);
-        $telemetry = $spyRecorder->records[0];
-        self::assertEquals(TelemetryEventTypeEnum::AUTH_LOGIN_SUCCESS, $telemetry->eventType);
-        self::assertSame(123, $telemetry->actorId);
     }
 }

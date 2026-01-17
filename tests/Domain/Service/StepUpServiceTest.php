@@ -7,11 +7,11 @@ namespace Tests\Domain\Service;
 use App\Context\RequestContext;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\Contracts\StepUpGrantRepositoryInterface;
-use App\Domain\Contracts\TelemetryAuditLoggerInterface;
 use App\Domain\Contracts\TotpSecretRepositoryInterface;
 use App\Domain\Contracts\TotpServiceInterface;
 use App\Domain\DTO\StepUpGrant;
 use App\Domain\Enum\Scope;
+use App\Domain\SecurityEvents\Recorder\SecurityEventRecorderInterface;
 use App\Domain\Service\RecoveryStateService;
 use App\Domain\Service\StepUpService;
 use DateTimeImmutable;
@@ -24,8 +24,8 @@ class StepUpServiceTest extends TestCase
     private StepUpGrantRepositoryInterface&MockObject $grantRepository;
     private TotpSecretRepositoryInterface&MockObject $secretRepository;
     private TotpServiceInterface&MockObject $totpService;
-    private TelemetryAuditLoggerInterface&MockObject $auditLogger;
     private AuthoritativeSecurityAuditWriterInterface&MockObject $outboxWriter;
+    private SecurityEventRecorderInterface&MockObject $securityEventRecorder;
     private RecoveryStateService&MockObject $recoveryState;
     private PDO&MockObject $pdo;
 
@@ -36,8 +36,8 @@ class StepUpServiceTest extends TestCase
         $this->grantRepository = $this->createMock(StepUpGrantRepositoryInterface::class);
         $this->secretRepository = $this->createMock(TotpSecretRepositoryInterface::class);
         $this->totpService = $this->createMock(TotpServiceInterface::class);
-        $this->auditLogger = $this->createMock(TelemetryAuditLoggerInterface::class);
         $this->outboxWriter = $this->createMock(AuthoritativeSecurityAuditWriterInterface::class);
+        $this->securityEventRecorder = $this->createMock(SecurityEventRecorderInterface::class);
         $this->recoveryState = $this->createMock(RecoveryStateService::class);
         $this->pdo = $this->createMock(PDO::class);
 
@@ -50,8 +50,8 @@ class StepUpServiceTest extends TestCase
             $this->grantRepository,
             $this->secretRepository,
             $this->totpService,
-            $this->auditLogger,
             $this->outboxWriter,
+            $this->securityEventRecorder,
             $this->recoveryState,
             $this->pdo
         );
@@ -103,9 +103,6 @@ class StepUpServiceTest extends TestCase
                     && $grant->scope === Scope::LOGIN;
             }));
 
-        $this->auditLogger->expects($this->once())
-            ->method('log');
-
         $this->outboxWriter->expects($this->once())
             ->method('write');
 
@@ -143,9 +140,6 @@ class StepUpServiceTest extends TestCase
                     && $grant->scope === $scope;
             }));
 
-        $this->auditLogger->expects($this->once())
-            ->method('log');
-
         $this->outboxWriter->expects($this->once())
             ->method('write');
 
@@ -164,8 +158,8 @@ class StepUpServiceTest extends TestCase
             ->method('get')
             ->willReturn(null);
 
-        $this->auditLogger->expects($this->once())
-            ->method('log'); // Security event
+        $this->securityEventRecorder->expects($this->once())
+            ->method('record');
 
         $result = $this->service->verifyTotp(1, 'token', 'c', $context);
         $this->assertFalse($result->success);
@@ -182,8 +176,8 @@ class StepUpServiceTest extends TestCase
         $this->secretRepository->method('get')->willReturn('secret');
         $this->totpService->method('verify')->willReturn(false);
 
-        $this->auditLogger->expects($this->once())
-            ->method('log'); // Security event
+        $this->securityEventRecorder->expects($this->once())
+            ->method('record');
 
         $result = $this->service->verifyTotp(1, 'token', 'c', $context);
         $this->assertFalse($result->success);
