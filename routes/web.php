@@ -84,11 +84,11 @@ return function (App $app) {
             // Activity Logs
             // ─────────────────────────────
 
-            $protectedGroup->get('/activity-logs', [\App\Http\Controllers\Ui\ActivityLogListController::class, 'index']);
+            $protectedGroup->get('/activity-logs', [\App\Http\Controllers\Ui\ActivityLogListController::class, 'index'])
+                ->setName('activity_logs.view');
 
             $protectedGroup->get('/telemetry', [\App\Http\Controllers\Ui\TelemetryListController::class, 'index'])
-                ->setName('telemetry.list')
-                ->add(AuthorizationGuardMiddleware::class);
+                ->setName('telemetry.list');
 
             // Allow logout from UI
             $protectedGroup->post('/logout', [\App\Http\Controllers\Web\LogoutController::class, 'logout'])
@@ -142,7 +142,7 @@ return function (App $app) {
                 ->setName('activity_logs.view')
                 ->add(AuthorizationGuardMiddleware::class);
 
-            $group->get('/telemetry/query', [\App\Http\Controllers\Api\TelemetryQueryController::class, 'index'])
+            $group->post('/telemetry/query', [\App\Http\Controllers\Api\TelemetryQueryController::class, '__invoke'])
                 ->setName('telemetry.list')
                 ->add(AuthorizationGuardMiddleware::class);
 
