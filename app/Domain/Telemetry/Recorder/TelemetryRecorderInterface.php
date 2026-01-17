@@ -18,12 +18,27 @@ namespace App\Domain\Telemetry\Recorder;
 use App\Domain\Telemetry\DTO\TelemetryRecordDTO;
 
 /**
- * Domain recorder contract.
+ * Telemetry Recorder (Observability ONLY)
  *
- * MUST:
- * - enforce best-effort (silence policy)
- * - never throw to callers
+ * HARD RULES:
+ * - Telemetry MUST NOT be used for:
+ *   - Audit logging
+ *   - Security events
+ *   - Activity logging
+ *   - Authority decisions
+ *
+ * - Telemetry is BEST-EFFORT and NON-AUTHORITATIVE.
+ * - Telemetry failures MUST NEVER affect application flow.
+ *
+ * This class intentionally swallows TelemetryStorageException.
+ *
+ *  Domain recorder contract.
+ *
+ *  MUST:
+ *  - enforce best-effort (silence policy)
+ *  - never throw to callers
  */
+
 interface TelemetryRecorderInterface
 {
     public function record(TelemetryRecordDTO $dto): void;

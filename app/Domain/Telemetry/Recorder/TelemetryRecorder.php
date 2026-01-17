@@ -21,12 +21,21 @@ use App\Modules\Telemetry\DTO\TelemetryEventDTO;
 use App\Modules\Telemetry\Exceptions\TelemetryStorageException;
 
 /**
- * Domain Telemetry recorder.
+ * Telemetry Recorder (Observability ONLY)
  *
- * Responsibilities:
- * - Transform Domain TelemetryRecordDTO -> Module TelemetryEventDTO
- * - Enforce best-effort silence policy (swallow TelemetryStorageException)
+ * HARD RULES:
+ * - Telemetry MUST NOT be used for:
+ *   - Audit logging
+ *   - Security events
+ *   - Activity logging
+ *   - Authority decisions
+ *
+ * - Telemetry is BEST-EFFORT and NON-AUTHORITATIVE.
+ * - Telemetry failures MUST NEVER affect application flow.
+ *
+ * This class intentionally swallows TelemetryStorageException.
  */
+
 final readonly class TelemetryRecorder implements TelemetryRecorderInterface
 {
     public function __construct(
