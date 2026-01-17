@@ -32,8 +32,10 @@ final class SessionBulkRevokeControllerTest extends TestCase
         $telemetryFactory = $helper['factory'];
         $spy = $helper['recorder'];
 
-        $adminActivityLogService = $this->createMock(\App\Domain\ActivityLog\Service\AdminActivityLogService::class);
-        $adminActivityLogService->expects($this->once())->method('log');
+        $writer = $this->createMock(\App\Modules\ActivityLog\Contracts\ActivityLogWriterInterface::class);
+        $writer->expects($this->once())->method('write');
+        $activityLogService = new \App\Modules\ActivityLog\Service\ActivityLogService($writer);
+        $adminActivityLogService = new \App\Domain\ActivityLog\Service\AdminActivityLogService($activityLogService);
 
         $controller = new SessionBulkRevokeController(
             $revocationService,
