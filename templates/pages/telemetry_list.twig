@@ -1,0 +1,121 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}Telemetry
+{% endblock %}
+
+{% block content %}
+	<div class="flex flex-wrap items-center justify-between gap-3 ">
+		<h2 class="text-xl font-semibold text-gray-800">Telemetry</h2>
+		<nav>
+			<ol class="flex items-center gap-1.5">
+				<li>
+					<a class="inline-flex items-center gap-1.5 text-sm text-gray-500" href="dashboard">
+						Home
+						<svg class="stroke-current" width="17" height="16" viewbox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+							<path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+						</svg>
+					</a>
+				</li>
+				<li class="text-sm text-gray-800">Telemetry</li>
+			</ol>
+		</nav>
+	</div>
+
+	<div class="px-0 py-2">
+		<!-- Search Section -->
+		<div class="bg-white rounded-lg shadow border border-gray-200 mb-6">
+			<div class="px-2 py-4">
+				<form id="telemetry-search-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+					<!-- Row 1 -->
+					<div>
+						<label for="filter-event-key" class="block text-sm font-medium text-gray-700 mb-1">
+							Event Key
+						</label>
+						<input type="text" id="filter-event-key" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. AUTH_LOGIN">
+					</div>
+
+					<div>
+						<label for="filter-route-name" class="block text-sm font-medium text-gray-700 mb-1">
+							Route Name
+						</label>
+						<input type="text" id="filter-route-name" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. /login">
+					</div>
+
+					<div>
+						<label for="filter-request-id" class="block text-sm font-medium text-gray-700 mb-1">
+							Request ID
+						</label>
+						<input type="text" id="filter-request-id" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Search by request ID">
+					</div>
+
+					<!-- Row 2 -->
+					<div>
+						<label for="filter-actor-type" class="block text-sm font-medium text-gray-700 mb-1">
+							Actor Type
+						</label>
+						<select id="filter-actor-type" class="w-full px-3 py-2 text-sm border bg-white border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+							<option value="">All</option>
+							<option value="admin">Admin</option>
+							<option value="system">System</option>
+						</select>
+					</div>
+
+					<div>
+						<label for="filter-actor-id" class="block text-sm font-medium text-gray-700 mb-1">
+							Actor ID
+						</label>
+						<input type="text" id="filter-actor-id" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. 5">
+					</div>
+
+					<div>
+						<label for="filter-ip-address" class="block text-sm font-medium text-gray-700 mb-1">
+							IP Address
+						</label>
+						<input type="text" id="filter-ip-address" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. 192.168.1.10">
+					</div>
+
+					<!-- Row 3 - Date Range -->
+					<div>
+						<label for="filter-date-from" class="block text-sm font-medium text-gray-700 mb-1">
+							Date From
+						</label>
+						<input type="date" id="filter-date-from" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+					</div>
+
+					<div>
+						<label for="filter-date-to" class="block text-sm font-medium text-gray-700 mb-1">
+							Date To
+						</label>
+						<input type="date" id="filter-date-to" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+					</div>
+
+					<div>
+						<!-- Empty space for alignment -->
+					</div>
+
+					<!-- Action Buttons - Full Width Row -->
+					<div class="md:col-span-3 flex items-end space-x-1">
+						<button type="submit" class="text-xs px-4 py-1 bg-blue-600 text-white rounded-md hover:bg-white hover:text-blue-600 border hover:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+							Search
+						</button>
+						<button type="button" id="btn-reset" class="text-xs px-4 py-1 bg-white text-gray-600 border border-gray-600 rounded-md hover:bg-gray-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+							Reset
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<div class="container mt-6">
+			<div id="table-container" class="w-full"></div>
+		</div>
+	</div>
+
+{% endblock %}
+
+{% block scripts %}
+	<script src="/assets/js/callback_handler.js"></script>
+	<script src="/assets/js/useInputChecker.js"></script>
+	<script src="/assets/js/data_table.js"></script>
+	<script src="/assets/js/pages/telemetry_list.js"></script>
+{% endblock %}
