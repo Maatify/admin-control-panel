@@ -26,12 +26,12 @@ Any deviation from these rules is considered a **critical architectural violatio
 
 The system recognizes **exactly four** functional logging categories:
 
-| Category        | Purpose                               | Authority Level       |
-|-----------------|---------------------------------------|-----------------------|
-| Audit Logs      | Authoritative record of state changes | **Authoritative**     |
-| Security Events | Observational security signals        | **Non-authoritative** |
-| Activity Logs   | Admin operational actions             | **Non-authoritative** |
-| Telemetry       | Metrics and diagnostics               | **Non-authoritative** |
+| Category        | Purpose                               | Authority Level        |
+|-----------------|---------------------------------------|------------------------|
+| Audit Logs      | Authoritative record of state changes | **Authoritative**      |
+| Security Events | Observational security signals        | **Non-authoritative**  |
+| Activity Logs   | Admin operational actions             | **Non-authoritative**  |
+| Telemetry       | Metrics and diagnostics               | **Non-authoritative**  |
 
 Additionally, the system uses **PSR-3 Logger** as a **diagnostic channel**
 (not a business logging category).
@@ -161,7 +161,7 @@ Security Events include:
 Activity Logs track **admin operational actions** for visibility and review.
 
 They answer:
-> "What did this admin do?"
+> “What did this admin do?”
 
 ### 5.2 Storage
 
@@ -188,6 +188,70 @@ Activity Logs MUST NOT be used for:
 - Authorization
 - Security failures
 - Any automatic system action
+
+---
+
+## 5.5 Clarification: Activity Logs vs Data Exposure
+
+### 5.5.1 Core Distinction
+
+Activity Logs are designed to track **intentional admin actions**, not data exposure.
+
+They answer:
+> **What action did the admin intentionally perform?**
+
+They do **NOT** answer:
+- What data was viewed
+- What sensitive records were accessed
+- What customer information was exposed
+
+---
+
+### 5.5.2 What Activity Logs MAY Represent
+
+Activity Logs MAY represent:
+- An admin triggered an action
+- An admin performed a manual operation
+- An admin initiated a workflow
+- An admin explicitly modified system state
+
+Examples:
+- Session revoked
+- Admin role updated
+- Settings changed
+- Manual bulk operation triggered
+
+---
+
+### 5.5.3 What Activity Logs MUST NOT Represent
+
+Activity Logs MUST NOT be used to represent:
+- Viewing customer data
+- Listing sensitive records
+- Opening or reading personal information
+- Accessing confidential resources
+- Any form of **data exposure**
+
+Logging such actions as Activity Logs creates:
+- False operational narratives
+- Incomplete forensic trails
+- Compliance risk
+- Misleading accountability
+
+---
+
+## 5.6 🚫 Forbidden Substitution: Activity Logs as Data Access Logs
+
+Using Activity Logs to simulate **data access tracking** is strictly forbidden.
+
+Examples of forbidden usage:
+- Logging “customer viewed” as an Activity Log
+- Logging “record opened” as an Activity Log
+- Logging “export generated” as an Activity Log
+
+> **Activity ≠ Access**
+
+This distinction is **non-negotiable**.
 
 ---
 
@@ -246,12 +310,6 @@ PSR-3 Logger MUST be used when:
 - An unexpected state occurs that does not affect user flow
 - Logging itself fails (nested logging failure)
 
-Examples:
-- Telemetry write failure
-- Notification dispatch failure
-- Optional external service timeout
-- Background task error that should not block execution
-
 ---
 
 ### 6.5.3 When NOT to Use PSR-3 Logger
@@ -299,12 +357,6 @@ try {
 }
 ````
 
-This is correct PSR-3 usage:
-
-* The failure is unexpected
-* The failure must not affect business logic
-* The failure must be visible to operators
-
 ---
 
 ### 6.5.6 Core Rule
@@ -321,7 +373,86 @@ is a **hard violation**.
 
 ---
 
-## 7. Forbidden Patterns (Hard Rules)
+## 7. 🚧 Future Category (Deferred): Data Access Logs
+
+### 7.1 Definition
+
+Data Access Logs are a **distinct, dedicated logging category** intended to track:
+
+> **Who accessed sensitive data, and when**
+
+They exist for:
+
+* Privacy investigations
+* Insider threat analysis
+* Compliance audits
+* Data leakage tracing
+
+---
+
+### 7.2 Status
+
+⚠️ **NOT IMPLEMENTED**
+⚠️ **NOT AVAILABLE FOR USE**
+⚠️ **MUST NOT be emulated using existing log categories**
+
+Any attempt to approximate Data Access Logs using:
+
+* Activity Logs
+* Audit Logs
+* Security Events
+* Telemetry
+
+is a **hard architectural violation**.
+
+---
+
+### 7.3 Why a Separate Category Is Required
+
+Data access tracking has unique requirements:
+
+* High cardinality
+* Read-heavy events
+* Different retention rules
+* Different privacy constraints
+* Different query patterns
+
+Mixing it with Activity Logs or Audit Logs:
+
+* Breaks semantics
+* Pollutes timelines
+* Creates false causality
+
+---
+
+### 7.4 Explicit Rule
+
+> **Activity Logs track actions.**
+> **Audit Logs track state changes.**
+> **Security Events track risk.**
+> **Telemetry tracks system behavior.**
+> **Data Access Logs track exposure.**
+
+These categories are **not interchangeable**.
+
+---
+
+### 7.5 Implementation Policy
+
+Data Access Logs:
+
+* Require a dedicated ADR
+* Require explicit schema design
+* Require privacy review
+* Require retention policy definition
+
+Until then:
+
+> **NO data access logging is allowed.**
+
+---
+
+## 8. Forbidden Patterns (Hard Rules)
 
 The following are **explicitly forbidden**:
 
@@ -331,12 +462,14 @@ The following are **explicitly forbidden**:
 * ❌ Activity Logs for authentication or authorization
 * ❌ Double-writing the same event to multiple log types
 * ❌ Using logs as a source of truth
+* ❌ Logging “view”, “read”, or “open” operations as Activity Logs
+* ❌ Inferring data exposure from operational logs
 
 Any of the above requires immediate remediation.
 
 ---
 
-## 8. Enforcement
+## 9. Enforcement
 
 * All new code MUST comply with this document
 * Code reviews MUST validate logging semantics
@@ -345,7 +478,7 @@ Any of the above requires immediate remediation.
 
 ---
 
-## 9. Change Policy
+## 10. Change Policy
 
 This document is:
 
@@ -357,7 +490,7 @@ Ad-hoc exceptions are NOT allowed.
 
 ---
 
-## 10. Summary
+## 11. Summary
 
 > Logs are not interchangeable.
 

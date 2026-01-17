@@ -280,6 +280,7 @@ Entries MUST NOT be rewritten or reordered.
 - docs: add global logging rules and document PSR-3 diagnostic usage
 - chore(auth): remove telemetry audit dependencies from authentication and authorization services
 - refactor(authz): remove non-canonical audit intent from authorization decisions
+- docs(adr,logging): add ADR-011 for deferred Data Access Logs and expand logging governance
 
 
 ---
