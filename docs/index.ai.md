@@ -57,6 +57,7 @@ Higher levels ALWAYS override lower levels.
 - ADRs never override Canonical Context
 - ADRs never introduce behavior
 - ADRs are immutable once accepted
+- **ADRs with status `ACCEPTED (DEFERRED)` represent a binding future decision and MUST NOT be implemented, approximated, or emulated until explicitly activated by a new ADR.**
 
 AI MUST NOT:
 - Implement logic from ADR alone
@@ -87,11 +88,11 @@ AI executors MUST NOT:
 ---
 
 ### AI Executor — IMPLEMENTATION / FIX
-1. docs/index.ai.md  
-2. PROJECT_CANONICAL_CONTEXT.md  
-3. ADMIN_PANEL_CANONICAL_TEMPLATE.md  
-4. API_PHASE1.md  
-5. Relevant ADR
+1. docs/index.ai.md
+2. PROJECT_CANONICAL_CONTEXT.md
+3. ADMIN_PANEL_CANONICAL_TEMPLATE.md
+4. API_PHASE1.md
+5. Relevant ADR (**pay special attention to `ACCEPTED (DEFERRED)` status**)
 
 ---
 

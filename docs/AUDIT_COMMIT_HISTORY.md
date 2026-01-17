@@ -292,6 +292,7 @@ Entries MUST NOT be rewritten or reordered.
 - fix(schema): normalize admin-linked ids and harden notification uniqueness
 - chore(totp): remove deprecated legacy TOTP repository
 - test(totp): fix broken tests to use AdminTotpSecretStoreInterface
+- docs(adr): add ADR-012 for deferred unified verification codes and update AI guards
 
 ---
 
