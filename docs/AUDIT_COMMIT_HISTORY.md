@@ -295,6 +295,7 @@ Entries MUST NOT be rewritten or reordered.
 - docs(adr): add ADR-012 for deferred unified verification codes and update AI guards
 - feat(telemetry-ui): add telemetry metadata view with strict reader and UI-safe rendering
 - restore(schema): reintroduce legacy tables removed in d501146a
+- fix(bootstrap, schema): relax actor requirements to allow first-admin initialization
 
 ---
 

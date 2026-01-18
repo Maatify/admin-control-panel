@@ -293,7 +293,7 @@ CREATE TABLE audit_logs (
 
 CREATE TABLE audit_outbox (
                               id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                              actor_type VARCHAR(32) NOT NULL,
+                              actor_type varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'admin',
                               actor_id BIGINT NULL,
                               action VARCHAR(128) NOT NULL,
                               target_type VARCHAR(64) NOT NULL,
