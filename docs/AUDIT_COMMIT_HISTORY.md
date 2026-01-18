@@ -293,6 +293,7 @@ Entries MUST NOT be rewritten or reordered.
 - chore(totp): remove deprecated legacy TOTP repository
 - test(totp): fix broken tests to use AdminTotpSecretStoreInterface
 - docs(adr): add ADR-012 for deferred unified verification codes and update AI guards
+- feat(telemetry-ui): add telemetry metadata view with strict reader and UI-safe rendering
 
 ---
 

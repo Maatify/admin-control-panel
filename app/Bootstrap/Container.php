@@ -65,6 +65,8 @@ use App\Domain\Service\VerificationCodePolicyResolver;
 use App\Domain\Service\VerificationCodeValidator;
 use App\Domain\Service\SessionRevocationService;
 use App\Domain\Service\AuthorizationService;
+use App\Domain\Telemetry\Contracts\TelemetryMetadataReaderInterface;
+use App\Domain\Telemetry\Reader\PdoTelemetryMetadataReader;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminNotificationHistoryController;
 use App\Http\Controllers\AdminNotificationPreferenceController;
@@ -164,6 +166,7 @@ use App\Modules\SecurityEvents\Infrastructure\Mysql\SecurityEventLoggerMysqlRepo
 use App\Modules\Validation\Contracts\ValidatorInterface;
 use App\Modules\Validation\Guard\ValidationGuard;
 use App\Modules\Validation\Validator\RespectValidator;
+use App\Ui\Support\TelemetryMetadataViewNormalizer;
 use DI\ContainerBuilder;
 use Exception;
 use Maatify\PsrLogger\LoggerFactory;
@@ -1348,7 +1351,26 @@ class Container
                 $securityEventLoggerMysqlRepository = new SecurityEventLoggerMysqlRepository($pdo);
 
                 return new SecurityEventRecorder($securityEventLoggerMysqlRepository);
-            }
+            },
+            // ─────────────────────────────
+            // Telemetry – Metadata Reader
+            // ─────────────────────────────
+            TelemetryMetadataReaderInterface::class => function ($c) {
+                $pdo = $c->get(PDO::class);
+
+                assert($pdo instanceof PDO);
+
+                return new PdoTelemetryMetadataReader(
+                    $pdo
+                );
+            },
+
+            // ─────────────────────────────
+            // Telemetry – UI Support
+            // ─────────────────────────────
+            TelemetryMetadataViewNormalizer::class => function () {
+                return new TelemetryMetadataViewNormalizer();
+            },
 
         ]);
 

@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\ActivityLogQueryController;
 use App\Http\Controllers\Api\AdminQueryController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NotificationQueryController;
+use App\Http\Controllers\Ui\UiTelemetryMetadataController;
 use App\Http\Middleware\AuthorizationGuardMiddleware;
 use App\Http\Middleware\GuestGuardMiddleware;
 use App\Http\Middleware\SessionGuardMiddleware;
@@ -89,6 +90,11 @@ return function (App $app) {
 
             $protectedGroup->get('/telemetry', [\App\Http\Controllers\Ui\TelemetryListController::class, 'index'])
                 ->setName('telemetry.list');
+
+            $protectedGroup->get(
+                '/telemetry/{id}/metadata',
+                [UiTelemetryMetadataController::class, 'view']
+            )->setName('telemetry.view');
 
             // Allow logout from UI
             $protectedGroup->post('/logout', [\App\Http\Controllers\Web\LogoutController::class, 'logout'])
