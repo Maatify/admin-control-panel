@@ -76,15 +76,57 @@ final class MySQLTestHelper
             ]
         );
 
+        self::bootstrapDatabase(self::$pdo);
+
         return self::$pdo;
     }
 
     private static function bootstrapDatabase(PDO $pdo): void
     {
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $autoInc = $driver === 'sqlite' ? 'AUTOINCREMENT' : 'AUTO_INCREMENT';
+
         // Minimal schema for tests
         $pdo->exec(<<<SQL
+            CREATE TABLE IF NOT EXISTS admins (
+                id INTEGER PRIMARY KEY $autoInc,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+SQL
+        );
+
+        $pdo->exec(<<<SQL
+            CREATE TABLE IF NOT EXISTS admin_sessions (
+                session_id VARCHAR(64) PRIMARY KEY,
+                admin_id INTEGER NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                expires_at DATETIME NOT NULL,
+                is_revoked TINYINT(1) NOT NULL DEFAULT 0,
+                CONSTRAINT fk_as_admin_id FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE CASCADE
+            );
+SQL
+        );
+
+        $pdo->exec(<<<SQL
+            CREATE TABLE IF NOT EXISTS step_up_grants (
+                admin_id INTEGER NOT NULL,
+                session_id VARCHAR(64) NOT NULL,
+                scope VARCHAR(64) NOT NULL,
+                risk_context_hash VARCHAR(64) NOT NULL,
+                issued_at DATETIME NOT NULL,
+                expires_at DATETIME NOT NULL,
+                single_use TINYINT(1) NOT NULL DEFAULT 0,
+                context_snapshot JSON NULL,
+                PRIMARY KEY (admin_id, session_id, scope),
+                CONSTRAINT fk_sug_admin_id FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE CASCADE,
+                CONSTRAINT fk_sug_session_id FOREIGN KEY (session_id) REFERENCES admin_sessions(session_id) ON DELETE CASCADE
+            );
+SQL
+        );
+
+        $pdo->exec(<<<SQL
             CREATE TABLE IF NOT EXISTS activity_logs (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id INTEGER PRIMARY KEY $autoInc,
                 actor_type VARCHAR(32) NOT NULL,
                 actor_id INTEGER NULL,
                 action VARCHAR(128) NOT NULL,
@@ -101,7 +143,7 @@ SQL
 
         $pdo->exec(<<<SQL
             CREATE TABLE IF NOT EXISTS security_events (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id INTEGER PRIMARY KEY $autoInc,
                 actor_type VARCHAR(32) NOT NULL CHECK(length(actor_type) <= 32),
                 actor_id INTEGER NULL,
                 event_type VARCHAR(100) NOT NULL,
@@ -118,7 +160,7 @@ SQL
 
         $pdo->exec(<<<SQL
             CREATE TABLE IF NOT EXISTS telemetry_traces (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id INTEGER PRIMARY KEY $autoInc,
                 event_key VARCHAR(255) NOT NULL,
                 severity VARCHAR(20) NOT NULL,
                 route_name VARCHAR(255) NULL,
@@ -144,7 +186,9 @@ SQL
             // Optional: Reset sequence
             $pdo->exec("DELETE FROM sqlite_sequence WHERE name='$table'");
         } else {
+            $pdo->exec('SET FOREIGN_KEY_CHECKS=0');
             $pdo->exec('TRUNCATE TABLE ' . $table);
+            $pdo->exec('SET FOREIGN_KEY_CHECKS=1');
         }
     }
 }

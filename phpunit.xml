@@ -17,5 +17,9 @@
 
     <php>
         <env name="APP_ENV" value="testing"/>
+        <env name="DB_HOST" value="127.0.0.1"/>
+        <env name="DB_NAME" value="test_db"/>
+        <env name="DB_USER" value="test_user"/>
+        <env name="DB_PASS" value="test_pass"/>
     </php>
 </phpunit>
