@@ -1,0 +1,165 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Integration\Http;
+
+use App\Application\Telemetry\HttpTelemetryRecorderFactory;
+use App\Context\AdminContext;
+use App\Context\RequestContext;
+use App\Domain\Contracts\TotpServiceInterface;
+use App\Domain\DTO\TotpVerificationResultDTO;
+use App\Domain\Enum\Scope;
+use App\Domain\Service\StepUpService;
+use App\Domain\Telemetry\Recorder\TelemetryRecorderInterface;
+use App\Http\Controllers\Web\TwoFactorController;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\ServerRequestInterface;
+use Slim\Psr7\Factory\ServerRequestFactory;
+use Slim\Psr7\Response;
+use Slim\Views\Twig;
+
+final class TwoFactorControllerTest extends TestCase
+{
+    private TwoFactorController $controller;
+    private StepUpService&MockObject $stepUpServiceMock;
+    private TotpServiceInterface&MockObject $totpServiceMock;
+    private Twig&MockObject $viewMock;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->stepUpServiceMock = $this->createMock(StepUpService::class);
+        $this->totpServiceMock = $this->createMock(TotpServiceInterface::class);
+        $this->viewMock = $this->createMock(Twig::class);
+
+        $telemetryRecorderMock = $this->createMock(TelemetryRecorderInterface::class);
+        $telemetryFactory = new HttpTelemetryRecorderFactory($telemetryRecorderMock);
+
+        $this->controller = new TwoFactorController(
+            $this->stepUpServiceMock,
+            $this->totpServiceMock,
+            $this->viewMock,
+            $telemetryFactory
+        );
+    }
+
+    private function createAuthenticatedRequest(string $method, string $uri): ServerRequestInterface
+    {
+        $request = (new ServerRequestFactory())->createServerRequest($method, $uri);
+
+        $adminContext = new AdminContext(1);
+        $requestContext = new RequestContext('req-id', '127.0.0.1', 'test-agent');
+
+        return $request
+            ->withAttribute(AdminContext::class, $adminContext)
+            ->withAttribute(RequestContext::class, $requestContext)
+            ->withCookieParams(['auth_token' => 'session-token']);
+    }
+
+    public function testDoVerifyCallsStepUpServiceWithCorrectScopeAndRedirects(): void
+    {
+        $request = $this->createAuthenticatedRequest('POST', '/2fa/verify')
+            ->withParsedBody([
+                'code' => '123456',
+                'scope' => 'security',
+                'return_to' => '/admins/create',
+            ]);
+
+        $response = new Response();
+
+        $this->stepUpServiceMock
+            ->expects($this->once())
+            ->method('verifyTotp')
+            ->with(
+                1, // adminId
+                'session-token', // session token
+                '123456',
+                $this->isInstanceOf(RequestContext::class),
+                Scope::SECURITY
+            )
+            ->willReturn(new TotpVerificationResultDTO(true));
+
+        $response = $this->controller->doVerify($request, $response);
+
+        $this->assertSame(302, $response->getStatusCode());
+        $this->assertSame('/admins/create', $response->getHeaderLine('Location'));
+    }
+
+    public function testDoVerifyFails(): void
+    {
+        $request = $this->createAuthenticatedRequest('POST', '/2fa/verify')
+            ->withParsedBody([
+                'code' => 'invalid',
+                'scope' => 'security',
+            ]);
+
+        $response = new Response();
+
+        $this->stepUpServiceMock
+            ->expects($this->once())
+            ->method('verifyTotp')
+            ->willReturn(new TotpVerificationResultDTO(false, 'Invalid code'));
+
+        $this->viewMock
+            ->expects($this->once())
+            ->method('render')
+            ->willReturn($response);
+
+        $this->controller->doVerify($request, $response);
+    }
+
+    public function testDoVerifyDefaultsToLoginScopeAndDashboardRedirect(): void
+    {
+        $request = $this->createAuthenticatedRequest('POST', '/2fa/verify')
+            ->withParsedBody([
+                'code' => '123456',
+            ]);
+
+        $response = new Response();
+
+        $this->stepUpServiceMock
+            ->expects($this->once())
+            ->method('verifyTotp')
+            ->with(
+                $this->anything(),
+                $this->anything(),
+                $this->anything(),
+                $this->anything(),
+                Scope::LOGIN
+            )
+            ->willReturn(new TotpVerificationResultDTO(true));
+
+        $response = $this->controller->doVerify($request, $response);
+
+        $this->assertSame(302, $response->getStatusCode());
+        $this->assertSame('/dashboard', $response->getHeaderLine('Location'));
+    }
+
+    public function testDoVerifyHandlesInvalidScopeGracefully(): void
+    {
+        $request = $this->createAuthenticatedRequest('POST', '/2fa/verify')
+            ->withParsedBody([
+                'code' => '123456',
+                'scope' => 'invalid_scope',
+            ]);
+
+        $response = new Response();
+
+        $this->stepUpServiceMock
+            ->expects($this->once())
+            ->method('verifyTotp')
+            ->with(
+                $this->anything(),
+                $this->anything(),
+                $this->anything(),
+                $this->anything(),
+                Scope::LOGIN
+            )
+            ->willReturn(new TotpVerificationResultDTO(true));
+
+        $this->controller->doVerify($request, $response);
+    }
+}
