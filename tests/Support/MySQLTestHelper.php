@@ -28,6 +28,15 @@ final class MySQLTestHelper
             return self::$pdo;
         }
 
+        $env = getenv('APP_ENV') ?: 'unknown';
+
+        if ($env !== 'testing') {
+            throw new RuntimeException(
+                'MySQLTestHelper can only be used when APP_ENV=testing. ' .
+                'Current environment: ' . $env
+            );
+        }
+
         $host = getenv('DB_HOST');
 
         if ($host === false || $host === '') {
@@ -136,6 +145,14 @@ SQL
 
     public static function truncate(string $table): void
     {
+        $env = getenv('APP_ENV') ?: 'unknown';
+
+        if ($env !== 'testing') {
+            throw new RuntimeException(
+                'Refusing to truncate table outside testing environment.'
+            );
+        }
+
         $pdo = self::pdo();
         $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
 

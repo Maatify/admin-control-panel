@@ -313,6 +313,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(ui): add secure create-admin page with one-time temp password display
 - test(auth): cover forced password change flow (pre-2FA)
 - feat(ui/admins): implement admins list page with search, filters, and create entry point
+- test(infra): guard MySQLTestHelper against non-testing environments
 
 ---
 
