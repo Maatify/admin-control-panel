@@ -23,21 +23,60 @@ class AdminPasswordRepository implements AdminPasswordRepositoryInterface
         string $pepperId,
         bool $mustChangePassword
     ): void {
+        // Compatibility: Try UPDATE first, then INSERT if row count is 0.
+        // This avoids ON DUPLICATE KEY UPDATE (MySQL specific) and works with SQLite.
+        // Assuming transaction wraps this operation for atomicity.
+
         $stmt = $this->pdo->prepare("
-        INSERT INTO admin_passwords (admin_id, password_hash, pepper_id, must_change_password)
-        VALUES (?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE 
-            password_hash = VALUES(password_hash),
-            pepper_id = VALUES(pepper_id),
-            must_change_password = VALUES(must_change_password)
-    ");
+            UPDATE admin_passwords
+            SET password_hash = ?, pepper_id = ?, must_change_password = ?
+            WHERE admin_id = ?
+        ");
 
         $stmt->execute([
-            $adminId,
             $passwordHash,
             $pepperId,
-            (int) $mustChangePassword
+            (int) $mustChangePassword,
+            $adminId
         ]);
+
+        if ($stmt->rowCount() === 0) {
+            $stmt = $this->pdo->prepare("
+                INSERT INTO admin_passwords (admin_id, password_hash, pepper_id, must_change_password)
+                VALUES (?, ?, ?, ?)
+            ");
+
+            try {
+                $stmt->execute([
+                    $adminId,
+                    $passwordHash,
+                    $pepperId,
+                    (int) $mustChangePassword
+                ]);
+            } catch (\PDOException $e) {
+                // If race condition occurred and row was inserted by another process, ignore unique constraint violation
+                // and retry update or assume it's fine.
+                // In this specific repo context, we are mostly creating new admins or updating existing ones.
+                // Re-throwing if it's not integrity constraint violation is safer.
+                // Code 23000 is Integrity constraint violation.
+                if ($e->getCode() !== '23000') {
+                    throw $e;
+                }
+
+                // Fallback update for race condition
+                 $stmt = $this->pdo->prepare("
+                    UPDATE admin_passwords
+                    SET password_hash = ?, pepper_id = ?, must_change_password = ?
+                    WHERE admin_id = ?
+                ");
+                $stmt->execute([
+                    $passwordHash,
+                    $pepperId,
+                    (int) $mustChangePassword,
+                    $adminId
+                ]);
+            }
+        }
     }
 
     public function getPasswordRecord(int $adminId): ?AdminPasswordRecordDTO

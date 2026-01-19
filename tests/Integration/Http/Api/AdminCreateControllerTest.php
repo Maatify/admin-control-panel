@@ -132,24 +132,21 @@ final class AdminCreateControllerTest extends TestCase
         $pdo = MySQLTestHelper::pdo();
         $count = $pdo->query("SELECT COUNT(*) FROM admins")->fetchColumn();
         $this->assertEquals(0, $count, 'No admin should be created when step-up is required');
+
+        $count = $pdo->query("SELECT COUNT(*) FROM admin_passwords")->fetchColumn();
+        $this->assertEquals(0, $count, 'No password should be created when step-up is required');
+
+        $count = $pdo->query("SELECT COUNT(*) FROM activity_logs")->fetchColumn();
+        $this->assertEquals(0, $count, 'No activity log should be created when step-up is required');
+
+        $count = $pdo->query("SELECT COUNT(*) FROM audit_outbox")->fetchColumn();
+        $this->assertEquals(0, $count, 'No audit log should be created when step-up is required');
     }
 
     public function testCreateSuccess(): void
     {
-        // Mock Password Repository (MySQL specific syntax work-around)
-        $this->passwordRepositoryMock = $this->createMock(AdminPasswordRepositoryInterface::class);
-        $this->passwordRepositoryMock->expects($this->once())
-            ->method('savePassword')
-            ->with(
-                $this->isType('int'),
-                $this->isType('string'),
-                $this->isType('string'),
-                true // must change password
-            );
-
-        $this->buildApp([
-            AdminPasswordRepositoryInterface::class => $this->passwordRepositoryMock
-        ]);
+        // Use Real Password Repository (Refactored for SQLite compatibility)
+        $this->buildApp();
 
         // 1. Authenticated & Step-Up Granted
         $this->sessionValidationServiceMock->method('validate')->willReturn(1);
@@ -160,6 +157,10 @@ final class AdminCreateControllerTest extends TestCase
             ->createServerRequest('POST', '/api/admins/create')
             ->withCookieParams(['auth_token' => 'valid-session-token'])
             ->withHeader('Accept', 'application/json');
+
+        // Capture Request ID
+        $requestId = 'req-123';
+        $request = $request->withAttribute('request_id', $requestId);
 
         $response = $this->app->handle($request);
 
@@ -191,6 +192,28 @@ final class AdminCreateControllerTest extends TestCase
         $admin = $stmt->fetch();
         $this->assertNotFalse($admin, 'Admin record should exist');
 
+        // Assert DB: Password Saved
+        $stmt = $pdo->prepare("SELECT * FROM admin_passwords WHERE admin_id = ?");
+        $stmt->execute([$adminId]);
+        $passRecord = $stmt->fetch();
+        $this->assertNotFalse($passRecord, 'Password record should exist');
+        $this->assertEquals(1, $passRecord['must_change_password']);
+        $this->assertNotEmpty($passRecord['password_hash']);
+        $this->assertNotEmpty($passRecord['pepper_id']);
+
+        // Assert DB: Activity Log (Correlation ID)
+        $stmt = $pdo->prepare("SELECT * FROM activity_logs WHERE entity_id = ? AND entity_type = 'admin'");
+        $stmt->execute([$adminId]);
+        $activity = $stmt->fetch();
+        $this->assertNotFalse($activity, 'Activity log should exist');
+
+        $activityMetadata = json_decode($activity['metadata'] ?? '{}', true);
+        $this->assertArrayHasKey('correlation_id', $activityMetadata);
+        $correlationId = $activityMetadata['correlation_id'];
+
+        // Assert Correlation ID is unique
+        $this->assertNotEquals($requestId, $correlationId, 'Correlation ID must not equal Request ID');
+
         // Assert DB: Audit Outbox
         $stmt = $pdo->prepare("SELECT * FROM audit_outbox WHERE target_id = ? AND target_type = 'admin'");
         $stmt->execute([$adminId]);
@@ -198,16 +221,7 @@ final class AdminCreateControllerTest extends TestCase
         $this->assertNotFalse($audit, 'Audit outbox entry should exist');
         $this->assertEquals('admin_created', $audit['action']);
         $this->assertEquals(1, $audit['actor_id']); // Current Admin ID
-
-        // Assert DB: Activity Log
-        // Assuming AdminActivityAction::ADMIN_CREATE maps to 'admin.create' or similar.
-        // AdminController uses AdminActivityAction::ADMIN_CREATE.
-        // Let's check the table.
-        $stmt = $pdo->prepare("SELECT * FROM activity_logs WHERE entity_id = ? AND entity_type = 'admin'");
-        $stmt->execute([$adminId]);
-        $activity = $stmt->fetch();
-        $this->assertNotFalse($activity, 'Activity log should exist');
-        $this->assertStringContainsString('create', $activity['action']); // Loose check or use constant if imported
+        $this->assertEquals($correlationId, $audit['correlation_id'], 'Audit correlation ID matches Activity Log');
     }
 
     public function testTransactionRollbackOnPasswordFailure(): void
@@ -239,10 +253,10 @@ final class AdminCreateControllerTest extends TestCase
 
         try {
             $response = $this->app->handle($request);
-            // If it returns 500
             $this->assertSame(500, $response->getStatusCode());
         } catch (\Throwable $e) {
-            // Exception thrown is also acceptable proof of failure
+             // Exception thrown is also acceptable proof of failure if not handled by error middleware
+             $this->assertTrue(true);
         }
 
         // Assert Rollback
@@ -281,7 +295,7 @@ final class AdminCreateControllerTest extends TestCase
             $response = $this->app->handle($request);
             $this->assertSame(500, $response->getStatusCode());
         } catch (\Throwable $e) {
-            // ok
+             $this->assertTrue(true);
         }
 
         $pdo = MySQLTestHelper::pdo();
