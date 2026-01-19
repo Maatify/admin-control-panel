@@ -310,6 +310,7 @@ Entries MUST NOT be rewritten or reordered.
 - chore(ui/routing): wire admin.create scope for UI admin creation
 - feat(ui/admins): add scoped admin create UI with step-up enforcement
 - feat(admin-create): issue one-time temp password with correlated activity and audit logging
+- feat(ui): add secure create-admin page with one-time temp password display
 
 ---
 

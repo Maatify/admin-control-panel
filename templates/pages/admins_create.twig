@@ -82,6 +82,35 @@
 
                     <p id="create-admin-message" class="text-sm mt-4"></p>
                 </form>
+                <div id="create-admin-result"
+                     class="hidden mt-6 p-4 border border-red-300 bg-red-50 rounded-md">
+                    <h4 class="text-sm font-semibold text-red-700 mb-2">
+                        ⚠️ Temporary Password (Shown Once)
+                    </h4>
+
+                    <p class="text-sm text-red-700 mb-3">
+                        This password will <strong>not</strong> be shown again.
+                        Make sure you store it securely before leaving this page.
+                    </p>
+
+                    <div class="text-sm mb-2">
+                        <span class="font-medium text-gray-700">Admin ID:</span>
+                        <span id="result-admin-id" class="font-mono text-gray-900"></span>
+                    </div>
+
+                    <div class="text-sm mb-4">
+                        <span class="font-medium text-gray-700">Temporary Password:</span>
+                        <code id="result-temp-password"
+                              class="block mt-1 px-3 py-2 bg-white border rounded font-mono text-red-700 select-all"></code>
+                    </div>
+
+                    <a href="/admins"
+                       class="inline-block mt-2 text-sm px-4 py-2 bg-red-600 text-white rounded-md
+              hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                        I have saved the password
+                    </a>
+                </div>
+
             </div>
         </div>
     </div>
@@ -111,6 +140,11 @@
                     return;
                 }
 
+                const submitBtn = form.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+
+                emailInput.disabled = true;
+
                 try {
                     const response = await fetch('/api/admins/create', {
                         method: 'POST',
@@ -139,13 +173,24 @@
                         return;
                     }
 
-                    messageBox.textContent = 'Admin created successfully.';
-                    messageBox.classList.add('text-green-600');
+                    // Hide form
+                    form.classList.add('hidden');
+
+                    // Show result
+                    const resultBox = document.getElementById('create-admin-result');
+                    document.getElementById('result-admin-id').textContent = data.admin_id;
+                    document.getElementById('result-temp-password').textContent = data.temp_password;
+
+                    resultBox.classList.remove('hidden');
+
                     emailInput.value = '';
 
                 } catch (err) {
                     messageBox.textContent = 'Network error. Please try again.';
                     messageBox.classList.add('text-red-600');
+
+                    submitBtn.disabled = false;
+                    emailInput.disabled = false;
                 }
             });
         })();
