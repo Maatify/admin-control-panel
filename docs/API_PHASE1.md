@@ -950,3 +950,150 @@ telemetry.list
 
 ---
 
+
+
+---
+
+## 👥 Admins
+
+Admin management endpoints for **listing and inspecting system administrators**.
+All admin listing operations are **read-only** and use the **Canonical LIST / QUERY Contract (LOCKED)**.
+
+---
+
+### Admins Query (LIST)
+
+Retrieves a paginated list of admins using the **Canonical LIST / QUERY Contract**.
+
+**Endpoint:**
+
+```
+POST /api/admins/query
+```
+
+**Auth Required:** Yes
+**Permission:**
+
+```
+admins.list
+```
+
+---
+
+### Request Model
+
+> Uses **Canonical LIST / QUERY Contract (LOCKED)**.
+
+```json
+{
+  "page": 1,
+  "per_page": 20,
+  "search": {
+    "global": "admin@example.com",
+    "columns": {
+      "email": "admin@example.com"
+    }
+  },
+  "date": {
+    "from": "2026-01-01",
+    "to": "2026-01-16"
+  }
+}
+```
+
+---
+
+### Allowed Search Aliases
+
+The following aliases are accepted in `search.columns` **only**:
+
+* `id`
+* `email`
+
+❌ Any undeclared alias is **rejected**.
+
+---
+
+### Search Semantics
+
+* **Global Search**
+
+    * Numeric value → exact match on `admins.id`
+    * Valid email → blind-index lookup on admin email
+    * Any other value → ignored
+
+* **Column Search**
+
+    * `id` → exact integer match
+    * `email` → blind-index match (case-insensitive)
+
+---
+
+### Date Filter
+
+* Applies to column: `admins.created_at`
+* Must be provided as an **atomic pair** (`from` + `to`)
+* Partial date filters are **forbidden**
+
+---
+
+### Response Model
+
+> Uses **Canonical Response Envelope**.
+
+```json
+{
+  "data": [
+    {
+      "id": 5,
+      "email": "admin@example.com",
+      "createdAt": "2026-01-10 14:22:11"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "perPage": 20,
+    "total": 37,
+    "filtered": 3
+  }
+}
+```
+
+---
+
+### Security & Privacy Notes
+
+* Admin emails are:
+
+    * Stored encrypted
+    * Filtered via **blind index**
+    * Decrypted **only in response output**
+* No raw email values are ever used in SQL filters
+* No client-side filtering or pagination
+
+---
+
+### Activity Logging
+
+* **Action:** `ADMINS_LIST`
+* Logged **only on successful execution**
+* Metadata includes:
+
+    * `result_count`
+
+❌ No Audit Log
+✔️ Activity Log only
+
+---
+
+### Canonical Compliance
+
+* ✔️ Canonical LIST / QUERY Contract
+* ✔️ Strict schema validation (`SharedListQuerySchema`)
+* ✔️ Capability-based filtering (`AdminListCapabilities`)
+* ✔️ Server-side pagination only
+* ✔️ Blind-index email search
+* ✔️ No undocumented filters
+
+---
+
