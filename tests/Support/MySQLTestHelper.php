@@ -29,8 +29,10 @@ final class MySQLTestHelper
         }
 
         $host = getenv('DB_HOST');
+        $forceSqlite = filter_var(getenv('USE_SQLITE_TEST_DB'), FILTER_VALIDATE_BOOL);
+        // echo "DEBUG: DB_HOST=$host, USE_SQLITE_TEST_DB=" . getenv('USE_SQLITE_TEST_DB') . "\n";
 
-        if ($host === false || $host === '') {
+        if ($forceSqlite || $host === false || $host === '') {
              // Fallback to SQLite in-memory
              self::$pdo = new PDO('sqlite::memory:');
              self::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -38,6 +40,10 @@ final class MySQLTestHelper
 
              self::$pdo->sqliteCreateFunction('IF', function ($condition, $true, $false) {
                  return $condition ? $true : $false;
+             });
+
+             self::$pdo->sqliteCreateFunction('NOW', function () {
+                 return date('Y-m-d H:i:s');
              });
 
              self::$pdo->sqliteCreateFunction('JSON_LENGTH', function ($json) {
@@ -129,6 +135,53 @@ SQL
                 user_agent TEXT NULL,
                 metadata TEXT NULL,
                 occurred_at DATETIME NOT NULL
+            );
+SQL
+        );
+
+        $pdo->exec(<<<SQL
+            CREATE TABLE IF NOT EXISTS admins (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                created_at DATETIME NOT NULL
+            );
+SQL
+        );
+
+        $pdo->exec(<<<SQL
+            CREATE TABLE IF NOT EXISTS admin_passwords (
+                admin_id INTEGER PRIMARY KEY,
+                password_hash VARCHAR(255) NOT NULL,
+                pepper_id VARCHAR(36) NOT NULL,
+                must_change_password TINYINT NOT NULL
+            );
+SQL
+        );
+
+        $pdo->exec(<<<SQL
+            CREATE TABLE IF NOT EXISTS admin_emails (
+                admin_id INTEGER NOT NULL,
+                email_blind_index VARCHAR(255),
+                email_ciphertext BLOB,
+                email_iv BLOB,
+                email_tag BLOB,
+                email_key_id VARCHAR(36),
+                verification_status VARCHAR(20) DEFAULT 'pending',
+                verified_at DATETIME NULL
+            );
+SQL
+        );
+
+        $pdo->exec(<<<SQL
+            CREATE TABLE IF NOT EXISTS audit_outbox (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                actor_id INTEGER,
+                action VARCHAR(100),
+                target_type VARCHAR(100),
+                target_id INTEGER,
+                risk_level VARCHAR(20),
+                payload TEXT,
+                correlation_id VARCHAR(64),
+                created_at DATETIME
             );
 SQL
         );

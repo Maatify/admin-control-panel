@@ -17,5 +17,25 @@
 
     <php>
         <env name="APP_ENV" value="testing"/>
+        <env name="APP_DEBUG" value="true"/>
+        <env name="APP_TIMEZONE" value="UTC"/>
+        <env name="DB_HOST" value="127.0.0.1"/>
+        <env name="DB_NAME" value="test_db"/>
+        <env name="DB_USER" value="root"/>
+        <env name="DB_PASS" value="secret"/>
+        <env name="EMAIL_BLIND_INDEX_KEY" value="12345678901234567890123456789012"/>
+        <env name="CRYPTO_ACTIVE_KEY_ID" value="v1"/>
+        <env name="CRYPTO_KEYS" value='[{"id":"v1","key":"1234567890123456789012345678901212345678901234567890123456789012"}]'/>
+        <env name="PASSWORD_ACTIVE_PEPPER_ID" value="p1"/>
+        <env name="PASSWORD_PEPPERS" value='{"p1":"12345678901234567890123456789012"}'/>
+        <env name="PASSWORD_ARGON2_OPTIONS" value='{"memory_cost":1024,"time_cost":1,"threads":1}'/>
+        <env name="MAIL_HOST" value="localhost"/>
+        <env name="MAIL_PORT" value="1025"/>
+        <env name="MAIL_USERNAME" value="null"/>
+        <env name="MAIL_PASSWORD" value="null"/>
+        <env name="MAIL_FROM_ADDRESS" value="test@example.com"/>
+        <env name="MAIL_FROM_NAME" value="Test"/>
+        <env name="RECOVERY_MODE" value="false"/>
+        <env name="USE_SQLITE_TEST_DB" value="true"/>
     </php>
 </phpunit>
