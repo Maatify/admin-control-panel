@@ -51,6 +51,10 @@ class AdminController
     ) {
     }
 
+    /**
+     * Admin creation requires email-first flow (security invariant).
+     * An admin MUST NOT be created without a unique, validated email.
+     */
     public function create(Request $request, Response $response): Response
     {
         /** @var \App\Context\AdminContext $adminContext */
