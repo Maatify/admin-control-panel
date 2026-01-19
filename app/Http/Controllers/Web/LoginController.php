@@ -10,6 +10,7 @@ use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Domain\DTO\LoginRequestDTO;
 use App\Domain\Exception\AuthStateException;
 use App\Domain\Exception\InvalidCredentialsException;
+use App\Domain\Exception\MustChangePasswordException;
 use App\Domain\Service\AdminAuthenticationService;
 use App\Domain\Service\RememberMeService;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -112,16 +113,37 @@ readonly class LoginController
             }
 
             return $response->withHeader('Location', '/dashboard')->withStatus(302);
-        } catch (AuthStateException $e) {
+        }
+
+        catch (MustChangePasswordException $e) {
+            return $response
+                ->withHeader(
+                    'Location',
+                    '/auth/change-password?email=' . urlencode($dto->email)
+                )
+                ->withStatus(302);
+
+        }
+        catch (AuthStateException $e) {
             if ($e->getMessage() === 'Identifier is not verified.') {
-                 return $response
-                    ->withHeader('Location', '/verify-email?email=' . urlencode($dto->email))
+                return $response
+                    ->withHeader(
+                        'Location',
+                        '/verify-email?email=' . urlencode($dto->email)
+                    )
                     ->withStatus(302);
             }
-            return $this->view->render($response, $template, ['error' => 'Authentication failed.']);
-        } catch (InvalidCredentialsException $e) {
-            // Requirement: Generic login error message
-            return $this->view->render($response, $template, ['error' => 'Authentication failed.']);
+
+            return $this->view->render($response, $template, [
+                'error' => 'Authentication failed.'
+            ]);
+
         }
+        catch (InvalidCredentialsException $e) {
+            return $this->view->render($response, $template, [
+                'error' => 'Authentication failed.'
+            ]);
+        }
+
     }
 }
