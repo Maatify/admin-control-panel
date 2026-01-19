@@ -305,6 +305,7 @@ Entries MUST NOT be rewritten or reordered.
 - fix(auth): enforce forced password change redirect on login
 - docs(auth): document forced password change flow before 2FA
 - feat(auth): add forced change-password flow before step-up
+- feat(ui): add forced change password page (twig)
 
 ---
 
