@@ -42,6 +42,12 @@
 											</svg>
 											{{ error }}</div>
 									{% endif %}
+									{% if scope %}
+										<input type="hidden" name="scope" value="{{ scope }}">
+									{% endif %}
+									{% if return_to %}
+										<input type="hidden" name="return_to" value="{{ return_to }}">
+									{% endif %}
 									<div class="flex flex-col gap-1">
 
 										<div class="flex flex-col gap-1 mt-5 mb-5">

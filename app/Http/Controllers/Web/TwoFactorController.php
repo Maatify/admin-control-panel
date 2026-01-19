@@ -242,15 +242,46 @@ readonly class TwoFactorController
 
         $data = $request->getParsedBody();
         if (is_array($data) && isset($data['return_to']) && is_string($data['return_to'])) {
-            return $data['return_to'];
+            return $this->normalizeReturnTo($data['return_to']);
         }
 
         $queryParams = $request->getQueryParams();
         if (isset($queryParams['return_to']) && is_string($queryParams['return_to'])) {
-            return $queryParams['return_to'];
+            return $this->normalizeReturnTo($queryParams['return_to']);
         }
 
         return null;
+    }
+
+    private function normalizeReturnTo(string $returnTo): ?string
+    {
+        $returnTo = trim($returnTo);
+        if ($returnTo === '') {
+            return null;
+        }
+
+        if (!str_starts_with($returnTo, '/')) {
+            return null;
+        }
+
+        if (str_starts_with($returnTo, '//')) {
+            return null;
+        }
+
+        if (str_contains($returnTo, "\r") || str_contains($returnTo, "\n")) {
+            return null;
+        }
+
+        $parts = parse_url($returnTo);
+        if ($parts === false) {
+            return null;
+        }
+
+        if (isset($parts['scheme']) || isset($parts['host'])) {
+            return null;
+        }
+
+        return $returnTo;
     }
 
 }

@@ -65,7 +65,7 @@ final class TwoFactorControllerTest extends TestCase
             ->withParsedBody([
                 'code' => '123456',
                 'scope' => 'security',
-                'return_to' => '/admins/create',
+                'return_to' => '/admins',
             ]);
 
         $response = new Response();
@@ -85,7 +85,7 @@ final class TwoFactorControllerTest extends TestCase
         $response = $this->controller->doVerify($request, $response);
 
         $this->assertSame(302, $response->getStatusCode());
-        $this->assertSame('/admins/create', $response->getHeaderLine('Location'));
+        $this->assertSame('/admins', $response->getHeaderLine('Location'));
     }
 
     public function testDoVerifyFails(): void
@@ -129,6 +129,35 @@ final class TwoFactorControllerTest extends TestCase
                 $this->anything(),
                 $this->anything(),
                 Scope::LOGIN
+            )
+            ->willReturn(new TotpVerificationResultDTO(true));
+
+        $response = $this->controller->doVerify($request, $response);
+
+        $this->assertSame(302, $response->getStatusCode());
+        $this->assertSame('/dashboard', $response->getHeaderLine('Location'));
+    }
+
+    public function testDoVerifyRejectsExternalReturnTo(): void
+    {
+        $request = $this->createAuthenticatedRequest('POST', '/2fa/verify')
+            ->withParsedBody([
+                'code' => '123456',
+                'scope' => 'security',
+                'return_to' => 'https://evil.example/phish',
+            ]);
+
+        $response = new Response();
+
+        $this->stepUpServiceMock
+            ->expects($this->once())
+            ->method('verifyTotp')
+            ->with(
+                $this->anything(),
+                $this->anything(),
+                $this->anything(),
+                $this->anything(),
+                Scope::SECURITY
             )
             ->willReturn(new TotpVerificationResultDTO(true));
 

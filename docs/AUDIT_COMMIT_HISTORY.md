@@ -299,6 +299,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(actor): introduce canonical Actor model and parallel ActorContext
 - feat(step-up): propagate scope and return_to via UiStepUpController
 - test(step-up): complete UI scoped TOTP flow coverage and security assertions
+- fix(totp): harden return_to sanitization + add open-redirect negative test + ensure scope/return_to propagation
 
 ---
 
