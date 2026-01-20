@@ -66,6 +66,78 @@ AI MUST NOT:
 
 ---
 
+## 📬 Verification Notification Dispatcher (AI Awareness)
+
+The system uses a **centralized verification notification dispatcher**:
+
+**Component:**  
+`App\Application\Verification\VerificationNotificationDispatcher`
+
+**Authority:**  
+ADR-014 — Verification Notification Dispatcher (**ACCEPTED**)
+
+### Purpose (WHY – NOT HOW)
+
+This dispatcher exists to:
+
+- Enforce a **single, canonical notification path** for verification codes
+- Decouple:
+   - Verification code generation
+   - Delivery channel selection (Email / Telegram / future)
+- Guarantee that:
+   - Controllers NEVER write directly to delivery queues
+   - Verification logic NEVER depends on delivery mechanics
+- Preserve future extensibility without behavioral drift
+
+### AI Execution Rules (STRICT)
+
+AI executors MUST:
+
+- Treat `VerificationNotificationDispatcher` as the **only allowed entry point**
+  for sending verification notifications.
+- Assume all verification notifications are:
+   - **Asynchronous**
+   - **Queue-based**
+   - **Best-effort**
+- Pass:
+   - `identityType`
+   - `identityId` (string, DB-compatible)
+   - `VerificationPurposeEnum`
+   - `recipient`
+   - `plainCode`
+   - free-form `context`
+   - `language`
+
+AI executors MUST NOT:
+
+- Send emails directly
+- Write to `email_queue` or `telegram_queue` directly
+- Branch delivery logic inside controllers
+- Infer delivery behavior from queue schema
+- Assume synchronous delivery
+- Treat dispatcher behavior as authoritative business logic
+
+### Boundary Clarification
+
+- The dispatcher:
+   - **Coordinates delivery only**
+   - **Does NOT validate OTPs**
+   - **Does NOT change system state**
+   - **Does NOT log security or audit events**
+- All failures inside the dispatcher are:
+   - Non-blocking
+   - Logged via PSR-3 **diagnostic logging ONLY**
+
+### Canonical Constraint
+
+> Any verification-related notification mechanism introduced in the future
+> (SMS, Push, Webhook, etc.)
+> MUST be integrated **through this dispatcher**.
+
+Implementing parallel notification paths is a **hard architectural violation**.
+
+---
+
 ## 🚫 Forbidden AI Behaviors
 
 AI executors MUST NOT:

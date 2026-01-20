@@ -28,6 +28,7 @@ by a newer ADR.
 | ADR-011 | Data Access Logs (Deferred Category)                 | ACCEPTED (DEFERRED)  | Logging / Compliance    |
 | ADR-012 | Unified Verification Codes — Deferred Implementation | ACCEPTED (DEFERRED)  | Verification / OTP      |
 | ADR-013 | Temporary RBAC Seeding Exception for Endpoint Tests  | APPROVED (TEMPORARY) | Testing / Authorization |
+| ADR-014 | Verification Notification Dispatcher                 | ACCEPTED             | Verification / Delivery |
 
 ---
 
