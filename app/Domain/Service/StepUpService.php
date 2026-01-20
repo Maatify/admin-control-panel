@@ -221,7 +221,7 @@ readonly class StepUpService
             $scope,
             $this->getRiskHash($context),
             new DateTimeImmutable(),
-            new DateTimeImmutable('+15 minutes'),
+            $this->getScopeTtl($scope),
             false
         );
 
@@ -381,5 +381,13 @@ readonly class StepUpService
     private function getRiskHash(RequestContext $context): string
     {
         return hash('sha256', $context->ipAddress . '|' . $context->userAgent);
+    }
+
+    private function getScopeTtl(Scope $scope): DateTimeImmutable
+    {
+        return match ($scope) {
+            Scope::ADMIN_CREATE => new DateTimeImmutable('+5 minutes'),
+            default => new DateTimeImmutable('+15 minutes'),
+        };
     }
 }

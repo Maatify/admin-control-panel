@@ -14,10 +14,14 @@ class ScopeRegistry
     private static array $map = [
         'security' => Scope::SECURITY,
         'role.assign' => Scope::ROLES_ASSIGN,
-        'admin.create' => Scope::SECURITY, // Creating admin is security critical
         'admin.preferences.write' => Scope::SYSTEM_SETTINGS,
         'email.verify' => Scope::SECURITY,
         'audit.read' => Scope::AUDIT_READ,
+
+        // Dedicated scope to ensure isolated Step-Up (no reuse of prior SECURITY grants)
+        'admin.create' => Scope::ADMIN_CREATE,
+        'admin.update' => Scope::ADMIN_UPDATE,
+        'admin.email.add' => Scope::ADMIN_EMAIL_ADD,
     ];
 
     public static function getScopeForRoute(string $routeName): ?Scope
