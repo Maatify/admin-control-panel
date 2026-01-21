@@ -333,6 +333,12 @@ Entries MUST NOT be rewritten or reordered.
 - chore(db): add admin display_name and lifecycle status
 - feat(auth): enforce admin lifecycle status during login flow
 - feat(admin-create): implement admin creation flow with display name, validation, and full UI
+- feat(admins): enhance admin list with status and display name filtering
+- refactor(sessions): improve global search debounce and UI feedback
+- feat(admin-profile): add read-only admin profile view (phase 1)
+- feat(admin-profile): add admin profile edit flow with audited updates and session revocation
+- refactor(schema): unify logging tables and fix canonical inconsistencies
+- docs(logging): lock canonical schema, layering bindings, and read-side rules
 
 
 ---

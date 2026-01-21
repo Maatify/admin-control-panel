@@ -87,6 +87,25 @@ Domain recorders:
 - Decide the failure policy (swallow / retry / degrade).
 - NEVER write SQL directly.
 
+### 2.3 Binding Definitions (Hard Gates)
+
+To eliminate ambiguity:
+
+- **Module Layer** is defined as: `app/Modules/<Subsystem>/...` only.
+- **Domain Recorder Layer** is defined as: `app/Domain/<Subsystem>/Recorder/...` only.
+
+Hard Gates:
+1) **No Swallow Outside Domain Recorder**
+    - Any swallowing of exceptions outside `app/Domain/<Subsystem>/Recorder/...` is a violation.
+
+2) **No PDO in Domain Recorder**
+    - Domain Recorders MUST NOT use PDO or raw SQL.
+    - They MUST call Module contracts only.
+    - Legacy PDO usage (if any) is strictly limited to pre-existing non-logging code paths and MUST NOT be expanded.
+
+3) **Module Drivers Own DB Access**
+    - Only Module Infrastructure drivers (e.g., `app/Modules/<Subsystem>/Infrastructure/Mysql/...`) may talk to PDO/DB for logging subsystems.
+
 ---
 
 ## 3) Canonical Folder Layout
@@ -175,6 +194,36 @@ Each subsystem MUST define:
 ### 5.2 “No Wrong Table” Rule (Hard Blocker)
 If any subsystem writes into another subsystem’s table, it is a **hard architectural violation** and must be rejected.
 
+### 5.3 Canonical Logging Schema Contract (LOCKED)
+
+This design is bound to the project’s canonical logging schema. Any implementation MUST conform to these column contracts.
+
+#### 5.3.1 Shared Columns (All Logging Tables)
+The following columns MUST exist and MUST be used consistently across all logging tables where applicable:
+
+- `actor_type` (VARCHAR(32)) — required
+- `actor_id` (BIGINT) — nullable
+- `correlation_id` (CHAR(36)) — nullable unless explicitly required by subsystem
+- `request_id` (VARCHAR(64)) — nullable (request-scoped)
+- `route_name` (VARCHAR(255)) — nullable
+- `ip_address` (VARCHAR(45)) — nullable
+- `user_agent` (TEXT) — nullable
+- `occurred_at` (DATETIME(6)) — required
+
+**Hard Gate:** Any code referencing legacy fields (e.g., `actor_admin_id`) is a schema violation.
+
+#### 5.3.2 ID Type Lock
+All identifiers stored in logging tables MUST use `BIGINT` (or `BIGINT UNSIGNED` where the table uses UNSIGNED IDs). This includes:
+- `actor_id`
+- `target_id`
+- `entity_id`
+
+#### 5.3.3 Telemetry Event Column Lock (Hard Gate)
+Telemetry write path MUST use:
+- `telemetry_traces.event_key`
+
+**Hard Gate:** `event_type` is not a valid telemetry column name for the write path.
+
 ---
 
 ## 6) Public API Rules
@@ -200,6 +249,17 @@ If any subsystem writes into another subsystem’s table, it is a **hard archite
 1) Read filters MUST be typed (`QueryDTO`).
 2) No `array $filters` in Reader signatures (canonical ban).
 3) Reader returns DTO objects, not raw arrays.
+
+### 7.1 Read-Side Requirement Rule (LOCKED)
+
+A Read-side (ReaderInterface + typed QueryDTO + MySQL reader implementation) is:
+
+- **REQUIRED** if the project exposes any query/list/view endpoint for that subsystem (API or UI).
+- **OPTIONAL** if the subsystem is truly write-only in the current scope.
+
+Hard Gates:
+- Documentation MUST NOT claim a read pipeline exists if the module does not ship it.
+- Readers MUST NOT accept `array $filters`. Typed `QueryDTO` is mandatory when a reader exists.
 
 ---
 
