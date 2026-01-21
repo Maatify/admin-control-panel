@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Contracts;
 
 use App\Domain\DTO\AuditEventDTO;
+use App\Domain\Exception\Audit\AuditStorageException;
 
 /**
  * Authoritative source for security-critical audit events.
@@ -13,5 +14,8 @@ use App\Domain\DTO\AuditEventDTO;
  */
 interface AuthoritativeSecurityAuditWriterInterface
 {
+    /**
+     * @throws AuditStorageException
+     */
     public function write(AuditEventDTO $event): void;
 }

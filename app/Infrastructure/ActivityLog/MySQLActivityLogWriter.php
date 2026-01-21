@@ -15,23 +15,31 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\ActivityLog;
 
-use App\Infrastructure\Database\PDOFactory;
 use App\Modules\ActivityLog\Contracts\ActivityLogWriterInterface;
 use App\Modules\ActivityLog\DTO\ActivityLogDTO;
+use App\Modules\ActivityLog\Exception\ActivityLogMappingException;
+use App\Modules\ActivityLog\Exception\ActivityLogStorageException;
 use PDO;
-use RuntimeException;
+use PDOException;
+use Throwable;
 
 final readonly class MySQLActivityLogWriter implements ActivityLogWriterInterface
 {
     public function __construct(
-        private PDOFactory $pdoFactory,
+        private PDO $pdo,
     )
     {
     }
 
     public function write(ActivityLogDTO $activity): void
     {
-        $pdo = $this->pdoFactory->create();
+        try {
+            $metadataJson = $activity->metadata !== null
+                ? json_encode($activity->metadata, JSON_THROW_ON_ERROR)
+                : null;
+        } catch (Throwable $e) {
+            throw new ActivityLogMappingException('Failed to encode activity metadata: ' . $e->getMessage(), 0, $e);
+        }
 
         $sql = <<<SQL
             INSERT INTO activity_logs (
@@ -53,27 +61,30 @@ final readonly class MySQLActivityLogWriter implements ActivityLogWriterInterfac
             )
 SQL;
 
-        $stmt = $pdo->prepare($sql);
+        try {
+            $stmt = $this->pdo->prepare($sql);
 
-        $metadataJson = $activity->metadata !== null
-            ? json_encode($activity->metadata, JSON_THROW_ON_ERROR)
-            : null;
+            $stmt->bindValue(':action', $activity->action);
+            $stmt->bindValue(':actor_type', $activity->actorType);
+            $stmt->bindValue(':actor_id', $activity->actorId, PDO::PARAM_INT);
+            $stmt->bindValue(':entity_type', $activity->entityType);
+            $stmt->bindValue(':entity_id', $activity->entityId, PDO::PARAM_INT);
+            $stmt->bindValue(':metadata', $metadataJson);
+            $stmt->bindValue(':ip_address', $activity->ipAddress);
+            $stmt->bindValue(':user_agent', $activity->userAgent);
+            $stmt->bindValue(':request_id', $activity->requestId);
+            $stmt->bindValue(':occurred_at', $activity->occurredAt->format('Y-m-d H:i:s.u'));
 
-        $stmt->bindValue(':action', $activity->action);
-        $stmt->bindValue(':actor_type', $activity->actorType);
-        $stmt->bindValue(':actor_id', $activity->actorId, PDO::PARAM_INT);
-        $stmt->bindValue(':entity_type', $activity->entityType);
-        $stmt->bindValue(':entity_id', $activity->entityId, PDO::PARAM_INT);
-        $stmt->bindValue(':metadata', $metadataJson);
-        $stmt->bindValue(':ip_address', $activity->ipAddress);
-        $stmt->bindValue(':user_agent', $activity->userAgent);
-        $stmt->bindValue(':request_id', $activity->requestId);
-        $stmt->bindValue(':occurred_at', $activity->occurredAt->format('Y-m-d H:i:s.u'));
-
-        if (!$stmt->execute()) {
-            // We should throw an exception here so that ActivityLogService can catch it
-            // if configured to be fail-open. The interface says "throws Throwable Infrastructure failures only"
-            throw new RuntimeException('Failed to write activity log: ' . implode(', ', $stmt->errorInfo()));
+            if (!$stmt->execute()) {
+                throw new ActivityLogStorageException('Failed to write activity log: ' . implode(', ', $stmt->errorInfo()));
+            }
+        } catch (PDOException $e) {
+            throw new ActivityLogStorageException('Failed to write activity log: ' . $e->getMessage(), 0, $e);
+        } catch (Throwable $e) {
+            if ($e instanceof ActivityLogStorageException) {
+                throw $e;
+            }
+            throw new ActivityLogStorageException('Unexpected error writing activity log: ' . $e->getMessage(), 0, $e);
         }
     }
 }

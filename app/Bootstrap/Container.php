@@ -34,7 +34,7 @@ use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Domain\Contracts\AdminTargetedAuditReaderInterface;
 use App\Domain\Contracts\AdminTotpSecretRepositoryInterface;
 use App\Domain\Contracts\AdminTotpSecretStoreInterface;
-use App\Domain\Contracts\TelemetryAuditLoggerInterface;
+use App\Domain\Contracts\TelemetryLoggerInterface;
 use App\Domain\Contracts\RememberMeRepositoryInterface;
 use App\Domain\Contracts\FailedNotificationRepositoryInterface;
 use App\Domain\Contracts\NotificationReadRepositoryInterface;
@@ -130,7 +130,8 @@ use App\Infrastructure\Repository\AdminRepository;
 use App\Infrastructure\Repository\PdoAdminDirectPermissionRepository;
 use App\Infrastructure\Repository\AdminRoleRepository;
 use App\Infrastructure\Repository\AdminSessionRepository;
-use App\Infrastructure\Audit\PdoTelemetryAuditLogger;
+use App\Infrastructure\Audit\PdoTelemetryLogger;
+use App\Infrastructure\Security\PdoSecurityEventLogger;
 use App\Infrastructure\Repository\FailedNotificationRepository;
 use App\Infrastructure\Repository\NotificationReadRepository;
 use App\Infrastructure\Repository\PdoAdminNotificationReadMarker;
@@ -140,7 +141,6 @@ use App\Infrastructure\Repository\PdoSystemOwnershipRepository;
 use App\Infrastructure\Repository\PdoVerificationCodeRepository;
 use App\Infrastructure\Repository\RolePermissionRepository;
 use App\Domain\Service\PasswordService;
-use App\Infrastructure\Repository\SecurityEventRepository;
 use App\Infrastructure\Service\AdminTotpSecretStore;
 use App\Infrastructure\Service\Google2faTotpService;
 use App\Infrastructure\UX\AdminActivityMapper;
@@ -606,10 +606,10 @@ class Container
                 return LoggerFactory::create('slim/app');
             },
             ActivityLogWriterInterface::class => function (ContainerInterface $c) {
-                $pdoFactory = $c->get(PDOFactory::class);
-                assert($pdoFactory instanceof PDOFactory);
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
 
-                return new MySQLActivityLogWriter($pdoFactory);
+                return new MySQLActivityLogWriter($pdo);
             },
             ActivityLogService::class => function (ContainerInterface $c) {
                 $writer = $c->get(ActivityLogWriterInterface::class);
@@ -627,10 +627,10 @@ class Container
 
                 return new PdoActivityLogListReader($pdo);
             },
-            TelemetryAuditLoggerInterface::class => function (ContainerInterface $c) {
+            TelemetryLoggerInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
-                return new PdoTelemetryAuditLogger($pdo);
+                return new PdoTelemetryLogger($pdo);
             },
             \App\Domain\Telemetry\Contracts\TelemetryListReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
@@ -645,7 +645,7 @@ class Container
             SecurityEventLoggerInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
-                return new SecurityEventRepository($pdo);
+                return new PdoSecurityEventLogger($pdo);
             },
             AdminActivityQueryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);

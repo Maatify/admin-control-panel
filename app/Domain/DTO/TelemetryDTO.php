@@ -6,7 +6,7 @@ namespace App\Domain\DTO;
 
 use DateTimeImmutable;
 
-readonly class LegacyAuditEventDTO
+readonly class TelemetryDTO
 {
     /**
      * @param array<string, scalar> $changes
