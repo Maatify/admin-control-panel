@@ -303,91 +303,140 @@ CREATE TABLE failed_notifications (
 /* ===========================
  * AUDIT / LOGGING
  * =========================== */
+SET FOREIGN_KEY_CHECKS=0;
 
-CREATE TABLE audit_logs (
-                            id INT AUTO_INCREMENT PRIMARY KEY,
-                            actor_admin_id INT NULL,
-                            target_type VARCHAR(64) NOT NULL,
-                            target_id INT NULL,
-                            action VARCHAR(32) NOT NULL,
-                            changes JSON NULL,
-                            ip_address VARCHAR(45) NULL,
-                            user_agent TEXT NULL,
-                            occurred_at DATETIME NOT NULL,
-                            INDEX idx_audit_actor (actor_admin_id),
-                            INDEX idx_audit_target (target_type, target_id),
-                            INDEX idx_audit_occurred_at (occurred_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/* ===========================
+ * AUDIT / LOGGING (CANONICAL)
+ * =========================== */
 
 CREATE TABLE audit_outbox (
-                              id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                              actor_type varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'admin',
+                              id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+                              actor_type VARCHAR(32) NOT NULL,
                               actor_id BIGINT NULL,
+
                               action VARCHAR(128) NOT NULL,
                               target_type VARCHAR(64) NOT NULL,
                               target_id BIGINT NULL,
+
                               risk_level ENUM('LOW','MEDIUM','HIGH','CRITICAL') NOT NULL,
                               payload JSON NOT NULL,
+
                               correlation_id CHAR(36) NOT NULL,
-                              created_at DATETIME NOT NULL,
+                              created_at DATETIME(6) NOT NULL,
+
                               INDEX idx_audit_actor (actor_type, actor_id),
                               INDEX idx_audit_target (target_type, target_id),
+                              INDEX idx_audit_correlation (correlation_id),
                               INDEX idx_audit_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE audit_logs (
+                            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+                            actor_type VARCHAR(32) NOT NULL,
+                            actor_id BIGINT NULL,
+
+                            action VARCHAR(128) NOT NULL,
+                            target_type VARCHAR(64) NOT NULL,
+                            target_id BIGINT NULL,
+
+                            changes JSON NULL,
+
+                            ip_address VARCHAR(45) NULL,
+                            user_agent TEXT NULL,
+
+                            correlation_id CHAR(36) NULL,
+                            occurred_at DATETIME(6) NOT NULL,
+
+                            INDEX idx_audit_actor (actor_type, actor_id),
+                            INDEX idx_audit_target (target_type, target_id),
+                            INDEX idx_audit_correlation (correlation_id),
+                            INDEX idx_audit_occurred_at (occurred_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    COMMENT='Materialized audit log. MUST be written ONLY by audit outbox consumer';
+
 CREATE TABLE security_events (
                                  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
                                  actor_type VARCHAR(32) NOT NULL,
-                                 actor_id INT NULL,
+                                 actor_id BIGINT NULL,
+
                                  event_type VARCHAR(100) NOT NULL,
-                                 severity VARCHAR(20) NOT NULL,
+                                 severity ENUM('INFO','WARNING','ERROR','CRITICAL') NOT NULL,
+
+                                 correlation_id CHAR(36) NULL,
                                  request_id VARCHAR(64) NULL,
                                  route_name VARCHAR(255) NULL,
+
                                  ip_address VARCHAR(45) NULL,
                                  user_agent TEXT NULL,
+
                                  metadata JSON NOT NULL,
-                                 occurred_at DATETIME NOT NULL,
+                                 occurred_at DATETIME(6) NOT NULL,
+
                                  INDEX idx_security_actor (actor_type, actor_id),
                                  INDEX idx_security_event_type (event_type),
                                  INDEX idx_security_severity (severity),
+                                 INDEX idx_security_correlation (correlation_id),
                                  INDEX idx_security_request_id (request_id),
                                  INDEX idx_security_occurred_at (occurred_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE activity_logs (
                                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
                                actor_type VARCHAR(32) NOT NULL,
-                               actor_id INT NULL,
+                               actor_id BIGINT NULL,
+
                                action VARCHAR(128) NOT NULL,
+
                                entity_type VARCHAR(64) NULL,
-                               entity_id INT NULL,
-                               metadata JSON NULL,
-                               ip_address VARCHAR(45) NULL,
-                               user_agent VARCHAR(255) NULL,
+                               entity_id BIGINT NULL,
+
+                               metadata JSON NOT NULL,
+
+                               correlation_id CHAR(36) NULL,
                                request_id VARCHAR(64) NULL,
-                               occurred_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-                               INDEX idx_actor (actor_type, actor_id),
-                               INDEX idx_action (action),
-                               INDEX idx_entity (entity_type, entity_id),
-                               INDEX idx_occurred_at (occurred_at),
-                               INDEX idx_request (request_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+                               route_name VARCHAR(255) NULL,
+
+                               ip_address VARCHAR(45) NULL,
+                               user_agent TEXT NULL,
+
+                               occurred_at DATETIME(6) NOT NULL,
+
+                               INDEX idx_activity_actor (actor_type, actor_id),
+                               INDEX idx_activity_action (action),
+                               INDEX idx_activity_entity (entity_type, entity_id),
+                               INDEX idx_activity_correlation (correlation_id),
+                               INDEX idx_activity_request (request_id),
+                               INDEX idx_activity_occurred_at (occurred_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    COMMENT='Operational actions only. Views/reads are NOT allowed';
 
 CREATE TABLE telemetry_traces (
                                   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
                                   event_key VARCHAR(255) NOT NULL,
-                                  severity VARCHAR(16) NOT NULL DEFAULT 'info',
-                                  route_name VARCHAR(255) NULL,
-                                  request_id VARCHAR(64) NULL,
+                                  severity ENUM('info','warning','error','critical') NOT NULL DEFAULT 'info',
+
                                   actor_type VARCHAR(32) NOT NULL,
-                                  actor_id INT NULL,
+                                  actor_id BIGINT NULL,
+
+                                  correlation_id CHAR(36) NULL,
+                                  request_id VARCHAR(64) NULL,
+                                  route_name VARCHAR(255) NULL,
+
                                   ip_address VARCHAR(45) NULL,
                                   user_agent TEXT NULL,
+
                                   metadata JSON NULL,
-                                  occurred_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                                  occurred_at DATETIME(6) NOT NULL,
+
                                   INDEX idx_telemetry_actor (actor_type, actor_id),
                                   INDEX idx_telemetry_event_key (event_key),
                                   INDEX idx_telemetry_severity (severity),
+                                  INDEX idx_telemetry_correlation (correlation_id),
                                   INDEX idx_telemetry_request (request_id),
                                   INDEX idx_telemetry_route (route_name),
                                   INDEX idx_telemetry_occurred_at (occurred_at)
