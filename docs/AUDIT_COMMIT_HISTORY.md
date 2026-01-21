@@ -324,6 +324,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(verification): introduce VerificationNotificationDispatcher and refactor email verification flow
 - feat(verification): introduce EmailTemplateEnum and align verification email payload with Twig templates
 - feat(ui): refine verify email page layout and UX
+- fix(auth/step-up): correct 2FA setup routing and middleware flow
 
 ---
 

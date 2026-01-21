@@ -24,8 +24,17 @@ class UiRedirectNormalizationMiddleware implements MiddlewareInterface
 
             $data = json_decode($body, true);
             if (is_array($data)) {
-                // Check for specific error codes requiring redirection
-                if (isset($data['code']) && $data['code'] === 'STEP_UP_REQUIRED') {
+//                // Check for specific error codes requiring redirection
+//                if (isset($data['code']) && $data['code'] === 'STEP_UP_REQUIRED') {
+//                    return $response
+//                        ->withStatus(302)
+//                        ->withHeader('Location', '/2fa/verify');
+//                }
+                if (
+                    isset($data['code'])
+                    && $data['code'] === 'STEP_UP_REQUIRED'
+                    && ($data['scope'] ?? null) !== 'login'
+                ) {
                     return $response
                         ->withStatus(302)
                         ->withHeader('Location', '/2fa/verify');

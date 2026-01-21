@@ -63,6 +63,7 @@ class SessionStateGuardMiddleware implements MiddlewareInterface
         if (
             $routeName === 'auth.stepup.verify'
             || $routeName === '2fa.setup'
+            || $routeName === '2fa.enable'
             || $routeName === '2fa.verify'
         ) {
             return $handler->handle($request);

@@ -129,6 +129,10 @@ return function (App $app) {
             // Allow logout from UI
             $protectedGroup->post('/logout', [\App\Http\Controllers\Web\LogoutController::class, 'logout'])
                 ->setName('auth.logout');
+
+            // Allow logout from UI
+            $protectedGroup->get('/logout', [\App\Http\Controllers\Web\LogoutController::class, 'logout'])
+                ->setName('auth.logout');
         })
         ->add(\App\Http\Middleware\ScopeGuardMiddleware::class)
         ->add(\App\Http\Middleware\SessionStateGuardMiddleware::class)

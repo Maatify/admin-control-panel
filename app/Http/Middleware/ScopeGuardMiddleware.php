@@ -50,16 +50,20 @@ class ScopeGuardMiddleware implements MiddlewareInterface
         // This ensures middleware order is correct and no one bypassed SessionStateGuard.
         $state = $this->stepUpService->getSessionState($adminId, $sessionId, $context);
         if ($state !== \App\Domain\Enum\SessionState::ACTIVE) {
-             // Fallback handling if SessionStateGuard was bypassed or failed.
-             $this->stepUpService->logDenial($adminId, $sessionId, Scope::LOGIN, $context);
+//             // Fallback handling if SessionStateGuard was bypassed or failed.
+//             $this->stepUpService->logDenial($adminId, $sessionId, Scope::LOGIN, $context);
+//
+//             $response = new \Slim\Psr7\Response();
+//             $payload = [
+//                 'code' => 'STEP_UP_REQUIRED',
+//                 'scope' => 'login'
+//             ];
+//             $response->getBody()->write((string)json_encode($payload, JSON_THROW_ON_ERROR));
+//             return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
 
-             $response = new \Slim\Psr7\Response();
-             $payload = [
-                 'code' => 'STEP_UP_REQUIRED',
-                 'scope' => 'login'
-             ];
-             $response->getBody()->write((string)json_encode($payload, JSON_THROW_ON_ERROR));
-             return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
+            // IMPORTANT:
+            // Let SessionStateGuardMiddleware handle setup vs verify
+            return $handler->handle($request);
         }
 
         // Determine required scope
