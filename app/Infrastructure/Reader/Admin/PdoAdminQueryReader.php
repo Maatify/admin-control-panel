@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Infrastructure\Reader\Admin;
 
 use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
+use App\Domain\Admin\Enum\AdminStatusEnum;
 use App\Domain\Admin\Reader\AdminQueryReaderInterface;
 use App\Domain\DTO\AdminList\AdminListItemDTO;
 use App\Domain\DTO\AdminList\AdminListResponseDTO;
 use App\Domain\DTO\Common\PaginationDTO;
-use App\Domain\DTO\Crypto\EncryptedPayloadDTO;
 use App\Domain\List\ListQueryDTO;
 use App\Infrastructure\Query\ResolvedListFilters;
 use PDO;
@@ -35,25 +35,29 @@ final readonly class PdoAdminQueryReader implements AdminQueryReaderInterface
         if ($filters->globalSearch !== null) {
             $g = trim($filters->globalSearch);
 
-            // ID search
             if ($g !== '' && ctype_digit($g)) {
                 $where[] = 'a.id = :global_id';
                 $params['global_id'] = (int) $g;
             }
-            // Email search
             elseif ($g !== '' && filter_var($g, FILTER_VALIDATE_EMAIL)) {
                 $blind = $this->cryptoService->deriveEmailBlindIndex(strtolower($g));
-
                 $where[] = 'ae.email_blind_index = :global_email';
                 $params['global_email'] = $blind;
+            }elseif (($status = AdminStatusEnum::tryFrom(strtoupper($g))) !== null) {
+                $where[] = 'a.status = :global_status';
+                $params['global_status'] = $status->value;
             }
-            // else: ignore invalid global search
+            else {
+                $where[] = '(a.display_name LIKE :global_text)';
+                $params['global_text']   = '%' . $g . '%';
+            }
         }
 
         // ─────────────────────────────
         // Column filters (explicit only)
         // ─────────────────────────────
         foreach ($filters->columnFilters as $alias => $value) {
+
             if ($alias === 'id') {
                 $where[] = 'a.id = :admin_id';
                 $params['admin_id'] = (int) $value;
@@ -61,9 +65,21 @@ final readonly class PdoAdminQueryReader implements AdminQueryReaderInterface
 
             if ($alias === 'email' && filter_var($value, FILTER_VALIDATE_EMAIL)) {
                 $blind = $this->cryptoService->deriveEmailBlindIndex(strtolower((string) $value));
-
                 $where[] = 'ae.email_blind_index = :email';
                 $params['email'] = $blind;
+            }
+
+            if ($alias === 'display_name') {
+                $where[] = 'a.display_name LIKE :display_name';
+                $params['display_name'] = '%' . trim((string)$value) . '%';
+            }
+
+            if ($alias === 'status') {
+                $status = AdminStatusEnum::tryFrom((string)$value);
+                if ($status !== null) {
+                    $where[] = 'a.status = :status';
+                    $params['status'] = $status->value;
+                }
             }
         }
 
@@ -111,14 +127,18 @@ final readonly class PdoAdminQueryReader implements AdminQueryReaderInterface
         $limit  = $query->perPage;
         $offset = ($query->page - 1) * $limit;
 
-        $sql = "
-            SELECT
-                a.id,
-                a.created_at,
-                (SELECT email_ciphertext FROM admin_emails ae WHERE ae.admin_id = a.id ORDER BY id ASC LIMIT 1) as email_ciphertext,
+        /* removed select encrypted columns
+         (SELECT email_ciphertext FROM admin_emails ae WHERE ae.admin_id = a.id ORDER BY id ASC LIMIT 1) as email_ciphertext,
                 (SELECT email_iv FROM admin_emails ae WHERE ae.admin_id = a.id ORDER BY id ASC LIMIT 1) as email_iv,
                 (SELECT email_tag FROM admin_emails ae WHERE ae.admin_id = a.id ORDER BY id ASC LIMIT 1) as email_tag,
                 (SELECT email_key_id FROM admin_emails ae WHERE ae.admin_id = a.id ORDER BY id ASC LIMIT 1) as email_key_id
+        */
+        $sql = "
+            SELECT
+                a.id,
+                a.display_name,
+                a.status,
+                a.created_at
             FROM admins a
             LEFT JOIN admin_emails ae ON ae.admin_id = a.id
             {$whereSql}
@@ -141,8 +161,8 @@ final readonly class PdoAdminQueryReader implements AdminQueryReaderInterface
 
         $items = [];
 
-        foreach ($rows ?: [] as $row) {
-            $email = 'N/A';
+        /* removed decrypting email
+        $email = 'N/A';
 
             if (!empty($row['email_ciphertext'])) {
                 $ciphertext = $row['email_ciphertext'];
@@ -170,10 +190,14 @@ final readonly class PdoAdminQueryReader implements AdminQueryReaderInterface
                     $email = $decrypted;
                 }
             }
+        */
+        foreach ($rows ?: [] as $row) {
+
 
             $items[] = new AdminListItemDTO(
                 id: (int) $row['id'],
-                email: $email,
+                displayName: (string) $row['display_name'],
+                status: AdminStatusEnum::from((string) $row['status']),
                 createdAt: (string) $row['created_at']
             );
         }

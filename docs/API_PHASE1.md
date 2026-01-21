@@ -953,10 +953,6 @@ telemetry.list
 
 ---
 
-
-
----
-
 ## 👥 Admins
 
 Admin management endpoints for **listing and inspecting system administrators**.
@@ -968,16 +964,16 @@ All admin listing operations are **read-only** and use the **Canonical LIST / QU
 
 Retrieves a paginated list of admins using the **Canonical LIST / QUERY Contract**.
 
-**Endpoint:**
+#### Endpoint
 
-```
+```http
 POST /api/admins/query
 ```
 
 **Auth Required:** Yes
-**Permission:**
+**Permission Required:**
 
-```
+```text
 admins.list
 ```
 
@@ -992,9 +988,10 @@ admins.list
   "page": 1,
   "per_page": 20,
   "search": {
-    "global": "admin@example.com",
+    "global": "ACTIVE",
     "columns": {
-      "email": "admin@example.com"
+      "status": "SUSPENDED",
+      "display_name": "john"
     }
   },
   "date": {
@@ -1010,25 +1007,44 @@ admins.list
 
 The following aliases are accepted in `search.columns` **only**:
 
-* `id`
-* `email`
+| Alias          | Description                 |
+|----------------|-----------------------------|
+| `id`           | Admin ID                    |
+| `email`        | Admin email (blind-indexed) |
+| `display_name` | Admin display name          |
+| `status`       | Admin lifecycle status      |
 
-❌ Any undeclared alias is **rejected**.
+❌ Any undeclared alias is **rejected by schema validation**.
 
 ---
 
 ### Search Semantics
 
-* **Global Search**
+#### Global Search (`search.global`)
 
-    * Numeric value → exact match on `admins.id`
-    * Valid email → blind-index lookup on admin email
-    * Any other value → ignored
+The global search value is interpreted **deterministically**:
 
-* **Column Search**
+| Input Type                                     | Behavior                              |
+|------------------------------------------------|---------------------------------------|
+| Numeric value                                  | Exact match on `admins.id`            |
+| Valid email                                    | Blind-index lookup on admin email     |
+| Enum value (`ACTIVE`, `SUSPENDED`, `DISABLED`) | Exact match on `admins.status`        |
+| Any other string                               | `LIKE` match on `admins.display_name` |
 
-    * `id` → exact integer match
-    * `email` → blind-index match (case-insensitive)
+No fuzzy or partial enum matching is applied.
+
+---
+
+#### Column Search (`search.columns`)
+
+| Column         | Behavior                             |
+|----------------|--------------------------------------|
+| `id`           | Exact integer match                  |
+| `email`        | Blind-index match (case-insensitive) |
+| `display_name` | `LIKE` match (`%value%`)             |
+| `status`       | Exact enum match only                |
+
+Invalid enum values are **silently ignored**.
 
 ---
 
@@ -1037,6 +1053,78 @@ The following aliases are accepted in `search.columns` **only**:
 * Applies to column: `admins.created_at`
 * Must be provided as an **atomic pair** (`from` + `to`)
 * Partial date filters are **forbidden**
+
+---
+
+### 🧩 Admin Status Enum
+
+Admin accounts operate under a **strict, finite status model** defined by `AdminStatusEnum`.
+
+#### Supported Status Values
+
+| Value       | Meaning                                         |
+|-------------|-------------------------------------------------|
+| `ACTIVE`    | Admin is active and **allowed to authenticate** |
+| `SUSPENDED` | Admin is **temporarily blocked**                |
+| `DISABLED`  | Admin is **permanently disabled**               |
+
+---
+
+#### Behavioral Semantics
+
+The enum enforces authentication and operational rules at the **domain level**:
+
+* **Authentication allowed**
+
+    * ✅ `ACTIVE`
+    * ❌ `SUSPENDED`
+    * ❌ `DISABLED`
+
+* **Blocked state**
+
+    * `SUSPENDED` → blocked (temporary)
+    * `DISABLED` → blocked (permanent)
+
+> Enforced internally via:
+>
+> * `AdminStatusEnum::canAuthenticate()`
+> * `AdminStatusEnum::isBlocked()`
+
+---
+
+#### Usage in Admins Query
+
+##### Global Search
+
+```text
+ACTIVE | SUSPENDED | DISABLED
+```
+
+Is resolved as:
+
+```sql
+admins.status = :status
+```
+
+(case-insensitive on input, canonical uppercase internally)
+
+---
+
+##### Column Filter
+
+```json
+{
+  "search": {
+    "columns": {
+      "status": "ACTIVE"
+    }
+  }
+}
+```
+
+* Accepts **only** enum-defined values
+* No partial matching
+* No client-defined statuses
 
 ---
 
@@ -1049,8 +1137,9 @@ The following aliases are accepted in `search.columns` **only**:
   "data": [
     {
       "id": 5,
-      "email": "admin@example.com",
-      "createdAt": "2026-01-10 14:22:11"
+      "display_name": "John Admin",
+      "status": "ACTIVE",
+      "created_at": "2026-01-10 14:22:11"
     }
   ],
   "pagination": {
@@ -1070,7 +1159,7 @@ The following aliases are accepted in `search.columns` **only**:
 
     * Stored encrypted
     * Filtered via **blind index**
-    * Decrypted **only in response output**
+    * **Never decrypted** in list responses
 * No raw email values are ever used in SQL filters
 * No client-side filtering or pagination
 
@@ -1094,9 +1183,21 @@ The following aliases are accepted in `search.columns` **only**:
 * ✔️ Canonical LIST / QUERY Contract
 * ✔️ Strict schema validation (`SharedListQuerySchema`)
 * ✔️ Capability-based filtering (`AdminListCapabilities`)
+* ✔️ Enum-driven status filtering
 * ✔️ Server-side pagination only
 * ✔️ Blind-index email search
 * ✔️ No undocumented filters
 
 ---
 
+### 🔒 Status
+
+**LOCKED — Canonical Admin Listing Contract**
+
+Any change requires updating **all three**:
+
+1. Domain Enum
+2. Reader implementation
+3. This documentation section
+
+---

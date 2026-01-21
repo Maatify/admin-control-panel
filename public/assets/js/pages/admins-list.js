@@ -1,45 +1,91 @@
 /**
  * Admins Page - Admin Management
  * Controls ALL params structure and handles admin-specific logic
+ * Follows Canonical LIST / QUERY Contract (LOCKED)
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    const headers = ["ID", "Email", "Created At"];
-    const rows = ["id", "email", "createdAt"];
+    // ✅ Headers match API response fields (removed email from display, added Actions)
+    const headers = ["ID", "Display Name", "Status", "Created At", "Actions"];
+    const rows = ["id", "display_name", "status", "created_at", "actions"];
 
     const searchForm = document.getElementById('admins-search-form');
     const resetBtn = document.getElementById('btn-reset');
     const inputAdminId = document.getElementById('filter-admin-id');
-    const inputEmail = document.getElementById('filter-email');
+    const inputEmail = document.getElementById('filter-email'); // ✅ Keep for blind-index search
+    const inputDisplayName = document.getElementById('filter-display-name');
     const inputDateFrom = document.getElementById('filter-date-from');
     const inputDateTo = document.getElementById('filter-date-to');
+
+    let currentStatusFilter = 'all'; // ✅ Track current status filter
 
     // ========================================================================
     // Custom Renderers - Define ONCE at the top
     // ========================================================================
 
     /**
-     * Custom renderer for email column
-     * Clickable to copy to clipboard
+     * Custom renderer for status column
+     * Matches AdminStatusEnum: ACTIVE | SUSPENDED | DISABLED
      */
-    const emailRenderer = (value, row) => {
-        if (!value) return '<span class="text-gray-400 italic">N/A</span>';
+    const statusRenderer = (value, row) => {
+        const status = value?.toUpperCase();
 
-        return `
-            <span class="text-blue-600 hover:text-blue-800 cursor-pointer underline decoration-dotted email-copy" 
-                  data-email="${value}"
-                  title="Click to copy: ${value}">
-                ${value}
-            </span>
-        `;
+        let statusText = value || 'Unknown';
+        let statusClass = "bg-gray-600";
+
+        switch(status) {
+            case 'ACTIVE':
+                statusText = "Active";
+                statusClass = "bg-green-600"; // 🟢
+                break;
+            case 'SUSPENDED':
+                statusText = "Suspended";
+                statusClass = "bg-orange-600"; // 🟠
+                break;
+            case 'DISABLED':
+                statusText = "Disabled";
+                statusClass = "bg-red-600"; // 🔴
+                break;
+            default:
+                statusText = "Unknown";
+                statusClass = "bg-gray-600";
+        }
+
+        return `<span class="${statusClass} text-white px-3 py-1 rounded-lg text-xs font-medium uppercase tracking-wide">${statusText}</span>`;
     };
 
     /**
      * Custom renderer for ID column
+     * Clickable link to admin profile
      */
     const idRenderer = (value, row) => {
         if (!value) return '<span class="text-gray-400 italic">N/A</span>';
-        return `<span class="font-mono text-sm text-gray-700">#${value}</span>`;
+        return `
+            <a href="/admins/${value}/profile" 
+               class="font-mono text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer font-medium"
+               title="View admin profile">
+                #${value}
+            </a>
+        `;
+    };
+
+    /**
+     * Custom renderer for display_name column
+     * Clickable link to admin profile
+     */
+    const displayNameRenderer = (value, row) => {
+        if (!value) return '<span class="text-gray-400 italic">N/A</span>';
+        const adminId = row.id;
+        if (!adminId) {
+            return `<span class="text-sm font-medium text-gray-800">${value}</span>`;
+        }
+        return `
+            <a href="/admins/${adminId}/profile" 
+               class="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+               title="View admin profile">
+                ${value}
+            </a>
+        `;
     };
 
     /**
@@ -50,6 +96,29 @@ document.addEventListener('DOMContentLoaded', () => {
         return `<span class="text-sm text-gray-600">${value}</span>`;
     };
 
+    /**
+     * Custom renderer for actions column
+     * View Profile button
+     */
+    const actionsRenderer = (value, row) => {
+        const adminId = row.id;
+        if (!adminId) return '<span class="text-gray-400 italic">-</span>';
+
+        return `
+            <div class="flex items-center gap-2">
+                <a href="/admins/${adminId}/profile" 
+                   class="inline-flex items-center gap-1 text-xs px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+                   title="View admin profile">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    </svg>
+                    View
+                </a>
+            </div>
+        `;
+    };
+
     // ========================================================================
     // Initialize
     // ========================================================================
@@ -57,9 +126,9 @@ document.addEventListener('DOMContentLoaded', () => {
     init();
 
     function init() {
+        loadAdmins(); // ✅ Load data on page load
         setupEventListeners();
         setupTableEventListeners();
-        loadAdmins(); // ✅ Load data on page load
     }
 
     function setupTableFiltersAfterRender() {
@@ -75,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
             searchForm.addEventListener('submit', (e) => {
                 e.preventDefault();
 
-                // Validate date pair
+                // ✅ Validate date pair (must be atomic)
                 const dateFrom = inputDateFrom?.value;
                 const dateTo = inputDateTo?.value;
 
@@ -91,20 +160,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (resetBtn) {
             resetBtn.addEventListener('click', () => {
                 if (inputAdminId) inputAdminId.value = '';
-                if (inputEmail) inputEmail.value = '';
+                if (inputEmail) inputEmail.value = ''; // ✅ Reset email search field
+                if (inputDisplayName) inputDisplayName.value = '';
                 if (inputDateFrom) inputDateFrom.value = '';
                 if (inputDateTo) inputDateTo.value = '';
+
+                // ✅ Reset status filter to 'all'
+                currentStatusFilter = 'all';
+
                 loadAdmins();
             });
         }
 
-        // Setup click handler for email copy
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('email-copy')) {
-                const email = e.target.getAttribute('data-email');
-                copyToClipboard(email, e.target);
-            }
-        });
+        // Note: Email not displayed in table, but can still be searched via blind-index
     }
 
     function setupTableEventListeners() {
@@ -160,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ========================================================================
-    // Table Filters (Custom UI)
+    // Table Filters (Custom UI) - Status Buttons Above Table
     // ========================================================================
 
     function setupTableFilters() {
@@ -174,6 +242,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         class="w-full border rounded-lg px-3 py-1 text-sm" 
                         placeholder="Search admins..." />
                 </div>
+                
+                <div class="flex gap-2">
+                    <span data-status="all" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white">All</span>
+                    <span data-status="ACTIVE" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white">Active</span>
+                    <span data-status="SUSPENDED" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white">Suspended</span>
+                    <span data-status="DISABLED" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white">Disabled</span>
+                </div>
             </div>
         `;
 
@@ -181,12 +256,56 @@ document.addEventListener('DOMContentLoaded', () => {
         if (globalSearch) {
             globalSearch.addEventListener('keyup', (e) => {
                 const value = e.target.value.trim();
+
+                // Clear previous timeout
                 clearTimeout(globalSearch.searchTimeout);
+
+                // Set new timeout with longer delay (1 second)
                 globalSearch.searchTimeout = setTimeout(() => {
                     handleGlobalSearch(value);
-                }, 500);
+                }, 1000); // ✅ Increased to 1000ms (1 second) to allow finishing typing
+            });
+
+            // Optional: Show loading indicator while typing
+            globalSearch.addEventListener('input', (e) => {
+                const value = e.target.value.trim();
+                if (value.length > 0) {
+                    globalSearch.classList.add('border-blue-300', 'bg-blue-50');
+                } else {
+                    globalSearch.classList.remove('border-blue-300', 'bg-blue-50');
+                }
             });
         }
+
+        const statusBtns = filterContainer.querySelectorAll('[data-status]');
+        statusBtns.forEach(btn => {
+            const status = btn.getAttribute('data-status');
+
+            // ✅ Restore active state based on currentStatusFilter
+            if (status === currentStatusFilter) {
+                btn.classList.add('active', 'bg-blue-600', 'text-white');
+                btn.classList.remove('hover:bg-blue-400', 'hover:text-white');
+            }
+
+            btn.addEventListener('click', () => {
+                console.log("📘 Clicked status:", status);
+
+                // ✅ Update current filter
+                currentStatusFilter = status;
+
+                // ✅ Remove active from all buttons
+                statusBtns.forEach(b => {
+                    b.classList.remove('active', 'bg-blue-600', 'text-white');
+                    b.classList.add('hover:bg-blue-400', 'hover:text-white');
+                });
+
+                // ✅ Add active to clicked button
+                btn.classList.add('active', 'bg-blue-600', 'text-white');
+                btn.classList.remove('hover:bg-blue-400', 'hover:text-white');
+
+                handleStatusFilter(status);
+            });
+        });
     }
 
     function handleGlobalSearch(searchValue) {
@@ -198,6 +317,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 params.search = {};
             }
             params.search.global = searchValue.trim();
+        }
+
+        loadAdminsWithParams(params);
+    }
+
+    function handleStatusFilter(status) {
+        console.log("📘 Filtering by status:", status);
+
+        const params = buildParams(1, 10);
+
+        if (status !== 'all') {
+            if (!params.search) {
+                params.search = { columns: {} };
+            }
+            params.search.columns.status = status;
         }
 
         loadAdminsWithParams(params);
@@ -220,7 +354,10 @@ document.addEventListener('DOMContentLoaded', () => {
             searchColumns.id = inputAdminId.value.trim();
         }
         if (inputEmail && inputEmail.value.trim()) {
-            searchColumns.email = inputEmail.value.trim();
+            searchColumns.email = inputEmail.value.trim(); // ✅ Blind-index search
+        }
+        if (inputDisplayName && inputDisplayName.value.trim()) {
+            searchColumns.display_name = inputDisplayName.value.trim();
         }
 
         if (Object.keys(searchColumns).length > 0) {
@@ -302,16 +439,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     params,
                     headers,
                     rows,
-                    false, // No selection for admins
+                    false, // ✅ No selection for admins (read-only list)
                     'id',
                     null, // No selection callback
                     {
                         id: idRenderer,
-                        email: emailRenderer,
-                        createdAt: createdAtRenderer
+                        display_name: displayNameRenderer,
+                        status: statusRenderer,
+                        created_at: createdAtRenderer,
+                        actions: actionsRenderer
                     },
                     null, // No selectable IDs
-                    getAdminsPaginationInfo
+                    getAdminsPaginationInfo // ✅ Pass callback
                 );
 
                 if (result && result.success) {
@@ -331,75 +470,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ========================================================================
     // Helpers
     // ========================================================================
-
-    /**
-     * Copy text to clipboard and show notification
-     */
-    function copyToClipboard(text, element) {
-        // Use modern Clipboard API
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(text).then(() => {
-                showCopyNotification(element);
-            }).catch(err => {
-                console.error('Failed to copy:', err);
-                fallbackCopy(text, element);
-            });
-        } else {
-            fallbackCopy(text, element);
-        }
-    }
-
-    /**
-     * Fallback copy method for older browsers
-     */
-    function fallbackCopy(text, element) {
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.select();
-
-        try {
-            document.execCommand('copy');
-            showCopyNotification(element);
-        } catch (err) {
-            console.error('Fallback copy failed:', err);
-        }
-
-        document.body.removeChild(textarea);
-    }
-
-    /**
-     * Show small "Copied!" notification near the element
-     */
-    function showCopyNotification(element) {
-        // Create notification
-        const notification = document.createElement('div');
-        notification.textContent = 'Copied!';
-        notification.className = 'absolute bg-green-600 text-white text-xs px-2 py-1 rounded shadow-lg z-50 animate-fade-in';
-        notification.style.cssText = 'font-size: 10px; font-weight: 500; pointer-events: none;';
-
-        // Position near the element
-        const rect = element.getBoundingClientRect();
-        notification.style.position = 'fixed';
-        notification.style.left = (rect.left + rect.width / 2) + 'px';
-        notification.style.top = (rect.top - 30) + 'px';
-        notification.style.transform = 'translateX(-50%)';
-
-        document.body.appendChild(notification);
-
-        // Fade out and remove
-        setTimeout(() => {
-            notification.style.opacity = '0';
-            notification.style.transition = 'opacity 0.3s ease';
-            setTimeout(() => {
-                if (notification.parentElement) {
-                    notification.remove();
-                }
-            }, 300);
-        }, 1000);
-    }
 
     function showAlert(type, message) {
         if (typeof window.showAlert === 'function') {

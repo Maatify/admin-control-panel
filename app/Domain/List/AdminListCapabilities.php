@@ -24,6 +24,8 @@ final class AdminListCapabilities
             supportsGlobalSearch: true,
             searchableColumns: [
                 'email',
+                'display_name',
+                'status'
             ],
 
             // Column filters (alias => logical field)
@@ -31,6 +33,8 @@ final class AdminListCapabilities
             filterableColumns: [
                 'id'    => 'id',
                 'email' => 'email',
+                'display_name' => 'display_name',
+                'status' => 'status',
             ],
 
             // Date range
