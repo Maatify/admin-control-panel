@@ -53,8 +53,15 @@ final class UiTwoFactorSetupController
         $requestContext = $request->getAttribute(RequestContext::class);
 
         try {
+            $sessionHash = $request->getAttribute('session_hash');
+
+            if (!is_string($sessionHash) || $sessionHash === '') {
+                throw new \RuntimeException('Session hash missing from request context');
+            }
+
             $dto = $this->enrollmentService->prepareEnrollment(
                 adminId: $adminContext->adminId,
+                sessionHash: $sessionHash,
                 context: $requestContext
             );
         } catch (TwoFactorAlreadyEnrolledException) {
@@ -85,6 +92,14 @@ final class UiTwoFactorSetupController
      */
     public function enable(Request $request, Response $response): Response
     {
+
+        $cookies = $request->getCookieParams();
+        $token = $cookies['auth_token'] ?? null;
+
+        if (!is_string($token) || $token === '') {
+            throw new \RuntimeException('auth_token missing from cookies');
+        }
+
         /** @var AdminContext $adminContext */
         $adminContext = $request->getAttribute(AdminContext::class);
 
@@ -95,15 +110,18 @@ final class UiTwoFactorSetupController
         $otpCode = trim((string) ($data['otp'] ?? ''));
 
         if ($otpCode === '') {
-            // Missing OTP → redirect back to setup
-            return $response
-                ->withHeader('Location', '/2fa/setup')
-                ->withStatus(302);
+            return $this->view->render($response, 'auth/2fa_setup.twig', [
+                'error' => 'Authentication code is required.',
+            ]);
         }
 
+        $sessionHash = hash('sha256', $token);
+
         try {
-            $this->enrollmentService->enableEnrollment(
+            $success = $this->enrollmentService->enableEnrollment(
                 adminId: $adminContext->adminId,
+                token: $token,
+                sessionHash: $sessionHash,
                 otpCode: $otpCode,
                 context: $requestContext
             );
@@ -114,10 +132,30 @@ final class UiTwoFactorSetupController
                 ->withStatus(302);
         }
 
+        if ($success === false) {
+            // Invalid OTP → re-render same page with same pending secret
+            $dto = $this->enrollmentService->prepareEnrollment(
+                adminId: $adminContext->adminId,
+                sessionHash: $sessionHash,
+                context: $requestContext
+            );
+
+            $qrImageUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='
+                          . rawurlencode($dto->qrUri);
+
+            return $this->view->render($response, 'auth/2fa_setup.twig', [
+                'provisioning_uri' => $dto->qrUri,
+                'qr_image_url'     => $qrImageUrl,
+                'secret'           => $dto->secret,
+                'error'            => 'Invalid authentication code. Please try again.',
+            ]);
+        }
+
         // Success → redirect to dashboard
         return $response
             ->withHeader('Location', '/dashboard')
             ->withStatus(302);
     }
+
 }
 

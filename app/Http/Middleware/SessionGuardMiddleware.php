@@ -56,7 +56,11 @@ class SessionGuardMiddleware implements MiddlewareInterface
 
         try {
             $adminId = $this->sessionValidationService->validate($token, $context);
-            $request = $request->withAttribute('admin_id', $adminId);
+            // ADDITION: expose session hash (auth_token-bound) for downstream domain services
+            $sessionHash = hash('sha256', $token);
+            $request = $request
+                ->withAttribute('admin_id', $adminId)
+                ->withAttribute('session_hash', $sessionHash);
 
             return $handler->handle($request);
         } catch (\App\Domain\Exception\InvalidSessionException | \App\Domain\Exception\ExpiredSessionException | \App\Domain\Exception\RevokedSessionException $e) {

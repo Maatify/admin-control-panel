@@ -325,6 +325,9 @@ Entries MUST NOT be rewritten or reordered.
 - feat(verification): introduce EmailTemplateEnum and align verification email payload with Twig templates
 - feat(ui): refine verify email page layout and UX
 - fix(auth/step-up): correct 2FA setup routing and middleware flow
+- feat(schema): extend admin_sessions with pending TOTP enrollment state
+- feat(2fa): complete TOTP enrollment with session-bound state and primary grant issuance
+
 
 ---
 

@@ -31,4 +31,26 @@ interface AdminSessionRepositoryInterface
      * @return array<string, int> Map of session_hash => admin_id
      */
     public function findAdminsBySessionHashes(array $hashes): array;
+
+    /**
+     * @return array{
+     *   seed_ciphertext: string,
+     *   seed_iv: string,
+     *   seed_tag: string,
+     *   seed_key_id: string,
+     *   issued_at: string
+     * }|null
+     */
+    public function getPendingTotpEnrollmentByHash(string $sessionHash): ?array;
+
+    public function storePendingTotpEnrollmentByHash(
+        string $sessionHash,
+        string $ciphertext,
+        string $iv,
+        string $tag,
+        string $keyId,
+        \DateTimeImmutable $issuedAt
+    ): void;
+
+    public function clearPendingTotpEnrollmentByHash(string $sessionHash): void;
 }

@@ -17,6 +17,10 @@ class AdminSessionRepository implements AdminSessionRepositoryInterface, AdminSe
         $this->pdo = $pdo;
     }
 
+    /* ===========================
+     * Session Creation / Validation
+     * =========================== */
+
     public function createSession(int $adminId): string
     {
         // Generate a secure random token
@@ -89,6 +93,117 @@ class AdminSessionRepository implements AdminSessionRepositoryInterface, AdminSe
         ];
     }
 
+    /* ===========================
+     * Pending TOTP Enrollment
+     * =========================== */
+
+    /**
+     * @return array{
+     *   seed_ciphertext: string,
+     *   seed_iv: string,
+     *   seed_tag: string,
+     *   seed_key_id: string,
+     *   issued_at: string
+     * }|null
+     */
+    public function getPendingTotpEnrollmentByHash(string $sessionHash): ?array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT
+                pending_totp_seed_ciphertext,
+                pending_totp_seed_iv,
+                pending_totp_seed_tag,
+                pending_totp_seed_key_id,
+                pending_totp_issued_at
+            FROM admin_sessions
+            WHERE session_id = ?
+              AND is_revoked = 0
+        ");
+        $stmt->execute([$sessionHash]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // ✅ phpstan requires explicit array check
+        if (!is_array($row)) {
+            return null;
+        }
+
+        if (!array_key_exists('pending_totp_seed_ciphertext', $row)) {
+            return null;
+        }
+
+        if ($row['pending_totp_seed_ciphertext'] === null) {
+            return null;
+        }
+
+        /** @var array{
+         *   pending_totp_seed_ciphertext: string,
+         *   pending_totp_seed_iv: string,
+         *   pending_totp_seed_tag: string,
+         *   pending_totp_seed_key_id: string,
+         *   pending_totp_issued_at: string
+         * } $typedRow
+         */
+        $typedRow = $row;
+
+
+        return [
+            'seed_ciphertext' => $typedRow['pending_totp_seed_ciphertext'],
+            'seed_iv'         => $typedRow['pending_totp_seed_iv'],
+            'seed_tag'        => $typedRow['pending_totp_seed_tag'],
+            'seed_key_id'     => $typedRow['pending_totp_seed_key_id'],
+            'issued_at'       => $typedRow['pending_totp_issued_at'],
+        ];
+    }
+
+    public function storePendingTotpEnrollmentByHash(
+        string $sessionHash,
+        string $ciphertext,
+        string $iv,
+        string $tag,
+        string $keyId,
+        \DateTimeImmutable $issuedAt
+    ): void {
+        $stmt = $this->pdo->prepare("
+            UPDATE admin_sessions
+            SET
+                pending_totp_seed_ciphertext = ?,
+                pending_totp_seed_iv = ?,
+                pending_totp_seed_tag = ?,
+                pending_totp_seed_key_id = ?,
+                pending_totp_issued_at = ?
+            WHERE session_id = ?
+              AND is_revoked = 0
+        ");
+        $stmt->execute([
+            $ciphertext,
+            $iv,
+            $tag,
+            $keyId,
+            $issuedAt->format('Y-m-d H:i:s'),
+            $sessionHash,
+        ]);
+    }
+
+    public function clearPendingTotpEnrollmentByHash(string $sessionHash): void
+    {
+        $stmt = $this->pdo->prepare("
+            UPDATE admin_sessions
+            SET
+                pending_totp_seed_ciphertext = NULL,
+                pending_totp_seed_iv = NULL,
+                pending_totp_seed_tag = NULL,
+                pending_totp_seed_key_id = NULL,
+                pending_totp_issued_at = NULL
+            WHERE session_id = ?
+        ");
+        $stmt->execute([$sessionHash]);
+    }
+
+    /* ===========================
+     * Revocation (Hard Invalidation)
+     * =========================== */
+
     public function revokeSession(string $token): void
     {
         $tokenHash = hash('sha256', $token);
@@ -97,13 +212,33 @@ class AdminSessionRepository implements AdminSessionRepositoryInterface, AdminSe
 
     public function revokeSessionByHash(string $hash): void
     {
-        $stmt = $this->pdo->prepare("UPDATE admin_sessions SET is_revoked = 1 WHERE session_id = ?");
+        $stmt = $this->pdo->prepare("
+            UPDATE admin_sessions
+            SET
+                is_revoked = 1,
+                pending_totp_seed_ciphertext = NULL,
+                pending_totp_seed_iv = NULL,
+                pending_totp_seed_tag = NULL,
+                pending_totp_seed_key_id = NULL,
+                pending_totp_issued_at = NULL
+            WHERE session_id = ?
+        ");
         $stmt->execute([$hash]);
     }
 
     public function revokeAllSessions(int $adminId): void
     {
-        $stmt = $this->pdo->prepare("UPDATE admin_sessions SET is_revoked = 1 WHERE admin_id = ?");
+        $stmt = $this->pdo->prepare("
+            UPDATE admin_sessions
+            SET
+                is_revoked = 1,
+                pending_totp_seed_ciphertext = NULL,
+                pending_totp_seed_iv = NULL,
+                pending_totp_seed_tag = NULL,
+                pending_totp_seed_key_id = NULL,
+                pending_totp_issued_at = NULL
+            WHERE admin_id = ?
+        ");
         $stmt->execute([$adminId]);
     }
 
@@ -112,8 +247,21 @@ class AdminSessionRepository implements AdminSessionRepositoryInterface, AdminSe
         if (empty($hashes)) {
             return;
         }
+
         $placeholders = implode(',', array_fill(0, count($hashes), '?'));
-        $stmt = $this->pdo->prepare("UPDATE admin_sessions SET is_revoked = 1 WHERE session_id IN ($placeholders)");
+
+        $stmt = $this->pdo->prepare("
+        UPDATE admin_sessions
+        SET
+            is_revoked = 1,
+            pending_totp_seed_ciphertext = NULL,
+            pending_totp_seed_iv = NULL,
+            pending_totp_seed_tag = NULL,
+            pending_totp_seed_key_id = NULL,
+            pending_totp_issued_at = NULL
+        WHERE session_id IN ($placeholders)
+    ");
+
         $stmt->execute($hashes);
     }
 

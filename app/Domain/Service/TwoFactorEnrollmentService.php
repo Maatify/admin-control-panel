@@ -16,9 +16,11 @@ namespace App\Domain\Service;
 
 use App\Application\Crypto\TotpSecretCryptoServiceInterface;
 use App\Context\RequestContext;
+use App\Domain\Contracts\AdminSessionRepositoryInterface;
 use App\Domain\Contracts\AdminTotpSecretRepositoryInterface;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\Contracts\TotpServiceInterface;
+use App\Domain\DTO\Crypto\EncryptedPayloadDTO;
 use App\Domain\DTO\TotpEnrollmentConfig;
 use App\Domain\DTO\TwoFactorEnrollmentViewDTO;
 use App\Domain\Exception\TwoFactorAlreadyEnrolledException;
@@ -29,8 +31,8 @@ use App\Domain\SecurityEvents\Recorder\SecurityEventRecorderInterface;
 use App\Domain\Support\CorrelationId;
 use App\Modules\SecurityEvents\Enum\SecurityEventSeverityEnum;
 use App\Modules\SecurityEvents\Enum\SecurityEventTypeEnum;
+use App\Domain\Service\StepUpService;
 use PDO;
-use RuntimeException;
 
 /**
  * Two-Factor Authentication (TOTP) Enrollment Service
@@ -42,19 +44,16 @@ use RuntimeException;
  */
 final class TwoFactorEnrollmentService
 {
-    /**
-     * Session key for pending TOTP enrollment
-     */
-    private const SESSION_KEY = 'pending_totp_enrollment';
-
     public function __construct(
         private readonly AdminTotpSecretRepositoryInterface $totpSecretRepository,
+        private readonly AdminSessionRepositoryInterface $sessionRepository,
         private readonly TotpServiceInterface $totpService,
         private readonly TotpSecretCryptoServiceInterface $crypto,
         private readonly AuthoritativeSecurityAuditWriterInterface $auditWriter,
         private readonly SecurityEventRecorderInterface $securityEventRecorder,
         private readonly TotpEnrollmentConfig $totpEnrollmentConfig,
-        private readonly PDO $pdo
+        private readonly StepUpService $stepUpService,
+        private readonly PDO $pdo,
     )
     {
     }
@@ -68,6 +67,7 @@ final class TwoFactorEnrollmentService
      */
     public function prepareEnrollment(
         int $adminId,
+        string $sessionHash,
         RequestContext $context
     ): TwoFactorEnrollmentViewDTO
     {
@@ -78,14 +78,56 @@ final class TwoFactorEnrollmentService
             );
         }
 
-        // Generate raw TOTP secret
+        // 🔑 STEP 0: Reuse existing pending enrollment if present and valid
+        $pending = $this->sessionRepository->getPendingTotpEnrollmentByHash($sessionHash);
+
+        if ($pending !== null) {
+            $issuedAt = new \DateTimeImmutable($pending['issued_at']);
+
+            if (
+                $issuedAt->modify('+' . $this->totpEnrollmentConfig->totpEnrollmentTtlSeconds . ' seconds')
+                >= new \DateTimeImmutable()
+            ) {
+                // Pending still valid → reuse same secret
+                $encryptedPayload = new EncryptedPayloadDTO(
+                    ciphertext: $pending['seed_ciphertext'],
+                    iv        : $pending['seed_iv'],
+                    tag       : $pending['seed_tag'],
+                    keyId     : $pending['seed_key_id']
+                );
+
+                $secret = $this->crypto->decryptTotpSeed($encryptedPayload);
+
+                $qrUri = $this->totpService->generateProvisioningUri(
+                    issuer     : $this->totpEnrollmentConfig->totpIssuer,
+                    accountName: 'admin:' . $adminId,
+                    secret     : $secret
+                );
+
+                return new TwoFactorEnrollmentViewDTO(
+                    qrUri : $qrUri,
+                    secret: $secret
+                );
+            }
+
+            // Pending expired → clear it before generating new
+            $this->sessionRepository->clearPendingTotpEnrollmentByHash($sessionHash);
+        }
+
+        // 🔑 STEP 1: Generate new TOTP secret (only if no valid pending exists)
         $secret = $this->totpService->generateSecret();
 
-        // Store pending secret in session (server-side only)
-        $_SESSION[self::SESSION_KEY] = [
-            'secret'    => $secret,
-            'issued_at' => time(),
-        ];
+        // Store pending secret (encrypted, session-bound)
+        $encrypted = $this->crypto->encryptTotpSeed($secret);
+
+        $this->sessionRepository->storePendingTotpEnrollmentByHash(
+            $sessionHash,
+            $encrypted->ciphertext,
+            $encrypted->iv,
+            $encrypted->tag,
+            $encrypted->keyId,
+            new \DateTimeImmutable()
+        );
 
         // Generate provisioning URI (otpauth://)
         $qrUri = $this->totpService->generateProvisioningUri(
@@ -100,6 +142,7 @@ final class TwoFactorEnrollmentService
         );
     }
 
+
     /**
      * STEP 2: Enable TOTP enrollment
      *
@@ -111,27 +154,37 @@ final class TwoFactorEnrollmentService
      */
     public function enableEnrollment(
         int $adminId,
+        string $token,
+        string $sessionHash,
         string $otpCode,
         RequestContext $context
-    ): void
+    ): bool
     {
-        $pending = $_SESSION[self::SESSION_KEY] ?? null;
+        $pending = $this->sessionRepository->getPendingTotpEnrollmentByHash($sessionHash);
 
-        if (! is_array($pending) || ! isset($pending['secret'])) {
+        if ($pending === null) {
             throw new TwoFactorEnrollmentFailedException('No pending TOTP enrollment found');
         }
 
-        $issuedAt = (int) ($pending['issued_at'] ?? 0);
-
-        if ($issuedAt === 0 || (time() - $issuedAt) > $this->totpEnrollmentConfig->totpEnrollmentTtlSeconds) {
-            unset($_SESSION[self::SESSION_KEY]);
+        $issuedAt = new \DateTimeImmutable($pending['issued_at']);
+        if (
+            $issuedAt->modify('+' . $this->totpEnrollmentConfig->totpEnrollmentTtlSeconds . ' seconds')
+            < new \DateTimeImmutable()
+        ) {
+            $this->sessionRepository->clearPendingTotpEnrollmentByHash($sessionHash);
             throw new TwoFactorEnrollmentFailedException('TOTP enrollment expired');
         }
 
+        $encryptedPayload = new EncryptedPayloadDTO(
+            ciphertext: $pending['seed_ciphertext'],
+            iv        : $pending['seed_iv'],
+            tag       : $pending['seed_tag'],
+            keyId     : $pending['seed_key_id']
+        );
 
-        $secret = (string)$pending['secret'];
+        $secret = $this->crypto->decryptTotpSeed($encryptedPayload);
 
-        // Verify OTP code
+        // Verify OTP code (UI-level failure, retry allowed)
         if (! $this->totpService->verify($secret, $otpCode)) {
             $this->securityEventRecorder->record(
                 new SecurityEventRecordDTO(
@@ -149,7 +202,8 @@ final class TwoFactorEnrollmentService
                 )
             );
 
-            throw new TwoFactorEnrollmentFailedException('Invalid OTP code');
+            // Do NOT clear pending enrollment — user may retry
+            return false;
         }
 
         $correlationId = CorrelationId::generate();
@@ -161,6 +215,10 @@ final class TwoFactorEnrollmentService
 
             // Persist encrypted secret
             $this->totpSecretRepository->save($adminId, $encrypted);
+
+            // ✅ Promote current session to ACTIVE by issuing primary Step-Up grant
+            // This prevents redirect loop to /2fa/verify after successful enrollment.
+            $this->stepUpService->issuePrimaryGrant($adminId, $token, $context);
 
             // Authoritative audit event
             $this->auditWriter->write(
@@ -181,10 +239,13 @@ final class TwoFactorEnrollmentService
         } catch (\Throwable $e) {
             $this->pdo->rollBack();
             throw $e;
-        } finally {
-            // Always clear pending enrollment state
-            unset($_SESSION[self::SESSION_KEY]);
         }
-    }
-}
 
+        // Clear pending enrollment ONLY after successful completion
+        $this->sessionRepository->clearPendingTotpEnrollmentByHash($sessionHash);
+
+        return true;
+    }
+
+
+}
