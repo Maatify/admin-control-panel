@@ -1,0 +1,200 @@
+{% extends "layouts/base.twig" %}
+
+{# =========================================================
+   Admin Profile — Edit Page
+   ---------------------------------------------------------
+   PURPOSE:
+   - Edit basic admin attributes (Phase 1)
+   - Currently supported:
+       • display_name
+       • status
+   - Email is NOT editable here (separate screen)
+   - This page submits to POST endpoint
+   ========================================================= #}
+
+{% block title %}
+    Edit Admin Profile — {{ admin.display_name ?? 'N/A' }}
+{% endblock %}
+
+{% block content %}
+
+    <div class="page page-admin-profile-edit max-w-4xl mx-auto">
+
+        {# =====================================================
+       Header / Breadcrumb
+       ===================================================== #}
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+            <h2 class="text-xl font-semibold text-gray-800">
+                Edit Admin Profile
+            </h2>
+
+            <nav>
+                <ol class="flex items-center gap-1.5 text-sm">
+                    <li>
+                        <a href="/dashboard" class="text-gray-500 hover:text-blue-600">
+                            Home
+                        </a>
+                    </li>
+                    <li>/</li>
+                    <li>
+                        <a href="/admins" class="text-gray-500 hover:text-blue-600">
+                            Admins
+                        </a>
+                    </li>
+                    <li>/</li>
+                    <li>
+                        <a href="/admins/{{ admin.id }}/profile"
+                           class="text-gray-500 hover:text-blue-600">
+                            Profile
+                        </a>
+                    </li>
+                    <li>/</li>
+                    <li class="text-gray-800 font-medium">
+                        Edit
+                    </li>
+                </ol>
+            </nav>
+        </div>
+
+        {# =====================================================
+       Edit Form Card
+       ===================================================== #}
+        <form
+                method="post"
+                action="/admins/{{ admin.id }}/profile/edit"
+                class="bg-white rounded-lg shadow border border-gray-200"
+        >
+
+            {# -------------------------------------------------
+           Card Header
+           ------------------------------------------------- #}
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-800">
+                    Basic Information
+                </h3>
+                <p class="text-sm text-gray-500 mt-1">
+                    Update admin display name or status.
+                    Changes will be audited automatically.
+                </p>
+            </div>
+
+            {# -------------------------------------------------
+           Card Body
+           ------------------------------------------------- #}
+            <div class="px-6 py-6 space-y-6">
+
+                {# ===========================
+               Display Name
+               =========================== #}
+                <div>
+                    <label
+                            for="display_name"
+                            class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                        Display Name
+                    </label>
+
+                    <input
+                            type="text"
+                            id="display_name"
+                            name="display_name"
+                            value="{{ admin.display_name ?? '' }}"
+                            placeholder="Admin name"
+                            class="w-full rounded-lg border border-gray-300 px-4 py-2
+                           focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+
+                    <p class="text-xs text-gray-500 mt-1">
+                        Optional. Used for display purposes only.
+                    </p>
+                </div>
+
+                {# ===========================
+               Status
+               =========================== #}
+                <div>
+                    <label
+                            for="status"
+                            class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                        Status
+                    </label>
+
+                    <select
+                            id="status"
+                            name="status"
+                            class="w-full rounded-lg border border-gray-300 px-4 py-2
+                           focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        {# IMPORTANT:
+                       - Values must match domain enum exactly
+                       - Do NOT change values without backend change
+                        #}
+
+                        <option value="ACTIVE"
+                                {{ admin.status == 'ACTIVE' ? 'selected' : '' }}>
+                            Active
+                        </option>
+
+                        <option value="SUSPENDED"
+                                {{ admin.status == 'SUSPENDED' ? 'selected' : '' }}>
+                            Suspended
+                        </option>
+
+                        <option value="DISABLED"
+                                {{ admin.status == 'DISABLED' ? 'selected' : '' }}>
+                            Disabled
+                        </option>
+                    </select>
+
+                    <p class="text-xs text-gray-500 mt-1">
+                        Status affects authentication and access.
+                    </p>
+                </div>
+
+                {# ===========================
+               Read-only Email Notice
+               =========================== #}
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <p class="text-sm text-gray-700">
+                        <strong>Email:</strong>
+                        {{ email.masked_address ?? '—' }}
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">
+                        Email addresses are managed on a separate screen.
+                    </p>
+                </div>
+
+            </div>
+
+            {# -------------------------------------------------
+           Card Footer / Actions
+           ------------------------------------------------- #}
+            <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+
+                <a
+                        href="/admins/{{ admin.id }}/profile"
+                        class="inline-flex items-center gap-2 text-gray-600 hover:text-gray-800"
+                >
+                    ← Cancel
+                </a>
+
+                <button
+                        type="submit"
+                        class="inline-flex items-center gap-2 px-6 py-2
+                       bg-blue-600 text-white rounded-lg
+                       hover:bg-blue-700 transition-colors"
+                >
+                    Save Changes
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+    {# Page-specific JS can be added later if needed #}
+{% endblock %}

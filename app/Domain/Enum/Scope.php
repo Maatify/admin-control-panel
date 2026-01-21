@@ -15,6 +15,6 @@ enum Scope: string
 
     // scoped actions for admins
     case ADMIN_CREATE = 'admin.create';
-    case ADMIN_UPDATE = 'admin.update';
+    case ADMIN_UPDATE = 'admins.profile.edit';
     case ADMIN_EMAIL_ADD = 'admin.email.add';
 }

@@ -276,4 +276,36 @@ class AdminSessionRepository implements AdminSessionRepositoryInterface, AdminSe
 
         return $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
     }
+
+    /**
+     * @return string[] session hashes (active + non-expired)
+     */
+    public function findActiveSessionHashesByAdmin(int $adminId): array
+    {
+        $stmt = $this->pdo->prepare("
+        SELECT session_id
+        FROM admin_sessions
+        WHERE admin_id = :admin_id
+          AND is_revoked = 0
+          AND expires_at > NOW()
+    ");
+
+        $stmt->execute([
+            'admin_id' => $adminId,
+        ]);
+
+        /** @var string[]|false $rows */
+        $rows = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        if ($rows === false) {
+            return [];
+        }
+
+        // Ensure strict string typing for phpstan
+        return array_values(array_filter(
+            $rows,
+            static fn($v) => is_string($v) && $v !== ''
+        ));
+    }
+
 }

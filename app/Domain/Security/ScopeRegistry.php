@@ -20,7 +20,7 @@ class ScopeRegistry
 
         // Dedicated scope to ensure isolated Step-Up (no reuse of prior SECURITY grants)
         'admin.create' => Scope::ADMIN_CREATE,
-        'admin.update' => Scope::ADMIN_UPDATE,
+        'admins.profile.edit' => Scope::ADMIN_UPDATE,
         'admin.email.add' => Scope::ADMIN_EMAIL_ADD,
     ];
 

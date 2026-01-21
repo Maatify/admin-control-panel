@@ -202,4 +202,59 @@ class SessionRevocationService
             throw $e;
         }
     }
+    /**
+     * Revoke all ACTIVE (non-expired) sessions for a given admin.
+     *
+     * Used when admin status changes to SUSPENDED / DISABLED.
+     *
+     * - Only valid sessions are revoked
+     * - Expired sessions are ignored
+     * - Authoritative audit is written
+     * - MUST be called inside an active transaction
+     */
+    public function revokeAllActiveForAdmin(
+        int $targetAdminId,
+        int $actorAdminId,
+        RequestContext $context,
+        string $reason
+    ): int
+    {
+        // IMPORTANT:
+        // ❌ No beginTransaction() here
+        // This service MAY be composed inside another transaction
+
+        // 1️⃣ Fetch active sessions
+        $activeSessionHashes = $this->repository->findActiveSessionHashesByAdmin($targetAdminId);
+
+        if ($activeSessionHashes === []) {
+            return 0;
+        }
+
+        // 2️⃣ Revoke
+        $this->repository->revokeSessionsByHash($activeSessionHashes);
+
+        // 3️⃣ Audit
+        $this->auditWriter->write(new AuditEventDTO(
+            actor_id: $actorAdminId,
+            action: 'admin_sessions_revoked_due_to_status_change',
+            target_type: 'admin',
+            target_id: $targetAdminId,
+            risk_level: 'HIGH',
+            payload: [
+                'revoked_sessions_count' => count($activeSessionHashes),
+                'session_id_prefixes' => array_map(
+                    fn(string $h) => substr($h, 0, 8) . '...',
+                    $activeSessionHashes
+                ),
+                'reason' => $reason,
+                'ip_address' => $context->ipAddress,
+            ],
+            correlation_id: bin2hex(random_bytes(16)),
+            request_id: $context->requestId,
+            created_at: new DateTimeImmutable()
+        ));
+
+        return count($activeSessionHashes);
+    }
+
 }

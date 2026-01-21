@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Bootstrap;
 
+use App\Application\Admin\AdminProfileUpdateService;
 use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use App\Application\Crypto\NotificationCryptoServiceInterface;
 use App\Application\Crypto\PasswordCryptoServiceInterface;
@@ -802,12 +803,15 @@ class Container
             UiAdminsController::class => function (ContainerInterface $c) {
                 $view = $c->get(Twig::class);
                 $profileReader = $c->get(AdminProfileReaderInterface::class);
+                $profileUpdateService = $c->get(AdminProfileUpdateService::class);
 
                 assert($view instanceof Twig);
                 assert($profileReader instanceof AdminProfileReaderInterface);
+                assert($profileUpdateService instanceof AdminProfileUpdateService);
                 return new UiAdminsController(
                     $view,
-                    $profileReader
+                    $profileReader,
+                    $profileUpdateService
                 );
             },
             UiDashboardController::class => function (ContainerInterface $c) {

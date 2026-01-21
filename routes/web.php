@@ -99,8 +99,30 @@ return function (App $app) {
                 ->setName('admin.create')
                 ->add(AuthorizationGuardMiddleware::class);
 
+            // ===============================
+            // Admin Profile (VIEW)
+            // ===============================
             $protectedGroup->get('/admins/{id}/profile', [\App\Http\Controllers\Ui\UiAdminsController::class, 'profile'])
                 ->setName('admins.profile.view')
+                ->add(AuthorizationGuardMiddleware::class);
+
+            // ===============================
+            // Admin Profile (EDIT FORM)
+            // ===============================
+            $protectedGroup->get(
+                '/admins/{id}/profile/edit',
+                [\App\Http\Controllers\Ui\UiAdminsController::class, 'editProfile']
+            )->setName('admins.profile.edit')
+                ->add(AuthorizationGuardMiddleware::class);
+
+
+            // ===============================
+            // Admin Profile (UPDATE)
+            // ===============================
+            $protectedGroup->post(
+                '/admins/{id}/profile/edit',
+                [\App\Http\Controllers\Ui\UiAdminsController::class, 'updateProfile']
+            )->setName('admins.profile.edit')
                 ->add(AuthorizationGuardMiddleware::class);
 
             $protectedGroup->get('/roles', [\App\Http\Controllers\Ui\UiRolesController::class, 'index']);

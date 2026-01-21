@@ -32,4 +32,10 @@ interface AdminSessionValidationRepositoryInterface
      * @return array<string, int> Map of session_hash => admin_id
      */
     public function findAdminsBySessionHashes(array $hashes): array;
+
+    /**
+     * @return string[] session_hashes (ONLY active + non-expired)
+     */
+    public function findActiveSessionHashesByAdmin(int $adminId): array;
+
 }
