@@ -332,6 +332,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(architecture/logging): add unified canonical logging design
 - chore(db): add admin display_name and lifecycle status
 - feat(auth): enforce admin lifecycle status during login flow
+- feat(admin-create): implement admin creation flow with display name, validation, and full UI
 
 
 ---

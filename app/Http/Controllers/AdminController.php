@@ -99,7 +99,13 @@ class AdminController
 
         try {
             // 5️⃣ Create admin
-            $adminId   = $this->adminRepository->create();
+            $displayName = trim((string) ($data['display_name'] ?? ''));
+
+            if ($displayName === '') {
+                throw new HttpBadRequestException($request, 'Display name is required.');
+            }
+
+            $adminId = $this->adminRepository->create($displayName);
             $createdAt = $this->adminRepository->getCreatedAt($adminId);
 
             // 6️⃣ Encrypt email

@@ -16,7 +16,23 @@ class AdminRepository
         $this->pdo = $pdo;
     }
 
-    public function create(): int
+    public function create(string $displayName): int
+    {
+        $stmt = $this->pdo->prepare(
+            "INSERT INTO admins (display_name, status, created_at)
+         VALUES (?, ?, NOW())"
+        );
+
+        $stmt->execute([
+            $displayName,
+            AdminStatusEnum::ACTIVE->value,
+        ]);
+
+        return (int) $this->pdo->lastInsertId();
+    }
+
+
+    public function createFirstAdmin(): int
     {
         $stmt = $this->pdo->prepare("INSERT INTO admins (created_at) VALUES (NOW())");
         $stmt->execute();

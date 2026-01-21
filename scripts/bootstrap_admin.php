@@ -61,7 +61,7 @@ try {
     // 1. Admin
     $adminRepo = $container->get(AdminRepository::class);
     assert($adminRepo instanceof AdminRepository);
-    $adminId = $adminRepo->create();
+    $adminId = $adminRepo->createFirstAdmin();
 
     // 2. Email
     $emailRepo = $container->get(AdminEmailRepository::class);

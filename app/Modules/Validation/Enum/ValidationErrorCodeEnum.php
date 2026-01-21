@@ -35,4 +35,5 @@ enum ValidationErrorCodeEnum: string
     case INVALID_EMAIL    = 'invalid_email';
     case INVALID_PASSWORD = 'invalid_password';
     case INVALID_NAME     = 'invalid_name';
+    case INVALID_DISPLAY_NAME = 'invalid_display_name';
 }

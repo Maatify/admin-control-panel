@@ -21,15 +21,24 @@ use App\Modules\Validation\Rules\EmailRule;
 final class AdminCreateSchema extends AbstractSchema
 {
     /**
-     * @return array<string, array{0: \Respect\Validation\Validatable, 1: \App\Modules\Validation\Enum\ValidationErrorCodeEnum}>
+     * @return array<string, array{
+     *     0: \Respect\Validation\Validatable,
+     *     1: \App\Modules\Validation\Enum\ValidationErrorCodeEnum
+     * }>
      */
-
     protected function rules(): array
     {
         return [
             'email' => [
                 EmailRule::rule(),
                 ValidationErrorCodeEnum::INVALID_EMAIL,
+            ],
+
+            'display_name' => [
+                \Respect\Validation\Validator::stringType()
+                    ->notEmpty()
+                    ->length(2, 100),
+                ValidationErrorCodeEnum::INVALID_DISPLAY_NAME,
             ],
         ];
     }
