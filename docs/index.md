@@ -54,6 +54,33 @@ Documentation is strictly layered.
 
 ---
 
+## 🧱 Canonical Subsystem Design Documents
+
+The following documents define **locked canonical designs** for specific
+cross-cutting subsystems.
+
+They MUST be followed whenever implementing, modifying, or reviewing code within their scope.
+
+### Logging & Observability
+
+- **docs/architecture/UNIFIED_LOGGING_DESIGN.md**
+   - Canonical design for all logging subsystems:
+     Audit, SecurityEvents, ActivityLog, Telemetry
+   - Defines:
+      - Ownership rules
+      - Exception policies
+      - Module vs Domain boundaries
+      - Migration constraints
+  - Violations are considered **architectural hard blockers** and MUST be rejected
+
+📌 These documents do NOT override:
+- PROJECT_CANONICAL_CONTEXT.md
+- ADMIN_PANEL_CANONICAL_TEMPLATE.md
+- API_PHASE1.md
+
+
+---
+
 ## 📜 ADR (Architecture Decision Records) Rules
 
 Folder: `docs/adr/`
