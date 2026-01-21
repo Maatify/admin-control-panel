@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Service;
 
+use App\Domain\Admin\Enum\AdminStatusEnum;
 use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
 use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
@@ -18,6 +19,7 @@ use App\Domain\Enum\VerificationStatus;
 use App\Domain\Exception\AuthStateException;
 use App\Domain\Exception\InvalidCredentialsException;
 use App\Domain\Exception\MustChangePasswordException;
+use App\Infrastructure\Repository\AdminRepository;
 use DateTimeImmutable;
 use PDO;
 
@@ -33,7 +35,8 @@ readonly class AdminAuthenticationService
         private AuthoritativeSecurityAuditWriterInterface $outboxWriter,
         private RecoveryStateService $recoveryState,
         private PDO $pdo,
-        private PasswordService $passwordService
+        private PasswordService $passwordService,
+        private AdminRepository $adminRepository,
     ) {
     }
 
@@ -73,7 +76,47 @@ readonly class AdminAuthenticationService
             throw new InvalidCredentialsException("Invalid credentials.");
         }
 
-        // 3. Check Verification Status
+        // 🔒 3 Enforce Admin Lifecycle Status
+        $status = $this->adminRepository->getStatus($adminId);
+        if (! $status->canAuthenticate()) {
+
+            $this->securityLogger->log(new SecurityEventDTO(
+                $adminId,
+                'login_blocked',
+                'warning',
+                ['reason' => 'admin_' . strtolower($status->name)],
+                $context->ipAddress,
+                $context->userAgent,
+                new DateTimeImmutable(),
+                $context->requestId
+            ));
+
+            throw new AuthStateException(
+                match ($status) {
+                    AdminStatusEnum::SUSPENDED =>
+                    AuthStateException::REASON_SUSPENDED,
+
+                    AdminStatusEnum::DISABLED =>
+                    AuthStateException::REASON_DISABLED,
+
+                    default =>
+                    AuthStateException::REASON_DISABLED, // fail-closed
+                },
+                match ($status) {
+                    AdminStatusEnum::SUSPENDED =>
+                    'Your account is temporarily suspended. Please contact the system administrator.',
+
+                    AdminStatusEnum::DISABLED =>
+                    'Your account has been disabled and is no longer active.',
+
+                    default =>
+                    'Authentication failed.',
+                }
+            );
+
+        }
+
+        // 4. Check Verification Status
         $status = $this->verificationRepository->getVerificationStatus($adminId);
         if ($status !== VerificationStatus::VERIFIED) {
             $this->securityLogger->log(new SecurityEventDTO(
@@ -86,18 +129,21 @@ readonly class AdminAuthenticationService
                 new DateTimeImmutable(),
                 $context->requestId
             ));
-            throw new AuthStateException("Identifier is not verified.");
+            throw new AuthStateException(
+                AuthStateException::REASON_NOT_VERIFIED,
+                'Identifier is not verified.'
+            );
         }
 
-        // 🔒 4 Enforce Must-Change-Password
+        // 🔒 5. Enforce Must-Change-Password
         if ($record->mustChangePassword) {
             throw new MustChangePasswordException('Password change required.');
         }
 
-        // 5. Transactional Login (Upgrade + Session)
+        // 6. Transactional Login (Upgrade + Session)
         $this->pdo->beginTransaction();
         try {
-            // 5.1 Upgrade-on-Login
+            // 6.1 Upgrade-on-Login
             if ($this->passwordService->needsRehash($record->hash, $record->pepperId)) {
                 $newHash = $this->passwordService->hash($password);
                 $this->passwordRepository->savePassword(
@@ -108,7 +154,7 @@ readonly class AdminAuthenticationService
                 );
             }
 
-            // 5.2 Create Session
+            // 6.2 Create Session
             $token = $this->sessionRepository->createSession($adminId);
             $sessionId = hash('sha256', $token);
 

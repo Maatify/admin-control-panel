@@ -331,6 +331,7 @@ Entries MUST NOT be rewritten or reordered.
 - docs(auth): align authentication flow with credential-first enforcement
 - feat(architecture/logging): add unified canonical logging design
 - chore(db): add admin display_name and lifecycle status
+- feat(auth): enforce admin lifecycle status during login flow
 
 
 ---

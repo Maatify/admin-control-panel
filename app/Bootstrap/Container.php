@@ -489,6 +489,7 @@ class Container
                 $recoveryState = $c->get(RecoveryStateService::class);
                 $pdo = $c->get(PDO::class);
                 $passwordService = $c->get(PasswordService::class);
+                $adminRepository = $c->get(AdminRepository::class);
 
                 assert($lookup instanceof AdminIdentifierLookupInterface);
                 assert($verificationRepo instanceof AdminEmailVerificationRepositoryInterface);
@@ -499,6 +500,7 @@ class Container
                 assert($recoveryState instanceof RecoveryStateService);
                 assert($pdo instanceof PDO);
                 assert($passwordService instanceof PasswordService);
+                assert($adminRepository instanceof AdminRepository);
 
                 return new AdminAuthenticationService(
                     $lookup,
@@ -509,7 +511,8 @@ class Container
                     $outboxWriter,
                     $recoveryState,
                     $pdo,
-                    $passwordService
+                    $passwordService,
+                    $adminRepository
                 );
             },
             AdminSessionRepositoryInterface::class => function (ContainerInterface $c) {

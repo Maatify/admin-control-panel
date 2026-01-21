@@ -125,7 +125,8 @@ readonly class LoginController
 
         }
         catch (AuthStateException $e) {
-            if ($e->getMessage() === 'Identifier is not verified.') {
+
+            if ($e->reason() === AuthStateException::REASON_NOT_VERIFIED) {
                 return $response
                     ->withHeader(
                         'Location',
@@ -134,10 +135,10 @@ readonly class LoginController
                     ->withStatus(302);
             }
 
+            // أي حالة تانية (SUSPENDED / DISABLED)
             return $this->view->render($response, $template, [
-                'error' => 'Authentication failed.'
+                'error' => $e->getMessage()
             ]);
-
         }
         catch (InvalidCredentialsException $e) {
             return $this->view->render($response, $template, [
