@@ -1,6 +1,7 @@
 /**
  * Sessions Page - Final Version
  * Controls ALL params structure and handles session-specific logic
+ * IMPROVED: Better debounce delay (1000ms) with visual feedback
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -233,27 +234,43 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="flex gap-4 items-center flex-wrap">
                 <div class="w-64">
                     <input id="sessions-global-search" 
-                        class="w-full border rounded-lg px-3 py-1 text-sm" 
+                        class="w-full border rounded-lg px-3 py-1 text-sm transition-colors duration-200" 
                         placeholder="Search sessions..." />
                 </div>
                 
                 <div class="flex gap-2">
-                    <span data-status="all" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white">All</span>
-                    <span data-status="active" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white">Active</span>
-                    <span data-status="expired" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white">Expired</span>
-                    <span data-status="revoked" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white">Revoked</span>
+                    <span data-status="all" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white transition-colors duration-200">All</span>
+                    <span data-status="active" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white transition-colors duration-200">Active</span>
+                    <span data-status="expired" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white transition-colors duration-200">Expired</span>
+                    <span data-status="revoked" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white transition-colors duration-200">Revoked</span>
                 </div>
             </div>
         `;
 
         const globalSearch = document.getElementById('sessions-global-search');
         if (globalSearch) {
+            // ✅ IMPROVED: Longer debounce delay (1000ms = 1 second)
             globalSearch.addEventListener('keyup', (e) => {
                 const value = e.target.value.trim();
+
+                // Clear previous timeout
                 clearTimeout(globalSearch.searchTimeout);
+
+                // Set new timeout with longer delay (1 second)
                 globalSearch.searchTimeout = setTimeout(() => {
                     handleGlobalSearch(value);
-                }, 500);
+                }, 1000); // ✅ Increased to 1000ms (1 second) to allow finishing typing
+            });
+
+            // ✅ IMPROVED: Visual feedback while typing
+            globalSearch.addEventListener('input', (e) => {
+                const value = e.target.value.trim();
+                if (value.length > 0) {
+                    // Show user that input is being processed
+                    globalSearch.classList.add('border-blue-300', 'bg-blue-50');
+                } else {
+                    globalSearch.classList.remove('border-blue-300', 'bg-blue-50');
+                }
             });
         }
 
@@ -268,7 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             btn.addEventListener('click', () => {
-                console.log("🔘 Clicked status:", status);
+                console.log("📘 Clicked status:", status);
 
                 // ✅ Update current filter
                 currentStatusFilter = status;
@@ -303,7 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleStatusFilter(status) {
-        console.log("🔘 Filtering by status:", status);
+        console.log("📘 Filtering by status:", status);
 
         const params = buildParams(1, 10);
 
