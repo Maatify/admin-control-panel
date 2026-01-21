@@ -87,12 +87,27 @@ CREATE TABLE admin_passwords (
 CREATE TABLE admin_sessions (
                                 session_id VARCHAR(64) PRIMARY KEY,
                                 admin_id INT NOT NULL,
+
                                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                                 expires_at DATETIME NOT NULL,
                                 is_revoked TINYINT(1) NOT NULL DEFAULT 0,
+
+    -- Pending TOTP Enrollment (Session-bound)
+                                pending_totp_seed_ciphertext VARBINARY(512) NULL
+                                    COMMENT 'Encrypted pending TOTP seed (CryptoContext::TOTP_SEED_V1)',
+                                pending_totp_seed_iv VARBINARY(16) NULL,
+                                pending_totp_seed_tag VARBINARY(16) NULL,
+                                pending_totp_seed_key_id VARCHAR(64) NULL,
+                                pending_totp_issued_at DATETIME NULL
+                                    COMMENT 'When pending TOTP enrollment was initiated',
+
                                 CONSTRAINT fk_as_admin_id
                                     FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci
+    COMMENT='Admin authenticated sessions (auth_token-bound) with optional pending TOTP enrollment state';
+
 
 CREATE TABLE admin_totp_secrets (
                                     admin_id INT NOT NULL,
