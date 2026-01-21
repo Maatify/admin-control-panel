@@ -60,7 +60,7 @@ final readonly class TelemetryLoggerMysqlRepository  implements TelemetryLoggerI
                 'INSERT INTO telemetry_traces (
                     actor_type,
                     actor_id,
-                    event_type,
+                    event_key,
                     severity,
                     request_id,
                     route_name,
@@ -71,7 +71,7 @@ final readonly class TelemetryLoggerMysqlRepository  implements TelemetryLoggerI
                 ) VALUES (
                     :actor_type,
                     :actor_id,
-                    :event_type,
+                    :event_key,
                     :severity,
                     :request_id,
                     :route_name,
@@ -87,7 +87,7 @@ final readonly class TelemetryLoggerMysqlRepository  implements TelemetryLoggerI
             $stmt->execute([
                 ':actor_type'  => $event->actorType,
                 ':actor_id'    => $event->actorId,
-                ':event_type'  => $event->eventType->value,
+                ':event_key'   => $event->eventType->value,
                 ':severity'    => $event->severity->value,
                 ':request_id'  => $event->requestId,
                 ':route_name'  => $event->routeName,
