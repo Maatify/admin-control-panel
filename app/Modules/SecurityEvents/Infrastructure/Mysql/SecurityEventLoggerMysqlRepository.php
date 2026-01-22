@@ -26,9 +26,9 @@ use Throwable;
 /**
  * MySQL-based repository for persisting security events.
  *
- * Best-effort logger:
- * - MUST NOT throw
- * - MUST NOT affect authentication / authorization flow
+ * Honest logger:
+ * - Throws SecurityEventStorageException on failure.
+ * - DOES NOT swallow exceptions.
  */
 final readonly class SecurityEventLoggerMysqlRepository implements
     SecurityEventLoggerInterface,

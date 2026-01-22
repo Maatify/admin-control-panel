@@ -16,12 +16,14 @@ declare(strict_types=1);
 namespace App\Modules\SecurityEvents\Contracts;
 
 use App\Modules\SecurityEvents\DTO\SecurityEventDTO;
+use App\Modules\SecurityEvents\Exceptions\SecurityEventStorageException;
 
 /**
  * Contract for recording security-related events.
  *
- * Implementations MUST be best-effort and MUST NOT throw
- * exceptions that break the main execution flow.
+ * Implementations are honest and MAY throw exceptions on failure.
+ * The best-effort policy MUST be enforced by the Domain Recorder,
+ * not by this module contract.
  *
  * This interface is designed to be implemented by infrastructure
  * adapters (e.g. PDO, Queue, External SIEM).
@@ -31,11 +33,8 @@ interface SecurityEventLoggerInterface
     /**
      * Record a security event.
      *
-     * Implementations MUST NOT throw runtime exceptions.
-     * Any internal failure should be handled internally
-     * (best-effort logging).
-     *
      * @param   SecurityEventDTO  $event
+     * @throws  SecurityEventStorageException If storage fails.
      */
     public function log(SecurityEventDTO $event): void;
 }
