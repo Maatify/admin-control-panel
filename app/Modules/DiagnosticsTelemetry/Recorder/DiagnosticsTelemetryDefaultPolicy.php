@@ -22,17 +22,15 @@ class DiagnosticsTelemetryDefaultPolicy implements DiagnosticsTelemetryPolicyInt
             $value = $actorType;
         }
 
-        // 1. Enforce Length (Max 32)
-        if (strlen($value) > self::MAX_ACTOR_TYPE_LENGTH) {
-            $value = substr($value, 0, self::MAX_ACTOR_TYPE_LENGTH);
-        }
-
-        // 2. Enforce Uppercase
+        // 1. Enforce Uppercase
         $value = strtoupper($value);
 
-        // 3. Enforce Pattern: A-Z, 0-9, _, ., :, -
-        if (!preg_match('/^[A-Z0-9_.:-]+$/', $value)) {
-             return DiagnosticsTelemetryActorTypeEnum::ANONYMOUS;
+        // 2. Sanitize characters: Replace anything NOT in [A-Z0-9_.:-] with '_'
+        $value = (string)preg_replace('/[^A-Z0-9_.:-]/', '_', $value);
+
+        // 3. Enforce Length (Max 32)
+        if (strlen($value) > self::MAX_ACTOR_TYPE_LENGTH) {
+            $value = substr($value, 0, self::MAX_ACTOR_TYPE_LENGTH);
         }
 
         // 4. Return Enum if exists

@@ -12,7 +12,7 @@
     - [x] `DiagnosticsTelemetryDefaultPolicy` (Default Implementation)
     - [x] Builds DTOs internally (Caller passes primitives/enums)
     - [x] Enforces metadata size limit (64KB via Policy)
-    - [x] Validates `actor_type` via Policy (Extensible)
+    - [x] Validates `actor_type` via Policy (Extensible, Sanitizing)
 - [x] **Contracts**:
     - [x] `DiagnosticsTelemetryLoggerInterface` (Writer Contract)
     - [x] `DiagnosticsTelemetryQueryInterface` (Reader/Cursor Contract)
@@ -21,7 +21,7 @@
     - [x] `DiagnosticsTelemetryQueryMysqlRepository` (PDO Read Implementation)
     - [x] `DiagnosticsTelemetryStorageException` (Domain Exception)
     - [x] Append-only behavior
-    - [x] Schema awareness (`diagnostics_telemetry`)
+    - [x] Schema artifact present (`Database/schema.diagnostics_telemetry.sql`)
 - [x] **Context & Timing**:
     - [x] `ClockInterface` & `SystemClock`
     - [x] UTC enforcement (via `occurred_at` formatting)

@@ -8,9 +8,7 @@ use App\Modules\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryPolicyInterfac
 use App\Modules\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryLoggerInterface;
 use App\Modules\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryContextDTO;
 use App\Modules\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryEventDTO;
-use App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetryActorTypeEnum;
 use App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetryActorTypeInterface;
-use App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetrySeverityEnum;
 use App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetrySeverityInterface;
 use App\Modules\DiagnosticsTelemetry\Exception\DiagnosticsTelemetryStorageException;
 use App\Modules\DiagnosticsTelemetry\Services\ClockInterface;

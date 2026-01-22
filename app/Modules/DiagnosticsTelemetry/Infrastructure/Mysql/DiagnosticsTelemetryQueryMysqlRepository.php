@@ -81,12 +81,14 @@ class DiagnosticsTelemetryQueryMysqlRepository implements DiagnosticsTelemetryQu
      */
     private function mapRowToDTO(array $row): DiagnosticsTelemetryEventDTO
     {
-        $severity = $this->policy->normalizeSeverity((string)$row['severity']);
+        $severityStr = isset($row['severity']) ? (string)$row['severity'] : 'INFO';
+        $severity = $this->policy->normalizeSeverity($severityStr);
 
-        $actorType = $this->policy->normalizeActorType((string)$row['actor_type']);
+        $actorTypeStr = isset($row['actor_type']) ? (string)$row['actor_type'] : 'ANONYMOUS';
+        $actorType = $this->policy->normalizeActorType($actorTypeStr);
 
         $metadata = null;
-        if (!empty($row['metadata']) && is_string($row['metadata'])) {
+        if (isset($row['metadata']) && is_string($row['metadata']) && $row['metadata'] !== '') {
             try {
                 $decoded = json_decode($row['metadata'], true, 512, JSON_THROW_ON_ERROR);
                 if (is_array($decoded)) {
@@ -99,6 +101,10 @@ class DiagnosticsTelemetryQueryMysqlRepository implements DiagnosticsTelemetryQu
             }
         }
 
+        $occurredAtStr = isset($row['occurred_at']) ? (string)$row['occurred_at'] : '1970-01-01 00:00:00';
+        $eventId = isset($row['event_id']) ? (string)$row['event_id'] : '';
+        $eventKey = isset($row['event_key']) ? (string)$row['event_key'] : 'unknown';
+
         $context = new DiagnosticsTelemetryContextDTO(
             actorType: $actorType,
             actorId: isset($row['actor_id']) ? (int)$row['actor_id'] : null,
@@ -107,12 +113,12 @@ class DiagnosticsTelemetryQueryMysqlRepository implements DiagnosticsTelemetryQu
             routeName: isset($row['route_name']) ? (string)$row['route_name'] : null,
             ipAddress: isset($row['ip_address']) ? (string)$row['ip_address'] : null,
             userAgent: isset($row['user_agent']) ? (string)$row['user_agent'] : null,
-            occurredAt: new DateTimeImmutable((string)$row['occurred_at'])
+            occurredAt: new DateTimeImmutable($occurredAtStr)
         );
 
         return new DiagnosticsTelemetryEventDTO(
-            eventId: (string)$row['event_id'],
-            eventKey: (string)$row['event_key'],
+            eventId: $eventId,
+            eventKey: $eventKey,
             severity: $severity,
             context: $context,
             durationMs: isset($row['duration_ms']) ? (int)$row['duration_ms'] : null,
