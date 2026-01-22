@@ -16,7 +16,8 @@ declare(strict_types=1);
 namespace App\Modules\ActivityLog\Contracts;
 
 use App\Modules\ActivityLog\DTO\ActivityLogDTO;
-use Throwable;
+use App\Modules\ActivityLog\Exceptions\ActivityLogMappingException;
+use App\Modules\ActivityLog\Exceptions\ActivityLogStorageException;
 
 interface ActivityLogWriterInterface
 {
@@ -28,7 +29,8 @@ interface ActivityLogWriterInterface
      * - NOT throw domain exceptions
      * - NOT perform validation
      *
-     * @throws Throwable Infrastructure failures only
+     * @throws ActivityLogStorageException On persistent storage failure (e.g. DB connection)
+     * @throws ActivityLogMappingException On data mapping failure (e.g. JSON encoding)
      */
     public function write(ActivityLogDTO $activity): void;
 }

@@ -340,6 +340,9 @@ Entries MUST NOT be rewritten or reordered.
 - refactor(schema): unify logging tables and fix canonical inconsistencies
 - docs(logging): lock canonical schema, layering bindings, and read-side rules
 - chore(db): remove legacy logging section header from schema
+- fix(telemetry): write to event_key column in MySQL logger
+- fix(security-events): make logger contract honest about storage failures
+- fix(activity-log): enforce best-effort policy in Domain and harden MySQL writer
 
 
 ---

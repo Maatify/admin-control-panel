@@ -15,17 +15,17 @@ declare(strict_types=1);
 
 namespace App\Modules\ActivityLog\Traits;
 
+use App\Domain\ActivityLog\Recorder\ActivityRecorder;
 use App\Modules\ActivityLog\Contracts\ActivityActionInterface;
-use App\Modules\ActivityLog\Service\ActivityLogService;
 use DateTimeImmutable;
 
 trait ActivityLogAwareTrait
 {
-    protected ActivityLogService $activityLog;
+    protected ActivityRecorder $activityRecorder;
 
-    public function setActivityLogService(ActivityLogService $activityLog): void
+    public function setActivityLogService(ActivityRecorder $activityRecorder): void
     {
-        $this->activityLog = $activityLog;
+        $this->activityRecorder = $activityRecorder;
     }
 
     /**
@@ -59,7 +59,7 @@ trait ActivityLogAwareTrait
         ?DateTimeImmutable $occurredAt = null,
     ): void
     {
-        $this->activityLog->log(
+        $this->activityRecorder->log(
             action    : $action,
             actorType : $actorType,
             actorId   : $actorId,

@@ -15,8 +15,8 @@ declare(strict_types=1);
 
 namespace App\Modules\ActivityLog\Traits;
 
+use App\Domain\ActivityLog\Recorder\ActivityRecorder;
 use App\Modules\ActivityLog\Contracts\ActivityActionInterface;
-use App\Modules\ActivityLog\Service\ActivityLogService;
 use DateTimeImmutable;
 use RuntimeException;
 
@@ -27,11 +27,11 @@ trait ActivityLogStaticTrait
      * Used for legacy/static contexts only.
      * Must be initialized during bootstrap.
      */
-    protected static ?ActivityLogService $activityLogService = null;
+    protected static ?ActivityRecorder $activityLogRecorder = null;
 
-    public static function setActivityLogService(ActivityLogService $service): void
+    public static function setActivityLogService(ActivityRecorder $service): void
     {
-        self::$activityLogService = $service;
+        self::$activityLogRecorder = $service;
     }
 
     /**
@@ -65,11 +65,11 @@ trait ActivityLogStaticTrait
         ?DateTimeImmutable $occurredAt = null,
     ): void
     {
-        if (self::$activityLogService === null) {
-            throw new RuntimeException('ActivityLogService is not initialized.');
+        if (self::$activityLogRecorder === null) {
+            throw new RuntimeException('ActivityRecorder is not initialized.');
         }
 
-        self::$activityLogService->log(
+        self::$activityLogRecorder->log(
             action    : $action,
             actorType : $actorType,
             actorId   : $actorId,

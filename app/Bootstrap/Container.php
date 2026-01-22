@@ -13,6 +13,7 @@ use App\Application\Verification\VerificationNotificationDispatcher;
 use App\Application\Verification\VerificationNotificationDispatcherInterface;
 use App\Context\ActorContext;
 use App\Domain\ActivityLog\Reader\ActivityLogListReaderInterface;
+use App\Domain\ActivityLog\Recorder\ActivityRecorder;
 use App\Domain\Admin\Reader\AdminProfileReaderInterface;
 use App\Domain\Admin\Reader\AdminQueryReaderInterface;
 use App\Domain\Contracts\ActorProviderInterface;
@@ -101,7 +102,6 @@ use App\Http\Controllers\Ui\UiRolesController;
 use App\Http\Controllers\Ui\UiSettingsController;
 use App\Http\Controllers\Ui\SessionListController;
 use App\Domain\Session\Reader\SessionListReaderInterface;
-use App\Infrastructure\ActivityLog\MySQLActivityLogWriter;
 use App\Infrastructure\Admin\Reader\PdoAdminProfileReader;
 use App\Infrastructure\Context\ActorContextProvider;
 use App\Infrastructure\Crypto\AdminIdentifierCryptoService;
@@ -149,7 +149,7 @@ use App\Infrastructure\Service\Google2faTotpService;
 use App\Infrastructure\UX\AdminActivityMapper;
 use App\Modules\ActivityLog\Contracts\ActivityLogWriterInterface;
 use App\Domain\ActivityLog\Service\AdminActivityLogService;
-use App\Modules\ActivityLog\Service\ActivityLogService;
+use App\Modules\ActivityLog\Infrastructure\Mysql\ActivityLogLoggerMysqlRepository;
 use App\Modules\Crypto\KeyRotation\KeyRotationService;
 use App\Modules\Crypto\KeyRotation\Providers\InMemoryKeyProvider;
 use App\Modules\Crypto\KeyRotation\Policy\StrictSingleActiveKeyPolicy;
@@ -612,20 +612,20 @@ class Container
                 return LoggerFactory::create('slim/app');
             },
             ActivityLogWriterInterface::class => function (ContainerInterface $c) {
-                $pdoFactory = $c->get(PDOFactory::class);
-                assert($pdoFactory instanceof PDOFactory);
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
 
-                return new MySQLActivityLogWriter($pdoFactory);
+                return new ActivityLogLoggerMysqlRepository($pdo);
             },
-            ActivityLogService::class => function (ContainerInterface $c) {
+            ActivityRecorder::class => function (ContainerInterface $c) {
                 $writer = $c->get(ActivityLogWriterInterface::class);
                 assert($writer instanceof ActivityLogWriterInterface);
-                return new ActivityLogService($writer);
+                return new ActivityRecorder($writer);
             },
             AdminActivityLogService::class => function (ContainerInterface $c) {
-                $service = $c->get(ActivityLogService::class);
-                assert($service instanceof ActivityLogService);
-                return new AdminActivityLogService($service);
+                $recorder = $c->get(ActivityRecorder::class);
+                assert($recorder instanceof ActivityRecorder);
+                return new AdminActivityLogService($recorder);
             },
             ActivityLogListReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);

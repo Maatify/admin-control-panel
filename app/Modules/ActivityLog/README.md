@@ -60,12 +60,12 @@ For those, use a **dedicated Audit or Security Log system**.
 
 ```
 
-ActivityLogService
+ActivityRecorder (Domain)
 │
 ▼
 ActivityLogWriterInterface
 │
-├── MySQLActivityLogWriter
+├── ActivityLogLoggerMysqlRepository
 ├── (Future: MongoDB, Queue, File, etc.)
 
 ```
@@ -74,8 +74,8 @@ ActivityLogWriterInterface
 
 ## 🧩 Core Components
 
-### ActivityLogService
-Main entry point used by application code.
+### ActivityRecorder (Domain)
+Main entry point used by application code. Enforces best-effort policy (swallows exceptions).
 
 ### ActivityLogDTO
 Immutable data carrier describing a single activity.
