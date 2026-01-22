@@ -13,6 +13,7 @@ use App\Application\Verification\VerificationNotificationDispatcher;
 use App\Application\Verification\VerificationNotificationDispatcherInterface;
 use App\Context\ActorContext;
 use App\Domain\ActivityLog\Reader\ActivityLogListReaderInterface;
+use App\Domain\ActivityLog\Recorder\ActivityRecorder;
 use App\Domain\Admin\Reader\AdminProfileReaderInterface;
 use App\Domain\Admin\Reader\AdminQueryReaderInterface;
 use App\Domain\Contracts\ActorProviderInterface;
@@ -622,10 +623,15 @@ class Container
                 assert($writer instanceof ActivityLogWriterInterface);
                 return new ActivityLogService($writer);
             },
+            ActivityRecorder::class => function (ContainerInterface $c) {
+                $writer = $c->get(ActivityLogWriterInterface::class);
+                assert($writer instanceof ActivityLogWriterInterface);
+                return new ActivityRecorder($writer);
+            },
             AdminActivityLogService::class => function (ContainerInterface $c) {
-                $service = $c->get(ActivityLogService::class);
-                assert($service instanceof ActivityLogService);
-                return new AdminActivityLogService($service);
+                $recorder = $c->get(ActivityRecorder::class);
+                assert($recorder instanceof ActivityRecorder);
+                return new AdminActivityLogService($recorder);
             },
             ActivityLogListReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);

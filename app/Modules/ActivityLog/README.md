@@ -60,7 +60,10 @@ For those, use a **dedicated Audit or Security Log system**.
 
 ```
 
-ActivityLogService
+ActivityRecorder (Domain)
+│
+▼
+ActivityLogService (Module)
 │
 ▼
 ActivityLogWriterInterface

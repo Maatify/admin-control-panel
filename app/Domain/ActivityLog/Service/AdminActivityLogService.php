@@ -17,15 +17,15 @@ namespace App\Domain\ActivityLog\Service;
 
 use App\Context\AdminContext;
 use App\Context\RequestContext;
+use App\Domain\ActivityLog\Recorder\ActivityRecorder;
 use App\Modules\ActivityLog\Contracts\ActivityActionInterface;
-use App\Modules\ActivityLog\Service\ActivityLogService;
 
 final readonly class AdminActivityLogService
 {
     private const ACTOR_TYPE = 'admin';
 
     public function __construct(
-        private ActivityLogService $service,
+        private ActivityRecorder $recorder,
     )
     {
     }
@@ -42,7 +42,7 @@ final readonly class AdminActivityLogService
         ?array $metadata = null
     ): void
     {
-        $this->service->log(
+        $this->recorder->log(
             action: $action,
             actorType: self::ACTOR_TYPE,
             actorId: $adminContext->adminId,

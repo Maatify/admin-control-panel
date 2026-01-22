@@ -17,7 +17,9 @@ namespace App\Modules\ActivityLog\Drivers\MySQL;
 
 use App\Modules\ActivityLog\Contracts\ActivityLogWriterInterface;
 use App\Modules\ActivityLog\DTO\ActivityLogDTO;
+use App\Modules\ActivityLog\Exceptions\ActivityLogStorageException;
 use PDO;
+use Throwable;
 
 final readonly class MySQLActivityLogWriter implements ActivityLogWriterInterface
 {
@@ -29,7 +31,8 @@ final readonly class MySQLActivityLogWriter implements ActivityLogWriterInterfac
 
     public function write(ActivityLogDTO $activity): void
     {
-        $sql = <<<SQL
+        try {
+            $sql = <<<SQL
 INSERT INTO activity_logs (
     actor_type,
     actor_id,
@@ -55,21 +58,24 @@ INSERT INTO activity_logs (
 )
 SQL;
 
-        $stmt = $this->pdo->prepare($sql);
+            $stmt = $this->pdo->prepare($sql);
 
-        $stmt->execute([
-            ':actor_type'  => $activity->actorType,
-            ':actor_id'    => $activity->actorId,
-            ':action'      => $activity->action,
-            ':entity_type' => $activity->entityType,
-            ':entity_id'   => $activity->entityId,
-            ':metadata'    => $activity->metadata !== null
-                ? json_encode($activity->metadata, JSON_THROW_ON_ERROR)
-                : null,
-            ':ip_address'  => $activity->ipAddress,
-            ':user_agent'  => $activity->userAgent,
-            ':request_id'  => $activity->requestId,
-            ':occurred_at' => $activity->occurredAt->format('Y-m-d H:i:s.u'),
-        ]);
+            $stmt->execute([
+                ':actor_type'  => $activity->actorType,
+                ':actor_id'    => $activity->actorId,
+                ':action'      => $activity->action,
+                ':entity_type' => $activity->entityType,
+                ':entity_id'   => $activity->entityId,
+                ':metadata'    => $activity->metadata !== null
+                    ? json_encode($activity->metadata, JSON_THROW_ON_ERROR)
+                    : null,
+                ':ip_address'  => $activity->ipAddress,
+                ':user_agent'  => $activity->userAgent,
+                ':request_id'  => $activity->requestId,
+                ':occurred_at' => $activity->occurredAt->format('Y-m-d H:i:s.u'),
+            ]);
+        } catch (Throwable $e) {
+            throw new ActivityLogStorageException('Failed to write activity log', $e);
+        }
     }
 }

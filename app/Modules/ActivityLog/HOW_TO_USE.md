@@ -9,12 +9,12 @@ This guide shows **how to use Activity Log safely and correctly**.
 ### Inject the Service
 
 ```php
-use App\Modules\ActivityLog\Service\ActivityLogService;
+use App\Domain\ActivityLog\Recorder\ActivityRecorder;
 
 final class UserService
 {
     public function __construct(
-        private ActivityLogService $activityLog,
+        private ActivityRecorder $activityRecorder,
     ) {}
 }
 ````
@@ -24,7 +24,7 @@ final class UserService
 ### Log an Activity
 
 ```php
-$this->activityLog->log(
+$this->activityRecorder->log(
     action    : 'admin.user.update',
     actorType : 'admin',
     actorId   : 1,
@@ -98,7 +98,8 @@ Activity Log **never throws** to the caller.
 
 Internally:
 
-* Writer failures are swallowed
+* Module failures raise explicit exceptions
+* Domain Recorder catches and swallows exceptions
 * User flow continues
 
 This is **intentional**.

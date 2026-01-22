@@ -1,26 +1,16 @@
 <?php
 
-/**
- * @copyright   ©2026 Maatify.dev
- * @Library     maatify/admin-control-panel
- * @Project     maatify:admin-control-panel
- * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
- * @since       2026-01-11 20:00
- * @see         https://www.maatify.dev Maatify.dev
- * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
- * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
- */
-
 declare(strict_types=1);
 
-namespace App\Modules\ActivityLog\Service;
+namespace App\Domain\ActivityLog\Recorder;
 
 use App\Modules\ActivityLog\Contracts\ActivityActionInterface;
-use App\Modules\ActivityLog\DTO\ActivityLogDTO;
 use App\Modules\ActivityLog\Contracts\ActivityLogWriterInterface;
+use App\Modules\ActivityLog\DTO\ActivityLogDTO;
+use App\Modules\ActivityLog\Exceptions\ActivityLogStorageException;
 use DateTimeImmutable;
 
-final readonly class ActivityLogService
+final readonly class ActivityRecorder
 {
     public function __construct(
         private ActivityLogWriterInterface $writer,
@@ -88,6 +78,11 @@ final readonly class ActivityLogService
             occurredAt: $occurredAt,
         );
 
-        $this->writer->write($dto);
+        try {
+            $this->writer->write($dto);
+        } catch (ActivityLogStorageException) {
+            // Best-effort policy: Swallow storage exceptions
+            // Activity logging failure MUST NOT break the main application flow
+        }
     }
 }
