@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\TelemetryLogging\DTO;
+namespace App\Modules\DiagnosticsTelemetry\DTO;
 
 use DateTimeImmutable;
 
-readonly class TelemetryCursorDTO
+readonly class DiagnosticsTelemetryCursorDTO
 {
     public function __construct(
         public DateTimeImmutable $lastOccurredAt,

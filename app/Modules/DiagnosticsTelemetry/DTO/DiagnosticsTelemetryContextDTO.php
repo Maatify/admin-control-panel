@@ -2,14 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\TelemetryLogging\DTO;
+namespace App\Modules\DiagnosticsTelemetry\DTO;
 
+use App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetryActorTypeInterface;
 use DateTimeImmutable;
 
-readonly class TelemetryContextDTO
+readonly class DiagnosticsTelemetryContextDTO
 {
     public function __construct(
-        public string $actorType,
+        public DiagnosticsTelemetryActorTypeInterface $actorType,
         public ?int $actorId,
         public ?string $correlationId,
         public ?string $requestId,

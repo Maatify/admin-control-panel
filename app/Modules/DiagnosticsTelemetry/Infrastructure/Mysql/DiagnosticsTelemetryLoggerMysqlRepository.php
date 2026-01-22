@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\TelemetryLogging\Infrastructure;
+namespace App\Modules\DiagnosticsTelemetry\Infrastructure\Mysql;
 
-use App\Modules\TelemetryLogging\Contract\TelemetryWriterInterface;
-use App\Modules\TelemetryLogging\DTO\TelemetryEventDTO;
-use App\Modules\TelemetryLogging\Exception\TelemetryStorageException;
+use App\Modules\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryLoggerInterface;
+use App\Modules\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryEventDTO;
+use App\Modules\DiagnosticsTelemetry\Exception\DiagnosticsTelemetryStorageException;
 use PDO;
 use PDOException;
 use JsonException;
 
-class TelemetryMySqlWriter implements TelemetryWriterInterface
+class DiagnosticsTelemetryLoggerMysqlRepository implements DiagnosticsTelemetryLoggerInterface
 {
     private const TABLE_NAME = 'diagnostics_telemetry';
 
@@ -20,7 +20,7 @@ class TelemetryMySqlWriter implements TelemetryWriterInterface
     ) {
     }
 
-    public function write(TelemetryEventDTO $dto): void
+    public function write(DiagnosticsTelemetryEventDTO $dto): void
     {
         $sql = sprintf(
             'INSERT INTO %s (
@@ -62,8 +62,8 @@ class TelemetryMySqlWriter implements TelemetryWriterInterface
             $stmt->execute([
                 ':event_id' => $dto->eventId,
                 ':event_key' => $dto->eventKey,
-                ':severity' => $dto->severity->value,
-                ':actor_type' => $dto->context->actorType,
+                ':severity' => $dto->severity->value(),
+                ':actor_type' => $dto->context->actorType->value(),
                 ':actor_id' => $dto->context->actorId,
                 ':correlation_id' => $dto->context->correlationId,
                 ':request_id' => $dto->context->requestId,
@@ -75,9 +75,9 @@ class TelemetryMySqlWriter implements TelemetryWriterInterface
                 ':occurred_at' => $dto->context->occurredAt->format('Y-m-d H:i:s.u'),
             ]);
         } catch (PDOException $e) {
-            throw new TelemetryStorageException('Failed to write telemetry log: ' . $e->getMessage(), 0, $e);
+            throw new DiagnosticsTelemetryStorageException('Failed to write telemetry log: ' . $e->getMessage(), 0, $e);
         } catch (JsonException $e) {
-             throw new TelemetryStorageException('Failed to encode metadata: ' . $e->getMessage(), 0, $e);
+             throw new DiagnosticsTelemetryStorageException('Failed to encode metadata: ' . $e->getMessage(), 0, $e);
         }
     }
 }

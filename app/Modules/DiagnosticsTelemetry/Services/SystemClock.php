@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\TelemetryLogging\Services;
+namespace App\Modules\DiagnosticsTelemetry\Services;
 
 use DateTimeImmutable;
 
