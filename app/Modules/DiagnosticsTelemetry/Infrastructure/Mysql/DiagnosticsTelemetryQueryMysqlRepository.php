@@ -4,27 +4,30 @@ declare(strict_types=1);
 
 namespace App\Modules\DiagnosticsTelemetry\Infrastructure\Mysql;
 
+use App\Modules\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryPolicyInterface;
 use App\Modules\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryQueryInterface;
 use App\Modules\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryContextDTO;
 use App\Modules\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryCursorDTO;
 use App\Modules\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryEventDTO;
-use App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetryActorTypeEnum;
-use App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetrySeverityEnum;
 use App\Modules\DiagnosticsTelemetry\Exception\DiagnosticsTelemetryStorageException;
 use App\Modules\DiagnosticsTelemetry\Recorder\DiagnosticsTelemetryDefaultPolicy;
 use DateTimeImmutable;
 use PDO;
 use PDOException;
 use Exception;
+use JsonException;
 
 class DiagnosticsTelemetryQueryMysqlRepository implements DiagnosticsTelemetryQueryInterface
 {
     private const TABLE_NAME = 'diagnostics_telemetry';
 
+    private readonly DiagnosticsTelemetryPolicyInterface $policy;
+
     public function __construct(
         private readonly PDO $pdo,
-        private readonly DiagnosticsTelemetryDefaultPolicy $policy = new DiagnosticsTelemetryDefaultPolicy()
+        ?DiagnosticsTelemetryPolicyInterface $policy = null
     ) {
+        $this->policy = $policy ?? new DiagnosticsTelemetryDefaultPolicy();
     }
 
     /**
@@ -40,7 +43,6 @@ class DiagnosticsTelemetryQueryMysqlRepository implements DiagnosticsTelemetryQu
         $params = [];
 
         if ($cursor) {
-            // Stable cursor paging: (occurred_at > last_time) OR (occurred_at = last_time AND id > last_id)
             $sql .= ' AND (occurred_at > :last_occurred_at OR (occurred_at = :last_occurred_at_eq AND id > :last_id))';
             $params[':last_occurred_at'] = $cursor->lastOccurredAt->format('Y-m-d H:i:s.u');
             $params[':last_occurred_at_eq'] = $cursor->lastOccurredAt->format('Y-m-d H:i:s.u');
@@ -48,12 +50,10 @@ class DiagnosticsTelemetryQueryMysqlRepository implements DiagnosticsTelemetryQu
         }
 
         $sql .= ' ORDER BY occurred_at ASC, id ASC LIMIT :limit';
-        // LIMIT in PDO is integer, not string, but some drivers need int.
 
         try {
             $stmt = $this->pdo->prepare($sql);
 
-            // Bind limit as INT
             $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
 
             foreach ($params as $key => $value) {
@@ -63,6 +63,7 @@ class DiagnosticsTelemetryQueryMysqlRepository implements DiagnosticsTelemetryQu
             $stmt->execute();
 
             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                /** @var array<string, mixed> $row */
                 yield $this->mapRowToDTO($row);
             }
 
@@ -80,34 +81,42 @@ class DiagnosticsTelemetryQueryMysqlRepository implements DiagnosticsTelemetryQu
      */
     private function mapRowToDTO(array $row): DiagnosticsTelemetryEventDTO
     {
-        $severityEnum = DiagnosticsTelemetrySeverityEnum::tryFrom($row['severity']);
-        $severity = $severityEnum ?? DiagnosticsTelemetrySeverityEnum::INFO;
+        $severity = $this->policy->normalizeSeverity((string)$row['severity']);
 
-        $actorType = $this->policy->normalizeActorType($row['actor_type']);
+        $actorType = $this->policy->normalizeActorType((string)$row['actor_type']);
 
         $metadata = null;
-        if (!empty($row['metadata'])) {
-            $metadata = json_decode($row['metadata'], true);
+        if (!empty($row['metadata']) && is_string($row['metadata'])) {
+            try {
+                $decoded = json_decode($row['metadata'], true, 512, JSON_THROW_ON_ERROR);
+                if (is_array($decoded)) {
+                    $metadata = $decoded;
+                }
+            } catch (JsonException) {
+                // Metadata corruption in DB; treat as null or partial?
+                // Best effort: null.
+                $metadata = null;
+            }
         }
 
         $context = new DiagnosticsTelemetryContextDTO(
             actorType: $actorType,
             actorId: isset($row['actor_id']) ? (int)$row['actor_id'] : null,
-            correlationId: $row['correlation_id'] ?? null,
-            requestId: $row['request_id'] ?? null,
-            routeName: $row['route_name'] ?? null,
-            ipAddress: $row['ip_address'] ?? null,
-            userAgent: $row['user_agent'] ?? null,
-            occurredAt: new DateTimeImmutable($row['occurred_at'])
+            correlationId: isset($row['correlation_id']) ? (string)$row['correlation_id'] : null,
+            requestId: isset($row['request_id']) ? (string)$row['request_id'] : null,
+            routeName: isset($row['route_name']) ? (string)$row['route_name'] : null,
+            ipAddress: isset($row['ip_address']) ? (string)$row['ip_address'] : null,
+            userAgent: isset($row['user_agent']) ? (string)$row['user_agent'] : null,
+            occurredAt: new DateTimeImmutable((string)$row['occurred_at'])
         );
 
         return new DiagnosticsTelemetryEventDTO(
-            eventId: $row['event_id'],
-            eventKey: $row['event_key'],
+            eventId: (string)$row['event_id'],
+            eventKey: (string)$row['event_key'],
             severity: $severity,
             context: $context,
             durationMs: isset($row['duration_ms']) ? (int)$row['duration_ms'] : null,
-            metadata: is_array($metadata) ? $metadata : null
+            metadata: $metadata
         );
     }
 }

@@ -6,8 +6,8 @@
 2. **Fallback Logging**:
    - The module uses `Psr\Log\LoggerInterface` for fallback logging. Is there a specific implementation expected, or is the generic interface sufficient?
 
-3. **Validation Strictness**:
-   - The default policy performs trimming and uppercasing for Actor Types. Is this sufficient, or should it be stricter?
-
-4. **Query Repository Usage**:
+3. **Query Repository Usage**:
    - The `DiagnosticsTelemetryQueryMysqlRepository` is implemented for "Readiness". How should it be exposed to the application (e.g. via a Service or directly)?
+
+4. **UUID Dependency**:
+   - The module uses `ramsey/uuid` as it is present in `composer.json`. If this dependency is removed in the future, an internal generator will need to be implemented.

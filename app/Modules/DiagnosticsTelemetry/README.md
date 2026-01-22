@@ -15,6 +15,7 @@ The module follows the Canonical Logger Design Standard:
 2.  **Contract** (`DiagnosticsTelemetryLoggerInterface`): The interface for the storage driver.
 3.  **DTOs**: Strict Data Transfer Objects for Context, Events, and Cursors. DTOs depend on Extensible Interfaces.
 4.  **Infrastructure** (`DiagnosticsTelemetryLoggerMysqlRepository`): The MySQL implementation of the writer using PDO.
+5.  **Policy** (`DiagnosticsTelemetryPolicyInterface`): Interface for normalizing inputs (Severity, ActorType) and validating rules. A default implementation (`DiagnosticsTelemetryDefaultPolicy`) is provided.
 
 ### Data Flow
 
@@ -27,7 +28,8 @@ Call DiagnosticsTelemetryRecorder::record(eventKey, severity, actorType, ...)
   v
 DiagnosticsTelemetryRecorder
   - Normalizes Actor Type (via Policy)
-  - Validates Metadata Size (64KB)
+  - Normalizes Severity (via Policy)
+  - Validates Metadata Size (64KB via Policy)
   - Generates Event ID (UUID)
   - Constructs Context and Event DTOs
   |
@@ -48,7 +50,7 @@ The module is designed to be isolated.
 - **Outbound**: Module depends only on:
     - `PDO` (standard PHP extension)
     - `Psr\Log\LoggerInterface` (standard PSR)
-    - `Ramsey\Uuid` (standard library)
+    - `Ramsey\Uuid` (explicit dependency for UUIDv4 generation)
     - `ClockInterface` (internal abstraction)
 
 ## Usage
@@ -83,4 +85,10 @@ $recorder->record(
 
 - **Severity**: Implement `DiagnosticsTelemetrySeverityInterface`.
 - **ActorType**: Implement `DiagnosticsTelemetryActorTypeInterface`.
-- **Policy**: Extend or replace `DiagnosticsTelemetryDefaultPolicy` to change normalization/validation logic.
+- **Policy**: Implement `DiagnosticsTelemetryPolicyInterface` and inject it into the Recorder/Repository to change normalization/validation logic (e.g., allowed actor types, regex patterns).
+
+### Constraints & Guards
+
+- **Metadata**: MUST be an array or null. Maximum size is 64KB (JSON encoded).
+- **Secrets**: Metadata MUST NOT contain secrets (passwords, tokens, OTPs).
+- **Actor Type**: Default policy enforces uppercase, max length 32, and pattern `A-Z0-9_.:-`.

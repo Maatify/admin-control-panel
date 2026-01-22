@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\DiagnosticsTelemetry\Recorder;
 
+use App\Modules\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryPolicyInterface;
 use App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetryActorTypeEnum;
 use App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetryActorTypeInterface;
+use App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetrySeverityEnum;
+use App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetrySeverityInterface;
 
-class DiagnosticsTelemetryDefaultPolicy
+class DiagnosticsTelemetryDefaultPolicy implements DiagnosticsTelemetryPolicyInterface
 {
     private const MAX_ACTOR_TYPE_LENGTH = 32;
 
@@ -19,34 +22,46 @@ class DiagnosticsTelemetryDefaultPolicy
             $value = $actorType;
         }
 
-        // Basic validation: length
+        // 1. Enforce Length (Max 32)
         if (strlen($value) > self::MAX_ACTOR_TYPE_LENGTH) {
-            // Trim or throw? Policy says "normalized + validated".
-            // "Must be normalized + validated by policy (length <= 32, pattern-based, uppercase recommended)."
-            // Let's trim and uppercase.
-            $value = substr(strtoupper($value), 0, self::MAX_ACTOR_TYPE_LENGTH);
-        } else {
-            $value = strtoupper($value);
+            $value = substr($value, 0, self::MAX_ACTOR_TYPE_LENGTH);
         }
 
-        // Pattern validation can be added here. For now, strictly simple characters.
-        // Assuming strictly alphanumeric + underscores for safety, but docs say "pattern-based".
-        if (!preg_match('/^[A-Z0-9_]+$/', $value)) {
-             // Fallback to SYSTEM or throw? Best effort means we shouldn't crash.
-             // But if invalid actor type, maybe ANONYMOUS?
-             // Let's return ANONYMOUS if invalid pattern.
+        // 2. Enforce Uppercase
+        $value = strtoupper($value);
+
+        // 3. Enforce Pattern: A-Z, 0-9, _, ., :, -
+        if (!preg_match('/^[A-Z0-9_.:-]+$/', $value)) {
              return DiagnosticsTelemetryActorTypeEnum::ANONYMOUS;
         }
 
-        // Return a simple anonymous class implementation or match existing enum?
-        // If it matches a known enum, return it.
+        // 4. Return Enum if exists
         $enum = DiagnosticsTelemetryActorTypeEnum::tryFrom($value);
         if ($enum) {
             return $enum;
         }
 
-        // Otherwise return ad-hoc implementation
+        // 5. Return Ad-hoc Implementation
         return new class($value) implements DiagnosticsTelemetryActorTypeInterface {
+            public function __construct(private readonly string $val) {}
+            public function value(): string { return $this->val; }
+        };
+    }
+
+    public function normalizeSeverity(string|DiagnosticsTelemetrySeverityInterface $severity): DiagnosticsTelemetrySeverityInterface
+    {
+        if ($severity instanceof DiagnosticsTelemetrySeverityInterface) {
+            return $severity;
+        }
+
+        $value = strtoupper($severity);
+        $enum = DiagnosticsTelemetrySeverityEnum::tryFrom($value);
+        if ($enum) {
+            return $enum;
+        }
+
+        // Ad-hoc severity for unknown values from DB or input
+        return new class($value) implements DiagnosticsTelemetrySeverityInterface {
             public function __construct(private readonly string $val) {}
             public function value(): string { return $this->val; }
         };

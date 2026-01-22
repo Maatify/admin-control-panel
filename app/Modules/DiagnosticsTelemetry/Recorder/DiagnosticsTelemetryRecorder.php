@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\DiagnosticsTelemetry\Recorder;
 
+use App\Modules\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryPolicyInterface;
 use App\Modules\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryLoggerInterface;
 use App\Modules\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryContextDTO;
 use App\Modules\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryEventDTO;
@@ -19,12 +20,15 @@ use JsonException;
 
 class DiagnosticsTelemetryRecorder
 {
+    private readonly DiagnosticsTelemetryPolicyInterface $policy;
+
     public function __construct(
         private readonly DiagnosticsTelemetryLoggerInterface $writer,
         private readonly ClockInterface $clock,
         private readonly ?LoggerInterface $fallbackLogger = null,
-        private readonly DiagnosticsTelemetryDefaultPolicy $policy = new DiagnosticsTelemetryDefaultPolicy()
+        ?DiagnosticsTelemetryPolicyInterface $policy = null
     ) {
+        $this->policy = $policy ?? new DiagnosticsTelemetryDefaultPolicy();
     }
 
     /**
@@ -53,11 +57,8 @@ class DiagnosticsTelemetryRecorder
         ?int $durationMs = null,
         ?array $metadata = null
     ): void {
-        // Normalize Severity
-        if (is_string($severity)) {
-             $severityEnum = DiagnosticsTelemetrySeverityEnum::tryFrom(strtoupper($severity));
-             $severity = $severityEnum ?? DiagnosticsTelemetrySeverityEnum::INFO;
-        }
+        // Normalize Severity via Policy
+        $normalizedSeverity = $this->policy->normalizeSeverity($severity);
 
         // Normalize Actor Type via Policy
         $normalizedActorType = $this->policy->normalizeActorType($actorType);
@@ -68,7 +69,7 @@ class DiagnosticsTelemetryRecorder
                 $json = json_encode($metadata, JSON_THROW_ON_ERROR);
                 if (!$this->policy->validateMetadataSize($json)) {
                     if ($this->fallbackLogger) {
-                        $this->fallbackLogger->warning('Telemetry metadata exceeded 64KB limit. Dropping metadata.', [
+                        $this->fallbackLogger->warning('Telemetry metadata exceeded limit. Dropping metadata.', [
                             'event_key' => $eventKey,
                             'size' => strlen($json)
                         ]);
@@ -102,7 +103,7 @@ class DiagnosticsTelemetryRecorder
         $dto = new DiagnosticsTelemetryEventDTO(
             eventId: Uuid::uuid4()->toString(),
             eventKey: $eventKey,
-            severity: $severity,
+            severity: $normalizedSeverity,
             context: $context,
             durationMs: $durationMs,
             metadata: $metadata

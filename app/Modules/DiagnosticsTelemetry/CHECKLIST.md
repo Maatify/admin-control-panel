@@ -8,10 +8,11 @@
     - [x] `DiagnosticsTelemetryActorTypeInterface` & Enum (Extensible ActorType)
 - [x] **Recorder Layer**:
     - [x] `DiagnosticsTelemetryRecorder` (Policy, Validation, DTO Building)
-    - [x] `DiagnosticsTelemetryDefaultPolicy` (Normalization/Validation)
+    - [x] `DiagnosticsTelemetryPolicyInterface` (Extensible Policy)
+    - [x] `DiagnosticsTelemetryDefaultPolicy` (Default Implementation)
     - [x] Builds DTOs internally (Caller passes primitives/enums)
-    - [x] Enforces metadata size limit (64KB)
-    - [x] Validates `actor_type` via Policy
+    - [x] Enforces metadata size limit (64KB via Policy)
+    - [x] Validates `actor_type` via Policy (Extensible)
 - [x] **Contracts**:
     - [x] `DiagnosticsTelemetryLoggerInterface` (Writer Contract)
     - [x] `DiagnosticsTelemetryQueryInterface` (Reader/Cursor Contract)
