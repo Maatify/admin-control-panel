@@ -17,7 +17,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Domain\List\ListCapabilities;
 use App\Domain\List\ListQueryDTO;
-use App\Domain\ActivityLog\Reader\ActivityLogListReaderInterface;
+use App\Modules\ActivityLog\Contracts\ActivityLogListReaderInterface;
 use App\Domain\Service\AuthorizationService;
 use App\Infrastructure\Query\ListFilterResolver;
 use App\Modules\Validation\Guard\ValidationGuard;

@@ -13,19 +13,19 @@
 
 declare(strict_types=1);
 
-namespace Tests\Modules\ActivityLog;
+namespace Tests\Unit\Domain\ActivityLog\Recorder;
 
-use App\Modules\ActivityLog\Service\ActivityLogService;
+use App\Domain\ActivityLog\Recorder\ActivityRecorder;
 use App\Modules\ActivityLog\Enums\CoreActivityAction;
 use Tests\Fakes\FakeActivityLogWriter;
 use PHPUnit\Framework\TestCase;
 
-final class ActivityLogServiceTest extends TestCase
+final class ActivityRecorderTest extends TestCase
 {
     public function test_it_logs_activity_using_enum(): void
     {
         $writer = new FakeActivityLogWriter();
-        $service = new ActivityLogService($writer);
+        $service = new ActivityRecorder($writer);
 
         $service->log(
             action    : CoreActivityAction::ADMIN_USER_UPDATE,
@@ -46,7 +46,7 @@ final class ActivityLogServiceTest extends TestCase
         $writer = new FakeActivityLogWriter();
         $writer->throwException = true;
 
-        $service = new ActivityLogService($writer);
+        $service = new ActivityRecorder($writer);
 
         $this->expectNotToPerformAssertions();
 

@@ -34,8 +34,8 @@ final class SessionRevokeControllerTest extends TestCase
 
         $writer = $this->createMock(\App\Modules\ActivityLog\Contracts\ActivityLogWriterInterface::class);
         $writer->expects($this->once())->method('write');
-        $activityLogService = new \App\Modules\ActivityLog\Service\ActivityLogService($writer);
-        $adminActivityLogService = new \App\Domain\ActivityLog\Service\AdminActivityLogService($activityLogService);
+        $activityRecorder = new \App\Domain\ActivityLog\Recorder\ActivityRecorder($writer);
+        $adminActivityLogService = new \App\Domain\ActivityLog\Service\AdminActivityLogService($activityRecorder);
 
         $controller = new SessionRevokeController(
             $revocationService,

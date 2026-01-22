@@ -103,6 +103,8 @@ final class MySQLTestHelper
                 ip_address VARCHAR(45) NULL,
                 user_agent VARCHAR(255) NULL,
                 request_id VARCHAR(64) NULL,
+                correlation_id CHAR(36) NULL,
+                route_name VARCHAR(255) NULL,
                 occurred_at DATETIME NOT NULL
             );
 SQL

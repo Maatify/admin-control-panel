@@ -19,7 +19,7 @@ use App\Domain\DTO\ActivityLog\ActivityLogListItemDTO;
 use App\Domain\DTO\ActivityLog\ActivityLogListResponseDTO;
 use App\Domain\DTO\Common\PaginationDTO;
 use App\Domain\List\ListQueryDTO;
-use App\Domain\ActivityLog\Reader\ActivityLogListReaderInterface;
+use App\Modules\ActivityLog\Contracts\ActivityLogListReaderInterface;
 use App\Infrastructure\Query\ResolvedListFilters;
 use PDO;
 use RuntimeException;

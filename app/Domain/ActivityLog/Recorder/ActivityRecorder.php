@@ -31,6 +31,8 @@ final readonly class ActivityRecorder
      * @param   string|null                     $ipAddress
      * @param   string|null                     $userAgent
      * @param   string|null                     $requestId
+     * @param   string|null                     $correlationId
+     * @param   string|null                     $routeName
      * @param   DateTimeImmutable|null          $occurredAt
      */
     public function log(
@@ -48,6 +50,8 @@ final readonly class ActivityRecorder
         ?string $userAgent = null,
 
         ?string $requestId = null,
+        ?string $correlationId = null,
+        ?string $routeName = null,
 
         ?DateTimeImmutable $occurredAt = null,
     ): void
@@ -74,7 +78,9 @@ final readonly class ActivityRecorder
             ipAddress : $ipAddress,
             userAgent : $userAgent,
 
+            correlationId: $correlationId,
             requestId : $requestId,
+            routeName : $routeName,
 
             occurredAt: $occurredAt,
         );

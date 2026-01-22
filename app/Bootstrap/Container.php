@@ -12,7 +12,7 @@ use App\Application\Crypto\TotpSecretCryptoServiceInterface;
 use App\Application\Verification\VerificationNotificationDispatcher;
 use App\Application\Verification\VerificationNotificationDispatcherInterface;
 use App\Context\ActorContext;
-use App\Domain\ActivityLog\Reader\ActivityLogListReaderInterface;
+use App\Modules\ActivityLog\Contracts\ActivityLogListReaderInterface;
 use App\Domain\ActivityLog\Recorder\ActivityRecorder;
 use App\Domain\Admin\Reader\AdminProfileReaderInterface;
 use App\Domain\Admin\Reader\AdminQueryReaderInterface;

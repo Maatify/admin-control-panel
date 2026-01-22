@@ -38,6 +38,8 @@ final readonly class ActivityLogLoggerMysqlRepository implements ActivityLogWrit
                     ip_address,
                     user_agent,
                     request_id,
+                    correlation_id,
+                    route_name,
                     occurred_at
                 ) VALUES (
                     :actor_type,
@@ -49,6 +51,8 @@ final readonly class ActivityLogLoggerMysqlRepository implements ActivityLogWrit
                     :ip_address,
                     :user_agent,
                     :request_id,
+                    :correlation_id,
+                    :route_name,
                     :occurred_at
                 )
                 SQL
@@ -71,6 +75,8 @@ final readonly class ActivityLogLoggerMysqlRepository implements ActivityLogWrit
                 ':ip_address'  => $activity->ipAddress,
                 ':user_agent'  => $activity->userAgent,
                 ':request_id'  => $activity->requestId,
+                ':correlation_id' => $activity->correlationId,
+                ':route_name'     => $activity->routeName,
                 ':occurred_at' => $activity->occurredAt->format('Y-m-d H:i:s.u'),
             ]);
 

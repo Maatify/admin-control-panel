@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Tests\Integration\ActivityLog;
 
-use App\Modules\ActivityLog\Drivers\MySQL\MySQLActivityLogWriter;
+use App\Modules\ActivityLog\Infrastructure\Mysql\ActivityLogLoggerMysqlRepository;
 use App\Modules\ActivityLog\DTO\ActivityLogDTO;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
@@ -32,7 +32,7 @@ final class MySQLActivityLogWriterTest extends TestCase
     public function test_it_inserts_activity_log_row(): void
     {
         $pdo = MySQLTestHelper::pdo();
-        $writer = new MySQLActivityLogWriter($pdo);
+        $writer = new ActivityLogLoggerMysqlRepository($pdo);
 
         $dto = new ActivityLogDTO(
             action: 'test.insert',
@@ -43,7 +43,9 @@ final class MySQLActivityLogWriterTest extends TestCase
             metadata: ['x' => 1],
             ipAddress: '127.0.0.1',
             userAgent: 'PHPUnit',
+            correlationId: 'corr-1',
             requestId: 'req-1',
+            routeName: 'test.route',
             occurredAt: new DateTimeImmutable(),
         );
 

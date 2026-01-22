@@ -13,7 +13,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\ActivityLog\Reader;
+namespace App\Modules\ActivityLog\Contracts;
 
 use App\Domain\DTO\ActivityLog\ActivityLogListResponseDTO;
 use App\Domain\List\ListQueryDTO;

@@ -36,7 +36,9 @@ final readonly class ActivityLogDTO
         public ?string $ipAddress,
         public ?string $userAgent,
 
+        public ?string $correlationId,
         public ?string $requestId,
+        public ?string $routeName,
 
         public DateTimeImmutable $occurredAt,
     )

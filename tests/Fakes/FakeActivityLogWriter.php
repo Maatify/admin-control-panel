@@ -17,6 +17,7 @@ namespace Tests\Fakes;
 
 use App\Modules\ActivityLog\Contracts\ActivityLogWriterInterface;
 use App\Modules\ActivityLog\DTO\ActivityLogDTO;
+use App\Modules\ActivityLog\Exceptions\ActivityLogStorageException;
 
 final class FakeActivityLogWriter implements ActivityLogWriterInterface
 {
@@ -26,7 +27,7 @@ final class FakeActivityLogWriter implements ActivityLogWriterInterface
     public function write(ActivityLogDTO $activity): void
     {
         if ($this->throwException) {
-            throw new \RuntimeException('DB down');
+            throw new ActivityLogStorageException('DB down');
         }
 
         $this->lastActivity = $activity;
