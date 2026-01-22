@@ -12,6 +12,7 @@ use App\Modules\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryEventDTO;
 use App\Modules\DiagnosticsTelemetry\Exception\DiagnosticsTelemetryStorageException;
 use App\Modules\DiagnosticsTelemetry\Recorder\DiagnosticsTelemetryDefaultPolicy;
 use DateTimeImmutable;
+use DateTimeZone;
 use PDO;
 use PDOException;
 use Exception;
@@ -113,7 +114,7 @@ class DiagnosticsTelemetryQueryMysqlRepository implements DiagnosticsTelemetryQu
             routeName: isset($row['route_name']) ? (string)$row['route_name'] : null,
             ipAddress: isset($row['ip_address']) ? (string)$row['ip_address'] : null,
             userAgent: isset($row['user_agent']) ? (string)$row['user_agent'] : null,
-            occurredAt: new DateTimeImmutable($occurredAtStr)
+            occurredAt: new DateTimeImmutable($occurredAtStr, new DateTimeZone('UTC'))
         );
 
         return new DiagnosticsTelemetryEventDTO(

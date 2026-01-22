@@ -11,7 +11,7 @@ This module provides a standalone, isolated logging mechanism for **Diagnostics 
 
 The module follows the Canonical Logger Design Standard:
 
-1.  **Recorder** (`DiagnosticsTelemetryRecorder`): The policy layer. It accepts telemetry data (scalars or Interfaces), validates it (e.g., actor types, metadata size), enforces DB constraints (truncation), creates DTOs, and handles storage failures (best-effort).
+1.  **Recorder** (`DiagnosticsTelemetryRecorder`): The policy layer. It accepts telemetry data (scalars or Interfaces), validates it (e.g., actor types, metadata size), enforces DB constraints (UTF-8 safe truncation), creates DTOs, and handles storage failures (best-effort).
 2.  **Contract** (`DiagnosticsTelemetryLoggerInterface`): The interface for the storage driver.
 3.  **DTOs**: Strict Data Transfer Objects for Context, Events, and Cursors. DTOs depend on Extensible Interfaces.
 4.  **Infrastructure** (`DiagnosticsTelemetryLoggerMysqlRepository`): The MySQL implementation of the writer using PDO.
@@ -27,7 +27,7 @@ Call DiagnosticsTelemetryRecorder::record(eventKey, severity, actorType, ...)
   |
   v
 DiagnosticsTelemetryRecorder
-  - Enforces DB Constraints (Truncates strings)
+  - Enforces DB Constraints (UTF-8 safe truncation)
   - Normalizes Duration (>= 0)
   - Normalizes Actor Type (via Policy)
   - Normalizes Severity (via Policy)
@@ -99,7 +99,8 @@ $recorder->record(
 
 ### Constraints & Guards
 
-- **String Constraints**: The Recorder automatically truncates strings to fit database columns (e.g., `event_key` to 255, `user_agent` to 512).
+- **Timezone**: Dates are strictly enforced as UTC.
+- **String Constraints**: The Recorder automatically truncates strings to fit database columns (e.g., `event_key` to 255, `user_agent` to 512) using UTF-8 safe truncation (if `mbstring` is available).
 - **Duration**: `duration_ms` is automatically coerced to 0 if negative.
 - **Metadata**: MUST be an array or null. Maximum size is 64KB (JSON encoded).
 - **Secrets**: Metadata MUST NOT contain secrets (passwords, tokens, OTPs).

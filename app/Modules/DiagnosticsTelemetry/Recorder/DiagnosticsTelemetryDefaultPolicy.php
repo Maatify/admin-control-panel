@@ -60,8 +60,12 @@ class DiagnosticsTelemetryDefaultPolicy implements DiagnosticsTelemetryPolicyInt
 
         $value = strtoupper($severity);
 
-        // Enforce Length (Max 16)
-        if (strlen($value) > self::MAX_SEVERITY_LENGTH) {
+        // Enforce Length (Max 16) - UTF-8 safe
+        if (function_exists('mb_strlen') && function_exists('mb_substr')) {
+            if (mb_strlen($value, 'UTF-8') > self::MAX_SEVERITY_LENGTH) {
+                $value = mb_substr($value, 0, self::MAX_SEVERITY_LENGTH, 'UTF-8');
+            }
+        } elseif (strlen($value) > self::MAX_SEVERITY_LENGTH) {
             $value = substr($value, 0, self::MAX_SEVERITY_LENGTH);
         }
 

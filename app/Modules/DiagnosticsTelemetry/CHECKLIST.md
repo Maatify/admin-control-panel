@@ -13,7 +13,7 @@
     - [x] Builds DTOs internally (Caller passes primitives/enums)
     - [x] Enforces metadata size limit (64KB via Policy)
     - [x] Validates `actor_type` via Policy (Extensible, Sanitizing)
-    - [x] Enforces Write-side constraints (Truncation, Duration check)
+    - [x] Enforces Write-side constraints (UTF-8 Truncation, Duration check)
 - [x] **Contracts**:
     - [x] `DiagnosticsTelemetryLoggerInterface` (Writer Contract)
     - [x] `DiagnosticsTelemetryQueryInterface` (Reader/Cursor Contract)
@@ -25,7 +25,7 @@
     - [x] Schema artifact present (`Database/schema.diagnostics_telemetry.sql`)
 - [x] **Context & Timing**:
     - [x] `ClockInterface` & `SystemClock`
-    - [x] UTC enforcement (via `occurred_at` formatting)
+    - [x] UTC enforcement (via `DateTimeZone('UTC')`)
     - [x] Correlation/Trace ID support
 - [x] **Archiving Awareness**:
     - [x] `DiagnosticsTelemetryCursorDTO` (Pagination)
@@ -35,4 +35,4 @@
     - [x] No dependence on Framework Container (Dependency Injection via Constructor)
 
 **Status:** DIAGNOSTICS TELEMETRY MODULE – READY FOR EXTENSION
-**Verification:** PHPStan Level Max Checked (0 Errors). Constraints Enforced.
+**Verification:** PHPStan Level Max Checked (0 Errors). Constraints Enforced (UTC, UTF-8).

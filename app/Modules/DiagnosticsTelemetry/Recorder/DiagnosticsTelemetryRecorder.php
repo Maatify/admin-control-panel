@@ -138,14 +138,18 @@ class DiagnosticsTelemetryRecorder
         if ($value === null) {
             return null;
         }
-        if (strlen($value) > $limit) {
-            return substr($value, 0, $limit);
-        }
-        return $value;
+        return $this->truncateString($value, $limit);
     }
 
     private function truncateString(string $value, int $limit): string
     {
+        if (function_exists('mb_strlen') && function_exists('mb_substr')) {
+            if (mb_strlen($value, 'UTF-8') > $limit) {
+                return mb_substr($value, 0, $limit, 'UTF-8');
+            }
+            return $value;
+        }
+
         if (strlen($value) > $limit) {
             return substr($value, 0, $limit);
         }
