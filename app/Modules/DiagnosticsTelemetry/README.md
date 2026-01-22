@@ -17,6 +17,15 @@ The module follows the Canonical Logger Design Standard:
 4.  **Infrastructure** (`DiagnosticsTelemetryLoggerMysqlRepository`): The MySQL implementation of the writer using PDO.
 5.  **Policy** (`DiagnosticsTelemetryPolicyInterface`): Interface for normalizing inputs (Severity, ActorType) and validating rules. A default implementation (`DiagnosticsTelemetryDefaultPolicy`) is provided.
 
+### Module Boundary / Public Surface
+
+Consumers should strictly use the defined Public API:
+- **Write:** `DiagnosticsTelemetryRecorder::record(...)`
+- **Read:** `DiagnosticsTelemetryQueryInterface::read(...)`
+- **Configure:** `DiagnosticsTelemetryPolicyInterface` (optional implementation)
+
+See `PUBLIC_API.md` for full contract details.
+
 ### Data Flow
 
 ```
@@ -90,6 +99,19 @@ $recorder->record(
     metadata: ['url' => '/api/test']
 );
 ```
+
+### Failure Semantics (Best Effort)
+
+The `DiagnosticsTelemetryRecorder` is designed to be **fail-open**.
+- If the database write fails (`PDOException`), the exception is **caught and swallowed**.
+- The failure is logged to the fallback `Psr\Log\LoggerInterface` (if provided).
+- This ensures that a telemetry logging failure does not crash the main application request.
+
+### Archiving Readiness
+
+The module is designed to support future archiving via the `DiagnosticsTelemetryQueryInterface`.
+- **Stable Cursors**: The `read()` method accepts a `DiagnosticsTelemetryCursorDTO` (last occurred_at + id) to allow reliable, stateless iteration over large datasets (e.g. for moving old logs to an archive).
+- **Read-Side Resilience**: The reader handles unknown or invalid data (e.g. from an old version of the app or manual DB edit) gracefully by sanitizing it into valid DTOs.
 
 ### Extensibility
 
