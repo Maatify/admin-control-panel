@@ -55,6 +55,19 @@ class DiagnosticsTelemetryRecorder
         ?int $durationMs = null,
         ?array $metadata = null
     ): void {
+        // Enforce DB Constraints (Fail-open/Truncate)
+        $eventKey = $this->truncateString($eventKey, 255);
+        $correlationId = $this->truncate($correlationId, 36);
+        $requestId = $this->truncate($requestId, 64);
+        $routeName = $this->truncate($routeName, 255);
+        $ipAddress = $this->truncate($ipAddress, 45);
+        $userAgent = $this->truncate($userAgent, 512);
+
+        // Normalize duration (INT UNSIGNED)
+        if ($durationMs !== null && $durationMs < 0) {
+            $durationMs = 0;
+        }
+
         // Normalize Severity via Policy
         $normalizedSeverity = $this->policy->normalizeSeverity($severity);
 
@@ -118,5 +131,24 @@ class DiagnosticsTelemetryRecorder
                 ]);
             }
         }
+    }
+
+    private function truncate(?string $value, int $limit): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+        if (strlen($value) > $limit) {
+            return substr($value, 0, $limit);
+        }
+        return $value;
+    }
+
+    private function truncateString(string $value, int $limit): string
+    {
+        if (strlen($value) > $limit) {
+            return substr($value, 0, $limit);
+        }
+        return $value;
     }
 }

@@ -13,6 +13,7 @@ use App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetrySeverityInterface;
 class DiagnosticsTelemetryDefaultPolicy implements DiagnosticsTelemetryPolicyInterface
 {
     private const MAX_ACTOR_TYPE_LENGTH = 32;
+    private const MAX_SEVERITY_LENGTH = 16;
 
     public function normalizeActorType(string|DiagnosticsTelemetryActorTypeInterface $actorType): DiagnosticsTelemetryActorTypeInterface
     {
@@ -58,6 +59,12 @@ class DiagnosticsTelemetryDefaultPolicy implements DiagnosticsTelemetryPolicyInt
         }
 
         $value = strtoupper($severity);
+
+        // Enforce Length (Max 16)
+        if (strlen($value) > self::MAX_SEVERITY_LENGTH) {
+            $value = substr($value, 0, self::MAX_SEVERITY_LENGTH);
+        }
+
         $enum = DiagnosticsTelemetrySeverityEnum::tryFrom($value);
         if ($enum) {
             return $enum;

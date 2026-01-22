@@ -13,6 +13,7 @@
     - [x] Builds DTOs internally (Caller passes primitives/enums)
     - [x] Enforces metadata size limit (64KB via Policy)
     - [x] Validates `actor_type` via Policy (Extensible, Sanitizing)
+    - [x] Enforces Write-side constraints (Truncation, Duration check)
 - [x] **Contracts**:
     - [x] `DiagnosticsTelemetryLoggerInterface` (Writer Contract)
     - [x] `DiagnosticsTelemetryQueryInterface` (Reader/Cursor Contract)
