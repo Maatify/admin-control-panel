@@ -54,7 +54,14 @@ final readonly class ActivityLogLoggerMysqlRepository implements ActivityLogWrit
                 SQL
             );
 
-            $stmt->execute([
+            if ($stmt === false) {
+                $errorInfo = $this->pdo->errorInfo();
+                throw new ActivityLogStorageException(
+                    'Failed to prepare statement: ' . ($errorInfo[2] ?? 'Unknown error')
+                );
+            }
+
+            $success = $stmt->execute([
                 ':actor_type'  => $activity->actorType,
                 ':actor_id'    => $activity->actorId,
                 ':action'      => $activity->action,
@@ -66,6 +73,13 @@ final readonly class ActivityLogLoggerMysqlRepository implements ActivityLogWrit
                 ':request_id'  => $activity->requestId,
                 ':occurred_at' => $activity->occurredAt->format('Y-m-d H:i:s.u'),
             ]);
+
+            if ($success === false) {
+                $errorInfo = $stmt->errorInfo();
+                throw new ActivityLogStorageException(
+                    'Failed to execute statement: ' . ($errorInfo[2] ?? 'Unknown error')
+                );
+            }
         } catch (JsonException $e) {
             throw new ActivityLogMappingException('Failed to encode activity metadata.', $e);
         } catch (PDOException $e) {
