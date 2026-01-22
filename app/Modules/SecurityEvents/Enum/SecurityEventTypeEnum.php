@@ -50,4 +50,6 @@ enum SecurityEventTypeEnum: string
     // Recovery / Reset
     case PASSWORD_RESET_REQUESTED = 'password_reset_requested';
     case PASSWORD_RESET_FAILED = 'password_reset_failed';
+
+    case LEGACY_UNMAPPED = 'legacy_unmapped';
 }

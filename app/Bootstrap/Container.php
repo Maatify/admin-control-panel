@@ -649,9 +649,10 @@ class Container
                 return new PdoAuthoritativeAuditWriter($pdo);
             },
             SecurityEventLoggerInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new SecurityEventRepository($pdo);
+                $recorder = $c->get(SecurityEventRecorderInterface::class);
+                assert($recorder instanceof SecurityEventRecorderInterface);
+
+                return new \App\Infrastructure\Adapter\LegacySecurityEventLoggerAdapter($recorder);
             },
             AdminActivityQueryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
