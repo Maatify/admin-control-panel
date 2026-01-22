@@ -7,6 +7,7 @@ namespace App\Domain\ActivityLog\Recorder;
 use App\Modules\ActivityLog\Contracts\ActivityActionInterface;
 use App\Modules\ActivityLog\Contracts\ActivityLogWriterInterface;
 use App\Modules\ActivityLog\DTO\ActivityLogDTO;
+use App\Modules\ActivityLog\Exceptions\ActivityLogMappingException;
 use App\Modules\ActivityLog\Exceptions\ActivityLogStorageException;
 use DateTimeImmutable;
 
@@ -80,8 +81,8 @@ final readonly class ActivityRecorder
 
         try {
             $this->writer->write($dto);
-        } catch (ActivityLogStorageException) {
-            // Best-effort policy: Swallow storage exceptions
+        } catch (ActivityLogStorageException|ActivityLogMappingException) {
+            // Best-effort policy: Swallow storage and mapping exceptions
             // Activity logging failure MUST NOT break the main application flow
         }
     }

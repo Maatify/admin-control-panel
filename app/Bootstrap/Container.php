@@ -102,7 +102,6 @@ use App\Http\Controllers\Ui\UiRolesController;
 use App\Http\Controllers\Ui\UiSettingsController;
 use App\Http\Controllers\Ui\SessionListController;
 use App\Domain\Session\Reader\SessionListReaderInterface;
-use App\Infrastructure\ActivityLog\MySQLActivityLogWriter;
 use App\Infrastructure\Admin\Reader\PdoAdminProfileReader;
 use App\Infrastructure\Context\ActorContextProvider;
 use App\Infrastructure\Crypto\AdminIdentifierCryptoService;
@@ -150,7 +149,7 @@ use App\Infrastructure\Service\Google2faTotpService;
 use App\Infrastructure\UX\AdminActivityMapper;
 use App\Modules\ActivityLog\Contracts\ActivityLogWriterInterface;
 use App\Domain\ActivityLog\Service\AdminActivityLogService;
-use App\Modules\ActivityLog\Service\ActivityLogService;
+use App\Modules\ActivityLog\Infrastructure\Mysql\ActivityLogLoggerMysqlRepository;
 use App\Modules\Crypto\KeyRotation\KeyRotationService;
 use App\Modules\Crypto\KeyRotation\Providers\InMemoryKeyProvider;
 use App\Modules\Crypto\KeyRotation\Policy\StrictSingleActiveKeyPolicy;
@@ -613,15 +612,10 @@ class Container
                 return LoggerFactory::create('slim/app');
             },
             ActivityLogWriterInterface::class => function (ContainerInterface $c) {
-                $pdoFactory = $c->get(PDOFactory::class);
-                assert($pdoFactory instanceof PDOFactory);
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
 
-                return new MySQLActivityLogWriter($pdoFactory);
-            },
-            ActivityLogService::class => function (ContainerInterface $c) {
-                $writer = $c->get(ActivityLogWriterInterface::class);
-                assert($writer instanceof ActivityLogWriterInterface);
-                return new ActivityLogService($writer);
+                return new ActivityLogLoggerMysqlRepository($pdo);
             },
             ActivityRecorder::class => function (ContainerInterface $c) {
                 $writer = $c->get(ActivityLogWriterInterface::class);

@@ -98,8 +98,8 @@ Activity Log **never throws** to the caller.
 
 Internally:
 
-* Module failures raise explicit exceptions
-* Domain Recorder catches and swallows exceptions
+* Module failures raise explicit exceptions (Storage/Mapping)
+* Domain Recorder catches and swallows these exceptions
 * User flow continues
 
 This is **intentional**.
@@ -115,7 +115,7 @@ For legacy or static contexts:
 ```php
 use App\Modules\ActivityLog\Traits\ActivityLogStaticTrait;
 
-ActivityLogStaticTrait::setActivityLogService($service);
+ActivityLogStaticTrait::setActivityLogService($recorder);
 
 self::logActivityStatic(
     action    : 'system.bootstrap',

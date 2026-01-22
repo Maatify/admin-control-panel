@@ -66,7 +66,7 @@ trait ActivityLogStaticTrait
     ): void
     {
         if (self::$activityLogRecorder === null) {
-            throw new RuntimeException('ActivityLogService is not initialized.');
+            throw new RuntimeException('ActivityRecorder is not initialized.');
         }
 
         self::$activityLogRecorder->log(
