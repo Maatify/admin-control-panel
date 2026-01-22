@@ -28,18 +28,23 @@ class DiagnosticsTelemetryDefaultPolicy implements DiagnosticsTelemetryPolicyInt
         // 2. Sanitize characters: Replace anything NOT in [A-Z0-9_.:-] with '_'
         $value = (string)preg_replace('/[^A-Z0-9_.:-]/', '_', $value);
 
-        // 3. Enforce Length (Max 32)
+        // 3. Fallback for empty value
+        if ($value === '') {
+            return DiagnosticsTelemetryActorTypeEnum::ANONYMOUS;
+        }
+
+        // 4. Enforce Length (Max 32)
         if (strlen($value) > self::MAX_ACTOR_TYPE_LENGTH) {
             $value = substr($value, 0, self::MAX_ACTOR_TYPE_LENGTH);
         }
 
-        // 4. Return Enum if exists
+        // 5. Return Enum if exists
         $enum = DiagnosticsTelemetryActorTypeEnum::tryFrom($value);
         if ($enum) {
             return $enum;
         }
 
-        // 5. Return Ad-hoc Implementation
+        // 6. Return Ad-hoc Implementation
         return new class($value) implements DiagnosticsTelemetryActorTypeInterface {
             public function __construct(private readonly string $val) {}
             public function value(): string { return $this->val; }

@@ -99,4 +99,4 @@ $recorder->record(
 
 - **Metadata**: MUST be an array or null. Maximum size is 64KB (JSON encoded).
 - **Secrets**: Metadata MUST NOT contain secrets (passwords, tokens, OTPs).
-- **Actor Type**: Default policy enforces uppercase, max length 32, and sanitizes characters (replacing invalid chars with `_`) using pattern `[^A-Z0-9_.:-]`. It does NOT collapse invalid types to ANONYMOUS by default, but sanitizes them to valid ad-hoc types.
+- **Actor Type**: Default policy enforces uppercase, max length 32, and sanitizes characters (replacing invalid chars with `_`) using pattern `[^A-Z0-9_.:-]`. It does NOT collapse invalid types to ANONYMOUS by default, but sanitizes them to valid ad-hoc types. Falls back to ANONYMOUS if sanitization results in an empty string.
