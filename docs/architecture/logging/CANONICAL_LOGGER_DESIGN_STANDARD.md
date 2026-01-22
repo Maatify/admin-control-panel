@@ -101,8 +101,8 @@ Method signatures MUST:
 
 Examples (conceptual, not code):
 
-* `record(DomainRecordDto $dto): void`
-* `write(DomainWriteDto $dto): void`
+* `record(DomainRecordDTO $dto): void`
+* `write(DomainWriteDTO $dto): void`
 
 ❌ Raw arrays are FORBIDDEN.
 
@@ -114,7 +114,7 @@ All logging APIs MUST accept DTOs.
 
 #### Naming Rules
 
-* DTO class names MUST end with `Dto`
+* DTO class names MUST end with `DTO`
 * Enum names MUST end with `Enum`
 
 #### DTO Properties

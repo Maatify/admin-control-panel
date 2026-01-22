@@ -343,6 +343,9 @@ Entries MUST NOT be rewritten or reordered.
 - fix(telemetry): write to event_key column in MySQL logger
 - fix(security-events): make logger contract honest about storage failures
 - fix(activity-log): enforce best-effort policy in Domain and harden MySQL writer
+- docs(logging): rebuild unified logging architecture documentation (canonical)
+- feat(logging): add canonical logging schemas and optional archives
+- fix(logging): align DTO naming to canonical DTO suffix
 
 
 ---
