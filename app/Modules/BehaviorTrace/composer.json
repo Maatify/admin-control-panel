@@ -1,0 +1,18 @@
+{
+    "name": "maatify/behavior-trace",
+    "description": "Operational Activity Logging Module",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Maatify\\BehaviorTrace\\": ""
+        }
+    },
+    "require": {
+        "php": "^8.2",
+        "ramsey/uuid": "^4.0",
+        "psr/log": "^1.0 || ^2.0 || ^3.0",
+        "ext-json": "*",
+        "ext-pdo": "*"
+    }
+}
