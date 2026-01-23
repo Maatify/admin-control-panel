@@ -1,0 +1,13 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Maatify\SecuritySignals\Enum;
+
+enum SecuritySeverityEnum: string
+{
+    case INFO = 'INFO';
+    case WARNING = 'WARNING';
+    case ERROR = 'ERROR';
+    case CRITICAL = 'CRITICAL';
+}
