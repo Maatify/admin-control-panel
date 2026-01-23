@@ -142,24 +142,6 @@ SQL
 SQL
         );
 
-        $pdo->exec(<<<SQL
-            CREATE TABLE IF NOT EXISTS security_signals (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                event_id CHAR(36) NOT NULL,
-                actor_type VARCHAR(32) NOT NULL,
-                actor_id INTEGER NULL,
-                signal_type VARCHAR(100) NOT NULL,
-                severity VARCHAR(16) NOT NULL,
-                correlation_id CHAR(36) NULL,
-                request_id VARCHAR(64) NULL,
-                route_name VARCHAR(255) NULL,
-                ip_address VARCHAR(45) NULL,
-                user_agent VARCHAR(512) NULL,
-                metadata JSON NOT NULL,
-                occurred_at DATETIME NOT NULL
-            );
-SQL
-        );
     }
 
     public static function truncate(string $table): void

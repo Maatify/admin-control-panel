@@ -14,6 +14,7 @@ use Maatify\SecuritySignals\Services\ClockInterface;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use JsonException;
+use Throwable;
 
 class SecuritySignalsRecorder
 {
@@ -109,7 +110,7 @@ class SecuritySignalsRecorder
         // 5. Persist (Fail-Open on storage only)
         try {
             $this->logger->write($recordDTO);
-        } catch (SecuritySignalsStorageException $e) {
+        } catch (Throwable $e) {
             if ($this->fallbackLogger) {
                 $this->fallbackLogger->error(
                     'SecuritySignals logging failed',
