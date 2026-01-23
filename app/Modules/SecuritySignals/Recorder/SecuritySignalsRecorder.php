@@ -9,7 +9,6 @@ use Maatify\SecuritySignals\Contract\SecuritySignalsPolicyInterface;
 use Maatify\SecuritySignals\DTO\SecuritySignalRecordDTO;
 use Maatify\SecuritySignals\Enum\SecuritySignalActorTypeEnum;
 use Maatify\SecuritySignals\Enum\SecuritySignalSeverityEnum;
-use Maatify\SecuritySignals\Exception\SecuritySignalsStorageException;
 use Maatify\SecuritySignals\Services\ClockInterface;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
@@ -53,69 +52,79 @@ class SecuritySignalsRecorder
         ?string $ipAddress = null,
         ?string $userAgent = null
     ): void {
-        // 1. Normalize actor type via policy
-        $normalizedActorType = $this->policy->normalizeActorType($actorType);
+        try {
+            // 1. Normalize inputs via policy
+            $normalizedActorType = $this->policy->normalizeActorType($actorType);
+            $normalizedSeverity = $this->policy->normalizeSeverity($severity);
 
-        // 2. Normalize severity
-        $normalizedSeverity = $severity instanceof SecuritySignalSeverityEnum ? $severity->value : $severity;
+            // 2. Sanitize strings to DB limits
+            $safeSignalType = substr($signalType, 0, 100);
+            $safeActorType = substr($normalizedActorType, 0, 32);
+            $safeSeverity = substr($normalizedSeverity, 0, 16);
+            $safeCorrelationId = $correlationId ? substr($correlationId, 0, 36) : null;
+            $safeRequestId = $requestId ? substr($requestId, 0, 64) : null;
+            $safeRouteName = $routeName ? substr($routeName, 0, 255) : null;
+            $safeIpAddress = $ipAddress ? substr($ipAddress, 0, 45) : null;
+            $safeUserAgent = $userAgent ? substr($userAgent, 0, 512) : null;
 
-        // 3. Validate metadata size & encoding
-        if ($metadata !== null) {
-            try {
-                $json = json_encode($metadata, JSON_THROW_ON_ERROR);
-                if (!$this->policy->validateMetadataSize($json)) {
+            // 3. Handle Metadata
+            if ($metadata !== null) {
+                try {
+                    $json = json_encode($metadata, JSON_THROW_ON_ERROR);
+                    if (!$this->policy->validateMetadataSize($json)) {
+                        if ($this->fallbackLogger) {
+                            $this->fallbackLogger->warning(
+                                'SecuritySignals metadata exceeded limit. Dropping metadata.',
+                                [
+                                    'signal_type' => $safeSignalType,
+                                    'size' => strlen($json),
+                                ]
+                            );
+                        }
+                        $metadata = ['error' => 'Metadata dropped due to size limit'];
+                    }
+                } catch (JsonException $e) {
                     if ($this->fallbackLogger) {
                         $this->fallbackLogger->warning(
-                            'SecuritySignals metadata exceeded limit. Dropping metadata.',
+                            'SecuritySignals metadata JSON encoding failed.',
                             [
-                                'signal_type' => $signalType,
-                                'size' => strlen($json),
+                                'signal_type' => $safeSignalType,
+                                'error' => $e->getMessage(),
                             ]
                         );
                     }
-                    $metadata = ['error' => 'Metadata dropped due to size limit'];
+                    $metadata = ['error' => 'Metadata dropped due to encoding error'];
                 }
-            } catch (JsonException $e) {
-                if ($this->fallbackLogger) {
-                    $this->fallbackLogger->warning(
-                        'SecuritySignals metadata JSON encoding failed.',
-                        [
-                            'signal_type' => $signalType,
-                            'error' => $e->getMessage(),
-                        ]
-                    );
-                }
-                $metadata = ['error' => 'Metadata dropped due to encoding error'];
+            } else {
+                $metadata = [];
             }
-        } else {
-            $metadata = [];
-        }
 
-        // 4. Construct DTO
-        $recordDTO = new SecuritySignalRecordDTO(
-            eventId: Uuid::uuid4()->toString(),
-            actorType: $normalizedActorType,
-            actorId: $actorId,
-            signalType: $signalType,
-            severity: $normalizedSeverity,
-            correlationId: $correlationId,
-            requestId: $requestId,
-            routeName: $routeName,
-            ipAddress: $ipAddress,
-            userAgent: $userAgent,
-            metadata: $metadata,
-            occurredAt: $this->clock->now()
-        );
+            // 4. Construct DTO
+            $recordDTO = new SecuritySignalRecordDTO(
+                eventId: Uuid::uuid4()->toString(),
+                actorType: $safeActorType,
+                actorId: $actorId,
+                signalType: $safeSignalType,
+                severity: $safeSeverity,
+                correlationId: $safeCorrelationId,
+                requestId: $safeRequestId,
+                routeName: $safeRouteName,
+                ipAddress: $safeIpAddress,
+                userAgent: $safeUserAgent,
+                metadata: $metadata,
+                occurredAt: $this->clock->now()
+            );
 
-        // 5. Persist (Fail-Open on storage only)
-        try {
+            // 5. Persist
             $this->logger->write($recordDTO);
+
         } catch (Throwable $e) {
+            // Fail-open: swallow exception
             if ($this->fallbackLogger) {
                 $this->fallbackLogger->error(
                     'SecuritySignals logging failed',
                     [
-                        'signal_type' => $signalType,
+                        'signal_type' => substr($signalType, 0, 100), // best effort log
                         'exception' => $e->getMessage(),
                     ]
                 );

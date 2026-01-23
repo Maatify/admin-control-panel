@@ -11,6 +11,7 @@
 
 `Maatify\SecuritySignals\Contract\SecuritySignalsPolicyInterface`
 - `normalizeActorType(...)`
+- `normalizeSeverity(...)`
 - `validateMetadataSize(...)`
 
 ## DTOs

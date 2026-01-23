@@ -6,6 +6,7 @@ namespace Maatify\SecuritySignals\Recorder;
 
 use Maatify\SecuritySignals\Contract\SecuritySignalsPolicyInterface;
 use Maatify\SecuritySignals\Enum\SecuritySignalActorTypeEnum;
+use Maatify\SecuritySignals\Enum\SecuritySignalSeverityEnum;
 
 class SecuritySignalsDefaultPolicy implements SecuritySignalsPolicyInterface
 {
@@ -22,6 +23,18 @@ class SecuritySignalsDefaultPolicy implements SecuritySignalsPolicyInterface
         $case = SecuritySignalActorTypeEnum::tryFrom($upper);
 
         return $case ? $case->value : SecuritySignalActorTypeEnum::ANONYMOUS->value;
+    }
+
+    public function normalizeSeverity(string|SecuritySignalSeverityEnum $severity): string
+    {
+        if ($severity instanceof SecuritySignalSeverityEnum) {
+            return $severity->value;
+        }
+
+        $upper = strtoupper($severity);
+        $case = SecuritySignalSeverityEnum::tryFrom($upper);
+
+        return $case ? $case->value : SecuritySignalSeverityEnum::INFO->value;
     }
 
     public function validateMetadataSize(string $json): bool
