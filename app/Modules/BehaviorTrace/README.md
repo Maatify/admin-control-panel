@@ -102,7 +102,7 @@ $recorder->record(
 ### Failure Semantics (Best Effort)
 
 The `BehaviorTraceRecorder` is designed to be **fail-open**.
-- If the database write fails (`PDOException`), the exception is **caught and swallowed**.
+- If the database write fails, the storage exception is **caught and swallowed** by the Recorder.
 - The failure is logged to the fallback `Psr\Log\LoggerInterface` (if provided).
 - This ensures that a logging failure does not crash the main application request.
 

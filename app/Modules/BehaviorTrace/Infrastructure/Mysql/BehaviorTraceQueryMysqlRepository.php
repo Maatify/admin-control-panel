@@ -103,7 +103,7 @@ class BehaviorTraceQueryMysqlRepository implements BehaviorTraceQueryInterface
 
         $context = new BehaviorTraceContextDTO(
             actorType: $actorType,
-            actorId: is_int($row['actor_id'] ?? null) ? $row['actor_id'] : null,
+            actorId: isset($row['actor_id']) && is_numeric($row['actor_id']) ? (int)$row['actor_id'] : null,
             correlationId: is_string($row['correlation_id'] ?? null) ? $row['correlation_id'] : null,
             requestId: is_string($row['request_id'] ?? null) ? $row['request_id'] : null,
             routeName: is_string($row['route_name'] ?? null) ? $row['route_name'] : null,
@@ -116,7 +116,7 @@ class BehaviorTraceQueryMysqlRepository implements BehaviorTraceQueryInterface
             eventId: $eventId,
             action: $action,
             entityType: is_string($row['entity_type'] ?? null) ? $row['entity_type'] : null,
-            entityId: is_int($row['entity_id'] ?? null) ? $row['entity_id'] : null,
+            entityId: isset($row['entity_id']) && is_numeric($row['entity_id']) ? (int)$row['entity_id'] : null,
             context: $context,
             metadata: $metadata
         );

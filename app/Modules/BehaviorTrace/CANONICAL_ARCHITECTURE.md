@@ -244,7 +244,7 @@ The host owns **query expressiveness**.
 **Fail-Open Mandate:**
 
 * `record()` MUST NEVER throw.
-* Infrastructure, serialization, and IO failures MUST be suppressed.
+* Infrastructure, serialization, and IO failures MUST be caught and suppressed by the Recorder.
 
 **Fallback:**
 
