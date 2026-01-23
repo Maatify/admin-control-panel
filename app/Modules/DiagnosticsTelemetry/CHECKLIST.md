@@ -1,0 +1,44 @@
+# Diagnostics Telemetry Module – Readiness Checklist
+
+- [x] **Directory Structure**: `app/Modules/DiagnosticsTelemetry/` fully isolated.
+- [x] **Core Components**:
+    - [x] `DiagnosticsTelemetryEventDTO` (Event Data)
+    - [x] `DiagnosticsTelemetryContextDTO` (Context Data)
+    - [x] `DiagnosticsTelemetrySeverityInterface` & Enum (Extensible Severity)
+    - [x] `DiagnosticsTelemetryActorTypeInterface` & Enum (Extensible ActorType)
+- [x] **Recorder Layer**:
+    - [x] `DiagnosticsTelemetryRecorder` (Policy, Validation, DTO Building)
+    - [x] `DiagnosticsTelemetryPolicyInterface` (Extensible Policy)
+    - [x] `DiagnosticsTelemetryDefaultPolicy` (Default Implementation)
+    - [x] Builds DTOs internally (Caller passes primitives/enums)
+    - [x] Enforces metadata size limit (64KB via Policy)
+    - [x] Validates `actor_type` via Policy (Extensible, Sanitizing)
+    - [x] Enforces Write-side constraints (UTF-8 Truncation, Duration check)
+- [x] **Contracts**:
+    - [x] `DiagnosticsTelemetryLoggerInterface` (Writer Contract)
+    - [x] `DiagnosticsTelemetryQueryInterface` (Reader/Cursor Contract)
+- [x] **Infrastructure**:
+    - [x] `DiagnosticsTelemetryLoggerMysqlRepository` (PDO Write Implementation)
+    - [x] `DiagnosticsTelemetryQueryMysqlRepository` (PDO Read Implementation)
+    - [x] `DiagnosticsTelemetryStorageException` (Domain Exception)
+    - [x] Append-only behavior
+    - [x] Schema artifact present (`Database/schema.diagnostics_telemetry.sql`)
+- [x] **Context & Timing**:
+    - [x] `ClockInterface` & `SystemClock`
+    - [x] UTC enforcement (via `DateTimeZone('UTC')`)
+    - [x] Correlation/Trace ID support
+- [x] **Archiving Awareness**:
+    - [x] `DiagnosticsTelemetryCursorDTO` (Cursor-based sequential iteration)
+    - [x] `DiagnosticsTelemetryQueryInterface` (Readiness)
+    - [x] Primitive, cursor-based reader provided
+    - [x] Reader scope explicitly limited (no search, filters, or UI pagination)
+    - [x] Advanced querying intentionally excluded from the canonical module
+- [x] **Isolation**:
+    - [x] No dependencies on `App\Models` or `App\Services`
+    - [x] No dependence on Framework Container (Dependency Injection via Constructor)
+- [x] **Documentation**:
+    - [x] Public API defined (`PUBLIC_API.md`)
+    - [x] Testing Strategy defined (`TESTING_STRATEGY.md`)
+    - [x] Failure semantics documented (`README.md`)
+
+**Status:** A → Z COMPLETE
