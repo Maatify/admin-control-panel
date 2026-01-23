@@ -350,6 +350,7 @@ Entries MUST NOT be rewritten or reordered.
 - docs(diagnostics-telemetry): add canonical architecture definition
 - docs(logging): add canonical logging module blueprint and reference implementation
 - refactor(diagnostics-telemetry): promote module to standalone library namespace
+- docs(logging): mandate library-first namespaces for logging modules
 
 
 ---

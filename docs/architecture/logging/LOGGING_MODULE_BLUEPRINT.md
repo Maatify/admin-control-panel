@@ -271,3 +271,19 @@ Use this checklist to certify a module as "Blueprint Compliant".
 ### ❌ Throwing on Write
 **Anti-Pattern:** Allowing DB errors to bubble up to the Controller.
 **Fix:** The Recorder MUST try-catch block everything.
+
+
+## Namespace & Library Isolation (MANDATORY)
+
+Any logging module MUST be treated as a standalone library from day one.
+
+Rules:
+- Modules MUST NOT live under the App\ namespace.
+- Each module MUST define its own top-level vendor namespace
+  (e.g. Maatify\DiagnosticsTelemetry).
+- Composer PSR-4 autoloading MUST reflect this isolation.
+- The host application MUST act only as a consumer.
+
+Rationale:
+This guarantees zero-cost extraction of the module as a standalone library
+without refactoring namespaces or internal references.
