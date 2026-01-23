@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS `operational_activity` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `event_id` char(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `occurred_at` datetime(6) NOT NULL,
+  `actor_type` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `actor_id` bigint(20) unsigned DEFAULT NULL,
+  `action` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `resource` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `resource_id` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `payload` json DEFAULT NULL,
+  `correlation_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `request_id` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `route_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ip_address` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `user_agent` varchar(512) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_occurred_at_id` (`occurred_at`,`id`),
+  KEY `idx_correlation_id` (`correlation_id`),
+  KEY `idx_resource_resource_id` (`resource`,`resource_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
