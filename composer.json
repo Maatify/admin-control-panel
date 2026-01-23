@@ -31,7 +31,8 @@
     "psr-4": {
       "App\\": "app/",
       "Maatify\\DiagnosticsTelemetry\\": "app/Modules/DiagnosticsTelemetry/",
-      "Maatify\\BehaviorTrace\\": "app/Modules/BehaviorTrace/"
+      "Maatify\\BehaviorTrace\\": "app/Modules/BehaviorTrace/",
+      "Maatify\\AuditTrail\\": "app/Modules/AuditTrail/"
     }
   },
 
