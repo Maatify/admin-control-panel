@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\DiagnosticsTelemetry\Contract;
+namespace Maatify\DiagnosticsTelemetry\Contract;
 
-use App\Modules\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryEventDTO;
+use Maatify\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryEventDTO;
 
 interface DiagnosticsTelemetryLoggerInterface
 {

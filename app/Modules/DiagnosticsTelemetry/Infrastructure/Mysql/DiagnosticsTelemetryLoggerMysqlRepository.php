@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\DiagnosticsTelemetry\Infrastructure\Mysql;
+namespace Maatify\DiagnosticsTelemetry\Infrastructure\Mysql;
 
-use App\Modules\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryLoggerInterface;
-use App\Modules\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryEventDTO;
-use App\Modules\DiagnosticsTelemetry\Exception\DiagnosticsTelemetryStorageException;
+use Maatify\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryLoggerInterface;
+use Maatify\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryEventDTO;
+use Maatify\DiagnosticsTelemetry\Exception\DiagnosticsTelemetryStorageException;
 use PDO;
 use PDOException;
 use JsonException;

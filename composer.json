@@ -29,7 +29,8 @@
 
   "autoload": {
     "psr-4": {
-      "App\\": "app/"
+      "App\\": "app/",
+      "Maatify\\DiagnosticsTelemetry\\": "app/Modules/DiagnosticsTelemetry/"
     }
   },
 

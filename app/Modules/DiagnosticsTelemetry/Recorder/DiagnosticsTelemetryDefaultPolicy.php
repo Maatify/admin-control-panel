@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\DiagnosticsTelemetry\Recorder;
+namespace Maatify\DiagnosticsTelemetry\Recorder;
 
-use App\Modules\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryPolicyInterface;
-use App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetryActorTypeEnum;
-use App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetryActorTypeInterface;
-use App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetrySeverityEnum;
-use App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetrySeverityInterface;
+use Maatify\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryPolicyInterface;
+use Maatify\DiagnosticsTelemetry\Enum\DiagnosticsTelemetryActorTypeEnum;
+use Maatify\DiagnosticsTelemetry\Enum\DiagnosticsTelemetryActorTypeInterface;
+use Maatify\DiagnosticsTelemetry\Enum\DiagnosticsTelemetrySeverityEnum;
+use Maatify\DiagnosticsTelemetry\Enum\DiagnosticsTelemetrySeverityInterface;
 
 class DiagnosticsTelemetryDefaultPolicy implements DiagnosticsTelemetryPolicyInterface
 {

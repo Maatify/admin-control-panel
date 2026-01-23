@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\DiagnosticsTelemetry\DTO;
+namespace Maatify\DiagnosticsTelemetry\DTO;
 
-use App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetryActorTypeInterface;
+use Maatify\DiagnosticsTelemetry\Enum\DiagnosticsTelemetryActorTypeInterface;
 use DateTimeImmutable;
 
 readonly class DiagnosticsTelemetryContextDTO

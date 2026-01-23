@@ -6,7 +6,7 @@
 
 ## 1. Primary Entry Point (Write)
 
-**Class:** `App\Modules\DiagnosticsTelemetry\Recorder\DiagnosticsTelemetryRecorder`
+**Class:** `Maatify\DiagnosticsTelemetry\Recorder\DiagnosticsTelemetryRecorder`
 
 **Usage:**
 The Application should inject this class into its services/controllers (via Dependency Injection).
@@ -38,7 +38,7 @@ public function record(
 
 ## 2. Query Entry Point (Read / Archive)
 
-**Interface:** `App\Modules\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryQueryInterface`
+**Interface:** `Maatify\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryQueryInterface`
 
 **Usage:**
 The Application should inject this interface to read logs (e.g., for Admin UI or Archiving jobs).
@@ -80,12 +80,12 @@ public function read(
 ## 3. Extensibility Points
 
 **Policy:**
-- `App\Modules\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryPolicyInterface`
+- `Maatify\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryPolicyInterface`
 - Can be implemented to override validation rules (e.g., allow different Actor Types).
 
 **Enums:**
-- `App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetrySeverityInterface`
-- `App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetryActorTypeInterface`
+- `Maatify\DiagnosticsTelemetry\Enum\DiagnosticsTelemetrySeverityInterface`
+- `Maatify\DiagnosticsTelemetry\Enum\DiagnosticsTelemetryActorTypeInterface`
 - Application can implement these interfaces to support custom Severities or Actor Types.
 
 ---
@@ -93,7 +93,7 @@ public function read(
 ## 4. Infrastructure (Internal)
 
 **Do NOT use directly:**
-- `App\Modules\DiagnosticsTelemetry\Infrastructure\**`
+- `Maatify\DiagnosticsTelemetry\Infrastructure\**`
 - These are implementation details (MySQL repositories). They should be bound to the Contracts in the application's Service Provider.
 
 ---
@@ -101,8 +101,8 @@ public function read(
 ## 5. Data Transfer Objects (DTOs)
 
 **Read-Only:**
-- `App\Modules\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryEventDTO` (Output of Read)
-- `App\Modules\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryContextDTO`
-- `App\Modules\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryCursorDTO` (Input for Read)
+- `Maatify\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryEventDTO` (Output of Read)
+- `Maatify\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryContextDTO`
+- `Maatify\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryCursorDTO` (Input for Read)
 
 These DTOs are strict, immutable, and part of the public contract.

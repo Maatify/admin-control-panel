@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\DiagnosticsTelemetry\DTO;
+namespace Maatify\DiagnosticsTelemetry\DTO;
 
-use App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetrySeverityInterface;
+use Maatify\DiagnosticsTelemetry\Enum\DiagnosticsTelemetrySeverityInterface;
 
 readonly class DiagnosticsTelemetryEventDTO
 {

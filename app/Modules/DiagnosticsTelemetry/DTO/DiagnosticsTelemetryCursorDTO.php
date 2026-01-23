@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\DiagnosticsTelemetry\DTO;
+namespace Maatify\DiagnosticsTelemetry\DTO;
 
 use DateTimeImmutable;
 

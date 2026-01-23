@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\DiagnosticsTelemetry\Contract;
+namespace Maatify\DiagnosticsTelemetry\Contract;
 
-use App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetryActorTypeInterface;
-use App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetrySeverityInterface;
+use Maatify\DiagnosticsTelemetry\Enum\DiagnosticsTelemetryActorTypeInterface;
+use Maatify\DiagnosticsTelemetry\Enum\DiagnosticsTelemetrySeverityInterface;
 
 interface DiagnosticsTelemetryPolicyInterface
 {

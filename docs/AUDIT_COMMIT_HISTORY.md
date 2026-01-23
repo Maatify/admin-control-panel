@@ -349,6 +349,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(logging): introduce canonical DiagnosticsTelemetry standalone module
 - docs(diagnostics-telemetry): add canonical architecture definition
 - docs(logging): add canonical logging module blueprint and reference implementation
+- refactor(diagnostics-telemetry): promote module to standalone library namespace
 
 
 ---

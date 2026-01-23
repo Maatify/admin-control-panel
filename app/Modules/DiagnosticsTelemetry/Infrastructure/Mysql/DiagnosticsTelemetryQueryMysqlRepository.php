@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\DiagnosticsTelemetry\Infrastructure\Mysql;
+namespace Maatify\DiagnosticsTelemetry\Infrastructure\Mysql;
 
-use App\Modules\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryPolicyInterface;
-use App\Modules\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryQueryInterface;
-use App\Modules\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryContextDTO;
-use App\Modules\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryCursorDTO;
-use App\Modules\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryEventDTO;
-use App\Modules\DiagnosticsTelemetry\Exception\DiagnosticsTelemetryStorageException;
-use App\Modules\DiagnosticsTelemetry\Recorder\DiagnosticsTelemetryDefaultPolicy;
+use Maatify\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryPolicyInterface;
+use Maatify\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryQueryInterface;
+use Maatify\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryContextDTO;
+use Maatify\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryCursorDTO;
+use Maatify\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryEventDTO;
+use Maatify\DiagnosticsTelemetry\Exception\DiagnosticsTelemetryStorageException;
+use Maatify\DiagnosticsTelemetry\Recorder\DiagnosticsTelemetryDefaultPolicy;
 use DateTimeImmutable;
 use DateTimeZone;
 use PDO;

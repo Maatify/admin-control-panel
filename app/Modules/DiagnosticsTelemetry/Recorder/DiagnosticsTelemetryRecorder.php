@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\DiagnosticsTelemetry\Recorder;
+namespace Maatify\DiagnosticsTelemetry\Recorder;
 
-use App\Modules\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryPolicyInterface;
-use App\Modules\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryLoggerInterface;
-use App\Modules\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryContextDTO;
-use App\Modules\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryEventDTO;
-use App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetryActorTypeInterface;
-use App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetrySeverityInterface;
-use App\Modules\DiagnosticsTelemetry\Exception\DiagnosticsTelemetryStorageException;
-use App\Modules\DiagnosticsTelemetry\Services\ClockInterface;
+use Maatify\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryPolicyInterface;
+use Maatify\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryLoggerInterface;
+use Maatify\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryContextDTO;
+use Maatify\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryEventDTO;
+use Maatify\DiagnosticsTelemetry\Enum\DiagnosticsTelemetryActorTypeInterface;
+use Maatify\DiagnosticsTelemetry\Enum\DiagnosticsTelemetrySeverityInterface;
+use Maatify\DiagnosticsTelemetry\Exception\DiagnosticsTelemetryStorageException;
+use Maatify\DiagnosticsTelemetry\Services\ClockInterface;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use JsonException;

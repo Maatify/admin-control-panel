@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\DiagnosticsTelemetry\Enum;
+namespace Maatify\DiagnosticsTelemetry\Enum;
 
 interface DiagnosticsTelemetryActorTypeInterface
 {

@@ -2,7 +2,7 @@
 
 **Project:** maatify/admin-control-panel
 **Module:** DiagnosticsTelemetry
-**Namespace:** `App\Modules\DiagnosticsTelemetry`
+**Namespace:** `Maatify\DiagnosticsTelemetry`
 
 ## Purpose
 This module provides a standalone, isolated logging mechanism for **Diagnostics Telemetry** ONLY. It is designed to be the simplest starting point for a unified logging architecture.
@@ -77,9 +77,9 @@ This file should be used to initialize the database table.
 ## Usage
 
 ```php
-use App\Modules\DiagnosticsTelemetry\Recorder\DiagnosticsTelemetryRecorder;
-use App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetrySeverityEnum;
-use App\Modules\DiagnosticsTelemetry\Enum\DiagnosticsTelemetryActorTypeEnum;
+use Maatify\DiagnosticsTelemetry\Recorder\DiagnosticsTelemetryRecorder;
+use Maatify\DiagnosticsTelemetry\Enum\DiagnosticsTelemetrySeverityEnum;
+use Maatify\DiagnosticsTelemetry\Enum\DiagnosticsTelemetryActorTypeEnum;
 
 // Dependencies (usually injected)
 $writer = new DiagnosticsTelemetryLoggerMysqlRepository($pdo);
