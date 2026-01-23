@@ -108,7 +108,7 @@ class DiagnosticsTelemetryQueryMysqlRepository implements DiagnosticsTelemetryQu
 
         $context = new DiagnosticsTelemetryContextDTO(
             actorType: $actorType,
-            actorId: is_int($row['actor_id'] ?? null) ? $row['actor_id'] : null,
+            actorId: isset($row['actor_id']) && is_numeric($row['actor_id']) ? (int)$row['actor_id'] : null,
             correlationId: is_string($row['correlation_id'] ?? null) ? $row['correlation_id'] : null,
             requestId: is_string($row['request_id'] ?? null) ? $row['request_id'] : null,
             routeName: is_string($row['route_name'] ?? null) ? $row['route_name'] : null,
@@ -122,7 +122,7 @@ class DiagnosticsTelemetryQueryMysqlRepository implements DiagnosticsTelemetryQu
             eventKey: $eventKey,
             severity: $severity,
             context: $context,
-            durationMs: is_int($row['duration_ms'] ?? null) ? $row['duration_ms'] : null,
+            durationMs: isset($row['duration_ms']) && is_numeric($row['duration_ms']) ? (int)$row['duration_ms'] : null,
             metadata: $metadata
         );
     }
