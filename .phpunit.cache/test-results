@@ -1,0 +1,1 @@
+{"version":2,"defects":[],"times":{"Tests\\Modules\\SecuritySignals\\SecuritySignalsLoggerMysqlRepositoryTest::test_writes_record":0.009,"Tests\\Modules\\SecuritySignals\\SecuritySignalsRecorderTest::test_records_signal_correctly":0.008,"Tests\\Modules\\SecuritySignals\\SecuritySignalsRecorderTest::test_swallows_storage_exception":0}}
