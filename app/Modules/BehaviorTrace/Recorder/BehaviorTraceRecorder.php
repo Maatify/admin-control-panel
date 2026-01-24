@@ -9,11 +9,11 @@ use Maatify\BehaviorTrace\Contract\BehaviorTraceWriterInterface;
 use Maatify\BehaviorTrace\DTO\BehaviorTraceContextDTO;
 use Maatify\BehaviorTrace\DTO\BehaviorTraceEventDTO;
 use Maatify\BehaviorTrace\Enum\BehaviorTraceActorTypeInterface;
-use Maatify\BehaviorTrace\Exception\BehaviorTraceStorageException;
 use Maatify\BehaviorTrace\Services\ClockInterface;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use JsonException;
+use Throwable;
 
 class BehaviorTraceRecorder
 {
@@ -114,7 +114,7 @@ class BehaviorTraceRecorder
 
         try {
             $this->writer->write($dto);
-        } catch (BehaviorTraceStorageException $e) {
+        } catch (Throwable $e) {
             // Best-effort: swallow exception but log to fallback
             if ($this->fallbackLogger) {
                 $this->fallbackLogger->error('Behavior trace logging failed', [

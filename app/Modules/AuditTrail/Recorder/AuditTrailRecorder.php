@@ -8,11 +8,11 @@ use Maatify\AuditTrail\Contract\AuditTrailLoggerInterface;
 use Maatify\AuditTrail\Contract\AuditTrailPolicyInterface;
 use Maatify\AuditTrail\DTO\AuditTrailRecordDTO;
 use Maatify\AuditTrail\Enum\AuditTrailActorTypeEnum;
-use Maatify\AuditTrail\Exception\AuditTrailStorageException;
 use Maatify\AuditTrail\Services\ClockInterface;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use JsonException;
+use Throwable;
 
 class AuditTrailRecorder
 {
@@ -131,7 +131,7 @@ class AuditTrailRecorder
         // 4. Persist (Fail-Open on storage only)
         try {
             $this->logger->write($recordDTO);
-        } catch (AuditTrailStorageException $e) {
+        } catch (Throwable $e) {
             if ($this->fallbackLogger) {
                 $this->fallbackLogger->error(
                     'AuditTrail logging failed',

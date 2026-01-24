@@ -10,11 +10,11 @@ use Maatify\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryContextDTO;
 use Maatify\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryEventDTO;
 use Maatify\DiagnosticsTelemetry\Enum\DiagnosticsTelemetryActorTypeInterface;
 use Maatify\DiagnosticsTelemetry\Enum\DiagnosticsTelemetrySeverityInterface;
-use Maatify\DiagnosticsTelemetry\Exception\DiagnosticsTelemetryStorageException;
 use Maatify\DiagnosticsTelemetry\Services\ClockInterface;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use JsonException;
+use Throwable;
 
 class DiagnosticsTelemetryRecorder
 {
@@ -122,7 +122,7 @@ class DiagnosticsTelemetryRecorder
 
         try {
             $this->writer->write($dto);
-        } catch (DiagnosticsTelemetryStorageException $e) {
+        } catch (Throwable $e) {
             // Best-effort: swallow exception but log to fallback
             if ($this->fallbackLogger) {
                 $this->fallbackLogger->error('Telemetry logging failed', [
