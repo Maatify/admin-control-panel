@@ -11,6 +11,7 @@ use Maatify\DeliveryOperations\Exception\DeliveryOperationsStorageException;
 use PDO;
 use PDOException;
 use JsonException;
+use DateTimeImmutable;
 
 class DeliveryOperationsLoggerMysqlRepository implements DeliveryOperationsLoggerInterface
 {
@@ -23,70 +24,89 @@ class DeliveryOperationsLoggerMysqlRepository implements DeliveryOperationsLogge
         $sql = <<<SQL
             INSERT INTO delivery_operations (
                 event_id,
-                operation_type,
                 channel,
-                status,
-                attempt_count,
-                provider_id,
+                operation_type,
                 actor_type,
                 actor_id,
+                target_type,
+                target_id,
+                status,
+                attempt_no,
+                scheduled_at,
+                completed_at,
                 correlation_id,
                 request_id,
-                route_name,
-                ip_address,
-                user_agent,
-                occurred_at,
-                metadata
+                provider,
+                provider_message_id,
+                error_code,
+                error_message,
+                metadata,
+                occurred_at
             ) VALUES (
                 :event_id,
-                :operation_type,
                 :channel,
-                :status,
-                :attempt_count,
-                :provider_id,
+                :operation_type,
                 :actor_type,
                 :actor_id,
+                :target_type,
+                :target_id,
+                :status,
+                :attempt_no,
+                :scheduled_at,
+                :completed_at,
                 :correlation_id,
                 :request_id,
-                :route_name,
-                :ip_address,
-                :user_agent,
-                :occurred_at,
-                :metadata
+                :provider,
+                :provider_message_id,
+                :error_code,
+                :error_message,
+                :metadata,
+                :occurred_at
             )
         SQL;
 
         try {
             $stmt = $this->pdo->prepare($sql);
 
-            $metadataJson = null;
-            if ($dto->metadata !== null) {
-                $metadataJson = json_encode($dto->metadata, JSON_THROW_ON_ERROR);
-            }
+            $metadataJson = json_encode($dto->metadata ?? [], JSON_THROW_ON_ERROR); // Schema says metadata JSON NOT NULL
 
-            $occurredAt = $dto->context->occurredAt->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s.u');
+            $occurredAt = $this->formatDate($dto->occurredAt);
+            $scheduledAt = $this->formatDate($dto->scheduledAt);
+            $completedAt = $this->formatDate($dto->completedAt);
 
             $stmt->execute([
                 ':event_id' => $dto->eventId,
-                ':operation_type' => $dto->operationType,
                 ':channel' => $dto->channel,
+                ':operation_type' => $dto->operationType,
+                ':actor_type' => $dto->actorType,
+                ':actor_id' => $dto->actorId,
+                ':target_type' => $dto->targetType,
+                ':target_id' => $dto->targetId,
                 ':status' => $dto->status,
-                ':attempt_count' => $dto->attemptCount,
-                ':provider_id' => $dto->providerId,
-                ':actor_type' => $dto->context->actorType,
-                ':actor_id' => $dto->context->actorId,
-                ':correlation_id' => $dto->context->correlationId,
-                ':request_id' => $dto->context->requestId,
-                ':route_name' => $dto->context->routeName,
-                ':ip_address' => $dto->context->ipAddress,
-                ':user_agent' => $dto->context->userAgent,
-                ':occurred_at' => $occurredAt,
+                ':attempt_no' => $dto->attemptNo,
+                ':scheduled_at' => $scheduledAt,
+                ':completed_at' => $completedAt,
+                ':correlation_id' => $dto->correlationId,
+                ':request_id' => $dto->requestId,
+                ':provider' => $dto->provider,
+                ':provider_message_id' => $dto->providerMessageId,
+                ':error_code' => $dto->errorCode,
+                ':error_message' => $dto->errorMessage,
                 ':metadata' => $metadataJson,
+                ':occurred_at' => $occurredAt,
             ]);
         } catch (PDOException $e) {
             throw new DeliveryOperationsStorageException('Database write failed: ' . $e->getMessage(), 0, $e);
         } catch (JsonException $e) {
             throw new DeliveryOperationsStorageException('Metadata encoding failed: ' . $e->getMessage(), 0, $e);
         }
+    }
+
+    private function formatDate(?DateTimeImmutable $date): ?string
+    {
+        if ($date === null) {
+            return null;
+        }
+        return $date->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s.u');
     }
 }

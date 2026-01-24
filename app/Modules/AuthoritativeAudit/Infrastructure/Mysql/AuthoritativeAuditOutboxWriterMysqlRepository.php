@@ -23,30 +23,26 @@ class AuthoritativeAuditOutboxWriterMysqlRepository implements AuthoritativeAudi
         $sql = <<<SQL
             INSERT INTO authoritative_audit_outbox (
                 event_id,
-                event_key,
-                risk_level,
                 actor_type,
                 actor_id,
+                action,
+                target_type,
+                target_id,
+                risk_level,
+                payload,
                 correlation_id,
-                request_id,
-                route_name,
-                ip_address,
-                user_agent,
-                occurred_at,
-                payload
+                created_at
             ) VALUES (
                 :event_id,
-                :event_key,
-                :risk_level,
                 :actor_type,
                 :actor_id,
+                :action,
+                :target_type,
+                :target_id,
+                :risk_level,
+                :payload,
                 :correlation_id,
-                :request_id,
-                :route_name,
-                :ip_address,
-                :user_agent,
-                :occurred_at,
-                :payload
+                :created_at
             )
         SQL;
 
@@ -54,21 +50,19 @@ class AuthoritativeAuditOutboxWriterMysqlRepository implements AuthoritativeAudi
             $stmt = $this->pdo->prepare($sql);
 
             $payloadJson = json_encode($dto->payload, JSON_THROW_ON_ERROR);
-            $occurredAt = $dto->context->occurredAt->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s.u');
+            $createdAt = $dto->createdAt->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s.u');
 
             $stmt->execute([
                 ':event_id' => $dto->eventId,
-                ':event_key' => $dto->eventKey,
+                ':actor_type' => $dto->actorType,
+                ':actor_id' => $dto->actorId,
+                ':action' => $dto->action,
+                ':target_type' => $dto->targetType,
+                ':target_id' => $dto->targetId,
                 ':risk_level' => $dto->riskLevel,
-                ':actor_type' => $dto->context->actorType,
-                ':actor_id' => $dto->context->actorId,
-                ':correlation_id' => $dto->context->correlationId,
-                ':request_id' => $dto->context->requestId,
-                ':route_name' => $dto->context->routeName,
-                ':ip_address' => $dto->context->ipAddress,
-                ':user_agent' => $dto->context->userAgent,
-                ':occurred_at' => $occurredAt,
                 ':payload' => $payloadJson,
+                ':correlation_id' => $dto->correlationId,
+                ':created_at' => $createdAt,
             ]);
         } catch (PDOException $e) {
             throw new AuthoritativeAuditStorageException('Outbox write failed: ' . $e->getMessage(), 0, $e);

@@ -8,7 +8,6 @@ use BackedEnum;
 use UnitEnum;
 use Maatify\AuthoritativeAudit\Contract\AuthoritativeAuditOutboxWriterInterface;
 use Maatify\AuthoritativeAudit\Contract\AuthoritativeAuditPolicyInterface;
-use Maatify\AuthoritativeAudit\DTO\AuthoritativeAuditContextDTO;
 use Maatify\AuthoritativeAudit\DTO\AuthoritativeAuditOutboxWriteDTO;
 use Maatify\AuthoritativeAudit\Enum\AuthoritativeAuditActorTypeInterface;
 use Maatify\AuthoritativeAudit\Enum\AuthoritativeAuditRiskLevelEnum;
@@ -30,30 +29,26 @@ class AuthoritativeAuditRecorder
     }
 
     /**
-     * @param string $eventKey
+     * @param string $action
+     * @param string $targetType
+     * @param int|null $targetId
      * @param AuthoritativeAuditRiskLevelEnum|string $riskLevel
      * @param AuthoritativeAuditActorTypeInterface|string $actorType
-     * @param array<mixed> $payload
      * @param int|null $actorId
-     * @param string|null $correlationId
-     * @param string|null $requestId
-     * @param string|null $routeName
-     * @param string|null $ipAddress
-     * @param string|null $userAgent
+     * @param array<mixed> $payload
+     * @param string $correlationId
      * @throws AuthoritativeAuditStorageException
      * @throws InvalidArgumentException
      */
     public function record(
-        string $eventKey,
+        string $action,
+        string $targetType,
+        ?int $targetId,
         AuthoritativeAuditRiskLevelEnum|string $riskLevel,
         AuthoritativeAuditActorTypeInterface|string $actorType,
+        ?int $actorId,
         array $payload,
-        ?int $actorId = null,
-        ?string $correlationId = null,
-        ?string $requestId = null,
-        ?string $routeName = null,
-        ?string $ipAddress = null,
-        ?string $userAgent = null
+        string $correlationId
     ): void {
         // No Try-Catch block here (Fail-Closed)
 
@@ -69,30 +64,21 @@ class AuthoritativeAuditRecorder
         $normalizedActorType = $this->policy->normalizeActorType($actorType);
 
         // Truncate strings (DB safety)
-        $eventKey = $this->truncateString($eventKey, 255);
-        $correlationId = $this->truncate($correlationId, 36);
-        $requestId = $this->truncate($requestId, 64);
-        $routeName = $this->truncate($routeName, 255);
-        $ipAddress = $this->truncate($ipAddress, 45);
-        $userAgent = $this->truncate($userAgent, 512);
-
-        $context = new AuthoritativeAuditContextDTO(
-            actorType: $normalizedActorType,
-            actorId: $actorId,
-            correlationId: $correlationId,
-            requestId: $requestId,
-            routeName: $routeName,
-            ipAddress: $ipAddress,
-            userAgent: $userAgent,
-            occurredAt: $this->clock->now()
-        );
+        $action = $this->truncateString($action, 128);
+        $targetType = $this->truncateString($targetType, 64);
+        $correlationId = $this->truncateString($correlationId, 36);
 
         $dto = new AuthoritativeAuditOutboxWriteDTO(
             eventId: Uuid::uuid4()->toString(),
-            eventKey: $eventKey,
+            actorType: $normalizedActorType,
+            actorId: $actorId,
+            action: $action,
+            targetType: $targetType,
+            targetId: $targetId,
             riskLevel: $riskLevelStr,
-            context: $context,
-            payload: $payload
+            payload: $payload,
+            correlationId: $correlationId,
+            createdAt: $this->clock->now()
         );
 
         $this->writer->write($dto);
@@ -119,14 +105,6 @@ class AuthoritativeAuditRecorder
         }
 
         return '';
-    }
-
-    private function truncate(?string $value, int $limit): ?string
-    {
-        if ($value === null) {
-            return null;
-        }
-        return $this->truncateString($value, $limit);
     }
 
     private function truncateString(string $value, int $limit): string
