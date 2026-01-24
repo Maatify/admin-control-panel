@@ -33,7 +33,9 @@
       "Maatify\\DiagnosticsTelemetry\\": "app/Modules/DiagnosticsTelemetry/",
       "Maatify\\BehaviorTrace\\": "app/Modules/BehaviorTrace/",
       "Maatify\\AuditTrail\\": "app/Modules/AuditTrail/",
-      "Maatify\\SecuritySignals\\": "app/Modules/SecuritySignals/"
+      "Maatify\\SecuritySignals\\": "app/Modules/SecuritySignals/",
+      "Maatify\\DeliveryOperations\\": "app/Modules/DeliveryOperations/",
+      "Maatify\\AuthoritativeAudit\\": "app/Modules/AuthoritativeAudit/"
     }
   },
 
