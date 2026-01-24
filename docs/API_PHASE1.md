@@ -1201,3 +1201,295 @@ Any change requires updating **all three**:
 3. This documentation section
 
 ---
+
+
+---
+
+## 📧 Admin Emails API
+
+This section documents **Admin Email APIs** used to **list and control admin email identifiers**.
+
+> ℹ️ The UI page that renders Twig (`GET /admins/{id}/emails`) is **NOT part of the API**
+> All routes below are prefixed with `/api`.
+
+---
+
+### List Admin Emails
+
+Returns all email identifiers for a given admin.
+
+#### Endpoint
+
+```http
+GET /api/admins/{id}/emails
+```
+
+**Auth Required:** Yes
+**Permission:** `admins.email.list`
+
+---
+
+#### Response — 200 OK
+
+```json
+{
+  "admin_id": 10,
+  "items": [
+    {
+      "email_id": 3,
+      "email": "admin@example.com",
+      "status": "pending",
+      "verified_at": null
+    }
+  ]
+}
+```
+
+---
+
+#### Possible Errors
+
+| Code | Reason            |
+|------|-------------------|
+| 404  | Admin not found   |
+| 403  | Permission denied |
+
+---
+
+### Add Admin Email
+
+Adds a new email for an admin **or reactivates a replaced email**.
+
+#### Endpoint
+
+```http
+POST /api/admins/{id}/emails
+```
+
+**Auth Required:** Yes
+**Permission:** `admin.email.add`
+
+---
+
+#### Request Body
+
+```json
+{
+  "email": "new-email@example.com"
+}
+```
+
+---
+
+#### Behavior Summary
+
+* If email **does not exist** → created with status `pending`
+* If email exists for **same admin**:
+
+    * `replaced` → status reset to `pending`
+    * `pending / verified / failed` → rejected
+* If email exists for **another admin** → rejected
+
+---
+
+#### Response — 200 OK
+
+```json
+{
+  "admin_id": 10,
+  "emailAdded": true
+}
+```
+
+---
+
+#### Possible Errors
+
+| Code | Reason                              |
+|------|-------------------------------------|
+| 400  | Invalid email format                |
+| 400  | Email already pending               |
+| 400  | Email already verified              |
+| 400  | Email already failed                |
+| 400  | Email already used by another admin |
+| 404  | Admin not found                     |
+| 403  | Permission denied                   |
+
+---
+
+### Verify Admin Email
+
+Marks an email as **verified**.
+
+#### Endpoint
+
+```http
+POST /api/admin-emails/{emailId}/verify
+```
+
+**Auth Required:** Yes
+**Permission:** `admin.email.verify`
+
+---
+
+#### Response — 200 OK
+
+```json
+{
+  "email_id": 3,
+  "status": "verified"
+}
+```
+
+---
+
+#### Possible Errors
+
+| Code | Reason                 |
+|------|------------------------|
+| 404  | Email not found        |
+| 400  | Email already verified |
+| 403  | Permission denied      |
+
+---
+
+### Replace Admin Email
+
+Marks an email as **replaced** (superseded).
+
+#### Endpoint
+
+```http
+POST /api/admin-emails/{emailId}/replace
+```
+
+**Auth Required:** Yes
+**Permission:** `admin.email.replace`
+
+---
+
+#### Response — 200 OK
+
+```json
+{
+  "email_id": 3,
+  "status": "replaced"
+}
+```
+
+---
+
+#### Possible Errors
+
+| Code | Reason                   |
+|------|--------------------------|
+| 404  | Email not found          |
+| 400  | Invalid state transition |
+| 403  | Permission denied        |
+
+---
+
+### Fail Admin Email
+
+Marks an email as **failed**.
+
+#### Endpoint
+
+```http
+POST /api/admin-emails/{emailId}/fail
+```
+
+**Auth Required:** Yes
+**Permission:** `admin.email.fail`
+
+---
+
+#### Response — 200 OK
+
+```json
+{
+  "email_id": 3,
+  "status": "failed"
+}
+```
+
+---
+
+#### Possible Errors
+
+| Code | Reason                   |
+|------|--------------------------|
+| 404  | Email not found          |
+| 400  | Invalid state transition |
+| 403  | Permission denied        |
+
+---
+
+### Restart Email Verification
+
+Resets an email back to **pending**.
+
+#### Endpoint
+
+```http
+POST /api/admin-emails/{emailId}/restart-verification
+```
+
+**Auth Required:** Yes
+**Permission:** `admin.email.restart`
+
+---
+
+#### Response — 200 OK
+
+```json
+{
+  "email_id": 3,
+  "status": "pending"
+}
+```
+
+---
+
+#### Possible Errors
+
+| Code | Reason                   |
+|------|--------------------------|
+| 404  | Email not found          |
+| 400  | Email is not restartable |
+| 403  | Permission denied        |
+
+---
+
+### Email Status Values
+
+| Value      | Meaning                     |
+|------------|-----------------------------|
+| `pending`  | Waiting for verification    |
+| `verified` | Active and usable           |
+| `failed`   | Verification failed         |
+| `replaced` | Superseded by another email |
+
+---
+
+### Notes
+
+* Email values are **stored encrypted**
+* Email uniqueness is enforced via **blind index**
+* All state changes are **server-controlled**
+* Clients must rely on returned `status` only
+
+---
+
+### 🔒 Status
+
+**LOCKED — Admin Email API Contract**
+
+Any change requires updating:
+
+* Controller behavior
+* Repository logic
+* This documentation
+
+---
+

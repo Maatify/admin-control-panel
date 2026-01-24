@@ -73,18 +73,27 @@ CREATE TABLE system_ownership (
 CREATE TABLE admin_emails (
                               id INT AUTO_INCREMENT PRIMARY KEY,
                               admin_id INT NOT NULL,
+
                               email_blind_index CHAR(64) NOT NULL,
                               email_ciphertext VARBINARY(512) NOT NULL,
                               email_iv VARBINARY(16) NOT NULL,
                               email_tag VARBINARY(16) NOT NULL,
                               email_key_id VARCHAR(64) NOT NULL,
+
                               verification_status VARCHAR(20) NOT NULL DEFAULT 'pending',
                               verified_at DATETIME NULL,
                               created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                              UNIQUE KEY uq_admin_email_blind_index (email_blind_index),
+
+                              email_unique_guard CHAR(64)
+                                  GENERATED ALWAYS AS (
+                                      IF(verification_status != 'replaced', email_blind_index, NULL)
+                                      ) STORED,
+
+                              UNIQUE KEY uq_email_active_only (email_unique_guard),
+
                               CONSTRAINT fk_ae_admin_id
                                   FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 
 CREATE TABLE admin_passwords (
                                  admin_id INT PRIMARY KEY,

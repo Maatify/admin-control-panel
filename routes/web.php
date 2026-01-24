@@ -125,6 +125,15 @@ return function (App $app) {
             )->setName('admins.profile.edit')
                 ->add(AuthorizationGuardMiddleware::class);
 
+            // ─────────────────────────────
+            // Admin Email Control
+            // ─────────────────────────────
+            $protectedGroup->get(
+                '/admins/{id}/emails',
+                [\App\Http\Controllers\Ui\UiAdminsController::class, 'emails']
+            )->setName('admins.email.list')
+                ->add(AuthorizationGuardMiddleware::class);
+
             $protectedGroup->get('/roles', [\App\Http\Controllers\Ui\UiRolesController::class, 'index']);
             $protectedGroup->get('/permissions', [\App\Http\Controllers\Ui\UiPermissionsController::class, 'index']);
             $protectedGroup->get('/settings', [\App\Http\Controllers\Ui\UiSettingsController::class, 'index']);
@@ -196,10 +205,6 @@ return function (App $app) {
                 ->setName('sessions.revoke')
                 ->add(AuthorizationGuardMiddleware::class);
 
-//            $group->get('/admins', [AdminListController::class, '__invoke'])
-//                ->setName('admins.query')
-//                ->add(AuthorizationGuardMiddleware::class);
-
             $group->post('/admins/query', [AdminQueryController::class, '__invoke'])
                 ->setName('admins.query')
                 ->add(AuthorizationGuardMiddleware::class);
@@ -217,20 +222,27 @@ return function (App $app) {
                 ->setName('admin.create')
                 ->add(AuthorizationGuardMiddleware::class);
 
+            // ─────────────────────────────
+            // Admin Email Control
+            // ─────────────────────────────
+            $group->get('/admins/{id}/emails', [AdminController::class, 'getEmails'])
+                ->setName('admins.email.list')
+                ->add(AuthorizationGuardMiddleware::class);
             $group->post('/admins/{id}/emails', [AdminController::class, 'addEmail'])
-                ->setName('email.add')
+                ->setName('admin.email.add')
                 ->add(AuthorizationGuardMiddleware::class);
 
-            $group->post('/admin-identifiers/email/lookup', [AdminController::class, 'lookupEmail'])
-                ->setName('email.lookup')
+            $group->post('/admin-emails/{emailId}/verify', [AdminEmailVerificationController::class, 'verify'])
+                ->setName('admin.email.verify')
                 ->add(AuthorizationGuardMiddleware::class);
-
-            $group->get('/admins/{id}/emails', [AdminController::class, 'getEmail'])
-                ->setName('email.read')
+            $group->post('/admin-emails/{emailId}/replace', [AdminEmailVerificationController::class, 'replace'])
+                ->setName('admin.email.replace')
                 ->add(AuthorizationGuardMiddleware::class);
-
-            $group->post('/admins/{id}/emails/verify', [AdminEmailVerificationController::class, 'verify'])
-                ->setName('email.verify')
+            $group->post('/admin-emails/{emailId}/fail', [AdminEmailVerificationController::class, 'fail'])
+                ->setName('admin.email.fail')
+                ->add(AuthorizationGuardMiddleware::class);
+            $group->post('/admin-emails/{emailId}/restart-verification', [AdminEmailVerificationController::class, 'restart'])
+                ->setName('admin.email.restart')
                 ->add(AuthorizationGuardMiddleware::class);
 
             $group->get('/notifications', [NotificationQueryController::class, 'index'])

@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Ui;
 
 use App\Application\Admin\AdminProfileUpdateService;
+use App\Domain\Admin\Reader\AdminBasicInfoReaderInterface;
+use App\Domain\Admin\Reader\AdminEmailReaderInterface;
 use App\Domain\Admin\Reader\AdminProfileReaderInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use RuntimeException;
+use Slim\Exception\HttpNotFoundException;
 use Slim\Views\Twig;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -19,7 +22,9 @@ readonly class UiAdminsController
     public function __construct(
         private Twig $view,
         private AdminProfileReaderInterface $profileReader,
-        private AdminProfileUpdateService $profileUpdateService
+        private AdminProfileUpdateService $profileUpdateService,
+        private AdminEmailReaderInterface $emailReader,
+        private AdminBasicInfoReaderInterface $basicInfoReader,
     ) {
     }
 
@@ -164,6 +169,46 @@ readonly class UiAdminsController
         return $response
             ->withHeader('Location', "/admins/{$adminId}/profile")
             ->withStatus(302);
+    }
+
+    /**
+     * ===============================
+     * Admin Emails — LIST
+     * GET /admins/{id}/emails
+     * ===============================
+     *
+     * - Read-only
+     * - UI only
+     * - No mutations
+     * - No audit
+     *
+     * @param   Request                $request
+     * @param   Response               $response
+     * @param   array<string, string>  $args
+     *
+     * @return Response
+     */
+    public function emails(Request $request, Response $response, array $args): Response
+    {
+        $adminId = $this->extractAdminId($args);
+
+        $displayName = $this->basicInfoReader->getDisplayName($adminId);
+
+        if ($displayName === null) {
+            throw new HttpNotFoundException($request, 'Admin not found');
+        }
+
+        $emails = $this->emailReader->listByAdminId($adminId);
+
+        return $this->view->render(
+            $response,
+            'pages/admin/email.list.twig',
+            [
+                'admin_id' => $adminId,
+                'display_name' => $displayName,
+                'emails' => $emails,
+            ]
+        );
     }
 
     /**

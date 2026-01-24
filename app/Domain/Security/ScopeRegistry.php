@@ -21,7 +21,7 @@ class ScopeRegistry
         // Dedicated scope to ensure isolated Step-Up (no reuse of prior SECURITY grants)
         'admin.create' => Scope::ADMIN_CREATE,
         'admins.profile.edit' => Scope::ADMIN_UPDATE,
-        'admin.email.add' => Scope::ADMIN_EMAIL_ADD,
+//        'admin.email.add' => Scope::ADMIN_EMAIL_ADD,
     ];
 
     public static function getScopeForRoute(string $routeName): ?Scope

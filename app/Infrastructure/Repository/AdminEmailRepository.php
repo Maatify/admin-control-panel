@@ -22,7 +22,7 @@ class AdminEmailRepository implements AdminEmailVerificationRepositoryInterface,
         $this->pdo = $pdo;
     }
 
-    public function addEmail(int $adminId, string $blindIndex, EncryptedPayloadDTO $encryptedEmail): void
+    public function addEmail(int $adminId, string $blindIndex, EncryptedPayloadDTO $encryptedEmail): int
     {
         $stmt = $this->pdo->prepare(
             "INSERT INTO admin_emails 
@@ -38,6 +38,8 @@ class AdminEmailRepository implements AdminEmailVerificationRepositoryInterface,
             $encryptedEmail->tag,
             $encryptedEmail->keyId,
         ]);
+
+        return (int) $this->pdo->lastInsertId();
     }
 
     public function findByBlindIndex(string $blindIndex): ?AdminEmailIdentifierDTO

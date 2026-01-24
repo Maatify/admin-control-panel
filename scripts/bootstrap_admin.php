@@ -73,8 +73,8 @@ try {
     $blindIndex = $cryptoService->deriveEmailBlindIndex($email);
     $encryptedPayload = $cryptoService->encryptEmail($email);
 
-    $emailRepo->addEmail($adminId, $blindIndex, $encryptedPayload);
-    $emailRepo->markVerified($adminId, (new DateTimeImmutable())->format('Y-m-d H:i:s'));
+    $emailId = $emailRepo->addEmail($adminId, $blindIndex, $encryptedPayload);
+    $emailRepo->markVerified($emailId, (new DateTimeImmutable())->format('Y-m-d H:i:s'));
 
     // 3. Password
     $passRepo = $container->get(AdminPasswordRepositoryInterface::class);

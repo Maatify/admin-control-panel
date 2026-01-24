@@ -28,7 +28,10 @@ enum AdminActivityAction: string implements ActivityActionInterface
     case ADMIN_UPDATE  = 'admin.management.update';
     case ADMIN_DELETE  = 'admin.management.delete';
     case ADMIN_EMAIL_ADDED = 'admin.management.email.add';
-    const ADMIN_EMAIL_VERIFIED = 'admin.management.email.verify';
+    case ADMIN_EMAIL_REPLACED = 'admin.management.email.replace';
+    const ADMIN_EMAIL_VERIFIED               = 'admin.management.email.verify';
+    const ADMIN_EMAIL_VERIFICATION_RESTARTED = 'admin.management.email.verification.restarted';
+    const ADMIN_EMAIL_FAILED                 = 'admin.management.email.failed';
 
     case TELEMETRY_LIST  = 'admin.telemetry.list';
 

@@ -160,7 +160,7 @@ readonly class EmailVerificationController
                 throw new \RuntimeException('Request context missing');
             }
 
-            $this->verificationService->verify($adminEmailIdentifierDTO->emailId, $context);
+            $this->verificationService->selfVerify($adminEmailIdentifierDTO->emailId, $context);
         } catch (\Throwable $e) {
             // Idempotent behavior:
             // - already verified

@@ -12,7 +12,7 @@ class AdminEmailVerifySchema extends AbstractSchema
     protected function rules(): array
     {
         return [
-            'id' => [v::intVal(), ValidationErrorCodeEnum::REQUIRED_FIELD],
+            'emailId' => [v::intVal(), ValidationErrorCodeEnum::REQUIRED_FIELD],
         ];
     }
 }

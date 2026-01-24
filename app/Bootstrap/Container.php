@@ -14,6 +14,8 @@ use App\Application\Verification\VerificationNotificationDispatcherInterface;
 use App\Context\ActorContext;
 use App\Domain\ActivityLog\Reader\ActivityLogListReaderInterface;
 use App\Domain\ActivityLog\Recorder\ActivityRecorder;
+use App\Domain\Admin\Reader\AdminBasicInfoReaderInterface;
+use App\Domain\Admin\Reader\AdminEmailReaderInterface;
 use App\Domain\Admin\Reader\AdminProfileReaderInterface;
 use App\Domain\Admin\Reader\AdminQueryReaderInterface;
 use App\Domain\Contracts\ActorProviderInterface;
@@ -102,6 +104,8 @@ use App\Http\Controllers\Ui\UiRolesController;
 use App\Http\Controllers\Ui\UiSettingsController;
 use App\Http\Controllers\Ui\SessionListController;
 use App\Domain\Session\Reader\SessionListReaderInterface;
+use App\Infrastructure\Admin\Reader\PDOAdminBasicInfoReader;
+use App\Infrastructure\Admin\Reader\PDOAdminEmailReader;
 use App\Infrastructure\Admin\Reader\PdoAdminProfileReader;
 use App\Infrastructure\Context\ActorContextProvider;
 use App\Infrastructure\Crypto\AdminIdentifierCryptoService;
@@ -352,6 +356,9 @@ class Container
                 $auditWriter = $c->get(\App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface::class);
                 $pdo = $c->get(PDO::class);
 
+                $emailReader = $c->get(AdminEmailReaderInterface::class);
+                $basicInfoReader = $c->get(AdminBasicInfoReaderInterface::class);
+
                 assert($adminRepo instanceof AdminRepository);
                 assert($emailRepo instanceof AdminEmailRepository);
                 assert($validationGuard instanceof ValidationGuard);
@@ -363,6 +370,10 @@ class Container
                 assert($auditWriter instanceof \App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface);
                 assert($pdo instanceof PDO);
 
+                assert($emailReader instanceof AdminEmailReaderInterface);
+                assert($basicInfoReader instanceof AdminBasicInfoReaderInterface);
+
+
                 return new AdminController(
                     $adminRepo,
                     $emailRepo,
@@ -372,7 +383,9 @@ class Container
                     $passwordRepository,
                     $passwordService,
                     $auditWriter,
-                    $pdo
+                    $pdo,
+                    $emailReader,
+                    $basicInfoReader,
                 );
             },
             AdminEmailRepository::class => function (ContainerInterface $c) {
@@ -797,18 +810,44 @@ class Container
                 );
             },
 
+            AdminBasicInfoReaderInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new PdoAdminBasicInfoReader(
+                    $pdo,
+                );
+            },
+
+            AdminEmailReaderInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                $cryptoService = $c->get(AdminIdentifierCryptoServiceInterface::class);
+                assert($pdo instanceof PDO);
+                assert($cryptoService instanceof AdminIdentifierCryptoServiceInterface);
+
+                return new PdoAdminEmailReader(
+                    $pdo,
+                    $cryptoService
+                );
+
+            },
+
             UiAdminsController::class => function (ContainerInterface $c) {
                 $view = $c->get(Twig::class);
                 $profileReader = $c->get(AdminProfileReaderInterface::class);
                 $profileUpdateService = $c->get(AdminProfileUpdateService::class);
-
+                $emailReaderInterface = $c->get(AdminEmailReaderInterface::class);
+                $basicInfoReaderInterface = $c->get(AdminBasicInfoReaderInterface::class);
                 assert($view instanceof Twig);
                 assert($profileReader instanceof AdminProfileReaderInterface);
                 assert($profileUpdateService instanceof AdminProfileUpdateService);
+                assert($emailReaderInterface instanceof AdminEmailReaderInterface);
+                assert($basicInfoReaderInterface instanceof AdminBasicInfoReaderInterface);
                 return new UiAdminsController(
                     $view,
                     $profileReader,
-                    $profileUpdateService
+                    $profileUpdateService,
+                    $emailReaderInterface,
+                    $basicInfoReaderInterface
                 );
             },
             UiDashboardController::class => function (ContainerInterface $c) {
