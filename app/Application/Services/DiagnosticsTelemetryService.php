@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use Maatify\DiagnosticsTelemetry\Enum\DiagnosticsTelemetryActorTypeInterface;
-use Maatify\DiagnosticsTelemetry\Enum\DiagnosticsTelemetrySeverityInterface;
-use Maatify\DiagnosticsTelemetry\Recorder\DiagnosticsTelemetryRecorder;
+use App\Application\Contracts\DiagnosticsTelemetryRecorderInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -22,8 +20,6 @@ class DiagnosticsTelemetryService
     private const EVENT_PERF_METRIC = 'perf.metric';
     private const EVENT_DEPENDENCY_FAILURE = 'dependency.failure';
 
-    // We rely on the recorder allowing strings for severity/actor_type or we use strings that map to internal interfaces if implemented.
-    // Assuming string compatibility based on contract: `DiagnosticsTelemetrySeverityInterface|string`
     private const SEVERITY_ERROR = 'ERROR';
     private const SEVERITY_INFO = 'INFO';
     private const SEVERITY_WARNING = 'WARNING';
@@ -31,7 +27,7 @@ class DiagnosticsTelemetryService
 
     public function __construct(
         private LoggerInterface $logger,
-        private DiagnosticsTelemetryRecorder $recorder
+        private DiagnosticsTelemetryRecorderInterface $recorder
     ) {
     }
 
@@ -68,6 +64,7 @@ class DiagnosticsTelemetryService
                 eventKey: self::EVENT_PERF_METRIC,
                 severity: self::SEVERITY_INFO,
                 actorType: self::ACTOR_TYPE_SYSTEM,
+                actorId: null,
                 durationMs: $durationMs,
                 metadata: [
                     'metric' => $metricName,
@@ -75,7 +72,7 @@ class DiagnosticsTelemetryService
                 ]
             );
         } catch (Throwable $e) {
-            // Intentionally ignored for performance metrics to avoid noise
+            $this->logFailure('recordPerformanceMetric', $e);
         }
     }
 
@@ -89,6 +86,7 @@ class DiagnosticsTelemetryService
                 eventKey: self::EVENT_DEPENDENCY_FAILURE,
                 severity: self::SEVERITY_WARNING,
                 actorType: self::ACTOR_TYPE_SYSTEM,
+                actorId: null,
                 metadata: [
                     'service' => $serviceName,
                     'endpoint' => $endpoint,
@@ -96,7 +94,7 @@ class DiagnosticsTelemetryService
                 ]
             );
         } catch (Throwable $e) {
-            // Intentionally ignored to avoid cascading failures
+            $this->logFailure('recordExternalDependencyFailure', $e);
         }
     }
 

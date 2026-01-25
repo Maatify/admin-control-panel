@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use Maatify\SecuritySignals\Enum\SecuritySignalActorTypeEnum;
-use Maatify\SecuritySignals\Enum\SecuritySignalSeverityEnum;
-use Maatify\SecuritySignals\Recorder\SecuritySignalsRecorder;
+use App\Application\Contracts\SecuritySignalsRecorderInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -24,13 +22,15 @@ class SecuritySignalsService
     private const SIGNAL_STEP_UP_FAILED = 'step_up_failed';
     private const SIGNAL_SESSION_TERMINATED = 'session_terminated';
 
-    private const SEVERITY_INFO = SecuritySignalSeverityEnum::INFO;
-    private const SEVERITY_WARNING = SecuritySignalSeverityEnum::WARNING;
-    private const SEVERITY_ERROR = SecuritySignalSeverityEnum::ERROR;
+    private const SEVERITY_INFO = 'INFO';
+    private const SEVERITY_WARNING = 'WARNING';
+
+    private const ACTOR_TYPE_ADMIN = 'ADMIN';
+    private const ACTOR_TYPE_ANONYMOUS = 'ANONYMOUS';
 
     public function __construct(
         private LoggerInterface $logger,
-        private SecuritySignalsRecorder $recorder
+        private SecuritySignalsRecorderInterface $recorder
     ) {
     }
 
@@ -43,7 +43,7 @@ class SecuritySignalsService
             $this->recorder->record(
                 signalType: self::SIGNAL_LOGIN_SUCCESS,
                 severity: self::SEVERITY_INFO,
-                actorType: SecuritySignalActorTypeEnum::ADMIN,
+                actorType: self::ACTOR_TYPE_ADMIN,
                 actorId: $adminId,
                 ipAddress: $ipAddress,
                 userAgent: $userAgent
@@ -62,7 +62,8 @@ class SecuritySignalsService
             $this->recorder->record(
                 signalType: self::SIGNAL_LOGIN_FAILED,
                 severity: self::SEVERITY_WARNING,
-                actorType: SecuritySignalActorTypeEnum::ANONYMOUS,
+                actorType: self::ACTOR_TYPE_ANONYMOUS,
+                actorId: null,
                 ipAddress: $ipAddress,
                 userAgent: $userAgent,
                 metadata: [
@@ -84,9 +85,10 @@ class SecuritySignalsService
             $this->recorder->record(
                 signalType: self::SIGNAL_ACCESS_DENIED,
                 severity: self::SEVERITY_WARNING,
-                actorType: SecuritySignalActorTypeEnum::ADMIN,
+                actorType: self::ACTOR_TYPE_ADMIN,
                 actorId: $adminId,
                 ipAddress: $ipAddress,
+                userAgent: null,
                 metadata: [
                     'resource' => $resource,
                     'action' => $action
@@ -106,9 +108,10 @@ class SecuritySignalsService
             $this->recorder->record(
                 signalType: self::SIGNAL_STEP_UP_FAILED,
                 severity: self::SEVERITY_WARNING,
-                actorType: SecuritySignalActorTypeEnum::ADMIN,
+                actorType: self::ACTOR_TYPE_ADMIN,
                 actorId: $adminId,
                 ipAddress: $ipAddress,
+                userAgent: null,
                 metadata: [
                     'mechanism' => $mechanism
                 ]
@@ -127,9 +130,10 @@ class SecuritySignalsService
             $this->recorder->record(
                 signalType: self::SIGNAL_SESSION_TERMINATED,
                 severity: self::SEVERITY_INFO,
-                actorType: SecuritySignalActorTypeEnum::ADMIN,
+                actorType: self::ACTOR_TYPE_ADMIN,
                 actorId: $adminId,
                 ipAddress: $ipAddress,
+                userAgent: null,
                 metadata: [
                     'reason' => $reason
                 ]

@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use Maatify\BehaviorTrace\Enum\BehaviorTraceActorTypeInterface;
-use Maatify\BehaviorTrace\Recorder\BehaviorTraceRecorder;
+use App\Application\Contracts\BehaviorTraceRecorderInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -24,12 +23,11 @@ class BehaviorTraceService
     private const ACTION_EXECUTE = 'action.execute';
     private const ACTION_BULK_EXECUTE = 'bulk_action.execute';
 
-    // We use a string for actor type as per BehaviorTrace signature allowing string|Interface
     private const ACTOR_TYPE_ADMIN = 'ADMIN';
 
     public function __construct(
         private LoggerInterface $logger,
-        private BehaviorTraceRecorder $recorder
+        private BehaviorTraceRecorderInterface $recorder
     ) {
     }
 

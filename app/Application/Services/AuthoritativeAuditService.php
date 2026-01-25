@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use Maatify\AuthoritativeAudit\Enum\AuthoritativeAuditRiskLevelEnum;
-use Maatify\AuthoritativeAudit\Recorder\AuthoritativeAuditRecorder;
+use App\Application\Contracts\AuthoritativeAuditRecorderInterface;
 
 /**
  * Records Governance and Security Posture changes. This is the Source of Truth for compliance.
@@ -22,9 +21,11 @@ class AuthoritativeAuditService
     private const ACTION_OWNERSHIP_TRANSFER = 'ownership.transfer';
 
     private const ACTOR_TYPE_ADMIN = 'ADMIN';
+    private const RISK_LEVEL_HIGH = 'HIGH';
+    private const RISK_LEVEL_CRITICAL = 'CRITICAL';
 
     public function __construct(
-        private AuthoritativeAuditRecorder $recorder
+        private AuthoritativeAuditRecorderInterface $recorder
     ) {
     }
 
@@ -39,7 +40,7 @@ class AuthoritativeAuditService
             action: self::ACTION_ADMIN_CREATE,
             targetType: 'admin',
             targetId: $newAdminId,
-            riskLevel: AuthoritativeAuditRiskLevelEnum::HIGH,
+            riskLevel: self::RISK_LEVEL_HIGH,
             actorType: self::ACTOR_TYPE_ADMIN,
             actorId: $initiatorId,
             payload: [
@@ -59,7 +60,7 @@ class AuthoritativeAuditService
             action: self::ACTION_ADMIN_STATUS_CHANGE,
             targetType: 'admin',
             targetId: $targetAdminId,
-            riskLevel: AuthoritativeAuditRiskLevelEnum::HIGH,
+            riskLevel: self::RISK_LEVEL_HIGH,
             actorType: self::ACTOR_TYPE_ADMIN,
             actorId: $initiatorId,
             payload: [
@@ -80,7 +81,7 @@ class AuthoritativeAuditService
             action: self::ACTION_ROLE_ASSIGN,
             targetType: 'admin',
             targetId: $targetAdminId,
-            riskLevel: AuthoritativeAuditRiskLevelEnum::CRITICAL,
+            riskLevel: self::RISK_LEVEL_CRITICAL,
             actorType: self::ACTOR_TYPE_ADMIN,
             actorId: $initiatorId,
             payload: [
@@ -99,8 +100,8 @@ class AuthoritativeAuditService
         $this->recorder->record(
             action: self::ACTION_SYSTEM_CONFIG_CHANGE,
             targetType: 'system_config',
-            targetId: null, // Global config might not have an ID, or hash of key. Null is acceptable for singleton.
-            riskLevel: AuthoritativeAuditRiskLevelEnum::CRITICAL,
+            targetId: null,
+            riskLevel: self::RISK_LEVEL_CRITICAL,
             actorType: self::ACTOR_TYPE_ADMIN,
             actorId: $initiatorId,
             payload: [
@@ -122,7 +123,7 @@ class AuthoritativeAuditService
             action: self::ACTION_OWNERSHIP_TRANSFER,
             targetType: $assetType,
             targetId: $assetId,
-            riskLevel: AuthoritativeAuditRiskLevelEnum::CRITICAL,
+            riskLevel: self::RISK_LEVEL_CRITICAL,
             actorType: self::ACTOR_TYPE_ADMIN,
             actorId: $initiatorId,
             payload: [

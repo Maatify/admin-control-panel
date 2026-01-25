@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use Maatify\AuditTrail\Enum\AuditTrailActorTypeEnum;
-use Maatify\AuditTrail\Recorder\AuditTrailRecorder;
+use App\Application\Contracts\AuditTrailRecorderInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -23,9 +22,11 @@ class AuditTrailService
     private const EVENT_EXPORT_GENERATED = 'export.generate';
     private const EVENT_SUBJECT_VIEWED = 'subject.view';
 
+    private const ACTOR_TYPE_ADMIN = 'ADMIN';
+
     public function __construct(
         private LoggerInterface $logger,
-        private AuditTrailRecorder $recorder
+        private AuditTrailRecorderInterface $recorder
     ) {
     }
 
@@ -37,7 +38,7 @@ class AuditTrailService
         try {
             $this->recorder->record(
                 eventKey: self::EVENT_RESOURCE_VIEWED,
-                actorType: AuditTrailActorTypeEnum::ADMIN,
+                actorType: self::ACTOR_TYPE_ADMIN,
                 actorId: $adminId,
                 entityType: $resourceType,
                 entityId: (int)$resourceId,
@@ -56,7 +57,7 @@ class AuditTrailService
         try {
             $this->recorder->record(
                 eventKey: self::EVENT_COLLECTION_VIEWED,
-                actorType: AuditTrailActorTypeEnum::ADMIN,
+                actorType: self::ACTOR_TYPE_ADMIN,
                 actorId: $adminId,
                 entityType: $resourceType,
                 metadata: ['type' => $resourceType]
@@ -74,7 +75,7 @@ class AuditTrailService
         try {
             $this->recorder->record(
                 eventKey: self::EVENT_SEARCH_PERFORMED,
-                actorType: AuditTrailActorTypeEnum::ADMIN,
+                actorType: self::ACTOR_TYPE_ADMIN,
                 actorId: $adminId,
                 entityType: $resourceType,
                 metadata: [
@@ -95,7 +96,7 @@ class AuditTrailService
         try {
             $this->recorder->record(
                 eventKey: self::EVENT_EXPORT_GENERATED,
-                actorType: AuditTrailActorTypeEnum::ADMIN,
+                actorType: self::ACTOR_TYPE_ADMIN,
                 actorId: $adminId,
                 entityType: $resourceType,
                 metadata: [
@@ -116,11 +117,11 @@ class AuditTrailService
         try {
             $this->recorder->record(
                 eventKey: self::EVENT_SUBJECT_VIEWED,
-                actorType: AuditTrailActorTypeEnum::ADMIN,
+                actorType: self::ACTOR_TYPE_ADMIN,
                 actorId: $adminId,
+                subjectType: $subjectType,
+                subjectId: $subjectId,
                 metadata: [
-                    'subject_type' => $subjectType,
-                    'subject_id' => $subjectId,
                     'context' => $context
                 ]
             );

@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use Maatify\DeliveryOperations\Enum\DeliveryChannelEnum;
-use Maatify\DeliveryOperations\Enum\DeliveryOperationTypeEnum;
-use Maatify\DeliveryOperations\Enum\DeliveryStatusEnum;
-use Maatify\DeliveryOperations\Recorder\DeliveryOperationsRecorder;
+use App\Application\Contracts\DeliveryOperationsRecorderInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -19,19 +16,19 @@ use Throwable;
  */
 class DeliveryOperationsService
 {
-    private const CHANNEL_EMAIL = DeliveryChannelEnum::EMAIL;
-    private const CHANNEL_WEBHOOK = DeliveryChannelEnum::WEBHOOK;
+    private const CHANNEL_EMAIL = 'email';
+    private const CHANNEL_WEBHOOK = 'webhook';
 
-    private const STATUS_QUEUED = DeliveryStatusEnum::QUEUED;
-    private const STATUS_SENT = DeliveryStatusEnum::SENT;
-    private const STATUS_FAILED = DeliveryStatusEnum::FAILED;
+    private const STATUS_QUEUED = 'queued';
+    private const STATUS_SENT = 'sent';
+    private const STATUS_FAILED = 'failed';
 
-    private const OPERATION_NOTIFICATION_SEND = DeliveryOperationTypeEnum::NOTIFICATION_SEND;
-    private const OPERATION_WEBHOOK_DISPATCH = DeliveryOperationTypeEnum::WEBHOOK_DISPATCH;
+    private const OPERATION_NOTIFICATION_SEND = 'notification.send';
+    private const OPERATION_WEBHOOK_DISPATCH = 'webhook.dispatch';
 
     public function __construct(
         private LoggerInterface $logger,
-        private DeliveryOperationsRecorder $recorder
+        private DeliveryOperationsRecorderInterface $recorder
     ) {
     }
 
@@ -45,8 +42,8 @@ class DeliveryOperationsService
                 channel: self::CHANNEL_EMAIL,
                 operationType: self::OPERATION_NOTIFICATION_SEND,
                 status: self::STATUS_QUEUED,
-                targetId: (int)$recipientId, // Casting to int as targetId is likely int, but signature might be loose. Checking contract later. Assuming int based on canonical rules.
-                metadata: ['template' => $templateName]
+                targetId: (int)$recipientId,
+                metadata: ['template' => $templateName, 'recipient_id' => $recipientId]
             );
         } catch (Throwable $e) {
             $this->logFailure('recordEmailQueued', $e);
@@ -66,7 +63,8 @@ class DeliveryOperationsService
                 targetId: (int)$recipientId,
                 providerMessageId: $providerMessageId,
                 metadata: [
-                    'template' => $templateName
+                    'template' => $templateName,
+                    'recipient_id' => $recipientId
                 ]
             );
         } catch (Throwable $e) {
@@ -88,7 +86,8 @@ class DeliveryOperationsService
                 attemptNo: $attempt,
                 metadata: [
                     'template' => $templateName,
-                    'error' => $errorMessage
+                    'error' => $errorMessage,
+                    'recipient_id' => $recipientId
                 ]
             );
         } catch (Throwable $e) {
