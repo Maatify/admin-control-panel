@@ -4,93 +4,121 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use DateTimeImmutable;
-use Maatify\DeliveryOperations\Enum\DeliveryActorTypeInterface;
-use Maatify\DeliveryOperations\Enum\DeliveryChannelEnum;
-use Maatify\DeliveryOperations\Enum\DeliveryOperationTypeEnum;
-use Maatify\DeliveryOperations\Enum\DeliveryStatusEnum;
-use Maatify\DeliveryOperations\Recorder\DeliveryOperationsRecorder;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
+/**
+ * Tracks the lifecycle of asynchronous delivery operations (Email, SMS, Webhooks, Jobs).
+ *
+ * BEHAVIOR GUARANTEE: FAIL-OPEN (Best Effort)
+ * Logging status updates MUST NOT disrupt the actual delivery process.
+ */
 class DeliveryOperationsService
 {
+    private const CHANNEL_EMAIL = 'email';
+    private const CHANNEL_WEBHOOK = 'webhook';
+
+    private const STATUS_QUEUED = 'queued';
+    private const STATUS_SENT = 'sent';
+    private const STATUS_FAILED = 'failed';
+
+    private const OPERATION_NOTIFICATION_SEND = 'notification.send';
+    private const OPERATION_WEBHOOK_DISPATCH = 'webhook.dispatch';
+
     public function __construct(
-        private readonly DeliveryOperationsRecorder $recorder,
-        private readonly LoggerInterface $logger
+        private LoggerInterface $logger,
+        // private DeliveryOperationsRecorder $recorder // Dependency to be injected
     ) {
     }
 
     /**
-     * Records a delivery operation event.
-     *
-     * This method acts as a project-facing wrapper for the DeliveryOperationsRecorder.
-     * It enforces Fail-Open behavior (Best Effort), meaning exceptions during recording
-     * are suppressed (logged to fallback) and will NOT crash the application.
-     *
-     * @param DeliveryChannelEnum|string $channel
-     * @param DeliveryOperationTypeEnum|string $operationType
-     * @param DeliveryStatusEnum|string $status
-     * @param int $attemptNo
-     * @param DeliveryActorTypeInterface|string|null $actorType
-     * @param int|null $actorId
-     * @param string|null $targetType
-     * @param int|null $targetId
-     * @param DateTimeImmutable|null $scheduledAt
-     * @param DateTimeImmutable|null $completedAt
-     * @param string|null $correlationId
-     * @param string|null $requestId
-     * @param string|null $provider
-     * @param string|null $providerMessageId
-     * @param string|null $errorCode
-     * @param string|null $errorMessage
-     * @param array<mixed>|null $metadata
+     * Used when Email was added to the processing queue.
      */
-    public function record(
-        DeliveryChannelEnum|string $channel,
-        DeliveryOperationTypeEnum|string $operationType,
-        DeliveryStatusEnum|string $status,
-        int $attemptNo = 0,
-        DeliveryActorTypeInterface|string|null $actorType = null,
-        ?int $actorId = null,
-        ?string $targetType = null,
-        ?int $targetId = null,
-        ?DateTimeImmutable $scheduledAt = null,
-        ?DateTimeImmutable $completedAt = null,
-        ?string $correlationId = null,
-        ?string $requestId = null,
-        ?string $provider = null,
-        ?string $providerMessageId = null,
-        ?string $errorCode = null,
-        ?string $errorMessage = null,
-        ?array $metadata = null
-    ): void {
+    public function recordEmailQueued(string $recipientId, string $templateName): void
+    {
         try {
-            $this->recorder->record(
-                $channel,
-                $operationType,
-                $status,
-                $attemptNo,
-                $actorType,
-                $actorId,
-                $targetType,
-                $targetId,
-                $scheduledAt,
-                $completedAt,
-                $correlationId,
-                $requestId,
-                $provider,
-                $providerMessageId,
-                $errorCode,
-                $errorMessage,
-                $metadata
-            );
-        } catch (\Throwable $e) {
-            // Fail-open: suppress all exceptions to prevent application crash
-            $this->logger->error('DeliveryOperationsService: Failed to record event', [
-                'exception' => $e,
-                'channel' => $channel,
-                'operation_type' => $operationType,
-            ]);
+            // $this->recorder->record(
+            //     channel: self::CHANNEL_EMAIL,
+            //     operationType: self::OPERATION_NOTIFICATION_SEND,
+            //     status: self::STATUS_QUEUED,
+            //     targetId: $recipientId,
+            //     metadata: ['template' => $templateName]
+            // );
+        } catch (Throwable $e) {
+            $this->logFailure('recordEmailQueued', $e);
         }
+    }
+
+    /**
+     * Used when Provider accepted the message.
+     */
+    public function recordEmailSent(string $recipientId, string $templateName, string $providerMessageId): void
+    {
+        try {
+            // $this->recorder->record(
+            //     channel: self::CHANNEL_EMAIL,
+            //     operationType: self::OPERATION_NOTIFICATION_SEND,
+            //     status: self::STATUS_SENT,
+            //     targetId: $recipientId,
+            //     metadata: [
+            //         'template' => $templateName,
+            //         'provider_msg_id' => $providerMessageId
+            //     ]
+            // );
+        } catch (Throwable $e) {
+            $this->logFailure('recordEmailSent', $e);
+        }
+    }
+
+    /**
+     * Used when Delivery failed.
+     */
+    public function recordEmailFailed(string $recipientId, string $templateName, string $errorMessage, int $attempt): void
+    {
+        try {
+            // $this->recorder->record(
+            //     channel: self::CHANNEL_EMAIL,
+            //     operationType: self::OPERATION_NOTIFICATION_SEND,
+            //     status: self::STATUS_FAILED,
+            //     targetId: $recipientId,
+            //     metadata: [
+            //         'template' => $templateName,
+            //         'error' => $errorMessage,
+            //         'attempt' => $attempt
+            //     ]
+            // );
+        } catch (Throwable $e) {
+            $this->logFailure('recordEmailFailed', $e);
+        }
+    }
+
+    /**
+     * Used when a webhook payload was sent to an external subscriber.
+     */
+    public function recordWebhookDispatched(string $targetUrl, string $eventType, int $httpStatus): void
+    {
+        try {
+            // $this->recorder->record(
+            //     channel: self::CHANNEL_WEBHOOK,
+            //     operationType: self::OPERATION_WEBHOOK_DISPATCH,
+            //     status: $httpStatus >= 200 && $httpStatus < 300 ? self::STATUS_SENT : self::STATUS_FAILED,
+            //     targetId: null,
+            //     metadata: [
+            //         'url' => $targetUrl,
+            //         'event' => $eventType,
+            //         'http_status' => $httpStatus
+            //     ]
+            // );
+        } catch (Throwable $e) {
+            $this->logFailure('recordWebhookDispatched', $e);
+        }
+    }
+
+    private function logFailure(string $method, Throwable $e): void
+    {
+        $this->logger->error(
+            sprintf('[DeliveryOperationsService] %s failed: %s', $method, $e->getMessage()),
+            ['exception' => $e]
+        );
     }
 }

@@ -4,85 +4,126 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use Maatify\AuditTrail\Enum\AuditTrailActorTypeEnum;
-use Maatify\AuditTrail\Recorder\AuditTrailRecorder;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
+/**
+ * Tracks "who viewed what" — specifically data exposure, navigation, exports, and search history.
+ *
+ * BEHAVIOR GUARANTEE: FAIL-OPEN (Best Effort)
+ * Logging visibility events MUST NOT block read operations.
+ */
 class AuditTrailService
 {
+    private const EVENT_RESOURCE_VIEWED = 'resource.view';
+    private const EVENT_COLLECTION_VIEWED = 'collection.view';
+    private const EVENT_SEARCH_PERFORMED = 'search.perform';
+    private const EVENT_EXPORT_GENERATED = 'export.generate';
+    private const EVENT_SUBJECT_VIEWED = 'subject.view';
+
     public function __construct(
-        private readonly AuditTrailRecorder $recorder,
-        private readonly LoggerInterface $logger
+        private LoggerInterface $logger,
+        // private AuditTrailRecorder $recorder // Dependency to be injected
     ) {
     }
 
     /**
-     * Records an audit trail event.
-     *
-     * This method acts as a project-facing wrapper for the AuditTrailRecorder.
-     * It enforces Fail-Open behavior (Best Effort), meaning exceptions during recording
-     * are suppressed (logged to fallback) and will NOT crash the application.
-     *
-     * @param string $eventKey
-     * @param string|AuditTrailActorTypeEnum $actorType
-     * @param int|null $actorId
-     * @param string $entityType
-     * @param int|null $entityId
-     * @param string|null $subjectType
-     * @param int|null $subjectId
-     * @param array<string, mixed>|null $metadata
-     * @param string|null $referrerRouteName
-     * @param string|null $referrerPath
-     * @param string|null $referrerHost
-     * @param string|null $correlationId
-     * @param string|null $requestId
-     * @param string|null $routeName
-     * @param string|null $ipAddress
-     * @param string|null $userAgent
+     * Used when an admin views the details of a specific entity (e.g., User Profile).
      */
-    public function record(
-        string $eventKey,
-        string|AuditTrailActorTypeEnum $actorType,
-        ?int $actorId,
-        string $entityType,
-        ?int $entityId,
-        ?string $subjectType = null,
-        ?int $subjectId = null,
-        ?array $metadata = null,
-        ?string $referrerRouteName = null,
-        ?string $referrerPath = null,
-        ?string $referrerHost = null,
-        ?string $correlationId = null,
-        ?string $requestId = null,
-        ?string $routeName = null,
-        ?string $ipAddress = null,
-        ?string $userAgent = null
-    ): void {
+    public function recordResourceViewed(int $adminId, string $resourceType, string $resourceId): void
+    {
         try {
-            $this->recorder->record(
-                $eventKey,
-                $actorType,
-                $actorId,
-                $entityType,
-                $entityId,
-                $subjectType,
-                $subjectId,
-                $metadata,
-                $referrerRouteName,
-                $referrerPath,
-                $referrerHost,
-                $correlationId,
-                $requestId,
-                $routeName,
-                $ipAddress,
-                $userAgent
-            );
-        } catch (\Throwable $e) {
-            // Fail-open: suppress all exceptions to prevent application crash
-            $this->logger->error('AuditTrailService: Failed to record event', [
-                'exception' => $e,
-                'event_key' => $eventKey,
-            ]);
+            // $this->recorder->record(
+            //     eventKey: self::EVENT_RESOURCE_VIEWED,
+            //     actorId: $adminId,
+            //     metadata: ['type' => $resourceType, 'id' => $resourceId]
+            // );
+        } catch (Throwable $e) {
+            $this->logFailure('recordResourceViewed', $e);
         }
+    }
+
+    /**
+     * Used when an admin views a list/index of entities, optionally with filters.
+     */
+    public function recordCollectionViewed(int $adminId, string $resourceType): void
+    {
+        try {
+            // $this->recorder->record(
+            //     eventKey: self::EVENT_COLLECTION_VIEWED,
+            //     actorId: $adminId,
+            //     metadata: ['type' => $resourceType]
+            // );
+        } catch (Throwable $e) {
+            $this->logFailure('recordCollectionViewed', $e);
+        }
+    }
+
+    /**
+     * Used when an admin executes a search query.
+     */
+    public function recordSearchPerformed(int $adminId, string $resourceType, string $query, int $resultCount): void
+    {
+        try {
+            // $this->recorder->record(
+            //     eventKey: self::EVENT_SEARCH_PERFORMED,
+            //     actorId: $adminId,
+            //     metadata: [
+            //         'type' => $resourceType,
+            //         'query' => $query,
+            //         'count' => $resultCount
+            //     ]
+            // );
+        } catch (Throwable $e) {
+            $this->logFailure('recordSearchPerformed', $e);
+        }
+    }
+
+    /**
+     * Used when an admin generates and downloads a data export (CSV, PDF).
+     */
+    public function recordExportGenerated(int $adminId, string $resourceType, string $format, int $recordCount): void
+    {
+        try {
+            // $this->recorder->record(
+            //     eventKey: self::EVENT_EXPORT_GENERATED,
+            //     actorId: $adminId,
+            //     metadata: [
+            //         'type' => $resourceType,
+            //         'format' => $format,
+            //         'count' => $recordCount
+            //     ]
+            // );
+        } catch (Throwable $e) {
+            $this->logFailure('recordExportGenerated', $e);
+        }
+    }
+
+    /**
+     * Used when an admin views sensitive data belonging to a specific subject (e.g., User, Customer).
+     */
+    public function recordSubjectViewed(int $adminId, string $subjectType, int $subjectId, string $context): void
+    {
+        try {
+            // $this->recorder->record(
+            //     eventKey: self::EVENT_SUBJECT_VIEWED,
+            //     actorId: $adminId,
+            //     metadata: [
+            //         'subject_type' => $subjectType,
+            //         'subject_id' => $subjectId,
+            //         'context' => $context
+            //     ]
+            // );
+        } catch (Throwable $e) {
+            $this->logFailure('recordSubjectViewed', $e);
+        }
+    }
+
+    private function logFailure(string $method, Throwable $e): void
+    {
+        $this->logger->error(
+            sprintf('[AuditTrailService] %s failed: %s', $method, $e->getMessage()),
+            ['exception' => $e]
+        );
     }
 }

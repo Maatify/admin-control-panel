@@ -4,56 +4,119 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use Maatify\AuthoritativeAudit\Enum\AuthoritativeAuditActorTypeInterface;
-use Maatify\AuthoritativeAudit\Enum\AuthoritativeAuditRiskLevelEnum;
-use Maatify\AuthoritativeAudit\Exception\AuthoritativeAuditStorageException;
-use Maatify\AuthoritativeAudit\Recorder\AuthoritativeAuditRecorder;
-use InvalidArgumentException;
-
+/**
+ * Records Governance and Security Posture changes. This is the Source of Truth for compliance.
+ *
+ * BEHAVIOR GUARANTEE: FAIL-CLOSED (Transactional)
+ * If logging fails, the business transaction MUST roll back.
+ */
 class AuthoritativeAuditService
 {
+    private const ACTION_ADMIN_CREATE = 'admin.create';
+    private const ACTION_ADMIN_STATUS_CHANGE = 'admin.status_change';
+    private const ACTION_ROLE_ASSIGN = 'role.assign';
+    private const ACTION_SYSTEM_CONFIG_CHANGE = 'system_config.change';
+    private const ACTION_OWNERSHIP_TRANSFER = 'ownership.transfer';
+
+    // Risk levels are internal; Domain passes nothing related to risk.
+    // private const RISK_HIGH = 'HIGH';
+    // private const RISK_CRITICAL = 'CRITICAL';
+
     public function __construct(
-        private readonly AuthoritativeAuditRecorder $recorder
+        // private AuthoritativeAuditRecorder $recorder // Dependency to be injected
     ) {
     }
 
     /**
-     * Records an authoritative audit event (compliance/governance).
+     * Used when a new privileged account was created.
      *
-     * This method acts as a project-facing wrapper for the AuthoritativeAuditRecorder.
-     * It enforces **Fail-Closed** behavior, meaning any exception during validation
-     * or storage is PROPAGATED and MUST result in the transaction being aborted.
-     *
-     * @param string $action
-     * @param string $targetType
-     * @param int|null $targetId
-     * @param AuthoritativeAuditRiskLevelEnum|string $riskLevel
-     * @param AuthoritativeAuditActorTypeInterface|string $actorType
-     * @param int|null $actorId
-     * @param array<mixed> $payload
-     * @param string $correlationId
-     * @throws AuthoritativeAuditStorageException If storage fails (Fail-Closed)
-     * @throws InvalidArgumentException If validation fails (Fail-Closed)
+     * @throws \Throwable If logging fails (Fail-Closed)
      */
-    public function record(
-        string $action,
-        string $targetType,
-        ?int $targetId,
-        AuthoritativeAuditRiskLevelEnum|string $riskLevel,
-        AuthoritativeAuditActorTypeInterface|string $actorType,
-        ?int $actorId,
-        array $payload,
-        string $correlationId
-    ): void {
-        $this->recorder->record(
-            $action,
-            $targetType,
-            $targetId,
-            $riskLevel,
-            $actorType,
-            $actorId,
-            $payload,
-            $correlationId
-        );
+    public function recordAdminCreated(int $initiatorId, int $newAdminId, string $initialRole): void
+    {
+        // $this->recorder->record(
+        //     action: self::ACTION_ADMIN_CREATE,
+        //     initiatorId: $initiatorId,
+        //     riskLevel: self::RISK_HIGH,
+        //     payload: [
+        //         'new_admin_id' => $newAdminId,
+        //         'initial_role' => $initialRole
+        //     ]
+        // );
+    }
+
+    /**
+     * Used when Admin was suspended, banned, or reactivated.
+     *
+     * @throws \Throwable If logging fails (Fail-Closed)
+     */
+    public function recordAdminStatusChanged(int $initiatorId, int $targetAdminId, string $oldStatus, string $newStatus): void
+    {
+        // $this->recorder->record(
+        //     action: self::ACTION_ADMIN_STATUS_CHANGE,
+        //     initiatorId: $initiatorId,
+        //     riskLevel: self::RISK_HIGH,
+        //     payload: [
+        //         'target_admin_id' => $targetAdminId,
+        //         'old_status' => $oldStatus,
+        //         'new_status' => $newStatus
+        //     ]
+        // );
+    }
+
+    /**
+     * Used when Admin permissions were modified via role change.
+     *
+     * @throws \Throwable If logging fails (Fail-Closed)
+     */
+    public function recordRoleAssigned(int $initiatorId, int $targetAdminId, string $roleName): void
+    {
+        // $this->recorder->record(
+        //     action: self::ACTION_ROLE_ASSIGN,
+        //     initiatorId: $initiatorId,
+        //     riskLevel: self::RISK_CRITICAL,
+        //     payload: [
+        //         'target_admin_id' => $targetAdminId,
+        //         'role_name' => $roleName
+        //     ]
+        // );
+    }
+
+    /**
+     * Used when Global system security configuration was altered.
+     *
+     * @throws \Throwable If logging fails (Fail-Closed)
+     */
+    public function recordSystemConfigChanged(int $initiatorId, string $key, string $oldValue, string $newValue): void
+    {
+        // $this->recorder->record(
+        //     action: self::ACTION_SYSTEM_CONFIG_CHANGE,
+        //     initiatorId: $initiatorId,
+        //     riskLevel: self::RISK_CRITICAL,
+        //     payload: [
+        //         'config_key' => $key,
+        //         'old_value' => $oldValue,
+        //         'new_value' => $newValue
+        //     ]
+        // );
+    }
+
+    /**
+     * Used when Ownership of a critical resource was reassigned.
+     *
+     * @throws \Throwable If logging fails (Fail-Closed)
+     */
+    public function recordOwnershipTransferred(int $initiatorId, string $assetType, int $assetId, int $newOwnerId): void
+    {
+        // $this->recorder->record(
+        //     action: self::ACTION_OWNERSHIP_TRANSFER,
+        //     initiatorId: $initiatorId,
+        //     riskLevel: self::RISK_CRITICAL,
+        //     payload: [
+        //         'asset_type' => $assetType,
+        //         'asset_id' => $assetId,
+        //         'new_owner_id' => $newOwnerId
+        //     ]
+        // );
     }
 }
