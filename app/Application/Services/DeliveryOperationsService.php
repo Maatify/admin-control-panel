@@ -10,11 +10,13 @@ use Maatify\DeliveryOperations\Enum\DeliveryChannelEnum;
 use Maatify\DeliveryOperations\Enum\DeliveryOperationTypeEnum;
 use Maatify\DeliveryOperations\Enum\DeliveryStatusEnum;
 use Maatify\DeliveryOperations\Recorder\DeliveryOperationsRecorder;
+use Psr\Log\LoggerInterface;
 
 class DeliveryOperationsService
 {
     public function __construct(
-        private readonly DeliveryOperationsRecorder $recorder
+        private readonly DeliveryOperationsRecorder $recorder,
+        private readonly LoggerInterface $logger
     ) {
     }
 
@@ -84,6 +86,11 @@ class DeliveryOperationsService
             );
         } catch (\Throwable $e) {
             // Fail-open: suppress all exceptions to prevent application crash
+            $this->logger->error('DeliveryOperationsService: Failed to record event', [
+                'exception' => $e,
+                'channel' => $channel,
+                'operation_type' => $operationType,
+            ]);
         }
     }
 }

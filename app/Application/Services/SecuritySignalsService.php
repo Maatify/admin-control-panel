@@ -7,11 +7,13 @@ namespace App\Application\Services;
 use Maatify\SecuritySignals\Enum\SecuritySignalActorTypeEnum;
 use Maatify\SecuritySignals\Enum\SecuritySignalSeverityEnum;
 use Maatify\SecuritySignals\Recorder\SecuritySignalsRecorder;
+use Psr\Log\LoggerInterface;
 
 class SecuritySignalsService
 {
     public function __construct(
-        private readonly SecuritySignalsRecorder $recorder
+        private readonly SecuritySignalsRecorder $recorder,
+        private readonly LoggerInterface $logger
     ) {
     }
 
@@ -60,6 +62,10 @@ class SecuritySignalsService
             );
         } catch (\Throwable $e) {
             // Fail-open: suppress all exceptions to prevent application crash
+            $this->logger->error('SecuritySignalsService: Failed to record event', [
+                'exception' => $e,
+                'signal_type' => $signalType,
+            ]);
         }
     }
 }

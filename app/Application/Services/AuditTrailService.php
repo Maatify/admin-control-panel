@@ -6,11 +6,13 @@ namespace App\Application\Services;
 
 use Maatify\AuditTrail\Enum\AuditTrailActorTypeEnum;
 use Maatify\AuditTrail\Recorder\AuditTrailRecorder;
+use Psr\Log\LoggerInterface;
 
 class AuditTrailService
 {
     public function __construct(
-        private readonly AuditTrailRecorder $recorder
+        private readonly AuditTrailRecorder $recorder,
+        private readonly LoggerInterface $logger
     ) {
     }
 
@@ -77,6 +79,10 @@ class AuditTrailService
             );
         } catch (\Throwable $e) {
             // Fail-open: suppress all exceptions to prevent application crash
+            $this->logger->error('AuditTrailService: Failed to record event', [
+                'exception' => $e,
+                'event_key' => $eventKey,
+            ]);
         }
     }
 }

@@ -6,11 +6,13 @@ namespace App\Application\Services;
 
 use Maatify\BehaviorTrace\Enum\BehaviorTraceActorTypeInterface;
 use Maatify\BehaviorTrace\Recorder\BehaviorTraceRecorder;
+use Psr\Log\LoggerInterface;
 
 class BehaviorTraceService
 {
     public function __construct(
-        private readonly BehaviorTraceRecorder $recorder
+        private readonly BehaviorTraceRecorder $recorder,
+        private readonly LoggerInterface $logger
     ) {
     }
 
@@ -62,6 +64,10 @@ class BehaviorTraceService
             );
         } catch (\Throwable $e) {
             // Fail-open: suppress all exceptions to prevent application crash
+            $this->logger->error('BehaviorTraceService: Failed to record event', [
+                'exception' => $e,
+                'action' => $action,
+            ]);
         }
     }
 }

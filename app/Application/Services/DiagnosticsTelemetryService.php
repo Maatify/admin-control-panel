@@ -7,11 +7,13 @@ namespace App\Application\Services;
 use Maatify\DiagnosticsTelemetry\Enum\DiagnosticsTelemetryActorTypeInterface;
 use Maatify\DiagnosticsTelemetry\Enum\DiagnosticsTelemetrySeverityInterface;
 use Maatify\DiagnosticsTelemetry\Recorder\DiagnosticsTelemetryRecorder;
+use Psr\Log\LoggerInterface;
 
 class DiagnosticsTelemetryService
 {
     public function __construct(
-        private readonly DiagnosticsTelemetryRecorder $recorder
+        private readonly DiagnosticsTelemetryRecorder $recorder,
+        private readonly LoggerInterface $logger
     ) {
     }
 
@@ -63,6 +65,10 @@ class DiagnosticsTelemetryService
             );
         } catch (\Throwable $e) {
             // Fail-open: suppress all exceptions to prevent application crash
+            $this->logger->error('DiagnosticsTelemetryService: Failed to record event', [
+                'exception' => $e,
+                'event_key' => $eventKey,
+            ]);
         }
     }
 }
