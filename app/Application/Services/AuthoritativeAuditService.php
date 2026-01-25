@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
+use Maatify\AuthoritativeAudit\Enum\AuthoritativeAuditRiskLevelEnum;
+use Maatify\AuthoritativeAudit\Recorder\AuthoritativeAuditRecorder;
+
 /**
  * Records Governance and Security Posture changes. This is the Source of Truth for compliance.
  *
@@ -18,12 +21,10 @@ class AuthoritativeAuditService
     private const ACTION_SYSTEM_CONFIG_CHANGE = 'system_config.change';
     private const ACTION_OWNERSHIP_TRANSFER = 'ownership.transfer';
 
-    // Risk levels are internal; Domain passes nothing related to risk.
-    // private const RISK_HIGH = 'HIGH';
-    // private const RISK_CRITICAL = 'CRITICAL';
+    private const ACTOR_TYPE_ADMIN = 'ADMIN';
 
     public function __construct(
-        // private AuthoritativeAuditRecorder $recorder // Dependency to be injected
+        private AuthoritativeAuditRecorder $recorder
     ) {
     }
 
@@ -34,15 +35,17 @@ class AuthoritativeAuditService
      */
     public function recordAdminCreated(int $initiatorId, int $newAdminId, string $initialRole): void
     {
-        // $this->recorder->record(
-        //     action: self::ACTION_ADMIN_CREATE,
-        //     initiatorId: $initiatorId,
-        //     riskLevel: self::RISK_HIGH,
-        //     payload: [
-        //         'new_admin_id' => $newAdminId,
-        //         'initial_role' => $initialRole
-        //     ]
-        // );
+        $this->recorder->record(
+            action: self::ACTION_ADMIN_CREATE,
+            targetType: 'admin',
+            targetId: $newAdminId,
+            riskLevel: AuthoritativeAuditRiskLevelEnum::HIGH,
+            actorType: self::ACTOR_TYPE_ADMIN,
+            actorId: $initiatorId,
+            payload: [
+                'initial_role' => $initialRole
+            ]
+        );
     }
 
     /**
@@ -52,16 +55,18 @@ class AuthoritativeAuditService
      */
     public function recordAdminStatusChanged(int $initiatorId, int $targetAdminId, string $oldStatus, string $newStatus): void
     {
-        // $this->recorder->record(
-        //     action: self::ACTION_ADMIN_STATUS_CHANGE,
-        //     initiatorId: $initiatorId,
-        //     riskLevel: self::RISK_HIGH,
-        //     payload: [
-        //         'target_admin_id' => $targetAdminId,
-        //         'old_status' => $oldStatus,
-        //         'new_status' => $newStatus
-        //     ]
-        // );
+        $this->recorder->record(
+            action: self::ACTION_ADMIN_STATUS_CHANGE,
+            targetType: 'admin',
+            targetId: $targetAdminId,
+            riskLevel: AuthoritativeAuditRiskLevelEnum::HIGH,
+            actorType: self::ACTOR_TYPE_ADMIN,
+            actorId: $initiatorId,
+            payload: [
+                'old_status' => $oldStatus,
+                'new_status' => $newStatus
+            ]
+        );
     }
 
     /**
@@ -71,15 +76,17 @@ class AuthoritativeAuditService
      */
     public function recordRoleAssigned(int $initiatorId, int $targetAdminId, string $roleName): void
     {
-        // $this->recorder->record(
-        //     action: self::ACTION_ROLE_ASSIGN,
-        //     initiatorId: $initiatorId,
-        //     riskLevel: self::RISK_CRITICAL,
-        //     payload: [
-        //         'target_admin_id' => $targetAdminId,
-        //         'role_name' => $roleName
-        //     ]
-        // );
+        $this->recorder->record(
+            action: self::ACTION_ROLE_ASSIGN,
+            targetType: 'admin',
+            targetId: $targetAdminId,
+            riskLevel: AuthoritativeAuditRiskLevelEnum::CRITICAL,
+            actorType: self::ACTOR_TYPE_ADMIN,
+            actorId: $initiatorId,
+            payload: [
+                'role_name' => $roleName
+            ]
+        );
     }
 
     /**
@@ -89,16 +96,19 @@ class AuthoritativeAuditService
      */
     public function recordSystemConfigChanged(int $initiatorId, string $key, string $oldValue, string $newValue): void
     {
-        // $this->recorder->record(
-        //     action: self::ACTION_SYSTEM_CONFIG_CHANGE,
-        //     initiatorId: $initiatorId,
-        //     riskLevel: self::RISK_CRITICAL,
-        //     payload: [
-        //         'config_key' => $key,
-        //         'old_value' => $oldValue,
-        //         'new_value' => $newValue
-        //     ]
-        // );
+        $this->recorder->record(
+            action: self::ACTION_SYSTEM_CONFIG_CHANGE,
+            targetType: 'system_config',
+            targetId: null, // Global config might not have an ID, or hash of key. Null is acceptable for singleton.
+            riskLevel: AuthoritativeAuditRiskLevelEnum::CRITICAL,
+            actorType: self::ACTOR_TYPE_ADMIN,
+            actorId: $initiatorId,
+            payload: [
+                'config_key' => $key,
+                'old_value' => $oldValue,
+                'new_value' => $newValue
+            ]
+        );
     }
 
     /**
@@ -108,15 +118,16 @@ class AuthoritativeAuditService
      */
     public function recordOwnershipTransferred(int $initiatorId, string $assetType, int $assetId, int $newOwnerId): void
     {
-        // $this->recorder->record(
-        //     action: self::ACTION_OWNERSHIP_TRANSFER,
-        //     initiatorId: $initiatorId,
-        //     riskLevel: self::RISK_CRITICAL,
-        //     payload: [
-        //         'asset_type' => $assetType,
-        //         'asset_id' => $assetId,
-        //         'new_owner_id' => $newOwnerId
-        //     ]
-        // );
+        $this->recorder->record(
+            action: self::ACTION_OWNERSHIP_TRANSFER,
+            targetType: $assetType,
+            targetId: $assetId,
+            riskLevel: AuthoritativeAuditRiskLevelEnum::CRITICAL,
+            actorType: self::ACTOR_TYPE_ADMIN,
+            actorId: $initiatorId,
+            payload: [
+                'new_owner_id' => $newOwnerId
+            ]
+        );
     }
 }

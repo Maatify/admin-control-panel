@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
+use Maatify\SecuritySignals\Enum\SecuritySignalActorTypeEnum;
+use Maatify\SecuritySignals\Enum\SecuritySignalSeverityEnum;
+use Maatify\SecuritySignals\Recorder\SecuritySignalsRecorder;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -21,13 +24,13 @@ class SecuritySignalsService
     private const SIGNAL_STEP_UP_FAILED = 'step_up_failed';
     private const SIGNAL_SESSION_TERMINATED = 'session_terminated';
 
-    private const SEVERITY_INFO = 'INFO';
-    private const SEVERITY_WARNING = 'WARNING';
-    private const SEVERITY_ERROR = 'ERROR';
+    private const SEVERITY_INFO = SecuritySignalSeverityEnum::INFO;
+    private const SEVERITY_WARNING = SecuritySignalSeverityEnum::WARNING;
+    private const SEVERITY_ERROR = SecuritySignalSeverityEnum::ERROR;
 
     public function __construct(
         private LoggerInterface $logger,
-        // private SecuritySignalsRecorder $recorder // Dependency to be injected
+        private SecuritySignalsRecorder $recorder
     ) {
     }
 
@@ -37,12 +40,14 @@ class SecuritySignalsService
     public function recordLoginSuccess(int $adminId, string $ipAddress, string $userAgent): void
     {
         try {
-            // $this->recorder->record(
-            //     signalType: self::SIGNAL_LOGIN_SUCCESS,
-            //     severity: self::SEVERITY_INFO,
-            //     actorId: $adminId,
-            //     metadata: ['ip' => $ipAddress, 'ua' => $userAgent]
-            // );
+            $this->recorder->record(
+                signalType: self::SIGNAL_LOGIN_SUCCESS,
+                severity: self::SEVERITY_INFO,
+                actorType: SecuritySignalActorTypeEnum::ADMIN,
+                actorId: $adminId,
+                ipAddress: $ipAddress,
+                userAgent: $userAgent
+            );
         } catch (Throwable $e) {
             $this->logFailure('recordLoginSuccess', $e);
         }
@@ -54,17 +59,17 @@ class SecuritySignalsService
     public function recordLoginFailed(string $inputIdentifier, string $ipAddress, string $userAgent, string $reason): void
     {
         try {
-            // $this->recorder->record(
-            //     signalType: self::SIGNAL_LOGIN_FAILED,
-            //     severity: self::SEVERITY_WARNING,
-            //     actorId: null, // Anonymous
-            //     metadata: [
-            //         'identifier' => $inputIdentifier,
-            //         'ip' => $ipAddress,
-            //         'ua' => $userAgent,
-            //         'reason' => $reason
-            //     ]
-            // );
+            $this->recorder->record(
+                signalType: self::SIGNAL_LOGIN_FAILED,
+                severity: self::SEVERITY_WARNING,
+                actorType: SecuritySignalActorTypeEnum::ANONYMOUS,
+                ipAddress: $ipAddress,
+                userAgent: $userAgent,
+                metadata: [
+                    'identifier' => $inputIdentifier,
+                    'reason' => $reason
+                ]
+            );
         } catch (Throwable $e) {
             $this->logFailure('recordLoginFailed', $e);
         }
@@ -76,16 +81,17 @@ class SecuritySignalsService
     public function recordAccessDenied(int $adminId, string $resource, string $action, string $ipAddress): void
     {
         try {
-            // $this->recorder->record(
-            //     signalType: self::SIGNAL_ACCESS_DENIED,
-            //     severity: self::SEVERITY_WARNING,
-            //     actorId: $adminId,
-            //     metadata: [
-            //         'resource' => $resource,
-            //         'action' => $action,
-            //         'ip' => $ipAddress
-            //     ]
-            // );
+            $this->recorder->record(
+                signalType: self::SIGNAL_ACCESS_DENIED,
+                severity: self::SEVERITY_WARNING,
+                actorType: SecuritySignalActorTypeEnum::ADMIN,
+                actorId: $adminId,
+                ipAddress: $ipAddress,
+                metadata: [
+                    'resource' => $resource,
+                    'action' => $action
+                ]
+            );
         } catch (Throwable $e) {
             $this->logFailure('recordAccessDenied', $e);
         }
@@ -97,15 +103,16 @@ class SecuritySignalsService
     public function recordStepUpFailed(int $adminId, string $mechanism, string $ipAddress): void
     {
         try {
-            // $this->recorder->record(
-            //     signalType: self::SIGNAL_STEP_UP_FAILED,
-            //     severity: self::SEVERITY_WARNING,
-            //     actorId: $adminId,
-            //     metadata: [
-            //         'mechanism' => $mechanism,
-            //         'ip' => $ipAddress
-            //     ]
-            // );
+            $this->recorder->record(
+                signalType: self::SIGNAL_STEP_UP_FAILED,
+                severity: self::SEVERITY_WARNING,
+                actorType: SecuritySignalActorTypeEnum::ADMIN,
+                actorId: $adminId,
+                ipAddress: $ipAddress,
+                metadata: [
+                    'mechanism' => $mechanism
+                ]
+            );
         } catch (Throwable $e) {
             $this->logFailure('recordStepUpFailed', $e);
         }
@@ -117,15 +124,16 @@ class SecuritySignalsService
     public function recordSessionTerminated(int $adminId, string $reason, string $ipAddress): void
     {
         try {
-            // $this->recorder->record(
-            //     signalType: self::SIGNAL_SESSION_TERMINATED,
-            //     severity: self::SEVERITY_INFO,
-            //     actorId: $adminId,
-            //     metadata: [
-            //         'reason' => $reason,
-            //         'ip' => $ipAddress
-            //     ]
-            // );
+            $this->recorder->record(
+                signalType: self::SIGNAL_SESSION_TERMINATED,
+                severity: self::SEVERITY_INFO,
+                actorType: SecuritySignalActorTypeEnum::ADMIN,
+                actorId: $adminId,
+                ipAddress: $ipAddress,
+                metadata: [
+                    'reason' => $reason
+                ]
+            );
         } catch (Throwable $e) {
             $this->logFailure('recordSessionTerminated', $e);
         }

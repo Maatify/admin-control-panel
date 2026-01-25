@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
+use Maatify\DiagnosticsTelemetry\Enum\DiagnosticsTelemetryActorTypeInterface;
+use Maatify\DiagnosticsTelemetry\Enum\DiagnosticsTelemetrySeverityInterface;
+use Maatify\DiagnosticsTelemetry\Recorder\DiagnosticsTelemetryRecorder;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -19,13 +22,16 @@ class DiagnosticsTelemetryService
     private const EVENT_PERF_METRIC = 'perf.metric';
     private const EVENT_DEPENDENCY_FAILURE = 'dependency.failure';
 
+    // We rely on the recorder allowing strings for severity/actor_type or we use strings that map to internal interfaces if implemented.
+    // Assuming string compatibility based on contract: `DiagnosticsTelemetrySeverityInterface|string`
     private const SEVERITY_ERROR = 'ERROR';
     private const SEVERITY_INFO = 'INFO';
     private const SEVERITY_WARNING = 'WARNING';
+    private const ACTOR_TYPE_SYSTEM = 'SYSTEM';
 
     public function __construct(
         private LoggerInterface $logger,
-        // private DiagnosticsTelemetryRecorder $recorder // Dependency to be injected
+        private DiagnosticsTelemetryRecorder $recorder
     ) {
     }
 
@@ -35,17 +41,18 @@ class DiagnosticsTelemetryService
     public function recordSystemException(string $message, string $file, int $line, string $exceptionClass): void
     {
         try {
-            // $this->recorder->record(
-            //     eventKey: self::EVENT_EXCEPTION_SYSTEM,
-            //     severity: self::SEVERITY_ERROR,
-            //     actorId: null, // System event
-            //     metadata: [
-            //         'message' => $message,
-            //         'file' => $file,
-            //         'line' => $line,
-            //         'class' => $exceptionClass
-            //     ]
-            // );
+            $this->recorder->record(
+                eventKey: self::EVENT_EXCEPTION_SYSTEM,
+                severity: self::SEVERITY_ERROR,
+                actorType: self::ACTOR_TYPE_SYSTEM,
+                actorId: null,
+                metadata: [
+                    'message' => $message,
+                    'file' => $file,
+                    'line' => $line,
+                    'class' => $exceptionClass
+                ]
+            );
         } catch (Throwable $e) {
             $this->logFailure('recordSystemException', $e);
         }
@@ -57,16 +64,16 @@ class DiagnosticsTelemetryService
     public function recordPerformanceMetric(string $metricName, int $durationMs, string $context): void
     {
         try {
-            // $this->recorder->record(
-            //     eventKey: self::EVENT_PERF_METRIC,
-            //     severity: self::SEVERITY_INFO,
-            //     actorId: null, // System event
-            //     metadata: [
-            //         'metric' => $metricName,
-            //         'duration_ms' => $durationMs,
-            //         'context' => $context
-            //     ]
-            // );
+            $this->recorder->record(
+                eventKey: self::EVENT_PERF_METRIC,
+                severity: self::SEVERITY_INFO,
+                actorType: self::ACTOR_TYPE_SYSTEM,
+                durationMs: $durationMs,
+                metadata: [
+                    'metric' => $metricName,
+                    'context' => $context
+                ]
+            );
         } catch (Throwable $e) {
             // Intentionally ignored for performance metrics to avoid noise
         }
@@ -78,16 +85,16 @@ class DiagnosticsTelemetryService
     public function recordExternalDependencyFailure(string $serviceName, string $endpoint, int $statusCode): void
     {
         try {
-            // $this->recorder->record(
-            //     eventKey: self::EVENT_DEPENDENCY_FAILURE,
-            //     severity: self::SEVERITY_WARNING,
-            //     actorId: null, // System event
-            //     metadata: [
-            //         'service' => $serviceName,
-            //         'endpoint' => $endpoint,
-            //         'status_code' => $statusCode
-            //     ]
-            // );
+            $this->recorder->record(
+                eventKey: self::EVENT_DEPENDENCY_FAILURE,
+                severity: self::SEVERITY_WARNING,
+                actorType: self::ACTOR_TYPE_SYSTEM,
+                metadata: [
+                    'service' => $serviceName,
+                    'endpoint' => $endpoint,
+                    'status_code' => $statusCode
+                ]
+            );
         } catch (Throwable $e) {
             // Intentionally ignored to avoid cascading failures
         }

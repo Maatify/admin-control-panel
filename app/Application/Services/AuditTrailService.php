@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
+use Maatify\AuditTrail\Enum\AuditTrailActorTypeEnum;
+use Maatify\AuditTrail\Recorder\AuditTrailRecorder;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -23,7 +25,7 @@ class AuditTrailService
 
     public function __construct(
         private LoggerInterface $logger,
-        // private AuditTrailRecorder $recorder // Dependency to be injected
+        private AuditTrailRecorder $recorder
     ) {
     }
 
@@ -33,11 +35,14 @@ class AuditTrailService
     public function recordResourceViewed(int $adminId, string $resourceType, string $resourceId): void
     {
         try {
-            // $this->recorder->record(
-            //     eventKey: self::EVENT_RESOURCE_VIEWED,
-            //     actorId: $adminId,
-            //     metadata: ['type' => $resourceType, 'id' => $resourceId]
-            // );
+            $this->recorder->record(
+                eventKey: self::EVENT_RESOURCE_VIEWED,
+                actorType: AuditTrailActorTypeEnum::ADMIN,
+                actorId: $adminId,
+                entityType: $resourceType,
+                entityId: (int)$resourceId,
+                metadata: ['type' => $resourceType, 'id' => $resourceId]
+            );
         } catch (Throwable $e) {
             $this->logFailure('recordResourceViewed', $e);
         }
@@ -49,11 +54,13 @@ class AuditTrailService
     public function recordCollectionViewed(int $adminId, string $resourceType): void
     {
         try {
-            // $this->recorder->record(
-            //     eventKey: self::EVENT_COLLECTION_VIEWED,
-            //     actorId: $adminId,
-            //     metadata: ['type' => $resourceType]
-            // );
+            $this->recorder->record(
+                eventKey: self::EVENT_COLLECTION_VIEWED,
+                actorType: AuditTrailActorTypeEnum::ADMIN,
+                actorId: $adminId,
+                entityType: $resourceType,
+                metadata: ['type' => $resourceType]
+            );
         } catch (Throwable $e) {
             $this->logFailure('recordCollectionViewed', $e);
         }
@@ -65,15 +72,16 @@ class AuditTrailService
     public function recordSearchPerformed(int $adminId, string $resourceType, string $query, int $resultCount): void
     {
         try {
-            // $this->recorder->record(
-            //     eventKey: self::EVENT_SEARCH_PERFORMED,
-            //     actorId: $adminId,
-            //     metadata: [
-            //         'type' => $resourceType,
-            //         'query' => $query,
-            //         'count' => $resultCount
-            //     ]
-            // );
+            $this->recorder->record(
+                eventKey: self::EVENT_SEARCH_PERFORMED,
+                actorType: AuditTrailActorTypeEnum::ADMIN,
+                actorId: $adminId,
+                entityType: $resourceType,
+                metadata: [
+                    'query' => $query,
+                    'count' => $resultCount
+                ]
+            );
         } catch (Throwable $e) {
             $this->logFailure('recordSearchPerformed', $e);
         }
@@ -85,15 +93,16 @@ class AuditTrailService
     public function recordExportGenerated(int $adminId, string $resourceType, string $format, int $recordCount): void
     {
         try {
-            // $this->recorder->record(
-            //     eventKey: self::EVENT_EXPORT_GENERATED,
-            //     actorId: $adminId,
-            //     metadata: [
-            //         'type' => $resourceType,
-            //         'format' => $format,
-            //         'count' => $recordCount
-            //     ]
-            // );
+            $this->recorder->record(
+                eventKey: self::EVENT_EXPORT_GENERATED,
+                actorType: AuditTrailActorTypeEnum::ADMIN,
+                actorId: $adminId,
+                entityType: $resourceType,
+                metadata: [
+                    'format' => $format,
+                    'count' => $recordCount
+                ]
+            );
         } catch (Throwable $e) {
             $this->logFailure('recordExportGenerated', $e);
         }
@@ -105,15 +114,16 @@ class AuditTrailService
     public function recordSubjectViewed(int $adminId, string $subjectType, int $subjectId, string $context): void
     {
         try {
-            // $this->recorder->record(
-            //     eventKey: self::EVENT_SUBJECT_VIEWED,
-            //     actorId: $adminId,
-            //     metadata: [
-            //         'subject_type' => $subjectType,
-            //         'subject_id' => $subjectId,
-            //         'context' => $context
-            //     ]
-            // );
+            $this->recorder->record(
+                eventKey: self::EVENT_SUBJECT_VIEWED,
+                actorType: AuditTrailActorTypeEnum::ADMIN,
+                actorId: $adminId,
+                metadata: [
+                    'subject_type' => $subjectType,
+                    'subject_id' => $subjectId,
+                    'context' => $context
+                ]
+            );
         } catch (Throwable $e) {
             $this->logFailure('recordSubjectViewed', $e);
         }

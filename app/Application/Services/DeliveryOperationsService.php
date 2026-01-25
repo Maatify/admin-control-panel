@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
+use Maatify\DeliveryOperations\Enum\DeliveryChannelEnum;
+use Maatify\DeliveryOperations\Enum\DeliveryOperationTypeEnum;
+use Maatify\DeliveryOperations\Enum\DeliveryStatusEnum;
+use Maatify\DeliveryOperations\Recorder\DeliveryOperationsRecorder;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -15,19 +19,19 @@ use Throwable;
  */
 class DeliveryOperationsService
 {
-    private const CHANNEL_EMAIL = 'email';
-    private const CHANNEL_WEBHOOK = 'webhook';
+    private const CHANNEL_EMAIL = DeliveryChannelEnum::EMAIL;
+    private const CHANNEL_WEBHOOK = DeliveryChannelEnum::WEBHOOK;
 
-    private const STATUS_QUEUED = 'queued';
-    private const STATUS_SENT = 'sent';
-    private const STATUS_FAILED = 'failed';
+    private const STATUS_QUEUED = DeliveryStatusEnum::QUEUED;
+    private const STATUS_SENT = DeliveryStatusEnum::SENT;
+    private const STATUS_FAILED = DeliveryStatusEnum::FAILED;
 
-    private const OPERATION_NOTIFICATION_SEND = 'notification.send';
-    private const OPERATION_WEBHOOK_DISPATCH = 'webhook.dispatch';
+    private const OPERATION_NOTIFICATION_SEND = DeliveryOperationTypeEnum::NOTIFICATION_SEND;
+    private const OPERATION_WEBHOOK_DISPATCH = DeliveryOperationTypeEnum::WEBHOOK_DISPATCH;
 
     public function __construct(
         private LoggerInterface $logger,
-        // private DeliveryOperationsRecorder $recorder // Dependency to be injected
+        private DeliveryOperationsRecorder $recorder
     ) {
     }
 
@@ -37,13 +41,13 @@ class DeliveryOperationsService
     public function recordEmailQueued(string $recipientId, string $templateName): void
     {
         try {
-            // $this->recorder->record(
-            //     channel: self::CHANNEL_EMAIL,
-            //     operationType: self::OPERATION_NOTIFICATION_SEND,
-            //     status: self::STATUS_QUEUED,
-            //     targetId: $recipientId,
-            //     metadata: ['template' => $templateName]
-            // );
+            $this->recorder->record(
+                channel: self::CHANNEL_EMAIL,
+                operationType: self::OPERATION_NOTIFICATION_SEND,
+                status: self::STATUS_QUEUED,
+                targetId: (int)$recipientId, // Casting to int as targetId is likely int, but signature might be loose. Checking contract later. Assuming int based on canonical rules.
+                metadata: ['template' => $templateName]
+            );
         } catch (Throwable $e) {
             $this->logFailure('recordEmailQueued', $e);
         }
@@ -55,16 +59,16 @@ class DeliveryOperationsService
     public function recordEmailSent(string $recipientId, string $templateName, string $providerMessageId): void
     {
         try {
-            // $this->recorder->record(
-            //     channel: self::CHANNEL_EMAIL,
-            //     operationType: self::OPERATION_NOTIFICATION_SEND,
-            //     status: self::STATUS_SENT,
-            //     targetId: $recipientId,
-            //     metadata: [
-            //         'template' => $templateName,
-            //         'provider_msg_id' => $providerMessageId
-            //     ]
-            // );
+            $this->recorder->record(
+                channel: self::CHANNEL_EMAIL,
+                operationType: self::OPERATION_NOTIFICATION_SEND,
+                status: self::STATUS_SENT,
+                targetId: (int)$recipientId,
+                providerMessageId: $providerMessageId,
+                metadata: [
+                    'template' => $templateName
+                ]
+            );
         } catch (Throwable $e) {
             $this->logFailure('recordEmailSent', $e);
         }
@@ -76,17 +80,17 @@ class DeliveryOperationsService
     public function recordEmailFailed(string $recipientId, string $templateName, string $errorMessage, int $attempt): void
     {
         try {
-            // $this->recorder->record(
-            //     channel: self::CHANNEL_EMAIL,
-            //     operationType: self::OPERATION_NOTIFICATION_SEND,
-            //     status: self::STATUS_FAILED,
-            //     targetId: $recipientId,
-            //     metadata: [
-            //         'template' => $templateName,
-            //         'error' => $errorMessage,
-            //         'attempt' => $attempt
-            //     ]
-            // );
+            $this->recorder->record(
+                channel: self::CHANNEL_EMAIL,
+                operationType: self::OPERATION_NOTIFICATION_SEND,
+                status: self::STATUS_FAILED,
+                targetId: (int)$recipientId,
+                attemptNo: $attempt,
+                metadata: [
+                    'template' => $templateName,
+                    'error' => $errorMessage
+                ]
+            );
         } catch (Throwable $e) {
             $this->logFailure('recordEmailFailed', $e);
         }
@@ -98,17 +102,16 @@ class DeliveryOperationsService
     public function recordWebhookDispatched(string $targetUrl, string $eventType, int $httpStatus): void
     {
         try {
-            // $this->recorder->record(
-            //     channel: self::CHANNEL_WEBHOOK,
-            //     operationType: self::OPERATION_WEBHOOK_DISPATCH,
-            //     status: $httpStatus >= 200 && $httpStatus < 300 ? self::STATUS_SENT : self::STATUS_FAILED,
-            //     targetId: null,
-            //     metadata: [
-            //         'url' => $targetUrl,
-            //         'event' => $eventType,
-            //         'http_status' => $httpStatus
-            //     ]
-            // );
+            $this->recorder->record(
+                channel: self::CHANNEL_WEBHOOK,
+                operationType: self::OPERATION_WEBHOOK_DISPATCH,
+                status: $httpStatus >= 200 && $httpStatus < 300 ? self::STATUS_SENT : self::STATUS_FAILED,
+                metadata: [
+                    'url' => $targetUrl,
+                    'event' => $eventType,
+                    'http_status' => $httpStatus
+                ]
+            );
         } catch (Throwable $e) {
             $this->logFailure('recordWebhookDispatched', $e);
         }

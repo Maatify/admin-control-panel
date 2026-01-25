@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
+use Maatify\BehaviorTrace\Enum\BehaviorTraceActorTypeInterface;
+use Maatify\BehaviorTrace\Recorder\BehaviorTraceRecorder;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -22,9 +24,12 @@ class BehaviorTraceService
     private const ACTION_EXECUTE = 'action.execute';
     private const ACTION_BULK_EXECUTE = 'bulk_action.execute';
 
+    // We use a string for actor type as per BehaviorTrace signature allowing string|Interface
+    private const ACTOR_TYPE_ADMIN = 'ADMIN';
+
     public function __construct(
         private LoggerInterface $logger,
-        // private BehaviorTraceRecorder $recorder // Dependency to be injected
+        private BehaviorTraceRecorder $recorder
     ) {
     }
 
@@ -34,11 +39,14 @@ class BehaviorTraceService
     public function recordEntityCreated(int $adminId, string $entityType, string $entityId): void
     {
         try {
-            // $this->recorder->record(
-            //     action: self::ACTION_ENTITY_CREATE,
-            //     actorId: $adminId,
-            //     metadata: ['type' => $entityType, 'id' => $entityId]
-            // );
+            $this->recorder->record(
+                action: self::ACTION_ENTITY_CREATE,
+                actorType: self::ACTOR_TYPE_ADMIN,
+                actorId: $adminId,
+                entityType: $entityType,
+                entityId: (int)$entityId,
+                metadata: ['type' => $entityType, 'id' => $entityId]
+            );
         } catch (Throwable $e) {
             $this->logFailure('recordEntityCreated', $e);
         }
@@ -50,11 +58,14 @@ class BehaviorTraceService
     public function recordEntityUpdated(int $adminId, string $entityType, string $entityId): void
     {
         try {
-            // $this->recorder->record(
-            //     action: self::ACTION_ENTITY_UPDATE,
-            //     actorId: $adminId,
-            //     metadata: ['type' => $entityType, 'id' => $entityId]
-            // );
+            $this->recorder->record(
+                action: self::ACTION_ENTITY_UPDATE,
+                actorType: self::ACTOR_TYPE_ADMIN,
+                actorId: $adminId,
+                entityType: $entityType,
+                entityId: (int)$entityId,
+                metadata: ['type' => $entityType, 'id' => $entityId]
+            );
         } catch (Throwable $e) {
             $this->logFailure('recordEntityUpdated', $e);
         }
@@ -66,11 +77,14 @@ class BehaviorTraceService
     public function recordEntityDeleted(int $adminId, string $entityType, string $entityId): void
     {
         try {
-            // $this->recorder->record(
-            //     action: self::ACTION_ENTITY_DELETE,
-            //     actorId: $adminId,
-            //     metadata: ['type' => $entityType, 'id' => $entityId]
-            // );
+            $this->recorder->record(
+                action: self::ACTION_ENTITY_DELETE,
+                actorType: self::ACTOR_TYPE_ADMIN,
+                actorId: $adminId,
+                entityType: $entityType,
+                entityId: (int)$entityId,
+                metadata: ['type' => $entityType, 'id' => $entityId]
+            );
         } catch (Throwable $e) {
             $this->logFailure('recordEntityDeleted', $e);
         }
@@ -82,15 +96,18 @@ class BehaviorTraceService
     public function recordActionExecuted(int $adminId, string $actionName, string $targetType, string $targetId): void
     {
         try {
-            // $this->recorder->record(
-            //     action: self::ACTION_EXECUTE,
-            //     actorId: $adminId,
-            //     metadata: [
-            //         'action_name' => $actionName,
-            //         'target_type' => $targetType,
-            //         'target_id' => $targetId
-            //     ]
-            // );
+            $this->recorder->record(
+                action: self::ACTION_EXECUTE,
+                actorType: self::ACTOR_TYPE_ADMIN,
+                actorId: $adminId,
+                entityType: $targetType,
+                entityId: (int)$targetId,
+                metadata: [
+                    'action_name' => $actionName,
+                    'target_type' => $targetType,
+                    'target_id' => $targetId
+                ]
+            );
         } catch (Throwable $e) {
             $this->logFailure('recordActionExecuted', $e);
         }
@@ -102,15 +119,16 @@ class BehaviorTraceService
     public function recordBulkActionExecuted(int $adminId, string $actionName, string $entityType, int $count): void
     {
         try {
-            // $this->recorder->record(
-            //     action: self::ACTION_BULK_EXECUTE,
-            //     actorId: $adminId,
-            //     metadata: [
-            //         'action_name' => $actionName,
-            //         'entity_type' => $entityType,
-            //         'count' => $count
-            //     ]
-            // );
+            $this->recorder->record(
+                action: self::ACTION_BULK_EXECUTE,
+                actorType: self::ACTOR_TYPE_ADMIN,
+                actorId: $adminId,
+                entityType: $entityType,
+                metadata: [
+                    'action_name' => $actionName,
+                    'count' => $count
+                ]
+            );
         } catch (Throwable $e) {
             $this->logFailure('recordBulkActionExecuted', $e);
         }
