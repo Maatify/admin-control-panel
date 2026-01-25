@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Infrastructure\Logging;
 
 use App\Application\Contracts\AuthoritativeAuditRecorderInterface;
-use App\Infrastructure\Context\CorrelationIdProviderInterface;
+use App\Context\RequestContext;
 use Maatify\AuthoritativeAudit\Recorder\AuthoritativeAuditRecorder;
 
 class AuthoritativeAuditMaatifyAdapter implements AuthoritativeAuditRecorderInterface
 {
     public function __construct(
         private AuthoritativeAuditRecorder $recorder,
-        private CorrelationIdProviderInterface $correlationIdProvider
+        private RequestContext $requestContext
     ) {
     }
 
@@ -28,7 +28,11 @@ class AuthoritativeAuditMaatifyAdapter implements AuthoritativeAuditRecorderInte
         ?int $actorId,
         array $payload
     ): void {
-        $correlationId = $this->correlationIdProvider->getCorrelationId();
+        $correlationId = $this->requestContext->getRequestId();
+
+        if ($correlationId === null) {
+            throw new \RuntimeException('AuthoritativeAudit Failure: No Correlation ID available in RequestContext.');
+        }
 
         $this->recorder->record(
             action: $action,
