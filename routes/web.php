@@ -8,6 +8,7 @@ use App\Http\Controllers\AdminEmailVerificationController;
 use App\Http\Controllers\AdminNotificationPreferenceController;
 use App\Http\Controllers\Api\ActivityLogQueryController;
 use App\Http\Controllers\Api\AdminQueryController;
+use App\Http\Controllers\Api\PermissionsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NotificationQueryController;
 use App\Http\Controllers\Ui\UiTelemetryMetadataController;
@@ -131,7 +132,7 @@ return function (App $app) {
             $protectedGroup->get(
                 '/admins/{id}/emails',
                 [\App\Http\Controllers\Ui\UiAdminsController::class, 'emails']
-            )->setName('admins.email.list')
+            )->setName('admin.email.list')
                 ->add(AuthorizationGuardMiddleware::class);
 
             // ─────────────────────────────
@@ -226,6 +227,17 @@ return function (App $app) {
                 ->setName('telemetry.list')
                 ->add(AuthorizationGuardMiddleware::class);
 
+            // ─────────────────────────────
+            // Permissions Control
+            // ─────────────────────────────
+            $group->post('/permissions/query', [PermissionsController::class, '__invoke'])
+                ->setName('permissions.query')
+                ->add(AuthorizationGuardMiddleware::class);
+
+            $group->post('/permissions/{id}/metadata', [\App\Http\Controllers\Api\PermissionMetadataUpdateController::class, '__invoke'])
+                ->setName('permissions.metadata.update')
+                ->add(AuthorizationGuardMiddleware::class);
+
             // Notifications / Admins / Etc.
             $group->post('/admins/create', [AdminController::class, 'create'])
                 ->setName('admin.create')
@@ -235,7 +247,7 @@ return function (App $app) {
             // Admin Email Control
             // ─────────────────────────────
             $group->get('/admins/{id}/emails', [AdminController::class, 'getEmails'])
-                ->setName('admins.email.list')
+                ->setName('admin.email.list')
                 ->add(AuthorizationGuardMiddleware::class);
             $group->post('/admins/{id}/emails', [AdminController::class, 'addEmail'])
                 ->setName('admin.email.add')

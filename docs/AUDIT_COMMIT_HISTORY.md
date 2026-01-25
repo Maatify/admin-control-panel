@@ -366,6 +366,7 @@ Entries MUST NOT be rewritten or reordered.
 - fix(auth-ui): bind remember_me checkbox to form payload
 - feat(admin-sessions): add scoped admin sessions UI with isolated JS logic
 - feat(rbac): extend roles and permissions with UI display fields
+- feat(permissions): add permissions query and metadata update APIs
 
 ---
 

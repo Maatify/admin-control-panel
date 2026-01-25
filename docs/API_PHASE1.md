@@ -1493,3 +1493,228 @@ Any change requires updating:
 
 ---
 
+
+
+---
+
+## 🔐 Permissions Management API
+
+This section documents **Permissions APIs** used to **list permissions and manage their UI metadata**
+(**display name & description only**).
+
+> ℹ️ Technical permission keys (`permissions.name`) are **immutable**
+>
+> ℹ️ Role assignment and authorization logic are **NOT part of this API**
+>
+> All routes below are prefixed with `/api`.
+
+---
+
+### List Permissions
+
+Returns a paginated list of all permissions with derived grouping and UI metadata.
+
+#### Endpoint
+
+```http
+POST /api/permissions/query
+```
+
+**Auth Required:** Yes
+**Permission:** `permissions.query`
+
+---
+
+#### Request Body (List Query)
+
+```json
+{
+  "page": 1,
+  "per_page": 25,
+  "search": {
+    "global": "admins",
+    "columns": {
+      "group": "admins"
+    }
+  },
+  "date": {
+    "from": "2026-01-01",
+    "to": "2026-12-31"
+  }
+}
+```
+
+---
+
+#### Search Rules
+
+| Scope       | Field                      |
+|-------------|----------------------------|
+| Global      | `permissions.name`         |
+| Column      | `id`, `name`, `group`      |
+| Group Logic | substring before first `.` |
+
+---
+
+#### Sorting
+
+```text
+ORDER BY group ASC, name ASC
+```
+
+---
+
+#### Response — 200 OK
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "admins.create",
+      "group": "admins",
+      "display_name": "Create Admin",
+      "description": "Allows creating new admin accounts"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "per_page": 25,
+    "total": 120,
+    "filtered": 8
+  }
+}
+```
+
+---
+
+#### Notes
+
+* `group` is **derived**, not stored
+* `display_name` and `description` may be `null`
+* Permissions are **read-only** from a technical perspective
+
+---
+
+### Update Permission Metadata
+
+Updates **UI metadata only** for a single permission.
+
+> ⚠️ This endpoint does **NOT** modify:
+>
+> * permission key (`name`)
+> * roles
+> * admin direct permissions
+> * authorization behavior
+
+---
+
+#### Endpoint
+
+```http
+POST /api/permissions/{id}/metadata
+```
+
+**Auth Required:** Yes
+**Permission:** `permissions.metadata.update`
+
+---
+
+#### Request Body
+
+```json
+{
+  "display_name": "Create Admin",
+  "description": "Allows creating new admin accounts"
+}
+```
+
+*All fields are optional, but at least one must be provided.*
+
+---
+
+#### Behavior Summary
+
+* If **both fields are missing** → no-op
+* If permission does not exist → server error
+* Partial updates are allowed
+* Update is **idempotent**
+
+---
+
+#### Response — 200 OK
+
+```json
+{}
+```
+
+---
+
+#### Response — 204 No Content
+
+Returned when request is valid but **no fields were provided to update**.
+
+---
+
+#### Possible Errors
+
+| Code | Reason               |
+|------|----------------------|
+| 403  | Permission denied    |
+| 500  | Permission not found |
+| 500  | Update failed        |
+
+> ℹ️ This API is considered **internal**
+>
+> Invalid IDs are treated as server errors by design.
+
+---
+
+### Permission Fields
+
+| Field          | Description                    | Mutable |
+|----------------|--------------------------------|---------|
+| `id`           | Internal permission identifier | ❌       |
+| `name`         | Technical permission key       | ❌       |
+| `group`        | Derived from `name`            | ❌       |
+| `display_name` | UI label (future i18n ready)   | ✅       |
+| `description`  | UI help text                   | ✅       |
+
+---
+
+### Design Principles
+
+* Permissions are **technical contracts**
+* UI metadata is **presentation-only**
+* Authorization logic is **decoupled**
+* No permission creation / deletion via API
+* No role-permission mutation here
+
+---
+
+### 🔒 Status
+
+**LOCKED — Permissions API Contract**
+
+Any change requires updating:
+
+* Controller behavior
+* Repository logic
+* Validation schemas
+* This documentation
+
+---
+
+### ✅ Current Implementation Status
+
+| Feature                  | Status |
+|--------------------------|--------|
+| Permissions listing      | ✅ DONE |
+| Group derivation         | ✅ DONE |
+| Search & filtering       | ✅ DONE |
+| Metadata update API      | ✅ DONE |
+| Role-permission mapping  | ⏳ NEXT |
+| Admin direct permissions | ⏳ NEXT |
+
+---
+

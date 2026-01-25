@@ -39,6 +39,8 @@ use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Domain\Contracts\AdminTargetedAuditReaderInterface;
 use App\Domain\Contracts\AdminTotpSecretRepositoryInterface;
 use App\Domain\Contracts\AdminTotpSecretStoreInterface;
+use App\Domain\Contracts\PermissionsMetadataRepositoryInterface;
+use App\Domain\Contracts\PermissionsReaderRepositoryInterface;
 use App\Domain\Contracts\TelemetryAuditLoggerInterface;
 use App\Domain\Contracts\RememberMeRepositoryInterface;
 use App\Domain\Contracts\FailedNotificationRepositoryInterface;
@@ -84,6 +86,8 @@ use App\Http\Controllers\AdminNotificationReadController;
 use App\Http\Controllers\AdminSecurityEventController;
 use App\Http\Controllers\AdminSelfAuditController;
 use App\Http\Controllers\AdminTargetedAuditController;
+use App\Http\Controllers\Api\PermissionMetadataUpdateController;
+use App\Http\Controllers\Api\PermissionsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NotificationQueryController;
 use App\Http\Controllers\AdminEmailVerificationController;
@@ -112,7 +116,9 @@ use App\Infrastructure\Crypto\AdminIdentifierCryptoService;
 use App\Infrastructure\Crypto\NotificationCryptoService;
 use App\Infrastructure\Crypto\PasswordCryptoService;
 use App\Infrastructure\Crypto\TotpSecretCryptoService;
+use App\Infrastructure\Query\ListFilterResolver;
 use App\Infrastructure\Reader\ActivityLog\PdoActivityLogListReader;
+use App\Infrastructure\Reader\PDOPermissionsReaderRepository;
 use App\Infrastructure\Reader\Session\PdoSessionListReader;
 use App\Http\Middleware\RememberMeMiddleware;
 use App\Http\Middleware\ScopeGuardMiddleware;
@@ -150,6 +156,7 @@ use App\Domain\Service\PasswordService;
 use App\Infrastructure\Repository\SecurityEventRepository;
 use App\Infrastructure\Service\AdminTotpSecretStore;
 use App\Infrastructure\Service\Google2faTotpService;
+use App\Infrastructure\Updater\PDOPermissionsMetadataRepository;
 use App\Infrastructure\UX\AdminActivityMapper;
 use App\Modules\ActivityLog\Contracts\ActivityLogWriterInterface;
 use App\Domain\ActivityLog\Service\AdminActivityLogService;
@@ -1481,6 +1488,41 @@ class Container
                 return new ActorContextProvider(
                     $actorContext
                 );
+            },
+
+            PermissionsReaderRepositoryInterface::class => function ($c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new PDOPermissionsReaderRepository($pdo);
+            },
+
+            PermissionsController::class => function ($c) {
+                $reader = $c->get(PermissionsReaderRepositoryInterface::class);
+                $validationGuard = $c->get(ValidationGuard::class);
+                $filterResolver = $c->get(ListFilterResolver::class);
+
+                assert($reader instanceof PermissionsReaderRepositoryInterface);
+                assert($validationGuard instanceof ValidationGuard);
+                assert($filterResolver instanceof ListFilterResolver);
+
+                return new PermissionsController($reader, $validationGuard, $filterResolver);
+            },
+
+            PermissionsMetadataRepositoryInterface::class => function ($c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new PdoPermissionsMetadataRepository($pdo);
+            },
+
+            PermissionMetadataUpdateController::class => function ($c) {
+
+                $validationGuard = $c->get(ValidationGuard::class);
+                $updater = $c->get(PermissionsMetadataRepositoryInterface::class);
+
+                assert($validationGuard instanceof ValidationGuard);
+                assert($updater instanceof PermissionsMetadataRepositoryInterface);
+
+                return new PermissionMetadataUpdateController($validationGuard, $updater);
             }
 
         ]);
