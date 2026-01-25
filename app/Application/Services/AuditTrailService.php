@@ -119,6 +119,8 @@ class AuditTrailService
                 eventKey: self::EVENT_SUBJECT_VIEWED,
                 actorType: self::ACTOR_TYPE_ADMIN,
                 actorId: $adminId,
+                entityType: $subjectType, // Subject IS the entity being viewed
+                entityId: $subjectId,
                 subjectType: $subjectType,
                 subjectId: $subjectId,
                 metadata: [

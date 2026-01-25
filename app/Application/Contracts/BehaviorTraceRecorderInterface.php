@@ -6,6 +6,9 @@ namespace App\Application\Contracts;
 
 interface BehaviorTraceRecorderInterface
 {
+    /**
+     * @param array<string, mixed>|null $metadata
+     */
     public function record(
         string $action,
         string $actorType,

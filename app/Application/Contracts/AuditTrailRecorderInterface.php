@@ -6,6 +6,9 @@ namespace App\Application\Contracts;
 
 interface AuditTrailRecorderInterface
 {
+    /**
+     * @param array<string, mixed>|null $metadata
+     */
     public function record(
         string $eventKey,
         string $actorType,

@@ -72,6 +72,11 @@ class DiagnosticsTelemetryService
                 ]
             );
         } catch (Throwable $e) {
+            // Intentionally ignored for performance metrics to avoid noise,
+            // but if we wanted to log failure we could call logFailure().
+            // For now, strict adherence to previous implementation: empty catch or log?
+            // "Fail-open services: MUST NOT throw; catch Throwable, log via PSR-3, continue."
+            // So I should log failure.
             $this->logFailure('recordPerformanceMetric', $e);
         }
     }
@@ -86,7 +91,6 @@ class DiagnosticsTelemetryService
                 eventKey: self::EVENT_DEPENDENCY_FAILURE,
                 severity: self::SEVERITY_WARNING,
                 actorType: self::ACTOR_TYPE_SYSTEM,
-                actorId: null,
                 metadata: [
                     'service' => $serviceName,
                     'endpoint' => $endpoint,
@@ -100,7 +104,9 @@ class DiagnosticsTelemetryService
 
     private function logFailure(string $method, Throwable $e): void
     {
-        // Fallback to primitive error log if LoggerInterface is unavailable or failing
-        error_log(sprintf('[DiagnosticsTelemetryService] %s failed: %s', $method, $e->getMessage()));
+        $this->logger->error(
+            sprintf('[DiagnosticsTelemetryService] %s failed: %s', $method, $e->getMessage()),
+            ['exception' => $e]
+        );
     }
 }

@@ -6,6 +6,9 @@ namespace App\Application\Contracts;
 
 interface AuthoritativeAuditRecorderInterface
 {
+    /**
+     * @param array<string, mixed> $payload
+     */
     public function record(
         string $action,
         string $targetType,

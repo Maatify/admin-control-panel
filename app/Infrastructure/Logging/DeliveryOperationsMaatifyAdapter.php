@@ -14,6 +14,9 @@ class DeliveryOperationsMaatifyAdapter implements DeliveryOperationsRecorderInte
     ) {
     }
 
+    /**
+     * @param array<string, mixed>|null $metadata
+     */
     public function record(
         string $channel,
         string $operationType,
@@ -27,9 +30,19 @@ class DeliveryOperationsMaatifyAdapter implements DeliveryOperationsRecorderInte
             channel: $channel,
             operationType: $operationType,
             status: $status,
+            attemptNo: $attemptNo ?? 0,
+            actorType: null,
+            actorId: null,
+            targetType: null,
             targetId: $targetId,
+            scheduledAt: null,
+            completedAt: null,
+            correlationId: null,
+            requestId: null,
+            provider: null,
             providerMessageId: $providerMessageId,
-            attemptNo: $attemptNo,
+            errorCode: null,
+            errorMessage: null,
             metadata: $metadata
         );
     }

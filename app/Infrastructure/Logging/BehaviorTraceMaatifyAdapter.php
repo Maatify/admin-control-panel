@@ -14,6 +14,9 @@ class BehaviorTraceMaatifyAdapter implements BehaviorTraceRecorderInterface
     ) {
     }
 
+    /**
+     * @param array<string, mixed>|null $metadata
+     */
     public function record(
         string $action,
         string $actorType,
@@ -28,6 +31,11 @@ class BehaviorTraceMaatifyAdapter implements BehaviorTraceRecorderInterface
             actorId: $actorId,
             entityType: $entityType,
             entityId: $entityId,
+            correlationId: null,
+            requestId: null,
+            routeName: null,
+            ipAddress: null,
+            userAgent: null,
             metadata: $metadata
         );
     }

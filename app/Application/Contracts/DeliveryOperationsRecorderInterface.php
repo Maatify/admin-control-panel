@@ -6,6 +6,9 @@ namespace App\Application\Contracts;
 
 interface DeliveryOperationsRecorderInterface
 {
+    /**
+     * @param array<string, mixed>|null $metadata
+     */
     public function record(
         string $channel,
         string $operationType,

@@ -14,6 +14,9 @@ class DiagnosticsTelemetryMaatifyAdapter implements DiagnosticsTelemetryRecorder
     ) {
     }
 
+    /**
+     * @param array<string, mixed>|null $metadata
+     */
     public function record(
         string $eventKey,
         string $severity,
@@ -27,6 +30,11 @@ class DiagnosticsTelemetryMaatifyAdapter implements DiagnosticsTelemetryRecorder
             severity: $severity,
             actorType: $actorType,
             actorId: $actorId,
+            correlationId: null,
+            requestId: null,
+            routeName: null,
+            ipAddress: null,
+            userAgent: null,
             durationMs: $durationMs,
             metadata: $metadata
         );

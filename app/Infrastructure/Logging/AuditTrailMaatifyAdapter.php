@@ -14,6 +14,9 @@ class AuditTrailMaatifyAdapter implements AuditTrailRecorderInterface
     ) {
     }
 
+    /**
+     * @param array<string, mixed>|null $metadata
+     */
     public function record(
         string $eventKey,
         string $actorType,
@@ -28,12 +31,22 @@ class AuditTrailMaatifyAdapter implements AuditTrailRecorderInterface
             eventKey: $eventKey,
             actorType: $actorType,
             actorId: $actorId,
-            entityType: $entityType,
+            entityType: $entityType ?? 'unknown',
             entityId: $entityId,
+            subjectType: $subjectType,
+            subjectId: $subjectId,
             metadata: array_merge($metadata ?? [], array_filter([
                 'subject_type' => $subjectType,
                 'subject_id' => $subjectId
-            ], fn($v) => $v !== null))
+            ], fn($v) => $v !== null)),
+            referrerRouteName: null,
+            referrerPath: null,
+            referrerHost: null,
+            correlationId: null,
+            requestId: null,
+            routeName: null,
+            ipAddress: null,
+            userAgent: null
         );
     }
 }

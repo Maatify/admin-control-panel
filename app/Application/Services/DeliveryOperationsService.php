@@ -23,8 +23,8 @@ class DeliveryOperationsService
     private const STATUS_SENT = 'sent';
     private const STATUS_FAILED = 'failed';
 
-    private const OPERATION_NOTIFICATION_SEND = 'notification.send';
-    private const OPERATION_WEBHOOK_DISPATCH = 'webhook.dispatch';
+    private const OPERATION_NOTIFICATION = 'NOTIFICATION'; // Enum value match
+    private const OPERATION_WEBHOOK_DISPATCH = 'WEBHOOK_DISPATCH'; // Enum value match
 
     public function __construct(
         private LoggerInterface $logger,
@@ -40,7 +40,7 @@ class DeliveryOperationsService
         try {
             $this->recorder->record(
                 channel: self::CHANNEL_EMAIL,
-                operationType: self::OPERATION_NOTIFICATION_SEND,
+                operationType: self::OPERATION_NOTIFICATION,
                 status: self::STATUS_QUEUED,
                 targetId: (int)$recipientId,
                 metadata: ['template' => $templateName, 'recipient_id' => $recipientId]
@@ -58,7 +58,7 @@ class DeliveryOperationsService
         try {
             $this->recorder->record(
                 channel: self::CHANNEL_EMAIL,
-                operationType: self::OPERATION_NOTIFICATION_SEND,
+                operationType: self::OPERATION_NOTIFICATION,
                 status: self::STATUS_SENT,
                 targetId: (int)$recipientId,
                 providerMessageId: $providerMessageId,
@@ -80,7 +80,7 @@ class DeliveryOperationsService
         try {
             $this->recorder->record(
                 channel: self::CHANNEL_EMAIL,
-                operationType: self::OPERATION_NOTIFICATION_SEND,
+                operationType: self::OPERATION_NOTIFICATION,
                 status: self::STATUS_FAILED,
                 targetId: (int)$recipientId,
                 attemptNo: $attempt,

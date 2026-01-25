@@ -14,6 +14,9 @@ class SecuritySignalsMaatifyAdapter implements SecuritySignalsRecorderInterface
     ) {
     }
 
+    /**
+     * @param array<string, mixed>|null $metadata
+     */
     public function record(
         string $signalType,
         string $severity,
@@ -28,9 +31,12 @@ class SecuritySignalsMaatifyAdapter implements SecuritySignalsRecorderInterface
             severity: $severity,
             actorType: $actorType,
             actorId: $actorId,
+            metadata: $metadata,
+            correlationId: null,
+            requestId: null,
+            routeName: null,
             ipAddress: $ipAddress,
-            userAgent: $userAgent,
-            metadata: $metadata
+            userAgent: $userAgent
         );
     }
 }
