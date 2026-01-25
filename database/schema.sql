@@ -148,17 +148,41 @@ CREATE TABLE admin_totp_secrets (
  * RBAC
  * =========================== */
 
+-- IMPORTANT:
+-- roles.name and permissions.name are TECHNICAL KEYS ONLY
+-- They must NEVER be translated or shown directly to end users.
+-- display_name / description are UI-only fields.
 CREATE TABLE roles (
                        id INT AUTO_INCREMENT PRIMARY KEY,
+
+    -- TECHNICAL role key (language-agnostic)
                        name VARCHAR(64) NOT NULL UNIQUE,
-                       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+    -- UI display fields (NOT used in authorization logic)
+                       display_name VARCHAR(128) NULL,
+                       description VARCHAR(255) NULL,
+
+                       created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;
+
 
 CREATE TABLE permissions (
                              id INT AUTO_INCREMENT PRIMARY KEY,
+
+    -- TECHNICAL permission key (used by middleware / guards)
                              name VARCHAR(64) NOT NULL UNIQUE,
-                             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+    -- UI display fields (can be localized later)
+                             display_name VARCHAR(128) NULL,
+                             description VARCHAR(255) NULL,
+
+                             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;
+
 
 CREATE TABLE admin_roles (
                              admin_id INT NOT NULL,
