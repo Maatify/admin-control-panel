@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Application\Services\DiagnosticsTelemetryService;
 use App\Context\RequestContext;
 use App\Domain\Service\StepUpService;
 use App\Modules\Validation\Guard\ValidationGuard;
@@ -16,8 +15,7 @@ readonly class StepUpController
 {
     public function __construct(
         private StepUpService $stepUpService,
-        private ValidationGuard $validationGuard,
-        private DiagnosticsTelemetryService $telemetryService
+        private ValidationGuard $validationGuard
     ) {
     }
 
@@ -60,35 +58,6 @@ readonly class StepUpController
         }
 
         $result = $this->stepUpService->verifyTotp($adminId, $sessionId, (string)$code, $context, $requestedScope);
-
-
-        // ✅ Telemetry (best-effort, never breaks auth flow)
-        try {
-            $metadata = [
-                'scope' => $requestedScope?->value ?? 'login',
-                // never store raw token/session id
-                'session_hash' => hash('sha256', $sessionId),
-                'status' => $result->success ? 'granted' : 'denied',
-                'request_id' => $context->requestId,
-                'ip_address' => $context->ipAddress,
-                'user_agent' => $context->userAgent,
-                'route_name' => $context->routeName,
-            ];
-
-            if (!$result->success) {
-                $metadata['error_reason'] = (string)$result->errorReason;
-            }
-
-            $this->telemetryService->recordEvent(
-                eventKey: $result->success ? 'auth_stepup_success' : 'auth_stepup_failure',
-                severity: $result->success ? 'INFO' : 'WARNING',
-                actorType: 'ADMIN',
-                actorId: $adminId,
-                metadata: $metadata
-            );
-        } catch (\Throwable) {
-            // swallow
-        }
 
         if ($result->success) {
             $response->getBody()->write((string)json_encode(['status' => 'granted', 'scope' => $requestedScope?->value ?? 'login']));

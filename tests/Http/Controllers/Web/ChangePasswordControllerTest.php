@@ -8,9 +8,9 @@ use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use App\Context\RequestContext;
 use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
-use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
-use App\Domain\Contracts\SecurityEventLoggerInterface;
+use App\Domain\DTO\AdminEmailIdentifierDTO;
 use App\Domain\DTO\AdminPasswordRecordDTO;
+use App\Domain\Enum\VerificationStatus;
 use App\Domain\Service\PasswordService;
 use App\Domain\Service\RecoveryStateService;
 use App\Http\Controllers\Web\ChangePasswordController;
@@ -29,8 +29,6 @@ class ChangePasswordControllerTest extends TestCase
     private AdminPasswordRepositoryInterface&MockObject $passwordRepo;
     private PasswordService&MockObject $passwordService;
     private RecoveryStateService&MockObject $recoveryState;
-    private SecurityEventLoggerInterface&MockObject $securityLogger;
-    private AuthoritativeSecurityAuditWriterInterface&MockObject $auditWriter;
     private PDO&MockObject $pdo;
 
     private ChangePasswordController $controller;
@@ -43,8 +41,6 @@ class ChangePasswordControllerTest extends TestCase
         $this->passwordRepo = $this->createMock(AdminPasswordRepositoryInterface::class);
         $this->passwordService = $this->createMock(PasswordService::class);
         $this->recoveryState = $this->createMock(RecoveryStateService::class);
-        $this->securityLogger = $this->createMock(SecurityEventLoggerInterface::class);
-        $this->auditWriter = $this->createMock(AuthoritativeSecurityAuditWriterInterface::class);
         $this->pdo = $this->createMock(PDO::class);
 
         $this->controller = new ChangePasswordController(
@@ -54,8 +50,6 @@ class ChangePasswordControllerTest extends TestCase
             $this->passwordRepo,
             $this->passwordService,
             $this->recoveryState,
-            $this->securityLogger,
-            $this->auditWriter,
             $this->pdo
         );
     }
@@ -93,7 +87,9 @@ class ChangePasswordControllerTest extends TestCase
             ->with(RecoveryStateService::ACTION_PASSWORD_CHANGE, null, $context);
 
         $this->cryptoService->method('deriveEmailBlindIndex')->willReturn('blind_index');
-        $this->lookup->method('findByBlindIndex')->willReturn(123);
+        $this->lookup->method('findByBlindIndex')->willReturn(
+            new AdminEmailIdentifierDTO(1, 123, VerificationStatus::VERIFIED)
+        );
 
         $record = new AdminPasswordRecordDTO('hash_old', 'pepper', true);
         $this->passwordRepo->method('getPasswordRecord')->with(123)->willReturn($record);
@@ -132,7 +128,9 @@ class ChangePasswordControllerTest extends TestCase
         $request->method('getAttribute')->with(RequestContext::class)->willReturn($context);
 
         $this->cryptoService->method('deriveEmailBlindIndex')->willReturn('blind_index');
-        $this->lookup->method('findByBlindIndex')->willReturn(123);
+        $this->lookup->method('findByBlindIndex')->willReturn(
+            new AdminEmailIdentifierDTO(1, 123, VerificationStatus::VERIFIED)
+        );
 
         $record = new AdminPasswordRecordDTO('hash_old', 'pepper', true);
         $this->passwordRepo->method('getPasswordRecord')->with(123)->willReturn($record);

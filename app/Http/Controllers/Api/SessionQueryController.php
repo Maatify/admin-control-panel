@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
-use App\Application\Services\DiagnosticsTelemetryService;
 use App\Context\RequestContext;
 use App\Domain\List\ListCapabilities;
 use App\Domain\List\ListQueryDTO;
@@ -22,8 +21,7 @@ final readonly class SessionQueryController
         private SessionListReaderInterface $reader,
         private AuthorizationService $authorizationService,
         private ValidationGuard $validationGuard,
-        private ListFilterResolver $filterResolver,
-        private DiagnosticsTelemetryService $telemetryService
+        private ListFilterResolver $filterResolver
     ) {
     }
 
@@ -96,32 +94,6 @@ final readonly class SessionQueryController
             adminIdFilter: $adminIdFilter,
             currentSessionHash: $currentSessionHash
         );
-
-        // ✅ Telemetry (best-effort)
-        try {
-            $metadata = [
-                'query' => $canonicalInput,
-                'filters' => $resolvedFilters,
-                'scope' => $adminIdFilter === null ? 'view_all' : 'self_only',
-                'current_session_hash_present' => $currentSessionHash !== '',
-                'result_count' => count($result->data),
-                'request_id' => $context->requestId,
-                'ip_address' => $context->ipAddress,
-                'user_agent' => $context->userAgent,
-                'route_name' => $context->routeName,
-            ];
-
-            $this->telemetryService->recordEvent(
-                eventKey: 'data_query_executed',
-                severity: 'INFO',
-                actorType: 'ADMIN',
-                actorId: $adminId,
-                metadata: $metadata
-            );
-        } catch (\Throwable) {
-            // swallow
-        }
-
 
         $response->getBody()->write(json_encode($result, JSON_THROW_ON_ERROR));
         return $response->withHeader('Content-Type', 'application/json');

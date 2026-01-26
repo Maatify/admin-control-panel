@@ -6,12 +6,11 @@ namespace Tests\Integration\Flow;
 
 use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use App\Context\RequestContext;
-use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
+use App\Domain\Admin\Enum\AdminStatusEnum;
 use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
-use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
-use App\Domain\Contracts\SecurityEventLoggerInterface;
+use App\Domain\DTO\AdminEmailIdentifierDTO;
 use App\Domain\DTO\AdminPasswordRecordDTO;
 use App\Domain\Enum\VerificationStatus;
 use App\Domain\Exception\MustChangePasswordException;
@@ -19,6 +18,7 @@ use App\Domain\Service\AdminAuthenticationService;
 use App\Domain\Service\PasswordService;
 use App\Domain\Service\RecoveryStateService;
 use App\Http\Controllers\Web\ChangePasswordController;
+use App\Infrastructure\Repository\AdminRepository;
 use PDO;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -36,7 +36,7 @@ class ForcedPasswordChangeFlowTest extends TestCase
     private AdminPasswordRepositoryInterface&MockObject $passwordRepo;
     private AdminSessionRepositoryInterface&MockObject $sessionRepo;
     private AdminIdentifierLookupInterface&MockObject $lookup;
-    private AdminEmailVerificationRepositoryInterface&MockObject $verificationRepo;
+    private AdminRepository&MockObject $adminRepository;
 
     // State
     private array $users = [];
@@ -79,14 +79,15 @@ class ForcedPasswordChangeFlowTest extends TestCase
         $this->lookup->method('findByBlindIndex')
             ->willReturnCallback(function ($blindIndex) {
                 // Simplified: blindIndex = "idx_" . email
-                if ($blindIndex === 'idx_admin@example.com') return 1;
+                if ($blindIndex === 'idx_admin@example.com') {
+                    return new AdminEmailIdentifierDTO(1, 1, VerificationStatus::VERIFIED);
+                }
                 return null;
             });
 
-        // --- Verification Repository ---
-        $this->verificationRepo = $this->createMock(AdminEmailVerificationRepositoryInterface::class);
-        $this->verificationRepo->method('getVerificationStatus')
-            ->willReturn(VerificationStatus::VERIFIED);
+        // --- Admin Repository ---
+        $this->adminRepository = $this->createMock(AdminRepository::class);
+        $this->adminRepository->method('getStatus')->willReturn(AdminStatusEnum::ACTIVE);
 
         // --- Crypto Service ---
         $cryptoService = $this->createMock(AdminIdentifierCryptoServiceInterface::class);
@@ -107,8 +108,6 @@ class ForcedPasswordChangeFlowTest extends TestCase
         $passwordService->method('needsRehash')->willReturn(false);
 
         // --- Others (Loose Mocks) ---
-        $logger = $this->createMock(SecurityEventLoggerInterface::class);
-        $audit = $this->createMock(AuthoritativeSecurityAuditWriterInterface::class);
         $recovery = $this->createMock(RecoveryStateService::class);
         $pdo = $this->createMock(PDO::class);
         $view = $this->createMock(Twig::class);
@@ -119,14 +118,12 @@ class ForcedPasswordChangeFlowTest extends TestCase
         // 2. Instantiate Service
         $this->authService = new AdminAuthenticationService(
             $this->lookup,
-            $this->verificationRepo,
             $this->passwordRepo,
             $this->sessionRepo,
-            $logger,
-            $audit,
             $recovery,
             $pdo,
-            $passwordService
+            $passwordService,
+            $this->adminRepository
         );
 
         // 3. Instantiate Controller
@@ -137,8 +134,6 @@ class ForcedPasswordChangeFlowTest extends TestCase
             $this->passwordRepo,
             $passwordService,
             $recovery,
-            $logger,
-            $audit,
             $pdo
         );
     }

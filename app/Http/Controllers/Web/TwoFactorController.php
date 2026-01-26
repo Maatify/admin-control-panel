@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
-use App\Application\Services\DiagnosticsTelemetryService;
 use App\Context\AdminContext;
 use App\Context\RequestContext;
 use App\Domain\Contracts\TotpServiceInterface;
@@ -13,15 +12,13 @@ use App\Domain\Service\StepUpService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
-use Throwable;
 
 readonly class TwoFactorController
 {
     public function __construct(
         private StepUpService $stepUpService,
         private TotpServiceInterface $totpService,
-        private Twig $view,
-        private DiagnosticsTelemetryService $telemetryService
+        private Twig $view
     ) {
     }
 
@@ -67,26 +64,6 @@ readonly class TwoFactorController
         }
 
         $enabled = $this->stepUpService->enableTotp($adminId, $sessionId, $secret, $code, $context);
-
-        // Telemetry (best-effort): Web UI 2FA setup mutation
-        try {
-            $this->telemetryService->recordEvent(
-                eventKey: 'resource_mutation',
-                severity: $enabled ? 'INFO' : 'WARNING',
-                actorType: 'ADMIN',
-                actorId: $adminId,
-                metadata: [
-                    'action' => '2fa_setup',
-                    'result' => $enabled ? 'success' : 'failure',
-                    'request_id' => $context->requestId,
-                    'ip_address' => $context->ipAddress,
-                    'user_agent' => $context->userAgent,
-                    'route_name' => $context->routeName,
-                ]
-            );
-        } catch (Throwable) {
-            // swallow — telemetry must never affect request flow
-        }
 
         if ($enabled) {
             return $response->withHeader('Location', '/dashboard')->withStatus(302);
@@ -163,28 +140,6 @@ readonly class TwoFactorController
             $context,
             $requestedScope
         );
-
-        // Telemetry (best-effort): Web UI step-up verification
-        try {
-            $this->telemetryService->recordEvent(
-                eventKey: $result->success ? 'auth_stepup_success' : 'auth_stepup_failure',
-                severity: $result->success ? 'INFO' : 'WARNING',
-                actorType: 'ADMIN',
-                actorId: $adminId,
-                metadata: [
-                    'scope' => $requestedScope->value,
-                    'method' => 'totp',
-                    'result' => $result->success ? 'success' : 'failure',
-                    'error_reason' => $result->success ? null : ($result->errorReason ?? 'unknown'),
-                    'request_id' => $context->requestId,
-                    'ip_address' => $context->ipAddress,
-                    'user_agent' => $context->userAgent,
-                    'route_name' => $context->routeName,
-                ]
-            );
-        } catch (Throwable) {
-            // swallow — telemetry must never affect request flow
-        }
 
         if ($result->success) {
             // ADDITIVE START

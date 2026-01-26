@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Context\RequestContext;
-use App\Domain\ActivityLog\Action\AdminActivityAction;
-use App\Domain\ActivityLog\Service\AdminActivityLogService;
 use App\Domain\Contracts\AdminNotificationPreferenceReaderInterface;
 use App\Domain\Contracts\AdminNotificationPreferenceWriterInterface;
 use App\Domain\DTO\Notification\Preference\GetAdminPreferencesQueryDTO;
@@ -24,7 +22,6 @@ class AdminNotificationPreferenceController
         private AdminNotificationPreferenceReaderInterface $reader,
         private AdminNotificationPreferenceWriterInterface $writer,
         private ValidationGuard $validationGuard,
-        private AdminActivityLogService $adminActivityLogService,
     ) {
     }
 
@@ -95,20 +92,6 @@ class AdminNotificationPreferenceController
         );
 
         $result = $this->writer->upsertPreference($dto);
-
-        // ✅ Activity Log — admin updated notification preference
-        $this->adminActivityLogService->log(
-            adminContext: $adminContext,
-            requestContext: $requestContext,
-            action: AdminActivityAction::ADMIN_NOTIFICATION_PREFERENCE_UPDATED,
-            entityType: 'admin',
-            entityId: $adminId,
-            metadata: [
-                'notification_type' => $notificationType,
-                'channel_type'      => $channelType->value,
-                'is_enabled'        => $isEnabled,
-            ]
-        );
 
         $payload = json_encode($result);
         if ($payload === false) {

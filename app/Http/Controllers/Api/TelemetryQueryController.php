@@ -16,8 +16,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Context\RequestContext;
-use App\Domain\ActivityLog\Action\AdminActivityAction;
-use App\Domain\ActivityLog\Service\AdminActivityLogService;
 use App\Domain\List\ListCapabilities;
 use App\Domain\List\ListQueryDTO;
 use App\Domain\Service\AuthorizationService;
@@ -34,8 +32,7 @@ final readonly class TelemetryQueryController
         private TelemetryListReaderInterface $reader,
         private AuthorizationService $authorizationService,
         private ValidationGuard $validationGuard,
-        private ListFilterResolver $filterResolver,
-        private AdminActivityLogService $adminActivityLogService,
+        private ListFilterResolver $filterResolver
     ) {
     }
 
@@ -121,25 +118,6 @@ final readonly class TelemetryQueryController
         $result = $this->reader->getTelemetry(
             query  : $query,
             filters: $resolvedFilters
-        );
-
-        // ─────────────────────────────
-        // 7️⃣ Activity Log (AUTHORITATIVE)
-        // ─────────────────────────────
-
-        $requestContext = $request->getAttribute(RequestContext::class);
-        if (! $requestContext instanceof RequestContext) {
-            throw new \RuntimeException('Request Context not present');
-        }
-
-        // 🔹 Activity Log (SUCCESS)
-        $this->adminActivityLogService->log(
-            adminContext: $adminContext,
-            requestContext: $requestContext,
-            action: AdminActivityAction::TELEMETRY_LIST,
-            metadata: [
-                'result_count' => count($result->data),
-            ]
         );
 
         // ─────────────────────────────

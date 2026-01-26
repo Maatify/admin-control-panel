@@ -9,15 +9,16 @@ use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
 use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
-use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
-use App\Domain\Contracts\SecurityEventLoggerInterface;
+use App\Domain\DTO\AdminEmailIdentifierDTO;
 use App\Domain\DTO\AdminLoginResultDTO;
+use App\Domain\Admin\Enum\AdminStatusEnum;
 use App\Domain\DTO\AdminPasswordRecordDTO;
 use App\Domain\Enum\VerificationStatus;
 use App\Domain\Exception\MustChangePasswordException;
 use App\Domain\Service\AdminAuthenticationService;
 use App\Domain\Service\PasswordService;
 use App\Domain\Service\RecoveryStateService;
+use App\Infrastructure\Repository\AdminRepository;
 use PDO;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -25,39 +26,33 @@ use PHPUnit\Framework\TestCase;
 class AdminAuthenticationServiceTest extends TestCase
 {
     private AdminIdentifierLookupInterface&MockObject $lookup;
-    private AdminEmailVerificationRepositoryInterface&MockObject $verification;
     private AdminPasswordRepositoryInterface&MockObject $passwordRepo;
     private AdminSessionRepositoryInterface&MockObject $sessionRepo;
-    private SecurityEventLoggerInterface&MockObject $logger;
-    private AuthoritativeSecurityAuditWriterInterface&MockObject $audit;
     private RecoveryStateService&MockObject $recovery;
     private PDO&MockObject $pdo;
     private PasswordService&MockObject $passwordService;
+    private AdminRepository&MockObject $adminRepository;
 
     private AdminAuthenticationService $service;
 
     protected function setUp(): void
     {
         $this->lookup = $this->createMock(AdminIdentifierLookupInterface::class);
-        $this->verification = $this->createMock(AdminEmailVerificationRepositoryInterface::class);
         $this->passwordRepo = $this->createMock(AdminPasswordRepositoryInterface::class);
         $this->sessionRepo = $this->createMock(AdminSessionRepositoryInterface::class);
-        $this->logger = $this->createMock(SecurityEventLoggerInterface::class);
-        $this->audit = $this->createMock(AuthoritativeSecurityAuditWriterInterface::class);
         $this->recovery = $this->createMock(RecoveryStateService::class);
         $this->pdo = $this->createMock(PDO::class);
         $this->passwordService = $this->createMock(PasswordService::class);
+        $this->adminRepository = $this->createMock(AdminRepository::class);
 
         $this->service = new AdminAuthenticationService(
             $this->lookup,
-            $this->verification,
             $this->passwordRepo,
             $this->sessionRepo,
-            $this->logger,
-            $this->audit,
             $this->recovery,
             $this->pdo,
-            $this->passwordService
+            $this->passwordService,
+            $this->adminRepository
         );
     }
 
@@ -68,14 +63,17 @@ class AdminAuthenticationServiceTest extends TestCase
         $adminId = 123;
         $context = new RequestContext('req-id', '127.0.0.1', 'agent');
 
-        $this->lookup->method('findByBlindIndex')->with($blindIndex)->willReturn($adminId);
-        $this->verification->method('getVerificationStatus')->with($adminId)->willReturn(VerificationStatus::VERIFIED);
+        $this->lookup->method('findByBlindIndex')->with($blindIndex)->willReturn(
+            new AdminEmailIdentifierDTO(1, $adminId, VerificationStatus::VERIFIED)
+        );
 
         $record = new AdminPasswordRecordDTO('hash', 'pepper', false);
         $this->passwordRepo->method('getPasswordRecord')->with($adminId)->willReturn($record);
 
         $this->passwordService->method('verify')->with($password, 'hash', 'pepper')->willReturn(true);
         $this->passwordService->method('needsRehash')->willReturn(false);
+
+        $this->adminRepository->method('getStatus')->with($adminId)->willReturn(AdminStatusEnum::ACTIVE);
 
         $this->sessionRepo->expects($this->once())->method('createSession')->with($adminId)->willReturn('token_123');
         $this->pdo->expects($this->once())->method('beginTransaction');
@@ -95,14 +93,17 @@ class AdminAuthenticationServiceTest extends TestCase
         $adminId = 123;
         $context = new RequestContext('req-id', '127.0.0.1', 'agent');
 
-        $this->lookup->method('findByBlindIndex')->willReturn($adminId);
-        $this->verification->method('getVerificationStatus')->willReturn(VerificationStatus::VERIFIED);
+        $this->lookup->method('findByBlindIndex')->willReturn(
+            new AdminEmailIdentifierDTO(1, $adminId, VerificationStatus::VERIFIED)
+        );
 
         // mustChangePassword = true
         $record = new AdminPasswordRecordDTO('hash', 'pepper', true);
         $this->passwordRepo->method('getPasswordRecord')->with($adminId)->willReturn($record);
 
         $this->passwordService->method('verify')->with($password, 'hash', 'pepper')->willReturn(true);
+
+        $this->adminRepository->method('getStatus')->with($adminId)->willReturn(AdminStatusEnum::ACTIVE);
 
         // Assert no session created and no transaction started
         $this->sessionRepo->expects($this->never())->method('createSession');

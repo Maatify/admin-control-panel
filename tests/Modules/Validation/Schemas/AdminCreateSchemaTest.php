@@ -26,9 +26,8 @@ final class AdminCreateSchemaTest extends TestCase
         $schema = new AdminCreateSchema();
 
         $result = $schema->validate([
-            'name'     => 'Admin User',
+            'display_name' => 'Admin User',
             'email'    => 'admin@test.com',
-            'password' => 'StrongPass1',
         ]);
 
         self::assertTrue($result->isValid());
@@ -39,16 +38,15 @@ final class AdminCreateSchemaTest extends TestCase
         $schema = new AdminCreateSchema();
 
         $result = $schema->validate([
-            'name'     => '',
+            'display_name' => '',
             'email'    => 'bad',
-            'password' => '123',
         ]);
 
         self::assertFalse($result->isValid());
 
         self::assertContains(
-            ValidationErrorCodeEnum::INVALID_NAME,
-            $result->getErrors()['name']
+            ValidationErrorCodeEnum::INVALID_DISPLAY_NAME,
+            $result->getErrors()['display_name']
         );
     }
 }

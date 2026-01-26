@@ -69,7 +69,7 @@ class ScopeGuardMiddlewareTest extends TestCase
 
         $this->stepUpService->expects($this->once())
             ->method('hasGrant')
-            ->with(123, 'token123', Scope::SECURITY)
+            ->with(123, 'token123', Scope::ADMIN_CREATE)
             ->willReturn(true);
 
         $handler = $this->createMock(RequestHandlerInterface::class);

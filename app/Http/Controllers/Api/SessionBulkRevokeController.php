@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
-use App\Domain\ActivityLog\Action\AdminActivityAction;
-use App\Domain\ActivityLog\Service\AdminActivityLogService;
 use App\Domain\Service\SessionRevocationService;
 use App\Context\RequestContext;
 use App\Domain\Service\AuthorizationService;
 use App\Modules\Validation\Guard\ValidationGuard;
 use App\Modules\Validation\Schemas\SessionBulkRevokeSchema;
-use App\Application\Services\DiagnosticsTelemetryService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use DomainException;
@@ -21,9 +18,7 @@ readonly class SessionBulkRevokeController
     public function __construct(
         private SessionRevocationService $revocationService,
         private AuthorizationService $authorizationService,
-        private ValidationGuard $validationGuard,
-        private DiagnosticsTelemetryService $telemetryService,
-        private AdminActivityLogService $adminActivityLogService,
+        private ValidationGuard $validationGuard
     ) {
     }
 
@@ -67,64 +62,10 @@ readonly class SessionBulkRevokeController
                 $context
             );
 
-            // ✅ Activity Log — admin manually revoked multiple sessions
-            $this->adminActivityLogService->log(
-                adminContext: $adminContext,
-                requestContext: $context,
-                action: AdminActivityAction::SESSION_BULK_REVOKE,
-                entityType: 'admin',
-                entityId: null, // bulk operation — no single target
-                metadata: [
-                    'sessions_count' => count($hashes),
-                ]
-            );
-
-            // ✅ Telemetry — successful bulk revoke
-            try {
-                $this->telemetryService->recordEvent(
-                    eventKey: 'resource_mutation',
-                    severity: 'INFO',
-                    actorType: 'ADMIN',
-                    actorId: $adminId,
-                    metadata: [
-                        'action'        => 'session_revoke_bulk',
-                        'sessions_count'=> count($hashes),
-                        'request_id' => $context->requestId,
-                        'ip_address' => $context->ipAddress,
-                        'user_agent' => $context->userAgent,
-                        'route_name' => $context->routeName,
-                    ]
-                );
-            } catch (\Throwable) {
-                // swallow — telemetry must never affect request flow
-            }
-
             $response->getBody()->write(json_encode(['status' => 'ok'], JSON_THROW_ON_ERROR));
             return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
 
         } catch (DomainException $e) {
-
-            // ⚠️ Telemetry — bulk revoke failed (domain rule)
-            try {
-                $this->telemetryService->recordEvent(
-                    eventKey: 'resource_mutation',
-                    severity: 'WARNING',
-                    actorType: 'ADMIN',
-                    actorId: $adminId,
-                    metadata: [
-                        'action'        => 'session_revoke_bulk_failed',
-                        'sessions_count'=> count($hashes),
-                        'reason'        => $e->getMessage(),
-                        'request_id' => $context->requestId,
-                        'ip_address' => $context->ipAddress,
-                        'user_agent' => $context->userAgent,
-                        'route_name' => $context->routeName,
-                    ]
-                );
-            } catch (\Throwable) {
-                // swallow
-            }
-
             $response->getBody()->write(
                 json_encode(['error' => $e->getMessage()], JSON_THROW_ON_ERROR)
             );

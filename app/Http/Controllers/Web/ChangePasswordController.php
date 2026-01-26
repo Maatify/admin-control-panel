@@ -15,10 +15,6 @@ use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use App\Context\RequestContext;
 use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
-use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
-use App\Domain\Contracts\SecurityEventLoggerInterface;
-use App\Domain\DTO\AuditEventDTO;
-use App\Domain\DTO\SecurityEventDTO;
 use App\Domain\Service\PasswordService;
 use App\Domain\Service\RecoveryStateService;
 use DateTimeImmutable;
@@ -38,8 +34,6 @@ readonly class ChangePasswordController
         private PasswordService $passwordService,
 
         private RecoveryStateService $recoveryState,
-        private SecurityEventLoggerInterface $securityLogger,
-        private AuthoritativeSecurityAuditWriterInterface $auditWriter,
 
         private PDO $pdo
     ) {
@@ -127,35 +121,6 @@ readonly class ChangePasswordController
                 $hashResult['pepper_id'],
                 false // clear must_change_password
             );
-
-            // 🔐 Security Event (best-effort)
-            try {
-                $this->securityLogger->log(new SecurityEventDTO(
-                    $adminId,
-                    'password_changed',
-                    'info',
-                    [],
-                    $requestContext->ipAddress,
-                    $requestContext->userAgent,
-                    new DateTimeImmutable(),
-                    $requestContext->requestId
-                ));
-            } catch (\Throwable) {
-                // swallow (best-effort)
-            }
-
-            // 🧾 Authoritative Audit
-            $this->auditWriter->write(new AuditEventDTO(
-                $adminId,
-                'password_changed',
-                'admin',
-                $adminId,
-                'MEDIUM',
-                [],
-                bin2hex(random_bytes(16)),
-                $requestContext->requestId,
-                new DateTimeImmutable()
-            ));
 
             $this->pdo->commit();
         } catch (\Throwable $e) {

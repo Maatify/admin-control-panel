@@ -17,9 +17,6 @@ namespace App\Application\Admin;
 
 use App\Context\AdminContext;
 use App\Context\RequestContext;
-use App\Domain\ActivityLog\Service\AdminActivityLogService;
-use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
-use App\Domain\DTO\AuditEventDTO;
 use App\Domain\Admin\Enum\AdminStatusEnum;
 use App\Domain\Service\SessionRevocationService;
 use App\Domain\Support\CorrelationId;
@@ -31,8 +28,6 @@ final readonly class AdminProfileUpdateService
 {
     public function __construct(
         private PDO $pdo,
-        private AdminActivityLogService $adminActivityLogService,
-        private AuthoritativeSecurityAuditWriterInterface $auditWriter,
         private SessionRevocationService $sessionRevocationService
     ) {
     }
@@ -103,39 +98,6 @@ final readonly class AdminProfileUpdateService
             // Persist
             // ─────────────────────────────
             $this->applyChanges($targetAdminId, $changes);
-
-            // ─────────────────────────────
-            // Activity Log (non-authoritative)
-            // ─────────────────────────────
-            $this->adminActivityLogService->log(
-                adminContext: $adminContext,
-                requestContext: $requestContext,
-                action: 'admin.profile.updated',
-                entityType: 'admin',
-                entityId: $targetAdminId,
-                metadata: [
-                    'fields_changed' => array_keys($changes),
-                ]
-            );
-
-            // ─────────────────────────────
-            // Authoritative Audit (MUST be inside TX)
-            // ─────────────────────────────
-            $this->auditWriter->write(
-                new AuditEventDTO(
-                    actor_id: $adminContext->adminId,
-                    action: 'admin_profile_updated',
-                    target_type: 'admin',
-                    target_id: $targetAdminId,
-                    risk_level: 'MEDIUM',
-                    payload: [
-                        'fields_changed' => array_keys($changes),
-                    ],
-                    correlation_id: $correlationId,
-                    request_id: $requestContext->requestId,
-                    created_at: new DateTimeImmutable()
-                )
-            );
 
             $statusChanged =
                 isset($changes['status']) &&
