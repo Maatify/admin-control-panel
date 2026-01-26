@@ -39,6 +39,8 @@ use App\Domain\Contracts\AdminTotpSecretRepositoryInterface;
 use App\Domain\Contracts\AdminTotpSecretStoreInterface;
 use App\Domain\Contracts\PermissionsMetadataRepositoryInterface;
 use App\Domain\Contracts\PermissionsReaderRepositoryInterface;
+use App\Domain\Contracts\RolesMetadataRepositoryInterface;
+use App\Domain\Contracts\RolesReaderRepositoryInterface;
 use App\Domain\Contracts\TelemetryAuditLoggerInterface;
 use App\Domain\Contracts\RememberMeRepositoryInterface;
 use App\Domain\Contracts\FailedNotificationRepositoryInterface;
@@ -82,6 +84,8 @@ use App\Http\Controllers\AdminSelfAuditController;
 use App\Http\Controllers\AdminTargetedAuditController;
 use App\Http\Controllers\Api\PermissionMetadataUpdateController;
 use App\Http\Controllers\Api\PermissionsController;
+use App\Http\Controllers\Api\RoleMetadataUpdateController;
+use App\Http\Controllers\Api\RolesController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NotificationQueryController;
 use App\Http\Controllers\AdminEmailVerificationController;
@@ -112,6 +116,7 @@ use App\Infrastructure\Crypto\PasswordCryptoService;
 use App\Infrastructure\Crypto\TotpSecretCryptoService;
 use App\Infrastructure\Query\ListFilterResolver;
 use App\Infrastructure\Reader\PDOPermissionsReaderRepository;
+use App\Infrastructure\Reader\PDORolesReaderRepository;
 use App\Infrastructure\Reader\Session\PdoSessionListReader;
 use App\Http\Middleware\RememberMeMiddleware;
 use App\Http\Middleware\ScopeGuardMiddleware;
@@ -150,6 +155,7 @@ use App\Infrastructure\Repository\SecurityEventRepository;
 use App\Infrastructure\Service\AdminTotpSecretStore;
 use App\Infrastructure\Service\Google2faTotpService;
 use App\Infrastructure\Updater\PDOPermissionsMetadataRepository;
+use App\Infrastructure\Updater\PDORolesMetadataRepository;
 use App\Infrastructure\UX\AdminActivityMapper;
 use App\Modules\Crypto\KeyRotation\KeyRotationService;
 use App\Modules\Crypto\KeyRotation\Providers\InMemoryKeyProvider;
@@ -1361,6 +1367,10 @@ class Container
                 );
             },
 
+            // ─────────────────────────────
+            // Permissions
+            // ─────────────────────────────
+
             PermissionsReaderRepositoryInterface::class => function ($c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
@@ -1394,6 +1404,40 @@ class Container
                 assert($updater instanceof PermissionsMetadataRepositoryInterface);
 
                 return new PermissionMetadataUpdateController($validationGuard, $updater);
+            },
+
+            // ─────────────────────────────
+            // Roles
+            // ─────────────────────────────
+
+            RolesReaderRepositoryInterface::class => function ($c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new PDORolesReaderRepository($pdo);
+            },
+
+            RolesMetadataRepositoryInterface::class => function ($c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new PdoRolesMetadataRepository($pdo);
+            },
+
+            RolesController::class => function ($c) {
+                $reader = $c->get(RolesReaderRepositoryInterface::class);
+                $validationGuard = $c->get(ValidationGuard::class);
+                $filterResolver = $c->get(ListFilterResolver::class);
+                assert($reader instanceof RolesReaderRepositoryInterface);
+                assert($validationGuard instanceof ValidationGuard);
+                assert($filterResolver instanceof ListFilterResolver);
+                return new RolesController($reader, $validationGuard, $filterResolver);
+            },
+
+            RoleMetadataUpdateController::class => function ($c) {
+                $validationGuard = $c->get(ValidationGuard::class);
+                $updater = $c->get(RolesMetadataRepositoryInterface::class);
+                assert($validationGuard instanceof ValidationGuard);
+                assert($updater instanceof RolesMetadataRepositoryInterface);
+                return new RoleMetadataUpdateController($validationGuard, $updater);
             },
 
             // ─────────────────────────────

@@ -372,6 +372,7 @@ Entries MUST NOT be rewritten or reordered.
 - refactor(logging): switch telemetry usage to DiagnosticsTelemetryService
 - refactor(logging): purge legacy in-app logging usage (prep for new architecture)
 - test(logging): remove legacy logger test suites (pre-clean baseline)
+- feat(roles): add roles listing and UI metadata management
 
 ---
 

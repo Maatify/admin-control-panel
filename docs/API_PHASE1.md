@@ -1493,10 +1493,6 @@ Any change requires updating:
 
 ---
 
-
-
----
-
 ## 🔐 Permissions Management API
 
 This section documents **Permissions APIs** used to **list permissions and manage their UI metadata**
@@ -1718,3 +1714,224 @@ Any change requires updating:
 
 ---
 
+## 🔐 Roles Management API
+
+This section documents **Roles APIs** used to **list roles and manage their UI metadata**
+(**display name & description only**).
+
+> ℹ️ Technical role keys (`roles.name`) are **immutable**
+>
+> ℹ️ Role creation, permission assignment, and admin binding are **NOT part of this API**
+>
+> All routes below are prefixed with `/api`.
+
+---
+
+### List Roles
+
+Returns a paginated list of all roles with derived grouping and UI metadata.
+
+#### Endpoint
+
+```http
+POST /api/roles/query
+```
+
+**Auth Required:** Yes
+**Permission:** `roles.query` *(to be enforced later)*
+
+---
+
+#### Request Body (List Query)
+
+```json
+{
+  "page": 1,
+  "per_page": 25,
+  "search": {
+    "global": "admins",
+    "columns": {
+      "group": "admins"
+    }
+  },
+  "date": {
+    "from": "2026-01-01",
+    "to": "2026-12-31"
+  }
+}
+```
+
+---
+
+#### Search Rules
+
+| Scope       | Field                      |
+|-------------|----------------------------|
+| Global      | `roles.name`               |
+| Column      | `id`, `name`, `group`      |
+| Group Logic | substring before first `.` |
+
+---
+
+#### Sorting
+
+```text
+ORDER BY group ASC, name ASC
+```
+
+---
+
+#### Response — 200 OK
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "admins.manage",
+      "group": "admins",
+      "display_name": "Admin Management",
+      "description": "Full access to admin management features"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "per_page": 25,
+    "total": 12,
+    "filtered": 3
+  }
+}
+```
+
+---
+
+#### Notes
+
+* `group` is **derived**, not stored
+* `display_name` and `description` may be `null`
+* Roles are **read-only** from a technical key perspective
+
+---
+
+### Update Role Metadata
+
+Updates **UI metadata only** for a single role.
+
+> ⚠️ This endpoint does **NOT** modify:
+>
+> * role key (`name`)
+> * role-permission mapping
+> * admin-role assignment
+> * authorization behavior
+
+---
+
+#### Endpoint
+
+```http
+POST /api/roles/{id}/metadata
+```
+
+**Auth Required:** Yes
+**Permission:** `roles.metadata.update` *(to be enforced later)*
+
+---
+
+#### Request Body
+
+```json
+{
+  "display_name": "Admin Management",
+  "description": "Full access to admin management features"
+}
+```
+
+*All fields are optional, but at least one must be provided.*
+
+---
+
+#### Behavior Summary
+
+* If **both fields are missing** → no-op
+* If role does not exist → server error
+* Partial updates are allowed
+* Update is **idempotent**
+
+---
+
+#### Response — 200 OK
+
+```json
+{}
+```
+
+---
+
+#### Response — 204 No Content
+
+Returned when request is valid but **no fields were provided to update**.
+
+---
+
+#### Possible Errors
+
+| Code | Reason            |
+|------|-------------------|
+| 403  | Permission denied |
+| 500  | Role not found    |
+| 500  | Update failed     |
+
+> ℹ️ This API is considered **internal**
+>
+> Invalid IDs are treated as server errors by design.
+
+---
+
+### Role Fields
+
+| Field          | Description                  | Mutable |
+|----------------|------------------------------|---------|
+| `id`           | Internal role identifier     | ❌       |
+| `name`         | Technical role key           | ❌       |
+| `group`        | Derived from `name`          | ❌       |
+| `display_name` | UI label (future i18n ready) | ✅       |
+| `description`  | UI help text                 | ✅       |
+
+---
+
+### Design Principles
+
+* Roles are **RBAC aggregators**, not lifecycle entities
+* UI metadata is **presentation-only**
+* Authorization logic is **decoupled**
+* No role deletion via API
+* No permission assignment via this API
+
+---
+
+### 🔒 Status
+
+**LOCKED — Roles Query & Metadata API Contract**
+
+Any change requires updating:
+
+* Controller behavior
+* Repository logic
+* Validation schemas
+* This documentation
+
+---
+
+### ✅ Current Implementation Status
+
+| Feature                 | Status |
+|-------------------------|--------|
+| Roles listing           | ✅ DONE |
+| Group derivation        | ✅ DONE |
+| Search & filtering      | ✅ DONE |
+| Metadata update API     | ✅ DONE |
+| Role creation           | ⏳ NEXT |
+| Role-permission mapping | ⏳ NEXT |
+| Admin-role assignment   | ⏳ NEXT |
+
+---

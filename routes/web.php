@@ -7,7 +7,6 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminEmailVerificationController;
 use App\Http\Controllers\AdminNotificationPreferenceController;
 use App\Http\Controllers\Api\AdminQueryController;
-use App\Http\Controllers\Api\PermissionsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NotificationQueryController;
 use App\Http\Middleware\AuthorizationGuardMiddleware;
@@ -215,12 +214,23 @@ return function (App $app) {
             // ─────────────────────────────
             // Permissions Control
             // ─────────────────────────────
-            $group->post('/permissions/query', [PermissionsController::class, '__invoke'])
+            $group->post('/permissions/query', [\App\Http\Controllers\Api\PermissionsController::class, '__invoke'])
                 ->setName('permissions.query')
                 ->add(AuthorizationGuardMiddleware::class);
 
             $group->post('/permissions/{id}/metadata', [\App\Http\Controllers\Api\PermissionMetadataUpdateController::class, '__invoke'])
                 ->setName('permissions.metadata.update')
+                ->add(AuthorizationGuardMiddleware::class);
+
+            // ─────────────────────────────
+            // Roles Control
+            // ─────────────────────────────
+            $group->post('/roles/query', [\App\Http\Controllers\Api\RolesController::class, '__invoke'])
+                ->setName('roles.query')
+                ->add(AuthorizationGuardMiddleware::class);
+
+            $group->post('/roles/{id}/metadata', [\App\Http\Controllers\Api\RoleMetadataUpdateController::class, '__invoke'])
+                ->setName('roles.metadata.update')
                 ->add(AuthorizationGuardMiddleware::class);
 
             // Notifications / Admins / Etc.

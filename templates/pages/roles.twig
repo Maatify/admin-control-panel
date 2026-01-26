@@ -1,8 +1,223 @@
 {% extends "layouts/base.twig" %}
 
-{% block title %}Roles - Admin Panel{% endblock %}
+{% block title %}Roles
+{% endblock %}
 
 {% block content %}
-    <h1>Roles</h1>
-    <p>Roles coming soon</p>
+    <div class="flex flex-wrap items-center justify-between gap-3 ">
+        <h2 class="text-xl font-semibold text-gray-800">Roles Management</h2>
+        <nav>
+            <ol class="flex items-center gap-1.5">
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500" href="dashboard">
+                        Home
+                        <svg class="stroke-current" width="17" height="16" viewbox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </a>
+                </li>
+                <li class="text-sm text-gray-800">Roles</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class=" px-0 py-2">
+        <!-- Info Alert -->
+        <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div class="flex items-start gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/>
+                </svg>
+                <div class="text-sm text-blue-800">
+                    <p class="font-medium mb-1">Important Information:</p>
+                    <ul class="space-y-1 text-blue-700">
+                        <li>• Role keys (name) are immutable and cannot be modified</li>
+                        <li>• Only display name and description can be updated</li>
+                        <li>• Groups are derived automatically from role names</li>
+                        <li>• Permission assignments are managed separately</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Section -->
+        <div class="bg-white rounded-lg shadow border border-gray-200 mb-6">
+            <div class="px-2 py-4">
+                <form
+                        id="roles-search-form" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <!-- Role ID Filter -->
+                    <div>
+                        <label for="filter-role-id" class="block text-sm font-medium text-gray-700 mb-1">
+                            Role ID
+                        </label>
+                        <input type="text" id="filter-role-id" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Search by ID">
+                    </div>
+
+                    <!-- Role Name Filter -->
+                    <div>
+                        <label for="filter-role-name" class="block text-sm font-medium text-gray-700 mb-1">
+                            Role Name
+                        </label>
+                        <input type="text" id="filter-role-name" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. admins.manage">
+                    </div>
+
+                    <!-- Group Filter -->
+                    <div>
+                        <label for="filter-group" class="block text-sm font-medium text-gray-700 mb-1">
+                            Group
+                        </label>
+                        <input type="text" id="filter-group" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. admins">
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex items-end space-x-1">
+                        <button type="submit" class="text-xs px-4 py-1 bg-blue-600 text-white rounded-md hover:bg-white hover:text-blue-600 border  hover:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            Search
+                        </button>
+                        <button type="button" id="btn-reset" class="text-xs px-4 py-1 bg-white text-gray-600 border border-gray-600 rounded-md hover:bg-gray-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+                            Reset
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="container mt-6">
+            <div id="table-container" class="w-full"></div>
+        </div>
+    </div>
+
+    <!-- Edit Metadata Modal -->
+    <div id="edit-metadata-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[99999] flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-blue-600">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800">Edit Role Metadata</h3>
+                            <p class="text-xs text-gray-500 mt-0.5">Update display name and description only</p>
+                        </div>
+                    </div>
+                    <button type="button" id="close-modal-btn" class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Body -->
+            <form id="edit-metadata-form" class="px-6 py-6">
+                <!-- Error/Success Message -->
+                <div id="modal-message" class="hidden mb-4"></div>
+
+                <!-- Role Info (Read-only) -->
+                <div class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Role ID</label>
+                            <div id="modal-role-id" class="text-sm font-mono text-gray-800"></div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Role Name</label>
+                            <div id="modal-role-name" class="text-sm font-mono text-gray-800"></div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Group</label>
+                        <div id="modal-role-group" class="text-sm font-mono text-gray-800"></div>
+                    </div>
+                </div>
+
+                <!-- Editable Fields -->
+                <div class="space-y-5">
+                    <!-- Display Name -->
+                    <div>
+                        <label for="modal-display-name" class="block text-sm font-medium text-gray-700 mb-2">
+                            Display Name
+                            <span class="text-xs text-gray-500 font-normal">(Optional)</span>
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-gray-400">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
+                                </svg>
+                            </div>
+                            <input
+                                    type="text"
+                                    id="modal-display-name"
+                                    class="w-full pl-10 pr-4 py-3 text-sm border border-gray-300 rounded-lg
+								   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                    placeholder="e.g. Admin Management"
+                            >
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">User-friendly label for UI display</p>
+                    </div>
+
+                    <!-- Description -->
+                    <div>
+                        <label for="modal-description" class="block text-sm font-medium text-gray-700 mb-2">
+                            Description
+                            <span class="text-xs text-gray-500 font-normal">(Optional)</span>
+                        </label>
+                        <div class="relative">
+                            <div class="absolute top-3 left-3 pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-gray-400">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>
+                                </svg>
+                            </div>
+                            <textarea
+                                    id="modal-description"
+                                    rows="4"
+                                    class="w-full pl-10 pr-4 py-3 text-sm border border-gray-300 rounded-lg
+								   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none"
+                                    placeholder="e.g. Full access to admin management features"
+                            ></textarea>
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">Help text explaining what this role provides</p>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
+                    <button
+                            type="button"
+                            id="cancel-modal-btn"
+                            class="px-6 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg
+						   hover:bg-gray-50 transition-all duration-200"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                            type="submit"
+                            id="save-metadata-btn"
+                            class="inline-flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg
+						   hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+						   transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                        </svg>
+                        <span>Save Changes</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+    <script src="/assets/js/callback_handler.js"></script>
+    <script src="/assets/js/useInputChecker.js"></script>
+    <script src="/assets/js/data_table.js"></script>
+    <script src="/assets/js/pages/roles.js"></script>
+
 {% endblock %}
