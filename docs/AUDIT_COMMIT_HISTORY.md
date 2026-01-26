@@ -368,6 +368,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(rbac): extend roles and permissions with UI display fields
 - feat(permissions): add permissions query and metadata update APIs
 - feat(logging): lock application services and introduce recorder contracts
+- chore(di): register new logging architecture interfaces and adapters
 
 ---
 
