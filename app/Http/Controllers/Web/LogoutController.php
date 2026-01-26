@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
-use App\Application\Telemetry\HttpTelemetryRecorderFactory;
+use App\Application\Services\DiagnosticsTelemetryService;
 use App\Context\AdminContext;
 use App\Context\RequestContext;
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
@@ -12,8 +12,6 @@ use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\DTO\SecurityEventDTO;
 use App\Domain\Service\AdminAuthenticationService;
 use App\Domain\Service\RememberMeService;
-use App\Modules\Telemetry\Enum\TelemetryEventTypeEnum;
-use App\Modules\Telemetry\Enum\TelemetrySeverityEnum;
 use DateTimeImmutable;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -26,7 +24,7 @@ readonly class LogoutController
         private RememberMeService $rememberMeService,
         private SecurityEventLoggerInterface $securityEventLogger,
         private AdminAuthenticationService $authService,
-        private HttpTelemetryRecorderFactory $telemetryFactory
+        private DiagnosticsTelemetryService $telemetryService
     ) {
     }
 
@@ -65,17 +63,20 @@ readonly class LogoutController
         // 🔍 Telemetry (best-effort)
         // ─────────────────────────────
         try {
-            $this->telemetryFactory
-                ->admin($context)
-                ->record(
-                    $adminId,
-                    TelemetryEventTypeEnum::RESOURCE_MUTATION,
-                    TelemetrySeverityEnum::INFO,
-                    [
-                        'action'     => 'self_logout',
-                        'session_id'=> $token,
-                    ]
-                );
+            $this->telemetryService->recordEvent(
+                eventKey: 'resource_mutation',
+                severity: 'INFO',
+                actorType: 'ADMIN',
+                actorId: $adminId,
+                metadata: [
+                    'action'     => 'self_logout',
+                    'session_id'=> $token,
+                    'request_id' => $context->requestId,
+                    'ip_address' => $context->ipAddress,
+                    'user_agent' => $context->userAgent,
+                    'route_name' => $context->routeName,
+                ]
+            );
         } catch (Throwable) {
             // swallow — telemetry must never affect logout flow
         }

@@ -102,6 +102,33 @@ class DiagnosticsTelemetryService
         }
     }
 
+    /**
+     * Generic event recording for transition from legacy telemetry.
+     *
+     * @param array<string, mixed> $metadata
+     */
+    public function recordEvent(
+        string $eventKey,
+        string $severity,
+        string $actorType,
+        ?int $actorId,
+        array $metadata = [],
+        int $durationMs = 0
+    ): void {
+        try {
+            $this->recorder->record(
+                eventKey: $eventKey,
+                severity: $severity,
+                actorType: $actorType,
+                actorId: $actorId,
+                durationMs: $durationMs,
+                metadata: $metadata
+            );
+        } catch (Throwable $e) {
+            $this->logFailure('recordEvent', $e);
+        }
+    }
+
     private function logFailure(string $method, Throwable $e): void
     {
         $this->logger->error(

@@ -369,6 +369,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(permissions): add permissions query and metadata update APIs
 - feat(logging): lock application services and introduce recorder contracts
 - chore(di): register new logging architecture interfaces and adapters
+- refactor(logging): switch telemetry usage to DiagnosticsTelemetryService
 
 ---
 
