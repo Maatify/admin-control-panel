@@ -6,6 +6,7 @@ namespace Tests\Integration\Http;
 
 use App\Http\Controllers\Ui\UiStepUpController;
 use App\Http\Controllers\Web\TwoFactorController;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -15,7 +16,7 @@ use Slim\Psr7\Response;
 final class UiStepUpControllerTest extends TestCase
 {
     private UiStepUpController $controller;
-    private TwoFactorController $twoFactorControllerMock;
+    private TwoFactorController&MockObject $twoFactorControllerMock;
 
     protected function setUp(): void
     {

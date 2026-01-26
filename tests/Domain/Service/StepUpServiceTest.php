@@ -11,7 +11,6 @@ use App\Domain\Contracts\AdminTotpSecretStoreInterface;
 use App\Domain\Contracts\TotpServiceInterface;
 use App\Domain\DTO\StepUpGrant;
 use App\Domain\Enum\Scope;
-use App\Domain\SecurityEvents\Recorder\SecurityEventRecorderInterface;
 use App\Domain\Service\RecoveryStateService;
 use App\Domain\Service\StepUpService;
 use DateTimeImmutable;
@@ -25,7 +24,6 @@ class StepUpServiceTest extends TestCase
     private AdminTotpSecretStoreInterface&MockObject $totpSecretStore;
     private TotpServiceInterface&MockObject $totpService;
     private AuthoritativeSecurityAuditWriterInterface&MockObject $outboxWriter;
-    private SecurityEventRecorderInterface&MockObject $securityEventRecorder;
     private RecoveryStateService&MockObject $recoveryState;
     private PDO&MockObject $pdo;
 
@@ -37,7 +35,6 @@ class StepUpServiceTest extends TestCase
         $this->totpSecretStore = $this->createMock(AdminTotpSecretStoreInterface::class);
         $this->totpService = $this->createMock(TotpServiceInterface::class);
         $this->outboxWriter = $this->createMock(AuthoritativeSecurityAuditWriterInterface::class);
-        $this->securityEventRecorder = $this->createMock(SecurityEventRecorderInterface::class);
         $this->recoveryState = $this->createMock(RecoveryStateService::class);
         $this->pdo = $this->createMock(PDO::class);
 
@@ -51,7 +48,6 @@ class StepUpServiceTest extends TestCase
             $this->totpSecretStore,
             $this->totpService,
             $this->outboxWriter,
-            $this->securityEventRecorder,
             $this->recoveryState,
             $this->pdo
         );
@@ -70,8 +66,7 @@ class StepUpServiceTest extends TestCase
     {
         $adminId = 1;
         $sessionId = 'session123';
-        $token = 'token_for_session123'; // Logic says sessionId = hash(token). But in mock we can just assume strings.
-        // Wait, StepUpService logic: $sessionId = hash('sha256', $token);
+        // StepUpService logic: $sessionId = hash('sha256', $token);
         // So the grant saved will have the hashed token as session ID.
         // The test was passing 'session123' as token, so let's keep consistent.
 
@@ -158,8 +153,7 @@ class StepUpServiceTest extends TestCase
             ->method('retrieve')
             ->willReturn(null);
 
-        $this->securityEventRecorder->expects($this->once())
-            ->method('record');
+        // Security logging removed from test expectation as recorder dependency is removed
 
         $result = $this->service->verifyTotp(1, 'token', 'c', $context);
         $this->assertFalse($result->success);
@@ -176,8 +170,7 @@ class StepUpServiceTest extends TestCase
         $this->totpSecretStore->method('retrieve')->willReturn('secret');
         $this->totpService->method('verify')->willReturn(false);
 
-        $this->securityEventRecorder->expects($this->once())
-            ->method('record');
+        // Security logging removed from test expectation as recorder dependency is removed
 
         $result = $this->service->verifyTotp(1, 'token', 'c', $context);
         $this->assertFalse($result->success);

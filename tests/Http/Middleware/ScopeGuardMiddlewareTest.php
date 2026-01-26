@@ -9,6 +9,7 @@ use App\Context\RequestContext;
 use App\Domain\Enum\Scope;
 use App\Domain\Service\StepUpService;
 use App\Http\Middleware\ScopeGuardMiddleware;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -21,7 +22,7 @@ use Slim\Routing\RoutingResults;
 
 class ScopeGuardMiddlewareTest extends TestCase
 {
-    private StepUpService $stepUpService;
+    private StepUpService&MockObject $stepUpService;
     private ScopeGuardMiddleware $middleware;
 
     protected function setUp(): void
@@ -46,9 +47,9 @@ class ScopeGuardMiddlewareTest extends TestCase
         $request = $this->createMock(ServerRequestInterface::class);
         $request->method('getCookieParams')->willReturn(['auth_token' => 'token123']);
 
-        // Mock a route requiring SECURITY scope
+        // Mock a route requiring ADMIN_CREATE scope (was SECURITY in old comment)
         $route = $this->createMock(Route::class);
-        $route->method('getName')->willReturn('admin.create'); // Mapped to SECURITY in Registry
+        $route->method('getName')->willReturn('admin.create'); // Mapped to ADMIN_CREATE in Registry
 
         $routeParser = $this->createMock(RouteParserInterface::class);
         $routingResults = $this->createMock(RoutingResults::class);
@@ -61,7 +62,7 @@ class ScopeGuardMiddlewareTest extends TestCase
             [RequestContext::class, null, new RequestContext('req-123', '127.0.0.1', 'phpunit')]
         ]);
 
-        // Expect hasGrant call for SECURITY scope
+        // Expect hasGrant call for ADMIN_CREATE scope
         // Note: middleware checks session state first. We need to mock getSessionState returns ACTIVE
         $this->stepUpService->expects($this->once())
             ->method('getSessionState')
@@ -69,7 +70,7 @@ class ScopeGuardMiddlewareTest extends TestCase
 
         $this->stepUpService->expects($this->once())
             ->method('hasGrant')
-            ->with(123, 'token123', Scope::SECURITY)
+            ->with(123, 'token123', Scope::ADMIN_CREATE)
             ->willReturn(true);
 
         $handler = $this->createMock(RequestHandlerInterface::class);

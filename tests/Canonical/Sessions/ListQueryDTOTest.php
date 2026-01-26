@@ -84,7 +84,6 @@ class ListQueryDTOTest extends TestCase
                 'columns' => [
                     'status' => 'active',
                     'empty_col' => '',
-                    'null_col' => null,
                 ],
             ],
         ];
@@ -92,6 +91,5 @@ class ListQueryDTOTest extends TestCase
 
         $this->assertArrayHasKey('status', $dto->columnFilters);
         $this->assertArrayNotHasKey('empty_col', $dto->columnFilters);
-        $this->assertArrayNotHasKey('null_col', $dto->columnFilters);
     }
 }

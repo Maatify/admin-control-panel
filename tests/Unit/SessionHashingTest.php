@@ -12,7 +12,7 @@ use PDOStatement;
 
 class SessionHashingTest extends TestCase
 {
-    private MockObject|PDO $pdo;
+    private PDO&MockObject $pdo;
     private AdminSessionRepository $repository;
 
     protected function setUp(): void
@@ -35,7 +35,8 @@ class SessionHashingTest extends TestCase
             ->with($this->callback(function (array $params) use ($adminId) {
                 // $params[0] should be the hash (64 chars hex SHA256)
                 // $params[1] should be adminId
-                return strlen($params[0]) === 64 && $params[1] === $adminId;
+                return isset($params[0]) && is_string($params[0]) && strlen($params[0]) === 64
+                    && isset($params[1]) && $params[1] === $adminId;
             }));
 
         $token = $this->repository->createSession($adminId);

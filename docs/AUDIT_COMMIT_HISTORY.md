@@ -375,6 +375,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(roles): add roles listing and UI metadata management
 - feat(rbac): add lifecycle status to roles table
 - feat(rbac): enforce role lifecycle via is_active during authorization
+- chore(test): align test suite with logging purge
 
 ---
 

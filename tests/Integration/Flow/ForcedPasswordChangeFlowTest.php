@@ -6,12 +6,13 @@ namespace Tests\Integration\Flow;
 
 use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use App\Context\RequestContext;
-use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
+use App\Domain\Admin\Enum\AdminStatusEnum;
 use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
+use App\Domain\DTO\AdminEmailIdentifierDTO;
 use App\Domain\DTO\AdminPasswordRecordDTO;
 use App\Domain\Enum\VerificationStatus;
 use App\Domain\Exception\MustChangePasswordException;
@@ -19,6 +20,7 @@ use App\Domain\Service\AdminAuthenticationService;
 use App\Domain\Service\PasswordService;
 use App\Domain\Service\RecoveryStateService;
 use App\Http\Controllers\Web\ChangePasswordController;
+use App\Infrastructure\Repository\AdminRepository;
 use PDO;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -36,10 +38,12 @@ class ForcedPasswordChangeFlowTest extends TestCase
     private AdminPasswordRepositoryInterface&MockObject $passwordRepo;
     private AdminSessionRepositoryInterface&MockObject $sessionRepo;
     private AdminIdentifierLookupInterface&MockObject $lookup;
-    private AdminEmailVerificationRepositoryInterface&MockObject $verificationRepo;
+    private AdminRepository&MockObject $adminRepo;
 
     // State
+    /** @var array<int, array{hash: string, pepper: string, must_change: bool}> */
     private array $users = [];
+    /** @var array<string, int> */
     private array $sessions = [];
 
     protected function setUp(): void
@@ -57,12 +61,11 @@ class ForcedPasswordChangeFlowTest extends TestCase
 
         $this->passwordRepo->method('savePassword')
             ->willReturnCallback(function (int $id, string $hash, string $pepper, bool $mustChange) {
-                if (!isset($this->users[$id])) {
-                     $this->users[$id] = [];
-                }
-                $this->users[$id]['hash'] = $hash;
-                $this->users[$id]['pepper'] = $pepper;
-                $this->users[$id]['must_change'] = $mustChange;
+                $this->users[$id] = [
+                    'hash' => $hash,
+                    'pepper' => $pepper,
+                    'must_change' => $mustChange,
+                ];
             });
 
         // --- Session Repository ---
@@ -79,14 +82,16 @@ class ForcedPasswordChangeFlowTest extends TestCase
         $this->lookup->method('findByBlindIndex')
             ->willReturnCallback(function ($blindIndex) {
                 // Simplified: blindIndex = "idx_" . email
-                if ($blindIndex === 'idx_admin@example.com') return 1;
+                if ($blindIndex === 'idx_admin@example.com') {
+                    // Return DTO
+                    return new AdminEmailIdentifierDTO(1, 1, VerificationStatus::VERIFIED);
+                }
                 return null;
             });
 
-        // --- Verification Repository ---
-        $this->verificationRepo = $this->createMock(AdminEmailVerificationRepositoryInterface::class);
-        $this->verificationRepo->method('getVerificationStatus')
-            ->willReturn(VerificationStatus::VERIFIED);
+        // --- Admin Repository ---
+        $this->adminRepo = $this->createMock(AdminRepository::class);
+        $this->adminRepo->method('getStatus')->willReturn(AdminStatusEnum::ACTIVE);
 
         // --- Crypto Service ---
         $cryptoService = $this->createMock(AdminIdentifierCryptoServiceInterface::class);
@@ -112,21 +117,18 @@ class ForcedPasswordChangeFlowTest extends TestCase
         $recovery = $this->createMock(RecoveryStateService::class);
         $pdo = $this->createMock(PDO::class);
         $view = $this->createMock(Twig::class);
-        // ChangePasswordController uses view to render
-        // We will assert on view->render if needed, or just check return type if possible.
-        // But ChangePasswordController::change redirects, so view is not used on success.
 
         // 2. Instantiate Service
         $this->authService = new AdminAuthenticationService(
             $this->lookup,
-            $this->verificationRepo,
             $this->passwordRepo,
             $this->sessionRepo,
             $logger,
             $audit,
             $recovery,
             $pdo,
-            $passwordService
+            $passwordService,
+            $this->adminRepo
         );
 
         // 3. Instantiate Controller
