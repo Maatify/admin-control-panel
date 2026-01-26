@@ -373,6 +373,7 @@ Entries MUST NOT be rewritten or reordered.
 - refactor(logging): purge legacy in-app logging usage (prep for new architecture)
 - test(logging): remove legacy logger test suites (pre-clean baseline)
 - feat(roles): add roles listing and UI metadata management
+- feat(rbac): add lifecycle status to roles table
 
 ---
 

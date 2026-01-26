@@ -158,6 +158,11 @@ CREATE TABLE roles (
     -- TECHNICAL role key (language-agnostic)
                        name VARCHAR(64) NOT NULL UNIQUE,
 
+    -- Lifecycle status (reserved for future enforcement)
+    -- 1 = active (default)
+    -- 0 = inactive (role exists but should be ignored by authorization logic)
+                       is_active TINYINT(1) NOT NULL DEFAULT 1,
+
     -- UI display fields (NOT used in authorization logic)
                        display_name VARCHAR(128) NULL,
                        description VARCHAR(255) NULL,
@@ -166,6 +171,7 @@ CREATE TABLE roles (
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci;
+
 
 
 CREATE TABLE permissions (
