@@ -10,6 +10,7 @@ use App\Domain\Contracts\AdminTotpSecretStoreInterface;
 use App\Domain\Enum\SessionState;
 use App\Domain\Service\StepUpService;
 use App\Http\Middleware\SessionStateGuardMiddleware;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -22,8 +23,8 @@ use Slim\Routing\RoutingResults;
 
 class SessionStateGuardMiddlewareTest extends TestCase
 {
-    private StepUpService $stepUpService;
-    private AdminTotpSecretStoreInterface $totpSecretStore;
+    private StepUpService&MockObject $stepUpService;
+    private AdminTotpSecretStoreInterface&MockObject $totpSecretStore;
     private SessionStateGuardMiddleware $middleware;
 
     protected function setUp(): void
@@ -70,7 +71,9 @@ class SessionStateGuardMiddlewareTest extends TestCase
         $response = $this->middleware->process($request, $handler);
         $this->assertEquals(403, $response->getStatusCode());
 
+        /** @var array{code: string, scope: string} $body */
         $body = json_decode((string)$response->getBody(), true);
+        $this->assertIsArray($body);
         $this->assertEquals('STEP_UP_REQUIRED', $body['code']);
         $this->assertEquals('login', $body['scope']);
     }

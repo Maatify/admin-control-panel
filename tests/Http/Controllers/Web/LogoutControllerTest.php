@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Http\Controllers\Web;
 
+use App\Application\Services\DiagnosticsTelemetryService;
 use App\Context\AdminContext;
 use App\Context\RequestContext;
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
@@ -11,12 +12,10 @@ use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\Service\AdminAuthenticationService;
 use App\Domain\Service\RememberMeService;
 use App\Http\Controllers\Web\LogoutController;
-use App\Modules\Telemetry\Enum\TelemetryEventTypeEnum;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
-use Tests\Support\TelemetryTestHelper;
 
 final class LogoutControllerTest extends TestCase
 {
@@ -26,17 +25,26 @@ final class LogoutControllerTest extends TestCase
         $rememberMe = $this->createMock(RememberMeService::class);
         $securityLogger = $this->createMock(SecurityEventLoggerInterface::class);
         $authService = $this->createMock(AdminAuthenticationService::class);
+        $telemetryService = $this->createMock(DiagnosticsTelemetryService::class);
 
-        $helper = TelemetryTestHelper::makeFactoryWithSpyRecorder();
-        $telemetryFactory = $helper['factory'];
-        $spy = $helper['recorder'];
+        $telemetryService->expects($this->once())
+            ->method('recordEvent')
+            ->with(
+                'resource_mutation',
+                'INFO',
+                'ADMIN',
+                123,
+                $this->callback(function($metadata) {
+                    return isset($metadata['action']) && $metadata['action'] === 'self_logout';
+                })
+            );
 
         $controller = new LogoutController(
             $sessionRepo,
             $rememberMe,
             $securityLogger,
             $authService,
-            $telemetryFactory
+            $telemetryService
         );
 
         $request = $this->createMock(ServerRequestInterface::class);
@@ -61,10 +69,5 @@ final class LogoutControllerTest extends TestCase
 
         // Act
         $controller->logout($request, $response);
-
-        // Assert
-        $this->assertCount(1, $spy->records);
-        $this->assertEquals(TelemetryEventTypeEnum::RESOURCE_MUTATION, $spy->records[0]->eventType);
-        $this->assertEquals('self_logout', $spy->records[0]->metadata['action']);
     }
 }

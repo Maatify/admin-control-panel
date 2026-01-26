@@ -84,7 +84,9 @@ final class Aes256GcmAlgorithmTest extends TestCase
     {
         $result = $this->algorithm->encrypt('secret', $this->key);
 
-        $tamperedCipher = $result->cipher ^ random_bytes(strlen($result->cipher));
+        $len = strlen($result->cipher);
+        $len = $len > 0 ? $len : 1;
+        $tamperedCipher = $result->cipher ^ random_bytes($len);
 
         $metadata = new ReversibleCryptoMetadataDTO(
             $result->iv,

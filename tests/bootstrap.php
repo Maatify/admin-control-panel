@@ -44,7 +44,14 @@ foreach ($_ENV as $key => $value) {
 // ------------------------------------------------------------
 // 4) Normalize environment value (PHPStan-safe)
 // ------------------------------------------------------------
-$envRaw = $_ENV['APP_ENV'] ?? getenv('APP_ENV') ?? 'unknown';
+/** @var mixed $envRaw */
+$envRaw = $_ENV['APP_ENV'] ?? null;
+if ($envRaw === null) {
+    $envRaw = getenv('APP_ENV');
+}
+if ($envRaw === false) {
+    $envRaw = 'unknown';
+}
 
 $envString = is_scalar($envRaw)
     ? (string) $envRaw

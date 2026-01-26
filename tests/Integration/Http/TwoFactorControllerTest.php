@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Http;
 
-use App\Application\Telemetry\HttpTelemetryRecorderFactory;
+use App\Application\Services\DiagnosticsTelemetryService;
 use App\Context\AdminContext;
 use App\Context\RequestContext;
 use App\Domain\Contracts\TotpServiceInterface;
 use App\Domain\DTO\TotpVerificationResultDTO;
 use App\Domain\Enum\Scope;
 use App\Domain\Service\StepUpService;
-use App\Domain\Telemetry\Recorder\TelemetryRecorderInterface;
 use App\Http\Controllers\Web\TwoFactorController;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -26,6 +25,7 @@ final class TwoFactorControllerTest extends TestCase
     private StepUpService&MockObject $stepUpServiceMock;
     private TotpServiceInterface&MockObject $totpServiceMock;
     private Twig&MockObject $viewMock;
+    private DiagnosticsTelemetryService&MockObject $telemetryServiceMock;
 
     protected function setUp(): void
     {
@@ -34,15 +34,13 @@ final class TwoFactorControllerTest extends TestCase
         $this->stepUpServiceMock = $this->createMock(StepUpService::class);
         $this->totpServiceMock = $this->createMock(TotpServiceInterface::class);
         $this->viewMock = $this->createMock(Twig::class);
-
-        $telemetryRecorderMock = $this->createMock(TelemetryRecorderInterface::class);
-        $telemetryFactory = new HttpTelemetryRecorderFactory($telemetryRecorderMock);
+        $this->telemetryServiceMock = $this->createMock(DiagnosticsTelemetryService::class);
 
         $this->controller = new TwoFactorController(
             $this->stepUpServiceMock,
             $this->totpServiceMock,
             $this->viewMock,
-            $telemetryFactory
+            $this->telemetryServiceMock
         );
     }
 
@@ -75,7 +73,7 @@ final class TwoFactorControllerTest extends TestCase
             ->method('verifyTotp')
             ->with(
                 1, // adminId
-                'session-token', // session token
+                'session-token', // raw token
                 '123456',
                 $this->isInstanceOf(RequestContext::class),
                 Scope::SECURITY

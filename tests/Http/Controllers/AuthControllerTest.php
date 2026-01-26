@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace Tests\Http\Controllers;
 
 use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
-use App\Application\Telemetry\HttpTelemetryRecorderFactory;
 use App\Context\RequestContext;
 use App\Domain\DTO\AdminLoginResultDTO;
 use App\Domain\Service\AdminAuthenticationService;
 use App\Http\Controllers\AuthController;
-use App\Modules\ActivityLog\Service\ActivityLogService;
 use App\Modules\Validation\Contracts\SchemaInterface;
 use App\Modules\Validation\Contracts\ValidatorInterface;
 use App\Modules\Validation\DTO\ValidationResultDTO;
@@ -19,11 +17,10 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
-use Tests\Support\TelemetryTestHelper;
 
 final class AuthControllerTest extends TestCase
 {
-    public function testLoginSuccessLogsActivityWithNewContext(): void
+    public function testLoginSuccess(): void
     {
         $authService = $this->createMock(AdminAuthenticationService::class);
         $cryptoService = $this->createMock(AdminIdentifierCryptoServiceInterface::class);
@@ -38,7 +35,7 @@ final class AuthControllerTest extends TestCase
         $validator = new class implements ValidatorInterface {
             public function validate(SchemaInterface $schema, array $input): ValidationResultDTO
             {
-                return TelemetryTestHelper::makeValidValidationResultDTO($input);
+                return new ValidationResultDTO(true, []);
             }
         };
 
@@ -80,6 +77,5 @@ final class AuthControllerTest extends TestCase
 
         // Assert returned type is correct
         self::assertSame($response, $returned);
-
     }
 }

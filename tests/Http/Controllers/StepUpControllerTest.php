@@ -4,18 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Http\Controllers;
 
-use App\Application\Telemetry\HttpTelemetryRecorderFactory;
+use App\Application\Services\DiagnosticsTelemetryService;
 use App\Context\AdminContext;
 use App\Context\RequestContext;
+use App\Domain\DTO\TotpVerificationResultDTO;
 use App\Domain\Service\StepUpService;
 use App\Http\Controllers\StepUpController;
-use App\Modules\Telemetry\Enum\TelemetryEventTypeEnum;
 use App\Modules\Validation\Guard\ValidationGuard;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
-use Tests\Support\TelemetryTestHelper;
 
 final class StepUpControllerTest extends TestCase
 {
@@ -24,17 +23,23 @@ final class StepUpControllerTest extends TestCase
         $stepUpService = $this->createMock(StepUpService::class);
 
         $validator = $this->createMock(\App\Modules\Validation\Contracts\ValidatorInterface::class);
-        $validator->method('validate')->willReturn(TelemetryTestHelper::makeValidValidationResultDTO());
+        $validator->method('validate')->willReturn(new \App\Modules\Validation\DTO\ValidationResultDTO(true, []));
         $validationGuard = new ValidationGuard($validator);
 
-        $helper = TelemetryTestHelper::makeFactoryWithSpyRecorder();
-        $telemetryFactory = $helper['factory'];
-        $spy = $helper['recorder'];
+        $telemetryService = $this->createMock(DiagnosticsTelemetryService::class);
+        $telemetryService->expects($this->once())
+            ->method('recordEvent')
+            ->with(
+                'auth_stepup_success',
+                'INFO',
+                'ADMIN',
+                123
+            );
 
         $controller = new StepUpController(
             $stepUpService,
             $validationGuard,
-            $telemetryFactory
+            $telemetryService
         );
 
         $request = $this->createMock(ServerRequestInterface::class);
@@ -52,7 +57,7 @@ final class StepUpControllerTest extends TestCase
             [RequestContext::class, null, $requestContext],
         ]);
 
-        $resultDto = TelemetryTestHelper::makeTotpVerificationResultDTO(true);
+        $resultDto = new TotpVerificationResultDTO(true);
         $stepUpService->method('verifyTotp')->willReturn($resultDto);
 
         $response->method('getBody')->willReturn($stream);
@@ -61,10 +66,5 @@ final class StepUpControllerTest extends TestCase
 
         // Act
         $controller->verify($request, $response);
-
-        // Assert
-        $this->assertCount(1, $spy->records);
-        $this->assertEquals(TelemetryEventTypeEnum::AUTH_STEPUP_SUCCESS, $spy->records[0]->eventType);
-        $this->assertEquals(123, $spy->records[0]->actorId);
     }
 }

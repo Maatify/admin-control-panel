@@ -10,7 +10,9 @@ use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\Contracts\SecurityEventLoggerInterface;
+use App\Domain\DTO\AdminEmailIdentifierDTO;
 use App\Domain\DTO\AdminPasswordRecordDTO;
+use App\Domain\Enum\VerificationStatus;
 use App\Domain\Service\PasswordService;
 use App\Domain\Service\RecoveryStateService;
 use App\Http\Controllers\Web\ChangePasswordController;
@@ -93,7 +95,9 @@ class ChangePasswordControllerTest extends TestCase
             ->with(RecoveryStateService::ACTION_PASSWORD_CHANGE, null, $context);
 
         $this->cryptoService->method('deriveEmailBlindIndex')->willReturn('blind_index');
-        $this->lookup->method('findByBlindIndex')->willReturn(123);
+
+        $identifierDto = new AdminEmailIdentifierDTO(1, 123, VerificationStatus::VERIFIED);
+        $this->lookup->method('findByBlindIndex')->willReturn($identifierDto);
 
         $record = new AdminPasswordRecordDTO('hash_old', 'pepper', true);
         $this->passwordRepo->method('getPasswordRecord')->with(123)->willReturn($record);
@@ -132,7 +136,9 @@ class ChangePasswordControllerTest extends TestCase
         $request->method('getAttribute')->with(RequestContext::class)->willReturn($context);
 
         $this->cryptoService->method('deriveEmailBlindIndex')->willReturn('blind_index');
-        $this->lookup->method('findByBlindIndex')->willReturn(123);
+
+        $identifierDto = new AdminEmailIdentifierDTO(1, 123, VerificationStatus::VERIFIED);
+        $this->lookup->method('findByBlindIndex')->willReturn($identifierDto);
 
         $record = new AdminPasswordRecordDTO('hash_old', 'pepper', true);
         $this->passwordRepo->method('getPasswordRecord')->with(123)->willReturn($record);
