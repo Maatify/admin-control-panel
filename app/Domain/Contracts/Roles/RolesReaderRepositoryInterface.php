@@ -12,7 +12,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Contracts;
+namespace App\Domain\Contracts\Roles;
 
 use App\Domain\DTO\Roles\RolesQueryResponseDTO;
 use App\Domain\List\ListQueryDTO;

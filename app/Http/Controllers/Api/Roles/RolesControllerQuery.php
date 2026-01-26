@@ -13,9 +13,9 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\Roles;
 
-use App\Domain\Contracts\RolesReaderRepositoryInterface;
+use App\Domain\Contracts\Roles\RolesReaderRepositoryInterface;
 use App\Domain\List\ListQueryDTO;
 use App\Domain\List\RolesCapabilities;
 use App\Infrastructure\Query\ListFilterResolver;
@@ -24,7 +24,7 @@ use App\Modules\Validation\Schemas\SharedListQuerySchema;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-class RolesController
+class RolesControllerQuery
 {
     public function __construct(
         private readonly RolesReaderRepositoryInterface $reader,

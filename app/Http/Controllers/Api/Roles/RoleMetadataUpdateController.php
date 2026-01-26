@@ -13,9 +13,9 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\Roles;
 
-use App\Domain\Contracts\RolesMetadataRepositoryInterface;
+use App\Domain\Contracts\Roles\RolesMetadataRepositoryInterface;
 use App\Modules\Validation\Guard\ValidationGuard;
 use App\Modules\Validation\Schemas\RoleMetadataUpdateSchema;
 use Psr\Http\Message\ResponseInterface as Response;

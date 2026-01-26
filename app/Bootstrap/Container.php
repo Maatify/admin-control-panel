@@ -23,32 +23,33 @@ use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
 use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\AdminNotificationChannelRepositoryInterface;
 use App\Domain\Contracts\AdminNotificationHistoryReaderInterface;
+use App\Domain\Contracts\AdminNotificationPersistenceWriterInterface;
 use App\Domain\Contracts\AdminNotificationPreferenceReaderInterface;
 use App\Domain\Contracts\AdminNotificationPreferenceRepositoryInterface;
 use App\Domain\Contracts\AdminNotificationPreferenceWriterInterface;
-use App\Domain\Contracts\AdminNotificationPersistenceWriterInterface;
 use App\Domain\Contracts\AdminNotificationReadMarkerInterface;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
+use App\Domain\Contracts\AdminRoleRepositoryInterface;
 use App\Domain\Contracts\AdminSecurityEventReaderInterface;
 use App\Domain\Contracts\AdminSelfAuditReaderInterface;
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
-use App\Domain\Contracts\AdminRoleRepositoryInterface;
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Domain\Contracts\AdminTargetedAuditReaderInterface;
 use App\Domain\Contracts\AdminTotpSecretRepositoryInterface;
 use App\Domain\Contracts\AdminTotpSecretStoreInterface;
-use App\Domain\Contracts\PermissionsMetadataRepositoryInterface;
-use App\Domain\Contracts\PermissionsReaderRepositoryInterface;
-use App\Domain\Contracts\RolesMetadataRepositoryInterface;
-use App\Domain\Contracts\RolesReaderRepositoryInterface;
-use App\Domain\Contracts\TelemetryAuditLoggerInterface;
-use App\Domain\Contracts\RememberMeRepositoryInterface;
+use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\Contracts\FailedNotificationRepositoryInterface;
 use App\Domain\Contracts\NotificationReadRepositoryInterface;
 use App\Domain\Contracts\NotificationRoutingInterface;
+use App\Domain\Contracts\PermissionsMetadataRepositoryInterface;
+use App\Domain\Contracts\PermissionsReaderRepositoryInterface;
+use App\Domain\Contracts\RememberMeRepositoryInterface;
 use App\Domain\Contracts\RolePermissionRepositoryInterface;
-use App\Domain\Contracts\RoleRepositoryInterface;
+use App\Domain\Contracts\Roles\RoleRepositoryInterface;
+use App\Domain\Contracts\Roles\RolesMetadataRepositoryInterface;
+use App\Domain\Contracts\Roles\RolesReaderRepositoryInterface;
 use App\Domain\Contracts\StepUpGrantRepositoryInterface;
+use App\Domain\Contracts\TelemetryAuditLoggerInterface;
 use App\Domain\Contracts\TotpServiceInterface;
 use App\Domain\Contracts\VerificationCodeGeneratorInterface;
 use App\Domain\Contracts\VerificationCodePolicyResolverInterface;
@@ -63,18 +64,21 @@ use App\Domain\Security\Password\PasswordPepperRingConfig;
 use App\Domain\Service\AdminAuthenticationService;
 use App\Domain\Service\AdminEmailVerificationService;
 use App\Domain\Service\AdminNotificationRoutingService;
+use App\Domain\Service\AuthorizationService;
+use App\Domain\Service\PasswordService;
 use App\Domain\Service\RecoveryStateService;
 use App\Domain\Service\RememberMeService;
 use App\Domain\Service\RoleAssignmentService;
 use App\Domain\Service\RoleHierarchyComparator;
 use App\Domain\Service\RoleLevelResolver;
+use App\Domain\Service\SessionRevocationService;
 use App\Domain\Service\StepUpService;
 use App\Domain\Service\VerificationCodeGenerator;
 use App\Domain\Service\VerificationCodePolicyResolver;
 use App\Domain\Service\VerificationCodeValidator;
-use App\Domain\Service\SessionRevocationService;
-use App\Domain\Service\AuthorizationService;
+use App\Domain\Session\Reader\SessionListReaderInterface;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminEmailVerificationController;
 use App\Http\Controllers\AdminNotificationHistoryController;
 use App\Http\Controllers\AdminNotificationPreferenceController;
 use App\Http\Controllers\AdminNotificationReadController;
@@ -83,92 +87,86 @@ use App\Http\Controllers\AdminSelfAuditController;
 use App\Http\Controllers\AdminTargetedAuditController;
 use App\Http\Controllers\Api\PermissionMetadataUpdateController;
 use App\Http\Controllers\Api\PermissionsController;
-use App\Http\Controllers\Api\RoleMetadataUpdateController;
-use App\Http\Controllers\Api\RolesController;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\NotificationQueryController;
-use App\Http\Controllers\AdminEmailVerificationController;
-use App\Http\Controllers\Web\DashboardController;
-use App\Http\Controllers\Web\EmailVerificationController;
-use App\Http\Controllers\Web\LoginController;
-use App\Http\Controllers\Web\LogoutController;
-use App\Http\Controllers\TelegramWebhookController;
-use App\Http\Controllers\Web\TelegramConnectController;
+use App\Http\Controllers\Api\Roles\RoleMetadataUpdateController;
+use App\Http\Controllers\Api\Roles\RolesControllerQuery;
+use App\Http\Controllers\Api\SessionBulkRevokeController;
 use App\Http\Controllers\Api\SessionQueryController;
 use App\Http\Controllers\Api\SessionRevokeController;
-use App\Http\Controllers\Api\SessionBulkRevokeController;
-use App\Http\Controllers\Web\TwoFactorController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\NotificationQueryController;
+use App\Http\Controllers\TelegramWebhookController;
+use App\Http\Controllers\Ui\SessionListController;
 use App\Http\Controllers\Ui\UiAdminsController;
 use App\Http\Controllers\Ui\UiDashboardController;
 use App\Http\Controllers\Ui\UiPermissionsController;
 use App\Http\Controllers\Ui\UiRolesController;
 use App\Http\Controllers\Ui\UiSettingsController;
-use App\Http\Controllers\Ui\SessionListController;
-use App\Domain\Session\Reader\SessionListReaderInterface;
+use App\Http\Controllers\Web\DashboardController;
+use App\Http\Controllers\Web\EmailVerificationController;
+use App\Http\Controllers\Web\LoginController;
+use App\Http\Controllers\Web\LogoutController;
+use App\Http\Controllers\Web\TelegramConnectController;
+use App\Http\Controllers\Web\TwoFactorController;
+use App\Http\Middleware\RecoveryStateMiddleware;
+use App\Http\Middleware\RememberMeMiddleware;
+use App\Http\Middleware\ScopeGuardMiddleware;
+use App\Http\Middleware\SessionStateGuardMiddleware;
 use App\Infrastructure\Admin\Reader\PDOAdminBasicInfoReader;
 use App\Infrastructure\Admin\Reader\PDOAdminEmailReader;
 use App\Infrastructure\Admin\Reader\PdoAdminProfileReader;
+use App\Infrastructure\Audit\PdoAdminSecurityEventReader;
+use App\Infrastructure\Audit\PdoAdminSelfAuditReader;
+use App\Infrastructure\Audit\PdoAdminTargetedAuditReader;
+use App\Infrastructure\Audit\PdoAuthoritativeAuditWriter;
+use App\Infrastructure\Audit\PdoTelemetryAuditLogger;
 use App\Infrastructure\Context\ActorContextProvider;
 use App\Infrastructure\Crypto\AdminIdentifierCryptoService;
 use App\Infrastructure\Crypto\NotificationCryptoService;
 use App\Infrastructure\Crypto\PasswordCryptoService;
 use App\Infrastructure\Crypto\TotpSecretCryptoService;
+use App\Infrastructure\Database\PDOFactory;
+use App\Infrastructure\Notification\TelegramHandler;
 use App\Infrastructure\Query\ListFilterResolver;
+use App\Infrastructure\Reader\Admin\PdoAdminQueryReader;
 use App\Infrastructure\Reader\PDOPermissionsReaderRepository;
 use App\Infrastructure\Reader\PDORolesReaderRepository;
 use App\Infrastructure\Reader\Session\PdoSessionListReader;
-use App\Http\Middleware\RememberMeMiddleware;
-use App\Http\Middleware\ScopeGuardMiddleware;
-use App\Http\Middleware\SessionStateGuardMiddleware;
-use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
-use App\Infrastructure\Audit\PdoAdminSecurityEventReader;
-use App\Infrastructure\Audit\PdoAdminSelfAuditReader;
-use App\Infrastructure\Audit\PdoAdminTargetedAuditReader;
-use App\Infrastructure\Audit\PdoAuthoritativeAuditWriter;
-use App\Infrastructure\Database\PDOFactory;
-use App\Infrastructure\Notification\TelegramHandler;
 use App\Infrastructure\Repository\AdminActivityQueryRepository;
 use App\Infrastructure\Repository\AdminEmailRepository;
 use App\Infrastructure\Repository\AdminNotificationChannelRepository;
 use App\Infrastructure\Repository\AdminPasswordRepository;
+use App\Infrastructure\Repository\AdminRepository;
+use App\Infrastructure\Repository\AdminRoleRepository;
+use App\Infrastructure\Repository\AdminSessionRepository;
 use App\Infrastructure\Repository\AdminTotpSecretRepository;
+use App\Infrastructure\Repository\FailedNotificationRepository;
+use App\Infrastructure\Repository\NotificationReadRepository;
+use App\Infrastructure\Repository\PdoAdminDirectPermissionRepository;
 use App\Infrastructure\Repository\PdoAdminNotificationHistoryReader;
 use App\Infrastructure\Repository\PdoAdminNotificationPersistenceRepository;
 use App\Infrastructure\Repository\PdoAdminNotificationPreferenceRepository;
-use App\Infrastructure\Repository\PdoRememberMeRepository;
-use App\Infrastructure\Repository\AdminRepository;
-use App\Infrastructure\Repository\PdoAdminDirectPermissionRepository;
-use App\Infrastructure\Repository\AdminRoleRepository;
-use App\Infrastructure\Repository\AdminSessionRepository;
-use App\Infrastructure\Audit\PdoTelemetryAuditLogger;
-use App\Infrastructure\Repository\FailedNotificationRepository;
-use App\Infrastructure\Repository\NotificationReadRepository;
 use App\Infrastructure\Repository\PdoAdminNotificationReadMarker;
-use App\Infrastructure\Repository\PdoRoleRepository;
+use App\Infrastructure\Repository\PdoRememberMeRepository;
 use App\Infrastructure\Repository\PdoStepUpGrantRepository;
 use App\Infrastructure\Repository\PdoSystemOwnershipRepository;
 use App\Infrastructure\Repository\PdoVerificationCodeRepository;
 use App\Infrastructure\Repository\RolePermissionRepository;
-use App\Domain\Service\PasswordService;
+use App\Infrastructure\Repository\Roles\PdoRoleRepository;
 use App\Infrastructure\Service\AdminTotpSecretStore;
 use App\Infrastructure\Service\Google2faTotpService;
 use App\Infrastructure\Updater\PDOPermissionsMetadataRepository;
-use App\Infrastructure\Updater\PDORolesMetadataRepository;
 use App\Infrastructure\UX\AdminActivityMapper;
-use App\Modules\Crypto\KeyRotation\KeyRotationService;
-use App\Modules\Crypto\KeyRotation\Providers\InMemoryKeyProvider;
-use App\Modules\Crypto\KeyRotation\Policy\StrictSingleActiveKeyPolicy;
-use App\Modules\Crypto\KeyRotation\DTO\CryptoKeyDTO;
-use App\Modules\Crypto\KeyRotation\KeyStatusEnum;
-use App\Modules\Crypto\HKDF\HKDFService;
-use App\Modules\Crypto\Reversible\Registry\ReversibleCryptoAlgorithmRegistry;
-use App\Modules\Crypto\Reversible\Algorithms\Aes256GcmAlgorithm;
-use App\Modules\Crypto\DX\CryptoDirectFactory;
 use App\Modules\Crypto\DX\CryptoContextFactory;
+use App\Modules\Crypto\DX\CryptoDirectFactory;
 use App\Modules\Crypto\DX\CryptoProvider;
-use App\Modules\InputNormalization\Contracts\InputNormalizerInterface;
-use App\Modules\InputNormalization\Middleware\InputNormalizationMiddleware;
-use App\Modules\InputNormalization\Normalizer\InputNormalizer;
+use App\Modules\Crypto\HKDF\HKDFService;
+use App\Modules\Crypto\KeyRotation\DTO\CryptoKeyDTO;
+use App\Modules\Crypto\KeyRotation\KeyRotationService;
+use App\Modules\Crypto\KeyRotation\KeyStatusEnum;
+use App\Modules\Crypto\KeyRotation\Policy\StrictSingleActiveKeyPolicy;
+use App\Modules\Crypto\KeyRotation\Providers\InMemoryKeyProvider;
+use App\Modules\Crypto\Reversible\Algorithms\Aes256GcmAlgorithm;
+use App\Modules\Crypto\Reversible\Registry\ReversibleCryptoAlgorithmRegistry;
 use App\Modules\Email\Config\EmailTransportConfigDTO;
 use App\Modules\Email\Queue\EmailQueueWriterInterface;
 use App\Modules\Email\Queue\PdoEmailQueueWriter;
@@ -176,19 +174,20 @@ use App\Modules\Email\Renderer\EmailRendererInterface;
 use App\Modules\Email\Renderer\TwigEmailRenderer;
 use App\Modules\Email\Transport\EmailTransportInterface;
 use App\Modules\Email\Transport\SmtpEmailTransport;
+use App\Modules\InputNormalization\Contracts\InputNormalizerInterface;
+use App\Modules\InputNormalization\Middleware\InputNormalizationMiddleware;
+use App\Modules\InputNormalization\Normalizer\InputNormalizer;
 use App\Modules\Validation\Contracts\ValidatorInterface;
 use App\Modules\Validation\Guard\ValidationGuard;
 use App\Modules\Validation\Validator\RespectValidator;
 use DI\ContainerBuilder;
+use Dotenv\Dotenv;
 use Exception;
 use Maatify\PsrLogger\LoggerFactory;
 use PDO;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Slim\Views\Twig;
-use Dotenv\Dotenv;
-use App\Http\Middleware\RecoveryStateMiddleware;
-use App\Infrastructure\Reader\Admin\PdoAdminQueryReader;
 
 class Container
 {
@@ -812,8 +811,10 @@ class Container
             },
             UiRolesController::class => function (ContainerInterface $c) {
                 $view = $c->get(Twig::class);
+                $authorizationService = $c->get(AuthorizationService::class);
                 assert($view instanceof Twig);
-                return new UiRolesController($view);
+                assert($authorizationService instanceof AuthorizationService);
+                return new UiRolesController($view, $authorizationService);
             },
             UiSettingsController::class => function (ContainerInterface $c) {
                 $view = $c->get(Twig::class);
@@ -994,20 +995,20 @@ class Container
             },
 
             // Admin List
-//            AdminListReaderInterface::class => function (ContainerInterface $c) {
-//                $pdo = $c->get(PDO::class);
-//                $config = $c->get(AdminConfigDTO::class);
-//                assert($pdo instanceof PDO);
-//                assert($config instanceof AdminConfigDTO);
-//                return new PdoAdminListReader($pdo, $config);
-//            },
-//            AdminListController::class => function (ContainerInterface $c) {
-//                $reader = $c->get(AdminListReaderInterface::class);
-//                $validationGuard = $c->get(ValidationGuard::class);
-//                assert($reader instanceof AdminListReaderInterface);
-//                assert($validationGuard instanceof ValidationGuard);
-//                return new AdminListController($reader, $validationGuard);
-//            },
+            //            AdminListReaderInterface::class => function (ContainerInterface $c) {
+            //                $pdo = $c->get(PDO::class);
+            //                $config = $c->get(AdminConfigDTO::class);
+            //                assert($pdo instanceof PDO);
+            //                assert($config instanceof AdminConfigDTO);
+            //                return new PdoAdminListReader($pdo, $config);
+            //            },
+            //            AdminListController::class => function (ContainerInterface $c) {
+            //                $reader = $c->get(AdminListReaderInterface::class);
+            //                $validationGuard = $c->get(ValidationGuard::class);
+            //                assert($reader instanceof AdminListReaderInterface);
+            //                assert($validationGuard instanceof ValidationGuard);
+            //                return new AdminListController($reader, $validationGuard);
+            //            },
             AdminQueryReaderInterface::class =>
                 function ($c): AdminQueryReaderInterface {
                 $pdo = $c->get(PDO::class);
@@ -1397,17 +1398,17 @@ class Container
             RolesMetadataRepositoryInterface::class => function ($c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
-                return new PdoRolesMetadataRepository($pdo);
+                return new PdoRoleRepository($pdo);
             },
 
-            RolesController::class => function ($c) {
+            RolesControllerQuery::class => function ($c) {
                 $reader = $c->get(RolesReaderRepositoryInterface::class);
                 $validationGuard = $c->get(ValidationGuard::class);
                 $filterResolver = $c->get(ListFilterResolver::class);
                 assert($reader instanceof RolesReaderRepositoryInterface);
                 assert($validationGuard instanceof ValidationGuard);
                 assert($filterResolver instanceof ListFilterResolver);
-                return new RolesController($reader, $validationGuard, $filterResolver);
+                return new RolesControllerQuery($reader, $validationGuard, $filterResolver);
             },
 
             RoleMetadataUpdateController::class => function ($c) {

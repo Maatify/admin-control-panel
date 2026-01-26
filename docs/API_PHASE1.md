@@ -1717,17 +1717,101 @@ Any change requires updating:
 ## 🔐 Roles Management API
 
 This section documents **Roles APIs** used to **list roles and manage their UI metadata**
-(**display name & description only**).
+(**display name & description only**), and defines how **UI capabilities** are computed and consumed.
 
 > ℹ️ Technical role keys (`roles.name`) are **immutable**
 >
-> ℹ️ Role creation, permission assignment, and admin binding are **NOT part of this API**
+> ℹ️ Role creation, permission assignment, admin binding, and lifecycle management are **NOT part of this API**
+>
+> ℹ️ Role activation state (`is_active`) affects authorization but is **not managed via metadata**
 >
 > All routes below are prefixed with `/api`.
 
 ---
 
-### List Roles
+### 🧩 UI Authorization & Capabilities Model
+
+The UI does **NOT** perform authorization.
+
+Authorization decisions are made **server-side** using the `AuthorizationService`.
+The backend computes **capabilities** for the current admin and injects them into the Twig view.
+
+These capabilities are used by **Twig and JavaScript for presentation only**
+(show / hide / enable / disable UI controls).
+
+> ⚠️ Hiding UI elements does **NOT** replace API authorization  
+> ⚠️ All API endpoints must still enforce permissions server-side
+
+---
+
+#### Capability Injection (Backend → Twig)
+
+In the UI controller:
+
+```php
+$capabilities = [
+    'can_create'       => $authorizationService->hasPermission($adminId, 'roles.create'),
+    'can_update_meta' => $authorizationService->hasPermission($adminId, 'roles.metadata.update'),
+    'can_rename'      => $authorizationService->hasPermission($adminId, 'roles.rename'),
+    'can_toggle'      => $authorizationService->hasPermission($adminId, 'roles.toggle'),
+];
+
+return $this->view->render($response, 'pages/roles.twig', [
+    'capabilities' => $capabilities
+]);
+````
+
+---
+
+#### Usage in Twig
+
+```twig
+{% if capabilities.can_create %}
+  <button id="add-role-btn">Add Role</button>
+{% endif %}
+```
+
+```twig
+{% if capabilities.can_rename %}
+  <button class="rename-role">Rename</button>
+{% endif %}
+```
+
+```twig
+{% if capabilities.can_toggle %}
+  <input type="checkbox" class="toggle-role" />
+{% endif %}
+```
+
+---
+
+#### Usage in JavaScript
+
+```twig
+<script>
+  window.rolesCapabilities = {{ capabilities|json_encode|raw }};
+</script>
+```
+
+```js
+if (!window.rolesCapabilities.can_toggle) {
+  document.querySelectorAll('.toggle-role').forEach(el => el.remove());
+}
+```
+
+---
+
+#### UI Rules (Mandatory)
+
+* ❌ Twig MUST NOT check permissions by name
+* ❌ JavaScript MUST NOT infer authorization
+* ❌ UI MUST NOT assume API access
+* ✅ Backend capabilities are the single UI contract
+* ✅ API authorization is always enforced server-side
+
+---
+
+### 📋 List Roles
 
 Returns a paginated list of all roles with derived grouping and UI metadata.
 
@@ -1809,17 +1893,19 @@ ORDER BY group ASC, name ASC
 
 * `group` is **derived**, not stored
 * `display_name` and `description` may be `null`
-* Roles are **read-only** from a technical key perspective
+* Technical role keys are **read-only**
+* Role activation (`is_active`) is **not mutated here**
 
 ---
 
-### Update Role Metadata
+### ✏️ Update Role Metadata
 
 Updates **UI metadata only** for a single role.
 
 > ⚠️ This endpoint does **NOT** modify:
 >
 > * role key (`name`)
+> * role activation state (`is_active`)
 > * role-permission mapping
 > * admin-role assignment
 > * authorization behavior
@@ -1859,17 +1945,16 @@ POST /api/roles/{id}/metadata
 
 ---
 
-#### Response — 200 OK
+#### Responses
+
+**200 OK**
 
 ```json
 {}
 ```
 
----
-
-#### Response — 204 No Content
-
-Returned when request is valid but **no fields were provided to update**.
+**204 No Content**
+Returned when no updatable fields are provided.
 
 ---
 
@@ -1881,57 +1966,134 @@ Returned when request is valid but **no fields were provided to update**.
 | 500  | Role not found    |
 | 500  | Update failed     |
 
-> ℹ️ This API is considered **internal**
->
-> Invalid IDs are treated as server errors by design.
+---
+
+### 🧱 Planned Role APIs (Not Implemented)
+
+#### ➕ Create Role
+
+```http
+POST /api/roles
+```
+
+**Permission:** `roles.create`
+
+```json
+{
+  "name": "admins.manage",
+  "display_name": "Admin Management",
+  "description": "Full access to admin management features"
+}
+```
+
+Rules:
+
+* `name` is immutable after creation
+* No permissions assigned here
+* No admins assigned here
+* Role is created as `is_active = 1`
+
+**Status:** ⏳ Planned
 
 ---
 
-### Role Fields
+#### ✏️ Rename Role (Technical Key)
 
-| Field          | Description                  | Mutable |
-|----------------|------------------------------|---------|
-| `id`           | Internal role identifier     | ❌       |
-| `name`         | Technical role key           | ❌       |
-| `group`        | Derived from `name`          | ❌       |
-| `display_name` | UI label (future i18n ready) | ✅       |
-| `description`  | UI help text                 | ✅       |
+```http
+POST /api/roles/{id}/rename
+```
+
+**Permission:** `roles.rename`
+
+```json
+{
+  "name": "admins.super_manage"
+}
+```
+
+Rules:
+
+* Changes technical key only
+* Existing bindings remain
+* High-impact operation
+
+**Status:** ⏳ Planned
 
 ---
 
-### Design Principles
+#### 🔄 Toggle Role Activation
+
+```http
+POST /api/roles/{id}/toggle
+```
+
+**Permission:** `roles.toggle`
+
+```json
+{
+  "is_active": false
+}
+```
+
+Rules:
+
+* Disabled roles are ignored during authorization
+* No deletion occurs
+
+**Status:** ⏳ Planned
+
+---
+
+### 📊 Role Fields
+
+| Field          | Description                      | Mutable                  |
+|----------------|----------------------------------|--------------------------|
+| `id`           | Internal role identifier         | ❌                        |
+| `name`         | Technical role key               | ❌                        |
+| `group`        | Derived from `name`              | ❌                        |
+| `display_name` | UI label (future i18n ready)     | ✅                        |
+| `description`  | UI help text                     | ✅                        |
+| `is_active`    | Authorization participation flag | ❌ *(managed separately)* |
+
+---
+
+### 🧠 Design Principles
 
 * Roles are **RBAC aggregators**, not lifecycle entities
 * UI metadata is **presentation-only**
 * Authorization logic is **decoupled**
 * No role deletion via API
 * No permission assignment via this API
+* Role activation is **orthogonal** to metadata
 
 ---
 
 ### 🔒 Status
 
-**LOCKED — Roles Query & Metadata API Contract**
+**LOCKED — Roles Query, Metadata & UI Capabilities Contract**
 
 Any change requires updating:
 
 * Controller behavior
 * Repository logic
 * Validation schemas
+* UI capabilities mapping
 * This documentation
 
 ---
 
 ### ✅ Current Implementation Status
 
-| Feature                 | Status |
-|-------------------------|--------|
-| Roles listing           | ✅ DONE |
-| Group derivation        | ✅ DONE |
-| Search & filtering      | ✅ DONE |
-| Metadata update API     | ✅ DONE |
-| Role creation           | ⏳ NEXT |
-| Role-permission mapping | ⏳ NEXT |
-| Admin-role assignment   | ⏳ NEXT |
+| Feature                  | Status |
+|--------------------------|--------|
+| Roles listing            | ✅ DONE |
+| Group derivation         | ✅ DONE |
+| Search & filtering       | ✅ DONE |
+| Metadata update API      | ✅ DONE |
+| UI capabilities contract | ✅ DONE |
+| Role activation toggle   | ⏳ NEXT |
+| Role creation            | ⏳ NEXT |
+| Role-permission mapping  | ⏳ NEXT |
+| Admin-role assignment    | ⏳ NEXT |
 
 ---

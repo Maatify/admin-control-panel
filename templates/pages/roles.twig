@@ -21,6 +21,33 @@
         </nav>
     </div>
 
+    {# ✅ Inject capabilities for JavaScript #}
+    {#
+    Capabilities are computed server-side by AuthorizationService
+    and control what UI elements are visible/enabled.
+
+    Available capabilities:
+    - can_create: Show "Create Role" button (POST /api/roles)
+    - can_update_meta: Show "Edit" button in actions (POST /api/roles/{id}/metadata)
+    - can_rename: Show "Rename" button in actions (POST /api/roles/{id}/rename) ⏳ PLANNED
+    - can_toggle: Show "Enable/Disable" button in actions (POST /api/roles/{id}/toggle) ⏳ PLANNED
+
+    UI Rules:
+    ❌ Twig MUST NOT check permissions by name
+    ❌ JavaScript MUST NOT infer authorization
+    ✅ Backend capabilities are the single UI contract
+    ✅ API authorization is always enforced server-side
+    #}
+    <script>
+        window.rolesCapabilities = {
+            can_create: {{ capabilities.can_create ?? false ? 'true' : 'false' }},
+            can_update_meta: {{ capabilities.can_update_meta ?? false ? 'true' : 'false' }},
+            can_rename: {{ capabilities.can_rename ?? false ? 'true' : 'false' }},
+            can_toggle: {{ capabilities.can_toggle ?? false ? 'true' : 'false' }}
+        };
+        console.log('🔐 Roles Capabilities Injected:', window.rolesCapabilities);
+    </script>
+
     <div class=" px-0 py-2">
         <!-- Info Alert -->
         <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -32,9 +59,10 @@
                     <p class="font-medium mb-1">Important Information:</p>
                     <ul class="space-y-1 text-blue-700">
                         <li>• Role keys (name) are immutable and cannot be modified</li>
-                        <li>• Only display name and description can be updated</li>
+                        <li>• Only display name and description can be updated (requires <code class="bg-blue-100 px-1 rounded">roles.metadata.update</code>)</li>
                         <li>• Groups are derived automatically from role names</li>
-                        <li>• Permission assignments are managed separately</li>
+                        <li>• Permission assignments and role activation are managed separately</li>
+                        <li>• UI capabilities control what actions you can see/perform</li>
                     </ul>
                 </div>
             </div>
@@ -77,6 +105,15 @@
                         <button type="button" id="btn-reset" class="text-xs px-4 py-1 bg-white text-gray-600 border border-gray-600 rounded-md hover:bg-gray-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
                             Reset
                         </button>
+                        {# ✅ Create button only shown if user has permission #}
+                        {% if capabilities.can_create ?? false %}
+                            <button type="button" id="btn-create-role" class="text-xs px-4 py-1 bg-green-600 text-white rounded-md hover:bg-white hover:text-green-600 border border-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 inline-flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                </svg>
+                                Create Role
+                            </button>
+                        {% endif %}
                     </div>
                 </form>
             </div>

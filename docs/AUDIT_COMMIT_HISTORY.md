@@ -377,6 +377,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(rbac): enforce role lifecycle via is_active during authorization
 - chore(test): align test suite with logging purge
 - refactor(security): remove legacy SecurityEvent logging layer
+- refactor(rbac): normalize roles boundaries and UI capabilities contract
 
 ---
 

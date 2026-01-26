@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Service;
 
 use App\Domain\Contracts\AdminRoleRepositoryInterface;
-use App\Domain\Contracts\RoleRepositoryInterface;
+use App\Domain\Contracts\Roles\RoleRepositoryInterface;
 use App\Domain\Enum\RoleLevel;
 use LogicException;
 

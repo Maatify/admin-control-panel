@@ -225,11 +225,11 @@ return function (App $app) {
             // ─────────────────────────────
             // Roles Control
             // ─────────────────────────────
-            $group->post('/roles/query', [\App\Http\Controllers\Api\RolesController::class, '__invoke'])
+            $group->post('/roles/query', [\App\Http\Controllers\Api\Roles\RolesControllerQuery::class, '__invoke'])
                 ->setName('roles.query')
                 ->add(AuthorizationGuardMiddleware::class);
 
-            $group->post('/roles/{id}/metadata', [\App\Http\Controllers\Api\RoleMetadataUpdateController::class, '__invoke'])
+            $group->post('/roles/{id}/metadata', [\App\Http\Controllers\Api\Roles\RoleMetadataUpdateController::class, '__invoke'])
                 ->setName('roles.metadata.update')
                 ->add(AuthorizationGuardMiddleware::class);
 

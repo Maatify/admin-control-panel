@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Reader;
 
-use App\Domain\Contracts\RolesReaderRepositoryInterface;
+use App\Domain\Contracts\Roles\RolesReaderRepositoryInterface;
 use App\Domain\DTO\Common\PaginationDTO;
 use App\Domain\DTO\Roles\RolesListItemDTO;
 use App\Domain\DTO\Roles\RolesQueryResponseDTO;

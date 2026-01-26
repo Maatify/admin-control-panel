@@ -1,29 +1,29 @@
 <?php
 
-/**
- * @copyright   ©2026 Maatify.dev
- * @Library     maatify/admin-control-panel
- * @Project     maatify:admin-control-panel
- * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
- * @since       2026-01-26 20:41
- * @see         https://www.maatify.dev Maatify.dev
- * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
- * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
- */
-
 declare(strict_types=1);
 
-namespace App\Infrastructure\Updater;
+namespace App\Infrastructure\Repository\Roles;
 
-use App\Domain\Contracts\RolesMetadataRepositoryInterface;
+use App\Domain\Contracts\Roles\RoleRepositoryInterface;
+use App\Domain\Contracts\Roles\RolesMetadataRepositoryInterface;
 use PDO;
 use RuntimeException;
 
-readonly class PDORolesMetadataRepository implements RolesMetadataRepositoryInterface
+class PdoRoleRepository implements RoleRepositoryInterface, RolesMetadataRepositoryInterface
 {
-    public function __construct(
-        private PDO $pdo
-    ) {
+    private PDO $pdo;
+
+    public function __construct(PDO $pdo)
+    {
+        $this->pdo = $pdo;
+    }
+
+    public function getName(int $roleId): ?string
+    {
+        $stmt = $this->pdo->prepare('SELECT name FROM roles WHERE id = :id');
+        $stmt->execute(['id' => $roleId]);
+        $name = $stmt->fetchColumn();
+        return $name === false ? null : (string)$name;
     }
 
     public function updateMetadata(int $roleId, ?string $displayName, ?string $description): void
