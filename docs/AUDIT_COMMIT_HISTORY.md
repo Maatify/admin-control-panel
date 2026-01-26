@@ -379,6 +379,7 @@ Entries MUST NOT be rewritten or reordered.
 - refactor(security): remove legacy SecurityEvent logging layer
 - refactor(rbac): normalize roles boundaries and UI capabilities contract
 - feat(roles): add role activation toggle with locked API contract
+- feat(roles): add technical role rename capability with full RBAC enforcement
 
 ---
 

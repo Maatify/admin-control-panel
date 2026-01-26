@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Repository\Roles;
 
+use App\Domain\Contracts\Roles\RoleRenameRepositoryInterface;
 use App\Domain\Contracts\Roles\RoleRepositoryInterface;
 use App\Domain\Contracts\Roles\RolesMetadataRepositoryInterface;
 use App\Domain\Contracts\Roles\RoleToggleRepositoryInterface;
 use PDO;
 use RuntimeException;
 
-class PdoRoleRepository implements RoleRepositoryInterface, RolesMetadataRepositoryInterface, RoleToggleRepositoryInterface
+class PdoRoleRepository implements RoleRepositoryInterface,
+                                   RolesMetadataRepositoryInterface,
+                                   RoleToggleRepositoryInterface,
+                                   RoleRenameRepositoryInterface
 {
     private PDO $pdo;
 
@@ -105,5 +109,56 @@ class PdoRoleRepository implements RoleRepositoryInterface, RolesMetadataReposit
             throw new RuntimeException("Failed to toggle role {$roleId}.");
         }
     }
+
+    public function rename(int $roleId, string $newName): void
+    {
+        // ─────────────────────────────
+        // Ensure role exists
+        // ─────────────────────────────
+        $stmtExists = $this->pdo->prepare(
+            'SELECT name FROM roles WHERE id = :id'
+        );
+        $stmtExists->execute(['id' => $roleId]);
+
+        $currentName = $stmtExists->fetchColumn();
+
+        if ($currentName === false) {
+            throw new RuntimeException("Role with id {$roleId} does not exist.");
+        }
+
+        // ─────────────────────────────
+        // Guard: no-op rename
+        // ─────────────────────────────
+        if ($currentName === $newName) {
+            return; // idempotent behavior
+        }
+
+        // ─────────────────────────────
+        // Ensure new name is unique
+        // ─────────────────────────────
+        $stmtDuplicate = $this->pdo->prepare(
+            'SELECT 1 FROM roles WHERE name = :name'
+        );
+        $stmtDuplicate->execute(['name' => $newName]);
+
+        if ($stmtDuplicate->fetchColumn() !== false) {
+            throw new RuntimeException("Role name '{$newName}' already exists.");
+        }
+
+        // ─────────────────────────────
+        // Execute rename
+        // ─────────────────────────────
+        $stmt = $this->pdo->prepare(
+            'UPDATE roles SET name = :name WHERE id = :id'
+        );
+
+        if ($stmt->execute([
+                'id'   => $roleId,
+                'name' => $newName,
+            ]) === false) {
+            throw new RuntimeException("Failed to rename role {$roleId}.");
+        }
+    }
+
 
 }

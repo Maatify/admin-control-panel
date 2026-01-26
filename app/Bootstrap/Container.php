@@ -45,6 +45,7 @@ use App\Domain\Contracts\PermissionsMetadataRepositoryInterface;
 use App\Domain\Contracts\PermissionsReaderRepositoryInterface;
 use App\Domain\Contracts\RememberMeRepositoryInterface;
 use App\Domain\Contracts\RolePermissionRepositoryInterface;
+use App\Domain\Contracts\Roles\RoleRenameRepositoryInterface;
 use App\Domain\Contracts\Roles\RoleRepositoryInterface;
 use App\Domain\Contracts\Roles\RolesMetadataRepositoryInterface;
 use App\Domain\Contracts\Roles\RolesReaderRepositoryInterface;
@@ -89,6 +90,7 @@ use App\Http\Controllers\AdminTargetedAuditController;
 use App\Http\Controllers\Api\PermissionMetadataUpdateController;
 use App\Http\Controllers\Api\PermissionsController;
 use App\Http\Controllers\Api\Roles\RoleMetadataUpdateController;
+use App\Http\Controllers\Api\Roles\RoleRenameController;
 use App\Http\Controllers\Api\Roles\RolesControllerQuery;
 use App\Http\Controllers\Api\Roles\RoleToggleController;
 use App\Http\Controllers\Api\SessionBulkRevokeController;
@@ -1409,6 +1411,12 @@ class Container
                 return new PdoRoleRepository($pdo);
             },
 
+            RoleRenameRepositoryInterface::class => function ($c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new PdoRoleRepository($pdo);
+            },
+
             RolesControllerQuery::class => function ($c) {
                 $reader = $c->get(RolesReaderRepositoryInterface::class);
                 $validationGuard = $c->get(ValidationGuard::class);
@@ -1435,6 +1443,14 @@ class Container
                 assert($repo instanceof RoleToggleRepositoryInterface);
 
                 return new RoleToggleController($validationGuard, $repo);
+            },
+
+            RoleRenameController::class => function ($c) {
+                $validationGuard = $c->get(ValidationGuard::class);
+                $repo = $c->get(RoleRenameRepositoryInterface::class);
+                assert($validationGuard instanceof ValidationGuard);
+                assert($repo instanceof RoleRenameRepositoryInterface);
+                return new RoleRenameController($validationGuard, $repo);
             },
 
             // ─────────────────────────────
