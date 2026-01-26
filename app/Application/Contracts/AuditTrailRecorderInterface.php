@@ -13,7 +13,7 @@ interface AuditTrailRecorderInterface
         string $eventKey,
         string $actorType,
         ?int $actorId,
-        string $entityType, // Made non-nullable to match Recorder requirement and Service usage
+        ?string $entityType = null,
         ?int $entityId = null,
         ?string $subjectType = null,
         ?int $subjectId = null,

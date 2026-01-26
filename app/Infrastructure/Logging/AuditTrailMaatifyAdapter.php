@@ -6,6 +6,7 @@ namespace App\Infrastructure\Logging;
 
 use App\Application\Contracts\AuditTrailRecorderInterface;
 use Maatify\AuditTrail\Recorder\AuditTrailRecorder;
+use InvalidArgumentException;
 
 class AuditTrailMaatifyAdapter implements AuditTrailRecorderInterface
 {
@@ -21,12 +22,18 @@ class AuditTrailMaatifyAdapter implements AuditTrailRecorderInterface
         string $eventKey,
         string $actorType,
         ?int $actorId,
-        string $entityType,
+        ?string $entityType = null,
         ?int $entityId = null,
         ?string $subjectType = null,
         ?int $subjectId = null,
         ?array $metadata = null
     ): void {
+        if ($entityType === null) {
+            // Strict Fail-Open: The Service catches Throwable.
+            // Throwing here is safer than guessing a default value.
+            throw new InvalidArgumentException('AuditTrail: entityType is required by recorder but was null.');
+        }
+
         $this->recorder->record(
             eventKey: $eventKey,
             actorType: $actorType,
