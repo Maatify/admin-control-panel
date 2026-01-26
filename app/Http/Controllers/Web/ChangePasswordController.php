@@ -12,15 +12,17 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
+use App\Application\SecurityEvents\HttpSecurityEventAdminRecorder;
 use App\Context\RequestContext;
 use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
-use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\DTO\AuditEventDTO;
-use App\Domain\DTO\SecurityEventDTO;
+use App\Domain\SecurityEvents\Recorder\SecurityEventRecorderInterface;
 use App\Domain\Service\PasswordService;
 use App\Domain\Service\RecoveryStateService;
+use App\Modules\SecurityEvents\Enum\SecurityEventSeverityEnum;
+use App\Modules\SecurityEvents\Enum\SecurityEventTypeEnum;
 use DateTimeImmutable;
 use PDO;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -38,7 +40,7 @@ readonly class ChangePasswordController
         private PasswordService $passwordService,
 
         private RecoveryStateService $recoveryState,
-        private SecurityEventLoggerInterface $securityLogger,
+        private SecurityEventRecorderInterface $securityLogger,
         private AuthoritativeSecurityAuditWriterInterface $auditWriter,
 
         private PDO $pdo
@@ -130,16 +132,12 @@ readonly class ChangePasswordController
 
             // 🔐 Security Event (best-effort)
             try {
-                $this->securityLogger->log(new SecurityEventDTO(
+                $recorder = new HttpSecurityEventAdminRecorder($this->securityLogger, $requestContext);
+                $recorder->record(
                     $adminId,
-                    'password_changed',
-                    'info',
-                    [],
-                    $requestContext->ipAddress,
-                    $requestContext->userAgent,
-                    new DateTimeImmutable(),
-                    $requestContext->requestId
-                ));
+                    SecurityEventTypeEnum::PASSWORD_CHANGED,
+                    SecurityEventSeverityEnum::INFO
+                );
             } catch (\Throwable) {
                 // swallow (best-effort)
             }

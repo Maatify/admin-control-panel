@@ -9,8 +9,8 @@ use App\Context\RequestContext;
 use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
-use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\DTO\AdminPasswordRecordDTO;
+use App\Domain\SecurityEvents\Recorder\SecurityEventRecorderInterface;
 use App\Domain\Service\PasswordService;
 use App\Domain\Service\RecoveryStateService;
 use App\Http\Controllers\Web\ChangePasswordController;
@@ -29,7 +29,7 @@ class ChangePasswordControllerTest extends TestCase
     private AdminPasswordRepositoryInterface&MockObject $passwordRepo;
     private PasswordService&MockObject $passwordService;
     private RecoveryStateService&MockObject $recoveryState;
-    private SecurityEventLoggerInterface&MockObject $securityLogger;
+    private SecurityEventRecorderInterface&MockObject $securityLogger;
     private AuthoritativeSecurityAuditWriterInterface&MockObject $auditWriter;
     private PDO&MockObject $pdo;
 
@@ -43,7 +43,7 @@ class ChangePasswordControllerTest extends TestCase
         $this->passwordRepo = $this->createMock(AdminPasswordRepositoryInterface::class);
         $this->passwordService = $this->createMock(PasswordService::class);
         $this->recoveryState = $this->createMock(RecoveryStateService::class);
-        $this->securityLogger = $this->createMock(SecurityEventLoggerInterface::class);
+        $this->securityLogger = $this->createMock(SecurityEventRecorderInterface::class);
         $this->auditWriter = $this->createMock(AuthoritativeSecurityAuditWriterInterface::class);
         $this->pdo = $this->createMock(PDO::class);
 

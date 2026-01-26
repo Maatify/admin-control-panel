@@ -7,7 +7,7 @@ namespace Tests\Http\Controllers\Web;
 use App\Context\AdminContext;
 use App\Context\RequestContext;
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
-use App\Domain\Contracts\SecurityEventLoggerInterface;
+use App\Domain\SecurityEvents\Recorder\SecurityEventRecorderInterface;
 use App\Domain\Service\AdminAuthenticationService;
 use App\Domain\Service\RememberMeService;
 use App\Http\Controllers\Web\LogoutController;
@@ -24,7 +24,7 @@ final class LogoutControllerTest extends TestCase
     {
         $sessionRepo = $this->createMock(AdminSessionValidationRepositoryInterface::class);
         $rememberMe = $this->createMock(RememberMeService::class);
-        $securityLogger = $this->createMock(SecurityEventLoggerInterface::class);
+        $securityLogger = $this->createMock(SecurityEventRecorderInterface::class);
         $authService = $this->createMock(AdminAuthenticationService::class);
 
         $helper = TelemetryTestHelper::makeFactoryWithSpyRecorder();

@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace App\Domain\Service;
 
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
-use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\DTO\AdminConfigDTO;
 use App\Context\RequestContext;
 use App\Domain\DTO\AuditEventDTO;
-use App\Domain\DTO\SecurityEventDTO;
 use App\Domain\Enum\RecoveryTransitionReason;
+use App\Domain\SecurityEvents\DTO\SecurityEventRecordDTO;
+use App\Domain\SecurityEvents\Enum\SecurityEventActorTypeEnum;
+use App\Domain\SecurityEvents\Recorder\SecurityEventRecorderInterface;
+use App\Modules\SecurityEvents\Enum\SecurityEventSeverityEnum;
+use App\Modules\SecurityEvents\Enum\SecurityEventTypeEnum;
 use App\Domain\Exception\RecoveryLockException;
 use DateTimeImmutable;
 use PDO;
@@ -42,7 +45,7 @@ class RecoveryStateService
 
     public function __construct(
         private AuthoritativeSecurityAuditWriterInterface $auditWriter,
-        private SecurityEventLoggerInterface $securityLogger,
+        private SecurityEventRecorderInterface $securityLogger,
         private PDO $pdo,
         private AdminConfigDTO $config,
         private string $emailBlindIndexKey
@@ -216,15 +219,16 @@ class RecoveryStateService
     {
         // 1. Emit Security Event
         try {
-            $this->securityLogger->log(new SecurityEventDTO(
+            $this->securityLogger->record(new SecurityEventRecordDTO(
+                $actorId ? SecurityEventActorTypeEnum::ADMIN : SecurityEventActorTypeEnum::ANONYMOUS,
                 $actorId,
-                'recovery_action_blocked',
-                'critical',
-                ['action' => $action, 'reason' => 'recovery_locked_mode'],
+                SecurityEventTypeEnum::RECOVERY_ACTION_BLOCKED,
+                SecurityEventSeverityEnum::CRITICAL,
+                $context->requestId,
+                null,
                 $context->ipAddress,
                 $context->userAgent,
-                new DateTimeImmutable(),
-                $context->requestId
+                ['action' => $action, 'reason' => 'recovery_locked_mode']
             ));
         } catch (\Throwable $e) {
             // Best effort

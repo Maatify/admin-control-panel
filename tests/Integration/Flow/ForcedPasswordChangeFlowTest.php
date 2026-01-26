@@ -11,14 +11,15 @@ use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
-use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\DTO\AdminPasswordRecordDTO;
 use App\Domain\Enum\VerificationStatus;
 use App\Domain\Exception\MustChangePasswordException;
+use App\Domain\SecurityEvents\Recorder\SecurityEventRecorderInterface;
 use App\Domain\Service\AdminAuthenticationService;
 use App\Domain\Service\PasswordService;
 use App\Domain\Service\RecoveryStateService;
 use App\Http\Controllers\Web\ChangePasswordController;
+use App\Infrastructure\Repository\AdminRepository;
 use PDO;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -39,7 +40,9 @@ class ForcedPasswordChangeFlowTest extends TestCase
     private AdminEmailVerificationRepositoryInterface&MockObject $verificationRepo;
 
     // State
+    /** @var array<int, array{hash: string, pepper: string, must_change: bool}> */
     private array $users = [];
+    /** @var array<string, int> */
     private array $sessions = [];
 
     protected function setUp(): void
@@ -57,12 +60,11 @@ class ForcedPasswordChangeFlowTest extends TestCase
 
         $this->passwordRepo->method('savePassword')
             ->willReturnCallback(function (int $id, string $hash, string $pepper, bool $mustChange) {
-                if (!isset($this->users[$id])) {
-                     $this->users[$id] = [];
-                }
-                $this->users[$id]['hash'] = $hash;
-                $this->users[$id]['pepper'] = $pepper;
-                $this->users[$id]['must_change'] = $mustChange;
+                $this->users[$id] = [
+                    'hash' => $hash,
+                    'pepper' => $pepper,
+                    'must_change' => $mustChange
+                ];
             });
 
         // --- Session Repository ---
@@ -107,26 +109,26 @@ class ForcedPasswordChangeFlowTest extends TestCase
         $passwordService->method('needsRehash')->willReturn(false);
 
         // --- Others (Loose Mocks) ---
-        $logger = $this->createMock(SecurityEventLoggerInterface::class);
+        $logger = $this->createMock(SecurityEventRecorderInterface::class);
         $audit = $this->createMock(AuthoritativeSecurityAuditWriterInterface::class);
         $recovery = $this->createMock(RecoveryStateService::class);
         $pdo = $this->createMock(PDO::class);
         $view = $this->createMock(Twig::class);
-        // ChangePasswordController uses view to render
-        // We will assert on view->render if needed, or just check return type if possible.
-        // But ChangePasswordController::change redirects, so view is not used on success.
+        $adminRepo = $this->createMock(AdminRepository::class);
+        $status = \App\Domain\Admin\Enum\AdminStatusEnum::ACTIVE;
+        $adminRepo->method('getStatus')->willReturn($status);
 
         // 2. Instantiate Service
         $this->authService = new AdminAuthenticationService(
             $this->lookup,
-            $this->verificationRepo,
             $this->passwordRepo,
             $this->sessionRepo,
             $logger,
             $audit,
             $recovery,
             $pdo,
-            $passwordService
+            $passwordService,
+            $adminRepo
         );
 
         // 3. Instantiate Controller

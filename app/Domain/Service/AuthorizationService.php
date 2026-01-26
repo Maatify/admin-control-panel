@@ -8,9 +8,12 @@ use App\Domain\Contracts\AdminDirectPermissionRepositoryInterface;
 use App\Domain\Contracts\AdminRoleRepositoryInterface;
 use App\Context\RequestContext;
 use App\Domain\Contracts\RolePermissionRepositoryInterface;
-use App\Domain\Contracts\SecurityEventLoggerInterface;
-use App\Domain\DTO\SecurityEventDTO;
 use App\Domain\Exception\PermissionDeniedException;
+use App\Domain\SecurityEvents\DTO\SecurityEventRecordDTO;
+use App\Domain\SecurityEvents\Enum\SecurityEventActorTypeEnum;
+use App\Domain\SecurityEvents\Recorder\SecurityEventRecorderInterface;
+use App\Modules\SecurityEvents\Enum\SecurityEventSeverityEnum;
+use App\Modules\SecurityEvents\Enum\SecurityEventTypeEnum;
 use App\Domain\Exception\UnauthorizedException;
 use App\Domain\Ownership\SystemOwnershipRepositoryInterface;
 use DateTimeImmutable;
@@ -21,7 +24,7 @@ readonly class AuthorizationService
         private AdminRoleRepositoryInterface $adminRoleRepository,
         private RolePermissionRepositoryInterface $rolePermissionRepository,
         private AdminDirectPermissionRepositoryInterface $directPermissionRepository,
-        private SecurityEventLoggerInterface $securityLogger,
+        private SecurityEventRecorderInterface $securityLogger,
         private SystemOwnershipRepositoryInterface $systemOwnershipRepository
     ) {
     }
@@ -35,15 +38,16 @@ readonly class AuthorizationService
         }
 
         if (!$this->rolePermissionRepository->permissionExists($permission)) {
-            $this->securityLogger->log(new SecurityEventDTO(
+            $this->securityLogger->record(new SecurityEventRecordDTO(
+                SecurityEventActorTypeEnum::ADMIN,
                 $adminId,
-                'permission_denied',
-                'warning',
-                ['reason' => 'unknown_permission', 'permission' => $permission],
+                SecurityEventTypeEnum::PERMISSION_DENIED,
+                SecurityEventSeverityEnum::WARNING,
+                $context->requestId,
+                null,
                 $context->ipAddress,
                 $context->userAgent,
-                new DateTimeImmutable(),
-                $context->requestId
+                ['reason' => 'unknown_permission', 'permission' => $permission]
             ));
             throw new UnauthorizedException("Permission '$permission' does not exist.");
         }
@@ -53,15 +57,16 @@ readonly class AuthorizationService
         foreach ($directPermissions as $direct) {
             if ($direct['permission'] === $permission) {
                 if (!$direct['is_allowed']) {
-                    $this->securityLogger->log(new SecurityEventDTO(
+                    $this->securityLogger->record(new SecurityEventRecordDTO(
+                        SecurityEventActorTypeEnum::ADMIN,
                         $adminId,
-                        'permission_denied',
-                        'warning',
-                        ['reason' => 'explicit_deny', 'permission' => $permission],
+                        SecurityEventTypeEnum::PERMISSION_DENIED,
+                        SecurityEventSeverityEnum::WARNING,
+                        $context->requestId,
+                        null,
                         $context->ipAddress,
                         $context->userAgent,
-                        new DateTimeImmutable(),
-                        $context->requestId
+                        ['reason' => 'explicit_deny', 'permission' => $permission]
                     ));
                     throw new PermissionDeniedException("Explicit deny for '$permission'.");
                 }
@@ -80,15 +85,16 @@ readonly class AuthorizationService
         }
 
         // Default Deny
-        $this->securityLogger->log(new SecurityEventDTO(
+        $this->securityLogger->record(new SecurityEventRecordDTO(
+            SecurityEventActorTypeEnum::ADMIN,
             $adminId,
-            'permission_denied',
-            'warning',
-            ['reason' => 'missing_permission', 'permission' => $permission],
+            SecurityEventTypeEnum::PERMISSION_DENIED,
+            SecurityEventSeverityEnum::WARNING,
+            $context->requestId,
+            null,
             $context->ipAddress,
             $context->userAgent,
-            new DateTimeImmutable(),
-            $context->requestId
+            ['reason' => 'missing_permission', 'permission' => $permission]
         ));
 
         throw new PermissionDeniedException("Admin $adminId lacks permission '$permission'.");

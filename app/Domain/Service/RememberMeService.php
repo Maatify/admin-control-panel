@@ -8,11 +8,14 @@ use App\Domain\Contracts\AdminSessionRepositoryInterface;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Context\RequestContext;
 use App\Domain\Contracts\RememberMeRepositoryInterface;
-use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\DTO\AuditEventDTO;
 use App\Domain\DTO\RememberMeTokenDTO;
-use App\Domain\DTO\SecurityEventDTO;
 use App\Domain\Exception\InvalidCredentialsException;
+use App\Domain\SecurityEvents\DTO\SecurityEventRecordDTO;
+use App\Domain\SecurityEvents\Enum\SecurityEventActorTypeEnum;
+use App\Domain\SecurityEvents\Recorder\SecurityEventRecorderInterface;
+use App\Modules\SecurityEvents\Enum\SecurityEventSeverityEnum;
+use App\Modules\SecurityEvents\Enum\SecurityEventTypeEnum;
 use DateTimeImmutable;
 use PDO;
 use Random\RandomException;
@@ -24,7 +27,7 @@ class RememberMeService
     public function __construct(
         private RememberMeRepositoryInterface $rememberMeRepository,
         private AdminSessionRepositoryInterface $sessionRepository,
-        private SecurityEventLoggerInterface $securityEventLogger,
+        private SecurityEventRecorderInterface $securityEventLogger,
         private AuthoritativeSecurityAuditWriterInterface $auditWriter,
         private PDO $pdo
     ) {
@@ -198,15 +201,16 @@ class RememberMeService
      */
     private function logEvent(int $adminId, string $eventName, RequestContext $context, array $details = []): void
     {
-        $this->securityEventLogger->log(new SecurityEventDTO(
+        $this->securityEventLogger->record(new SecurityEventRecordDTO(
+            SecurityEventActorTypeEnum::ADMIN,
             $adminId,
-            $eventName,
-            'info',
-            $details,
+            SecurityEventTypeEnum::from($eventName),
+            SecurityEventSeverityEnum::INFO,
+            $context->requestId,
+            null,
             $context->ipAddress,
             $context->userAgent,
-            new DateTimeImmutable(),
-            $context->requestId
+            $details
         ));
     }
 

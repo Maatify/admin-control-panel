@@ -50,4 +50,13 @@ enum SecurityEventTypeEnum: string
     // Recovery / Reset
     case PASSWORD_RESET_REQUESTED = 'password_reset_requested';
     case PASSWORD_RESET_FAILED = 'password_reset_failed';
+
+    case RECOVERY_ACTION_BLOCKED = 'recovery_action_blocked';
+    case LOGIN_BLOCKED = 'login_blocked';
+    case PASSWORD_CHANGED = 'password_changed';
+
+    case REMEMBER_ME_ISSUED = 'remember_me_issued';
+    case REMEMBER_ME_THEFT_SUSPECTED = 'remember_me_theft_suspected';
+    case REMEMBER_ME_ROTATED = 'remember_me_rotated';
+    case REMEMBER_ME_REVOKED = 'remember_me_revoked';
 }

@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Application\SecurityEvents\HttpSecurityEventAdminRecorder;
 use App\Application\Telemetry\HttpTelemetryRecorderFactory;
 use App\Context\AdminContext;
 use App\Context\RequestContext;
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
-use App\Domain\Contracts\SecurityEventLoggerInterface;
-use App\Domain\DTO\SecurityEventDTO;
+use App\Domain\SecurityEvents\Recorder\SecurityEventRecorderInterface;
 use App\Domain\Service\AdminAuthenticationService;
 use App\Domain\Service\RememberMeService;
+use App\Modules\SecurityEvents\Enum\SecurityEventSeverityEnum;
+use App\Modules\SecurityEvents\Enum\SecurityEventTypeEnum;
 use App\Modules\Telemetry\Enum\TelemetryEventTypeEnum;
 use App\Modules\Telemetry\Enum\TelemetrySeverityEnum;
-use DateTimeImmutable;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Throwable;
@@ -24,7 +25,7 @@ readonly class LogoutController
     public function __construct(
         private AdminSessionValidationRepositoryInterface $sessionRepository,
         private RememberMeService $rememberMeService,
-        private SecurityEventLoggerInterface $securityEventLogger,
+        private SecurityEventRecorderInterface $securityEventLogger,
         private AdminAuthenticationService $authService,
         private HttpTelemetryRecorderFactory $telemetryFactory
     ) {
@@ -50,16 +51,12 @@ readonly class LogoutController
         // ─────────────────────────────
         // Security Event (Authoritative)
         // ─────────────────────────────
-        $this->securityEventLogger->log(new SecurityEventDTO(
+        $securityRecorder = new HttpSecurityEventAdminRecorder($this->securityEventLogger, $context);
+        $securityRecorder->record(
             $adminId,
-            'admin_logout',
-            'info',
-            [],
-            $context->ipAddress,
-            $context->userAgent,
-            new DateTimeImmutable(),
-            $context->requestId
-        ));
+            SecurityEventTypeEnum::LOGOUT,
+            SecurityEventSeverityEnum::INFO
+        );
 
         // ─────────────────────────────
         // 🔍 Telemetry (best-effort)

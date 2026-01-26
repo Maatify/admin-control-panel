@@ -10,11 +10,14 @@ use App\Domain\Contracts\AdminPasswordRepositoryInterface;
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
 use App\Context\RequestContext;
 use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
-use App\Domain\Contracts\SecurityEventLoggerInterface;
 use App\Domain\DTO\AdminLoginResultDTO;
 use App\Domain\DTO\AuditEventDTO;
-use App\Domain\DTO\SecurityEventDTO;
 use App\Domain\Enum\VerificationStatus;
+use App\Domain\SecurityEvents\DTO\SecurityEventRecordDTO;
+use App\Domain\SecurityEvents\Enum\SecurityEventActorTypeEnum;
+use App\Domain\SecurityEvents\Recorder\SecurityEventRecorderInterface;
+use App\Modules\SecurityEvents\Enum\SecurityEventSeverityEnum;
+use App\Modules\SecurityEvents\Enum\SecurityEventTypeEnum;
 use App\Domain\Exception\AuthStateException;
 use App\Domain\Exception\InvalidCredentialsException;
 use App\Domain\Exception\MustChangePasswordException;
@@ -29,7 +32,7 @@ readonly class AdminAuthenticationService
         private AdminPasswordRepositoryInterface $passwordRepository,
         private AdminSessionRepositoryInterface $sessionRepository,
 
-        private SecurityEventLoggerInterface $securityLogger,
+        private SecurityEventRecorderInterface $securityLogger,
         private AuthoritativeSecurityAuditWriterInterface $outboxWriter,
         private RecoveryStateService $recoveryState,
         private PDO $pdo,
@@ -46,15 +49,16 @@ readonly class AdminAuthenticationService
         // AdminEmailIdentifierDTO
         $adminEmailIdentifierDTO = $this->lookupRepository->findByBlindIndex($blindIndex);
         if ($adminEmailIdentifierDTO === null) {
-            $this->securityLogger->log(new SecurityEventDTO(
+            $this->securityLogger->record(new SecurityEventRecordDTO(
+                SecurityEventActorTypeEnum::ANONYMOUS,
                 null,
-                'login_failed',
-                'warning',
-                ['reason' => 'user_not_found', 'blind_index' => $blindIndex],
+                SecurityEventTypeEnum::LOGIN_FAILED,
+                SecurityEventSeverityEnum::WARNING,
+                $context->requestId,
+                null,
                 $context->ipAddress,
                 $context->userAgent,
-                new DateTimeImmutable(),
-                $context->requestId
+                ['reason' => 'user_not_found', 'blind_index' => $blindIndex]
             ));
             throw new InvalidCredentialsException("Invalid credentials.");
         }
@@ -63,15 +67,16 @@ readonly class AdminAuthenticationService
         // 2. Verify Password
         $record = $this->passwordRepository->getPasswordRecord($adminId);
         if ($record === null || !$this->passwordService->verify($password, $record->hash, $record->pepperId)) {
-            $this->securityLogger->log(new SecurityEventDTO(
+            $this->securityLogger->record(new SecurityEventRecordDTO(
+                SecurityEventActorTypeEnum::ADMIN,
                 $adminId,
-                'login_failed',
-                'warning',
-                ['reason' => 'invalid_password'],
+                SecurityEventTypeEnum::LOGIN_FAILED,
+                SecurityEventSeverityEnum::WARNING,
+                $context->requestId,
+                null,
                 $context->ipAddress,
                 $context->userAgent,
-                new DateTimeImmutable(),
-                $context->requestId
+                ['reason' => 'invalid_password']
             ));
             throw new InvalidCredentialsException("Invalid credentials.");
         }
@@ -80,15 +85,16 @@ readonly class AdminAuthenticationService
         $status = $this->adminRepository->getStatus($adminId);
         if (! $status->canAuthenticate()) {
 
-            $this->securityLogger->log(new SecurityEventDTO(
+            $this->securityLogger->record(new SecurityEventRecordDTO(
+                SecurityEventActorTypeEnum::ADMIN,
                 $adminId,
-                'login_blocked',
-                'warning',
-                ['reason' => 'admin_' . strtolower($status->name)],
+                SecurityEventTypeEnum::LOGIN_BLOCKED,
+                SecurityEventSeverityEnum::WARNING,
+                $context->requestId,
+                null,
                 $context->ipAddress,
                 $context->userAgent,
-                new DateTimeImmutable(),
-                $context->requestId
+                ['reason' => 'admin_' . strtolower($status->name)]
             ));
 
             throw new AuthStateException(
@@ -118,15 +124,16 @@ readonly class AdminAuthenticationService
 
         // 4. Check Verification Status
         if ($adminEmailIdentifierDTO->verificationStatus !== VerificationStatus::VERIFIED) {
-            $this->securityLogger->log(new SecurityEventDTO(
+            $this->securityLogger->record(new SecurityEventRecordDTO(
+                SecurityEventActorTypeEnum::ADMIN,
                 $adminId,
-                'login_failed',
-                'warning',
-                ['reason' => 'not_verified'],
+                SecurityEventTypeEnum::LOGIN_FAILED,
+                SecurityEventSeverityEnum::WARNING,
+                $context->requestId,
+                null,
                 $context->ipAddress,
                 $context->userAgent,
-                new DateTimeImmutable(),
-                $context->requestId
+                ['reason' => 'not_verified']
             ));
             throw new AuthStateException(
                 AuthStateException::REASON_NOT_VERIFIED,

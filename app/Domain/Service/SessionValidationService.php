@@ -6,9 +6,12 @@ namespace App\Domain\Service;
 
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Context\RequestContext;
-use App\Domain\Contracts\SecurityEventLoggerInterface;
-use App\Domain\DTO\SecurityEventDTO;
 use App\Domain\Exception\ExpiredSessionException;
+use App\Domain\SecurityEvents\DTO\SecurityEventRecordDTO;
+use App\Domain\SecurityEvents\Enum\SecurityEventActorTypeEnum;
+use App\Domain\SecurityEvents\Recorder\SecurityEventRecorderInterface;
+use App\Modules\SecurityEvents\Enum\SecurityEventSeverityEnum;
+use App\Modules\SecurityEvents\Enum\SecurityEventTypeEnum;
 use App\Domain\Exception\InvalidSessionException;
 use App\Domain\Exception\RevokedSessionException;
 use DateTimeImmutable;
@@ -17,11 +20,11 @@ use Exception;
 class SessionValidationService
 {
     private AdminSessionValidationRepositoryInterface $repository;
-    private SecurityEventLoggerInterface $securityLogger;
+    private SecurityEventRecorderInterface $securityLogger;
 
     public function __construct(
         AdminSessionValidationRepositoryInterface $repository,
-        SecurityEventLoggerInterface $securityLogger
+        SecurityEventRecorderInterface $securityLogger
     ) {
         $this->repository = $repository;
         $this->securityLogger = $securityLogger;
@@ -38,44 +41,46 @@ class SessionValidationService
         $session = $this->repository->findSession($token);
 
         if ($session === null) {
-            $this->securityLogger->log(new SecurityEventDTO(
+            $this->securityLogger->record(new SecurityEventRecordDTO(
+                SecurityEventActorTypeEnum::ANONYMOUS,
                 null,
-                'session_validation_failed',
-                'warning',
-                ['reason' => 'invalid_token'],
+                SecurityEventTypeEnum::SESSION_INVALID,
+                SecurityEventSeverityEnum::WARNING,
+                $context->requestId,
+                null,
                 $context->ipAddress,
                 $context->userAgent,
-                new DateTimeImmutable(),
-                $context->requestId
+                ['reason' => 'invalid_token']
             ));
             throw new InvalidSessionException('Session not found or invalid.');
         }
 
         if ($session['is_revoked'] === 1) {
-            $this->securityLogger->log(new SecurityEventDTO(
+            $this->securityLogger->record(new SecurityEventRecordDTO(
+                SecurityEventActorTypeEnum::ADMIN,
                 $session['admin_id'],
-                'session_validation_failed',
-                'warning',
-                ['reason' => 'revoked'],
+                SecurityEventTypeEnum::SESSION_INVALID,
+                SecurityEventSeverityEnum::WARNING,
+                $context->requestId,
+                null,
                 $context->ipAddress,
                 $context->userAgent,
-                new DateTimeImmutable(),
-                $context->requestId
+                ['reason' => 'revoked']
             ));
             throw new RevokedSessionException('Session has been revoked.');
         }
 
         $expiresAt = new DateTimeImmutable($session['expires_at']);
         if ($expiresAt < new DateTimeImmutable()) {
-            $this->securityLogger->log(new SecurityEventDTO(
+            $this->securityLogger->record(new SecurityEventRecordDTO(
+                SecurityEventActorTypeEnum::ADMIN,
                 $session['admin_id'],
-                'session_validation_failed',
-                'warning',
-                ['reason' => 'expired'],
+                SecurityEventTypeEnum::SESSION_EXPIRED,
+                SecurityEventSeverityEnum::WARNING,
+                $context->requestId,
+                null,
                 $context->ipAddress,
-                $context->userAgent,
-                new DateTimeImmutable(),
-                $context->requestId
+                $context->userAgent
             ));
             throw new ExpiredSessionException('Session has expired.');
         }
