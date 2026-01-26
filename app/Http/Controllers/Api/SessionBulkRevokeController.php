@@ -11,9 +11,7 @@ use App\Context\RequestContext;
 use App\Domain\Service\AuthorizationService;
 use App\Modules\Validation\Guard\ValidationGuard;
 use App\Modules\Validation\Schemas\SessionBulkRevokeSchema;
-use App\Application\Telemetry\HttpTelemetryRecorderFactory;
-use App\Modules\Telemetry\Enum\TelemetryEventTypeEnum;
-use App\Modules\Telemetry\Enum\TelemetrySeverityEnum;
+use App\Application\Services\DiagnosticsTelemetryService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use DomainException;
@@ -24,7 +22,7 @@ readonly class SessionBulkRevokeController
         private SessionRevocationService $revocationService,
         private AuthorizationService $authorizationService,
         private ValidationGuard $validationGuard,
-        private HttpTelemetryRecorderFactory $telemetryFactory,
+        private DiagnosticsTelemetryService $telemetryService,
         private AdminActivityLogService $adminActivityLogService,
     ) {
     }
@@ -83,17 +81,20 @@ readonly class SessionBulkRevokeController
 
             // ✅ Telemetry — successful bulk revoke
             try {
-                $this->telemetryFactory
-                    ->admin($context)
-                    ->record(
-                        $adminId,
-                        TelemetryEventTypeEnum::RESOURCE_MUTATION,
-                        TelemetrySeverityEnum::INFO,
-                        [
-                            'action'        => 'session_revoke_bulk',
-                            'sessions_count'=> count($hashes),
-                        ]
-                    );
+                $this->telemetryService->recordEvent(
+                    eventKey: 'resource_mutation',
+                    severity: 'INFO',
+                    actorType: 'ADMIN',
+                    actorId: $adminId,
+                    metadata: [
+                        'action'        => 'session_revoke_bulk',
+                        'sessions_count'=> count($hashes),
+                        'request_id' => $context->requestId,
+                        'ip_address' => $context->ipAddress,
+                        'user_agent' => $context->userAgent,
+                        'route_name' => $context->routeName,
+                    ]
+                );
             } catch (\Throwable) {
                 // swallow — telemetry must never affect request flow
             }
@@ -105,18 +106,21 @@ readonly class SessionBulkRevokeController
 
             // ⚠️ Telemetry — bulk revoke failed (domain rule)
             try {
-                $this->telemetryFactory
-                    ->admin($context)
-                    ->record(
-                        $adminId,
-                        TelemetryEventTypeEnum::RESOURCE_MUTATION,
-                        TelemetrySeverityEnum::WARN,
-                        [
-                            'action'        => 'session_revoke_bulk_failed',
-                            'sessions_count'=> count($hashes),
-                            'reason'        => $e->getMessage(),
-                        ]
-                    );
+                $this->telemetryService->recordEvent(
+                    eventKey: 'resource_mutation',
+                    severity: 'WARNING',
+                    actorType: 'ADMIN',
+                    actorId: $adminId,
+                    metadata: [
+                        'action'        => 'session_revoke_bulk_failed',
+                        'sessions_count'=> count($hashes),
+                        'reason'        => $e->getMessage(),
+                        'request_id' => $context->requestId,
+                        'ip_address' => $context->ipAddress,
+                        'user_agent' => $context->userAgent,
+                        'route_name' => $context->routeName,
+                    ]
+                );
             } catch (\Throwable) {
                 // swallow
             }

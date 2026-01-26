@@ -736,20 +736,20 @@ class Container
                 $authService = $c->get(AdminAuthenticationService::class);
 
                 // Telemetry
-                $telemetryFactory = $c->get(\App\Application\Telemetry\HttpTelemetryRecorderFactory::class);
+                $telemetryService = $c->get(\App\Application\Services\DiagnosticsTelemetryService::class);
 
                 assert($sessionRepo instanceof AdminSessionValidationRepositoryInterface);
                 assert($rememberMeService instanceof RememberMeService);
                 assert($logger instanceof SecurityEventLoggerInterface);
                 assert($authService instanceof AdminAuthenticationService);
-                assert($telemetryFactory instanceof \App\Application\Telemetry\HttpTelemetryRecorderFactory);
+                assert($telemetryService instanceof \App\Application\Services\DiagnosticsTelemetryService);
 
                 return new LogoutController(
                     $sessionRepo,
                     $rememberMeService,
                     $logger,
                     $authService,
-                    $telemetryFactory
+                    $telemetryService
                 );
             },
             EmailVerificationController::class => function (ContainerInterface $c) {
@@ -897,18 +897,18 @@ class Container
                 $view = $c->get(Twig::class);
 
                 // Telemetry
-                $telemetryFactory = $c->get(\App\Application\Telemetry\HttpTelemetryRecorderFactory::class);
+                $telemetryService = $c->get(\App\Application\Services\DiagnosticsTelemetryService::class);
 
                 assert($stepUp instanceof StepUpService);
                 assert($totp instanceof TotpServiceInterface);
                 assert($view instanceof Twig);
-                assert($telemetryFactory instanceof \App\Application\Telemetry\HttpTelemetryRecorderFactory);
+                assert($telemetryService instanceof \App\Application\Services\DiagnosticsTelemetryService);
 
                 return new TwoFactorController(
                     $stepUp,
                     $totp,
                     $view,
-                    $telemetryFactory);
+                    $telemetryService);
             },
             AdminNotificationPreferenceController::class => function (ContainerInterface $c) {
                 $reader = $c->get(AdminNotificationPreferenceReaderInterface::class);
@@ -1014,23 +1014,23 @@ class Container
                 $auth = $c->get(AuthorizationService::class);
                 $validationGuard = $c->get(ValidationGuard::class);
                 $filterResolver = $c->get(\App\Infrastructure\Query\ListFilterResolver::class);
-                $telemetryFactory = $c->get(\App\Application\Telemetry\HttpTelemetryRecorderFactory::class);
+                $telemetryService = $c->get(\App\Application\Services\DiagnosticsTelemetryService::class);
 
                 assert($reader instanceof SessionListReaderInterface);
                 assert($auth instanceof AuthorizationService);
                 assert($validationGuard instanceof ValidationGuard);
                 assert($filterResolver instanceof \App\Infrastructure\Query\ListFilterResolver);
-                assert($telemetryFactory instanceof \App\Application\Telemetry\HttpTelemetryRecorderFactory);
+                assert($telemetryService instanceof \App\Application\Services\DiagnosticsTelemetryService);
 
 
-                return new SessionQueryController($reader, $auth, $validationGuard, $filterResolver, $telemetryFactory);
+                return new SessionQueryController($reader, $auth, $validationGuard, $filterResolver, $telemetryService);
             },
             SessionRevokeController::class => function (ContainerInterface $c) {
                 $service = $c->get(SessionRevocationService::class);
                 $auth = $c->get(AuthorizationService::class);
                 $validationGuard = $c->get(ValidationGuard::class);
                 // Telemetry
-                $telemetryFactory = $c->get(\App\Application\Telemetry\HttpTelemetryRecorderFactory::class);
+                $telemetryService = $c->get(\App\Application\Services\DiagnosticsTelemetryService::class);
 
                 $adminActivityLogService = $c->get(AdminActivityLogService::class);
 
@@ -1038,10 +1038,10 @@ class Container
                 assert($service instanceof SessionRevocationService);
                 assert($auth instanceof AuthorizationService);
                 assert($validationGuard instanceof ValidationGuard);
-                assert($telemetryFactory instanceof \App\Application\Telemetry\HttpTelemetryRecorderFactory);
+                assert($telemetryService instanceof \App\Application\Services\DiagnosticsTelemetryService);
                 assert($adminActivityLogService instanceof AdminActivityLogService);
 
-                return new SessionRevokeController($service, $auth, $validationGuard, $telemetryFactory, $adminActivityLogService
+                return new SessionRevokeController($service, $auth, $validationGuard, $telemetryService, $adminActivityLogService
                 );
             },
             SessionBulkRevokeController::class => function (ContainerInterface $c) {
@@ -1050,21 +1050,21 @@ class Container
                 $validationGuard = $c->get(ValidationGuard::class);
 
                 // Telemetry
-                $telemetryFactory = $c->get(\App\Application\Telemetry\HttpTelemetryRecorderFactory::class);
+                $telemetryService = $c->get(\App\Application\Services\DiagnosticsTelemetryService::class);
 
                 $adminActivityLogService = $c->get(AdminActivityLogService::class);
 
                 assert($service instanceof SessionRevocationService);
                 assert($auth instanceof AuthorizationService);
                 assert($validationGuard instanceof ValidationGuard);
-                assert($telemetryFactory instanceof \App\Application\Telemetry\HttpTelemetryRecorderFactory);
+                assert($telemetryService instanceof \App\Application\Services\DiagnosticsTelemetryService);
                 assert($adminActivityLogService instanceof AdminActivityLogService);
 
                 return new SessionBulkRevokeController(
                     $service,
                     $auth,
                     $validationGuard,
-                    $telemetryFactory,
+                    $telemetryService,
                     $adminActivityLogService
                 );
             },
@@ -1167,16 +1167,16 @@ class Container
             \App\Http\Controllers\StepUpController::class => function (ContainerInterface $c) {
                 $stepUpService = $c->get(\App\Domain\Service\StepUpService::class);
                 $validationGuard = $c->get(\App\Modules\Validation\Guard\ValidationGuard::class);
-                $telemetryFactory = $c->get(\App\Application\Telemetry\HttpTelemetryRecorderFactory::class);
+                $telemetryService = $c->get(\App\Application\Services\DiagnosticsTelemetryService::class);
 
                 assert($stepUpService instanceof \App\Domain\Service\StepUpService);
                 assert($validationGuard instanceof \App\Modules\Validation\Guard\ValidationGuard);
-                assert($telemetryFactory instanceof \App\Application\Telemetry\HttpTelemetryRecorderFactory);
+                assert($telemetryService instanceof \App\Application\Services\DiagnosticsTelemetryService);
 
                 return new \App\Http\Controllers\StepUpController(
                     $stepUpService,
                     $validationGuard,
-                    $telemetryFactory
+                    $telemetryService
                 );
             },
 
@@ -1429,12 +1429,6 @@ class Container
                 return new \App\Domain\Telemetry\Recorder\TelemetryRecorder($logger);
             },
 
-            \App\Application\Telemetry\HttpTelemetryRecorderFactory::class => function (ContainerInterface $c) {
-                $recorder = $c->get(\App\Domain\Telemetry\Recorder\TelemetryRecorderInterface::class);
-                assert($recorder instanceof \App\Domain\Telemetry\Recorder\TelemetryRecorderInterface);
-
-                return new \App\Application\Telemetry\HttpTelemetryRecorderFactory($recorder);
-            },
 
             // Telemetry - Email Hasher (HKDF + rotation)
             \App\Application\Telemetry\Contracts\TelemetryEmailHasherInterface::class => function (ContainerInterface $c) {

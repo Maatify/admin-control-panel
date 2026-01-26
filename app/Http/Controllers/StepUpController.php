@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Application\Telemetry\HttpTelemetryRecorderFactory;
+use App\Application\Services\DiagnosticsTelemetryService;
 use App\Context\RequestContext;
 use App\Domain\Service\StepUpService;
-use App\Modules\Telemetry\Enum\TelemetryEventTypeEnum;
-use App\Modules\Telemetry\Enum\TelemetrySeverityEnum;
 use App\Modules\Validation\Guard\ValidationGuard;
 use App\Modules\Validation\Schemas\StepUpVerifySchema;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -19,7 +17,7 @@ readonly class StepUpController
     public function __construct(
         private StepUpService $stepUpService,
         private ValidationGuard $validationGuard,
-        private HttpTelemetryRecorderFactory $telemetryFactory
+        private DiagnosticsTelemetryService $telemetryService
     ) {
     }
 
@@ -71,24 +69,23 @@ readonly class StepUpController
                 // never store raw token/session id
                 'session_hash' => hash('sha256', $sessionId),
                 'status' => $result->success ? 'granted' : 'denied',
+                'request_id' => $context->requestId,
+                'ip_address' => $context->ipAddress,
+                'user_agent' => $context->userAgent,
+                'route_name' => $context->routeName,
             ];
 
             if (!$result->success) {
                 $metadata['error_reason'] = (string)$result->errorReason;
             }
 
-            $this->telemetryFactory
-                ->admin($context)
-                ->record(
-                    actorId: $adminId,
-                    eventType: $result->success
-                        ? TelemetryEventTypeEnum::AUTH_STEPUP_SUCCESS
-                        : TelemetryEventTypeEnum::AUTH_STEPUP_FAILURE,
-                    severity: $result->success
-                        ? TelemetrySeverityEnum::INFO
-                        : TelemetrySeverityEnum::WARN,
-                    metadata: $metadata
-                );
+            $this->telemetryService->recordEvent(
+                eventKey: $result->success ? 'auth_stepup_success' : 'auth_stepup_failure',
+                severity: $result->success ? 'INFO' : 'WARNING',
+                actorType: 'ADMIN',
+                actorId: $adminId,
+                metadata: $metadata
+            );
         } catch (\Throwable) {
             // swallow
         }

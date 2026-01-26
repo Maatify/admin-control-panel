@@ -12,9 +12,7 @@ use App\Context\RequestContext;
 use App\Domain\Service\AuthorizationService;
 use App\Modules\Validation\Guard\ValidationGuard;
 use App\Modules\Validation\Schemas\SessionRevokeSchema;
-use App\Application\Telemetry\HttpTelemetryRecorderFactory;
-use App\Modules\Telemetry\Enum\TelemetryEventTypeEnum;
-use App\Modules\Telemetry\Enum\TelemetrySeverityEnum;
+use App\Application\Services\DiagnosticsTelemetryService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use DomainException;
@@ -26,7 +24,7 @@ class SessionRevokeController
         private readonly SessionRevocationService $revocationService,
         private readonly AuthorizationService $authorizationService,
         private readonly ValidationGuard $validationGuard,
-        private readonly HttpTelemetryRecorderFactory $telemetryFactory,
+        private readonly DiagnosticsTelemetryService $telemetryService,
         private AdminActivityLogService $adminActivityLogService,
 
     ) {
@@ -92,17 +90,20 @@ class SessionRevokeController
 
             // ✅ Telemetry — successful admin-initiated revoke
             try {
-                $this->telemetryFactory
-                    ->admin($context)
-                    ->record(
-                        $adminId,
-                        TelemetryEventTypeEnum::RESOURCE_MUTATION,
-                        TelemetrySeverityEnum::INFO,
-                        [
-                            'action'            => 'session_revoke',
-                            'target_session_id' => $targetSessionHash,
-                        ]
-                    );
+                $this->telemetryService->recordEvent(
+                    eventKey: 'resource_mutation',
+                    severity: 'INFO',
+                    actorType: 'ADMIN',
+                    actorId: $adminId,
+                    metadata: [
+                        'action'            => 'session_revoke',
+                        'target_session_id' => $targetSessionHash,
+                        'request_id' => $context->requestId,
+                        'ip_address' => $context->ipAddress,
+                        'user_agent' => $context->userAgent,
+                        'route_name' => $context->routeName,
+                    ]
+                );
             } catch (\Throwable) {
                 // swallow — telemetry must never affect request flow
             }
@@ -114,18 +115,21 @@ class SessionRevokeController
 
             // ⚠️ Telemetry — failed revoke attempt (business rule)
             try {
-                $this->telemetryFactory
-                    ->admin($context)
-                    ->record(
-                        $adminId,
-                        TelemetryEventTypeEnum::RESOURCE_MUTATION,
-                        TelemetrySeverityEnum::WARN,
-                        [
-                            'action'            => 'session_revoke_failed',
-                            'reason'            => 'domain_exception',
-                            'target_session_id' => $targetSessionHash,
-                        ]
-                    );
+                $this->telemetryService->recordEvent(
+                    eventKey: 'resource_mutation',
+                    severity: 'WARNING',
+                    actorType: 'ADMIN',
+                    actorId: $adminId,
+                    metadata: [
+                        'action'            => 'session_revoke_failed',
+                        'reason'            => 'domain_exception',
+                        'target_session_id' => $targetSessionHash,
+                        'request_id' => $context->requestId,
+                        'ip_address' => $context->ipAddress,
+                        'user_agent' => $context->userAgent,
+                        'route_name' => $context->routeName,
+                    ]
+                );
             } catch (\Throwable) {
                 // swallow
             }
@@ -139,18 +143,21 @@ class SessionRevokeController
 
             // ⚠️ Telemetry — target not found
             try {
-                $this->telemetryFactory
-                    ->admin($context)
-                    ->record(
-                        $adminId,
-                        TelemetryEventTypeEnum::RESOURCE_MUTATION,
-                        TelemetrySeverityEnum::WARN,
-                        [
-                            'action'            => 'session_revoke_failed',
-                            'reason'            => 'session_not_found',
-                            'target_session_id' => $targetSessionHash,
-                        ]
-                    );
+                $this->telemetryService->recordEvent(
+                    eventKey: 'resource_mutation',
+                    severity: 'WARNING',
+                    actorType: 'ADMIN',
+                    actorId: $adminId,
+                    metadata: [
+                        'action'            => 'session_revoke_failed',
+                        'reason'            => 'session_not_found',
+                        'target_session_id' => $targetSessionHash,
+                        'request_id' => $context->requestId,
+                        'ip_address' => $context->ipAddress,
+                        'user_agent' => $context->userAgent,
+                        'route_name' => $context->routeName,
+                    ]
+                );
             } catch (\Throwable) {
                 // swallow
             }

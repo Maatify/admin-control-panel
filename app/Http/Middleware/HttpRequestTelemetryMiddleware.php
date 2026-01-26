@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
-use App\Application\Telemetry\HttpTelemetryRecorderFactory;
+use App\Application\Services\DiagnosticsTelemetryService;
 use App\Context\AdminContext;
 use App\Context\RequestContext;
-use App\Modules\Telemetry\Enum\TelemetryEventTypeEnum;
-use App\Modules\Telemetry\Enum\TelemetrySeverityEnum;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -18,7 +16,7 @@ use Throwable;
 final class HttpRequestTelemetryMiddleware implements MiddlewareInterface
 {
     public function __construct(
-        private readonly HttpTelemetryRecorderFactory $telemetryFactory
+        private readonly DiagnosticsTelemetryService $telemetryService
     ) {
     }
 
@@ -48,24 +46,28 @@ final class HttpRequestTelemetryMiddleware implements MiddlewareInterface
 
                     $adminContext = $request->getAttribute(AdminContext::class);
 
+                    $actorType = 'SYSTEM';
+                    $actorId = null;
+
                     if ($adminContext instanceof AdminContext) {
-                        $this->telemetryFactory
-                            ->admin($context)
-                            ->record(
-                                $adminContext->adminId,
-                                TelemetryEventTypeEnum::HTTP_REQUEST_END,
-                                TelemetrySeverityEnum::INFO,
-                                $metadata
-                            );
-                    } else {
-                        $this->telemetryFactory
-                            ->system($context)
-                            ->record(
-                                TelemetryEventTypeEnum::HTTP_REQUEST_END,
-                                TelemetrySeverityEnum::INFO,
-                                $metadata
-                            );
+                        $actorType = 'ADMIN';
+                        $actorId = $adminContext->adminId;
                     }
+
+                    // Enrich metadata with request context since DiagnosticsTelemetryService
+                    // is not request-aware by default.
+                    $metadata['request_id'] = $context->requestId;
+                    $metadata['ip_address'] = $context->ipAddress;
+                    $metadata['user_agent'] = $context->userAgent;
+
+                    $this->telemetryService->recordEvent(
+                        'http_request_end',
+                        'INFO',
+                        $actorType,
+                        $actorId,
+                        $metadata,
+                        $durationMs
+                    );
                 }
             } catch (Throwable) {
                 // swallow — telemetry must never affect request flow

@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
-use App\Application\Telemetry\HttpTelemetryRecorderFactory;
+use App\Application\Services\DiagnosticsTelemetryService;
 use App\Context\RequestContext;
 use App\Domain\List\ListCapabilities;
 use App\Domain\List\ListQueryDTO;
 use App\Domain\Session\Reader\SessionListReaderInterface;
 use App\Domain\Service\AuthorizationService;
 use App\Infrastructure\Query\ListFilterResolver;
-use App\Modules\Telemetry\Enum\TelemetryEventTypeEnum;
-use App\Modules\Telemetry\Enum\TelemetrySeverityEnum;
 use App\Modules\Validation\Guard\ValidationGuard;
 use App\Modules\Validation\Schemas\SharedListQuerySchema;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -25,7 +23,7 @@ final readonly class SessionQueryController
         private AuthorizationService $authorizationService,
         private ValidationGuard $validationGuard,
         private ListFilterResolver $filterResolver,
-        private HttpTelemetryRecorderFactory $telemetryFactory
+        private DiagnosticsTelemetryService $telemetryService
     ) {
     }
 
@@ -107,16 +105,19 @@ final readonly class SessionQueryController
                 'scope' => $adminIdFilter === null ? 'view_all' : 'self_only',
                 'current_session_hash_present' => $currentSessionHash !== '',
                 'result_count' => count($result->data),
+                'request_id' => $context->requestId,
+                'ip_address' => $context->ipAddress,
+                'user_agent' => $context->userAgent,
+                'route_name' => $context->routeName,
             ];
 
-            $this->telemetryFactory
-                ->admin($context)
-                ->record(
-                    actorId: $adminId,
-                    eventType: TelemetryEventTypeEnum::DATA_QUERY_EXECUTED,
-                    severity: TelemetrySeverityEnum::INFO,
-                    metadata: $metadata
-                );
+            $this->telemetryService->recordEvent(
+                eventKey: 'data_query_executed',
+                severity: 'INFO',
+                actorType: 'ADMIN',
+                actorId: $adminId,
+                metadata: $metadata
+            );
         } catch (\Throwable) {
             // swallow
         }
