@@ -106,7 +106,7 @@ final readonly class PdoActivityLogListReader implements ActivityLogListReaderIn
         // ─────────────────────────────
         // Total (no filters)
         // ─────────────────────────────
-        $totalStmt = $this->pdo->query('SELECT COUNT(*) FROM activity_logs');
+        $totalStmt = $this->pdo->query('SELECT COUNT(*) FROM operational_activity');
 
         if ($totalStmt === false) {
             throw new RuntimeException('Failed to execute total count query');
@@ -118,7 +118,7 @@ final readonly class PdoActivityLogListReader implements ActivityLogListReaderIn
         // Filtered
         // ─────────────────────────────
         $stmtFiltered = $this->pdo->prepare(
-            "SELECT COUNT(*) FROM activity_logs al {$whereSql}"
+            "SELECT COUNT(*) FROM operational_activity al {$whereSql}"
         );
         $stmtFiltered->execute($params);
         $filtered = (int)$stmtFiltered->fetchColumn();
@@ -142,7 +142,7 @@ final readonly class PdoActivityLogListReader implements ActivityLogListReaderIn
                 al.user_agent,
                 al.request_id,
                 al.occurred_at
-            FROM activity_logs al
+            FROM operational_activity al
             {$whereSql}
             ORDER BY al.occurred_at DESC
             LIMIT :limit OFFSET :offset

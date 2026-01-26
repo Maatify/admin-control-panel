@@ -15,6 +15,9 @@ interface BehaviorTraceRecorderInterface
         ?int $actorId,
         ?string $entityType = null,
         ?int $entityId = null,
-        ?array $metadata = null
+        ?array $metadata = null,
+        ?string $ipAddress = null,
+        ?string $userAgent = null,
+        ?string $requestId = null
     ): void;
 }

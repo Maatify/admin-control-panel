@@ -15,9 +15,9 @@ declare(strict_types=1);
 
 namespace App\Domain\ActivityLog\Service;
 
+use App\Application\Contracts\BehaviorTraceRecorderInterface;
 use App\Context\AdminContext;
 use App\Context\RequestContext;
-use App\Domain\ActivityLog\Recorder\ActivityRecorder;
 use App\Modules\ActivityLog\Contracts\ActivityActionInterface;
 
 final readonly class AdminActivityLogService
@@ -25,7 +25,7 @@ final readonly class AdminActivityLogService
     private const ACTOR_TYPE = 'admin';
 
     public function __construct(
-        private ActivityRecorder $recorder,
+        private BehaviorTraceRecorderInterface $recorder,
     )
     {
     }
@@ -42,8 +42,13 @@ final readonly class AdminActivityLogService
         ?array $metadata = null
     ): void
     {
-        $this->recorder->log(
-            action: $action,
+        // Resolve action string
+        $actionValue = $action instanceof ActivityActionInterface
+            ? $action->toString()
+            : $action;
+
+        $this->recorder->record(
+            action: $actionValue,
             actorType: self::ACTOR_TYPE,
             actorId: $adminContext->adminId,
             entityType: $entityType,

@@ -23,7 +23,10 @@ class BehaviorTraceMaatifyAdapter implements BehaviorTraceRecorderInterface
         ?int $actorId,
         ?string $entityType = null,
         ?int $entityId = null,
-        ?array $metadata = null
+        ?array $metadata = null,
+        ?string $ipAddress = null,
+        ?string $userAgent = null,
+        ?string $requestId = null
     ): void {
         $this->recorder->record(
             action: $action,
@@ -32,10 +35,10 @@ class BehaviorTraceMaatifyAdapter implements BehaviorTraceRecorderInterface
             entityType: $entityType,
             entityId: $entityId,
             correlationId: null,
-            requestId: null,
+            requestId: $requestId,
             routeName: null,
-            ipAddress: null,
-            userAgent: null,
+            ipAddress: $ipAddress,
+            userAgent: $userAgent,
             metadata: $metadata
         );
     }

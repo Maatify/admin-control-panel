@@ -33,7 +33,7 @@ final class PdoActivityLogListReaderTest extends TestCase
         parent::setUp();
 
         $this->pdo = MySQLTestHelper::pdo();
-        MySQLTestHelper::truncate('activity_logs');
+        MySQLTestHelper::truncate('operational_activity');
 
         $this->seed();
     }
@@ -41,16 +41,17 @@ final class PdoActivityLogListReaderTest extends TestCase
     private function seed(): void
     {
         $stmt = $this->pdo->prepare(
-            'INSERT INTO activity_logs
-                (action, actor_type, actor_id, entity_type, entity_id, metadata, ip_address, user_agent, request_id, occurred_at)
+            'INSERT INTO operational_activity
+                (event_id, action, actor_type, actor_id, entity_type, entity_id, metadata, ip_address, user_agent, request_id, occurred_at)
              VALUES
-                (:action, :actor_type, :actor_id, :entity_type, :entity_id, :metadata, :ip_address, :user_agent, :request_id, :occurred_at)'
+                (:event_id, :action, :actor_type, :actor_id, :entity_type, :entity_id, :metadata, :ip_address, :user_agent, :request_id, :occurred_at)'
         );
 
         // ─────────────────────────────
         // Older log (YESTERDAY)
         // ─────────────────────────────
         $stmt->execute([
+            'event_id'    => 'uuid-1',
             'action'      => 'admin.user.update',
             'actor_type'  => 'admin',
             'actor_id'    => 1,
@@ -67,12 +68,13 @@ final class PdoActivityLogListReaderTest extends TestCase
         // Newer log (TODAY)
         // ─────────────────────────────
         $stmt->execute([
+            'event_id'    => 'uuid-2',
             'action'      => 'admin.login',
             'actor_type'  => 'admin',
             'actor_id'    => 2,
             'entity_type' => null,
             'entity_id'   => null,
-            'metadata'    => null,
+            'metadata'    => json_encode([], JSON_THROW_ON_ERROR), // operational_activity metadata is NOT NULL
             'ip_address'  => null,
             'user_agent'  => null,
             'request_id'  => 'req-2',

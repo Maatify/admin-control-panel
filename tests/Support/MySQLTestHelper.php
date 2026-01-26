@@ -141,6 +141,26 @@ SQL
             );
 SQL
         );
+
+        $pdo->exec(<<<SQL
+            CREATE TABLE IF NOT EXISTS operational_activity (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                event_id VARCHAR(36) NOT NULL UNIQUE,
+                actor_type VARCHAR(32) NOT NULL,
+                actor_id INTEGER NULL,
+                action VARCHAR(128) NOT NULL,
+                entity_type VARCHAR(64) NULL,
+                entity_id INTEGER NULL,
+                metadata TEXT NOT NULL,
+                correlation_id VARCHAR(36) NULL,
+                request_id VARCHAR(64) NULL,
+                route_name VARCHAR(255) NULL,
+                ip_address VARCHAR(45) NULL,
+                user_agent VARCHAR(512) NULL,
+                occurred_at DATETIME NOT NULL
+            );
+SQL
+        );
     }
 
     public static function truncate(string $table): void

@@ -640,8 +640,8 @@ class Container
                 return new ActivityRecorder($writer);
             },
             AdminActivityLogService::class => function (ContainerInterface $c) {
-                $recorder = $c->get(ActivityRecorder::class);
-                assert($recorder instanceof ActivityRecorder);
+                $recorder = $c->get(\App\Application\Contracts\BehaviorTraceRecorderInterface::class);
+                assert($recorder instanceof \App\Application\Contracts\BehaviorTraceRecorderInterface);
                 return new AdminActivityLogService($recorder);
             },
             ActivityLogListReaderInterface::class => function (ContainerInterface $c) {
