@@ -4,68 +4,150 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use Maatify\SecuritySignals\Enum\SecuritySignalActorTypeEnum;
-use Maatify\SecuritySignals\Enum\SecuritySignalSeverityEnum;
-use Maatify\SecuritySignals\Recorder\SecuritySignalsRecorder;
+use App\Application\Contracts\SecuritySignalsRecorderInterface;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
+/**
+ * Captures authentication, authorization, and security policy anomalies.
+ *
+ * BEHAVIOR GUARANTEE: FAIL-OPEN (Best Effort)
+ * Failures in logging MUST NOT block the user flow or cause a system crash.
+ */
 class SecuritySignalsService
 {
+    private const SIGNAL_LOGIN_SUCCESS = 'login_success';
+    private const SIGNAL_LOGIN_FAILED = 'login_failed';
+    private const SIGNAL_ACCESS_DENIED = 'access_denied';
+    private const SIGNAL_STEP_UP_FAILED = 'step_up_failed';
+    private const SIGNAL_SESSION_TERMINATED = 'session_terminated';
+
+    private const SEVERITY_INFO = 'INFO';
+    private const SEVERITY_WARNING = 'WARNING';
+
+    private const ACTOR_TYPE_ADMIN = 'ADMIN';
+    private const ACTOR_TYPE_ANONYMOUS = 'ANONYMOUS';
+
     public function __construct(
-        private readonly SecuritySignalsRecorder $recorder,
-        private readonly LoggerInterface $logger
+        private LoggerInterface $logger,
+        private SecuritySignalsRecorderInterface $recorder
     ) {
     }
 
     /**
-     * Records a security signal event.
-     *
-     * This method acts as a project-facing wrapper for the SecuritySignalsRecorder.
-     * It enforces Fail-Open behavior (Best Effort), meaning exceptions during recording
-     * are suppressed (logged to fallback) and will NOT crash the application.
-     *
-     * @param string $signalType
-     * @param string|SecuritySignalSeverityEnum $severity
-     * @param string|SecuritySignalActorTypeEnum $actorType
-     * @param int|null $actorId
-     * @param array<string, mixed>|null $metadata
-     * @param string|null $correlationId
-     * @param string|null $requestId
-     * @param string|null $routeName
-     * @param string|null $ipAddress
-     * @param string|null $userAgent
+     * Used when an administrator successfully authenticates.
      */
-    public function record(
-        string $signalType,
-        string|SecuritySignalSeverityEnum $severity,
-        string|SecuritySignalActorTypeEnum $actorType,
-        ?int $actorId,
-        ?array $metadata = null,
-        ?string $correlationId = null,
-        ?string $requestId = null,
-        ?string $routeName = null,
-        ?string $ipAddress = null,
-        ?string $userAgent = null
-    ): void {
+    public function recordLoginSuccess(int $adminId, string $ipAddress, string $userAgent): void
+    {
         try {
             $this->recorder->record(
-                $signalType,
-                $severity,
-                $actorType,
-                $actorId,
-                $metadata,
-                $correlationId,
-                $requestId,
-                $routeName,
-                $ipAddress,
-                $userAgent
+                signalType: self::SIGNAL_LOGIN_SUCCESS,
+                severity: self::SEVERITY_INFO,
+                actorType: self::ACTOR_TYPE_ADMIN,
+                actorId: $adminId,
+                ipAddress: $ipAddress,
+                userAgent: $userAgent
             );
-        } catch (\Throwable $e) {
-            // Fail-open: suppress all exceptions to prevent application crash
-            $this->logger->error('SecuritySignalsService: Failed to record event', [
-                'exception' => $e,
-                'signal_type' => $signalType,
-            ]);
+        } catch (Throwable $e) {
+            $this->logFailure('recordLoginSuccess', $e);
         }
+    }
+
+    /**
+     * Used when authentication fails (bad password, user not found).
+     */
+    public function recordLoginFailed(string $inputIdentifier, string $ipAddress, string $userAgent, string $reason): void
+    {
+        try {
+            $this->recorder->record(
+                signalType: self::SIGNAL_LOGIN_FAILED,
+                severity: self::SEVERITY_WARNING,
+                actorType: self::ACTOR_TYPE_ANONYMOUS,
+                actorId: null,
+                ipAddress: $ipAddress,
+                userAgent: $userAgent,
+                metadata: [
+                    'identifier' => $inputIdentifier,
+                    'reason' => $reason
+                ]
+            );
+        } catch (Throwable $e) {
+            $this->logFailure('recordLoginFailed', $e);
+        }
+    }
+
+    /**
+     * Used when an authenticated admin is blocked from an action by the authorization policy.
+     */
+    public function recordAccessDenied(int $adminId, string $resource, string $action, string $ipAddress): void
+    {
+        try {
+            $this->recorder->record(
+                signalType: self::SIGNAL_ACCESS_DENIED,
+                severity: self::SEVERITY_WARNING,
+                actorType: self::ACTOR_TYPE_ADMIN,
+                actorId: $adminId,
+                ipAddress: $ipAddress,
+                userAgent: null,
+                metadata: [
+                    'resource' => $resource,
+                    'action' => $action
+                ]
+            );
+        } catch (Throwable $e) {
+            $this->logFailure('recordAccessDenied', $e);
+        }
+    }
+
+    /**
+     * Used when secondary verification (2FA/OTP) fails.
+     */
+    public function recordStepUpFailed(int $adminId, string $mechanism, string $ipAddress): void
+    {
+        try {
+            $this->recorder->record(
+                signalType: self::SIGNAL_STEP_UP_FAILED,
+                severity: self::SEVERITY_WARNING,
+                actorType: self::ACTOR_TYPE_ADMIN,
+                actorId: $adminId,
+                ipAddress: $ipAddress,
+                userAgent: null,
+                metadata: [
+                    'mechanism' => $mechanism
+                ]
+            );
+        } catch (Throwable $e) {
+            $this->logFailure('recordStepUpFailed', $e);
+        }
+    }
+
+    /**
+     * Used when a session is forcefully revoked or expires.
+     */
+    public function recordSessionTerminated(int $adminId, string $reason, string $ipAddress): void
+    {
+        try {
+            $this->recorder->record(
+                signalType: self::SIGNAL_SESSION_TERMINATED,
+                severity: self::SEVERITY_INFO,
+                actorType: self::ACTOR_TYPE_ADMIN,
+                actorId: $adminId,
+                ipAddress: $ipAddress,
+                userAgent: null,
+                metadata: [
+                    'reason' => $reason
+                ]
+            );
+        } catch (Throwable $e) {
+            $this->logFailure('recordSessionTerminated', $e);
+        }
+    }
+
+    private function logFailure(string $method, Throwable $e): void
+    {
+        $this->logger->error(
+            sprintf('[SecuritySignalsService] %s failed: %s', $method, $e->getMessage()),
+            ['exception' => $e]
+        );
     }
 }

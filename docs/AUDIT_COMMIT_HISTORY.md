@@ -367,6 +367,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(admin-sessions): add scoped admin sessions UI with isolated JS logic
 - feat(rbac): extend roles and permissions with UI display fields
 - feat(permissions): add permissions query and metadata update APIs
+- feat(logging): lock application services and introduce recorder contracts
 
 ---
 
