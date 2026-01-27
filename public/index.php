@@ -2,11 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Application\Telemetry\HttpTelemetryRecorderFactory;
 use App\Context\RequestContext;
-use App\Modules\Telemetry\Enum\TelemetryEventTypeEnum;
-use App\Modules\Telemetry\Enum\TelemetrySeverityEnum;
 use App\Bootstrap\Container;
+use App\Domain\Exception\InvalidOperationException;
 use App\Modules\Validation\Exceptions\ValidationFailedException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -71,21 +69,21 @@ $errorMiddleware->setErrorHandler(
         try {
             $context = $request->getAttribute(RequestContext::class);
             if ($context instanceof RequestContext) {
-                $factory = $app->getContainer()->get(HttpTelemetryRecorderFactory::class);
-                if ($factory instanceof HttpTelemetryRecorderFactory) {
-                    /** @var ValidationFailedException $exception */
-                    $factory->system($context)->record(
-                        eventType: TelemetryEventTypeEnum::SYSTEM_EXCEPTION,
-                        severity: TelemetrySeverityEnum::WARN,
-                        metadata: [
-                            'exception_class' => get_class($exception),
-                            'exception_message' => $exception->getMessage(),
-                            'file' => $exception->getFile(),
-                            'line' => $exception->getLine(),
-                            'errors' => $exception->getErrors(),
-                        ]
-                    );
-                }
+//                $factory = $app->getContainer()->get(HttpTelemetryRecorderFactory::class);
+//                if ($factory instanceof HttpTelemetryRecorderFactory) {
+//                    /** @var ValidationFailedException $exception */
+//                    $factory->system($context)->record(
+//                        eventType: TelemetryEventTypeEnum::SYSTEM_EXCEPTION,
+//                        severity: TelemetrySeverityEnum::WARN,
+//                        metadata: [
+//                            'exception_class' => get_class($exception),
+//                            'exception_message' => $exception->getMessage(),
+//                            'file' => $exception->getFile(),
+//                            'line' => $exception->getLine(),
+//                            'errors' => $exception->getErrors(),
+//                        ]
+//                    );
+//                }
             }
         } catch (Throwable $e) {
             try {
@@ -177,6 +175,48 @@ $errorMiddleware->setErrorHandler(
     }
 );
 
+$errorMiddleware->setErrorHandler(
+    \App\Domain\Exception\EntityAlreadyExistsException::class,
+    function (
+        ServerRequestInterface $request,
+        Throwable $exception
+    ) use ($httpJsonError) {
+        return $httpJsonError(
+            409,
+            'ENTITY_ALREADY_EXISTS',
+            $exception->getMessage()
+        );
+    }
+);
+
+$errorMiddleware->setErrorHandler(
+    \App\Domain\Exception\EntityNotFoundException::class,
+    function (
+        ServerRequestInterface $request,
+        Throwable $exception
+    ) use ($httpJsonError) {
+        return $httpJsonError(
+            404,
+            'NOT_FOUND',
+            $exception->getMessage()
+        );
+    }
+);
+
+$errorMiddleware->setErrorHandler(
+    InvalidOperationException::class,
+    function (
+        ServerRequestInterface $request,
+        InvalidOperationException $exception
+    ) use ($httpJsonError) {
+        return $httpJsonError(
+            409,
+            'INVALID_OPERATION',
+            $exception->getMessage()
+        );
+    }
+);
+
 // 6️⃣ ❗ LAST — catch-all
 $errorMiddleware->setErrorHandler(
     Throwable::class,
@@ -189,24 +229,24 @@ $errorMiddleware->setErrorHandler(
             /** @var RequestContext|null $context */
             $context = $request->getAttribute(RequestContext::class);
 
-            if ($context instanceof RequestContext) {
-                /** @var HttpTelemetryRecorderFactory $factory */
-                $factory = $app->getContainer()->get(HttpTelemetryRecorderFactory::class);
-
-                $factory
-                    ->system($context)
-                    ->record(
-                        TelemetryEventTypeEnum::SYSTEM_EXCEPTION,
-                        TelemetrySeverityEnum::ERROR,
-                        [
-                            'exception_class' => $exception::class,
-                            'message'         => $exception->getMessage(),
-                            'file'            => $exception->getFile(),
-                            'line'            => $exception->getLine(),
-                            'route_name'      => $context->getRouteName(),
-                        ]
-                    );
-            }
+//            if ($context instanceof RequestContext) {
+//                /** @var HttpTelemetryRecorderFactory $factory */
+//                $factory = $app->getContainer()->get(HttpTelemetryRecorderFactory::class);
+//
+//                $factory
+//                    ->system($context)
+//                    ->record(
+//                        TelemetryEventTypeEnum::SYSTEM_EXCEPTION,
+//                        TelemetrySeverityEnum::ERROR,
+//                        [
+//                            'exception_class' => $exception::class,
+//                            'message'         => $exception->getMessage(),
+//                            'file'            => $exception->getFile(),
+//                            'line'            => $exception->getLine(),
+//                            'route_name'      => $context->getRouteName(),
+//                        ]
+//                    );
+//            }
         } catch (Throwable $telemetryFailure) {
             try {
                 /** @var \Psr\Log\LoggerInterface $logger */
