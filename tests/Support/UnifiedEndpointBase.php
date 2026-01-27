@@ -16,7 +16,7 @@ use Tests\Support\MySQLTestHelper;
 
 use Psr\Container\ContainerInterface;
 
-abstract class AbstractUnifiedEndpointTest extends TestCase
+abstract class UnifiedEndpointBase extends TestCase
 {
     /** @var App<ContainerInterface> */
     protected App $app;
