@@ -452,7 +452,7 @@
         }
 
         // Build request body
-        const requestBody = { new_name: newName };
+        const requestBody = { name: newName };
 
         console.log('📤 Sending to: POST /api/roles/' + currentRenamingRole.id + '/rename');
         console.log('📦 Payload:', JSON.stringify(requestBody, null, 2));
