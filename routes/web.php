@@ -81,26 +81,37 @@ return function (App $app) {
             $protectedGroup->get(
                 '/2fa/setup',
                 [\App\Http\Controllers\Ui\UiTwoFactorSetupController::class, 'index']
-            )->setName('2fa.setup');
+            )
+                ->setName('2fa.setup');
 
             $protectedGroup->post(
                 '/2fa/setup',
                 [\App\Http\Controllers\Ui\UiTwoFactorSetupController::class, 'enable']
-            )->setName('2fa.enable');
+            )
+                ->setName('2fa.enable');
 
 
-            $protectedGroup->get('/admins', [\App\Http\Controllers\Ui\UiAdminsController::class, 'index'])
+            $protectedGroup->get(
+                '/admins',
+                [\App\Http\Controllers\Ui\UiAdminsController::class, 'index']
+            )
                 ->setName('admins.list')
                 ->add(AuthorizationGuardMiddleware::class);
 
-            $protectedGroup->get('/admins/create', [\App\Http\Controllers\Ui\UiAdminCreateController::class, 'index'])
+            $protectedGroup->get(
+                '/admins/create',
+                [\App\Http\Controllers\Ui\UiAdminCreateController::class, 'index']
+            )
                 ->setName('admin.create')
                 ->add(AuthorizationGuardMiddleware::class);
 
             // ===============================
             // Admin Profile (VIEW)
             // ===============================
-            $protectedGroup->get('/admins/{id}/profile', [\App\Http\Controllers\Ui\UiAdminsController::class, 'profile'])
+            $protectedGroup->get(
+                '/admins/{id}/profile',
+                [\App\Http\Controllers\Ui\UiAdminsController::class, 'profile']
+            )
                 ->setName('admins.profile.view')
                 ->add(AuthorizationGuardMiddleware::class);
 
@@ -110,7 +121,8 @@ return function (App $app) {
             $protectedGroup->get(
                 '/admins/{id}/profile/edit',
                 [\App\Http\Controllers\Ui\UiAdminsController::class, 'editProfile']
-            )->setName('admins.profile.edit')
+            )
+                ->setName('admins.profile.edit')
                 ->add(AuthorizationGuardMiddleware::class);
 
 
@@ -120,7 +132,8 @@ return function (App $app) {
             $protectedGroup->post(
                 '/admins/{id}/profile/edit',
                 [\App\Http\Controllers\Ui\UiAdminsController::class, 'updateProfile']
-            )->setName('admins.profile.edit')
+            )
+                ->setName('admins.profile.edit')
                 ->add(AuthorizationGuardMiddleware::class);
 
             // ─────────────────────────────
@@ -129,7 +142,8 @@ return function (App $app) {
             $protectedGroup->get(
                 '/admins/{id}/emails',
                 [\App\Http\Controllers\Ui\UiAdminsController::class, 'emails']
-            )->setName('admin.email.list')
+            )
+                ->setName('admin.email.list')
                 ->add(AuthorizationGuardMiddleware::class);
 
             // ─────────────────────────────
@@ -138,18 +152,34 @@ return function (App $app) {
             $protectedGroup->get(
                 '/admins/{id}/sessions',
                 [\App\Http\Controllers\Ui\UiAdminsController::class, 'sessions']
-            )->setName('admins.session.list')
+            )
+                ->setName('admins.session.list')
                 ->add(AuthorizationGuardMiddleware::class);
 
-            $protectedGroup->get('/roles', [\App\Http\Controllers\Ui\UiRolesController::class, 'index']);
-            $protectedGroup->get('/permissions', [\App\Http\Controllers\Ui\UiPermissionsController::class, 'index']);
+            $protectedGroup->get(
+                '/roles',
+                [\App\Http\Controllers\Ui\UiRolesController::class, 'index']
+            )
+                ->setName('roles.query')
+                ->add(AuthorizationGuardMiddleware::class);
+
+            $protectedGroup->get(
+                '/permissions',
+                [\App\Http\Controllers\Ui\UiPermissionsController::class, 'index']
+            )
+                ->setName('permissions.query')
+                ->add(AuthorizationGuardMiddleware::class);
+
             $protectedGroup->get('/settings', [\App\Http\Controllers\Ui\UiSettingsController::class, 'index']);
 
             // UI sandbox for Twig/layout experimentation (non-canonical page)
             $protectedGroup->get('/examples', [\App\Http\Controllers\Ui\UiExamplesController::class, 'index']);
 
             // Phase 14.3: Sessions LIST
-            $protectedGroup->get('/sessions', [\App\Http\Controllers\Ui\SessionListController::class, '__invoke'])
+            $protectedGroup->get(
+                '/sessions',
+                [\App\Http\Controllers\Ui\SessionListController::class, '__invoke']
+            )
                 ->setName('sessions.list')
                 ->add(AuthorizationGuardMiddleware::class);
 
@@ -194,106 +224,96 @@ return function (App $app) {
         // Protected API
         $api->group('', function (RouteCollectorProxy $group) {
             // Phase 14.3: Sessions Query
-            $group->post('/sessions/query', [\App\Http\Controllers\Api\SessionQueryController::class, '__invoke'])
-                ->setName('sessions.list')
-                ->add(AuthorizationGuardMiddleware::class)
-            ;
+            $group->group('/sessions', function (RouteCollectorProxy $sessions) {
+                $sessions->post('/query', [\App\Http\Controllers\Api\SessionQueryController::class, '__invoke'])
+                    ->setName('sessions.list');
 
-            $group->delete('/sessions/{session_id}', [\App\Http\Controllers\Api\SessionRevokeController::class, '__invoke'])
-                ->setName('sessions.revoke')
-                ->add(AuthorizationGuardMiddleware::class);
+                $sessions->delete('/{session_id}', [\App\Http\Controllers\Api\SessionRevokeController::class, '__invoke'])
+                    ->setName('sessions.revoke');
 
-            $group->post('/sessions/revoke-bulk', [\App\Http\Controllers\Api\SessionBulkRevokeController::class, '__invoke'])
-                ->setName('sessions.revoke')
-                ->add(AuthorizationGuardMiddleware::class);
+                $sessions->post('/revoke-bulk', [\App\Http\Controllers\Api\SessionBulkRevokeController::class, '__invoke'])
+                    ->setName('sessions.revoke');
+            });
 
-            $group->post('/admins/query', [AdminQueryController::class, '__invoke'])
-                ->setName('admins.query')
-                ->add(AuthorizationGuardMiddleware::class);
+            // ─────────────────────────────
+            // Admins Control
+            // ─────────────────────────────
+            $group->group('/admins', function (RouteCollectorProxy $admins) {
+                $admins->post('/query', [AdminQueryController::class, '__invoke'])
+                    ->setName('admins.query');
+
+                $admins->post('/create', [AdminController::class, 'create'])
+                    ->setName('admin.create');
+
+                $admins->get('/{admin_id}/preferences', [AdminNotificationPreferenceController::class, 'getPreferences'])
+                    ->setName('admin.preferences.read');
+
+                $admins->put('/{admin_id}/preferences', [AdminNotificationPreferenceController::class, 'upsertPreference'])
+                    ->setName('admin.preferences.write');
+
+                $admins->get('/{admin_id}/notifications', [\App\Http\Controllers\AdminNotificationHistoryController::class, 'index'])
+                    ->setName('admin.notifications.history');
+
+                // ─────────────────────────────
+                // Admin Email Control
+                // ─────────────────────────────
+                $admins->get('/{id}/emails', [AdminController::class, 'getEmails'])
+                    ->setName('admin.email.list');
+                $admins->post('/{id}/emails', [AdminController::class, 'addEmail'])
+                    ->setName('admin.email.add');
+            });
+
+            $group->group('/admin-emails', function (RouteCollectorProxy $adminEmails) {
+                $adminEmails->post('/{emailId}/verify', [AdminEmailVerificationController::class, 'verify'])
+                    ->setName('admin.email.verify');
+                $adminEmails->post('/{emailId}/replace', [AdminEmailVerificationController::class, 'replace'])
+                    ->setName('admin.email.replace');
+                $adminEmails->post('/{emailId}/fail', [AdminEmailVerificationController::class, 'fail'])
+                    ->setName('admin.email.fail');
+                $adminEmails->post('/{emailId}/restart-verification', [AdminEmailVerificationController::class, 'restart'])
+                    ->setName('admin.email.restart');
+            });
 
             // ─────────────────────────────
             // Permissions Control
             // ─────────────────────────────
-            $group->post('/permissions/query', [\App\Http\Controllers\Api\PermissionsController::class, '__invoke'])
-                ->setName('permissions.query')
-                ->add(AuthorizationGuardMiddleware::class);
+            $group->group('/permissions', function (RouteCollectorProxy $permissions) {
+                $permissions->post('/query', [\App\Http\Controllers\Api\PermissionsController::class, '__invoke'])
+                    ->setName('permissions.query');
 
-            $group->post('/permissions/{id}/metadata', [\App\Http\Controllers\Api\PermissionMetadataUpdateController::class, '__invoke'])
-                ->setName('permissions.metadata.update')
-                ->add(AuthorizationGuardMiddleware::class);
+                $permissions->post('/{id}/metadata', [\App\Http\Controllers\Api\PermissionMetadataUpdateController::class, '__invoke'])
+                    ->setName('permissions.metadata.update');
+            });
 
             // ─────────────────────────────
             // Roles Control
             // ─────────────────────────────
-            $group->post('/roles/query', [\App\Http\Controllers\Api\Roles\RolesControllerQuery::class, '__invoke'])
-                ->setName('roles.query')
-                ->add(AuthorizationGuardMiddleware::class);
+            $group->group('/roles', function (RouteCollectorProxy $roles) {
+                $roles->post('/query', [\App\Http\Controllers\Api\Roles\RolesControllerQuery::class, '__invoke'])
+                    ->setName('roles.query');
 
-            $group->post('/roles/{id}/metadata', [\App\Http\Controllers\Api\Roles\RoleMetadataUpdateController::class, '__invoke'])
-                ->setName('roles.metadata.update')
-                ->add(AuthorizationGuardMiddleware::class);
+                $roles->post('/{id}/metadata', [\App\Http\Controllers\Api\Roles\RoleMetadataUpdateController::class, '__invoke'])
+                    ->setName('roles.metadata.update');
 
-            $group->post('/roles/{id}/toggle', [\App\Http\Controllers\Api\Roles\RoleToggleController::class, '__invoke'])
-                ->setName('roles.toggle')
-                ->add(AuthorizationGuardMiddleware::class);
+                $roles->post('/{id}/toggle', [\App\Http\Controllers\Api\Roles\RoleToggleController::class, '__invoke'])
+                    ->setName('roles.toggle');
 
-            $group->post('/roles/{id}/rename', [\App\Http\Controllers\Api\Roles\RoleRenameController::class, '__invoke'])
-                ->setName('roles.rename')
-                ->add(AuthorizationGuardMiddleware::class);
+                $roles->post('/{id}/rename', [\App\Http\Controllers\Api\Roles\RoleRenameController::class, '__invoke'])
+                    ->setName('roles.rename');
 
-            $group->post('/roles/create', [\App\Http\Controllers\Api\Roles\RoleCreateController::class, '__invoke'])
-                ->setName('roles.create')
-                ->add(AuthorizationGuardMiddleware::class);
+                $roles->post('/create', [\App\Http\Controllers\Api\Roles\RoleCreateController::class, '__invoke'])
+                    ->setName('roles.create');
+            });
 
-            // Notifications / Admins / Etc.
-            $group->post('/admins/create', [AdminController::class, 'create'])
-                ->setName('admin.create')
-                ->add(AuthorizationGuardMiddleware::class);
-
-            // ─────────────────────────────
-            // Admin Email Control
-            // ─────────────────────────────
-            $group->get('/admins/{id}/emails', [AdminController::class, 'getEmails'])
-                ->setName('admin.email.list')
-                ->add(AuthorizationGuardMiddleware::class);
-            $group->post('/admins/{id}/emails', [AdminController::class, 'addEmail'])
-                ->setName('admin.email.add')
-                ->add(AuthorizationGuardMiddleware::class);
-
-            $group->post('/admin-emails/{emailId}/verify', [AdminEmailVerificationController::class, 'verify'])
-                ->setName('admin.email.verify')
-                ->add(AuthorizationGuardMiddleware::class);
-            $group->post('/admin-emails/{emailId}/replace', [AdminEmailVerificationController::class, 'replace'])
-                ->setName('admin.email.replace')
-                ->add(AuthorizationGuardMiddleware::class);
-            $group->post('/admin-emails/{emailId}/fail', [AdminEmailVerificationController::class, 'fail'])
-                ->setName('admin.email.fail')
-                ->add(AuthorizationGuardMiddleware::class);
-            $group->post('/admin-emails/{emailId}/restart-verification', [AdminEmailVerificationController::class, 'restart'])
-                ->setName('admin.email.restart')
-                ->add(AuthorizationGuardMiddleware::class);
 
             $group->get('/notifications', [NotificationQueryController::class, 'index'])
-                ->setName('notifications.list')
-                ->add(AuthorizationGuardMiddleware::class);
-
-            $group->get('/admins/{admin_id}/preferences', [AdminNotificationPreferenceController::class, 'getPreferences'])
-                ->setName('admin.preferences.read')
-                ->add(AuthorizationGuardMiddleware::class);
-
-            $group->put('/admins/{admin_id}/preferences', [AdminNotificationPreferenceController::class, 'upsertPreference'])
-                ->setName('admin.preferences.write')
-                ->add(AuthorizationGuardMiddleware::class);
-
-            $group->get('/admins/{admin_id}/notifications', [\App\Http\Controllers\AdminNotificationHistoryController::class, 'index'])
-                ->setName('admin.notifications.history')
-                ->add(AuthorizationGuardMiddleware::class);
+                ->setName('notifications.list');
 
             $group->post('/admin/notifications/{id}/read', [\App\Http\Controllers\AdminNotificationReadController::class, 'markAsRead'])
-                ->setName('admin.notifications.read')
-                ->add(AuthorizationGuardMiddleware::class);
+                ->setName('admin.notifications.read');
 
         })
+        ->add(AuthorizationGuardMiddleware::class)
         ->add(\App\Http\Middleware\ScopeGuardMiddleware::class)
         ->add(\App\Http\Middleware\SessionStateGuardMiddleware::class)
         ->add(\App\Http\Middleware\AdminContextMiddleware::class)
