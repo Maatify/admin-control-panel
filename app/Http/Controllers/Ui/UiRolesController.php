@@ -26,9 +26,10 @@ readonly class UiRolesController
 
         $capabilities = [
             'can_create'       => $this->authorizationService->hasPermission($adminId, 'roles.create'),
-            'can_update_meta' => $this->authorizationService->hasPermission($adminId, 'roles.metadata.update'),
-            'can_rename'      => $this->authorizationService->hasPermission($adminId, 'roles.rename'),
-            'can_toggle'      => $this->authorizationService->hasPermission($adminId, 'roles.toggle'),
+            'can_update_meta'  => $this->authorizationService->hasPermission($adminId, 'roles.metadata.update'),
+            'can_rename'       => $this->authorizationService->hasPermission($adminId, 'roles.rename'),
+            'can_toggle'       => $this->authorizationService->hasPermission($adminId, 'roles.toggle'),
+            'can_view_role'    => $this->authorizationService->hasPermission($adminId, 'roles.view'),
         ];
         return $this->view->render($response, 'pages/roles.twig', [
             'capabilities' => $capabilities

@@ -104,7 +104,8 @@ readonly class PDORolesReaderRepository implements RolesReaderRepositoryInterfac
                 r.id,
                 r.name,
                 r.display_name,
-                r.description
+                r.description,
+                r.is_active
             FROM roles r
             {$whereSql}
             ORDER BY
@@ -137,6 +138,7 @@ readonly class PDORolesReaderRepository implements RolesReaderRepositoryInterfac
                 group: $group,
                 display_name: $row['display_name'] !== null ? (string) $row['display_name'] : null,
                 description: $row['description'] !== null ? (string) $row['description'] : null,
+                is_active: (int) $row['is_active'],
             );
         }
 

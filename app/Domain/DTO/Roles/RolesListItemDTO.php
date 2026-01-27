@@ -25,12 +25,13 @@ class RolesListItemDTO implements JsonSerializable
         public string $group,
         public ?string $display_name,
         public ?string $description,
+        public int $is_active,
     )
     {
     }
 
     /**
-     * @return array{id: int, name: string, group: string, display_name: string|null, description: string|null}
+     * @return array{id: int, name: string, group: string, display_name: string|null, description: string|null, is_active: int}
      */
     public function jsonSerialize(): array
     {
@@ -40,6 +41,7 @@ class RolesListItemDTO implements JsonSerializable
             'group'        => $this->group,
             'display_name' => $this->display_name,
             'description'  => $this->description,
+            'is_active' => $this->is_active,
         ];
     }
 }
