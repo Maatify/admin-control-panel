@@ -16,6 +16,7 @@ declare(strict_types=1);
 namespace Tests\Support;
 
 use PDO;
+use PDOException;
 use RuntimeException;
 
 final class MySQLTestHelper
@@ -38,35 +39,12 @@ final class MySQLTestHelper
         }
 
         $host = getenv('DB_HOST');
-
-        if ($host === false || $host === '') {
-             // Fallback to SQLite in-memory
-             self::$pdo = new PDO('sqlite::memory:');
-             self::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-             self::$pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-
-             self::$pdo->sqliteCreateFunction('IF', function ($condition, $true, $false) {
-                 return $condition ? $true : $false;
-             });
-
-             self::$pdo->sqliteCreateFunction('JSON_LENGTH', function ($json) {
-                 if ($json === null || $json === '') {
-                     return null;
-                 }
-                 $data = json_decode($json, true);
-                 return is_array($data) ? count($data) : 0;
-             });
-
-             self::bootstrapDatabase(self::$pdo);
-             return self::$pdo;
-        }
-
         $name = getenv('DB_NAME');
         $user = getenv('DB_USER');
         $pass = getenv('DB_PASS');
 
-        if ($name === false || $user === false) {
-             throw new RuntimeException('Database environment variables are not configured fully (DB_HOST present but others missing).');
+        if ($host === false || $name === false || $user === false) {
+             throw new RuntimeException('Database environment variables (DB_HOST, DB_NAME, DB_USER) are not configured fully.');
         }
 
         $dsn = sprintf(
@@ -85,62 +63,50 @@ final class MySQLTestHelper
             ]
         );
 
+        self::bootstrapDatabase(self::$pdo);
+
         return self::$pdo;
     }
 
     private static function bootstrapDatabase(PDO $pdo): void
     {
-        // Minimal schema for tests
-        $pdo->exec(<<<SQL
-            CREATE TABLE IF NOT EXISTS activity_logs (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                actor_type VARCHAR(32) NOT NULL,
-                actor_id INTEGER NULL,
-                action VARCHAR(128) NOT NULL,
-                entity_type VARCHAR(64) NULL,
-                entity_id INTEGER NULL,
-                metadata TEXT NULL,
-                ip_address VARCHAR(45) NULL,
-                user_agent VARCHAR(255) NULL,
-                request_id VARCHAR(64) NULL,
-                occurred_at DATETIME NOT NULL
-            );
-SQL
-        );
+        $schemaPath = __DIR__ . '/../../database/schema.sql';
+        if (!file_exists($schemaPath)) {
+            throw new RuntimeException('Schema file not found: ' . $schemaPath);
+        }
 
-        $pdo->exec(<<<SQL
-            CREATE TABLE IF NOT EXISTS security_events (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                actor_type VARCHAR(32) NOT NULL CHECK(length(actor_type) <= 32),
-                actor_id INTEGER NULL,
-                event_type VARCHAR(100) NOT NULL,
-                severity VARCHAR(20) NOT NULL,
-                request_id VARCHAR(64) NULL,
-                route_name VARCHAR(255) NULL,
-                ip_address VARCHAR(45) NULL,
-                user_agent TEXT NULL,
-                metadata TEXT NOT NULL,
-                occurred_at DATETIME NOT NULL
-            );
-SQL
-        );
+        $sql = file_get_contents($schemaPath);
+        if ($sql === false) {
+            throw new RuntimeException('Failed to read schema file: ' . $schemaPath);
+        }
 
-        $pdo->exec(<<<SQL
-            CREATE TABLE IF NOT EXISTS telemetry_traces (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                event_key VARCHAR(255) NOT NULL,
-                severity VARCHAR(20) NOT NULL,
-                route_name VARCHAR(255) NULL,
-                request_id VARCHAR(64) NULL,
-                actor_type VARCHAR(32) NOT NULL,
-                actor_id INTEGER NULL,
-                ip_address VARCHAR(45) NULL,
-                user_agent TEXT NULL,
-                metadata TEXT NULL,
-                occurred_at DATETIME NOT NULL
-            );
-SQL
-        );
+        // Remove comments
+        $sql = (string) preg_replace('!/\*.*?\*/!s', '', $sql);
+        $sql = (string) preg_replace('#^\s*--.*$#m', '', $sql);
+
+        $statements = explode(';', $sql);
+
+        // Temporarily disable FK checks to allow dropping/re-creating in any order
+        $pdo->exec('SET FOREIGN_KEY_CHECKS=0');
+
+        foreach ($statements as $statement) {
+            $statement = trim($statement);
+            if ($statement === '') {
+                continue;
+            }
+
+            try {
+                $pdo->exec($statement);
+            } catch (PDOException $e) {
+                throw new RuntimeException(
+                    "SQL Error in bootstrap:\nStatement: $statement\nError: " . $e->getMessage(),
+                    0,
+                    $e
+                );
+            }
+        }
+
+        $pdo->exec('SET FOREIGN_KEY_CHECKS=1');
     }
 
     public static function truncate(string $table): void
@@ -154,14 +120,8 @@ SQL
         }
 
         $pdo = self::pdo();
-        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
-
-        if ($driver === 'sqlite') {
-            $pdo->exec('DELETE FROM ' . $table);
-            // Optional: Reset sequence
-            $pdo->exec("DELETE FROM sqlite_sequence WHERE name='$table'");
-        } else {
-            $pdo->exec('TRUNCATE TABLE ' . $table);
-        }
+        $pdo->exec('SET FOREIGN_KEY_CHECKS=0');
+        $pdo->exec('TRUNCATE TABLE ' . $table);
+        $pdo->exec('SET FOREIGN_KEY_CHECKS=1');
     }
 }
