@@ -84,6 +84,9 @@ final class MySQLTestHelper
         $sql = (string) preg_replace('!/\*.*?\*/!s', '', $sql);
         $sql = (string) preg_replace('#^\s*--.*$#m', '', $sql);
 
+        // Inject IF NOT EXISTS
+        $sql = (string) preg_replace('/CREATE TABLE (?!IF NOT EXISTS)/i', 'CREATE TABLE IF NOT EXISTS ', $sql);
+
         $statements = explode(';', $sql);
 
         // Temporarily disable FK checks to allow dropping/re-creating in any order

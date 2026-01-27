@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Integration;
+namespace Tests\Support;
 
 use App\Bootstrap\Container;
 use DI\Container as DIContainer;
@@ -16,7 +16,7 @@ use Tests\Support\MySQLTestHelper;
 
 use Psr\Container\ContainerInterface;
 
-abstract class UnifiedEndpointTest extends TestCase
+abstract class AbstractUnifiedEndpointTest extends TestCase
 {
     /** @var App<ContainerInterface> */
     protected App $app;
