@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Http;
 
-use Tests\Integration\UnifiedEndpointTest;
+use Tests\Support\UnifiedEndpointBase;
 
-class AdminCreationTest extends UnifiedEndpointTest
+class AdminCreationTest extends UnifiedEndpointBase
 {
     public function test_can_create_admin_with_permission(): void
     {
