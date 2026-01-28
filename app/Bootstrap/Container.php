@@ -41,6 +41,7 @@ use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\Contracts\FailedNotificationRepositoryInterface;
 use App\Domain\Contracts\NotificationReadRepositoryInterface;
 use App\Domain\Contracts\NotificationRoutingInterface;
+use App\Domain\Contracts\PermissionMapperInterface;
 use App\Domain\Contracts\PermissionsMetadataRepositoryInterface;
 use App\Domain\Contracts\PermissionsReaderRepositoryInterface;
 use App\Domain\Contracts\RememberMeRepositoryInterface;
@@ -64,6 +65,7 @@ use App\Domain\Ownership\SystemOwnershipRepositoryInterface;
 use App\Domain\Security\Crypto\CryptoKeyRingConfig;
 use App\Domain\Security\Password\PasswordPepperRing;
 use App\Domain\Security\Password\PasswordPepperRingConfig;
+use App\Domain\Security\PermissionMapper;
 use App\Domain\Service\AdminAuthenticationService;
 use App\Domain\Service\AdminEmailVerificationService;
 use App\Domain\Service\AdminNotificationRoutingService;
@@ -203,7 +205,6 @@ class Container
      * @phpstan-param callable(ContainerBuilder<\DI\Container>): void|null $builderHook
      *
      * @throws Exception
-     *
      */
     public static function create(?callable $builderHook = null): ContainerInterface
     {
@@ -307,17 +308,20 @@ class Container
                 $rolePermissionRepo = $c->get(RolePermissionRepositoryInterface::class);
                 $directPermissionRepo = $c->get(AdminDirectPermissionRepositoryInterface::class);
                 $ownershipRepo = $c->get(SystemOwnershipRepositoryInterface::class);
+                $permissionMapper = $c->get(PermissionMapperInterface::class);
 
                 assert($adminRoleRepo instanceof AdminRoleRepositoryInterface);
                 assert($rolePermissionRepo instanceof RolePermissionRepositoryInterface);
                 assert($directPermissionRepo instanceof AdminDirectPermissionRepositoryInterface);
                 assert($ownershipRepo instanceof SystemOwnershipRepositoryInterface);
+                assert($permissionMapper instanceof PermissionMapperInterface);
 
                 return new AuthorizationService(
                     $adminRoleRepo,
                     $rolePermissionRepo,
                     $directPermissionRepo,
-                    $ownershipRepo
+                    $ownershipRepo,
+                    $permissionMapper
                 );
             },
             Twig::class => function (ContainerInterface $c) {
@@ -1630,6 +1634,10 @@ class Container
                 $recorder = $c->get(\Maatify\SecuritySignals\Recorder\SecuritySignalsRecorder::class);
                 assert($recorder instanceof \Maatify\SecuritySignals\Recorder\SecuritySignalsRecorder);
                 return new \App\Infrastructure\Logging\SecuritySignalsMaatifyAdapter($recorder);
+            },
+
+            PermissionMapperInterface::class => function () {
+                return new PermissionMapper();
             }
 
         ]);

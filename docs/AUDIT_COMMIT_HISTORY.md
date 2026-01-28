@@ -389,6 +389,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(kernel): add container extension hook
 - feat(auth): introduce permission mapping abstraction
 - docs(security): add permission resolution strategy reference
+- refactor(kernel): extract admin routes into mountable provider and clean web entrypoint
 
 ---
 
