@@ -391,6 +391,7 @@ Entries MUST NOT be rewritten or reordered.
 - docs(security): add permission resolution strategy reference
 - refactor(kernel): extract admin routes into mountable provider and clean web entrypoint
 - feat(ui): introduce pluggable UI navigation and asset configuration via DI
+- docs(kernel): define canonical kernel boundaries and extension policy
 
 ---
 
