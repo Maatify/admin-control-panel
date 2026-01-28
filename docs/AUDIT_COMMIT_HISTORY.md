@@ -393,6 +393,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(ui): introduce pluggable UI navigation and asset configuration via DI
 - docs(kernel): define canonical kernel boundaries and extension policy
 - fix(kernel-ui): enforce navigation contract boundaries
+- fix(kernel): delegate HTTP bootstrap outside AdminKernel
 
 ---
 
