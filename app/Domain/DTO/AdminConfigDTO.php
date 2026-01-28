@@ -18,6 +18,7 @@ readonly class AdminConfigDTO
         public ?string $activeKeyId = null,
         public bool $hasCryptoKeyRing = false,
         public bool $hasPasswordPepperRing = false,
+        public string $assetBaseUrl = '/',
     ) {
     }
 }
