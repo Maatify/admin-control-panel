@@ -332,14 +332,14 @@ class Container
                     $permissionMapper
                 );
             },
-            \App\Infrastructure\Ui\NavigationProviderInterface::class => function (ContainerInterface $c) {
+            \App\Domain\Contracts\Ui\NavigationProviderInterface::class => function (ContainerInterface $c) {
                 return new \App\Infrastructure\Ui\DefaultNavigationProvider();
             },
             Twig::class                                               => function (ContainerInterface $c) {
                 $twig = Twig::create(__DIR__ . '/../../templates', ['cache' => false]);
-                $navProvider = $c->get(\App\Infrastructure\Ui\NavigationProviderInterface::class);
+                $navProvider = $c->get(\App\Domain\Contracts\Ui\NavigationProviderInterface::class);
                 $uiConfigDTO = $c->get(UiConfigDTO::class);
-                assert($navProvider instanceof \App\Infrastructure\Ui\NavigationProviderInterface);
+                assert($navProvider instanceof \App\Domain\Contracts\Ui\NavigationProviderInterface);
                 assert($uiConfigDTO instanceof UiConfigDTO);
 
                 $twig->getEnvironment()->addGlobal('nav_items', $navProvider->getNavigationItems());

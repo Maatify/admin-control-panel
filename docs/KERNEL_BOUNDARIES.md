@@ -94,7 +94,7 @@ These components are intentionally designed for host-level customization.
 
 #### Navigation
 - Interface:  
-  `App\Infrastructure\Ui\NavigationProviderInterface`
+  `App\Domain\Contracts\Ui\NavigationProviderInterface`
 - Default Implementation:  
   `App\Infrastructure\Ui\DefaultNavigationProvider`
 
