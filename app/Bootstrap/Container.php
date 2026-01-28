@@ -252,7 +252,8 @@ class Container
             isRecoveryMode: ($_ENV['RECOVERY_MODE'] ?? 'false') === 'true',
             activeKeyId: $cryptoRing->activeKeyId(),
             hasCryptoKeyRing: !empty($cryptoRing->keys()),
-            hasPasswordPepperRing: !empty($passwordPepperConfig->peppers())
+            hasPasswordPepperRing: !empty($passwordPepperConfig->peppers()),
+            assetBaseUrl: $_ENV['ASSET_BASE_URL'] ?? '/'
         );
 
         $totpEnrollmentConfig = new TotpEnrollmentConfig(
@@ -324,8 +325,21 @@ class Container
                     $permissionMapper
                 );
             },
+            \App\Domain\Contracts\Ui\NavigationProviderInterface::class => function (ContainerInterface $c) {
+                return new \App\Infrastructure\Ui\DefaultNavigationProvider();
+            },
             Twig::class => function (ContainerInterface $c) {
-                return Twig::create(__DIR__ . '/../../templates', ['cache' => false]);
+                $twig = Twig::create(__DIR__ . '/../../templates', ['cache' => false]);
+                $navProvider = $c->get(\App\Domain\Contracts\Ui\NavigationProviderInterface::class);
+                $config = $c->get(AdminConfigDTO::class);
+
+                assert($navProvider instanceof \App\Domain\Contracts\Ui\NavigationProviderInterface);
+                assert($config instanceof AdminConfigDTO);
+
+                $twig->getEnvironment()->addGlobal('nav_items', $navProvider->getNavigationItems());
+                $twig->getEnvironment()->addGlobal('asset_base_url', $config->assetBaseUrl);
+
+                return $twig;
             },
             PDO::class => function (ContainerInterface $c) {
                 $config = $c->get(AdminConfigDTO::class);
