@@ -8,14 +8,9 @@ use Slim\App;
 return function (App $app) {
     // Mount the admin routes at the root level (maintaining backward compatibility)
     // This allows the admin panel to work as a standalone application.
-    // In a host application, they can call AdminRoutes::register($app, $container) under a prefix.
+    // In a host application, they can call AdminRoutes::register($app) under a prefix.
 
-    $container = $app->getContainer();
-    if ($container === null) {
-        throw new \RuntimeException('Container not found');
-    }
-
-    AdminRoutes::register($app, $container);
+    AdminRoutes::register($app);
 
     // IMPORTANT:
     // InputNormalizationMiddleware MUST run before validation and guards.

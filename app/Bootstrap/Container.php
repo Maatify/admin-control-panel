@@ -199,9 +199,12 @@ use Slim\Views\Twig;
 class Container
 {
     /**
+     * @param   callable(ContainerBuilder): void|null  $builderHook
+     * @phpstan-param callable(ContainerBuilder<\DI\Container>): void|null $builderHook
+     *
      * @throws Exception
      */
-    public static function create(): ContainerInterface
+    public static function create(?callable $builderHook = null): ContainerInterface
     {
         $containerBuilder = new ContainerBuilder();
 
@@ -1629,6 +1632,10 @@ class Container
             }
 
         ]);
+
+        if ($builderHook !== null) {
+            $builderHook($containerBuilder);
+        }
 
         return $containerBuilder->build();
     }

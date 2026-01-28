@@ -4,30 +4,24 @@ declare(strict_types=1);
 
 namespace App\Http\Routes;
 
-use App\Domain\Service\SessionValidationService;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminEmailVerificationController;
 use App\Http\Controllers\AdminNotificationPreferenceController;
 use App\Http\Controllers\Api\AdminQueryController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NotificationQueryController;
+use App\Http\Middleware\ApiGuestGuardMiddleware;
 use App\Http\Middleware\AuthorizationGuardMiddleware;
-use App\Http\Middleware\GuestGuardMiddleware;
 use App\Http\Middleware\SessionGuardMiddleware;
-use Psr\Container\ContainerInterface;
+use App\Http\Middleware\WebGuestGuardMiddleware;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 
 class AdminRoutes
 {
-    public static function register(RouteCollectorProxyInterface $app, ContainerInterface $container): void
+    public static function register(RouteCollectorProxyInterface $app): void
     {
-        // Instantiate Guest Guards
-        $sessionValidationService = $container->get(SessionValidationService::class);
-        $webGuestGuard = new GuestGuardMiddleware($sessionValidationService, false);
-        $apiGuestGuard = new GuestGuardMiddleware($sessionValidationService, true);
-
         $app->get('/health', function (Request $request, Response $response) {
             $payload = json_encode(['status' => 'ok']);
             $response->getBody()->write((string)$payload);
@@ -37,7 +31,7 @@ class AdminRoutes
         });
 
         // User-facing UI Routes (Clean URLs)
-        $app->group('', function (RouteCollectorProxyInterface $group) use ($webGuestGuard) {
+        $app->group('', function (RouteCollectorProxyInterface $group) {
             // Guest Routes
             $group->group('', function (RouteCollectorProxyInterface $guestGroup) {
                 $guestGroup->get('/login', [\App\Http\Controllers\Ui\UiLoginController::class, 'index']);
@@ -59,7 +53,7 @@ class AdminRoutes
                     '/auth/change-password',
                     [\App\Http\Controllers\Web\ChangePasswordController::class, 'change']
                 );
-            })->add($webGuestGuard);
+            })->add(WebGuestGuardMiddleware::class);
 
             // Step-Up Verification (Session only, no Active check)
             $group->group('', function (RouteCollectorProxyInterface $stepUpGroup) {
@@ -210,10 +204,10 @@ class AdminRoutes
         })->add(\App\Http\Middleware\UiRedirectNormalizationMiddleware::class);
 
         // API Routes (JSON only)
-        $app->group('/api', function (RouteCollectorProxyInterface $api) use ($apiGuestGuard) {
+        $app->group('/api', function (RouteCollectorProxyInterface $api) {
             // Public API
             $api->post('/auth/login', [AuthController::class, 'login'])
-                ->add($apiGuestGuard);
+                ->add(ApiGuestGuardMiddleware::class);
 
             // Step-Up API
             $api->post('/auth/step-up', [\App\Http\Controllers\StepUpController::class, 'verify'])
