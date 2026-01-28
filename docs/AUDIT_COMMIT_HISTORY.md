@@ -387,6 +387,8 @@ Entries MUST NOT be rewritten or reordered.
 - feat(roles-ui): modularize roles page and complete create/rename/toggle flows
 - refactor(routes): normalize API/UI routing structure and enforce authorization
 - feat(kernel): add container extension hook
+- feat(auth): introduce permission mapping abstraction
+- docs(security): add permission resolution strategy reference
 
 ---
 
