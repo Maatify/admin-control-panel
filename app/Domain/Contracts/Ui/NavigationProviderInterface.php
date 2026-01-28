@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Ui;
+namespace App\Domain\Contracts\Ui;
 
 use App\Domain\DTO\Ui\NavigationItemDTO;
 

@@ -16,7 +16,8 @@ To provide your own menu items, implement the interface and bind it in the Conta
 ```php
 namespace App\Host\Ui;
 
-use App\Domain\DTO\Ui\NavigationItemDTO;use App\Infrastructure\Ui\NavigationProviderInterface;
+use App\Domain\DTO\Ui\NavigationItemDTO;
+use App\Domain\Contracts\Ui\NavigationProviderInterface;
 
 class HostNavigationProvider implements NavigationProviderInterface
 {
@@ -35,7 +36,7 @@ class HostNavigationProvider implements NavigationProviderInterface
 ```php
 $container = \App\Bootstrap\Container::create(function (ContainerBuilder $builder) {
     $builder->addDefinitions([
-        \App\Infrastructure\Ui\NavigationProviderInterface::class => \DI\autowire(\App\Host\Ui\HostNavigationProvider::class),
+        \App\Domain\Contracts\Ui\NavigationProviderInterface::class => \DI\autowire(\App\Host\Ui\HostNavigationProvider::class),
     ]);
 });
 ```

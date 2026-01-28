@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Ui;
 
+use App\Domain\Contracts\Ui\NavigationProviderInterface;
 use App\Domain\DTO\Ui\NavigationItemDTO;
 
 class DefaultNavigationProvider implements NavigationProviderInterface
