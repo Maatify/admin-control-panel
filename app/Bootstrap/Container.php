@@ -201,7 +201,7 @@ class Container
     /**
      * @throws Exception
      */
-    public static function create(): ContainerInterface
+    public static function create(?callable $builderHook = null): ContainerInterface
     {
         $containerBuilder = new ContainerBuilder();
 
@@ -1629,6 +1629,11 @@ class Container
             }
 
         ]);
+
+        // Extension Hook: Allow host projects to override/extend bindings
+        if ($builderHook !== null) {
+            $builderHook($containerBuilder);
+        }
 
         return $containerBuilder->build();
     }
