@@ -7,6 +7,7 @@ namespace App\Domain\Service;
 use App\Domain\Contracts\AdminDirectPermissionRepositoryInterface;
 use App\Domain\Contracts\AdminRoleRepositoryInterface;
 use App\Context\RequestContext;
+use App\Domain\Contracts\PermissionMapperInterface;
 use App\Domain\Contracts\RolePermissionRepositoryInterface;
 use App\Domain\Exception\PermissionDeniedException;
 use App\Domain\Exception\UnauthorizedException;
@@ -18,7 +19,8 @@ readonly class AuthorizationService
         private AdminRoleRepositoryInterface $adminRoleRepository,
         private RolePermissionRepositoryInterface $rolePermissionRepository,
         private AdminDirectPermissionRepositoryInterface $directPermissionRepository,
-        private SystemOwnershipRepositoryInterface $systemOwnershipRepository
+        private SystemOwnershipRepositoryInterface $systemOwnershipRepository,
+        private PermissionMapperInterface $permissionMapper,
     ) {
     }
 
@@ -29,6 +31,8 @@ readonly class AuthorizationService
         if ($this->systemOwnershipRepository->isOwner($adminId)) {
             return;
         }
+
+        $permission = $this->permissionMapper->map($permission);
 
         if (!$this->rolePermissionRepository->permissionExists($permission)) {
             throw new UnauthorizedException("Permission '$permission' does not exist.");
@@ -64,6 +68,8 @@ readonly class AuthorizationService
         if ($this->systemOwnershipRepository->isOwner($adminId)) {
             return true;
         }
+
+        $permission = $this->permissionMapper->map($permission);
 
         if (!$this->rolePermissionRepository->permissionExists($permission)) {
             return false;
