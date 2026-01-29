@@ -12,6 +12,18 @@ return function (App $app) {
 
     AdminRoutes::register($app);
 
-    // Note: Middleware registration is handled in app/Bootstrap/http.php for the standalone app.
-    // This file is strictly for Route Registration.
+    // IMPORTANT:
+    // Slim executes middleware in LIFO order (Last Added = First Executed).
+    //
+    // Desired Stack (Outer -> Inner):
+    // 1. RequestId (Infrastructure, generates ID)
+    // 2. RequestContext (Infrastructure, needs ID)
+    // 3. Telemetry (Infrastructure, needs Context)
+    // ... Handler ...
+    //
+    // Therefore, we add them in REVERSE order:
+
+    $app->add(\App\Http\Middleware\HttpRequestTelemetryMiddleware::class);
+    $app->add(\App\Http\Middleware\RequestContextMiddleware::class);
+    $app->add(\App\Http\Middleware\RequestIdMiddleware::class);
 };
