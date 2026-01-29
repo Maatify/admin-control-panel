@@ -6,6 +6,7 @@ namespace App\Bootstrap;
 
 use App\Application\Admin\AdminProfileUpdateService;
 use App\Application\Auth\AdminLoginService;
+use App\Application\Auth\AdminLogoutService;
 use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use App\Application\Crypto\NotificationCryptoServiceInterface;
 use App\Application\Crypto\PasswordCryptoServiceInterface;
@@ -33,7 +34,6 @@ use App\Domain\Contracts\AdminRoleRepositoryInterface;
 use App\Domain\Contracts\AdminSecurityEventReaderInterface;
 use App\Domain\Contracts\AdminSelfAuditReaderInterface;
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
-use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Domain\Contracts\AdminTargetedAuditReaderInterface;
 use App\Domain\Contracts\AdminTotpSecretRepositoryInterface;
 use App\Domain\Contracts\AdminTotpSecretStoreInterface;
@@ -552,15 +552,15 @@ class Container
                 assert($pdo instanceof PDO);
                 return new AdminSessionRepository($pdo);
             },
-            AdminSessionValidationRepositoryInterface::class => function (ContainerInterface $c) {
+            \App\Domain\Contracts\AdminSessionValidationRepositoryInterface::class => function (ContainerInterface $c) {
                 return $c->get(AdminSessionRepositoryInterface::class);
             },
             SessionRevocationService::class => function (ContainerInterface $c) {
-                $repo = $c->get(AdminSessionValidationRepositoryInterface::class);
+                $repo = $c->get(\App\Domain\Contracts\AdminSessionValidationRepositoryInterface::class);
                 $auditWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
                 $pdo = $c->get(PDO::class);
 
-                assert($repo instanceof AdminSessionValidationRepositoryInterface);
+                assert($repo instanceof \App\Domain\Contracts\AdminSessionValidationRepositoryInterface);
                 assert($auditWriter instanceof AuthoritativeSecurityAuditWriterInterface);
                 assert($pdo instanceof PDO);
 
@@ -682,12 +682,12 @@ class Container
             },
             AdminLoginService::class => function (ContainerInterface $c) {
                 $authService = $c->get(AdminAuthenticationService::class);
-                $sessionRepo = $c->get(AdminSessionValidationRepositoryInterface::class);
+                $sessionRepo = $c->get(\App\Domain\Contracts\AdminSessionValidationRepositoryInterface::class);
                 $rememberMeService = $c->get(RememberMeService::class);
                 $cryptoService = $c->get(AdminIdentifierCryptoServiceInterface::class);
 
                 assert($authService instanceof AdminAuthenticationService);
-                assert($sessionRepo instanceof AdminSessionValidationRepositoryInterface);
+                assert($sessionRepo instanceof \App\Domain\Contracts\AdminSessionValidationRepositoryInterface);
                 assert($rememberMeService instanceof RememberMeService);
                 assert($cryptoService instanceof AdminIdentifierCryptoServiceInterface);
 
@@ -704,25 +704,26 @@ class Container
                     $view,
                 );
             },
-            LogoutController::class => function (ContainerInterface $c) {
-                $sessionRepo = $c->get(AdminSessionValidationRepositoryInterface::class);
+            \App\Application\Auth\AdminLogoutService::class => function (ContainerInterface $c) {
+                $sessionRepo = $c->get(\App\Domain\Contracts\AdminSessionValidationRepositoryInterface::class);
                 $rememberMeService = $c->get(RememberMeService::class);
                 $authService = $c->get(AdminAuthenticationService::class);
 
                 // Telemetry
                 $telemetryService = $c->get(\App\Application\Services\DiagnosticsTelemetryService::class);
 
-                assert($sessionRepo instanceof AdminSessionValidationRepositoryInterface);
+                assert($sessionRepo instanceof \App\Domain\Contracts\AdminSessionValidationRepositoryInterface);
                 assert($rememberMeService instanceof RememberMeService);
                 assert($authService instanceof AdminAuthenticationService);
                 assert($telemetryService instanceof \App\Application\Services\DiagnosticsTelemetryService);
 
-                return new LogoutController(
-                    $sessionRepo,
-                    $rememberMeService,
-                    $authService,
-                    $telemetryService
-                );
+                return new AdminLogoutService($sessionRepo, $rememberMeService, $authService, $telemetryService);
+            },
+            LogoutController::class => function (ContainerInterface $c) {
+                $adminLogoutService = $c->get(\App\Application\Auth\AdminLogoutService::class);
+                assert($adminLogoutService instanceof \App\Application\Auth\AdminLogoutService);
+
+                return new LogoutController($adminLogoutService);
             },
             EmailVerificationController::class => function (ContainerInterface $c) {
                 $validator = $c->get(VerificationCodeValidatorInterface::class);
