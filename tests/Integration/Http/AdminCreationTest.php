@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Http;
 
+use App\Domain\Exception\PermissionDeniedException;
 use Tests\Support\UnifiedEndpointBase;
 
 class AdminCreationTest extends UnifiedEndpointBase
@@ -104,7 +105,7 @@ class AdminCreationTest extends UnifiedEndpointBase
         $response = $this->app->handle($request);
 
         // 3. Assert Response (403 Forbidden)
-        $this->assertSame(403, $response->getStatusCode());
+        $this->expectException(PermissionDeniedException::class);
 
         // 4. Assert No New Admin Created
         $stmt = $pdo->query("SELECT COUNT(*) FROM admins");
