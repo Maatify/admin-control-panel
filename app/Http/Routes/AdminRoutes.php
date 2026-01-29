@@ -330,12 +330,9 @@ class AdminRoutes
             // Webhooks
             $app->post('/webhooks/telegram', [\App\Http\Controllers\TelegramWebhookController::class, 'handle']);
         })
-        // NOTE: These middleware are applied in reverse order (LIFO)
-        // Execution: RequestId -> RequestContext -> BodyParsing -> InputNormalization -> RecoveryState -> ...
+        // Middleware applied to the group (LIFO execution: Input -> Recovery)
+        // Note: Infrastructure middleware (RequestId, Context, BodyParsing) must be provided by the Host/Kernel.
         ->add(\App\Http\Middleware\RecoveryStateMiddleware::class)
-        ->add(\App\Modules\InputNormalization\Middleware\InputNormalizationMiddleware::class)
-        ->add(\Slim\Middleware\BodyParsingMiddleware::class)
-        ->add(\App\Http\Middleware\RequestContextMiddleware::class)
-        ->add(\App\Http\Middleware\RequestIdMiddleware::class);
+        ->add(\App\Modules\InputNormalization\Middleware\InputNormalizationMiddleware::class);
     }
 }

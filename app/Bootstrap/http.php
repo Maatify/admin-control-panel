@@ -35,17 +35,30 @@ return function (App $app): void {
         return $response->withHeader('Content-Type', 'application/json');
     };
 
+    // 1️⃣ Register Routes (Inner-most App Logic)
+    $routes = require __DIR__ . '/../../routes/web.php';
+    $routes($app);
+
+    // 2️⃣ Body Parsing (Wraps Routes)
     /**
      * 🔒 REQUIRED — Canonical
      * Enables JSON parsing for application/json
      */
     $app->addBodyParsingMiddleware();
 
+    // 3️⃣ Error Middleware (Wraps BodyParsing, catches parsing errors)
     $errorMiddleware = $app->addErrorMiddleware(
         true,   // displayErrorDetails (dev only)
         false,  // logErrors
         false   // logErrorDetails
     );
+
+    // 4️⃣ Infrastructure Middleware (Wraps Error Middleware)
+    // Execution Order (LIFO): RequestId -> Context -> Telemetry -> Error -> Body -> Routes
+
+    $app->add(\App\Http\Middleware\HttpRequestTelemetryMiddleware::class);
+    $app->add(\App\Http\Middleware\RequestContextMiddleware::class);
+    $app->add(\App\Http\Middleware\RequestIdMiddleware::class);
 
     // 1️⃣ Validation (422)
     $errorMiddleware->setErrorHandler(
@@ -232,7 +245,4 @@ return function (App $app): void {
     );
 
 
-    // Register Routes
-    $routes = require __DIR__ . '/../../routes/web.php';
-    $routes($app);
 };
