@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Service;
 
-use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Context\RequestContext;
 use App\Domain\Contracts\StepUpGrantRepositoryInterface;
 use App\Domain\Contracts\AdminTotpSecretStoreInterface;
 use App\Domain\Contracts\TotpServiceInterface;
-use App\Domain\DTO\AuditEventDTO;
 use App\Domain\DTO\StepUpGrant;
 use App\Domain\DTO\TotpVerificationResultDTO;
 use App\Domain\Enum\Scope;
@@ -23,7 +21,6 @@ readonly class StepUpService
         private StepUpGrantRepositoryInterface $grantRepository,
         private AdminTotpSecretStoreInterface $totpSecretStore,
         private TotpServiceInterface $totpService,
-        private AuthoritativeSecurityAuditWriterInterface $outboxWriter,
         private RecoveryStateService $recoveryState,
         private PDO $pdo
     ) {
@@ -89,24 +86,6 @@ readonly class StepUpService
 
             $this->issuePrimaryGrant($adminId, $token, $context);
 
-            // TODO[AUDIT][NOTE]:
-            // audit_outbox
-            // stepup_enrolled was previously double-written:
-            // 1) Authoritative audit (outbox)
-            // 2) TelemetryAuditLogger -> audit_logs
-            // Telemetry audit must be removed permanently.
-            $this->outboxWriter->write(new AuditEventDTO(
-                $adminId,
-                'stepup_enrolled',
-                'admin',
-                $adminId,
-                'HIGH',
-                ['session_id' => $sessionId],
-                bin2hex(random_bytes(16)),
-                $context->requestId,
-                new DateTimeImmutable()
-            ));
-
             $this->pdo->commit();
         } catch (\Throwable $e) {
             $this->pdo->rollBack();
@@ -131,22 +110,6 @@ readonly class StepUpService
         );
 
         $this->grantRepository->save($grant);
-
-        // TODO[AUDIT][NOTE]:
-        // audit_outbox
-        // stepup_primary_issued was previously double-written
-        // (authoritative outbox + telemetry audit).
-        $this->outboxWriter->write(new AuditEventDTO(
-            $adminId,
-            'stepup_primary_issued',
-            'grant',
-            $adminId,
-            'MEDIUM',
-            ['session_id' => $sessionId, 'scope' => Scope::LOGIN->value],
-            bin2hex(random_bytes(16)),
-            $context->requestId,
-            new DateTimeImmutable()
-        ));
     }
 
     public function issueScopedGrant(int $adminId, string $token, Scope $scope, RequestContext $context): void
@@ -164,50 +127,11 @@ readonly class StepUpService
         );
 
         $this->grantRepository->save($grant);
-
-        // TODO[AUDIT][NOTE]:
-        // audit_outbox
-        // stepup_scoped_issued was previously double-written
-        // (authoritative outbox + telemetry audit).
-        $this->outboxWriter->write(new AuditEventDTO(
-            $adminId,
-            'stepup_scoped_issued',
-            'grant',
-            $adminId,
-            'MEDIUM',
-            ['session_id' => $sessionId, 'scope' => $scope->value],
-            bin2hex(random_bytes(16)),
-            $context->requestId,
-            new DateTimeImmutable()
-        ));
     }
 
     public function logDenial(int $adminId, string $token, Scope $requiredScope, RequestContext $context): void
     {
         $sessionId = hash('sha256', $token);
-
-        // TODO[AUDIT][BLOCKER]:
-        // audit_outbox
-        // stepup_denied was previously logged via TelemetryAuditLogger.
-        // This MUST use Authoritative Audit only.
-        $this->pdo->beginTransaction();
-        try {
-            $this->outboxWriter->write(new AuditEventDTO(
-                $adminId,
-                'stepup_denied',
-                'grant',
-                $adminId,
-                'LOW',
-                ['session_id' => $sessionId, 'required_scope' => $requiredScope->value],
-                bin2hex(random_bytes(16)),
-                $context->requestId,
-                new DateTimeImmutable()
-            ));
-            $this->pdo->commit();
-        } catch (\Throwable $e) {
-            $this->pdo->rollBack();
-            throw $e;
-        }
     }
 
     public function hasGrant(int $adminId, string $token, Scope $scope, RequestContext $context): bool
@@ -225,18 +149,6 @@ readonly class StepUpService
             try {
                 $this->grantRepository->revoke($adminId, $sessionId, $scope);
 
-                $this->outboxWriter->write(new AuditEventDTO(
-                    $adminId,
-                    'stepup_revoked_risk',
-                    'grant',
-                    $adminId,
-                    'HIGH',
-                    ['session_id' => $sessionId, 'scope' => $scope->value],
-                    bin2hex(random_bytes(16)),
-                    $context->requestId,
-                    new DateTimeImmutable()
-                ));
-
                 $this->pdo->commit();
             } catch (\Throwable $e) {
                 $this->pdo->rollBack();
@@ -253,22 +165,6 @@ readonly class StepUpService
             $this->pdo->beginTransaction();
             try {
                 $this->grantRepository->revoke($adminId, $sessionId, $scope);
-
-                // TODO[AUDIT][NOTE]:
-                // audit_outbox
-                // stepup_grant_consumed was previously double-written
-                // (authoritative outbox + telemetry audit).
-                $this->outboxWriter->write(new AuditEventDTO(
-                    $adminId,
-                    'stepup_grant_consumed',
-                    'grant',
-                    $adminId,
-                    'MEDIUM',
-                    ['session_id' => $sessionId, 'scope' => $scope->value],
-                    bin2hex(random_bytes(16)),
-                    $context->requestId,
-                    new DateTimeImmutable()
-                ));
 
                 $this->pdo->commit();
             } catch (\Throwable $e) {

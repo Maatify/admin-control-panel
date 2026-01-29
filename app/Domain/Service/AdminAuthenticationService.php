@@ -9,15 +9,12 @@ use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
 use App\Context\RequestContext;
-use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\DTO\AdminLoginResultDTO;
-use App\Domain\DTO\AuditEventDTO;
 use App\Domain\Enum\VerificationStatus;
 use App\Domain\Exception\AuthStateException;
 use App\Domain\Exception\InvalidCredentialsException;
 use App\Domain\Exception\MustChangePasswordException;
 use App\Infrastructure\Repository\AdminRepository;
-use DateTimeImmutable;
 use PDO;
 
 readonly class AdminAuthenticationService
@@ -26,8 +23,6 @@ readonly class AdminAuthenticationService
         private AdminIdentifierLookupInterface $lookupRepository,
         private AdminPasswordRepositoryInterface $passwordRepository,
         private AdminSessionRepositoryInterface $sessionRepository,
-
-        private AuthoritativeSecurityAuditWriterInterface $outboxWriter,
         private RecoveryStateService $recoveryState,
         private PDO $pdo,
         private PasswordService $passwordService,
@@ -117,28 +112,6 @@ readonly class AdminAuthenticationService
             $identity = $this->adminRepository->getIdentitySnapshot($adminId);
             $this->sessionRepository->storeSessionIdentityByHash($sessionId, $identity);
 
-            // TODO[AUDIT][NOTE]:
-            // audit_outbox
-            // login_credentials_verified was previously double-written:
-            // 1) TelemetryAuditLogger -> audit_logs (non-authoritative, best-effort)
-            // 2) Authoritative audit outbox (correct source of truth)
-            // Telemetry audit MUST NOT be reintroduced.
-            $this->outboxWriter->write(new AuditEventDTO(
-                $adminId,
-                'login_credentials_verified',
-                'admin',
-                $adminId,
-                'LOW',
-                [
-                    'ip_address' => $context->ipAddress,
-                    'user_agent' => $context->userAgent,
-                    'session_id_prefix' => substr($sessionId, 0, 8) . '...',
-                ],
-                bin2hex(random_bytes(16)),
-                $context->requestId,
-                new DateTimeImmutable()
-            ));
-
             $this->pdo->commit();
         } catch (\Throwable $e) {
             $this->pdo->rollBack();
@@ -156,24 +129,6 @@ readonly class AdminAuthenticationService
         $this->pdo->beginTransaction();
         try {
             $this->sessionRepository->revokeSession($token);
-            $sessionId = hash('sha256', $token);
-
-            $this->outboxWriter->write(new AuditEventDTO(
-                $adminId,
-                'session_revoked',
-                'admin',
-                $adminId,
-                'LOW',
-                [
-                    'session_id_prefix' => substr($sessionId, 0, 8) . '...',
-                    'ip_address' => $context->ipAddress,
-                    'user_agent' => $context->userAgent,
-                ],
-                bin2hex(random_bytes(16)),
-                $context->requestId,
-                new DateTimeImmutable()
-            ));
-
             $this->pdo->commit();
         } catch (\Throwable $e) {
             $this->pdo->rollBack();

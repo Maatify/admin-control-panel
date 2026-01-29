@@ -5,19 +5,15 @@ declare(strict_types=1);
 namespace App\Domain\Service;
 
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
-use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Context\RequestContext;
-use App\Domain\DTO\AuditEventDTO;
 use App\Domain\Exception\IdentifierNotFoundException;
 use DomainException;
-use DateTimeImmutable;
 use PDO;
 
 class SessionRevocationService
 {
     public function __construct(
         private AdminSessionValidationRepositoryInterface $repository,
-        private AuthoritativeSecurityAuditWriterInterface $auditWriter,
         private PDO $pdo
     ) {
     }
@@ -32,23 +28,6 @@ class SessionRevocationService
             $sessionId = hash('sha256', $token);
 
             $this->repository->revokeSession($token);
-
-            $this->auditWriter->write(new AuditEventDTO(
-                $actorId,
-                'session_revoked',
-                'session',
-                null,
-                'MEDIUM',
-                [
-                    // Log the Session ID prefix (Safe), NOT the Token prefix
-                    'session_id_prefix' => substr($sessionId, 0, 8) . '...',
-                    'ip_address' => $context->ipAddress,
-                    'reason' => 'explicit_revocation'
-                ],
-                bin2hex(random_bytes(16)),
-                $context->requestId,
-                new DateTimeImmutable()
-            ));
 
             $this->pdo->commit();
         } catch (\Throwable $e) {
@@ -92,23 +71,6 @@ class SessionRevocationService
             $currentSession = $this->repository->findSessionByHash($currentSessionHash);
             $actorId = $currentSession ? (int)$currentSession['admin_id'] : 0;
 
-            $this->auditWriter->write(new AuditEventDTO(
-                $actorId,
-                'sessions_bulk_revoked',
-                'session',
-                null,
-                'MEDIUM',
-                [
-                    'count' => count($validHashes),
-                    'affected_admin_ids' => array_values($affectedAdminIds),
-                    'session_id_prefixes' => array_map(fn($h) => substr($h, 0, 8) . '...', $validHashes),
-                    'ip_address' => $context->ipAddress,
-                ],
-                bin2hex(random_bytes(16)),
-                $context->requestId,
-                new DateTimeImmutable()
-            ));
-
             $this->pdo->commit();
         } catch (\Throwable $e) {
             $this->pdo->rollBack();
@@ -144,29 +106,6 @@ class SessionRevocationService
 
             $this->repository->revokeSessionByHash($targetHash);
 
-            $this->auditWriter->write(new AuditEventDTO(
-                $actorId,
-                'session_revoked',
-                'session',
-                null, // Target ID is null for generic target? Or should we use session ID?
-                // The DB schema for audit_logs has target_type and target_id.
-                // target_id is BIGINT. Session ID is string.
-                // So target_id must be null or something numeric.
-                // We should put details in payload.
-                // However, target_type 'session' implies we should log session ID somewhere.
-                // Previous code passed `null` for target_id.
-                'MEDIUM',
-                [
-                    'revoked_session_id_prefix' => substr($targetHash, 0, 8) . '...',
-                    'target_admin_id' => $targetAdminId,
-                    'ip_address' => $context->ipAddress,
-                    'reason' => 'global_view_revocation'
-                ],
-                bin2hex(random_bytes(16)),
-                $context->requestId,
-                new DateTimeImmutable()
-            ));
-
             $this->pdo->commit();
             return $targetAdminId;
         } catch (\Throwable $e) {
@@ -180,21 +119,6 @@ class SessionRevocationService
         $this->pdo->beginTransaction();
         try {
             $this->repository->revokeAllSessions($adminId);
-
-            $this->auditWriter->write(new AuditEventDTO(
-                $adminId,
-                'all_sessions_revoked',
-                'admin',
-                $adminId,
-                'HIGH',
-                [
-                    'ip_address' => $context->ipAddress,
-                    'reason' => 'bulk_revocation'
-                ],
-                bin2hex(random_bytes(16)),
-                $context->requestId,
-                new DateTimeImmutable()
-            ));
 
             $this->pdo->commit();
         } catch (\Throwable $e) {
@@ -234,25 +158,7 @@ class SessionRevocationService
         $this->repository->revokeSessionsByHash($activeSessionHashes);
 
         // 3️⃣ Audit
-        $this->auditWriter->write(new AuditEventDTO(
-            actor_id: $actorAdminId,
-            action: 'admin_sessions_revoked_due_to_status_change',
-            target_type: 'admin',
-            target_id: $targetAdminId,
-            risk_level: 'HIGH',
-            payload: [
-                'revoked_sessions_count' => count($activeSessionHashes),
-                'session_id_prefixes' => array_map(
-                    fn(string $h) => substr($h, 0, 8) . '...',
-                    $activeSessionHashes
-                ),
-                'reason' => $reason,
-                'ip_address' => $context->ipAddress,
-            ],
-            correlation_id: bin2hex(random_bytes(16)),
-            request_id: $context->requestId,
-            created_at: new DateTimeImmutable()
-        ));
+
 
         return count($activeSessionHashes);
     }

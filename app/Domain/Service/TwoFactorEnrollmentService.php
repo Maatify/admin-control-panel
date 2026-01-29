@@ -18,7 +18,6 @@ use App\Application\Crypto\TotpSecretCryptoServiceInterface;
 use App\Context\RequestContext;
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
 use App\Domain\Contracts\AdminTotpSecretRepositoryInterface;
-use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\Contracts\TotpServiceInterface;
 use App\Domain\DTO\Crypto\EncryptedPayloadDTO;
 use App\Domain\DTO\TotpEnrollmentConfig;
@@ -43,7 +42,6 @@ final class TwoFactorEnrollmentService
         private readonly AdminSessionRepositoryInterface $sessionRepository,
         private readonly TotpServiceInterface $totpService,
         private readonly TotpSecretCryptoServiceInterface $crypto,
-        private readonly AuthoritativeSecurityAuditWriterInterface $auditWriter,
         private readonly TotpEnrollmentConfig $totpEnrollmentConfig,
         private readonly StepUpService $stepUpService,
         private readonly PDO $pdo,
@@ -197,21 +195,6 @@ final class TwoFactorEnrollmentService
             // ✅ Promote current session to ACTIVE by issuing primary Step-Up grant
             // This prevents redirect loop to /2fa/verify after successful enrollment.
             $this->stepUpService->issuePrimaryGrant($adminId, $token, $context);
-
-            // Authoritative audit event
-            $this->auditWriter->write(
-                new \App\Domain\DTO\AuditEventDTO(
-                    actor_id      : $adminId,
-                    action        : 'totp_enrolled',
-                    target_type   : 'admin',
-                    target_id     : $adminId,
-                    risk_level    : 'HIGH',
-                    payload       : [],
-                    correlation_id: $correlationId,
-                    request_id    : $context->requestId,
-                    created_at    : new \DateTimeImmutable()
-                )
-            );
 
             $this->pdo->commit();
         } catch (\Throwable $e) {

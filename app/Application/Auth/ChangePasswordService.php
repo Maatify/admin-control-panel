@@ -20,11 +20,8 @@ use App\Application\Auth\DTO\ChangePasswordResultDTO;
 use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use App\Domain\Contracts\AdminIdentifierLookupInterface;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
-use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
-use App\Domain\DTO\AuditEventDTO;
 use App\Domain\Service\PasswordService;
 use App\Domain\Service\RecoveryStateService;
-use DateTimeImmutable;
 use PDO;
 use Throwable;
 
@@ -36,7 +33,6 @@ final readonly class ChangePasswordService
         private AdminPasswordRepositoryInterface $passwordRepository,
         private PasswordService $passwordService,
         private RecoveryStateService $recoveryState,
-        private AuthoritativeSecurityAuditWriterInterface $auditWriter,
         private PDO $pdo,
     )
     {
@@ -89,19 +85,6 @@ final readonly class ChangePasswordService
             );
 
             // 🧾 Authoritative Audit
-            $this->auditWriter->write(
-                new AuditEventDTO(
-                    $adminId,
-                    'password_changed',
-                    'admin',
-                    $adminId,
-                    'MEDIUM',
-                    [],
-                    bin2hex(random_bytes(16)),
-                    $context->requestId,
-                    new DateTimeImmutable()
-                )
-            );
 
             $this->pdo->commit();
         } catch (Throwable $e) {

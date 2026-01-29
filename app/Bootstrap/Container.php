@@ -31,13 +31,9 @@ use App\Domain\Contracts\AdminNotificationPreferenceWriterInterface;
 use App\Domain\Contracts\AdminNotificationReadMarkerInterface;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
 use App\Domain\Contracts\AdminRoleRepositoryInterface;
-use App\Domain\Contracts\AdminSecurityEventReaderInterface;
-use App\Domain\Contracts\AdminSelfAuditReaderInterface;
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
-use App\Domain\Contracts\AdminTargetedAuditReaderInterface;
 use App\Domain\Contracts\AdminTotpSecretRepositoryInterface;
 use App\Domain\Contracts\AdminTotpSecretStoreInterface;
-use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\Contracts\FailedNotificationRepositoryInterface;
 use App\Domain\Contracts\NotificationReadRepositoryInterface;
 use App\Domain\Contracts\NotificationRoutingInterface;
@@ -53,7 +49,6 @@ use App\Domain\Contracts\Roles\RolesMetadataRepositoryInterface;
 use App\Domain\Contracts\Roles\RolesReaderRepositoryInterface;
 use App\Domain\Contracts\Roles\RoleToggleRepositoryInterface;
 use App\Domain\Contracts\StepUpGrantRepositoryInterface;
-use App\Domain\Contracts\TelemetryAuditLoggerInterface;
 use App\Domain\Contracts\TotpServiceInterface;
 use App\Domain\Contracts\VerificationCodeGeneratorInterface;
 use App\Domain\Contracts\VerificationCodePolicyResolverInterface;
@@ -88,9 +83,6 @@ use App\Http\Controllers\AdminEmailVerificationController;
 use App\Http\Controllers\AdminNotificationHistoryController;
 use App\Http\Controllers\AdminNotificationPreferenceController;
 use App\Http\Controllers\AdminNotificationReadController;
-use App\Http\Controllers\AdminSecurityEventController;
-use App\Http\Controllers\AdminSelfAuditController;
-use App\Http\Controllers\AdminTargetedAuditController;
 use App\Http\Controllers\Api\PermissionMetadataUpdateController;
 use App\Http\Controllers\Api\PermissionsController;
 use App\Http\Controllers\Api\Roles\RoleCreateController;
@@ -123,11 +115,6 @@ use App\Http\Middleware\SessionStateGuardMiddleware;
 use App\Infrastructure\Admin\Reader\PDOAdminBasicInfoReader;
 use App\Infrastructure\Admin\Reader\PDOAdminEmailReader;
 use App\Infrastructure\Admin\Reader\PdoAdminProfileReader;
-use App\Infrastructure\Audit\PdoAdminSecurityEventReader;
-use App\Infrastructure\Audit\PdoAdminSelfAuditReader;
-use App\Infrastructure\Audit\PdoAdminTargetedAuditReader;
-use App\Infrastructure\Audit\PdoAuthoritativeAuditWriter;
-use App\Infrastructure\Audit\PdoTelemetryAuditLogger;
 use App\Infrastructure\Context\ActorContextProvider;
 use App\Infrastructure\Crypto\AdminIdentifierCryptoService;
 use App\Infrastructure\Crypto\NotificationCryptoService;
@@ -420,14 +407,12 @@ class Container
             },
             AdminEmailVerificationService::class => function (ContainerInterface $c) {
                 $repo = $c->get(AdminEmailVerificationRepositoryInterface::class);
-                $auditWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
                 $pdo = $c->get(PDO::class);
 
                 assert($repo instanceof AdminEmailVerificationRepositoryInterface);
-                assert($auditWriter instanceof AuthoritativeSecurityAuditWriterInterface);
                 assert($pdo instanceof PDO);
 
-                return new AdminEmailVerificationService($repo, $auditWriter, $pdo);
+                return new AdminEmailVerificationService($repo, $pdo);
             },
             AdminIdentifierLookupInterface::class => function (ContainerInterface $c) {
                 return $c->get(AdminEmailRepository::class);
@@ -521,7 +506,6 @@ class Container
                 $lookup = $c->get(AdminIdentifierLookupInterface::class);
                 $passwordRepo = $c->get(AdminPasswordRepositoryInterface::class);
                 $sessionRepo = $c->get(AdminSessionRepositoryInterface::class);
-                $outboxWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
                 $recoveryState = $c->get(RecoveryStateService::class);
                 $pdo = $c->get(PDO::class);
                 $passwordService = $c->get(PasswordService::class);
@@ -530,7 +514,6 @@ class Container
                 assert($lookup instanceof AdminIdentifierLookupInterface);
                 assert($passwordRepo instanceof AdminPasswordRepositoryInterface);
                 assert($sessionRepo instanceof AdminSessionRepositoryInterface);
-                assert($outboxWriter instanceof AuthoritativeSecurityAuditWriterInterface);
                 assert($recoveryState instanceof RecoveryStateService);
                 assert($pdo instanceof PDO);
                 assert($passwordService instanceof PasswordService);
@@ -540,7 +523,6 @@ class Container
                     $lookup,
                     $passwordRepo,
                     $sessionRepo,
-                    $outboxWriter,
                     $recoveryState,
                     $pdo,
                     $passwordService,
@@ -557,14 +539,12 @@ class Container
             },
             SessionRevocationService::class => function (ContainerInterface $c) {
                 $repo = $c->get(\App\Domain\Contracts\AdminSessionValidationRepositoryInterface::class);
-                $auditWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
                 $pdo = $c->get(PDO::class);
 
                 assert($repo instanceof \App\Domain\Contracts\AdminSessionValidationRepositoryInterface);
-                assert($auditWriter instanceof AuthoritativeSecurityAuditWriterInterface);
                 assert($pdo instanceof PDO);
 
-                return new SessionRevocationService($repo, $auditWriter, $pdo);
+                return new SessionRevocationService($repo, $pdo);
             },
             RememberMeRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
@@ -616,7 +596,6 @@ class Container
                 $grantRepo = $c->get(StepUpGrantRepositoryInterface::class);
                 $hierarchyComparator = $c->get(RoleHierarchyComparator::class);
                 $adminRoleRepo = $c->get(AdminRoleRepositoryInterface::class);
-                $auditWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
                 $pdo = $c->get(PDO::class);
 
                 assert($recoveryState instanceof RecoveryStateService);
@@ -624,7 +603,6 @@ class Container
                 assert($grantRepo instanceof StepUpGrantRepositoryInterface);
                 assert($hierarchyComparator instanceof RoleHierarchyComparator);
                 assert($adminRoleRepo instanceof AdminRoleRepositoryInterface);
-                assert($auditWriter instanceof AuthoritativeSecurityAuditWriterInterface);
                 assert($pdo instanceof PDO);
 
                 return new RoleAssignmentService(
@@ -633,7 +611,6 @@ class Container
                     $grantRepo,
                     $hierarchyComparator,
                     $adminRoleRepo,
-                    $auditWriter,
                     $pdo
                 );
             },
@@ -641,16 +618,6 @@ class Container
                 return LoggerFactory::create('slim/app');
             },
 
-            TelemetryAuditLoggerInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new PdoTelemetryAuditLogger($pdo);
-            },
-            AuthoritativeSecurityAuditWriterInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new PdoAuthoritativeAuditWriter($pdo);
-            },
             FailedNotificationRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
@@ -731,7 +698,6 @@ class Container
                 $passwordRepo = $c->get(AdminPasswordRepositoryInterface::class);
                 $passwordService = $c->get(PasswordService::class);
                 $recoveryState = $c->get(RecoveryStateService::class);
-                $auditWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
                 $pdo = $c->get(PDO::class);
 
                 assert($cryptoService instanceof AdminIdentifierCryptoServiceInterface);
@@ -739,7 +705,6 @@ class Container
                 assert($passwordRepo instanceof AdminPasswordRepositoryInterface);
                 assert($passwordService instanceof PasswordService);
                 assert($recoveryState instanceof RecoveryStateService);
-                assert($auditWriter instanceof AuthoritativeSecurityAuditWriterInterface);
                 assert($pdo instanceof PDO);
 
                 return new \App\Application\Auth\ChangePasswordService(
@@ -748,7 +713,6 @@ class Container
                     $passwordRepo,
                     $passwordService,
                     $recoveryState,
-                    $auditWriter,
                     $pdo
                 );
             },
@@ -1001,36 +965,6 @@ class Container
                 assert($validationGuard instanceof ValidationGuard);
                 return new AdminEmailVerificationController($service, $repo, $validationGuard);
             },
-            AdminSelfAuditReaderInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new PdoAdminSelfAuditReader($pdo);
-            },
-            AdminTargetedAuditReaderInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new PdoAdminTargetedAuditReader($pdo);
-            },
-            AdminSecurityEventReaderInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new PdoAdminSecurityEventReader($pdo);
-            },
-            AdminSelfAuditController::class => function (ContainerInterface $c) {
-                $selfReader = $c->get(AdminSelfAuditReaderInterface::class);
-                assert($selfReader instanceof AdminSelfAuditReaderInterface);
-                return new AdminSelfAuditController($selfReader);
-            },
-            AdminTargetedAuditController::class => function (ContainerInterface $c) {
-                $targetedReader = $c->get(AdminTargetedAuditReaderInterface::class);
-                assert($targetedReader instanceof AdminTargetedAuditReaderInterface);
-                return new AdminTargetedAuditController($targetedReader);
-            },
-            AdminSecurityEventController::class => function (ContainerInterface $c) {
-                $securityReader = $c->get(AdminSecurityEventReaderInterface::class);
-                assert($securityReader instanceof AdminSecurityEventReaderInterface);
-                return new AdminSecurityEventController($securityReader);
-            },
 
             // Phase 14.3: Sessions
             SessionListReaderInterface::class => function (ContainerInterface $c) {
@@ -1156,15 +1090,12 @@ class Container
                 $grantRepo = $c->get(StepUpGrantRepositoryInterface::class);
                 $totpSecretStore = $c->get(AdminTotpSecretStoreInterface::class);
                 $totpService = $c->get(TotpServiceInterface::class);
-
-                $outboxWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
                 $recoveryState = $c->get(RecoveryStateService::class);
                 $pdo = $c->get(PDO::class);
 
                 assert($grantRepo instanceof StepUpGrantRepositoryInterface);
                 assert($totpSecretStore instanceof AdminTotpSecretStoreInterface);
                 assert($totpService instanceof TotpServiceInterface);
-                assert($outboxWriter instanceof AuthoritativeSecurityAuditWriterInterface);
                 assert($recoveryState instanceof RecoveryStateService);
                 assert($pdo instanceof PDO);
 
@@ -1172,7 +1103,6 @@ class Container
                     $grantRepo,
                     $totpSecretStore,
                     $totpService,
-                    $outboxWriter,
                     $recoveryState,
                     $pdo
                 );
@@ -1227,16 +1157,13 @@ class Container
                 return new VerificationCodeValidator($repo);
             },
             RecoveryStateService::class => function (ContainerInterface $c) {
-                $auditWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
                 $pdo = $c->get(PDO::class);
                 $config = $c->get(AdminConfigDTO::class);
 
-                assert($auditWriter instanceof AuthoritativeSecurityAuditWriterInterface);
                 assert($pdo instanceof PDO);
                 assert($config instanceof AdminConfigDTO);
 
                 return new RecoveryStateService(
-                    $auditWriter,
                     $pdo,
                     $config,
                     $_ENV['EMAIL_BLIND_INDEX_KEY'] // Direct ENV access
@@ -1250,18 +1177,15 @@ class Container
             RememberMeService::class => function (ContainerInterface $c) {
                 $rememberMeRepo = $c->get(RememberMeRepositoryInterface::class);
                 $sessionRepo = $c->get(AdminSessionRepositoryInterface::class);
-                $auditWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
                 $pdo = $c->get(PDO::class);
 
                 assert($rememberMeRepo instanceof RememberMeRepositoryInterface);
                 assert($sessionRepo instanceof AdminSessionRepositoryInterface);
-                assert($auditWriter instanceof AuthoritativeSecurityAuditWriterInterface);
                 assert($pdo instanceof PDO);
 
                 return new RememberMeService(
                     $rememberMeRepo,
                     $sessionRepo,
-                    $auditWriter,
                     $pdo
                 );
             },

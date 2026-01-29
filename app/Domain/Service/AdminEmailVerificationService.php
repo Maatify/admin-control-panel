@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Service;
 
 use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
-use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Context\RequestContext;
-use App\Domain\DTO\AuditEventDTO;
 use App\Domain\Enum\VerificationStatus;
 use App\Domain\Exception\InvalidIdentifierStateException;
 use DateTimeImmutable;
@@ -17,7 +15,6 @@ readonly class AdminEmailVerificationService
 {
     public function __construct(
         private AdminEmailVerificationRepositoryInterface $repository,
-        private AuthoritativeSecurityAuditWriterInterface $auditWriter,
         private PDO $pdo
     ) {
     }
@@ -58,23 +55,6 @@ readonly class AdminEmailVerificationService
         $this->pdo->beginTransaction();
         try {
             $this->repository->markVerified($emailId, (new DateTimeImmutable())->format('Y-m-d H:i:s'));
-
-            $this->auditWriter->write(new AuditEventDTO(
-                $adminId,
-                'identity_verified',
-                'admin',
-                $adminId,
-                'CRITICAL',
-                [
-                    'previous_status' => $currentStatus->value,
-                    'new_status' => VerificationStatus::VERIFIED->value,
-                    'ip_address' => $context->ipAddress,
-                    'user_agent' => $context->userAgent
-                ],
-                bin2hex(random_bytes(16)),
-                $context->requestId,
-                new DateTimeImmutable()
-            ));
 
             $this->pdo->commit();
         } catch (\Throwable $e) {
@@ -223,27 +203,6 @@ readonly class AdminEmailVerificationService
                 VerificationStatus::PENDING =>
                 $this->repository->markPending($emailId),
             };
-
-            $this->auditWriter->write(
-                new AuditEventDTO(
-                    actor_id: $adminId,
-                    action: $auditAction,
-                    target_type: 'admin_email',
-                    target_id: $emailId,
-                    risk_level: $severity,
-                    payload: [
-                        'admin_id'        => $adminId,
-                        'email_id'        => $emailId,
-                        'previous_status' => $from->value,
-                        'new_status'      => $to->value,
-                        'ip_address'      => $context->ipAddress,
-                        'user_agent'      => $context->userAgent,
-                    ],
-                    correlation_id: bin2hex(random_bytes(16)),
-                    request_id: $context->requestId,
-                    created_at: new DateTimeImmutable()
-                )
-            );
 
             $this->pdo->commit();
         } catch (\Throwable $e) {

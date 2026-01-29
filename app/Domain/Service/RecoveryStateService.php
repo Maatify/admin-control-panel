@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Service;
 
-use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\DTO\AdminConfigDTO;
 use App\Context\RequestContext;
-use App\Domain\DTO\AuditEventDTO;
 use App\Domain\Enum\RecoveryTransitionReason;
 use App\Domain\Exception\RecoveryLockException;
-use DateTimeImmutable;
 use PDO;
 use RuntimeException;
 
@@ -39,7 +36,6 @@ class RecoveryStateService
     ];
 
     public function __construct(
-        private AuthoritativeSecurityAuditWriterInterface $auditWriter,
         private PDO $pdo,
         private AdminConfigDTO $config,
         private string $emailBlindIndexKey
@@ -83,7 +79,7 @@ class RecoveryStateService
         }
 
         if (in_array($action, self::BLOCKED_ACTIONS, true)) {
-            $this->handleBlockedAction($action, $actorId, $context);
+            throw new RecoveryLockException("Action '$action' blocked by Recovery-Locked Mode.");
         }
     }
 
@@ -152,20 +148,6 @@ class RecoveryStateService
 
         try {
             // 1. Write Authoritative Audit
-            $this->auditWriter->write(new AuditEventDTO(
-                $actorId,
-                $eventType,
-                'system', // Target Type
-                0,        // Target ID (System)
-                'CRITICAL',
-                [
-                    'reason' => $reason->value,
-                    'target_state' => $targetState
-                ],
-                bin2hex(random_bytes(16)),
-                $context->requestId,
-                new DateTimeImmutable()
-            ));
 
             // 2. Update Persistent State
             $this->writeStoredState($targetState);
@@ -207,43 +189,5 @@ class RecoveryStateService
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindValue(':val', $state);
         $stmt->execute();
-    }
-
-    private function handleBlockedAction(string $action, ?int $actorId, RequestContext $context): void
-    {
-        // 1. Emit Security Event
-
-
-        // 2. Write Authoritative Audit Event (Transactional)
-        $txStarted = false;
-        if (!$this->pdo->inTransaction()) {
-            $this->pdo->beginTransaction();
-            $txStarted = true;
-        }
-
-        try {
-            $this->auditWriter->write(new AuditEventDTO(
-                $actorId ?? 0,
-                'recovery_action_blocked',
-                'system',
-                null,
-                'CRITICAL',
-                ['attempted_action' => $action, 'reason' => 'recovery_locked_mode'],
-                bin2hex(random_bytes(16)),
-                $context->requestId,
-                new DateTimeImmutable()
-            ));
-
-            if ($txStarted) {
-                $this->pdo->commit();
-            }
-        } catch (\Throwable $e) {
-            if ($txStarted) {
-                $this->pdo->rollBack();
-            }
-        }
-
-        // 3. Throw Exception
-        throw new RecoveryLockException("Action '$action' blocked by Recovery-Locked Mode.");
     }
 }

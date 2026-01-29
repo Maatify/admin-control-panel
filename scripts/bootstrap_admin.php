@@ -8,8 +8,6 @@ use App\Infrastructure\Repository\AdminRepository;
 use App\Infrastructure\Repository\AdminEmailRepository;
 use App\Domain\Contracts\AdminPasswordRepositoryInterface;
 use App\Domain\Contracts\TotpServiceInterface;
-use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
-use App\Domain\DTO\AuditEventDTO;
 use App\Domain\DTO\AdminConfigDTO;
 use App\Domain\Service\PasswordService;
 use App\Domain\Ownership\SystemOwnershipRepositoryInterface;
@@ -96,23 +94,23 @@ try {
     $ownershipRepo->assignOwner($adminId);
 
     // 6. Audit
-    $writer = $container->get(AuthoritativeSecurityAuditWriterInterface::class);
-    assert($writer instanceof AuthoritativeSecurityAuditWriterInterface);
+//    $writer = $container->get(AuthoritativeSecurityAuditWriterInterface::class);
+//    assert($writer instanceof AuthoritativeSecurityAuditWriterInterface);
 
     $requestId = Uuid::uuid4()->toString();
     $correlationId = Uuid::uuid4()->toString();
 
-    $writer->write(new AuditEventDTO(
-        actor_id: $adminId,
-        action: 'system_bootstrap',
-        target_type: 'system',
-        target_id: null,
-        risk_level: 'CRITICAL',
-        payload: ['email_hash' => $blindIndex],
-        correlation_id: $correlationId,
-        request_id: $requestId,
-        created_at: new DateTimeImmutable()
-    ));
+//    $writer->write(new AuditEventDTO(
+//        actor_id: $adminId,
+//        action: 'system_bootstrap',
+//        target_type: 'system',
+//        target_id: null,
+//        risk_level: 'CRITICAL',
+//        payload: ['email_hash' => $blindIndex],
+//        correlation_id: $correlationId,
+//        request_id: $requestId,
+//        created_at: new DateTimeImmutable()
+//    ));
 
     $pdo->commit();
     echo "Admin created successfully. ID: $adminId\n";

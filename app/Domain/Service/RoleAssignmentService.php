@@ -5,13 +5,10 @@ declare(strict_types=1);
 namespace App\Domain\Service;
 
 use App\Domain\Contracts\AdminRoleRepositoryInterface;
-use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Context\RequestContext;
 use App\Domain\Contracts\StepUpGrantRepositoryInterface;
-use App\Domain\DTO\AuditEventDTO;
 use App\Domain\Enum\Scope;
 use App\Domain\Exception\PermissionDeniedException;
-use DateTimeImmutable;
 use LogicException;
 use PDO;
 
@@ -23,7 +20,6 @@ class RoleAssignmentService
         private StepUpGrantRepositoryInterface $grantRepository,
         private RoleHierarchyComparator $hierarchyComparator,
         private AdminRoleRepositoryInterface $adminRoleRepository,
-        private AuthoritativeSecurityAuditWriterInterface $auditWriter,
         private PDO $pdo
     ) {
     }
@@ -79,21 +75,6 @@ class RoleAssignmentService
             $this->adminRoleRepository->assign($targetAdminId, $roleId);
 
             // 7. Authoritative Audit (Success)
-            $this->auditWriter->write(new AuditEventDTO(
-                $actorId,
-                'role_assigned',
-                'admin',
-                $targetAdminId,
-                'CRITICAL',
-                [
-                    'role_id' => $roleId,
-                    'session_id' => $sessionId,
-                    'risk_context_hash' => $riskHash
-                ],
-                bin2hex(random_bytes(16)),
-                $context->requestId,
-                new DateTimeImmutable()
-            ));
 
             // 9. Invalidate Step-Up Grants (FIX 1: All grants for Affected Admin)
             $this->grantRepository->revokeAll($targetAdminId);
@@ -122,23 +103,6 @@ class RoleAssignmentService
                 $this->pdo->beginTransaction();
                 $startedTransaction = true;
             }
-
-            $this->auditWriter->write(new AuditEventDTO(
-                $actorId,
-                'role_assignment_denied',
-                'admin',
-                $targetAdminId,
-                'CRITICAL',
-                [
-                    'role_id' => $roleId,
-                    'reason' => $reason,
-                    'scope_security' => $scopeState ? 'present' : 'missing', // FIX 1: Rename key
-                    'hierarchy_result' => $hierarchyResult
-                ],
-                bin2hex(random_bytes(16)),
-                $context->requestId,
-                new DateTimeImmutable()
-            ));
 
             if ($startedTransaction) {
                 $this->pdo->commit();
