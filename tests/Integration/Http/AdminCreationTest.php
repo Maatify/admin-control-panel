@@ -101,10 +101,8 @@ class AdminCreationTest extends UnifiedEndpointBase
         ])
             ->withCookieParams(['auth_token' => $token]);
 
-        $response = $this->app->handle($request);
-
-        // 3. Assert Response (403 Forbidden)
-        $this->assertSame(403, $response->getStatusCode());
+        $this->expectException(\App\Domain\Exception\PermissionDeniedException::class);
+        $this->app->handle($request);
 
         // 4. Assert No New Admin Created
         $stmt = $pdo->query("SELECT COUNT(*) FROM admins");

@@ -19,6 +19,7 @@ class AdminPasswordRepositoryTest extends TestCase
     {
         // Default to real PDO (SQLite) from Helper
         $this->pdo = MySQLTestHelper::pdo();
+        MySQLTestHelper::truncate('admin_passwords');
 
         // Insert dummy admins to satisfy FK constraints
         $this->pdo->exec("INSERT IGNORE INTO admins (id, display_name, status) VALUES (1, 'Admin1', 'ACTIVE')");
