@@ -329,7 +329,22 @@ class Container
                 return new \App\Infrastructure\Ui\DefaultNavigationProvider();
             },
             Twig::class                                               => function (ContainerInterface $c) {
-                $twig = Twig::create(__DIR__ . '/../../templates', ['cache' => false]);
+                $loader = new \Twig\Loader\FilesystemLoader();
+
+                // 1. Host templates (Precedence)
+                if (isset($_ENV['HOST_TEMPLATE_PATH']) && is_dir($_ENV['HOST_TEMPLATE_PATH'])) {
+                    $hostPath = rtrim($_ENV['HOST_TEMPLATE_PATH'], '/');
+                    $loader->addPath($hostPath);         // Main namespace (overrides)
+                    $loader->addPath($hostPath, 'host'); // @host namespace
+                }
+
+                // 2. Kernel templates
+                $kernelPath = __DIR__ . '/../../templates';
+                $loader->addPath($kernelPath);          // Main namespace (fallback)
+                $loader->addPath($kernelPath, 'admin'); // @admin namespace
+
+                $twig = new Twig($loader, ['cache' => false]);
+
                 $navProvider = $c->get(\App\Domain\Contracts\Ui\NavigationProviderInterface::class);
                 $uiConfigDTO = $c->get(UiConfigDTO::class);
 
