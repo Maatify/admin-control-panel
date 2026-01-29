@@ -20,7 +20,7 @@
     {{ parent() }}
 
     {# Inject Host-specific styles #}
-    <link rel="stylesheet" href="{{ ui.adminAssetBaseUrl }}/css/host-branding.css">
+    <link rel="stylesheet" href="{{ asset('css/host-branding.css') }}">
 {% endblock %}
 
 {# 3. Override the 'footer_content' slot #}

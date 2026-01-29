@@ -672,14 +672,14 @@
 
 {% block scripts %}
     {# Load dependencies first #}
-    <script src="{{ ui.adminAssetBaseUrl }}assets/js/callback_handler.js"></script>
-    <script src="{{ ui.adminAssetBaseUrl }}assets/js/useInputChecker.js"></script>
-    <script src="{{ ui.adminAssetBaseUrl }}assets/js/data_table.js"></script>
+    <script src="{{ asset('assets/js/callback_handler.js') }}"></script>
+    <script src="{{ asset('assets/js/useInputChecker.js') }}"></script>
+    <script src="{{ asset('assets/js/data_table.js') }}"></script>
 
     {# Load roles modules in order #}
-    <script src="{{ ui.adminAssetBaseUrl }}assets/js/pages/roles-core.js"></script>
-    <script src="{{ ui.adminAssetBaseUrl }}assets/js/pages/roles-metadata.js"></script>
-    <script src="{{ ui.adminAssetBaseUrl }}assets/js/pages/roles-create-rename-toggle.js"></script>
-    <script src="{{ ui.adminAssetBaseUrl }}assets/js/pages/roles-events.js"></script>
+    <script src="{{ asset('assets/js/pages/roles-core.js') }}"></script>
+    <script src="{{ asset('assets/js/pages/roles-metadata.js') }}"></script>
+    <script src="{{ asset('assets/js/pages/roles-create-rename-toggle.js') }}"></script>
+    <script src="{{ asset('assets/js/pages/roles-events.js') }}"></script>
 
 {% endblock %}

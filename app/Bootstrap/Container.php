@@ -339,6 +339,10 @@ class Container
                 $twig->getEnvironment()->addGlobal('nav_items', $navProvider->getNavigationItems());
                 $twig->getEnvironment()->addGlobal('ui', $uiConfigDTO);
 
+                $twig->getEnvironment()->addFunction(new \Twig\TwigFunction('asset', function (string $path) use ($uiConfigDTO): string {
+                    return rtrim($uiConfigDTO->adminAssetBaseUrl, '/') . '/' . ltrim($path, '/');
+                }));
+
                 return $twig;
             },
 
