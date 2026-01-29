@@ -407,6 +407,7 @@ Entries MUST NOT be rewritten or reordered.
 - refactor(ui): decouple admin UI from fixed paths via UiConfigDTO
 - docs(adr): add ADR-015 for UI extensibility design
 - docs(ui): add UI extensibility Phase 2 design and ADR-015
+- fix(kernel): enforce strict env root ownership for kernel usage
 
 ---
 
