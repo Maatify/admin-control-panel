@@ -242,7 +242,10 @@ class Container
         );
 
         $uiConfigDTO = new UiConfigDTO(
-            adminAssetBaseUrl: $_ENV['ASSET_BASE_URL'] ?? '/'
+            adminAssetBaseUrl: $_ENV['ASSET_BASE_URL'] ?? '/',
+            appName: $_ENV['APP_NAME'] ?? 'Admin Panel',
+            logoUrl: $_ENV['LOGO_URL'] ?? null,
+            adminUrl: $_ENV['ADMIN_URL'] ?? '/',
         );
 
         $totpEnrollmentConfig = new TotpEnrollmentConfig(
@@ -324,14 +327,13 @@ class Container
                 $twig = Twig::create(__DIR__ . '/../../templates', ['cache' => false]);
                 $navProvider = $c->get(\App\Domain\Contracts\Ui\NavigationProviderInterface::class);
                 $uiConfigDTO = $c->get(UiConfigDTO::class);
-                assert($navProvider instanceof \App\Domain\Contracts\Ui\NavigationProviderInterface);
-                assert($uiConfigDTO instanceof UiConfigDTO);
 
                 $twig->getEnvironment()->addGlobal('nav_items', $navProvider->getNavigationItems());
-                $twig->getEnvironment()->addGlobal('asset_base_url', $uiConfigDTO->adminAssetBaseUrl);
+                $twig->getEnvironment()->addGlobal('ui', $uiConfigDTO);
 
                 return $twig;
             },
+
             PDO::class => function (ContainerInterface $c) {
                 $config = $c->get(AdminConfigDTO::class);
                 assert($config instanceof AdminConfigDTO);

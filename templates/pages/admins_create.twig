@@ -1,6 +1,6 @@
 {% extends "layouts/base.twig" %}
 
-{% block title %}Create Admin{% endblock %}
+{% block title %}Create Admin | {{ ui.appName }}{% endblock %}
 
 {% block content %}
     <div class="flex flex-wrap items-center justify-between gap-3">
@@ -9,7 +9,7 @@
         <nav>
             <ol class="flex items-center gap-1.5">
                 <li>
-                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors" href="/dashboard">
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors" href="{{ ui.adminUrl }}dashboard">
                         Home
                         <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none"
                              xmlns="http://www.w3.org/2000/svg">
@@ -21,7 +21,7 @@
                     </a>
                 </li>
                 <li>
-                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors" href="/admins">
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors" href="{{ ui.adminUrl }}admins">
                         Admins
                         <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none"
                              xmlns="http://www.w3.org/2000/svg">
@@ -138,7 +138,7 @@
                             <span>Create Admin</span>
                         </button>
 
-                        <a href="/admins"
+                        <a href="{{ ui.adminUrl }}admins"
                            class="inline-flex items-center gap-2 px-6 py-3 bg-white text-gray-700 border border-gray-300 rounded-lg
                                   hover:bg-gray-50 transition-all duration-200">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
@@ -222,7 +222,7 @@
 
                 <!-- Action Buttons -->
                 <div class="flex items-center gap-3 mt-6 pt-6 border-t border-gray-200">
-                    <a href="/admins"
+                    <a href="{{ ui.adminUrl }}admins"
                        class="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white font-medium rounded-lg
                               hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
@@ -256,5 +256,5 @@
 {% endblock %}
 
 {% block scripts %}
-    <script src="/assets/js/pages/admins_create.js"></script>
+    <script src="{{ ui.adminAssetBaseUrl }}assets/js/pages/admins_create.js"></script>
 {% endblock %}

@@ -403,6 +403,8 @@ Entries MUST NOT be rewritten or reordered.
 - refactor(auth): normalize two-factor setup and verification into application services
 - feat(session-context): add admin identity snapshot & UI dropdown integration
 - refactor(audit): remove legacy audit readers and telemetry logger
+- refactor(kernel-routing): encapsulate mandatory middleware within AdminRoutes
+- refactor(ui): decouple admin UI from fixed paths via UiConfigDTO
 
 ---
 

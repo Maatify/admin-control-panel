@@ -10,7 +10,7 @@
         <nav>
             <ol class="flex items-center gap-1.5">
                 <li>
-                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors" href="/dashboard">
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors" href="{{ ui.adminUrl }}dashboard">
                         Home
                         <svg class="stroke-current" width="17" height="16" viewbox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -18,7 +18,7 @@
                     </a>
                 </li>
                 <li>
-                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors" href="/admins">
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors" href="{{ ui.adminUrl }}admins">
                         Admins
                         <svg class="stroke-current" width="17" height="16" viewbox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -83,7 +83,7 @@
                         </div>
 
                         <!-- Edit Profile Button -->
-                        <a href="/admins/{{ admin.id }}/profile/edit" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md">
+                        <a href="{{ ui.adminUrl }}admins/{{ admin.id }}/profile/edit" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/>
                             </svg>
@@ -181,7 +181,7 @@
                 <div class="px-6 py-4">
                     <ul class="space-y-3">
                         <li>
-                            <a href="/admins/{{ admin.id }}/emails" class="flex items-center justify-between group hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors duration-200">
+                            <a href="{{ ui.adminUrl }}admins/{{ admin.id }}/emails" class="flex items-center justify-between group hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors duration-200">
                                 <span class="text-sm text-gray-700 group-hover:text-blue-600 font-medium">Emails</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-400 group-hover:text-blue-600">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
@@ -206,7 +206,7 @@
                 <div class="px-6 py-4">
                     <ul class="space-y-3">
                         <li>
-                            <a href="/admins/{{ admin.id }}/sessions" class="flex items-center justify-between group hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors duration-200">
+                            <a href="{{ ui.adminUrl }}admins/{{ admin.id }}/sessions" class="flex items-center justify-between group hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors duration-200">
                                 <span class="text-sm text-gray-700 group-hover:text-blue-600 font-medium">Sessions</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-400 group-hover:text-blue-600">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
@@ -231,7 +231,7 @@
                 <div class="px-6 py-4">
                     <ul class="space-y-3">
                         <li>
-                            <a href="/admins/{{ admin.id }}/notifications" class="flex items-center justify-between group hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors duration-200">
+                            <a href="{{ ui.adminUrl }}admins/{{ admin.id }}/notifications" class="flex items-center justify-between group hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors duration-200">
                                 <span class="text-sm text-gray-700 group-hover:text-blue-600 font-medium">Notifications</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-400 group-hover:text-blue-600">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
@@ -246,7 +246,7 @@
 
         <!-- Back Button -->
         <div class="mt-6">
-            <a href="/admins" class="inline-flex items-center gap-2 px-6 py-3 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 shadow-sm">
+            <a href="{{ ui.adminUrl }}admins" class="inline-flex items-center gap-2 px-6 py-3 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
                 </svg>

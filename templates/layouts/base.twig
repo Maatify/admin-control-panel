@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
         {% block title %}
-            Admin Panel
+			{{ ui.appName }}
         {% endblock %}
     </title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100..900;1,100..900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap"
           rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset_base_url }}assets/css/style.css">
+    <link rel="stylesheet" href="{{ ui.adminAssetBaseUrl }}assets/css/style.css">
 
 </head>
 <style>
@@ -157,8 +157,13 @@
 
 <nav class="sidebar fixed top-0 left-0 h-full w-[18%] bg-white text-main flex flex-col py-5 transition-[width] transition-all duration-300 shadow-md z-[1111] [&.collapsed]:w-[5%] [&.collapsed_.li-text]:hidden [&.collapsed_.arrow-icon]:hidden [&.collapsed_.logo]:text-base min-w-[50px] ">
     <div class="logo text-center text-xl font-bold whitespace-nowrap flex items-center justify-center gap-2">
-        <img src="{{ asset_base_url }}assets/images/logo-small.png" alt="logo" class="w-12 h-12 mb-[-10px]  mr-2 ">
-        <span>MyApp</span>
+		<img
+				src="{{ ui.logoUrl ?? (ui.adminAssetBaseUrl ~ 'assets/images/logo-small.png') }}"
+				alt="{{ ui.appName }}"
+				class="w-12 h-12 mb-[-10px] mr-2"
+		/>
+
+		<span>{{ ui.appName }}</span>
         <hr class="mt-6 mb-5 border-gray-200"/>
     </div>
 

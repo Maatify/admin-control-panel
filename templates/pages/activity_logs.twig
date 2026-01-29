@@ -1,6 +1,6 @@
 {% extends "layouts/base.twig" %}
 
-{% block title %}Activity Logs{% endblock %}
+{% block title %}Activity Logs | {{ ui.appName }}{% endblock %}
 
 {% block content %}
     <div class="container mx-auto px-4">
@@ -101,8 +101,8 @@
 {% endblock %}
 
 {% block scripts %}
-    <script src="/assets/js/callback_handler.js"></script>
-    <script src="/assets/js/useInputChecker.js"></script>
-    <script src="/assets/js/data_table.js"></script>
-    <script src="./assets/js/pages/activity_logs.js"></script>
+    <script src="{{ ui.adminAssetBaseUrl }}assets/js/callback_handler.js"></script>
+    <script src="{{ ui.adminAssetBaseUrl }}assets/js/useInputChecker.js"></script>
+    <script src="{{ ui.adminAssetBaseUrl }}assets/js/data_table.js"></script>
+    <script src="{{ ui.adminAssetBaseUrl }}assets/js/pages/activity_logs.js"></script>
 {% endblock %}

@@ -1,6 +1,6 @@
 {% extends "layouts/base.twig" %}
 
-{% block title %}Admins
+{% block title %}Admins | {{ ui.appName }}
 {% endblock %}
 
 {% block content %}
@@ -9,7 +9,7 @@
         <nav>
             <ol class="flex items-center gap-1.5">
                 <li>
-                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500" href="dashboard">
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500" href="{{ ui.adminUrl }}dashboard">
                         Home
                         <svg class="stroke-current" width="17" height="16" viewbox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -75,7 +75,7 @@
                         <button type="button" id="btn-reset" class="text-xs px-4 py-1 bg-white text-gray-600 border border-gray-600 rounded-md hover:bg-gray-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
                             Reset
                         </button>
-                        <a href="/admins/create" class="text-xs px-4 py-1 bg-green-600 text-white rounded-md hover:bg-white hover:text-green-600 border border-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 inline-flex items-center gap-1">
+                        <a href="{{ ui.adminUrl }}admins/create" class="text-xs px-4 py-1 bg-green-600 text-white rounded-md hover:bg-white hover:text-green-600 border border-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 inline-flex items-center gap-1">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                             </svg>
@@ -95,9 +95,9 @@
 {% endblock %}
 
 {% block scripts %}
-    <script src="/assets/js/callback_handler.js"></script>
-    <script src="/assets/js/useInputChecker.js"></script>
-    <script src="/assets/js/data_table.js"></script>
-    <script src="/assets/js/pages/admins-list.js"></script>
+    <script src="{{ ui.adminAssetBaseUrl }}assets/js/callback_handler.js"></script>
+    <script src="{{ ui.adminAssetBaseUrl }}assets/js/useInputChecker.js"></script>
+    <script src="{{ ui.adminAssetBaseUrl }}assets/js/data_table.js"></script>
+    <script src="{{ ui.adminAssetBaseUrl }}assets/js/pages/admins-list.js"></script>
 
 {% endblock %}

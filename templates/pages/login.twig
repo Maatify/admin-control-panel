@@ -1,14 +1,14 @@
 {% extends "layout.twig" %}
 
 
-{% block title %}Login
+{% block title %}Login | {{ ui.appName }}
 {% endblock %}
 
 
 {% block content %}
 
 	<main class="flex justify-center bg-gray-50 h-[100vh] w-[100vw]">
-				<img loading="lazy" src="./assets/images/login-bg.webp" class="w-full h-[100vh] absolute top-0 left-0 z-[0] opacity-50 sm:opacity-25 object-cover object-center" alt="bg">
+				<img loading="lazy" src="{{ ui.adminAssetBaseUrl }}assets/images/login-bg.webp" class="w-full h-[100vh] absolute top-0 left-0 z-[0] opacity-50 sm:opacity-25 object-cover object-center" alt="bg">
 		<div class="w-full max-w-6xl px-4 z-[1] ">
 			<div class="flex justify-center mt-4 mb-6 ">
 				<div
@@ -17,7 +17,7 @@
 					<!-- Left Image -->
 					<div class="flex justify-center hidden sm:flex  h-[700px]">
 						<div class="bg-white shadow-lg rounded-md p-4 flex items-center justify-center">
-							<img loading="lazy" class="  w-[700px]  object-cover object-center rounded-sm" src="./assets/images/login_model.webp" alt="login-model">
+							<img loading="lazy" class="  w-[700px]  object-cover object-center rounded-sm" src="{{ ui.adminAssetBaseUrl }}assets/images/login_model.webp" alt="login-model">
 						</div>
 					</div>
 

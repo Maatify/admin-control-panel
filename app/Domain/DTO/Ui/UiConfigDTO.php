@@ -20,6 +20,9 @@ class UiConfigDTO
     public function __construct(
 
         public string $adminAssetBaseUrl = '/',
+        public string $appName = 'Admin Panel',
+        public ?string $logoUrl = null,
+        public string $adminUrl = '/'
     )
     {
     }
