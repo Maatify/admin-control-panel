@@ -198,7 +198,9 @@ class Container
 
         // Load ENV
         if ($loadEnv) {
-            $rootPath = $rootPath ?? __DIR__ . '/../../';
+            if ($rootPath === null) {
+                throw new \RuntimeException('Kernel cannot load .env without explicit rootPath provided by Host.');
+            }
             $dotenv = Dotenv::createImmutable($rootPath);
             $dotenv->safeLoad();
             $dotenv->required([

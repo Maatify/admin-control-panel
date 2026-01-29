@@ -17,7 +17,8 @@ class AdminKernel
     public static function boot(?callable $builderHook = null): App
     {
         // Create Container (This handles ENV loading and AdminConfigDTO)
-        $container = Container::create($builderHook);
+        // Explicitly pass the local root path for standalone usage to ensure strict Container behavior is satisfied
+        $container = Container::create($builderHook, __DIR__ . '/../../', true);
 
         // Create App
         AppFactory::setContainer($container);
