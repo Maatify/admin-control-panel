@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Http;
 
+use App\Application\Auth\TwoFactorEnrollmentService;
+use App\Application\Auth\TwoFactorVerificationService;
 use App\Application\Services\DiagnosticsTelemetryService;
 use App\Context\AdminContext;
 use App\Context\RequestContext;
@@ -25,8 +27,8 @@ final class UiStepUpFlowTest extends TestCase
     private UiStepUpController $uiController;
     private StepUpService&MockObject $stepUpServiceMock;
     private TotpServiceInterface&MockObject $totpServiceMock;
-    private Twig&MockObject $viewMock;
     private DiagnosticsTelemetryService&MockObject $telemetryServiceMock;
+    private Twig&MockObject $viewMock;
 
     protected function setUp(): void
     {
@@ -34,14 +36,24 @@ final class UiStepUpFlowTest extends TestCase
 
         $this->stepUpServiceMock = $this->createMock(StepUpService::class);
         $this->totpServiceMock = $this->createMock(TotpServiceInterface::class);
-        $this->viewMock = $this->createMock(Twig::class);
         $this->telemetryServiceMock = $this->createMock(DiagnosticsTelemetryService::class);
+        $this->viewMock = $this->createMock(Twig::class);
 
-        $webController = new TwoFactorController(
+        $enrollmentService = new TwoFactorEnrollmentService(
             $this->stepUpServiceMock,
             $this->totpServiceMock,
-            $this->viewMock,
             $this->telemetryServiceMock
+        );
+
+        $verificationService = new TwoFactorVerificationService(
+            $this->stepUpServiceMock,
+            $this->telemetryServiceMock
+        );
+
+        $webController = new TwoFactorController(
+            $enrollmentService,
+            $verificationService,
+            $this->viewMock
         );
 
         $this->uiController = new UiStepUpController($webController);

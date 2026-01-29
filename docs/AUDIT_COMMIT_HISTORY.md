@@ -408,6 +408,7 @@ Entries MUST NOT be rewritten or reordered.
 - docs(adr): add ADR-015 for UI extensibility design
 - docs(ui): add UI extensibility Phase 2 design and ADR-015
 - fix(kernel): enforce strict env root ownership for kernel usage
+- test(logging): align tests with current runtime after logging removal
 
 ---
 
