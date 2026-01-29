@@ -232,7 +232,4 @@ return function (App $app): void {
     );
 
 
-    // Register Routes
-    $routes = require __DIR__ . '/../../routes/web.php';
-    $routes($app);
 };

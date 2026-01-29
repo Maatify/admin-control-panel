@@ -44,7 +44,9 @@ abstract class UnifiedEndpointBase extends TestCase
 
         // 4. Create App
         AppFactory::setContainer($container);
-        $this->app = AppFactory::create();
+        /** @var App<ContainerInterface> $app */
+        $app = AppFactory::create();
+        $this->app = $app;
 
         // 5. Register Middleware & Routes
         $routes = require __DIR__ . '/../../routes/web.php';

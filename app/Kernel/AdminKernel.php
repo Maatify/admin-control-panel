@@ -16,19 +16,11 @@ class AdminKernel
      */
     public static function boot(?callable $builderHook = null): App
     {
-        // Create Container (This handles ENV loading and AdminConfigDTO)
-        // Explicitly pass the local root path for standalone usage to ensure strict Container behavior is satisfied
-        $container = Container::create($builderHook, __DIR__ . '/../../', true);
-
-        // Create App
-        AppFactory::setContainer($container);
-        /** @var App<\Psr\Container\ContainerInterface> $app */
-        $app = AppFactory::create();
-
-        // Delegate HTTP bootstrap logic
-        (require __DIR__ . '/../Bootstrap/http.php')($app);
-
-        return $app;
+        return self::bootWithConfig(
+            __DIR__ . '/../../',
+            true,
+            $builderHook
+        );
     }
 
     /**
@@ -39,8 +31,22 @@ class AdminKernel
      */
     public static function bootWithConfig(?string $rootPath = null, bool $loadEnv = true, ?callable $builderHook = null): App
     {
+        $options = new KernelOptions();
+        $options->rootPath = $rootPath;
+        $options->loadEnv = $loadEnv;
+        $options->builderHook = $builderHook;
+
+        return self::bootWithOptions($options);
+    }
+
+    /**
+     * @param KernelOptions $options
+     * @return App<\Psr\Container\ContainerInterface>
+     */
+    public static function bootWithOptions(KernelOptions $options): App
+    {
         // Create Container (This handles ENV loading and AdminConfigDTO)
-        $container = Container::create($builderHook, $rootPath, $loadEnv);
+        $container = Container::create($options->builderHook, $options->rootPath, $options->loadEnv);
 
         // Create App
         AppFactory::setContainer($container);
@@ -48,7 +54,12 @@ class AdminKernel
         $app = AppFactory::create();
 
         // Delegate HTTP bootstrap logic
-        (require __DIR__ . '/../Bootstrap/http.php')($app);
+        $bootstrap = $options->bootstrap ?? require __DIR__ . '/../Bootstrap/http.php';
+        $bootstrap($app);
+
+        // Register Routes
+        $routes = $options->routes ?? require __DIR__ . '/../../routes/web.php';
+        $routes($app);
 
         return $app;
     }
