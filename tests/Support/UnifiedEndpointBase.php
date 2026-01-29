@@ -31,7 +31,7 @@ abstract class UnifiedEndpointBase extends TestCase
         $this->pdo = MySQLTestHelper::pdo();
 
         // 2. Create Container
-        $container = Container::create();
+        $container = Container::create(null, __DIR__ . '/../../');
 
         // 3. Override PDO in Container to use our shared Test PDO
         // This ensures the App uses the SAME database connection as our tests/assertions.
