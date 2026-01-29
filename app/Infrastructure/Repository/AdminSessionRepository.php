@@ -6,6 +6,7 @@ namespace App\Infrastructure\Repository;
 
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
+use App\Domain\DTO\AdminSessionIdentityDTO;
 use PDO;
 
 class AdminSessionRepository implements AdminSessionRepositoryInterface, AdminSessionValidationRepositoryInterface
@@ -307,5 +308,67 @@ class AdminSessionRepository implements AdminSessionRepositoryInterface, AdminSe
             static fn($v) => is_string($v) && $v !== ''
         ));
     }
+
+
+
+    /* ===========================
+     * Session Identity Snapshot
+     * =========================== */
+
+    public function storeSessionIdentityByHash(string $sessionHash, AdminSessionIdentityDTO $identity): void
+    {
+        $stmt = $this->pdo->prepare("
+            UPDATE admin_sessions
+            SET
+                display_name = ?,
+                avatar_url = ?
+            WHERE session_id = ?
+        ");
+
+        $stmt->execute([
+            $identity->displayName,
+            $identity->avatarUrl,
+            $sessionHash,
+        ]);
+    }
+
+    public function getSessionIdentityByHash(string $sessionHash): ?AdminSessionIdentityDTO
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT display_name, avatar_url
+            FROM admin_sessions
+            WHERE session_id = ?
+              AND is_revoked = 0
+        ");
+        $stmt->execute([$sessionHash]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!is_array($row)) {
+            return null;
+        }
+
+        if (!array_key_exists('display_name', $row) || !is_string($row['display_name'])) {
+            return null;
+        }
+
+        $displayName = trim($row['display_name']);
+        if ($displayName === '') {
+            return null;
+        }
+
+        $avatarUrl = null;
+        if (array_key_exists('avatar_url', $row) && is_string($row['avatar_url'])) {
+            $candidate = trim($row['avatar_url']);
+            if ($candidate !== '') {
+                $avatarUrl = $candidate;
+            }
+        }
+
+        return new AdminSessionIdentityDTO(
+            displayName: $displayName,
+            avatarUrl: $avatarUrl
+        );
+    }
+
 
 }

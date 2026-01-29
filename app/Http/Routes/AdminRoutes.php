@@ -196,6 +196,12 @@ class AdminRoutes
                 $protectedGroup->get('/logout', [\App\Http\Controllers\Web\LogoutController::class, 'logout'])
                     ->setName('auth.logout.web');
             })
+                // NOTE [Slim Middleware Order]:
+                // Slim executes middlewares in LIFO order (last added = first executed).
+                // This ordering is intentional so AdminContextMiddleware runs
+                // BEFORE TwigAdminContextMiddleware, allowing Twig to safely
+                // consume AdminContext and expose `current_admin` as a global.
+            ->add(\App\Http\Middleware\TwigAdminContextMiddleware::class)
             ->add(\App\Http\Middleware\ScopeGuardMiddleware::class)
             ->add(\App\Http\Middleware\SessionStateGuardMiddleware::class)
             ->add(\App\Http\Middleware\AdminContextMiddleware::class)
@@ -308,6 +314,11 @@ class AdminRoutes
                     ->setName('admin.notifications.read');
 
             })
+                // NOTE [Slim Middleware Order]:
+                // Slim executes middlewares in LIFO order (last added = first executed).
+                // This ordering is intentional so AdminContextMiddleware runs
+                // BEFORE TwigAdminContextMiddleware, allowing Twig to safely
+                // consume AdminContext and expose `current_admin` as a global.
             ->add(AuthorizationGuardMiddleware::class)
             ->add(\App\Http\Middleware\ScopeGuardMiddleware::class)
             ->add(\App\Http\Middleware\SessionStateGuardMiddleware::class)

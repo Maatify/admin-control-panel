@@ -401,6 +401,7 @@ Entries MUST NOT be rewritten or reordered.
 - refactor(auth): normalize change-password flow into application service
 - refactor(auth): normalize email verification and resend flows into application services
 - refactor(auth): normalize two-factor setup and verification into application services
+- feat(session-context): add admin identity snapshot & UI dropdown integration
 
 ---
 

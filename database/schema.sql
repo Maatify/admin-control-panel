@@ -46,6 +46,9 @@ CREATE TABLE admins (
 
                         display_name VARCHAR(100) NULL,
 
+                        avatar_url VARCHAR(512) NULL
+                            COMMENT 'Avatar URL for admin profile (source for session snapshot)',
+
                         status ENUM('ACTIVE','SUSPENDED','DISABLED')
                                                   NOT NULL
                             DEFAULT 'ACTIVE',
@@ -104,10 +107,17 @@ CREATE TABLE admin_passwords (
                                  CONSTRAINT fk_ap_admin_id
                                      FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 CREATE TABLE admin_sessions (
                                 session_id VARCHAR(64) PRIMARY KEY,
                                 admin_id INT NOT NULL,
+
+    -- Session Identity Snapshot (UI-only)
+                                display_name VARCHAR(191) NOT NULL
+                                    DEFAULT 'Admin'
+                                    COMMENT 'UI snapshot only; do not rely on for identity logic',
+
+                                avatar_url VARCHAR(512) NULL
+                                    COMMENT 'Avatar URL snapshot at login time (nullable)',
 
                                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                                 expires_at DATETIME NOT NULL,
@@ -127,7 +137,7 @@ CREATE TABLE admin_sessions (
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci
-    COMMENT='Admin authenticated sessions (auth_token-bound) with optional pending TOTP enrollment state';
+    COMMENT='Admin authenticated sessions (auth_token-bound) with identity snapshot and optional pending TOTP enrollment state';
 
 
 CREATE TABLE admin_totp_secrets (

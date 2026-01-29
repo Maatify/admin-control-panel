@@ -5,7 +5,7 @@
  * @Library     maatify/admin-control-panel
  * @Project     maatify:admin-control-panel
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
- * @since       2026-01-12 12:29
+ * @since       2026-01-29 11:22
  * @see         https://www.maatify.dev Maatify.dev
  * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
  * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
@@ -13,14 +13,13 @@
 
 declare(strict_types=1);
 
-namespace App\Context;
+namespace App\Domain\DTO;
 
-final readonly class AdminContext
+final readonly class AdminSessionIdentityDTO
 {
     public function __construct(
-        public int $adminId,
-        public ?string $displayName = null,
-        public ?string $avatarUrl = null,
+        public string $displayName,
+        public ?string $avatarUrl,
     )
     {
     }

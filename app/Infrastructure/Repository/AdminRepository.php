@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Repository;
 
 use App\Domain\Admin\Enum\AdminStatusEnum;
+use App\Domain\DTO\AdminSessionIdentityDTO;
 use PDO;
 
 class AdminRepository
@@ -65,5 +66,45 @@ class AdminRepository
         }
 
         return AdminStatusEnum::from((string) $value);
+    }
+
+
+
+    public function getIdentitySnapshot(int $adminId): AdminSessionIdentityDTO
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT display_name, avatar_url
+            FROM admins
+            WHERE id = ?
+        ");
+        $stmt->execute([$adminId]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!is_array($row)) {
+            throw new \RuntimeException('Admin not found when resolving session identity');
+        }
+
+        $displayName = null;
+        if (array_key_exists('display_name', $row) && is_string($row['display_name'])) {
+            $displayName = trim($row['display_name']);
+        }
+
+        // Fail-closed display name snapshot: لا نسيبها فاضية
+        if ($displayName === null || $displayName === '') {
+            $displayName = 'Admin';
+        }
+
+        $avatarUrl = null;
+        if (array_key_exists('avatar_url', $row) && is_string($row['avatar_url'])) {
+            $candidate = trim($row['avatar_url']);
+            if ($candidate !== '') {
+                $avatarUrl = $candidate;
+            }
+        }
+
+        return new AdminSessionIdentityDTO(
+            displayName: $displayName,
+            avatarUrl: $avatarUrl
+        );
     }
 }

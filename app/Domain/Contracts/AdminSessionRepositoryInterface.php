@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Contracts;
 
+use App\Domain\DTO\AdminSessionIdentityDTO;
+
 interface AdminSessionRepositoryInterface
 {
     public function createSession(int $adminId): string;
@@ -53,4 +55,11 @@ interface AdminSessionRepositoryInterface
     ): void;
 
     public function clearPendingTotpEnrollmentByHash(string $sessionHash): void;
+
+    // ---------------------------
+    // Session Identity Snapshot
+    // ---------------------------
+    public function storeSessionIdentityByHash(string $sessionHash, AdminSessionIdentityDTO $identity): void;
+
+    public function getSessionIdentityByHash(string $sessionHash): ?AdminSessionIdentityDTO;
 }

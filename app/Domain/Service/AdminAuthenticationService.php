@@ -113,6 +113,10 @@ readonly class AdminAuthenticationService
             $token = $this->sessionRepository->createSession($adminId);
             $sessionId = hash('sha256', $token);
 
+            // ✅ Session Identity Snapshot (UI-only)
+            $identity = $this->adminRepository->getIdentitySnapshot($adminId);
+            $this->sessionRepository->storeSessionIdentityByHash($sessionId, $identity);
+
             // TODO[AUDIT][NOTE]:
             // audit_outbox
             // login_credentials_verified was previously double-written:
