@@ -29,4 +29,26 @@ class AdminKernel
 
         return $app;
     }
+
+    /**
+     * @param ?string $rootPath
+     * @param bool $loadEnv
+     * @param callable(mixed): void|null $builderHook
+     * @return App<\Psr\Container\ContainerInterface>
+     */
+    public static function bootWithConfig(?string $rootPath = null, bool $loadEnv = true, ?callable $builderHook = null): App
+    {
+        // Create Container (This handles ENV loading and AdminConfigDTO)
+        $container = Container::create($builderHook, $rootPath, $loadEnv);
+
+        // Create App
+        AppFactory::setContainer($container);
+        /** @var App<\Psr\Container\ContainerInterface> $app */
+        $app = AppFactory::create();
+
+        // Delegate HTTP bootstrap logic
+        (require __DIR__ . '/../Bootstrap/http.php')($app);
+
+        return $app;
+    }
 }

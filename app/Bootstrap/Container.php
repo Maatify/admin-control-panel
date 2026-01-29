@@ -192,36 +192,39 @@ class Container
      *
      * @throws Exception
      */
-    public static function create(?callable $builderHook = null): ContainerInterface
+    public static function create(?callable $builderHook = null, ?string $rootPath = null, bool $loadEnv = true): ContainerInterface
     {
         $containerBuilder = new ContainerBuilder();
 
         // Load ENV
-        $dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
-        $dotenv->safeLoad();
-        $dotenv->required([
-            'APP_ENV',
-            'APP_DEBUG',
-            'DB_HOST',
-            'DB_NAME',
-            'DB_USER',
-            'DB_PASS',
-            'PASSWORD_PEPPERS',
-            'PASSWORD_ACTIVE_PEPPER_ID',
-            'PASSWORD_ARGON2_OPTIONS',
-            'EMAIL_BLIND_INDEX_KEY',
-            'APP_TIMEZONE',
-            'MAIL_HOST',
-            'MAIL_PORT',
-            'MAIL_USERNAME',
-            'MAIL_PASSWORD',
-            'MAIL_FROM_ADDRESS',
-            'MAIL_FROM_NAME',
-            'CRYPTO_KEYS',
-            'CRYPTO_ACTIVE_KEY_ID',
-            'TOTP_ISSUER',
-            'TOTP_ENROLLMENT_TTL_SECONDS',
-        ])->notEmpty();
+        if ($loadEnv) {
+            $rootPath = $rootPath ?? __DIR__ . '/../../';
+            $dotenv = Dotenv::createImmutable($rootPath);
+            $dotenv->safeLoad();
+            $dotenv->required([
+                'APP_ENV',
+                'APP_DEBUG',
+                'DB_HOST',
+                'DB_NAME',
+                'DB_USER',
+                'DB_PASS',
+                'PASSWORD_PEPPERS',
+                'PASSWORD_ACTIVE_PEPPER_ID',
+                'PASSWORD_ARGON2_OPTIONS',
+                'EMAIL_BLIND_INDEX_KEY',
+                'APP_TIMEZONE',
+                'MAIL_HOST',
+                'MAIL_PORT',
+                'MAIL_USERNAME',
+                'MAIL_PASSWORD',
+                'MAIL_FROM_ADDRESS',
+                'MAIL_FROM_NAME',
+                'CRYPTO_KEYS',
+                'CRYPTO_ACTIVE_KEY_ID',
+                'TOTP_ISSUER',
+                'TOTP_ENROLLMENT_TTL_SECONDS',
+            ])->notEmpty();
+        }
 
         $cryptoRing = CryptoKeyRingConfig::fromEnv($_ENV);
         $passwordPepperConfig = PasswordPepperRingConfig::fromEnv($_ENV);
@@ -327,6 +330,9 @@ class Container
                 $twig = Twig::create(__DIR__ . '/../../templates', ['cache' => false]);
                 $navProvider = $c->get(\App\Domain\Contracts\Ui\NavigationProviderInterface::class);
                 $uiConfigDTO = $c->get(UiConfigDTO::class);
+
+                assert($navProvider instanceof \App\Domain\Contracts\Ui\NavigationProviderInterface);
+                assert($uiConfigDTO instanceof UiConfigDTO);
 
                 $twig->getEnvironment()->addGlobal('nav_items', $navProvider->getNavigationItems());
                 $twig->getEnvironment()->addGlobal('ui', $uiConfigDTO);
