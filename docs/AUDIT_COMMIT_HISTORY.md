@@ -412,6 +412,7 @@ Entries MUST NOT be rewritten or reordered.
 - test(schema): ensure clean logging tables state for test bootstrap
 - test(db): execute MySQL schema as-is during test bootstrap
 - fix(kernel): remove middleware duplication and restore kernel-safe wiring
+- test(host): provide explicit rootPath to kernel in integration tests
 
 ---
 
