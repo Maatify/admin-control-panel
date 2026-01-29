@@ -54,10 +54,14 @@ class AdminKernel
         $app = AppFactory::create();
 
         // Delegate HTTP bootstrap logic
+        // If no bootstrap is provided, we use the default internal bootstrap.
+        // This default behavior supports standalone usage but can be overridden by Host Apps.
         $bootstrap = $options->bootstrap ?? require __DIR__ . '/../Bootstrap/http.php';
         $bootstrap($app);
 
         // Register Routes
+        // If no route loader is provided, we use the default web routes.
+        // Host Apps should override this to mount routes under a specific prefix or group.
         $routes = $options->routes ?? require __DIR__ . '/../../routes/web.php';
         $routes($app);
 

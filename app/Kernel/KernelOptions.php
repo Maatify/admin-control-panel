@@ -19,17 +19,17 @@ class KernelOptions
     public bool $loadEnv = true;
 
     /**
-     * @var callable(mixed): void|null
+     * @var (callable(mixed): void)|null
      */
     public $builderHook = null;
 
     /**
-     * @var callable(App<\Psr\Container\ContainerInterface>): void|null
+     * @var (callable(App<\Psr\Container\ContainerInterface>): void)|null
      */
     public $bootstrap = null;
 
     /**
-     * @var callable(App<\Psr\Container\ContainerInterface>): void|null
+     * @var (callable(App<\Psr\Container\ContainerInterface>): void)|null
      */
     public $routes = null;
 }
