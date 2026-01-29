@@ -405,6 +405,7 @@ Entries MUST NOT be rewritten or reordered.
 - refactor(audit): remove legacy audit readers and telemetry logger
 - refactor(kernel-routing): encapsulate mandatory middleware within AdminRoutes
 - refactor(ui): decouple admin UI from fixed paths via UiConfigDTO
+- docs(adr): add ADR-015 for UI extensibility design
 
 ---
 
