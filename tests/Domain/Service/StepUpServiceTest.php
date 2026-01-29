@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Domain\Service;
 
 use App\Context\RequestContext;
-use App\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface;
 use App\Domain\Contracts\StepUpGrantRepositoryInterface;
 use App\Domain\Contracts\AdminTotpSecretStoreInterface;
 use App\Domain\Contracts\TotpServiceInterface;
@@ -23,7 +22,6 @@ class StepUpServiceTest extends TestCase
     private StepUpGrantRepositoryInterface&MockObject $grantRepository;
     private AdminTotpSecretStoreInterface&MockObject $totpSecretStore;
     private TotpServiceInterface&MockObject $totpService;
-    private AuthoritativeSecurityAuditWriterInterface&MockObject $outboxWriter;
     private RecoveryStateService&MockObject $recoveryState;
     private PDO&MockObject $pdo;
 
@@ -34,7 +32,6 @@ class StepUpServiceTest extends TestCase
         $this->grantRepository = $this->createMock(StepUpGrantRepositoryInterface::class);
         $this->totpSecretStore = $this->createMock(AdminTotpSecretStoreInterface::class);
         $this->totpService = $this->createMock(TotpServiceInterface::class);
-        $this->outboxWriter = $this->createMock(AuthoritativeSecurityAuditWriterInterface::class);
         $this->recoveryState = $this->createMock(RecoveryStateService::class);
         $this->pdo = $this->createMock(PDO::class);
 
@@ -47,7 +44,6 @@ class StepUpServiceTest extends TestCase
             $this->grantRepository,
             $this->totpSecretStore,
             $this->totpService,
-            $this->outboxWriter,
             $this->recoveryState,
             $this->pdo
         );
@@ -98,9 +94,6 @@ class StepUpServiceTest extends TestCase
                     && $grant->scope === Scope::LOGIN;
             }));
 
-        $this->outboxWriter->expects($this->once())
-            ->method('write');
-
         $result = $this->service->verifyTotp($adminId, $token, $code, $context);
         $this->assertTrue($result->success);
     }
@@ -134,9 +127,6 @@ class StepUpServiceTest extends TestCase
                     && $grant->sessionId === $expectedSessionId
                     && $grant->scope === $scope;
             }));
-
-        $this->outboxWriter->expects($this->once())
-            ->method('write');
 
         $result = $this->service->verifyTotp($adminId, $token, $code, $context, $scope);
         $this->assertTrue($result->success);

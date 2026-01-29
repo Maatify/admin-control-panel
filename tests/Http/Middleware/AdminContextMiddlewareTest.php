@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Http\Middleware;
 
 use App\Context\AdminContext;
+use App\Domain\Contracts\AdminSessionRepositoryInterface;
 use App\Http\Middleware\AdminContextMiddleware;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
@@ -19,10 +20,14 @@ class AdminContextMiddlewareTest extends TestCase
         $handler = $this->createMock(RequestHandlerInterface::class);
         $response = $this->createMock(ResponseInterface::class);
 
-        $request->expects($this->once())
+        $request->expects($this->any())
             ->method('getAttribute')
-            ->with('admin_id')
-            ->willReturn(101);
+            ->willReturnCallback(function (string $name) {
+                if ($name === 'admin_id') {
+                    return 101;
+                }
+                return null;
+            });
 
         $request->expects($this->once())
             ->method('withAttribute')
@@ -36,7 +41,8 @@ class AdminContextMiddlewareTest extends TestCase
             ->with($request)
             ->willReturn($response);
 
-        $middleware = new AdminContextMiddleware();
+        $sessionRepo = $this->createMock(AdminSessionRepositoryInterface::class);
+        $middleware = new AdminContextMiddleware($sessionRepo);
         $middleware->process($request, $handler);
     }
 
@@ -46,10 +52,14 @@ class AdminContextMiddlewareTest extends TestCase
         $handler = $this->createMock(RequestHandlerInterface::class);
         $response = $this->createMock(ResponseInterface::class);
 
-        $request->expects($this->once())
+        $request->expects($this->any())
             ->method('getAttribute')
-            ->with('admin_id')
-            ->willReturn(null);
+            ->willReturnCallback(function (string $name) {
+                if ($name === 'admin_id') {
+                    return null;
+                }
+                return null;
+            });
 
         $request->expects($this->never())
             ->method('withAttribute');
@@ -59,7 +69,8 @@ class AdminContextMiddlewareTest extends TestCase
             ->with($request)
             ->willReturn($response);
 
-        $middleware = new AdminContextMiddleware();
+        $sessionRepo = $this->createMock(AdminSessionRepositoryInterface::class);
+        $middleware = new AdminContextMiddleware($sessionRepo);
         $middleware->process($request, $handler);
     }
 }

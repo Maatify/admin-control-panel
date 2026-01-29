@@ -80,6 +80,9 @@ class AdminCreationTest extends UnifiedEndpointBase
         // 1. Seed Database (Admin without permission)
         $pdo->exec("INSERT INTO admins (id, display_name, status) VALUES (2, 'Lowly Admin', 'ACTIVE')");
 
+        // Permission (must exist for check to proceed to authorization)
+        $pdo->exec("INSERT INTO permissions (id, name, display_name) VALUES (1, 'admin.create', 'Create Admin')");
+
         // Session
         $token = 'low-priv-token';
         $tokenHash = hash('sha256', $token);

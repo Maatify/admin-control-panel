@@ -6,6 +6,7 @@ namespace Tests\Integration\Context;
 
 use App\Context\AdminContext;
 use App\Context\RequestContext;
+use App\Domain\Contracts\AdminSessionRepositoryInterface;
 use App\Domain\Service\SessionValidationService;
 use App\Http\Middleware\AdminContextMiddleware;
 use App\Http\Middleware\SessionGuardMiddleware;
@@ -25,7 +26,8 @@ final class HttpContextProviderRegressionTest extends TestCase
         $sessionValidationService->method('validate')->willReturn(123);
 
         $sessionGuard = new SessionGuardMiddleware($sessionValidationService);
-        $adminContextMw = new AdminContextMiddleware();
+        $sessionRepo = $this->createMock(AdminSessionRepositoryInterface::class);
+        $adminContextMw = new AdminContextMiddleware($sessionRepo);
 
         // Build request with required prerequisites
         $request = (new ServerRequestFactory())->createServerRequest('GET', '/any-protected-route');
