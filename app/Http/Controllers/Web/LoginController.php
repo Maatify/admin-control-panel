@@ -4,27 +4,21 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
-use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
+use App\Application\Auth\AdminLoginService;
 use App\Context\RequestContext;
-use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Domain\DTO\LoginRequestDTO;
 use App\Domain\Exception\AuthStateException;
 use App\Domain\Exception\InvalidCredentialsException;
 use App\Domain\Exception\MustChangePasswordException;
-use App\Domain\Service\AdminAuthenticationService;
-use App\Domain\Service\RememberMeService;
+use DateTimeImmutable;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
-use DateTimeImmutable;
 
 readonly class LoginController
 {
     public function __construct(
-        private AdminAuthenticationService $authService,
-        private AdminSessionValidationRepositoryInterface $sessionRepository,
-        private RememberMeService $rememberMeService,
-        private AdminIdentifierCryptoServiceInterface $cryptoService,
+        private AdminLoginService $loginService,
         private Twig $view,
     ) {
     }
@@ -35,6 +29,7 @@ readonly class LoginController
         if (!is_string($template)) {
             $template = 'login.twig';
         }
+
         return $this->view->render($response, $template);
     }
 
@@ -46,14 +41,11 @@ readonly class LoginController
         }
 
         $data = $request->getParsedBody();
-        if (!is_array($data) || !isset($data['email']) || !isset($data['password'])) {
-             return $this->view->render($response, $template, ['error' => 'Invalid request']);
+        if (!is_array($data) || !isset($data['email'], $data['password'])) {
+            return $this->view->render($response, $template, ['error' => 'Invalid request']);
         }
 
         $dto = new LoginRequestDTO((string)$data['email'], (string)$data['password']);
-
-        // Blind Index Calculation
-        $blindIndex = $this->cryptoService->deriveEmailBlindIndex($dto->email);
 
         try {
             $requestContext = $request->getAttribute(RequestContext::class);
@@ -61,91 +53,52 @@ readonly class LoginController
                 throw new \RuntimeException('Request Context not present');
             }
 
-            // We get the token.
-            $result = $this->authService->login($blindIndex, $dto->password, $requestContext);
+            $rememberMeRequested = !empty($data['remember_me']);
 
-            $token = $result->token;
+            $result = $this->loginService->login(
+                dto: $dto,
+                requestContext: $requestContext,
+                rememberMeRequested: $rememberMeRequested
+            );
 
-            // Fetch session details to align cookie expiration
-            $session = $this->sessionRepository->findSession($result->token);
-            if ($session === null) {
-                // This should practically not happen immediately after creation
-                throw new InvalidCredentialsException("Session creation failed.");
-            }
-
-            $expiresAt = new DateTimeImmutable($session['expires_at']);
-            $now = new DateTimeImmutable();
-            $maxAge = $expiresAt->getTimestamp() - $now->getTimestamp();
-
-            // Ensure positive Max-Age
-            if ($maxAge < 0) {
-                $maxAge = 0;
-            }
-
-            // Determine Secure flag based on request scheme
+            // Determine Secure flag based on request scheme (HTTP concern)
             $isSecure = $request->getUri()->getScheme() === 'https';
             $secureFlag = $isSecure ? 'Secure;' : '';
 
             $cookieHeader = sprintf(
                 "auth_token=%s; Path=/; HttpOnly; SameSite=Strict; Max-Age=%d; %s",
-                $token,
-                $maxAge,
+                $result->authToken,
+                $result->authTokenMaxAgeSeconds,
                 $secureFlag
             );
-
-            // Trim trailing semicolon/space if not secure
             $cookieHeader = trim($cookieHeader, '; ');
-
             $response = $response->withHeader('Set-Cookie', $cookieHeader);
 
-            // Handle Remember Me
-//            if (isset($data['remember_me']) && $data['remember_me'] === 'on') {
-            if (!empty($data['remember_me'])) {
-                $rememberMeToken = $this->rememberMeService->issue((int)$session['admin_id'], $requestContext);
-
+            if ($result->rememberMeToken !== null) {
                 $rememberMeCookie = sprintf(
                     "remember_me=%s; Path=/; HttpOnly; SameSite=Strict; Max-Age=%d; %s",
-                    $rememberMeToken,
-                    60 * 60 * 24 * 30, // 30 days
+                    $result->rememberMeToken,
+                    60 * 60 * 24 * 30,
                     $secureFlag
                 );
-
                 $response = $response->withAddedHeader('Set-Cookie', $rememberMeCookie);
             }
 
             return $response->withHeader('Location', '/dashboard')->withStatus(302);
-        }
-
-        catch (MustChangePasswordException $e) {
+        } catch (MustChangePasswordException $e) {
             return $response
-                ->withHeader(
-                    'Location',
-                    '/auth/change-password?email=' . urlencode($dto->email)
-                )
+                ->withHeader('Location', '/auth/change-password?email=' . urlencode($dto->email))
                 ->withStatus(302);
-
-        }
-        catch (AuthStateException $e) {
-
+        } catch (AuthStateException $e) {
             if ($e->reason() === AuthStateException::REASON_NOT_VERIFIED) {
                 return $response
-                    ->withHeader(
-                        'Location',
-                        '/verify-email?email=' . urlencode($dto->email)
-                    )
+                    ->withHeader('Location', '/verify-email?email=' . urlencode($dto->email))
                     ->withStatus(302);
             }
 
-            // أي حالة تانية (SUSPENDED / DISABLED)
-            return $this->view->render($response, $template, [
-                'error' => $e->getMessage()
-            ]);
+            return $this->view->render($response, $template, ['error' => $e->getMessage()]);
+        } catch (InvalidCredentialsException $e) {
+            return $this->view->render($response, $template, ['error' => 'Authentication failed.']);
         }
-        catch (InvalidCredentialsException $e) {
-            return $this->view->render($response, $template, [
-                'error' => 'Authentication failed.'
-            ]);
-        }
-
     }
 }

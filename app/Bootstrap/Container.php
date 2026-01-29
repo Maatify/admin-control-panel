@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Bootstrap;
 
 use App\Application\Admin\AdminProfileUpdateService;
+use App\Application\Auth\AdminLoginService;
 use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use App\Application\Crypto\NotificationCryptoServiceInterface;
 use App\Application\Crypto\PasswordCryptoServiceInterface;
@@ -679,27 +680,27 @@ class Container
                     $validationGuard
                 );
             },
-
-            LoginController::class => function (ContainerInterface $c) {
+            AdminLoginService::class => function (ContainerInterface $c) {
                 $authService = $c->get(AdminAuthenticationService::class);
                 $sessionRepo = $c->get(AdminSessionValidationRepositoryInterface::class);
                 $rememberMeService = $c->get(RememberMeService::class);
-                $view = $c->get(Twig::class);
-
-                // NEW: Get crypto service
                 $cryptoService = $c->get(AdminIdentifierCryptoServiceInterface::class);
 
                 assert($authService instanceof AdminAuthenticationService);
                 assert($sessionRepo instanceof AdminSessionValidationRepositoryInterface);
                 assert($rememberMeService instanceof RememberMeService);
-                assert($view instanceof Twig);
                 assert($cryptoService instanceof AdminIdentifierCryptoServiceInterface);
 
+                return new AdminLoginService($authService, $sessionRepo, $rememberMeService, $cryptoService);
+            },
+            LoginController::class => function (ContainerInterface $c) {
+                $adminLoginService = $c->get(AdminLoginService::class);
+                $view = $c->get(Twig::class);
+                assert($adminLoginService instanceof AdminLoginService);
+                assert($view instanceof Twig);
+
                 return new LoginController(
-                    $authService,
-                    $sessionRepo,
-                    $rememberMeService,
-                    $cryptoService, // NEW
+                    $adminLoginService,
                     $view,
                 );
             },

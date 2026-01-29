@@ -396,6 +396,7 @@ Entries MUST NOT be rewritten or reordered.
 - fix(kernel): delegate HTTP bootstrap outside AdminKernel
 - refactor(activity): remove legacy admin activity query layer
 - fix(auth): correctly handle remember-me checkbox submission
+- refactor(auth): extract admin login orchestration into application service
 
 ---
 
