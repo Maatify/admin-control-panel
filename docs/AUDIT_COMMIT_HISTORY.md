@@ -406,6 +406,7 @@ Entries MUST NOT be rewritten or reordered.
 - refactor(kernel-routing): encapsulate mandatory middleware within AdminRoutes
 - refactor(ui): decouple admin UI from fixed paths via UiConfigDTO
 - docs(adr): add ADR-015 for UI extensibility design
+- docs(ui): add UI extensibility Phase 2 design and ADR-015
 
 ---
 

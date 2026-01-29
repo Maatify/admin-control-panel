@@ -1,0 +1,31 @@
+{#
+    EDUCATIONAL EXAMPLE ONLY - NOT LOADED BY RUNTIME
+
+    Scenario:
+    The Host Application wants to customize the main dashboard layout
+    by adding a custom stylesheet and a welcome message, but wants to
+    keep the rest of the Admin Panel structure (sidebar, header, etc.).
+
+    Location:
+    This file would be placed at: <HOST_TEMPLATE_DIR>/layouts/base.twig
+    (This would override the default base.twig, but we extend @admin to inherit it first)
+#}
+
+{# 1. Extend the Kernel's original template using the @admin namespace #}
+{% extends "@admin/layouts/base.twig" %}
+
+{# 2. Override the 'head_css' slot to add custom branding #}
+{% block head_css %}
+    {# Keep the original CSS (Tailwind) #}
+    {{ parent() }}
+
+    {# Inject Host-specific styles #}
+    <link rel="stylesheet" href="{{ ui.adminAssetBaseUrl }}/css/host-branding.css">
+{% endblock %}
+
+{# 3. Override the 'footer_content' slot #}
+{% block footer_content %}
+    <div class="text-center text-sm text-gray-400">
+        &copy; {{ "now"|date("Y") }} My Custom Company | Powered by Maatify
+    </div>
+{% endblock %}

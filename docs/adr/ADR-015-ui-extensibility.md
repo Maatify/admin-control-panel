@@ -172,6 +172,26 @@ Rejected due to:
 
 ---
 
+## 8.1 Design Artifacts (Normative Reference)
+
+This ADR is accompanied by an official, non-executable design document that
+elaborates on the UI extensibility model in practical and conceptual terms.
+
+The following document is considered **normative** for understanding and
+implementing this decision:
+
+- `docs/ui/UI_EXTENSIBILITY_PHASE2.md`
+
+This document:
+- Expands on the three extensibility pillars defined in this ADR
+- Provides illustrative examples (non-runtime) for host developers
+- Does NOT introduce additional requirements beyond this ADR
+
+In case of ambiguity, this ADR remains the source of truth.
+The design document serves as an explanatory and educational companion only.
+
+---
+
 ## 9. Status & Next Steps
 
 * ✅ Design approved conceptually
