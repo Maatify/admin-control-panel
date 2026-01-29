@@ -725,6 +725,42 @@ class Container
 
                 return new LogoutController($adminLogoutService);
             },
+            \App\Application\Auth\ChangePasswordService::class => function (ContainerInterface $c) {
+                $cryptoService = $c->get(AdminIdentifierCryptoServiceInterface::class);
+                $identifierLookup = $c->get(AdminIdentifierLookupInterface::class);
+                $passwordRepo = $c->get(AdminPasswordRepositoryInterface::class);
+                $passwordService = $c->get(PasswordService::class);
+                $recoveryState = $c->get(RecoveryStateService::class);
+                $auditWriter = $c->get(AuthoritativeSecurityAuditWriterInterface::class);
+                $pdo = $c->get(PDO::class);
+
+                assert($cryptoService instanceof AdminIdentifierCryptoServiceInterface);
+                assert($identifierLookup instanceof AdminIdentifierLookupInterface);
+                assert($passwordRepo instanceof AdminPasswordRepositoryInterface);
+                assert($passwordService instanceof PasswordService);
+                assert($recoveryState instanceof RecoveryStateService);
+                assert($auditWriter instanceof AuthoritativeSecurityAuditWriterInterface);
+                assert($pdo instanceof PDO);
+
+                return new \App\Application\Auth\ChangePasswordService(
+                    $cryptoService,
+                    $identifierLookup,
+                    $passwordRepo,
+                    $passwordService,
+                    $recoveryState,
+                    $auditWriter,
+                    $pdo
+                );
+            },
+            \App\Http\Controllers\Web\ChangePasswordController::class => function (ContainerInterface $c) {
+                $view = $c->get(Twig::class);
+                $changePasswordService = $c->get(\App\Application\Auth\ChangePasswordService::class);
+
+                assert($view instanceof Twig);
+                assert($changePasswordService instanceof \App\Application\Auth\ChangePasswordService);
+
+                return new \App\Http\Controllers\Web\ChangePasswordController($view, $changePasswordService);
+            },
             EmailVerificationController::class => function (ContainerInterface $c) {
                 $validator = $c->get(VerificationCodeValidatorInterface::class);
                 $generator = $c->get(VerificationCodeGeneratorInterface::class);
