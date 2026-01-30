@@ -10,8 +10,12 @@ use App\Http\Controllers\AdminNotificationPreferenceController;
 use App\Http\Controllers\Api\AdminQueryController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NotificationQueryController;
+use App\Http\DTO\AdminMiddlewareOptionsDTO;
 use App\Http\Middleware\ApiGuestGuardMiddleware;
 use App\Http\Middleware\AuthorizationGuardMiddleware;
+use App\Http\Middleware\HttpRequestTelemetryMiddleware;
+use App\Http\Middleware\RequestContextMiddleware;
+use App\Http\Middleware\RequestIdMiddleware;
 use App\Http\Middleware\SessionGuardMiddleware;
 use App\Http\Middleware\WebGuestGuardMiddleware;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -23,9 +27,13 @@ class AdminRoutes
     /**
      * @phpstan-param RouteCollectorProxyInterface<\Psr\Container\ContainerInterface|null> $app
      */
-    public static function register(RouteCollectorProxyInterface $app): void
-    {
-        $app->group('', function (RouteCollectorProxyInterface $app) {
+    public static function register(
+        RouteCollectorProxyInterface $app,
+        ?AdminMiddlewareOptionsDTO $options = null
+    ): void {
+        $options ??= new AdminMiddlewareOptionsDTO();
+
+        $group = $app->group('', function (RouteCollectorProxyInterface $app) {
             $app->get('/health', function (Request $request, Response $response) {
                 $payload = json_encode(['status' => 'ok']);
                 $response->getBody()->write((string)$payload);
@@ -329,10 +337,20 @@ class AdminRoutes
 
             // Webhooks
             $app->post('/webhooks/telegram', [\App\Http\Controllers\TelegramWebhookController::class, 'handle']);
-        })
+        });
+
         // Middleware applied to the group (LIFO execution: Input -> Recovery)
-        // Note: Infrastructure middleware (RequestId, Context, BodyParsing) must be provided by the Host/Kernel.
-        ->add(\App\Http\Middleware\RecoveryStateMiddleware::class)
-        ->add(\App\Modules\InputNormalization\Middleware\InputNormalizationMiddleware::class);
+        $group
+            ->add(\App\Http\Middleware\RecoveryStateMiddleware::class)
+            ->add(\App\Modules\InputNormalization\Middleware\InputNormalizationMiddleware::class);
+
+        // Explicit Infrastructure Middleware (Outer Layer)
+        // Execution Order (LIFO): RequestId -> Context -> Telemetry -> Input -> Recovery
+        if ($options->withInfrastructure) {
+            $group
+                ->add(HttpRequestTelemetryMiddleware::class)
+                ->add(RequestContextMiddleware::class)
+                ->add(RequestIdMiddleware::class);
+        }
     }
 }

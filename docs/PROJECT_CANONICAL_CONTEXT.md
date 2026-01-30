@@ -59,26 +59,45 @@ The project is a secure Admin Control Panel built with **PHP 8.2+, Slim 4, PHP-D
 
 ---
 
-### 2. Middleware Pipeline (Observed)
-All protected routes passed through `routes/web.php` groups are observed to follow this sequence:
-1.  `UiRedirectNormalizationMiddleware` (UI only)
-2.  `RememberMeMiddleware`
-3.  `SessionGuardMiddleware` (Identity)
-4.  `SessionStateGuardMiddleware` (State / Step-Up)
-5.  `ScopeGuardMiddleware` (Context)
-6.  `AuthorizationGuardMiddleware` (RBAC)
+### 2. Middleware Pipeline (Observed & Canonical)
+
+The middleware pipeline is now explicitly registered via `AdminRoutes::register()`.
+
+**Canonical Pipeline (Execution Order):**
+
+1.  `RequestIdMiddleware` (Infrastructure - Generates ID)
+2.  `RequestContextMiddleware` (Infrastructure - Initializes Context)
+3.  `HttpRequestTelemetryMiddleware` (Infrastructure - Observability)
+4.  `InputNormalizationMiddleware` (Canonical Boundary - Sanitizes Input)
+5.  `RecoveryStateMiddleware` (System State - Checks Recovery Mode)
+6.  `UiRedirectNormalizationMiddleware` (UI only - Error Redirection)
+7.  `RememberMeMiddleware` (Auth - Cookie persistence)
+8.  `SessionGuardMiddleware` (Identity - Loads Admin)
+9.  `AdminContextMiddleware` (Context - Hydrates Request Attribute)
+10. `SessionStateGuardMiddleware` (State - Enforces Step-Up)
+11. `ScopeGuardMiddleware` (Context - Enforces Scope)
+12. `AuthorizationGuardMiddleware` (RBAC - Enforces Permissions)
+
+**Host Application Integration:**
+
+Host applications MUST use `AdminRoutes::register($app)` to mount the Admin Panel.
+This method accepts an optional `AdminMiddlewareOptionsDTO` to control the infrastructure middleware stack.
+
+```php
+AdminRoutes::register($app, new AdminMiddlewareOptionsDTO(
+    withInfrastructure: true // Default: Registers RequestId/Context/Telemetry
+));
+```
+
+This ensures that the canonical middleware pipeline is always applied correctly, preventing unintentional omissions.
 
 **Execution Model Note:**
 
 The middleware pipeline follows Slim’s **LIFO (Last-In-First-Out)** execution model.
+Middleware is registered in reverse order of the list above.
 
-This guarantees:
-
-* `RequestIdMiddleware` runs BEFORE `RequestContextMiddleware`
-* `SessionGuardMiddleware` runs BEFORE `AdminContextMiddleware`
-
-Middleware order MUST be evaluated based on execution order,
-not registration order.
+* `RequestIdMiddleware` is added LAST (runs FIRST).
+* `AuthorizationGuardMiddleware` is added EARLY (runs LAST before controller).
 ---
 
 ### 2.1 Internal Context Plumbing (LOCKED)
