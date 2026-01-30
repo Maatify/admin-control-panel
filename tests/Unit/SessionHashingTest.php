@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
+use App\Domain\Contracts\ClockInterface;
 use App\Infrastructure\Repository\AdminSessionRepository;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -13,12 +14,15 @@ use PDOStatement;
 class SessionHashingTest extends TestCase
 {
     private PDO&MockObject $pdo;
+    private ClockInterface&MockObject $clock;
     private AdminSessionRepository $repository;
 
     protected function setUp(): void
     {
         $this->pdo = $this->createMock(PDO::class);
-        $this->repository = new AdminSessionRepository($this->pdo);
+        $this->clock = $this->createMock(ClockInterface::class);
+        $this->clock->method('now')->willReturn(new \DateTimeImmutable('2024-01-01 00:00:00'));
+        $this->repository = new AdminSessionRepository($this->pdo, $this->clock);
     }
 
     public function testCreateSessionStoresHash(): void

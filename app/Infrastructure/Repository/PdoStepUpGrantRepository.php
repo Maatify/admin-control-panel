@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Repository;
 
+use App\Domain\Contracts\ClockInterface;
 use App\Domain\Contracts\StepUpGrantRepositoryInterface;
 use App\Domain\DTO\StepUpGrant;
 use App\Domain\Enum\Scope;
@@ -13,10 +14,12 @@ use PDO;
 class PdoStepUpGrantRepository implements StepUpGrantRepositoryInterface
 {
     private PDO $pdo;
+    private ClockInterface $clock;
 
-    public function __construct(PDO $pdo)
+    public function __construct(PDO $pdo, ClockInterface $clock)
     {
         $this->pdo = $pdo;
+        $this->clock = $clock;
     }
 
     public function save(StepUpGrant $grant): void
@@ -82,8 +85,8 @@ class PdoStepUpGrantRepository implements StepUpGrantRepositoryInterface
             (string)$result['session_id'],
             Scope::from((string)$result['scope']),
             (string)$result['risk_context_hash'],
-            new DateTimeImmutable((string)$result['issued_at']),
-            new DateTimeImmutable((string)$result['expires_at']),
+            new DateTimeImmutable((string)$result['issued_at'], $this->clock->getTimezone()),
+            new DateTimeImmutable((string)$result['expires_at'], $this->clock->getTimezone()),
             (bool)$result['single_use'],
             (array)$contextSnapshot
         );

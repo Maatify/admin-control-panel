@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Domain\Service;
 
 use App\Context\RequestContext;
+use App\Domain\Contracts\ClockInterface;
 use App\Domain\Contracts\StepUpGrantRepositoryInterface;
 use App\Domain\Contracts\AdminTotpSecretStoreInterface;
 use App\Domain\Contracts\TotpServiceInterface;
@@ -24,6 +25,7 @@ class StepUpServiceTest extends TestCase
     private TotpServiceInterface&MockObject $totpService;
     private RecoveryStateService&MockObject $recoveryState;
     private PDO&MockObject $pdo;
+    private ClockInterface&MockObject $clock;
 
     private StepUpService $service;
 
@@ -34,6 +36,10 @@ class StepUpServiceTest extends TestCase
         $this->totpService = $this->createMock(TotpServiceInterface::class);
         $this->recoveryState = $this->createMock(RecoveryStateService::class);
         $this->pdo = $this->createMock(PDO::class);
+        $this->clock = $this->createMock(ClockInterface::class);
+
+        // Default clock behavior
+        $this->clock->method('now')->willReturn(new DateTimeImmutable());
 
         // PDO transaction stubs
         $this->pdo->method('beginTransaction')->willReturn(true);
@@ -45,7 +51,8 @@ class StepUpServiceTest extends TestCase
             $this->totpSecretStore,
             $this->totpService,
             $this->recoveryState,
-            $this->pdo
+            $this->pdo,
+            $this->clock
         );
     }
 

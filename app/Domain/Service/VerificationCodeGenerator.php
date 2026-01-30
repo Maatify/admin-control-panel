@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Service;
 
+use App\Domain\Contracts\ClockInterface;
 use App\Domain\Contracts\VerificationCodeGeneratorInterface;
 use App\Domain\Contracts\VerificationCodePolicyResolverInterface;
 use App\Domain\Contracts\VerificationCodeRepositoryInterface;
@@ -20,7 +21,8 @@ class VerificationCodeGenerator implements VerificationCodeGeneratorInterface
 {
     public function __construct(
         private VerificationCodeRepositoryInterface $repository,
-        private VerificationCodePolicyResolverInterface $policyResolver
+        private VerificationCodePolicyResolverInterface $policyResolver,
+        private ClockInterface $clock
     ) {
     }
 
@@ -43,7 +45,7 @@ class VerificationCodeGenerator implements VerificationCodeGeneratorInterface
         $codeHash = hash('sha256', $plainCode);
 
         // 5. Create Entity
-        $now = new DateTimeImmutable();
+        $now = $this->clock->now();
         $expiresAt = $now->modify("+{$policy->ttlSeconds} seconds");
 
         $entity = new VerificationCode(

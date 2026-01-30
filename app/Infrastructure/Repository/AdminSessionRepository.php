@@ -6,16 +6,19 @@ namespace App\Infrastructure\Repository;
 
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
+use App\Domain\Contracts\ClockInterface;
 use App\Domain\DTO\AdminSessionIdentityDTO;
 use PDO;
 
 class AdminSessionRepository implements AdminSessionRepositoryInterface, AdminSessionValidationRepositoryInterface
 {
     private PDO $pdo;
+    private ClockInterface $clock;
 
-    public function __construct(PDO $pdo)
+    public function __construct(PDO $pdo, ClockInterface $clock)
     {
         $this->pdo = $pdo;
+        $this->clock = $clock;
     }
 
     /* ===========================
@@ -28,7 +31,7 @@ class AdminSessionRepository implements AdminSessionRepositoryInterface, AdminSe
         $token = bin2hex(random_bytes(32));
         // Store HASH only (session_id column holds the hash)
         $tokenHash = hash('sha256', $token);
-        $expiresAt = (new \DateTimeImmutable('+2 hours'))->format('Y-m-d H:i:s');
+        $expiresAt = $this->clock->now()->modify('+2 hours')->format('Y-m-d H:i:s');
 
         $stmt = $this->pdo->prepare("
             INSERT INTO admin_sessions (session_id, admin_id, expires_at, is_revoked)

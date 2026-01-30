@@ -22,6 +22,7 @@ use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Domain\DTO\LoginRequestDTO;
 use App\Domain\Exception\InvalidCredentialsException;
 use App\Domain\Service\AdminAuthenticationService;
+use App\Domain\Contracts\ClockInterface;
 use App\Domain\Service\RememberMeService;
 use DateTimeImmutable;
 
@@ -31,7 +32,8 @@ final readonly class AdminLoginService
         private AdminAuthenticationService $authService,
         private AdminSessionValidationRepositoryInterface $sessionRepository,
         private RememberMeService $rememberMeService,
-        private AdminIdentifierCryptoServiceInterface $cryptoService
+        private AdminIdentifierCryptoServiceInterface $cryptoService,
+        private ClockInterface $clock
     )
     {
     }
@@ -67,8 +69,8 @@ final readonly class AdminLoginService
             }
         }
 
-        $expiresAt = new DateTimeImmutable($expiresAtStr);
-        $now = new DateTimeImmutable();
+        $expiresAt = new DateTimeImmutable($expiresAtStr, $this->clock->getTimezone());
+        $now = $this->clock->now();
         $maxAge = $expiresAt->getTimestamp() - $now->getTimestamp();
         if ($maxAge < 0) {
             $maxAge = 0;

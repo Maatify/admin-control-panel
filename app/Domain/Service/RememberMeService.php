@@ -6,6 +6,7 @@ namespace App\Domain\Service;
 
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
 use App\Context\RequestContext;
+use App\Domain\Contracts\ClockInterface;
 use App\Domain\Contracts\RememberMeRepositoryInterface;
 use App\Domain\DTO\RememberMeTokenDTO;
 use App\Domain\Exception\InvalidCredentialsException;
@@ -20,7 +21,8 @@ class RememberMeService
     public function __construct(
         private RememberMeRepositoryInterface $rememberMeRepository,
         private AdminSessionRepositoryInterface $sessionRepository,
-        private PDO $pdo
+        private PDO $pdo,
+        private ClockInterface $clock
     ) {
     }
 
@@ -41,7 +43,7 @@ class RememberMeService
 
         $hashedValidator = hash('sha256', $validator);
         $userAgentHash = hash('sha256', $context->userAgent);
-        $expiresAt = (new DateTimeImmutable())->modify('+' . self::TOKEN_EXPIRY_DAYS . ' days');
+        $expiresAt = $this->clock->now()->modify('+' . self::TOKEN_EXPIRY_DAYS . ' days');
 
         $tokenDto = new RememberMeTokenDTO(
             $selector,
@@ -99,7 +101,7 @@ class RememberMeService
             }
 
             // Validate Expiry
-            if ($tokenDto->expiresAt < new DateTimeImmutable()) {
+            if ($tokenDto->expiresAt < $this->clock->now()) {
                 $this->rememberMeRepository->deleteBySelector($selector);
                 $this->pdo->commit();
                 throw new InvalidCredentialsException('Remember-me token expired.');
@@ -117,7 +119,7 @@ class RememberMeService
             }
             $newHashedValidator = hash('sha256', $newValidator);
             $newUserAgentHash = hash('sha256', $context->userAgent);
-            $expiresAt = (new DateTimeImmutable())->modify('+' . self::TOKEN_EXPIRY_DAYS . ' days');
+            $expiresAt = $this->clock->now()->modify('+' . self::TOKEN_EXPIRY_DAYS . ' days');
 
             $newTokenDto = new RememberMeTokenDTO(
                 $newSelector,

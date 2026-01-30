@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Repository;
 
+use App\Domain\Contracts\ClockInterface;
 use App\Domain\Contracts\VerificationCodeRepositoryInterface;
 use App\Domain\DTO\VerificationCode;
 use App\Domain\Enum\IdentityTypeEnum;
@@ -15,7 +16,8 @@ use PDO;
 class PdoVerificationCodeRepository implements VerificationCodeRepositoryInterface
 {
     public function __construct(
-        private PDO $pdo
+        private PDO $pdo,
+        private ClockInterface $clock
     ) {
     }
 
@@ -172,8 +174,8 @@ class PdoVerificationCodeRepository implements VerificationCodeRepositoryInterfa
             VerificationCodeStatus::from($statusStr),
             (int)$attempts,
             (int)$maxAttempts,
-            new DateTimeImmutable($expiresAt),
-            new DateTimeImmutable($createdAt)
+            new DateTimeImmutable($expiresAt, $this->clock->getTimezone()),
+            new DateTimeImmutable($createdAt, $this->clock->getTimezone())
         );
     }
 }

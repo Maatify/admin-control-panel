@@ -6,6 +6,7 @@ namespace App\Domain\Service;
 
 use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
 use App\Context\RequestContext;
+use App\Domain\Contracts\ClockInterface;
 use App\Domain\Enum\VerificationStatus;
 use App\Domain\Exception\InvalidIdentifierStateException;
 use DateTimeImmutable;
@@ -15,7 +16,8 @@ readonly class AdminEmailVerificationService
 {
     public function __construct(
         private AdminEmailVerificationRepositoryInterface $repository,
-        private PDO $pdo
+        private PDO $pdo,
+        private ClockInterface $clock
     ) {
     }
 
@@ -54,7 +56,7 @@ readonly class AdminEmailVerificationService
 
         $this->pdo->beginTransaction();
         try {
-            $this->repository->markVerified($emailId, (new DateTimeImmutable())->format('Y-m-d H:i:s'));
+            $this->repository->markVerified($emailId, $this->clock->now()->format('Y-m-d H:i:s'));
 
             $this->pdo->commit();
         } catch (\Throwable $e) {
@@ -191,7 +193,7 @@ readonly class AdminEmailVerificationService
                 VerificationStatus::VERIFIED =>
                 $this->repository->markVerified(
                     $emailId,
-                    (new DateTimeImmutable())->format('Y-m-d H:i:s')
+                    $this->clock->now()->format('Y-m-d H:i:s')
                 ),
 
                 VerificationStatus::FAILED =>

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Service;
 
+use App\Domain\Contracts\ClockInterface;
 use App\Domain\Contracts\VerificationCodeRepositoryInterface;
 use App\Domain\Contracts\VerificationCodeValidatorInterface;
 use App\Domain\DTO\VerificationCode;
@@ -16,7 +17,8 @@ use DateTimeImmutable;
 class VerificationCodeValidator implements VerificationCodeValidatorInterface
 {
     public function __construct(
-        private VerificationCodeRepositoryInterface $repository
+        private VerificationCodeRepositoryInterface $repository,
+        private ClockInterface $clock
     ) {
     }
 
@@ -30,7 +32,7 @@ class VerificationCodeValidator implements VerificationCodeValidatorInterface
         }
 
         // 2. Check expiry
-        if ($code->expiresAt < new DateTimeImmutable()) {
+        if ($code->expiresAt < $this->clock->now()) {
             $this->repository->expire($code->id);
             return VerificationResult::failure('Invalid code.');
         }
@@ -78,7 +80,7 @@ class VerificationCodeValidator implements VerificationCodeValidatorInterface
         }
 
         // 4. Check expiry
-        if ($code->expiresAt < new DateTimeImmutable()) {
+        if ($code->expiresAt < $this->clock->now()) {
             $this->repository->expire($code->id);
             return VerificationResult::failure('Invalid code.');
         }

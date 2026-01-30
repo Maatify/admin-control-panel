@@ -6,6 +6,7 @@ namespace App\Domain\Service;
 
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Context\RequestContext;
+use App\Domain\Contracts\ClockInterface;
 use App\Domain\Exception\ExpiredSessionException;
 use App\Domain\Exception\InvalidSessionException;
 use App\Domain\Exception\RevokedSessionException;
@@ -18,6 +19,7 @@ class SessionValidationService
 
     public function __construct(
         AdminSessionValidationRepositoryInterface $repository,
+        private ClockInterface $clock
     ) {
         $this->repository = $repository;
     }
@@ -40,8 +42,8 @@ class SessionValidationService
             throw new RevokedSessionException('Session has been revoked.');
         }
 
-        $expiresAt = new DateTimeImmutable($session['expires_at']);
-        if ($expiresAt < new DateTimeImmutable()) {
+        $expiresAt = new DateTimeImmutable($session['expires_at'], $this->clock->getTimezone());
+        if ($expiresAt < $this->clock->now()) {
             throw new ExpiredSessionException('Session has expired.');
         }
 

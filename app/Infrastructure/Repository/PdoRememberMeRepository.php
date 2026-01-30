@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Repository;
 
+use App\Domain\Contracts\ClockInterface;
 use App\Domain\Contracts\RememberMeRepositoryInterface;
 use App\Domain\DTO\RememberMeTokenDTO;
 use App\Domain\Exception\IdentifierNotFoundException;
@@ -13,10 +14,12 @@ use PDO;
 class PdoRememberMeRepository implements RememberMeRepositoryInterface
 {
     private PDO $pdo;
+    private ClockInterface $clock;
 
-    public function __construct(PDO $pdo)
+    public function __construct(PDO $pdo, ClockInterface $clock)
     {
         $this->pdo = $pdo;
+        $this->clock = $clock;
     }
 
     public function save(RememberMeTokenDTO $token): void
@@ -57,7 +60,7 @@ class PdoRememberMeRepository implements RememberMeRepositoryInterface
             $row['selector'],
             $row['hashed_validator'],
             (int)$row['admin_id'],
-            new DateTimeImmutable($row['expires_at']),
+            new DateTimeImmutable($row['expires_at'], $this->clock->getTimezone()),
             $row['user_agent_hash']
         );
     }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Service;
 
 use App\Context\RequestContext;
+use App\Domain\Contracts\ClockInterface;
 use App\Domain\Contracts\StepUpGrantRepositoryInterface;
 use App\Domain\Contracts\AdminTotpSecretStoreInterface;
 use App\Domain\Contracts\TotpServiceInterface;
@@ -22,7 +23,8 @@ readonly class StepUpService
         private AdminTotpSecretStoreInterface $totpSecretStore,
         private TotpServiceInterface $totpService,
         private RecoveryStateService $recoveryState,
-        private PDO $pdo
+        private PDO $pdo,
+        private ClockInterface $clock
     ) {
     }
 
@@ -104,8 +106,8 @@ readonly class StepUpService
             $sessionId,
             Scope::LOGIN,
             $this->getRiskHash($context),
-            new DateTimeImmutable(),
-            new DateTimeImmutable('+2 hours'),
+            $this->clock->now(),
+            $this->clock->now()->modify('+2 hours'),
             false
         );
 
@@ -121,7 +123,7 @@ readonly class StepUpService
             $sessionId,
             $scope,
             $this->getRiskHash($context),
-            new DateTimeImmutable(),
+            $this->clock->now(),
             $this->getScopeTtl($scope),
             false
         );
@@ -157,7 +159,7 @@ readonly class StepUpService
             return false;
         }
 
-        if ($grant->expiresAt < new DateTimeImmutable()) {
+        if ($grant->expiresAt < $this->clock->now()) {
             return false;
         }
 
@@ -182,7 +184,7 @@ readonly class StepUpService
 
         $primaryGrant = $this->grantRepository->find($adminId, $sessionId, Scope::LOGIN);
 
-        if ($primaryGrant !== null && $primaryGrant->expiresAt > new DateTimeImmutable()) {
+        if ($primaryGrant !== null && $primaryGrant->expiresAt > $this->clock->now()) {
             if (hash_equals($primaryGrant->riskContextHash, $this->getRiskHash($context))) {
                 return SessionState::ACTIVE;
             }
@@ -199,8 +201,8 @@ readonly class StepUpService
     private function getScopeTtl(Scope $scope): DateTimeImmutable
     {
         return match ($scope) {
-            Scope::ADMIN_CREATE => new DateTimeImmutable('+5 minutes'),
-            default => new DateTimeImmutable('+15 minutes'),
+            Scope::ADMIN_CREATE => $this->clock->now()->modify('+5 minutes'),
+            default => $this->clock->now()->modify('+15 minutes'),
         };
     }
 }

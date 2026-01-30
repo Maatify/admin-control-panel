@@ -253,9 +253,17 @@ class Container
         );
 
         // Enforce Timezone
-        date_default_timezone_set($config->timezone);
+        // date_default_timezone_set($config->timezone); // Removed in Kernelization Step 1(B)
 
         $containerBuilder->addDefinitions([
+            \App\Domain\Contracts\ClockInterface::class => function () use ($config) {
+                try {
+                    $timezone = new \DateTimeZone($config->timezone);
+                } catch (\Exception $e) {
+                    throw new \RuntimeException("Invalid APP_TIMEZONE: " . $config->timezone, 0, $e);
+                }
+                return new \App\Infrastructure\Clock\SystemClock($timezone);
+            },
             AdminRuntimeConfigDTO::class => function () use ($runtime) {
                 return $runtime;
             },
@@ -424,11 +432,13 @@ class Container
             AdminEmailVerificationService::class => function (ContainerInterface $c) {
                 $repo = $c->get(AdminEmailVerificationRepositoryInterface::class);
                 $pdo = $c->get(PDO::class);
+                $clock = $c->get(\App\Domain\Contracts\ClockInterface::class);
 
                 assert($repo instanceof AdminEmailVerificationRepositoryInterface);
                 assert($pdo instanceof PDO);
+                assert($clock instanceof \App\Domain\Contracts\ClockInterface);
 
-                return new AdminEmailVerificationService($repo, $pdo);
+                return new AdminEmailVerificationService($repo, $pdo, $clock);
             },
             AdminIdentifierLookupInterface::class => function (ContainerInterface $c) {
                 return $c->get(AdminEmailRepository::class);
@@ -478,6 +488,13 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new AdminPasswordRepository($pdo);
+            },
+            \App\Domain\Service\SessionValidationService::class => function (ContainerInterface $c) {
+                $repo = $c->get(\App\Domain\Contracts\AdminSessionValidationRepositoryInterface::class);
+                $clock = $c->get(\App\Domain\Contracts\ClockInterface::class);
+                assert($repo instanceof \App\Domain\Contracts\AdminSessionValidationRepositoryInterface);
+                assert($clock instanceof \App\Domain\Contracts\ClockInterface);
+                return new \App\Domain\Service\SessionValidationService($repo, $clock);
             },
             PasswordPepperRing::class => function (ContainerInterface $c) use ($passwordPepperConfig) {
                 return $passwordPepperConfig->ring();
@@ -545,8 +562,10 @@ class Container
             },
             AdminSessionRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
+                $clock = $c->get(\App\Domain\Contracts\ClockInterface::class);
                 assert($pdo instanceof PDO);
-                return new AdminSessionRepository($pdo);
+                assert($clock instanceof \App\Domain\Contracts\ClockInterface);
+                return new AdminSessionRepository($pdo, $clock);
             },
             \App\Domain\Contracts\AdminSessionValidationRepositoryInterface::class => function (ContainerInterface $c) {
                 return $c->get(AdminSessionRepositoryInterface::class);
@@ -562,8 +581,10 @@ class Container
             },
             RememberMeRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
+                $clock = $c->get(\App\Domain\Contracts\ClockInterface::class);
                 assert($pdo instanceof PDO);
-                return new PdoRememberMeRepository($pdo);
+                assert($clock instanceof \App\Domain\Contracts\ClockInterface);
+                return new PdoRememberMeRepository($pdo, $clock);
             },
             AdminRoleRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
@@ -666,13 +687,15 @@ class Container
                 $sessionRepo = $c->get(\App\Domain\Contracts\AdminSessionValidationRepositoryInterface::class);
                 $rememberMeService = $c->get(RememberMeService::class);
                 $cryptoService = $c->get(AdminIdentifierCryptoServiceInterface::class);
+                $clock = $c->get(\App\Domain\Contracts\ClockInterface::class);
 
                 assert($authService instanceof AdminAuthenticationService);
                 assert($sessionRepo instanceof \App\Domain\Contracts\AdminSessionValidationRepositoryInterface);
                 assert($rememberMeService instanceof RememberMeService);
                 assert($cryptoService instanceof AdminIdentifierCryptoServiceInterface);
+                assert($clock instanceof \App\Domain\Contracts\ClockInterface);
 
-                return new AdminLoginService($authService, $sessionRepo, $rememberMeService, $cryptoService);
+                return new AdminLoginService($authService, $sessionRepo, $rememberMeService, $cryptoService, $clock);
             },
             LoginController::class => function (ContainerInterface $c) {
                 $adminLoginService = $c->get(AdminLoginService::class);
@@ -1079,8 +1102,10 @@ class Container
             // Phase 12
             StepUpGrantRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
+                $clock = $c->get(\App\Domain\Contracts\ClockInterface::class);
                 assert($pdo instanceof PDO);
-                return new PdoStepUpGrantRepository($pdo);
+                assert($clock instanceof \App\Domain\Contracts\ClockInterface);
+                return new PdoStepUpGrantRepository($pdo, $clock);
             },
             AdminTotpSecretRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
@@ -1108,19 +1133,22 @@ class Container
                 $totpService = $c->get(TotpServiceInterface::class);
                 $recoveryState = $c->get(RecoveryStateService::class);
                 $pdo = $c->get(PDO::class);
+                $clock = $c->get(\App\Domain\Contracts\ClockInterface::class);
 
                 assert($grantRepo instanceof StepUpGrantRepositoryInterface);
                 assert($totpSecretStore instanceof AdminTotpSecretStoreInterface);
                 assert($totpService instanceof TotpServiceInterface);
                 assert($recoveryState instanceof RecoveryStateService);
                 assert($pdo instanceof PDO);
+                assert($clock instanceof \App\Domain\Contracts\ClockInterface);
 
                 return new StepUpService(
                     $grantRepo,
                     $totpSecretStore,
                     $totpService,
                     $recoveryState,
-                    $pdo
+                    $pdo,
+                    $clock
                 );
             },
             SessionStateGuardMiddleware::class => function (ContainerInterface $c) {
@@ -1154,8 +1182,10 @@ class Container
             // Phase Sx: Verification Code Infrastructure
             VerificationCodeRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
+                $clock = $c->get(\App\Domain\Contracts\ClockInterface::class);
                 assert($pdo instanceof PDO);
-                return new PdoVerificationCodeRepository($pdo);
+                assert($clock instanceof \App\Domain\Contracts\ClockInterface);
+                return new PdoVerificationCodeRepository($pdo, $clock);
             },
             VerificationCodePolicyResolverInterface::class => function (ContainerInterface $c) {
                 return new VerificationCodePolicyResolver();
@@ -1163,14 +1193,18 @@ class Container
             VerificationCodeGeneratorInterface::class => function (ContainerInterface $c) {
                 $repo = $c->get(VerificationCodeRepositoryInterface::class);
                 $resolver = $c->get(VerificationCodePolicyResolverInterface::class);
+                $clock = $c->get(\App\Domain\Contracts\ClockInterface::class);
                 assert($repo instanceof VerificationCodeRepositoryInterface);
                 assert($resolver instanceof VerificationCodePolicyResolverInterface);
-                return new VerificationCodeGenerator($repo, $resolver);
+                assert($clock instanceof \App\Domain\Contracts\ClockInterface);
+                return new VerificationCodeGenerator($repo, $resolver, $clock);
             },
             VerificationCodeValidatorInterface::class => function (ContainerInterface $c) {
                 $repo = $c->get(VerificationCodeRepositoryInterface::class);
+                $clock = $c->get(\App\Domain\Contracts\ClockInterface::class);
                 assert($repo instanceof VerificationCodeRepositoryInterface);
-                return new VerificationCodeValidator($repo);
+                assert($clock instanceof \App\Domain\Contracts\ClockInterface);
+                return new VerificationCodeValidator($repo, $clock);
             },
             RecoveryStateService::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
@@ -1196,15 +1230,18 @@ class Container
                 $rememberMeRepo = $c->get(RememberMeRepositoryInterface::class);
                 $sessionRepo = $c->get(AdminSessionRepositoryInterface::class);
                 $pdo = $c->get(PDO::class);
+                $clock = $c->get(\App\Domain\Contracts\ClockInterface::class);
 
                 assert($rememberMeRepo instanceof RememberMeRepositoryInterface);
                 assert($sessionRepo instanceof AdminSessionRepositoryInterface);
                 assert($pdo instanceof PDO);
+                assert($clock instanceof \App\Domain\Contracts\ClockInterface);
 
                 return new RememberMeService(
                     $rememberMeRepo,
                     $sessionRepo,
-                    $pdo
+                    $pdo,
+                    $clock
                 );
             },
             RememberMeMiddleware::class => function (ContainerInterface $c) {
