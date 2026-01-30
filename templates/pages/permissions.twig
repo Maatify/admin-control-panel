@@ -21,6 +21,27 @@
         </nav>
     </div>
 
+    {# ✅ Inject capabilities for JavaScript #}
+    {#
+    Capabilities are computed server-side by AuthorizationService
+    and control what UI elements are visible/enabled.
+
+    Available capabilities:
+    - can_update_meta: Show "Edit" button in actions (POST /api/permissions/{id}/metadata)
+
+    UI Rules:
+    ❌ Twig MUST NOT check permissions by name
+    ❌ JavaScript MUST NOT infer authorization
+    ✅ Backend capabilities are the single UI contract
+    ✅ API authorization is always enforced server-side
+    #}
+    <script>
+        window.permissionsCapabilities = {
+            can_update_meta: {{ capabilities.can_update_meta ?? false ? 'true' : 'false' }}
+        };
+        console.log('🔐 Permissions Capabilities Injected:', window.permissionsCapabilities);
+    </script>
+
     <div class=" px-0 py-2">
         <!-- Info Alert -->
         <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">

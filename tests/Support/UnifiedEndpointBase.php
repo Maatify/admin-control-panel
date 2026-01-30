@@ -56,10 +56,22 @@ abstract class UnifiedEndpointBase extends TestCase
     protected function cleanDatabase(): void
     {
         $tables = [
+            'system_ownership',
+            'admin_roles',
+            'role_permissions',
+            'roles',
             'admins',
             'admin_emails',
             'admin_sessions',
             'admin_passwords',
+            'admin_remember_me_tokens',
+            'admin_totp_secrets',
+            'admin_notification_preferences',
+            'admin_notification_channels',
+            'admin_notifications',
+            'failed_notifications',
+            'email_queue',
+            'telegram_queue',
             'audit_outbox',
             'audit_logs',
             'activity_logs',

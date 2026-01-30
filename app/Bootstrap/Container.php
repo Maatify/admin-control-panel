@@ -874,8 +874,10 @@ class Container
             },
             UiPermissionsController::class => function (ContainerInterface $c) {
                 $view = $c->get(Twig::class);
+                $authorizationService = $c->get(AuthorizationService::class);
                 assert($view instanceof Twig);
-                return new UiPermissionsController($view);
+                assert($authorizationService instanceof AuthorizationService);
+                return new UiPermissionsController($view, $authorizationService);
             },
             UiRolesController::class => function (ContainerInterface $c) {
                 $view = $c->get(Twig::class);

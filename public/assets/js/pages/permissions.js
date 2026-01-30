@@ -8,16 +8,39 @@
  * - Only display_name and description can be updated
  * - Groups are DERIVED (not stored)
  * - Role assignments are managed separately
+ *
+ * 🔐 AUTHORIZATION SYSTEM:
+ * - Capabilities are injected from server-side (window.permissionsCapabilities)
+ * - can_update_meta: Controls visibility of "Edit" button
+ * - If can_update_meta is false, the Edit button will not appear
+ * - Authorization is ALWAYS enforced server-side at API level
  */
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🔐 Permissions Management - Initializing');
 
+    // ✅ Log loaded capabilities
+    console.log('🔑 Capabilities loaded:', window.permissionsCapabilities);
+    if (window.permissionsCapabilities) {
+        console.log('   └─ can_update_meta:', window.permissionsCapabilities.can_update_meta);
+    }
+
     // ========================================================================
     // Table Configuration
     // ========================================================================
-    const headers = ["ID", "Name", "Group", "Display Name", "Description", "Actions"];
-    const rows = ["id", "name", "group", "display_name", "description", "actions"];
+
+    // ✅ Check capabilities before defining table structure
+    const canUpdateMeta = window.permissionsCapabilities?.can_update_meta ?? false;
+    console.log('🔐 Building table with can_update_meta:', canUpdateMeta);
+
+    // Define headers and rows based on capabilities
+    const headers = canUpdateMeta
+        ? ["ID", "Name", "Group", "Display Name", "Description", "Actions"]
+        : ["ID", "Name", "Group", "Display Name", "Description"];
+
+    const rows = canUpdateMeta
+        ? ["id", "name", "group", "display_name", "description", "actions"]
+        : ["id", "name", "group", "display_name", "description"];
 
     // ========================================================================
     // DOM Elements - Search Form
@@ -129,6 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Custom renderer for actions column
      * Edit metadata button only
+     * Note: This column only appears if can_update_meta capability is true
      */
     const actionsRenderer = (value, row) => {
         const permissionId = row.id;

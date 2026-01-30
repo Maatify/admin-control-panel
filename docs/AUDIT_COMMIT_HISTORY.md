@@ -420,6 +420,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(kernel): own and enforce infrastructure middleware lifecycle
 - refactor(kernel): extract runtime configuration from env into AdminRuntimeConfigDTO
 - test(integration): align admin creation tests with HTTP permission contract
+- feat(ui-permissions): inject backend-calculated capabilities into permissions UI
 
 ---
 
