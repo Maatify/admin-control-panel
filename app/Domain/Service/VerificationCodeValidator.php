@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Service;
 
-use App\Domain\Contracts\ClockInterface;
 use App\Domain\Contracts\VerificationCodeRepositoryInterface;
 use App\Domain\Contracts\VerificationCodeValidatorInterface;
-use App\Domain\DTO\VerificationCode;
 use App\Domain\DTO\VerificationResult;
 use App\Domain\Enum\IdentityTypeEnum;
 use App\Domain\Enum\VerificationCodeStatus;
 use App\Domain\Enum\VerificationPurposeEnum;
-use DateTimeImmutable;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 
 class VerificationCodeValidator implements VerificationCodeValidatorInterface
 {

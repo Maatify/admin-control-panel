@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Clock;
+namespace App\Modules\SharedCommon\Infrastructure;
 
-use App\Domain\Contracts\ClockInterface;
 use DateTimeImmutable;
 use DateTimeZone;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 
 final class SystemClock implements ClockInterface
 {

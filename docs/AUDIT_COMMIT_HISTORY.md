@@ -433,6 +433,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(ui-admins): enforce capability-based rendering for admin emails UI
 - feat(ui-sessions): add capability-based actions and admin links
 - test(kernel): add env-derived TestKernelFactory for DTO-based boot
+- refactor(kernel): centralize Clock contract and remove module-level implementations
 
 ---
 

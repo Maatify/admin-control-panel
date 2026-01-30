@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Tests\Support;
 
-use App\Domain\Contracts\ClockInterface;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 use DateTimeImmutable;
 use DateTimeZone;
 

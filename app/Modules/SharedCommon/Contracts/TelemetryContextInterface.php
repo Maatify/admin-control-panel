@@ -12,7 +12,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\SharedCommon\Contracts;
+namespace Maatify\SharedCommon\Contracts;
 
 /**
  * Telemetry context contract (request-scoped data source).

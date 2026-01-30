@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maatify\DeliveryOperations\Recorder;
 
 use BackedEnum;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 use UnitEnum;
 use DateTimeImmutable;
 use Maatify\DeliveryOperations\Contract\DeliveryOperationsLoggerInterface;
@@ -14,7 +15,6 @@ use Maatify\DeliveryOperations\Enum\DeliveryActorTypeInterface;
 use Maatify\DeliveryOperations\Enum\DeliveryChannelEnum;
 use Maatify\DeliveryOperations\Enum\DeliveryOperationTypeEnum;
 use Maatify\DeliveryOperations\Enum\DeliveryStatusEnum;
-use Maatify\DeliveryOperations\Services\ClockInterface;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use Throwable;

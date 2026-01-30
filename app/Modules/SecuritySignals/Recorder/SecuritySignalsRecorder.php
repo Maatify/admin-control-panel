@@ -9,7 +9,7 @@ use Maatify\SecuritySignals\Contract\SecuritySignalsPolicyInterface;
 use Maatify\SecuritySignals\DTO\SecuritySignalRecordDTO;
 use Maatify\SecuritySignals\Enum\SecuritySignalActorTypeEnum;
 use Maatify\SecuritySignals\Enum\SecuritySignalSeverityEnum;
-use Maatify\SecuritySignals\Services\ClockInterface;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use JsonException;

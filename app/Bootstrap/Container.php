@@ -181,6 +181,7 @@ use App\Modules\Validation\Validator\RespectValidator;
 use DI\ContainerBuilder;
 use Exception;
 use Maatify\PsrLogger\LoggerFactory;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 use PDO;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
@@ -258,13 +259,13 @@ class Container
         // date_default_timezone_set($config->timezone); // Removed in Kernelization Step 1(B)
 
         $containerBuilder->addDefinitions([
-            \App\Domain\Contracts\ClockInterface::class => function () use ($config) {
+            \Maatify\SharedCommon\Contracts\ClockInterface::class => function () use ($config) {
                 try {
                     $timezone = new \DateTimeZone($config->timezone);
                 } catch (\Exception $e) {
                     throw new \RuntimeException("Invalid APP_TIMEZONE: " . $config->timezone, 0, $e);
                 }
-                return new \App\Infrastructure\Clock\SystemClock($timezone);
+                return new \App\Modules\SharedCommon\Infrastructure\SystemClock($timezone);
             },
             AdminRuntimeConfigDTO::class => function () use ($runtime) {
                 return $runtime;
@@ -432,14 +433,14 @@ class Container
             AdminEmailVerificationRepositoryInterface::class => function (ContainerInterface $c) {
                 return $c->get(AdminEmailRepository::class);
             },
-            AdminEmailVerificationService::class => function (ContainerInterface $c) {
+            AdminEmailVerificationService::class                      => function (ContainerInterface $c) {
                 $repo = $c->get(AdminEmailVerificationRepositoryInterface::class);
                 $pdo = $c->get(PDO::class);
-                $clock = $c->get(\App\Domain\Contracts\ClockInterface::class);
+                $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
 
                 assert($repo instanceof AdminEmailVerificationRepositoryInterface);
                 assert($pdo instanceof PDO);
-                assert($clock instanceof \App\Domain\Contracts\ClockInterface);
+                assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
 
                 return new AdminEmailVerificationService($repo, $pdo, $clock);
             },
@@ -492,11 +493,11 @@ class Container
                 assert($pdo instanceof PDO);
                 return new AdminPasswordRepository($pdo);
             },
-            \App\Domain\Service\SessionValidationService::class => function (ContainerInterface $c) {
+            \App\Domain\Service\SessionValidationService::class       => function (ContainerInterface $c) {
                 $repo = $c->get(\App\Domain\Contracts\AdminSessionValidationRepositoryInterface::class);
-                $clock = $c->get(\App\Domain\Contracts\ClockInterface::class);
+                $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
                 assert($repo instanceof \App\Domain\Contracts\AdminSessionValidationRepositoryInterface);
-                assert($clock instanceof \App\Domain\Contracts\ClockInterface);
+                assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
                 return new \App\Domain\Service\SessionValidationService($repo, $clock);
             },
             PasswordPepperRing::class => function (ContainerInterface $c) use ($passwordPepperConfig) {
@@ -563,11 +564,11 @@ class Container
                     $adminRepository
                 );
             },
-            AdminSessionRepositoryInterface::class => function (ContainerInterface $c) {
+            AdminSessionRepositoryInterface::class                    => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
-                $clock = $c->get(\App\Domain\Contracts\ClockInterface::class);
+                $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
                 assert($pdo instanceof PDO);
-                assert($clock instanceof \App\Domain\Contracts\ClockInterface);
+                assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
                 return new AdminSessionRepository($pdo, $clock);
             },
             \App\Domain\Contracts\AdminSessionValidationRepositoryInterface::class => function (ContainerInterface $c) {
@@ -582,11 +583,11 @@ class Container
 
                 return new SessionRevocationService($repo, $pdo);
             },
-            RememberMeRepositoryInterface::class => function (ContainerInterface $c) {
+            RememberMeRepositoryInterface::class                      => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
-                $clock = $c->get(\App\Domain\Contracts\ClockInterface::class);
+                $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
                 assert($pdo instanceof PDO);
-                assert($clock instanceof \App\Domain\Contracts\ClockInterface);
+                assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
                 return new PdoRememberMeRepository($pdo, $clock);
             },
             AdminRoleRepositoryInterface::class => function (ContainerInterface $c) {
@@ -685,18 +686,18 @@ class Container
                     $validationGuard
                 );
             },
-            AdminLoginService::class => function (ContainerInterface $c) {
+            AdminLoginService::class                                  => function (ContainerInterface $c) {
                 $authService = $c->get(AdminAuthenticationService::class);
                 $sessionRepo = $c->get(\App\Domain\Contracts\AdminSessionValidationRepositoryInterface::class);
                 $rememberMeService = $c->get(RememberMeService::class);
                 $cryptoService = $c->get(AdminIdentifierCryptoServiceInterface::class);
-                $clock = $c->get(\App\Domain\Contracts\ClockInterface::class);
+                $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
 
                 assert($authService instanceof AdminAuthenticationService);
                 assert($sessionRepo instanceof \App\Domain\Contracts\AdminSessionValidationRepositoryInterface);
                 assert($rememberMeService instanceof RememberMeService);
                 assert($cryptoService instanceof AdminIdentifierCryptoServiceInterface);
-                assert($clock instanceof \App\Domain\Contracts\ClockInterface);
+                assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
 
                 return new AdminLoginService($authService, $sessionRepo, $rememberMeService, $cryptoService, $clock);
             },
@@ -1108,11 +1109,11 @@ class Container
             },
 
             // Phase 12
-            StepUpGrantRepositoryInterface::class => function (ContainerInterface $c) {
+            StepUpGrantRepositoryInterface::class                     => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
-                $clock = $c->get(\App\Domain\Contracts\ClockInterface::class);
+                $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
                 assert($pdo instanceof PDO);
-                assert($clock instanceof \App\Domain\Contracts\ClockInterface);
+                assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
                 return new PdoStepUpGrantRepository($pdo, $clock);
             },
             AdminTotpSecretRepositoryInterface::class => function (ContainerInterface $c) {
@@ -1135,20 +1136,20 @@ class Container
                     $totpSecretCryptoService
                 );
             },
-            StepUpService::class => function (ContainerInterface $c) {
+            StepUpService::class                                      => function (ContainerInterface $c) {
                 $grantRepo = $c->get(StepUpGrantRepositoryInterface::class);
                 $totpSecretStore = $c->get(AdminTotpSecretStoreInterface::class);
                 $totpService = $c->get(TotpServiceInterface::class);
                 $recoveryState = $c->get(RecoveryStateService::class);
                 $pdo = $c->get(PDO::class);
-                $clock = $c->get(\App\Domain\Contracts\ClockInterface::class);
+                $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
 
                 assert($grantRepo instanceof StepUpGrantRepositoryInterface);
                 assert($totpSecretStore instanceof AdminTotpSecretStoreInterface);
                 assert($totpService instanceof TotpServiceInterface);
                 assert($recoveryState instanceof RecoveryStateService);
                 assert($pdo instanceof PDO);
-                assert($clock instanceof \App\Domain\Contracts\ClockInterface);
+                assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
 
                 return new StepUpService(
                     $grantRepo,
@@ -1188,30 +1189,30 @@ class Container
             },
 
             // Phase Sx: Verification Code Infrastructure
-            VerificationCodeRepositoryInterface::class => function (ContainerInterface $c) {
+            VerificationCodeRepositoryInterface::class                => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
-                $clock = $c->get(\App\Domain\Contracts\ClockInterface::class);
+                $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
                 assert($pdo instanceof PDO);
-                assert($clock instanceof \App\Domain\Contracts\ClockInterface);
+                assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
                 return new PdoVerificationCodeRepository($pdo, $clock);
             },
             VerificationCodePolicyResolverInterface::class => function (ContainerInterface $c) {
                 return new VerificationCodePolicyResolver();
             },
-            VerificationCodeGeneratorInterface::class => function (ContainerInterface $c) {
+            VerificationCodeGeneratorInterface::class                 => function (ContainerInterface $c) {
                 $repo = $c->get(VerificationCodeRepositoryInterface::class);
                 $resolver = $c->get(VerificationCodePolicyResolverInterface::class);
-                $clock = $c->get(\App\Domain\Contracts\ClockInterface::class);
+                $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
                 assert($repo instanceof VerificationCodeRepositoryInterface);
                 assert($resolver instanceof VerificationCodePolicyResolverInterface);
-                assert($clock instanceof \App\Domain\Contracts\ClockInterface);
+                assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
                 return new VerificationCodeGenerator($repo, $resolver, $clock);
             },
-            VerificationCodeValidatorInterface::class => function (ContainerInterface $c) {
+            VerificationCodeValidatorInterface::class                 => function (ContainerInterface $c) {
                 $repo = $c->get(VerificationCodeRepositoryInterface::class);
-                $clock = $c->get(\App\Domain\Contracts\ClockInterface::class);
+                $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
                 assert($repo instanceof VerificationCodeRepositoryInterface);
-                assert($clock instanceof \App\Domain\Contracts\ClockInterface);
+                assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
                 return new VerificationCodeValidator($repo, $clock);
             },
             RecoveryStateService::class => function (ContainerInterface $c) {
@@ -1234,16 +1235,16 @@ class Container
                 assert($service instanceof RecoveryStateService);
                 return new RecoveryStateMiddleware($service);
             },
-            RememberMeService::class => function (ContainerInterface $c) {
+            RememberMeService::class                                  => function (ContainerInterface $c) {
                 $rememberMeRepo = $c->get(RememberMeRepositoryInterface::class);
                 $sessionRepo = $c->get(AdminSessionRepositoryInterface::class);
                 $pdo = $c->get(PDO::class);
-                $clock = $c->get(\App\Domain\Contracts\ClockInterface::class);
+                $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
 
                 assert($rememberMeRepo instanceof RememberMeRepositoryInterface);
                 assert($sessionRepo instanceof AdminSessionRepositoryInterface);
                 assert($pdo instanceof PDO);
-                assert($clock instanceof \App\Domain\Contracts\ClockInterface);
+                assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
 
                 return new RememberMeService(
                     $rememberMeRepo,
@@ -1567,16 +1568,13 @@ class Container
                 assert($pdo instanceof PDO);
                 return new \Maatify\AuditTrail\Infrastructure\Mysql\AuditTrailLoggerMysqlRepository($pdo);
             },
-            \Maatify\AuditTrail\Services\ClockInterface::class => function () {
-                return new \Maatify\AuditTrail\Services\SystemClock();
-            },
             \Maatify\AuditTrail\Recorder\AuditTrailRecorder::class => function (ContainerInterface $c) {
                 $logger = $c->get(\Maatify\AuditTrail\Contract\AuditTrailLoggerInterface::class);
-                $clock = $c->get(\Maatify\AuditTrail\Services\ClockInterface::class);
+                $clock = $c->get(ClockInterface::class);
                 $fallbackLogger = $c->get(LoggerInterface::class);
 
                 assert($logger instanceof \Maatify\AuditTrail\Contract\AuditTrailLoggerInterface);
-                assert($clock instanceof \Maatify\AuditTrail\Services\ClockInterface);
+                assert($clock instanceof ClockInterface);
 
                 return new \Maatify\AuditTrail\Recorder\AuditTrailRecorder($logger, $clock, $fallbackLogger instanceof LoggerInterface ? $fallbackLogger : null);
             },
@@ -1592,16 +1590,13 @@ class Container
                 assert($pdo instanceof PDO);
                 return new \Maatify\AuthoritativeAudit\Infrastructure\Mysql\AuthoritativeAuditOutboxWriterMysqlRepository($pdo);
             },
-            \Maatify\AuthoritativeAudit\Services\ClockInterface::class => function () {
-                return new \Maatify\AuthoritativeAudit\Services\SystemClock();
-            },
             \Maatify\AuthoritativeAudit\Recorder\AuthoritativeAuditRecorder::class => function (ContainerInterface $c) {
                 $writer = $c->get(\Maatify\AuthoritativeAudit\Contract\AuthoritativeAuditOutboxWriterInterface::class);
-                $clock = $c->get(\Maatify\AuthoritativeAudit\Services\ClockInterface::class);
+                $clock = $c->get(ClockInterface::class);
                 // AuthoritativeAuditRecorder does NOT accept a fallback logger in constructor
 
                 assert($writer instanceof \Maatify\AuthoritativeAudit\Contract\AuthoritativeAuditOutboxWriterInterface);
-                assert($clock instanceof \Maatify\AuthoritativeAudit\Services\ClockInterface);
+                assert($clock instanceof ClockInterface);
 
                 return new \Maatify\AuthoritativeAudit\Recorder\AuthoritativeAuditRecorder($writer, $clock);
             },
@@ -1621,16 +1616,13 @@ class Container
                 assert($pdo instanceof PDO);
                 return new \Maatify\BehaviorTrace\Infrastructure\Mysql\BehaviorTraceWriterMysqlRepository($pdo);
             },
-            \Maatify\BehaviorTrace\Services\ClockInterface::class => function () {
-                return new \Maatify\BehaviorTrace\Services\SystemClock();
-            },
             \Maatify\BehaviorTrace\Recorder\BehaviorTraceRecorder::class => function (ContainerInterface $c) {
                 $writer = $c->get(\Maatify\BehaviorTrace\Contract\BehaviorTraceWriterInterface::class);
-                $clock = $c->get(\Maatify\BehaviorTrace\Services\ClockInterface::class);
+                $clock = $c->get(ClockInterface::class);
                 $fallbackLogger = $c->get(LoggerInterface::class);
 
                 assert($writer instanceof \Maatify\BehaviorTrace\Contract\BehaviorTraceWriterInterface);
-                assert($clock instanceof \Maatify\BehaviorTrace\Services\ClockInterface);
+                assert($clock instanceof ClockInterface);
 
                 return new \Maatify\BehaviorTrace\Recorder\BehaviorTraceRecorder($writer, $clock, $fallbackLogger instanceof LoggerInterface ? $fallbackLogger : null);
             },
@@ -1646,16 +1638,13 @@ class Container
                 assert($pdo instanceof PDO);
                 return new \Maatify\DeliveryOperations\Infrastructure\Mysql\DeliveryOperationsLoggerMysqlRepository($pdo);
             },
-            \Maatify\DeliveryOperations\Services\ClockInterface::class => function () {
-                return new \Maatify\DeliveryOperations\Services\SystemClock();
-            },
             \Maatify\DeliveryOperations\Recorder\DeliveryOperationsRecorder::class => function (ContainerInterface $c) {
                 $logger = $c->get(\Maatify\DeliveryOperations\Contract\DeliveryOperationsLoggerInterface::class);
-                $clock = $c->get(\Maatify\DeliveryOperations\Services\ClockInterface::class);
+                $clock = $c->get(ClockInterface::class);
                 $fallbackLogger = $c->get(LoggerInterface::class);
 
                 assert($logger instanceof \Maatify\DeliveryOperations\Contract\DeliveryOperationsLoggerInterface);
-                assert($clock instanceof \Maatify\DeliveryOperations\Services\ClockInterface);
+                assert($clock instanceof ClockInterface);
 
                 return new \Maatify\DeliveryOperations\Recorder\DeliveryOperationsRecorder($logger, $clock, $fallbackLogger instanceof LoggerInterface ? $fallbackLogger : null);
             },
@@ -1671,16 +1660,13 @@ class Container
                 assert($pdo instanceof PDO);
                 return new \Maatify\DiagnosticsTelemetry\Infrastructure\Mysql\DiagnosticsTelemetryLoggerMysqlRepository($pdo);
             },
-            \Maatify\DiagnosticsTelemetry\Services\ClockInterface::class => function () {
-                return new \Maatify\DiagnosticsTelemetry\Services\SystemClock();
-            },
             \Maatify\DiagnosticsTelemetry\Recorder\DiagnosticsTelemetryRecorder::class => function (ContainerInterface $c) {
                 $logger = $c->get(\Maatify\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryLoggerInterface::class);
-                $clock = $c->get(\Maatify\DiagnosticsTelemetry\Services\ClockInterface::class);
+                $clock = $c->get(ClockInterface::class);
                 $fallbackLogger = $c->get(LoggerInterface::class);
 
                 assert($logger instanceof \Maatify\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryLoggerInterface);
-                assert($clock instanceof \Maatify\DiagnosticsTelemetry\Services\ClockInterface);
+                assert($clock instanceof ClockInterface);
 
                 return new \Maatify\DiagnosticsTelemetry\Recorder\DiagnosticsTelemetryRecorder($logger, $clock, $fallbackLogger instanceof LoggerInterface ? $fallbackLogger : null);
             },
@@ -1696,16 +1682,13 @@ class Container
                 assert($pdo instanceof PDO);
                 return new \Maatify\SecuritySignals\Infrastructure\Mysql\SecuritySignalsLoggerMysqlRepository($pdo);
             },
-            \Maatify\SecuritySignals\Services\ClockInterface::class => function () {
-                return new \Maatify\SecuritySignals\Services\SystemClock();
-            },
             \Maatify\SecuritySignals\Recorder\SecuritySignalsRecorder::class => function (ContainerInterface $c) {
                 $logger = $c->get(\Maatify\SecuritySignals\Contract\SecuritySignalsLoggerInterface::class);
-                $clock = $c->get(\Maatify\SecuritySignals\Services\ClockInterface::class);
+                $clock = $c->get(ClockInterface::class);
                 $fallbackLogger = $c->get(LoggerInterface::class);
 
                 assert($logger instanceof \Maatify\SecuritySignals\Contract\SecuritySignalsLoggerInterface);
-                assert($clock instanceof \Maatify\SecuritySignals\Services\ClockInterface);
+                assert($clock instanceof ClockInterface);
 
                 return new \Maatify\SecuritySignals\Recorder\SecuritySignalsRecorder($logger, $clock, $fallbackLogger instanceof LoggerInterface ? $fallbackLogger : null);
             },

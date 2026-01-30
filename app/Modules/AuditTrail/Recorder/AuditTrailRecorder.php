@@ -8,7 +8,7 @@ use Maatify\AuditTrail\Contract\AuditTrailLoggerInterface;
 use Maatify\AuditTrail\Contract\AuditTrailPolicyInterface;
 use Maatify\AuditTrail\DTO\AuditTrailRecordDTO;
 use Maatify\AuditTrail\Enum\AuditTrailActorTypeEnum;
-use Maatify\AuditTrail\Services\ClockInterface;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use JsonException;

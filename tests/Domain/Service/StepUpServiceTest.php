@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Tests\Domain\Service;
 
 use App\Context\RequestContext;
-use App\Domain\Contracts\ClockInterface;
-use App\Domain\Contracts\StepUpGrantRepositoryInterface;
 use App\Domain\Contracts\AdminTotpSecretStoreInterface;
+use App\Domain\Contracts\StepUpGrantRepositoryInterface;
 use App\Domain\Contracts\TotpServiceInterface;
 use App\Domain\DTO\StepUpGrant;
 use App\Domain\Enum\Scope;
 use App\Domain\Service\RecoveryStateService;
 use App\Domain\Service\StepUpService;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 use DateTimeImmutable;
 use DateTimeZone;
 use PDO;

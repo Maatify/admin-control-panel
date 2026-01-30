@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Repository;
 
-use App\Domain\Contracts\ClockInterface;
 use App\Domain\Contracts\RememberMeRepositoryInterface;
 use App\Domain\DTO\RememberMeTokenDTO;
-use App\Domain\Exception\IdentifierNotFoundException;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 use DateTimeImmutable;
 use PDO;
 

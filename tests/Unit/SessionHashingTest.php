@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use App\Domain\Contracts\ClockInterface;
 use App\Infrastructure\Repository\AdminSessionRepository;
-use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 use PDO;
 use PDOStatement;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
 class SessionHashingTest extends TestCase
 {

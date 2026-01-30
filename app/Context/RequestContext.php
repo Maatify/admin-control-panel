@@ -15,8 +15,8 @@ declare(strict_types=1);
 
 namespace App\Context;
 
-use App\Modules\SharedCommon\Contracts\SecurityEventContextInterface;
-use App\Modules\SharedCommon\Contracts\TelemetryContextInterface;
+use Maatify\SharedCommon\Contracts\SecurityEventContextInterface;
+use Maatify\SharedCommon\Contracts\TelemetryContextInterface;
 
 /**
  * Request-scoped context carrying request metadata for logging,

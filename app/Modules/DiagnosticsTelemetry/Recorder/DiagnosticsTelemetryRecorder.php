@@ -10,7 +10,7 @@ use Maatify\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryContextDTO;
 use Maatify\DiagnosticsTelemetry\DTO\DiagnosticsTelemetryEventDTO;
 use Maatify\DiagnosticsTelemetry\Enum\DiagnosticsTelemetryActorTypeInterface;
 use Maatify\DiagnosticsTelemetry\Enum\DiagnosticsTelemetrySeverityInterface;
-use Maatify\DiagnosticsTelemetry\Services\ClockInterface;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use JsonException;

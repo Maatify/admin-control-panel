@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Domain\Service;
 
 use App\Context\RequestContext;
-use App\Domain\Contracts\ClockInterface;
-use App\Domain\Contracts\StepUpGrantRepositoryInterface;
 use App\Domain\Contracts\AdminTotpSecretStoreInterface;
+use App\Domain\Contracts\StepUpGrantRepositoryInterface;
 use App\Domain\Contracts\TotpServiceInterface;
 use App\Domain\DTO\StepUpGrant;
 use App\Domain\DTO\TotpVerificationResultDTO;
 use App\Domain\Enum\Scope;
 use App\Domain\Enum\SessionState;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 use DateTimeImmutable;
 use PDO;
 

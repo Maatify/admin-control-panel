@@ -22,8 +22,8 @@ use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Domain\DTO\LoginRequestDTO;
 use App\Domain\Exception\InvalidCredentialsException;
 use App\Domain\Service\AdminAuthenticationService;
-use App\Domain\Contracts\ClockInterface;
 use App\Domain\Service\RememberMeService;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 use DateTimeImmutable;
 
 final readonly class AdminLoginService

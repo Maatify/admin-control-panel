@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Support;
 
-use App\Domain\Contracts\ClockInterface;
 use App\Kernel\AdminKernel;
 use App\Kernel\KernelOptions;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 use DateTimeImmutable;
 use DateTimeZone;
 use DI\Container as DIContainer;

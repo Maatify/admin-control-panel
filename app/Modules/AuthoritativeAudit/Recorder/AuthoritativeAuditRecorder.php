@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maatify\AuthoritativeAudit\Recorder;
 
 use BackedEnum;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 use UnitEnum;
 use Maatify\AuthoritativeAudit\Contract\AuthoritativeAuditOutboxWriterInterface;
 use Maatify\AuthoritativeAudit\Contract\AuthoritativeAuditPolicyInterface;
@@ -12,7 +13,6 @@ use Maatify\AuthoritativeAudit\DTO\AuthoritativeAuditOutboxWriteDTO;
 use Maatify\AuthoritativeAudit\Enum\AuthoritativeAuditActorTypeInterface;
 use Maatify\AuthoritativeAudit\Enum\AuthoritativeAuditRiskLevelEnum;
 use Maatify\AuthoritativeAudit\Exception\AuthoritativeAuditStorageException;
-use Maatify\AuthoritativeAudit\Services\ClockInterface;
 use Ramsey\Uuid\Uuid;
 use InvalidArgumentException;
 

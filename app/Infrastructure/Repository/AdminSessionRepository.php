@@ -6,8 +6,8 @@ namespace App\Infrastructure\Repository;
 
 use App\Domain\Contracts\AdminSessionRepositoryInterface;
 use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
-use App\Domain\Contracts\ClockInterface;
 use App\Domain\DTO\AdminSessionIdentityDTO;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 use PDO;
 
 class AdminSessionRepository implements AdminSessionRepositoryInterface, AdminSessionValidationRepositoryInterface

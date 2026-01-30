@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Service;
 
-use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
 use App\Context\RequestContext;
-use App\Domain\Contracts\ClockInterface;
+use App\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
 use App\Domain\Enum\VerificationStatus;
 use App\Domain\Exception\InvalidIdentifierStateException;
-use DateTimeImmutable;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 use PDO;
 
 readonly class AdminEmailVerificationService

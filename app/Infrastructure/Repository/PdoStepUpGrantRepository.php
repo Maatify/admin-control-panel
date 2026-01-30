@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Repository;
 
-use App\Domain\Contracts\ClockInterface;
 use App\Domain\Contracts\StepUpGrantRepositoryInterface;
 use App\Domain\DTO\StepUpGrant;
 use App\Domain\Enum\Scope;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 use DateTimeImmutable;
 use PDO;
 

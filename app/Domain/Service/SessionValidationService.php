@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Service;
 
-use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Context\RequestContext;
-use App\Domain\Contracts\ClockInterface;
+use App\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use App\Domain\Exception\ExpiredSessionException;
 use App\Domain\Exception\InvalidSessionException;
 use App\Domain\Exception\RevokedSessionException;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 use DateTimeImmutable;
 use Exception;
 
