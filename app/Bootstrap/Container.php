@@ -251,6 +251,7 @@ class Container
             appName: $_ENV['APP_NAME'] ?? 'Admin Panel',
             logoUrl: $_ENV['LOGO_URL'] ?? null,
             adminUrl: $_ENV['ADMIN_URL'] ?? '/',
+            hostTemplatePath: $_ENV['HOST_TEMPLATE_PATH'] ?? null,
         );
 
         $totpEnrollmentConfig = new TotpEnrollmentConfig(
@@ -329,11 +330,14 @@ class Container
                 return new \App\Infrastructure\Ui\DefaultNavigationProvider();
             },
             Twig::class                                               => function (ContainerInterface $c) {
+                $uiConfigDTO = $c->get(UiConfigDTO::class);
+                assert($uiConfigDTO instanceof UiConfigDTO);
+
                 $loader = new \Twig\Loader\FilesystemLoader();
 
                 // 1. Host templates (Precedence)
-                if (isset($_ENV['HOST_TEMPLATE_PATH']) && is_dir($_ENV['HOST_TEMPLATE_PATH'])) {
-                    $hostPath = rtrim($_ENV['HOST_TEMPLATE_PATH'], '/');
+                if ($uiConfigDTO->hostTemplatePath !== null && is_dir($uiConfigDTO->hostTemplatePath)) {
+                    $hostPath = rtrim($uiConfigDTO->hostTemplatePath, '/');
                     $loader->addPath($hostPath);         // Main namespace (overrides)
                     $loader->addPath($hostPath, 'host'); // @host namespace
                 }
@@ -346,10 +350,7 @@ class Container
                 $twig = new Twig($loader, ['cache' => false]);
 
                 $navProvider = $c->get(\App\Domain\Contracts\Ui\NavigationProviderInterface::class);
-                $uiConfigDTO = $c->get(UiConfigDTO::class);
-
                 assert($navProvider instanceof \App\Domain\Contracts\Ui\NavigationProviderInterface);
-                assert($uiConfigDTO instanceof UiConfigDTO);
 
                 $twig->getEnvironment()->addGlobal('nav_items', $navProvider->getNavigationItems());
                 $twig->getEnvironment()->addGlobal('ui', $uiConfigDTO);
