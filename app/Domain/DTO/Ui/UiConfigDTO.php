@@ -22,7 +22,8 @@ class UiConfigDTO
         public string $adminAssetBaseUrl = '/',
         public string $appName = 'Admin Panel',
         public ?string $logoUrl = null,
-        public string $adminUrl = '/'
+        public string $adminUrl = '/',
+        public ?string $hostTemplatePath = null
     )
     {
     }

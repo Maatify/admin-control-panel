@@ -14,8 +14,8 @@
 {# 1. Extend the Kernel's original template using the @admin namespace #}
 {% extends "@admin/layouts/base.twig" %}
 
-{# 2. Override the 'head_css' slot to add custom branding #}
-{% block head_css %}
+{# 2. Override the 'head_assets' slot to add custom branding #}
+{% block head_assets %}
     {# Keep the original CSS (Tailwind) #}
     {{ parent() }}
 
@@ -23,8 +23,8 @@
     <link rel="stylesheet" href="{{ asset('css/host-branding.css') }}">
 {% endblock %}
 
-{# 3. Override the 'footer_content' slot #}
-{% block footer_content %}
+{# 3. Override the 'content_footer' slot #}
+{% block content_footer %}
     <div class="text-center text-sm text-gray-400">
         &copy; {{ "now"|date("Y") }} My Custom Company | Powered by Maatify
     </div>

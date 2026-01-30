@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% block head_meta %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
@@ -8,6 +9,9 @@
 			{{ ui.appName }}
         {% endblock %}
     </title>
+    {% endblock %}
+
+    {% block head_assets %}
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,33 +19,35 @@
           rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
 
-</head>
-<style>
-    .sidebar.collapsed ul li a:hover {
-        position: relative;
+    <style>
+        .sidebar.collapsed ul li a:hover {
+            position: relative;
 
-        span {
-            position: absolute;
-            display: block;
-            top: 0;
-            left: 138%;
-            background: white;
-            width: fit-content;
-            padding: 7px 20px;
-            border: 1px solid #80808024;
-            border-left-width: 1px;
-            border-left-style: solid;
-            border-left-color: rgba(128, 128, 128, 0.14);
-            border-top-right-radius: 9px;
-            border-bottom-right-radius: 9px;
-            border-left: none;
+            span {
+                position: absolute;
+                display: block;
+                top: 0;
+                left: 138%;
+                background: white;
+                width: fit-content;
+                padding: 7px 20px;
+                border: 1px solid #80808024;
+                border-left-width: 1px;
+                border-left-style: solid;
+                border-left-color: rgba(128, 128, 128, 0.14);
+                border-top-right-radius: 9px;
+                border-bottom-right-radius: 9px;
+                border-left: none;
+            }
+
         }
+    </style>
+    {% endblock %}
 
-    }
-</style>
-
+</head>
 
 <body class="bg-blue-50/15 flex flex-col min-h-screen ">
+{% block page_header %}
 <header class="header-section fixed top-0  right-0 z-[11111] w-[82%] [&.collapsed]:w-[95%]  max-w-[calc(100%-50px)] bg-white h-16 px-4 shadow-blue-200/40 shadow-sm  mb-5 transition-all duration-300 flex items-center justify-between">
     <div class="flex w-[40%] items-center">
 				<span class="p-1  mr-3 rounded-md flex items-center justify-center cursor-pointer border border-gray-100">
@@ -152,10 +158,13 @@
 
 
 </header>
+{% endblock %}
+
 <!-- Alert Container -->
 <div id="alert-container" class="absolute top-0 left-0 z-99999"></div>
 
 <nav class="sidebar fixed top-0 left-0 h-full w-[18%] bg-white text-main flex flex-col py-5 transition-[width] transition-all duration-300 shadow-md z-[1111] [&.collapsed]:w-[5%] [&.collapsed_.li-text]:hidden [&.collapsed_.arrow-icon]:hidden [&.collapsed_.logo]:text-base min-w-[50px] ">
+    {% block sidebar_header %}
     <div class="logo text-center text-xl font-bold whitespace-nowrap flex items-center justify-center gap-2">
 		<img
 				src="{{ ui.logoUrl ?? asset('assets/images/logo-small.png') }}"
@@ -166,6 +175,7 @@
 		<span>{{ ui.appName }}</span>
         <hr class="mt-6 mb-5 border-gray-200"/>
     </div>
+    {% endblock %}
 
     <ul class="space-y-2 px-4 mt-5">
         {% for item in nav_items %}
@@ -178,17 +188,21 @@
             </li>
         {% endfor %}
     </ul>
+    {% block sidebar_footer %}{% endblock %}
 </nav>
 
 <main class="page-content flex-1 p-6  sm:p-6 mt-12 text-gray-600 w-[82%] [&.collapsed]:w-[92%] sm:[&.collapsed]:w-[95%] ml-[18%] [&.collapsed]:ml-[8%] sm:[&.collapsed]:ml-[5%] transition-all duration-300"> {% block content %}{% endblock %}
 </main>
 
+{% block content_footer %}
 <footer class="bg-white text-center py-4 text-gray-600 border-t border-gray-100">
     &copy;
     {{ "now"|date("Y") }} MAATIFY |
     Admin Control Panel
 </footer>
+{% endblock %}
 
+{% block body_scripts %}
 {% block scripts %}{% endblock %}
 
 
@@ -250,6 +264,7 @@
 		}
 	});
 </script>
+{% endblock %}
 
 </body>
 </html>
