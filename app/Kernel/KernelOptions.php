@@ -19,6 +19,18 @@ class KernelOptions
     public bool $loadEnv = true;
 
     /**
+     * @var bool
+     * Register infrastructure middleware (RequestId, Context, Telemetry)
+     */
+    public bool $registerInfrastructureMiddleware = true;
+
+    /**
+     * @var bool
+     * Fail fast if AdminRoutes mounted without infrastructure middleware
+     */
+    public bool $strictInfrastructure = true;
+
+    /**
      * @var (callable(mixed): void)|null
      */
     public $builderHook = null;
