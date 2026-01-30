@@ -419,6 +419,7 @@ Entries MUST NOT be rewritten or reordered.
 - feat(ui): enable kernel-safe UI extensibility via Twig loader stacking
 - feat(kernel): own and enforce infrastructure middleware lifecycle
 - refactor(kernel): extract runtime configuration from env into AdminRuntimeConfigDTO
+- test(integration): align admin creation tests with HTTP permission contract
 
 ---
 

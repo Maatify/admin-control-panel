@@ -6,6 +6,7 @@ use App\Context\RequestContext;
 use App\Domain\Exception\EntityAlreadyExistsException;
 use App\Domain\Exception\EntityNotFoundException;
 use App\Domain\Exception\InvalidOperationException;
+use App\Domain\Exception\PermissionDeniedException;
 use App\Modules\Validation\Exceptions\ValidationFailedException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -107,6 +108,20 @@ return function (App $app): void {
             return $httpJsonError(
                 400,
                 'BAD_REQUEST',
+                $exception->getMessage()
+            );
+        }
+    );
+
+    $errorMiddleware->setErrorHandler(
+        PermissionDeniedException::class,
+        function (
+            ServerRequestInterface $request,
+            PermissionDeniedException $exception
+        ) use ($httpJsonError) {
+            return $httpJsonError(
+                403,
+                'PERMISSION_DENIED',
                 $exception->getMessage()
             );
         }

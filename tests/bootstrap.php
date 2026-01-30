@@ -32,6 +32,8 @@ if (file_exists($rootPath . '/.env.test')) {
 $defaults = [
     'APP_ENV' => 'testing',
     'APP_DEBUG' => 'true',
+    'APP_NAME' => 'AdminPanelTest',
+    'ADMIN_URL' => 'http://localhost',
     'DB_HOST' => '127.0.0.1',
     'DB_NAME' => 'test_db',
     'DB_USER' => 'root',
