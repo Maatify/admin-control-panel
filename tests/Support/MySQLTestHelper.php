@@ -22,26 +22,6 @@ use RuntimeException;
 final class MySQLTestHelper
 {
     private static ?PDO $pdo = null;
-    /** @var array<string, mixed>|null */
-    private static ?array $config = null;
-
-    /**
-     * @param array<string, mixed> $config
-     */
-    public static function init(array $config): void
-    {
-        self::$config = $config;
-        self::$pdo = null;
-    }
-
-    private static function getConf(string $key): string|false
-    {
-        if (self::$config !== null && array_key_exists($key, self::$config)) {
-            $val = self::$config[$key];
-            return is_scalar($val) ? (string)$val : false;
-        }
-        return getenv($key);
-    }
 
     public static function pdo(): PDO
     {
@@ -49,7 +29,7 @@ final class MySQLTestHelper
             return self::$pdo;
         }
 
-        $env = self::getConf('APP_ENV') ?: 'unknown';
+        $env = getenv('APP_ENV') ?: 'unknown';
 
         if ($env !== 'testing') {
             throw new RuntimeException(
@@ -58,12 +38,12 @@ final class MySQLTestHelper
             );
         }
 
-        $host = self::getConf('DB_HOST');
-        $name = self::getConf('DB_NAME');
-        $user = self::getConf('DB_USER');
-        $pass = self::getConf('DB_PASS');
+        $host = getenv('DB_HOST');
+        $name = getenv('DB_NAME');
+        $user = getenv('DB_USER');
+        $pass = getenv('DB_PASS');
 
-        if (!is_string($host) || !is_string($name) || !is_string($user)) {
+        if ($host === false || $name === false || $user === false) {
              throw new RuntimeException('Database environment variables (DB_HOST, DB_NAME, DB_USER) are not configured fully.');
         }
 
@@ -76,7 +56,7 @@ final class MySQLTestHelper
         self::$pdo = new PDO(
             $dsn,
             $user,
-            is_string($pass) ? $pass : null,
+            $pass ?: null,
             [
                 PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -120,7 +100,7 @@ final class MySQLTestHelper
 
     public static function truncate(string $table): void
     {
-        $env = self::getConf('APP_ENV') ?: 'unknown';
+        $env = getenv('APP_ENV') ?: 'unknown';
 
         if ($env !== 'testing') {
             throw new RuntimeException(

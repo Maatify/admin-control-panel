@@ -30,15 +30,12 @@ abstract class UnifiedEndpointBase extends TestCase
     {
         parent::setUp();
 
-        // 1️⃣ Initialize Test Config & DB Helper
-        $testConfig = TestKernelFactory::getTestConfig();
-        MySQLTestHelper::init($testConfig);
-
-        // 2️⃣ Initialize Test Database (shared PDO)
+        // 1️⃣ Initialize Test Database (shared PDO)
+        // Note: MySQLTestHelper now reads directly from ENV (populated by bootstrap.php)
         $this->pdo = MySQLTestHelper::pdo();
         $this->assertInstanceOf(PDO::class, $this->pdo);
 
-        // 3️⃣ Build Runtime Config via Factory
+        // 2️⃣ Build Runtime Config via Factory (DERIVED FROM ENV)
         $runtimeConfig = TestKernelFactory::createRuntimeConfig();
 
         // 4️⃣ Kernel Options

@@ -9,7 +9,6 @@ use App\Infrastructure\Repository\AdminPasswordRepository;
 use PDO;
 use PHPUnit\Framework\TestCase;
 use Tests\Support\MySQLTestHelper;
-use Tests\Support\TestKernelFactory;
 
 class AdminPasswordRepositoryTest extends TestCase
 {
@@ -18,9 +17,6 @@ class AdminPasswordRepositoryTest extends TestCase
 
     protected function setUp(): void
     {
-        // Initialize helper with config
-        MySQLTestHelper::init(TestKernelFactory::getTestConfig());
-
         // Default to real PDO (SQLite) from Helper
         $this->pdo = MySQLTestHelper::pdo();
 
