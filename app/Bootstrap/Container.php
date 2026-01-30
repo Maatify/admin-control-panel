@@ -197,7 +197,8 @@ class Container
     public static function create(
         AdminRuntimeConfigDTO $runtime,
         ?callable $builderHook = null,
-        ?string $templatesPath = null
+        ?string $templatesPath = null,
+        ?string $assetsBaseUrl = null
     ): ContainerInterface
     {
         $containerBuilder = new ContainerBuilder();
@@ -320,7 +321,7 @@ class Container
             \App\Domain\Contracts\Ui\NavigationProviderInterface::class => function (ContainerInterface $c) {
                 return new \App\Infrastructure\Ui\DefaultNavigationProvider();
             },
-            Twig::class                                               => function (ContainerInterface $c) use ($templatesPath) {
+            Twig::class                                               => function (ContainerInterface $c) use ($templatesPath, $assetsBaseUrl) {
                 $uiConfigDTO = $c->get(UiConfigDTO::class);
                 assert($uiConfigDTO instanceof UiConfigDTO);
 
@@ -346,8 +347,9 @@ class Container
                 $twig->getEnvironment()->addGlobal('nav_items', $navProvider->getNavigationItems());
                 $twig->getEnvironment()->addGlobal('ui', $uiConfigDTO);
 
-                $twig->getEnvironment()->addFunction(new \Twig\TwigFunction('asset', function (string $path) use ($uiConfigDTO): string {
-                    return rtrim($uiConfigDTO->adminAssetBaseUrl, '/') . '/' . ltrim($path, '/');
+                $twig->getEnvironment()->addFunction(new \Twig\TwigFunction('asset', function (string $path) use ($uiConfigDTO, $assetsBaseUrl): string {
+                    $base = $assetsBaseUrl ?? $uiConfigDTO->adminAssetBaseUrl;
+                    return rtrim($base, '/') . '/' . ltrim($path, '/');
                 }));
 
                 return $twig;

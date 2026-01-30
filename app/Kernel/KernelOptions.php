@@ -25,6 +25,14 @@ final class KernelOptions
     public ?string $templatesPath = null;
 
     /**
+     * Optional base URL for admin assets.
+     * If NULL, falls back to UiConfigDTO configuration.
+     *
+     * @var string|null
+     */
+    public ?string $assetsBaseUrl = null;
+
+    /**
      * Register infrastructure middleware
      * (RequestId, RequestContext, Telemetry)
      *
