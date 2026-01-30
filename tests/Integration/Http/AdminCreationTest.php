@@ -103,17 +103,15 @@ class AdminCreationTest extends UnifiedEndpointBase
             ->withCookieParams(['auth_token' => $token]);
 
         // 3. Assert Response (403 Forbidden)
-        // Note: Using try/catch instead of expectException allows us to inspect the response if it succeeds (failure case)
-        try {
-            $response = $this->app->handle($request);
+        $response = $this->app->handle($request);
+        $body = (string) $response->getBody();
 
-            // If we reach here, no exception was thrown -> FAILURE
-            $body = (string) $response->getBody();
-            $this->fail("Expected PermissionDeniedException, but request succeeded with status {$response->getStatusCode()}. Body: {$body}");
-        } catch (PermissionDeniedException $e) {
-            // Success: Expected exception was thrown
-            $this->assertTrue(true);
-        }
+        // Since we mapped PermissionDeniedException to 403 in bootstrap, we assert status 403
+        $this->assertSame(403, $response->getStatusCode(), "Expected 403 Forbidden. Status: {$response->getStatusCode()}, Body: {$body}");
+
+        $json = json_decode($body, true);
+        $this->assertIsArray($json);
+        $this->assertEquals('PERMISSION_DENIED', $json['code'] ?? null);
 
         // Assert No New Admin Created
         $stmt = $pdo->query("SELECT COUNT(*) FROM admins");
