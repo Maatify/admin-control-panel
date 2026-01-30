@@ -67,9 +67,13 @@ readonly class UiAdminsController
      */
     public function profile(Request $request, Response $response, array $args): Response
     {
-        $adminId = $this->extractAdminId($args);
+        $targetAdminId = $this->extractAdminId($args);
 
-        $profile = $this->profileReader->getProfile($adminId);
+        $profile = $this->profileReader->getProfile($targetAdminId);
+
+        /** @var AdminContext $context */
+        $context = $request->getAttribute(AdminContext::class);
+        $adminId = $context->adminId;
 
         $capabilities = [
             'can_edit'       => $this->authorizationService->hasPermission($adminId, 'admins.profile.edit'),

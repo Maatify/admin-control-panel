@@ -429,6 +429,7 @@ Entries MUST NOT be rewritten or reordered.
 - refactor(kernel): make routes file path injectable for host embedding
 - feat(ui-admins): conditionally expose profile edit action via capabilities
 - feat(ui-admins): gate admin profile sections behind capability flags
+- fix(ui-admins): resolve capability checks against actor admin context
 
 ---
 
