@@ -427,6 +427,7 @@ Entries MUST NOT be rewritten or reordered.
 - fix(kernel): make admin assets base URL injectable at kernel level
 - refactor(kernel): make admin middleware pipeline explicit and host-safe
 - refactor(kernel): make routes file path injectable for host embedding
+- feat(ui-admins): conditionally expose profile edit action via capabilities
 
 ---
 

@@ -71,6 +71,11 @@ readonly class UiAdminsController
 
         $profile = $this->profileReader->getProfile($adminId);
 
+        $capabilities = [
+            'can_edit'       => $this->authorizationService->hasPermission($adminId, 'admins.profile.edit'),
+        ];
+        $profile['capabilities'] = $capabilities;
+
         return $this->view->render(
             $response,
             'pages/admins_profile.twig',

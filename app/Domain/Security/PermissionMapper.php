@@ -24,6 +24,10 @@ final class PermissionMapper implements PermissionMapperInterface
         'admins.list.ui'  => 'admins.list',
         'admins.list.api' => 'admins.list',
 
+        // Admin Profile
+        'admins.profile.edit.view' => 'admins.profile.edit',
+        'admins.profile.edit'      => 'admins.profile.edit',
+
         'admin.create.ui'  => 'admin.create',
         'admin.create.api' => 'admin.create',
 
