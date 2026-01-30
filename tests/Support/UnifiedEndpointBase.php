@@ -30,14 +30,18 @@ abstract class UnifiedEndpointBase extends TestCase
     {
         parent::setUp();
 
-        // 1️⃣ Initialize Test Database (shared PDO)
+        // 1️⃣ Initialize Test Config & DB Helper
+        $testConfig = TestKernelFactory::getTestConfig();
+        MySQLTestHelper::init($testConfig);
+
+        // 2️⃣ Initialize Test Database (shared PDO)
         $this->pdo = MySQLTestHelper::pdo();
         $this->assertInstanceOf(PDO::class, $this->pdo);
 
-        // 2️⃣ Build Runtime Config from ENV (ENV already loaded by phpunit bootstrap)
-        $runtimeConfig = AdminRuntimeConfigDTO::fromArray($_ENV);
+        // 3️⃣ Build Runtime Config via Factory
+        $runtimeConfig = TestKernelFactory::createRuntimeConfig();
 
-        // 3️⃣ Kernel Options
+        // 4️⃣ Kernel Options
         $options = new KernelOptions();
         $options->runtimeConfig = $runtimeConfig;
         $options->registerInfrastructureMiddleware = true;
@@ -56,10 +60,10 @@ abstract class UnifiedEndpointBase extends TestCase
             ]);
         };
 
-        // 4️⃣ Boot Kernel
+        // 5️⃣ Boot Kernel
         $this->app = AdminKernel::bootWithOptions($options);
 
-        // 5️⃣ Override PDO in container to use test PDO
+        // 6️⃣ Override PDO in container to use test PDO
         $container = $this->app->getContainer();
         if ($container instanceof DIContainer) {
             $container->set(PDO::class, $this->pdo);

@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Tests\Integration\Kernel;
 
 use App\Kernel\AdminKernel;
-use App\Kernel\DTO\AdminRuntimeConfigDTO;
 use App\Kernel\KernelOptions;
 use PHPUnit\Framework\TestCase;
 use Slim\App;
 use Slim\Psr7\Factory\ServerRequestFactory;
+use Tests\Support\TestKernelFactory;
 
 class KernelRoutesInjectionTest extends TestCase
 {
@@ -49,7 +49,7 @@ PHP;
     public function testBootWithCustomRoutesFile(): void
     {
         // Setup options
-        $runtimeConfig = AdminRuntimeConfigDTO::fromArray($_ENV);
+        $runtimeConfig = TestKernelFactory::createRuntimeConfig();
 
         $options = new KernelOptions();
         $options->runtimeConfig = $runtimeConfig;
@@ -74,7 +74,7 @@ PHP;
     public function testBootWithDefaultRoutes(): void
     {
          // Setup options
-        $runtimeConfig = AdminRuntimeConfigDTO::fromArray($_ENV);
+        $runtimeConfig = TestKernelFactory::createRuntimeConfig();
 
         $options = new KernelOptions();
         $options->runtimeConfig = $runtimeConfig;
