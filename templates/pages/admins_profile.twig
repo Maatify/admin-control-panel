@@ -169,7 +169,8 @@
 
         <!-- Navigation Grid -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
+            {# ✅ Show "Emails" Section only if user has can_view_emails capability #}
+            {% if capabilities.can_view_emails ?? false %}
             <!-- Account Section -->
             <div class="bg-white rounded-lg shadow border border-gray-200">
                 <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
@@ -194,7 +195,10 @@
                     </ul>
                 </div>
             </div>
+            {% endif %}
 
+            {# ✅ Show "Sessions" Section only if user has can_view_sessions capability #}
+            {% if capabilities.can_view_sessions ?? false %}
             <!-- Security Section -->
             <div class="bg-white rounded-lg shadow border border-gray-200">
                 <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
@@ -219,7 +223,10 @@
                     </ul>
                 </div>
             </div>
+            {% endif %}
 
+            {# ✅ Show "Activity" Section only if user has can_view_notifications capability #}
+            {% if capabilities.can_view_notifications ?? false %}
             <!-- Activity Section -->
             <div class="bg-white rounded-lg shadow border border-gray-200">
                 <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
@@ -244,9 +251,12 @@
                     </ul>
                 </div>
             </div>
+            {% endif %}
 
         </div>
 
+        {# ✅ Show "Back to Admins List" Button only if user has can_view_admins capability #}
+        {% if capabilities.can_view_admins ?? false %}
         <!-- Back Button -->
         <div class="mt-6">
             <a href="{{ ui.adminUrl }}admins" class="inline-flex items-center gap-2 px-6 py-3 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 shadow-sm">
@@ -256,6 +266,7 @@
                 <span>Back to Admins List</span>
             </a>
         </div>
+        {% endif %}
 
     </div>
 

@@ -28,6 +28,10 @@ final class PermissionMapper implements PermissionMapperInterface
         'admins.profile.edit.view' => 'admins.profile.edit',
         'admins.profile.edit'      => 'admins.profile.edit',
 
+        // Admin Profile
+        'admin.email.list.ui'       => 'admin.email.list',
+        'admin.email.list.api'      => 'admin.email.list',
+
         'admin.create.ui'  => 'admin.create',
         'admin.create.api' => 'admin.create',
 
