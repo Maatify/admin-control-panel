@@ -63,7 +63,8 @@ final class AdminKernel
         $container = Container::create(
             $options->runtimeConfig,
             $options->builderHook,
-            $options->templatesPath
+            $options->templatesPath,
+            $options->assetsBaseUrl
         );
 
         // Create Slim App
