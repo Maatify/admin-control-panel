@@ -66,7 +66,19 @@ final class AdminKernel
         // are effectively deprecated/ignored by the Kernel as middleware is now group-scoped.
 
         // Register routes
-        $routes = $options->routes ?? require __DIR__ . '/../../routes/web.php';
+        $routes = $options->routes;
+
+        if ($routes === null) {
+            $routesPath = $options->routesFilePath ?? __DIR__ . '/../../routes/web.php';
+
+            if (!file_exists($routesPath)) {
+                throw new RuntimeException("Routes file not found: $routesPath");
+            }
+
+            /** @var callable(App<\Psr\Container\ContainerInterface>): void $routes */
+            $routes = require $routesPath;
+        }
+
         $routes($app);
 
         return $app;

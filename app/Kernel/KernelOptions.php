@@ -68,4 +68,12 @@ final class KernelOptions
      * @var (callable(App<\Psr\Container\ContainerInterface>): void)|null
      */
     public $routes = null;
+
+    /**
+     * Optional path to the routes file.
+     * If NULL, defaults to the internal routes/web.php.
+     *
+     * @var string|null
+     */
+    public ?string $routesFilePath = null;
 }
