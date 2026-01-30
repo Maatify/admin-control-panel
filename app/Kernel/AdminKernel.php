@@ -5,10 +5,6 @@ declare(strict_types=1);
 namespace App\Kernel;
 
 use App\Bootstrap\Container;
-use App\Context\RequestContext;
-use App\Http\Middleware\HttpRequestTelemetryMiddleware;
-use App\Http\Middleware\RequestContextMiddleware;
-use App\Http\Middleware\RequestIdMiddleware;
 use App\Kernel\DTO\AdminRuntimeConfigDTO;
 use RuntimeException;
 use Slim\App;
@@ -16,19 +12,6 @@ use Slim\Factory\AppFactory;
 
 final class AdminKernel
 {
-    /**
-     * Infrastructure middleware required for Admin runtime.
-     *
-     * NOTE:
-     * Slim executes middleware in LIFO order (last added = first executed),
-     * so we add them in REVERSE of execution order.
-     */
-    private const INFRASTRUCTURE_MIDDLEWARE = [
-        HttpRequestTelemetryMiddleware::class,
-        RequestContextMiddleware::class,
-        RequestIdMiddleware::class,
-    ];
-
     /**
      * Simplest boot entrypoint.
      *
@@ -77,54 +60,15 @@ final class AdminKernel
         $bootstrap($app);
 
         // Register infrastructure middleware (Kernel-owned)
-        if ($options->registerInfrastructureMiddleware === true) {
-            self::registerInfrastructureMiddlewareOnce($app);
-
-            if ($options->strictInfrastructure === true) {
-                // Fail-fast guard
-                $app->add(function ($request, $handler) {
-                    if (!$request->getAttribute(RequestContext::class)) {
-                        throw new RuntimeException(
-                            'Infrastructure middleware missing. ' .
-                            'Ensure RequestIdMiddleware and RequestContextMiddleware are registered.'
-                        );
-                    }
-
-                    return $handler->handle($request);
-                });
-            }
-        }
+        // NOTE: Infrastructure middleware (RequestId, Context, Telemetry) are now
+        // explicitly registered by AdminRoutes::register() via AdminMiddlewareOptionsDTO.
+        // The properties $options->registerInfrastructureMiddleware and $options->strictInfrastructure
+        // are effectively deprecated/ignored by the Kernel as middleware is now group-scoped.
 
         // Register routes
         $routes = $options->routes ?? require __DIR__ . '/../../routes/web.php';
         $routes($app);
 
         return $app;
-    }
-
-    /**
-     * Register infrastructure middleware only once.
-     *
-     * @param App<\Psr\Container\ContainerInterface> $app
-     */
-    private static function registerInfrastructureMiddlewareOnce(App $app): void
-    {
-        $markerKey = '__infra_registered';
-
-        $container = $app->getContainer();
-
-        // PSR-11 safe check
-        if ($container->has($markerKey)) {
-            return;
-        }
-
-        foreach (self::INFRASTRUCTURE_MIDDLEWARE as $middleware) {
-            $app->add($middleware);
-        }
-
-        // Mark infra as registered (only if container supports mutation)
-        if (method_exists($container, 'set')) {
-            $container->set($markerKey, true);
-        }
     }
 }

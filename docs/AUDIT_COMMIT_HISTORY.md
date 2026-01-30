@@ -425,6 +425,7 @@ Entries MUST NOT be rewritten or reordered.
 - refactor(kernel): remove global timezone mutation and introduce ClockInterface
 - fix(kernel): make Twig templates path injectable for kernel embedding
 - fix(kernel): make admin assets base URL injectable at kernel level
+- refactor(kernel): make admin middleware pipeline explicit and host-safe
 
 ---
 
