@@ -196,7 +196,8 @@ class Container
      */
     public static function create(
         AdminRuntimeConfigDTO $runtime,
-        ?callable $builderHook = null
+        ?callable $builderHook = null,
+        ?string $templatesPath = null
     ): ContainerInterface
     {
         $containerBuilder = new ContainerBuilder();
@@ -319,7 +320,7 @@ class Container
             \App\Domain\Contracts\Ui\NavigationProviderInterface::class => function (ContainerInterface $c) {
                 return new \App\Infrastructure\Ui\DefaultNavigationProvider();
             },
-            Twig::class                                               => function (ContainerInterface $c) {
+            Twig::class                                               => function (ContainerInterface $c) use ($templatesPath) {
                 $uiConfigDTO = $c->get(UiConfigDTO::class);
                 assert($uiConfigDTO instanceof UiConfigDTO);
 
@@ -333,7 +334,7 @@ class Container
                 }
 
                 // 2. Kernel templates
-                $kernelPath = __DIR__ . '/../../templates';
+                $kernelPath = $templatesPath ?? (__DIR__ . '/../../templates');
                 $loader->addPath($kernelPath);          // Main namespace (fallback)
                 $loader->addPath($kernelPath, 'admin'); // @admin namespace
 
@@ -1368,8 +1369,8 @@ class Container
 
                 return new PdoEmailQueueWriter($pdo, $crypto);
             },
-            EmailRendererInterface::class => function (ContainerInterface $c) {
-                return new TwigEmailRenderer();
+            EmailRendererInterface::class => function (ContainerInterface $c) use ($templatesPath) {
+                return new TwigEmailRenderer($templatesPath);
             },
             EmailTransportInterface::class => function (ContainerInterface $c) {
                 $config = $c->get(EmailTransportConfigDTO::class);

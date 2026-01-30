@@ -17,6 +17,14 @@ final class KernelOptions
     public ?AdminRuntimeConfigDTO $runtimeConfig = null;
 
     /**
+     * Optional path to the kernel templates directory.
+     * If NULL, defaults to the internal templates directory.
+     *
+     * @var string|null
+     */
+    public ?string $templatesPath = null;
+
+    /**
      * Register infrastructure middleware
      * (RequestId, RequestContext, Telemetry)
      *

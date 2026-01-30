@@ -15,12 +15,12 @@ class TwigEmailRenderer implements EmailRendererInterface
 {
     private Environment $twig;
 
-    public function __construct()
+    public function __construct(?string $templateDir = null)
     {
         // Calculate path to templates directory: root/templates
         // Current file: app/Modules/Email/Renderer/TwigEmailRenderer.php
         // Depth: 4 (app/Modules/Email/Renderer)
-        $templateDir = dirname(__DIR__, 4) . '/templates';
+        $templateDir = $templateDir ?? (dirname(__DIR__, 4) . '/templates');
 
         $loader = new FilesystemLoader($templateDir);
         $this->twig = new Environment($loader, [

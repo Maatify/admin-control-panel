@@ -62,7 +62,8 @@ final class AdminKernel
         // Create Container (NO env loading, NO filesystem assumptions)
         $container = Container::create(
             $options->runtimeConfig,
-            $options->builderHook
+            $options->builderHook,
+            $options->templatesPath
         );
 
         // Create Slim App
