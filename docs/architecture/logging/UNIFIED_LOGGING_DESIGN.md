@@ -212,6 +212,14 @@ Logging must not fail silently in infrastructure unless explicitly permitted by 
 * Swallowing is ONLY permitted at the **Recorder boundary** for **Non-Authoritative** domains (best-effort).
 * Any swallowing inside Infrastructure/Repository/DTO layers is forbidden.
 
+### 6.3.1 Trait Usage Policy (Strict)
+The following traits MUST NOT be used inside Domain, Application Services, Security, or Audit code:
+* `Maatify\PsrLogger\Traits\LoggerContextTrait`
+* `Maatify\PsrLogger\Traits\StaticLoggerTrait`
+
+**Reason:** They bypass Dependency Injection and violate transactional boundaries.
+`StaticLoggerTrait` is permitted **only** in bootstrap scripts, CLI tools, and cron jobs.
+
 **Read-Mapping Corruption Tolerance (Explicit Exception):**
 - Reader implementations MAY swallow JSON decode errors for `metadata` ONLY during read-mapping.
 - In case of corruption, `metadata` MUST become `null` (best-effort hydration), and the event MUST still be returned.

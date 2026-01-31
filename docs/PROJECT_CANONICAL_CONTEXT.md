@@ -180,6 +180,9 @@ Logging is **NOT a single concern** in this system.
   * Action
   * Changes (JSON diff)
 
+**Schema Note (Target Type):**
+* `target_type` is intentionally a **STRING** (not an Enum) to allow domain extensibility without schema migrations.
+
 **Hard Requirements:**
 
 * Audit logs MUST be written:
@@ -1130,6 +1133,7 @@ Any deviation is considered an **Architecture Violation**.
 **Status:** ARCHITECTURE-LOCKED / ACTIVE
 **Scope:** Cross-Domain Infrastructure
 **Phase:** Architecture Lock (Async Infrastructure)
+**Canonical Spec:** `docs/architecture/notification-delivery.md`
 
 ---
 

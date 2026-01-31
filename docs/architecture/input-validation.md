@@ -257,7 +257,7 @@ Therefore:
 
 * `docs/PROJECT_CANONICAL_CONTEXT.md` (Cross-Cutting Concerns)
 * `docs/ADMIN_PANEL_CANONICAL_TEMPLATE.md` (UI Semantics)
-* `docs/API_PHASE1.md` (Response Contract)
+* `docs/API.md` (Response Contract)
 * `docs/security/authentication-architecture.md` (Guard Semantics)
 
 ---
