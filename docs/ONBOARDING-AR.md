@@ -199,42 +199,14 @@ php -S 0.0.0.0:8080 -t public
 
 ---
 
-## 7️⃣ المسارات المتاحة حاليًا (قابلة للتغيير)
+## 7️⃣ المسارات المتاحة حاليًا
 
-المسارات التالية معرفة في `routes/web.php`.
+للحصول على القائمة الرسمية للمسارات المتاحة، يرجى الرجوع إلى:
 
-### مسارات الويب (Browser / Twig)
+1. **`docs/API.md`** — العقد الرسمي للـ API (Canonical Contract).
+2. **`routes/web.php`** — المصدر الحقيقي لتهيئة المسارات الحالية.
 
-* `GET  /login`
-* `POST /login`
-* `GET  /verify-email`
-* `POST /verify-email`
-* `POST /verify-email/resend`
-* `GET  /dashboard`
-* `GET  /2fa/setup`
-* `POST /2fa/setup`
-* `GET  /2fa/verify`
-* `POST /2fa/verify`
-* `GET  /notifications/telegram/connect`
-* `POST /logout`
-
-### مسارات الـ API (JSON)
-
-* `GET  /health`
-* `POST /auth/login`
-* `POST /auth/step-up`
-* `POST /admins`
-* `POST /admins/{id}/emails`
-* `GET  /admins/{id}/emails`
-* `POST /admins/{id}/emails/verify`
-* `POST /admin-identifiers/email/lookup`
-* `GET  /notifications`
-* `GET  /admins/{admin_id}/preferences`
-* `PUT  /admins/{admin_id}/preferences`
-* `GET  /admins/{admin_id}/notifications`
-* `POST /admin/notifications/{id}/read`
-
-📌 **ملاحظة:** أي مسار غير مذكور هنا غير متاح.
+📌 **ملاحظة:** أي نقطة نهاية (Endpoint) غير موثقة في `docs/API.md` تعتبر غير متاحة.
 
 ---
 

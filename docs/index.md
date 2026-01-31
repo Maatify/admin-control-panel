@@ -91,11 +91,12 @@ AI executors MUST NOT:
 The following documents define **locked canonical designs** for specific
 cross-cutting subsystems.
 
+**NOTE: These documents override the general "Low Authority" status of the `architecture/` folder.**
 They MUST be followed whenever implementing, modifying, or reviewing code within their scope.
 
 ### Logging & Observability
 
-- **docs/architecture/UNIFIED_LOGGING_DESIGN.md**
+- **docs/architecture/logging/UNIFIED_LOGGING_DESIGN.md**
    - Canonical design for all logging subsystems:
      Audit, SecurityEvents, ActivityLog, Telemetry
    - Defines:

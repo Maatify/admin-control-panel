@@ -151,15 +151,20 @@ POST /api/{resource}/query
 {
   "page": 1,
   "per_page": 20,
-  "filters": {}
+  "search": {
+    "global": "text",
+    "columns": {
+      "alias": "value"
+    }
+  }
 }
 ```
 
 ### قواعد
 
 * Pagination Server-side فقط
-* Filters لازم تكون موثّقة
-* أي Filter غير موثّق = مرفوض
+* Search / Filters لازم تكون موثّقة
+* أي Search Alias غير موثّق = مرفوض
 
 ---
 
