@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Http\Middleware;
 
-use App\Context\AdminContext;
-use App\Domain\Contracts\AdminSessionRepositoryInterface;
-use App\Http\Middleware\AdminContextMiddleware;
+use Maatify\AdminKernel\Context\AdminContext;
+use Maatify\AdminKernel\Domain\Contracts\AdminSessionRepositoryInterface;
+use Maatify\AdminKernel\Http\Middleware\AdminContextMiddleware;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;

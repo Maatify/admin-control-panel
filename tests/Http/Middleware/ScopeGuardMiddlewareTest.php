@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Http\Middleware;
 
-use App\Context\AdminContext;
-use App\Context\RequestContext;
-use App\Domain\Enum\Scope;
-use App\Domain\Service\StepUpService;
-use App\Http\Middleware\ScopeGuardMiddleware;
+use Maatify\AdminKernel\Context\AdminContext;
+use Maatify\AdminKernel\Context\RequestContext;
+use Maatify\AdminKernel\Domain\Enum\Scope;
+use Maatify\AdminKernel\Domain\Service\StepUpService;
+use Maatify\AdminKernel\Http\Middleware\ScopeGuardMiddleware;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
@@ -66,7 +66,7 @@ class ScopeGuardMiddlewareTest extends TestCase
         // Note: middleware checks session state first. We need to mock getSessionState returns ACTIVE
         $this->stepUpService->expects($this->once())
             ->method('getSessionState')
-            ->willReturn(\App\Domain\Enum\SessionState::ACTIVE);
+            ->willReturn(\Maatify\AdminKernel\Domain\Enum\SessionState::ACTIVE);
 
         $this->stepUpService->expects($this->once())
             ->method('hasGrant')

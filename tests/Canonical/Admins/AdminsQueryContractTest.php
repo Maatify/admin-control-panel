@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Canonical\Admins;
 
-use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
-use App\Domain\DTO\AdminConfigDTO;
-use App\Domain\List\AdminListCapabilities;
-use App\Domain\List\ListQueryDTO;
-use App\Infrastructure\Query\ListFilterResolver;
-use App\Infrastructure\Reader\Admin\PdoAdminQueryReader;
+use Maatify\AdminKernel\Application\Crypto\AdminIdentifierCryptoServiceInterface;
+use Maatify\AdminKernel\Domain\DTO\AdminConfigDTO;
+use Maatify\AdminKernel\Domain\List\AdminListCapabilities;
+use Maatify\AdminKernel\Domain\List\ListQueryDTO;
+use Maatify\AdminKernel\Infrastructure\Query\ListFilterResolver;
+use Maatify\AdminKernel\Infrastructure\Reader\Admin\PdoAdminQueryReader;
 use App\Modules\Validation\Schemas\SharedListQuerySchema;
 use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\Test;

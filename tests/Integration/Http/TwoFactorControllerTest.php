@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Http;
 
-use App\Application\Auth\TwoFactorEnrollmentService;
-use App\Application\Auth\TwoFactorVerificationService;
-use App\Application\Services\DiagnosticsTelemetryService;
-use App\Context\AdminContext;
-use App\Context\RequestContext;
-use App\Domain\Contracts\TotpServiceInterface;
-use App\Domain\DTO\TotpVerificationResultDTO;
-use App\Domain\Enum\Scope;
-use App\Domain\Service\StepUpService;
-use App\Http\Controllers\Web\TwoFactorController;
+use Maatify\AdminKernel\Application\Auth\TwoFactorEnrollmentService;
+use Maatify\AdminKernel\Application\Auth\TwoFactorVerificationService;
+use Maatify\AdminKernel\Application\Services\DiagnosticsTelemetryService;
+use Maatify\AdminKernel\Context\AdminContext;
+use Maatify\AdminKernel\Context\RequestContext;
+use Maatify\AdminKernel\Domain\Contracts\TotpServiceInterface;
+use Maatify\AdminKernel\Domain\DTO\TotpVerificationResultDTO;
+use Maatify\AdminKernel\Domain\Enum\Scope;
+use Maatify\AdminKernel\Domain\Service\StepUpService;
+use Maatify\AdminKernel\Http\Controllers\Web\TwoFactorController;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;

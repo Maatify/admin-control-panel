@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Kernel;
 
-use App\Kernel\AdminKernel;
-use App\Kernel\KernelOptions;
+use Maatify\AdminKernel\Kernel\AdminKernel;
+use Maatify\AdminKernel\Kernel\KernelOptions;
 use PHPUnit\Framework\TestCase;
 use Slim\App;
 use Slim\Psr7\Factory\ServerRequestFactory;

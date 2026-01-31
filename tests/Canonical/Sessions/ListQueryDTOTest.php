@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Canonical\Sessions;
 
-use App\Domain\List\ListQueryDTO;
+use Maatify\AdminKernel\Domain\List\ListQueryDTO;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 

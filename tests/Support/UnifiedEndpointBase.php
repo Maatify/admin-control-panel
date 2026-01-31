@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Support;
 
-use App\Kernel\AdminKernel;
-use App\Kernel\KernelOptions;
+use Maatify\AdminKernel\Kernel\AdminKernel;
+use Maatify\AdminKernel\Kernel\KernelOptions;
 use Maatify\SharedCommon\Contracts\ClockInterface;
 use DateTimeImmutable;
 use DateTimeZone;

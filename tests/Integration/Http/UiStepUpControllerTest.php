@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Http;
 
-use App\Http\Controllers\Ui\UiStepUpController;
-use App\Http\Controllers\Web\TwoFactorController;
+use Maatify\AdminKernel\Http\Controllers\Ui\UiStepUpController;
+use Maatify\AdminKernel\Http\Controllers\Web\TwoFactorController;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;

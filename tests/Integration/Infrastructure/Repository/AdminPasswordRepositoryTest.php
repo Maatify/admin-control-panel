@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Infrastructure\Repository;
 
-use App\Domain\DTO\AdminPasswordRecordDTO;
-use App\Infrastructure\Repository\AdminPasswordRepository;
+use Maatify\AdminKernel\Domain\DTO\AdminPasswordRecordDTO;
+use Maatify\AdminKernel\Infrastructure\Repository\AdminPasswordRepository;
 use PDO;
 use PHPUnit\Framework\TestCase;
 use Tests\Support\MySQLTestHelper;

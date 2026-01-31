@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Domain\DTO;
 
-use App\Domain\DTO\SecurityEventDTO;
+use Maatify\AdminKernel\Domain\DTO\SecurityEventDTO;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 

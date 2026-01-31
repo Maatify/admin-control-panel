@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use App\Kernel\AdminKernel;
-use App\Kernel\KernelOptions;
-use App\Kernel\DTO\AdminRuntimeConfigDTO;
+use Maatify\AdminKernel\Kernel\AdminKernel;
+use Maatify\AdminKernel\Kernel\KernelOptions;
+use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
 use Dotenv\Dotenv;
 
 // 1️⃣ Load ENV (HOST responsibility)

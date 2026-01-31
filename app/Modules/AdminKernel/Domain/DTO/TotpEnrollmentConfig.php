@@ -1,0 +1,31 @@
+<?php
+
+/**
+ * @copyright   ©2026 Maatify.dev
+ * @Library     maatify/admin-control-panel
+ * @Project     maatify:admin-control-panel
+ * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
+ * @since       2026-01-19 17:59
+ * @see         https://www.maatify.dev Maatify.dev
+ * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
+ * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
+ */
+
+declare(strict_types=1);
+
+namespace Maatify\AdminKernel\Domain\DTO;
+
+use RuntimeException;
+
+readonly class TotpEnrollmentConfig
+{
+    public function __construct(
+        public string $totpIssuer,
+        public int $totpEnrollmentTtlSeconds,
+    )
+    {
+        if ($this->totpEnrollmentTtlSeconds <= 0) {
+            throw new RuntimeException('Invalid TOTP enrollment TTL');
+        }
+    }
+}

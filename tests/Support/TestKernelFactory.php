@@ -15,9 +15,9 @@ declare(strict_types=1);
 
 namespace Tests\Support;
 
-use App\Kernel\AdminKernel;
-use App\Kernel\DTO\AdminRuntimeConfigDTO;
-use App\Kernel\KernelOptions;
+use Maatify\AdminKernel\Kernel\AdminKernel;
+use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
+use Maatify\AdminKernel\Kernel\KernelOptions;
 use Slim\App;
 
 final class TestKernelFactory

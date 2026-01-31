@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Http\Middleware;
 
-use App\Context\RequestContext;
-use App\Http\Middleware\RequestContextMiddleware;
+use Maatify\AdminKernel\Context\RequestContext;
+use Maatify\AdminKernel\Http\Middleware\RequestContextMiddleware;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;

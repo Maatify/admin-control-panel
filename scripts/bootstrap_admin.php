@@ -2,18 +2,18 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use App\Bootstrap\Container;
-use App\Kernel\DTO\AdminRuntimeConfigDTO;
+use Maatify\AdminKernel\Bootstrap\Container;
+use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
 use Dotenv\Dotenv;
 
-use App\Domain\Contracts\AdminTotpSecretStoreInterface;
-use App\Infrastructure\Repository\AdminRepository;
-use App\Infrastructure\Repository\AdminEmailRepository;
-use App\Domain\Contracts\AdminPasswordRepositoryInterface;
-use App\Domain\Contracts\TotpServiceInterface;
-use App\Domain\DTO\AdminConfigDTO;
-use App\Domain\Service\PasswordService;
-use App\Domain\Ownership\SystemOwnershipRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\AdminTotpSecretStoreInterface;
+use Maatify\AdminKernel\Infrastructure\Repository\AdminRepository;
+use Maatify\AdminKernel\Infrastructure\Repository\AdminEmailRepository;
+use Maatify\AdminKernel\Domain\Contracts\AdminPasswordRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\TotpServiceInterface;
+use Maatify\AdminKernel\Domain\DTO\AdminConfigDTO;
+use Maatify\AdminKernel\Domain\Service\PasswordService;
+use Maatify\AdminKernel\Domain\Ownership\SystemOwnershipRepositoryInterface;
 use Ramsey\Uuid\Uuid;
 
 /*
@@ -108,10 +108,10 @@ try {
     assert($emailRepo instanceof AdminEmailRepository);
 
     $cryptoService = $container->get(
-        App\Application\Crypto\AdminIdentifierCryptoServiceInterface::class
+        Maatify\AdminKernel\Application\Crypto\AdminIdentifierCryptoServiceInterface::class
     );
 
-    assert($cryptoService instanceof App\Application\Crypto\AdminIdentifierCryptoServiceInterface);
+    assert($cryptoService instanceof Maatify\AdminKernel\Application\Crypto\AdminIdentifierCryptoServiceInterface);
 
     $blindIndex = $cryptoService->deriveEmailBlindIndex($email);
     $encryptedPayload = $cryptoService->encryptEmail($email);

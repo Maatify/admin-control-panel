@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Canonical\Sessions;
 
-use App\Application\Crypto\AdminIdentifierCryptoServiceInterface;
-use App\Domain\List\ListQueryDTO;
-use App\Infrastructure\Query\ResolvedListFilters;
-use App\Infrastructure\Reader\Session\PdoSessionListReader;
+use Maatify\AdminKernel\Application\Crypto\AdminIdentifierCryptoServiceInterface;
+use Maatify\AdminKernel\Domain\List\ListQueryDTO;
+use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
+use Maatify\AdminKernel\Infrastructure\Reader\Session\PdoSessionListReader;
 use PDO;
 use PDOStatement;
 use PHPUnit\Framework\MockObject\MockObject;

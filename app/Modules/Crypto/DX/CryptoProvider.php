@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Crypto\DX;
 
-use App\Domain\Service\PasswordService;
+use Maatify\AdminKernel\Domain\Service\PasswordService;
 use App\Modules\Crypto\Reversible\ReversibleCryptoService;
 
 /**

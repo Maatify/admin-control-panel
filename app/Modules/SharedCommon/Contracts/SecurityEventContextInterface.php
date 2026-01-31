@@ -16,7 +16,7 @@ namespace Maatify\SharedCommon\Contracts;
 
 /**
  * The Admin Control Panel project provides a concrete implementation
- * via App\Context\RequestContext, which adapts itself to this contract.
+ * via Maatify\AdminKernel\Context\RequestContext, which adapts itself to this contract.
  */
 interface SecurityEventContextInterface
 {

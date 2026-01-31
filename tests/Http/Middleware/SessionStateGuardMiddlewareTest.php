@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Http\Middleware;
 
-use App\Context\AdminContext;
-use App\Context\RequestContext;
-use App\Domain\Contracts\AdminTotpSecretStoreInterface;
-use App\Domain\Enum\SessionState;
-use App\Domain\Service\StepUpService;
-use App\Http\Middleware\SessionStateGuardMiddleware;
+use Maatify\AdminKernel\Context\AdminContext;
+use Maatify\AdminKernel\Context\RequestContext;
+use Maatify\AdminKernel\Domain\Contracts\AdminTotpSecretStoreInterface;
+use Maatify\AdminKernel\Domain\Enum\SessionState;
+use Maatify\AdminKernel\Domain\Service\StepUpService;
+use Maatify\AdminKernel\Http\Middleware\SessionStateGuardMiddleware;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;

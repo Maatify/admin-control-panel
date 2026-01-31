@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Http;
 
-use App\Domain\Exception\PermissionDeniedException;
+use Maatify\AdminKernel\Domain\Exception\PermissionDeniedException;
 use Tests\Support\UnifiedEndpointBase;
 
 class AdminCreationTest extends UnifiedEndpointBase

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use App\Infrastructure\Repository\AdminSessionRepository;
+use Maatify\AdminKernel\Infrastructure\Repository\AdminSessionRepository;
 use Maatify\SharedCommon\Contracts\ClockInterface;
 use PDO;
 use PDOStatement;

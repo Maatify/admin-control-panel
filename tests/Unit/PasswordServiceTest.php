@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use App\Domain\Security\Password\PasswordPepperRing;
-use App\Domain\Service\PasswordService;
+use Maatify\AdminKernel\Domain\Security\Password\PasswordPepperRing;
+use Maatify\AdminKernel\Domain\Service\PasswordService;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use App\Bootstrap\Container;
-use App\Kernel\DTO\AdminRuntimeConfigDTO;
+use Maatify\AdminKernel\Bootstrap\Container;
+use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
 use Dotenv\Dotenv;
 
 use App\Modules\Crypto\DX\CryptoProvider;

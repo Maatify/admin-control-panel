@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Context;
 
-use App\Context\AdminContext;
-use App\Context\RequestContext;
-use App\Domain\Contracts\AdminSessionRepositoryInterface;
-use App\Domain\Service\SessionValidationService;
-use App\Http\Middleware\AdminContextMiddleware;
-use App\Http\Middleware\SessionGuardMiddleware;
+use Maatify\AdminKernel\Context\AdminContext;
+use Maatify\AdminKernel\Context\RequestContext;
+use Maatify\AdminKernel\Domain\Contracts\AdminSessionRepositoryInterface;
+use Maatify\AdminKernel\Domain\Service\SessionValidationService;
+use Maatify\AdminKernel\Http\Middleware\AdminContextMiddleware;
+use Maatify\AdminKernel\Http\Middleware\SessionGuardMiddleware;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;

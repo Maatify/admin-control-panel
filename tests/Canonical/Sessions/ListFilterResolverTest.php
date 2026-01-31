@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Canonical\Sessions;
 
-use App\Domain\List\ListCapabilities;
-use App\Domain\List\ListQueryDTO;
-use App\Infrastructure\Query\ListFilterResolver;
+use Maatify\AdminKernel\Domain\List\ListCapabilities;
+use Maatify\AdminKernel\Domain\List\ListQueryDTO;
+use Maatify\AdminKernel\Infrastructure\Query\ListFilterResolver;
 use PHPUnit\Framework\TestCase;
 
 class ListFilterResolverTest extends TestCase
