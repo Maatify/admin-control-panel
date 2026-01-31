@@ -15,8 +15,8 @@ declare(strict_types=1);
 
 namespace Tests\Modules\Crypto\Password;
 
-use App\Modules\Crypto\Password\Pepper\PasswordPepperProviderInterface;
-use App\Modules\Crypto\Password\Exception\PepperUnavailableException;
+use Maatify\Crypto\Password\Exception\PepperUnavailableException;
+use Maatify\Crypto\Password\Pepper\PasswordPepperProviderInterface;
 
 final class FakePepperProvider implements PasswordPepperProviderInterface
 {

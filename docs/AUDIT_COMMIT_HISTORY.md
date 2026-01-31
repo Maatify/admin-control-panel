@@ -437,6 +437,7 @@ Entries MUST NOT be rewritten or reordered.
 - refactor(kernel): extract Admin Kernel into dedicated module
 - refactor(crypto): introduce CryptoContextProvider and decouple context semantics
 - refactor(modules): extract locked modules to top-level Modules directory
+- fix(core): align typing and contracts across validation, input, and crypto modules
 
 ---
 

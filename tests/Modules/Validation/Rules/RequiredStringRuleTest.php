@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Tests\Modules\Validation\Rules;
 
-use App\Modules\Validation\Rules\RequiredStringRule;
+use Maatify\Validation\Rules\RequiredStringRule;
 use PHPUnit\Framework\TestCase;
 use Respect\Validation\Exceptions\ValidationException;
 

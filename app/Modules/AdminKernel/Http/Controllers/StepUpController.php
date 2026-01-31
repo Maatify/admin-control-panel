@@ -7,8 +7,8 @@ namespace Maatify\AdminKernel\Http\Controllers;
 use Maatify\AdminKernel\Application\Services\DiagnosticsTelemetryService;
 use Maatify\AdminKernel\Context\RequestContext;
 use Maatify\AdminKernel\Domain\Service\StepUpService;
-use App\Modules\Validation\Guard\ValidationGuard;
-use App\Modules\Validation\Schemas\StepUpVerifySchema;
+use Maatify\Validation\Guard\ValidationGuard;
+use Maatify\Validation\Schemas\StepUpVerifySchema;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 

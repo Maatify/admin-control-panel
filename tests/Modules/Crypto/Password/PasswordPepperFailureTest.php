@@ -15,10 +15,10 @@ declare(strict_types=1);
 
 namespace Tests\Modules\Crypto\Password;
 
+use Maatify\Crypto\Password\DTO\ArgonPolicyDTO;
+use Maatify\Crypto\Password\Exception\PepperUnavailableException;
+use Maatify\Crypto\Password\PasswordHasher;
 use PHPUnit\Framework\TestCase;
-use App\Modules\Crypto\Password\PasswordHasher;
-use App\Modules\Crypto\Password\DTO\ArgonPolicyDTO;
-use App\Modules\Crypto\Password\Exception\PepperUnavailableException;
 
 final class PasswordPepperFailureTest extends TestCase
 {

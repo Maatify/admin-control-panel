@@ -19,8 +19,8 @@ use Maatify\AdminKernel\Application\Verification\Enum\EmailTemplateEnum;
 use Maatify\AdminKernel\Application\Verification\Enum\NotificationSenderTypeEnum;
 use Maatify\AdminKernel\Domain\Enum\IdentityTypeEnum;
 use Maatify\AdminKernel\Domain\Enum\VerificationPurposeEnum;
-use App\Modules\Email\Queue\DTO\EmailQueuePayloadDTO;
-use App\Modules\Email\Queue\EmailQueueWriterInterface;
+use Maatify\EmailDelivery\Queue\DTO\EmailQueuePayloadDTO;
+use Maatify\EmailDelivery\Queue\EmailQueueWriterInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
 

@@ -15,9 +15,9 @@ declare(strict_types=1);
 
 namespace Tests\Modules\Crypto\HKDF;
 
-use App\Modules\Crypto\HKDF\HKDFService;
-use App\Modules\Crypto\HKDF\HKDFContext;
-use App\Modules\Crypto\HKDF\Exceptions\InvalidRootKeyException;
+use Maatify\Crypto\HKDF\Exceptions\InvalidRootKeyException;
+use Maatify\Crypto\HKDF\HKDFContext;
+use Maatify\Crypto\HKDF\HKDFService;
 use PHPUnit\Framework\TestCase;
 
 final class HKDFServiceTest extends TestCase

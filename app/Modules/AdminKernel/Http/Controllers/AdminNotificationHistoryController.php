@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers;
 
+use DateTimeImmutable;
 use Maatify\AdminKernel\Domain\Contracts\AdminNotificationHistoryReaderInterface;
 use Maatify\AdminKernel\Domain\DTO\Notification\History\AdminNotificationHistoryQueryDTO;
-use App\Modules\Validation\Guard\ValidationGuard;
-use App\Modules\Validation\Schemas\AdminNotificationHistorySchema;
-use DateTimeImmutable;
+use Maatify\Validation\Guard\ValidationGuard;
+use Maatify\Validation\Schemas\AdminNotificationHistorySchema;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 

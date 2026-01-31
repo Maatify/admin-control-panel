@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Tests\Modules\Crypto\HKDF;
 
-use App\Modules\Crypto\HKDF\HKDFKeyDeriver;
+use Maatify\Crypto\HKDF\HKDFKeyDeriver;
 use PHPUnit\Framework\TestCase;
 
 final class HKDFKeyDeriverTest extends TestCase

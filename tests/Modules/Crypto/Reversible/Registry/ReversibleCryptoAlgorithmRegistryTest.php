@@ -15,9 +15,9 @@ declare(strict_types=1);
 
 namespace Tests\Modules\Crypto\Reversible\Registry;
 
-use App\Modules\Crypto\Reversible\Algorithms\Aes256GcmAlgorithm;
-use App\Modules\Crypto\Reversible\Registry\ReversibleCryptoAlgorithmRegistry;
-use App\Modules\Crypto\Reversible\ReversibleCryptoAlgorithmEnum;
+use Maatify\Crypto\Reversible\Algorithms\Aes256GcmAlgorithm;
+use Maatify\Crypto\Reversible\Registry\ReversibleCryptoAlgorithmRegistry;
+use Maatify\Crypto\Reversible\ReversibleCryptoAlgorithmEnum;
 use PHPUnit\Framework\TestCase;
 
 final class ReversibleCryptoAlgorithmRegistryTest extends TestCase

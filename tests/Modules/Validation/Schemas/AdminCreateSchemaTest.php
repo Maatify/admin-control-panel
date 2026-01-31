@@ -15,8 +15,8 @@ declare(strict_types=1);
 
 namespace Tests\Modules\Validation\Schemas;
 
-use App\Modules\Validation\Enum\ValidationErrorCodeEnum;
-use App\Modules\Validation\Schemas\AdminCreateSchema;
+use Maatify\Validation\Enum\ValidationErrorCodeEnum;
+use Maatify\Validation\Schemas\AdminCreateSchema;
 use PHPUnit\Framework\TestCase;
 
 final class AdminCreateSchemaTest extends TestCase

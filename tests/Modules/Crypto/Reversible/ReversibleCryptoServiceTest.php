@@ -15,11 +15,11 @@ declare(strict_types=1);
 
 namespace Tests\Modules\Crypto\Reversible;
 
-use App\Modules\Crypto\Reversible\Algorithms\Aes256GcmAlgorithm;
-use App\Modules\Crypto\Reversible\DTO\ReversibleCryptoMetadataDTO;
-use App\Modules\Crypto\Reversible\Registry\ReversibleCryptoAlgorithmRegistry;
-use App\Modules\Crypto\Reversible\ReversibleCryptoAlgorithmEnum;
-use App\Modules\Crypto\Reversible\ReversibleCryptoService;
+use Maatify\Crypto\Reversible\Algorithms\Aes256GcmAlgorithm;
+use Maatify\Crypto\Reversible\DTO\ReversibleCryptoMetadataDTO;
+use Maatify\Crypto\Reversible\Registry\ReversibleCryptoAlgorithmRegistry;
+use Maatify\Crypto\Reversible\ReversibleCryptoAlgorithmEnum;
+use Maatify\Crypto\Reversible\ReversibleCryptoService;
 use PHPUnit\Framework\TestCase;
 
 final class ReversibleCryptoServiceTest extends TestCase

@@ -15,9 +15,9 @@ declare(strict_types=1);
 
 namespace Tests\Modules\Crypto\HKDF;
 
-use App\Modules\Crypto\HKDF\HKDFPolicy;
-use App\Modules\Crypto\HKDF\Exceptions\InvalidRootKeyException;
-use App\Modules\Crypto\HKDF\Exceptions\InvalidOutputLengthException;
+use Maatify\Crypto\HKDF\Exceptions\InvalidOutputLengthException;
+use Maatify\Crypto\HKDF\Exceptions\InvalidRootKeyException;
+use Maatify\Crypto\HKDF\HKDFPolicy;
 use PHPUnit\Framework\TestCase;
 
 final class HKDFPolicyTest extends TestCase

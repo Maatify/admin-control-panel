@@ -15,8 +15,8 @@ declare(strict_types=1);
 
 namespace Tests\Modules\Crypto\HKDF;
 
-use App\Modules\Crypto\HKDF\HKDFContext;
-use App\Modules\Crypto\HKDF\Exceptions\InvalidContextException;
+use Maatify\Crypto\HKDF\Exceptions\InvalidContextException;
+use Maatify\Crypto\HKDF\HKDFContext;
 use PHPUnit\Framework\TestCase;
 
 final class HKDFContextTest extends TestCase

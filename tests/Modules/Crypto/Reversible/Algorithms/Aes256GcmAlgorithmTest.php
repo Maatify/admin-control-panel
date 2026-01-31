@@ -15,8 +15,8 @@ declare(strict_types=1);
 
 namespace Tests\Modules\Crypto\Reversible\Algorithms;
 
-use App\Modules\Crypto\Reversible\Algorithms\Aes256GcmAlgorithm;
-use App\Modules\Crypto\Reversible\DTO\ReversibleCryptoMetadataDTO;
+use Maatify\Crypto\Reversible\Algorithms\Aes256GcmAlgorithm;
+use Maatify\Crypto\Reversible\DTO\ReversibleCryptoMetadataDTO;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 

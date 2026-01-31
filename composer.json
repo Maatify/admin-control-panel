@@ -38,7 +38,11 @@
       "Maatify\\DeliveryOperations\\": "Modules/DeliveryOperations/",
       "Maatify\\AuthoritativeAudit\\": "Modules/AuthoritativeAudit/",
       "Maatify\\SharedCommon\\": "Modules/SharedCommon/",
-      "Maatify\\Crypto\\": "app/Modules/Crypto"
+      "Maatify\\Crypto\\": "Modules/Crypto",
+      "Maatify\\EmailDelivery\\": "Modules/EmailDelivery",
+      "Maatify\\InputNormalization\\": "Modules/InputNormalization",
+      "Maatify\\Validation\\": "Modules/Validation"
+
     }
   },
 

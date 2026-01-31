@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api;
 
-use Maatify\AdminKernel\Domain\Service\SessionRevocationService;
+use DomainException;
 use Maatify\AdminKernel\Context\RequestContext;
+use Maatify\AdminKernel\Domain\Exception\IdentifierNotFoundException;
 use Maatify\AdminKernel\Domain\Service\AuthorizationService;
-use App\Modules\Validation\Guard\ValidationGuard;
-use App\Modules\Validation\Schemas\SessionRevokeSchema;
+use Maatify\AdminKernel\Domain\Service\SessionRevocationService;
+use Maatify\Validation\Guard\ValidationGuard;
+use Maatify\Validation\Schemas\SessionRevokeSchema;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use DomainException;
-use Maatify\AdminKernel\Domain\Exception\IdentifierNotFoundException;
 
 class SessionRevokeController
 {

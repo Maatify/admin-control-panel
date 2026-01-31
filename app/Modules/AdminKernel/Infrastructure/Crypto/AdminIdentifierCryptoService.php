@@ -17,11 +17,11 @@ namespace Maatify\AdminKernel\Infrastructure\Crypto;
 
 use Maatify\AdminKernel\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use Maatify\AdminKernel\Domain\DTO\Crypto\EncryptedPayloadDTO;
-use App\Modules\Crypto\DX\CryptoProvider;
-use App\Modules\Crypto\Reversible\DTO\ReversibleCryptoEncryptionResultDTO;
-use App\Modules\Crypto\Reversible\DTO\ReversibleCryptoMetadataDTO;
-use App\Modules\Crypto\Reversible\ReversibleCryptoAlgorithmEnum;
 use Maatify\Crypto\Contract\CryptoContextProviderInterface;
+use Maatify\Crypto\DX\CryptoProvider;
+use Maatify\Crypto\Reversible\DTO\ReversibleCryptoEncryptionResultDTO;
+use Maatify\Crypto\Reversible\DTO\ReversibleCryptoMetadataDTO;
+use Maatify\Crypto\Reversible\ReversibleCryptoAlgorithmEnum;
 use RuntimeException;
 
 /**

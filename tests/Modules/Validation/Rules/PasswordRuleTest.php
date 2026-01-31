@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Tests\Modules\Validation\Rules;
 
-use App\Modules\Validation\Rules\PasswordRule;
+use Maatify\Validation\Rules\PasswordRule;
 use PHPUnit\Framework\TestCase;
 use Respect\Validation\Exceptions\ValidationException;
 

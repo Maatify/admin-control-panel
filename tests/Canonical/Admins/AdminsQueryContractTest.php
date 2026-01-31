@@ -4,19 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Canonical\Admins;
 
+use DateTimeImmutable;
 use Maatify\AdminKernel\Application\Crypto\AdminIdentifierCryptoServiceInterface;
-use Maatify\AdminKernel\Domain\DTO\AdminConfigDTO;
 use Maatify\AdminKernel\Domain\List\AdminListCapabilities;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
 use Maatify\AdminKernel\Infrastructure\Query\ListFilterResolver;
 use Maatify\AdminKernel\Infrastructure\Reader\Admin\PdoAdminQueryReader;
-use App\Modules\Validation\Schemas\SharedListQuerySchema;
-use DateTimeImmutable;
-use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\TestCase;
+use Maatify\Validation\Schemas\SharedListQuerySchema;
 use PDO;
 use PDOStatement;
-use ReflectionClass;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 
 class AdminsQueryContractTest extends TestCase
 {

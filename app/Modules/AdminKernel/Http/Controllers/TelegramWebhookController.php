@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Http\Controllers;
 
 use Maatify\AdminKernel\Infrastructure\Notification\TelegramHandler;
-use App\Modules\Validation\Guard\ValidationGuard;
-use App\Modules\Validation\Schemas\TelegramWebhookSchema;
+use Maatify\Validation\Guard\ValidationGuard;
+use Maatify\Validation\Schemas\TelegramWebhookSchema;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;

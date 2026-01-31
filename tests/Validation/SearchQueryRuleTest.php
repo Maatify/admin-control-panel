@@ -15,10 +15,9 @@ declare(strict_types=1);
 
 namespace Tests\Validation;
 
-use App\Modules\Validation\Rules\SearchQueryRule;
+use Maatify\Validation\Rules\SearchQueryRule;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Respect\Validation\Exceptions\ValidationException;
 
 final class SearchQueryRuleTest extends TestCase
 {

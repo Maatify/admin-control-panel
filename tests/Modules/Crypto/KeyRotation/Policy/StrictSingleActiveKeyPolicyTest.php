@@ -15,13 +15,12 @@ declare(strict_types=1);
 
 namespace Tests\Modules\Crypto\KeyRotation\Policy;
 
-use App\Modules\Crypto\KeyRotation\DTO\CryptoKeyDTO;
-use App\Modules\Crypto\KeyRotation\Exceptions\KeyNotFoundException;
-use App\Modules\Crypto\KeyRotation\KeyStatusEnum;
-use App\Modules\Crypto\KeyRotation\Policy\StrictSingleActiveKeyPolicy;
-use App\Modules\Crypto\KeyRotation\Providers\InMemoryKeyProvider;
-use App\Modules\Crypto\KeyRotation\Exceptions\DecryptionKeyNotAllowedException;
 use DateTimeImmutable;
+use Maatify\Crypto\KeyRotation\DTO\CryptoKeyDTO;
+use Maatify\Crypto\KeyRotation\Exceptions\KeyNotFoundException;
+use Maatify\Crypto\KeyRotation\KeyStatusEnum;
+use Maatify\Crypto\KeyRotation\Policy\StrictSingleActiveKeyPolicy;
+use Maatify\Crypto\KeyRotation\Providers\InMemoryKeyProvider;
 use PHPUnit\Framework\TestCase;
 
 final class StrictSingleActiveKeyPolicyTest extends TestCase

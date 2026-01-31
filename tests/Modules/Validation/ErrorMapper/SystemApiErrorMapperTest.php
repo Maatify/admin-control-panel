@@ -15,9 +15,9 @@ declare(strict_types=1);
 
 namespace Tests\Modules\Validation\ErrorMapper;
 
-use App\Modules\Validation\Enum\AuthErrorCodeEnum;
-use App\Modules\Validation\Enum\ValidationErrorCodeEnum;
-use App\Modules\Validation\ErrorMapper\SystemApiErrorMapper;
+use Maatify\Validation\Enum\AuthErrorCodeEnum;
+use Maatify\Validation\Enum\ValidationErrorCodeEnum;
+use Maatify\Validation\ErrorMapper\SystemApiErrorMapper;
 use PHPUnit\Framework\TestCase;
 
 final class SystemApiErrorMapperTest extends TestCase

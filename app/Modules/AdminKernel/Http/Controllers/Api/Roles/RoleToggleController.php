@@ -16,8 +16,8 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Http\Controllers\Api\Roles;
 
 use Maatify\AdminKernel\Domain\Contracts\Roles\RoleToggleRepositoryInterface;
-use App\Modules\Validation\Guard\ValidationGuard;
-use App\Modules\Validation\Schemas\Roles\RoleToggleSchema;
+use Maatify\Validation\Guard\ValidationGuard;
+use Maatify\Validation\Schemas\Roles\RoleToggleSchema;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 

@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Tests\Modules\Validation\DTO;
 
-use App\Modules\Validation\DTO\ApiErrorResponseDTO;
+use Maatify\Validation\DTO\ApiErrorResponseDTO;
 use PHPUnit\Framework\TestCase;
 
 final class ApiErrorResponseDTOTest extends TestCase

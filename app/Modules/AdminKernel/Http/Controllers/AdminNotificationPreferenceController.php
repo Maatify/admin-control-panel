@@ -10,9 +10,9 @@ use Maatify\AdminKernel\Domain\Contracts\AdminNotificationPreferenceWriterInterf
 use Maatify\AdminKernel\Domain\DTO\Notification\Preference\GetAdminPreferencesQueryDTO;
 use Maatify\AdminKernel\Domain\DTO\Notification\Preference\UpdateAdminNotificationPreferenceDTO;
 use Maatify\AdminKernel\Domain\Notification\NotificationChannelType;
-use App\Modules\Validation\Guard\ValidationGuard;
-use App\Modules\Validation\Schemas\AdminPreferenceGetSchema;
-use App\Modules\Validation\Schemas\AdminPreferenceUpsertSchema;
+use Maatify\Validation\Guard\ValidationGuard;
+use Maatify\Validation\Schemas\AdminPreferenceGetSchema;
+use Maatify\Validation\Schemas\AdminPreferenceUpsertSchema;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 

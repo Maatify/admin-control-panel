@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Canonical\Sessions;
 
-use App\Modules\Validation\Schemas\SharedListQuerySchema;
+use Maatify\Validation\Schemas\SharedListQuerySchema;
 use PHPUnit\Framework\TestCase;
 
 class SharedListQuerySchemaTest extends TestCase

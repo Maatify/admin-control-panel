@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers;
 
+use JsonException;
 use Maatify\AdminKernel\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use Maatify\AdminKernel\Context\RequestContext;
 use Maatify\AdminKernel\Domain\Admin\DTO\AdminEmailListItemDTO;
@@ -20,10 +21,9 @@ use Maatify\AdminKernel\Domain\Service\PasswordService;
 use Maatify\AdminKernel\Domain\Support\CorrelationId;
 use Maatify\AdminKernel\Infrastructure\Repository\AdminEmailRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\AdminRepository;
-use App\Modules\Validation\Guard\ValidationGuard;
-use App\Modules\Validation\Schemas\AdminAddEmailSchema;
-use App\Modules\Validation\Schemas\AdminCreateSchema;
-use JsonException;
+use Maatify\Validation\Guard\ValidationGuard;
+use Maatify\Validation\Schemas\AdminAddEmailSchema;
+use Maatify\Validation\Schemas\AdminCreateSchema;
 use PDO;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;

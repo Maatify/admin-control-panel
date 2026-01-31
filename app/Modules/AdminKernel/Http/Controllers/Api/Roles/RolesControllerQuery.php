@@ -19,8 +19,8 @@ use Maatify\AdminKernel\Domain\Contracts\Roles\RolesReaderRepositoryInterface;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
 use Maatify\AdminKernel\Domain\List\RolesCapabilities;
 use Maatify\AdminKernel\Infrastructure\Query\ListFilterResolver;
-use App\Modules\Validation\Guard\ValidationGuard;
-use App\Modules\Validation\Schemas\SharedListQuerySchema;
+use Maatify\Validation\Guard\ValidationGuard;
+use Maatify\Validation\Schemas\SharedListQuerySchema;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 

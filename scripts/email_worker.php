@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
+use Dotenv\Dotenv;
 use Maatify\AdminKernel\Bootstrap\Container;
 use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
-use Dotenv\Dotenv;
-
-use App\Modules\Crypto\DX\CryptoProvider;
-use App\Modules\Email\Renderer\EmailRendererInterface;
-use App\Modules\Email\Transport\EmailTransportInterface;
-use App\Modules\Email\Worker\EmailQueueWorker;
+use Maatify\Crypto\Contract\CryptoContextProviderInterface;
+use Maatify\Crypto\DX\CryptoProvider;
+use Maatify\EmailDelivery\Renderer\EmailRendererInterface;
+use Maatify\EmailDelivery\Transport\EmailTransportInterface;
+use Maatify\EmailDelivery\Worker\EmailQueueWorker;
 
 /*
 |--------------------------------------------------------------------------
@@ -68,6 +68,9 @@ try {
     /** @var EmailTransportInterface $transport */
     $transport = $container->get(EmailTransportInterface::class);
 
+    /** @var CryptoContextProviderInterface $cryptoContextProvider */
+    $cryptoContextProvider = $container->get(CryptoContextProviderInterface::class);
+
 } catch (Throwable $e) {
     fwrite(STDERR, "Dependency Resolution Failed: {$e->getMessage()}" . PHP_EOL);
     exit(1);
@@ -83,7 +86,8 @@ try {
         $pdo,
         $crypto,
         $renderer,
-        $transport
+        $transport,
+        $cryptoContextProvider
     );
 
     // Process up to 50 queued emails

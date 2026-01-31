@@ -17,10 +17,10 @@ namespace Maatify\AdminKernel\Infrastructure\Crypto;
 
 use Maatify\AdminKernel\Application\Crypto\TotpSecretCryptoServiceInterface;
 use Maatify\AdminKernel\Domain\DTO\Crypto\EncryptedPayloadDTO;
-use App\Modules\Crypto\DX\CryptoProvider;
-use App\Modules\Crypto\Reversible\DTO\ReversibleCryptoMetadataDTO;
-use App\Modules\Crypto\Reversible\ReversibleCryptoAlgorithmEnum;
 use Maatify\Crypto\Contract\CryptoContextProviderInterface;
+use Maatify\Crypto\DX\CryptoProvider;
+use Maatify\Crypto\Reversible\DTO\ReversibleCryptoMetadataDTO;
+use Maatify\Crypto\Reversible\ReversibleCryptoAlgorithmEnum;
 
 /**
  * TotpSecretCryptoService
@@ -50,7 +50,7 @@ final class TotpSecretCryptoService implements TotpSecretCryptoServiceInterface
             ->context($this->cryptoContextProvider->totpSeed())
             ->encrypt($plainSeed);
 
-        /** @var \App\Modules\Crypto\Reversible\DTO\ReversibleCryptoEncryptionResultDTO $result */
+        /** @var \Maatify\Crypto\Reversible\DTO\ReversibleCryptoEncryptionResultDTO $result */
         $result = $response['result'];
 
         return new EncryptedPayloadDTO(

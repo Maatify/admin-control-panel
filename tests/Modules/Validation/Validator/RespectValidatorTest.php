@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Modules\Validation\Validator;
 
-use App\Modules\Validation\Schemas\AdminCreateSchema;
-use App\Modules\Validation\Validator\RespectValidator;
+use Maatify\Validation\Schemas\AdminCreateSchema;
+use Maatify\Validation\Validator\RespectValidator;
 use PHPUnit\Framework\TestCase;
 
 final class RespectValidatorTest extends TestCase

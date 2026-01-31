@@ -11,8 +11,8 @@ use Maatify\AdminKernel\Domain\DTO\LoginResponseDTO;
 use Maatify\AdminKernel\Domain\Exception\AuthStateException;
 use Maatify\AdminKernel\Domain\Exception\InvalidCredentialsException;
 use Maatify\AdminKernel\Domain\Service\AdminAuthenticationService;
-use App\Modules\Validation\Guard\ValidationGuard;
-use App\Modules\Validation\Schemas\AuthLoginSchema;
+use Maatify\Validation\Guard\ValidationGuard;
+use Maatify\Validation\Schemas\AuthLoginSchema;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 

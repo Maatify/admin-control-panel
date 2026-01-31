@@ -15,9 +15,9 @@ declare(strict_types=1);
 
 namespace Tests\Modules\Crypto\Password;
 
+use Maatify\Crypto\Password\DTO\ArgonPolicyDTO;
+use Maatify\Crypto\Password\Exception\InvalidArgonPolicyException;
 use PHPUnit\Framework\TestCase;
-use App\Modules\Crypto\Password\DTO\ArgonPolicyDTO;
-use App\Modules\Crypto\Password\Exception\InvalidArgonPolicyException;
 
 final class ArgonPolicyValidationTest extends TestCase
 {

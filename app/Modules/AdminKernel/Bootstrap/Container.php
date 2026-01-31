@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Bootstrap;
 
+use DI\ContainerBuilder;
+use Exception;
 use Maatify\AdminKernel\Application\Admin\AdminProfileUpdateService;
 use Maatify\AdminKernel\Application\Auth\AdminLoginService;
 use Maatify\AdminKernel\Application\Auth\AdminLogoutService;
@@ -155,35 +157,33 @@ use Maatify\AdminKernel\Infrastructure\Updater\PDOPermissionsMetadataRepository;
 use Maatify\AdminKernel\Kernel\Adapter\CryptoKeyRingEnvAdapter;
 use Maatify\AdminKernel\Kernel\Adapter\PasswordPepperEnvAdapter;
 use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
-use App\Modules\Crypto\DX\CryptoContextFactory;
-use App\Modules\Crypto\DX\CryptoDirectFactory;
-use App\Modules\Crypto\DX\CryptoProvider;
-use App\Modules\Crypto\HKDF\HKDFService;
-use App\Modules\Crypto\KeyRotation\DTO\CryptoKeyDTO;
-use App\Modules\Crypto\KeyRotation\KeyRotationService;
-use App\Modules\Crypto\KeyRotation\KeyStatusEnum;
-use App\Modules\Crypto\KeyRotation\Policy\StrictSingleActiveKeyPolicy;
-use App\Modules\Crypto\KeyRotation\Providers\InMemoryKeyProvider;
-use App\Modules\Crypto\Reversible\Algorithms\Aes256GcmAlgorithm;
-use App\Modules\Crypto\Reversible\Registry\ReversibleCryptoAlgorithmRegistry;
-use App\Modules\Email\Config\EmailTransportConfigDTO;
-use App\Modules\Email\Queue\EmailQueueWriterInterface;
-use App\Modules\Email\Queue\PdoEmailQueueWriter;
-use App\Modules\Email\Renderer\EmailRendererInterface;
-use App\Modules\Email\Renderer\TwigEmailRenderer;
-use App\Modules\Email\Transport\EmailTransportInterface;
-use App\Modules\Email\Transport\SmtpEmailTransport;
-use App\Modules\InputNormalization\Contracts\InputNormalizerInterface;
-use App\Modules\InputNormalization\Middleware\InputNormalizationMiddleware;
-use App\Modules\InputNormalization\Normalizer\InputNormalizer;
-use App\Modules\Validation\Contracts\ValidatorInterface;
-use App\Modules\Validation\Guard\ValidationGuard;
-use App\Modules\Validation\Validator\RespectValidator;
-use DI\ContainerBuilder;
-use Exception;
 use Maatify\Crypto\Contract\CryptoContextProviderInterface;
+use Maatify\Crypto\DX\CryptoContextFactory;
+use Maatify\Crypto\DX\CryptoDirectFactory;
+use Maatify\Crypto\DX\CryptoProvider;
+use Maatify\Crypto\HKDF\HKDFService;
+use Maatify\Crypto\KeyRotation\DTO\CryptoKeyDTO;
+use Maatify\Crypto\KeyRotation\KeyRotationService;
+use Maatify\Crypto\KeyRotation\KeyStatusEnum;
+use Maatify\Crypto\KeyRotation\Policy\StrictSingleActiveKeyPolicy;
+use Maatify\Crypto\KeyRotation\Providers\InMemoryKeyProvider;
+use Maatify\Crypto\Reversible\Algorithms\Aes256GcmAlgorithm;
+use Maatify\Crypto\Reversible\Registry\ReversibleCryptoAlgorithmRegistry;
+use Maatify\EmailDelivery\Config\EmailTransportConfigDTO;
+use Maatify\EmailDelivery\Queue\EmailQueueWriterInterface;
+use Maatify\EmailDelivery\Queue\PdoEmailQueueWriter;
+use Maatify\EmailDelivery\Renderer\EmailRendererInterface;
+use Maatify\EmailDelivery\Renderer\TwigEmailRenderer;
+use Maatify\EmailDelivery\Transport\EmailTransportInterface;
+use Maatify\EmailDelivery\Transport\SmtpEmailTransport;
+use Maatify\InputNormalization\Contracts\InputNormalizerInterface;
+use Maatify\InputNormalization\Middleware\InputNormalizationMiddleware;
+use Maatify\InputNormalization\Normalizer\InputNormalizer;
 use Maatify\PsrLogger\LoggerFactory;
 use Maatify\SharedCommon\Contracts\ClockInterface;
+use Maatify\Validation\Contracts\ValidatorInterface;
+use Maatify\Validation\Guard\ValidationGuard;
+use Maatify\Validation\Validator\RespectValidator;
 use PDO;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
@@ -1179,11 +1179,11 @@ class Container
             },
             \Maatify\AdminKernel\Http\Controllers\StepUpController::class => function (ContainerInterface $c) {
                 $stepUpService = $c->get(\Maatify\AdminKernel\Domain\Service\StepUpService::class);
-                $validationGuard = $c->get(\App\Modules\Validation\Guard\ValidationGuard::class);
+                $validationGuard = $c->get(\Maatify\Validation\Guard\ValidationGuard::class);
                 $telemetryService = $c->get(\Maatify\AdminKernel\Application\Services\DiagnosticsTelemetryService::class);
 
                 assert($stepUpService instanceof \Maatify\AdminKernel\Domain\Service\StepUpService);
-                assert($validationGuard instanceof \App\Modules\Validation\Guard\ValidationGuard);
+                assert($validationGuard instanceof \Maatify\Validation\Guard\ValidationGuard);
                 assert($telemetryService instanceof \Maatify\AdminKernel\Application\Services\DiagnosticsTelemetryService);
 
                 return new \Maatify\AdminKernel\Http\Controllers\StepUpController(

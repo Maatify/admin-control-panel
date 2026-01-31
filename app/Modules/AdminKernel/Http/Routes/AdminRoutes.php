@@ -342,7 +342,7 @@ class AdminRoutes
         // Middleware applied to the group (LIFO execution: Input -> Recovery)
         $group
             ->add(\Maatify\AdminKernel\Http\Middleware\RecoveryStateMiddleware::class)
-            ->add(\App\Modules\InputNormalization\Middleware\InputNormalizationMiddleware::class);
+            ->add(\Maatify\InputNormalization\Middleware\InputNormalizationMiddleware::class);
 
         // Explicit Infrastructure Middleware (Outer Layer)
         // Execution Order (LIFO): RequestId -> Context -> Telemetry -> Input -> Recovery
