@@ -4,7 +4,7 @@
 
 > **Status:** CANONICAL / LOCKED
 > **Scope:** All Admin Panel Pages & APIs
-> **Applies From:** Phase 14+
+> **Applies From:** Architecture Lock
 > **Audience:** Backend, Frontend, UI/UX, Reviewers
 
 ---
@@ -13,7 +13,7 @@
 
 > **أي صفحة أو Endpoint في النظام
 > لازم تمشي على القالب ده
-> ولازم تكون موثّقة في `docs/API_PHASE1.md` بالتفصيل.**
+> ولازم تكون موثّقة في `docs/API.md` بالتفصيل.**
 
 ❌ أي Endpoint غير موثّق
 ❌ أي UI مش ماشي على القالب
@@ -205,7 +205,7 @@ POST /api/{resource}/{id}/update
 # 🧾 7️⃣ التوثيق الإجباري (MANDATORY)
 
 > **أي Endpoint يتم إنشاؤه أو استخدامه
-> لازم يتوثّق في `docs/API_PHASE1.md`**
+> لازم يتوثّق في `docs/API.md`**
 
 ❌ بدون توثيق = Endpoint غير موجود رسميًا
 
@@ -271,7 +271,7 @@ sessions.list
 ## Documented in
 
 ```
-docs/API_PHASE1.md
+docs/API.md
 ```
 
 ---
@@ -294,7 +294,6 @@ docs/API_PHASE1.md
 * ده **المرجع الوحيد**
 * Backend + Frontend + UI يمشوا عليه
 * أي Page جديدة = تطبيق مباشر للقالب
-* أي API جديدة = توثيق إجباري في `API_PHASE1.md`
+* أي API جديدة = توثيق إجباري في `API.md`
 
 ---
-

@@ -40,13 +40,13 @@ of the Admin Kernel.
 
 ### 3.1 Authentication & Authorization
 
-- `App\Domain\Service\AdminAuthenticationService`
-- `App\Domain\Service\AuthorizationService`
-- `App\Http\Middleware\AuthorizationGuardMiddleware`
-- `App\Http\Middleware\SessionGuardMiddleware`
-- `App\Http\Middleware\SessionStateGuardMiddleware`
-- `App\Http\Middleware\ScopeGuardMiddleware`
-- `App\Http\Middleware\AdminContextMiddleware`
+- `Maatify\AdminKernel\Domain\Service\AdminAuthenticationService`
+- `Maatify\AdminKernel\Domain\Service\AuthorizationService`
+- `Maatify\AdminKernel\Http\Middleware\AuthorizationGuardMiddleware`
+- `Maatify\AdminKernel\Http\Middleware\SessionGuardMiddleware`
+- `Maatify\AdminKernel\Http\Middleware\SessionStateGuardMiddleware`
+- `Maatify\AdminKernel\Http\Middleware\ScopeGuardMiddleware`
+- `Maatify\AdminKernel\Http\Middleware\AdminContextMiddleware`
 
 **Rationale:**  
 Any modification here risks bypassing authentication, RBAC, or session guarantees.
@@ -67,8 +67,8 @@ Routes may be *mounted* or *extended*, but their semantics are immutable.
 
 ### 3.3 Domain Contracts
 
-- `App\Domain\Contracts\*`
-- DTOs under `App\Domain\DTO\*`
+- `Maatify\AdminKernel\Domain\Contracts\*`
+- DTOs under `Maatify\AdminKernel\Domain\DTO\*`
 
 **Rationale:**  
 These are the kernel’s public API. Changing them breaks compatibility.
@@ -78,7 +78,7 @@ These are the kernel’s public API. Changing them breaks compatibility.
 ### 3.4 Kernel Documentation
 
 - `docs/PROJECT_CANONICAL_CONTEXT.md`
-- `docs/API_PHASE1.md`
+- `docs/API.md`
 - `docs/ADMIN_PANEL_CANONICAL_TEMPLATE.md`
 - `docs/KERNEL_BOUNDARIES.md`
 
@@ -94,9 +94,9 @@ These components are intentionally designed for host-level customization.
 
 #### Navigation
 - Interface:  
-  `App\Domain\Contracts\Ui\NavigationProviderInterface`
+  `Maatify\AdminKernel\Domain\Contracts\Ui\NavigationProviderInterface`
 - Default Implementation:  
-  `App\Infrastructure\Ui\DefaultNavigationProvider`
+  `Maatify\AdminKernel\Infrastructure\Ui\DefaultNavigationProvider`
 
 **Extension Mechanism:**  
 Container binding override.
@@ -105,7 +105,7 @@ Container binding override.
 
 #### Assets
 - Configuration DTO:  
-  `App\Domain\DTO\Ui\UiConfigDTO`
+  `Maatify\AdminKernel\Domain\DTO\Ui\UiConfigDTO`
 - Environment Variable:  
   `ASSET_BASE_URL`
 
