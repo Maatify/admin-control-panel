@@ -815,14 +815,6 @@ Revokes multiple sessions in a single transaction.
 *   **Success (200):** JSON confirmation.
 *   **Error (400):** If current session is included in the list.
 
-### Select Admins (Helper / Non-Canonical)
-**⚠️ REMOVED / STALE**
-This endpoint is currently disabled in the codebase.
-Use `POST /api/admins/query` instead.
-
-**Endpoint:** `GET /api/admins/list`
-
----
 
 ## 📊 Telemetry
 

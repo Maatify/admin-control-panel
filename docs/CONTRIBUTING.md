@@ -15,7 +15,7 @@
 - [ ] **Transactions**: Wrap mutations in `PDO::beginTransaction()`.
 
 ### Security
-- [ ] **Auditing**: Log Authority/Security mutations to `audit_logs` (via `AuthoritativeSecurityAuditWriterInterface`).
+- [ ] **Auditing**: Log Authority/Security mutations to **Authoritative Audit** (via `AuthoritativeSecurityAuditWriterInterface`).
 - [ ] **Authorization**: Add `AuthorizationGuardMiddleware` to new protected routes.
 - [ ] **Input Validation**: Validate `is_array($request->getParsedBody())` in Controllers.
 - [ ] **DTOs**: Use strict DTOs for data transfer.

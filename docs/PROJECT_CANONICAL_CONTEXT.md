@@ -1,6 +1,6 @@
 # Admin Control Panel — Canonical Context
 
-> **Status:** Draft / Living Document  
+> **Status:** OFFICIAL / ABSOLUTE (Level A0)
 > **Source:** Repository Analysis (AS-IS) + `docs/ADMIN_PANEL_CANONICAL_TEMPLATE.md` (TARGET)  
 > **Context Owner:** Project Architects
 
@@ -151,9 +151,9 @@ This rule is **SECURITY-CRITICAL** and MUST NOT be bypassed, inferred, or altere
 
 ### 4. Auditing (Authority & Security Only)
 
-* **Scope**: `audit_logs` are strictly reserved for **Authority Changes**, **Security-Impacting Actions**, and **Admin Responsibility Events**.
+* **Scope**: **Authoritative Audit** is strictly reserved for **Authority Changes**, **Security-Impacting Actions**, and **Admin Responsibility Events**.
 * **Exclusion**: Routine non-security CRUD or UI-driven mutations are **NOT** automatically audit entries unless they impact authority or security posture.
-* **Mechanism**: When required, auditing uses `AuthoritativeSecurityAuditWriterInterface` within the same `PDO` transaction as the mutation.
+* **Mechanism**: When required, auditing uses `AuthoritativeSecurityAuditWriterInterface` (Outbox Pattern) within the same `PDO` transaction as the mutation.
 
 ---
 
@@ -164,37 +164,31 @@ types of logging, based on **authority, security impact, and transactional guara
 
 Logging is **NOT a single concern** in this system.
 
+**Authoritative Source of Truth:**
+> `docs/architecture/logging/UNIFIED_LOGGING_DESIGN.md`
+
+All implementation MUST align with the Unified Logging Design.
+
 ---
 
-### D.1 Audit Logs (`audit_logs`) — Authoritative (LOCKED)
+### D.1 Audit Logs (Authoritative Audit) — LOCKED
 
 * **Purpose**: Authoritative history of authority, permission, and security-impacting mutations.
-* **Nature**: Source of truth.
+* **Nature**: Source of truth (Integrity Critical).
 * **Interface**: `AuthoritativeSecurityAuditWriterInterface`
-* **Storage**: Database only (`audit_logs` table).
-* **Schema**:
-
-  * Actor (admin_id)
-  * Target Type (string)
-  * Target ID
-  * Action
-  * Changes (JSON diff)
-
-**Schema Note (Target Type):**
-* `target_type` is intentionally a **STRING** (not an Enum) to allow domain extensibility without schema migrations.
+* **Storage**: Database only (Outbox: `authoritative_audit_outbox` → Read: `authoritative_audit_log`).
+* **Schema**: Defined by Unified Logging Design.
 
 **Hard Requirements:**
 
-* Audit logs MUST be written:
-
+* Authoritative Audit logs MUST be written:
   * Inside the same `PDO` transaction as the mutation
   * Fail-closed (any failure aborts the transaction)
 * Audit logs MUST NOT:
-
   * Use filesystem logging
   * Use PSR-3
-  * Be asynchronous
-  * Be subject to retention cleanup
+  * Be asynchronous at the capture point (Outbox required)
+  * Be subject to retention cleanup without archiving policy
 
 Any deviation is a **SECURITY VIOLATION**.
 
@@ -1560,6 +1554,6 @@ Further discussion/refactor on this topic is **FORBIDDEN** unless a new ADR is o
 * **Routing**: `routes/web.php`
 * **DI/Config**: `Maatify\AdminKernel\Bootstrap\Container.php`
 * **Session List Pattern**: `app/Modules/AdminKernel/Http/Controllers/Ui/SessionListController.php`, `app/Modules/AdminKernel/Http/Controllers/Api/SessionQueryController.php`
-* **Audit Model**: `docs/architecture/audit-model.md`, `Maatify\AdminKernel\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface.php`
+* **Audit Model**: `docs/architecture/logging/UNIFIED_LOGGING_DESIGN.md`, `Maatify\AdminKernel\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface.php`
 * **Canonical Template**: `docs/ADMIN_PANEL_CANONICAL_TEMPLATE.md`
 * **Placeholders**: `templates/pages/admins.twig`, `templates/pages/roles.twig`
