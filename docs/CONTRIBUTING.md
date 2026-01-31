@@ -1,11 +1,11 @@
-# Project Task Checklist
+# Contributing Guide
 
 > **Status:** Helper / Operational Checklist
 > **Nature:** Non-binding specification. Use as a guide.
 
 ## 🟢 Pre-Work
 - [ ] **Read Canonical Context**: `docs/PROJECT_CANONICAL_CONTEXT.md`
-- [ ] **Check Phase Status**: Is the component frozen? (e.g., Auth Phase 1-13)
+- [ ] **Check Architecture Status**: Is the component frozen? (e.g., Auth Core)
 - [ ] **Verify Routes**: Check `routes/web.php` for existing naming/patterns.
 
 ## 🟡 Implementation
@@ -26,7 +26,7 @@
 - [ ] **Response**: Use standard `data` + `pagination` JSON envelope (for lists).
 
 ## 🔴 Documentation (Mandatory)
-- [ ] **Update API Docs**: `docs/API_PHASE1.md` (for ANY new endpoint).
+- [ ] **Update API Docs**: `docs/API.md` (for ANY new endpoint).
 - [ ] **Update Canonical Context**: `docs/PROJECT_CANONICAL_CONTEXT.md` (if patterns change).
 - [ ] **Check Schema**: Update `database/schema.sql` if DB changes.
 

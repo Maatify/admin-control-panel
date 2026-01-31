@@ -1,7 +1,7 @@
-# API Documentation — Phase 1
+# API Documentation
 
 Project: Admin Control Panel
-Phase: Infrastructure & Core Security
+Status: Canonical Contract
 Audience: Frontend Developers, QA
 Auth Model: Session-based (Cookie) + Step-Up (TOTP)
 
@@ -13,7 +13,7 @@ Auth Model: Session-based (Cookie) + Step-Up (TOTP)
 The system uses **server-side sessions** identified by a secure, HttpOnly cookie (`auth_token`).
 *   **Web requests:** The cookie is managed automatically by the browser.
 *   **API requests:** The cookie must be included in the request headers (handled by browser or manually if outside browser context).
-*   **CSRF:** Phase 1 relies on strict `SameSite=Strict` cookie attributes.
+*   **CSRF:** Relies on strict `SameSite=Strict` cookie attributes.
 
 ## Forced Password Change Flow (Initial / Temporary Password)
 
@@ -47,7 +47,7 @@ The enforcement occurs inside:
 
 ```
 
-App\Domain\Service\AdminAuthenticationService::login
+Maatify\AdminKernel\Domain\Service\AdminAuthenticationService::login
 
 ```
 
@@ -72,7 +72,7 @@ When a password change is required, the system throws:
 
 ```
 
-App\Domain\Exception\MustChangePasswordException
+Maatify\AdminKernel\Domain\Exception\MustChangePasswordException
 
 ```
 
@@ -1714,5 +1714,5 @@ Any change requires updating:
 
 ---
 
-## [🔐 Roles Management API](API/ROLES_TOGGLE.md)
+## [🔐 Roles Management API](api/ROLES.md)
 ---

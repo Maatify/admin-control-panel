@@ -11,19 +11,19 @@
 The project is a secure Admin Control Panel built with **PHP 8.2+, Slim 4, PHP-DI, and Twig**. It follows a strictly layered **Domain-Driven Design (DDD)** architecture with a strong emphasis on security, auditing, and clean separation of concerns.
 
 ### Directory Map
-*   **`app/Domain/`**: Pure business logic (Services, Contracts, DTOs, Enums). No infrastructure dependencies allowed.
-*   **`app/Infrastructure/`**: Concrete implementations (Repositories, Mailers, Loggers, PDO adapters).
-*   **`app/Http/`**: Application layer (Controllers, Middleware).
-*   **`app/Bootstrap/`**: Dependency Injection (`Container.php`) and Configuration (`AdminConfigDTO`).
+*   **`app/Modules/AdminKernel/Domain/`**: Pure business logic (Services, Contracts, DTOs, Enums). No infrastructure dependencies allowed.
+*   **`app/Modules/AdminKernel/Infrastructure/`**: Concrete implementations (Repositories, Mailers, Loggers, PDO adapters).
+*   **`app/Modules/AdminKernel/Http/`**: Application layer (Controllers, Middleware).
+*   **`app/Modules/AdminKernel/Bootstrap/`**: Dependency Injection (`Container.php`) and Configuration (`AdminConfigDTO`).
 *   **`public/`**: Web root. Entry point `index.php`.
 *   **`routes/`**: Route definitions (`web.php`).
 *   **`templates/`**: Twig views (`pages/`, `layouts/`, `components/`).
 *   **`docs/`**: Canonical documentation and architectural records.
 
 ### Key Entry Points
-*   **Web/API**: `public/index.php` -> `routes/web.php`
+*   **Web/API**: `public/index.php` -> `Maatify\AdminKernel\Kernel\AdminKernel`
 *   **CLI**: `scripts/bootstrap_admin.php` (System bootstrapping only)
-*   **Config**: `app/Bootstrap/Container.php` (Single source of configuration loading)
+*   **Config**: `Maatify\AdminKernel\Bootstrap\Container.php` (Single source of configuration loading)
 
 ---
 
@@ -33,20 +33,20 @@ The project is a secure Admin Control Panel built with **PHP 8.2+, Slim 4, PHP-D
 *   We **DO NOT** assume behavior. Every change must be proven by existing patterns or explicit documentation.
 *   If a rule is not in this file or `docs/`, it is an **OPEN QUESTION** that must be resolved before coding.
 
-### 2. Phase Discipline
-*   **Phase 1-13 (Core Security/Auth)**: **FROZEN**. No changes allowed to `AdminAuthenticationService`, `PasswordService`, or basic Auth flows unless explicitly requested for security fixes.
-*   **Phase 14+ (UI/UX)**: **ACTIVE**. New pages and APIs are expected to follow the **Canonical Template** (`docs/ADMIN_PANEL_CANONICAL_TEMPLATE.md`).
+### 2. Architecture Discipline
+*   **Core Security/Auth**: **FROZEN**. No changes allowed to `AdminAuthenticationService`, `PasswordService`, or basic Auth flows unless explicitly requested for security fixes.
+*   **UI/UX**: **ACTIVE**. New pages and APIs are expected to follow the **Canonical Template** (`docs/ADMIN_PANEL_CANONICAL_TEMPLATE.md`).
 
 ### 3. File Responsibility Matrix
-| Layer      | Files                            | Allowed Changes                                                                     |
-|:-----------|:---------------------------------|:------------------------------------------------------------------------------------|
-| **Domain** | `app/Domain/**/*.php`            | **RESTRICTED**. Interfaces & DTOs only. Logic changes require strong justification. |
-| **Infra**  | `app/Infrastructure/**/*.php`    | **ALLOWED**. Repositories, new adapters.                                            |
-| **HTTP**   | `app/Http/Controllers/Ui/*.php`  | **ALLOWED**. New UI Controllers.                                                    |
-| **HTTP**   | `app/Http/Controllers/Api/*.php` | **ALLOWED**. New API Controllers.                                                   |
-| **Web**    | `routes/web.php`                 | **ALLOWED**. New routes (strict naming).                                            |
-| **Views**  | `templates/**/*.twig`            | **ALLOWED**. UI implementation.                                                     |
-| **Docs**   | `docs/**/*.md`                   | **REQUIRED**. Every feature needs docs.                                             |
+| Layer      | Files                                         | Allowed Changes                                                                     |
+|:-----------|:----------------------------------------------|:------------------------------------------------------------------------------------|
+| **Domain** | `app/Modules/*/Domain/**/*.php`               | **RESTRICTED**. Interfaces & DTOs only. Logic changes require strong justification. |
+| **Infra**  | `app/Modules/*/Infrastructure/**/*.php`       | **ALLOWED**. Repositories, new adapters.                                            |
+| **HTTP**   | `app/Modules/*/Http/Controllers/Ui/*.php`     | **ALLOWED**. New UI Controllers.                                                    |
+| **HTTP**   | `app/Modules/*/Http/Controllers/Api/*.php`    | **ALLOWED**. New API Controllers.                                                   |
+| **Web**    | `routes/web.php`                              | **ALLOWED**. New routes (strict naming).                                            |
+| **Views**  | `templates/**/*.twig`                         | **ALLOWED**. UI implementation.                                                     |
+| **Docs**   | `docs/**/*.md`                                | **REQUIRED**. Every feature needs docs.                                             |
 
 ---
 
@@ -118,7 +118,7 @@ used exclusively for context transformation between middleware layers.
 
 * All application layers MUST consume:
   ```php
-  $request->getAttribute(\App\Context\AdminContext::class)
+  $request->getAttribute(\Maatify\AdminKernel\Context\AdminContext::class)
   ```
 
 * `AdminContext` is the **single source of truth** for admin identity beyond middleware.
@@ -781,7 +781,7 @@ Any deviation is a **Canonical Violation**.
 
 ### 1. Controller Pattern (Observed)
 
-* **UI Controllers** (`App\Http\Controllers\Ui\`): Render Twig templates. No DB access observed.
+* **UI Controllers** (`Maatify\AdminKernel\Http\Controllers\Ui\`): Render Twig templates. No DB access observed.
 * **Base Layout**: `templates/layouts/base.twig`.
 * **Scripts**: Injected via `{% block scripts %}`.
 
@@ -803,7 +803,7 @@ Any deviation is a **Canonical Violation**.
 
 ### 2. Repositories
 
-* **Location**: `app/Infrastructure/Repository/`.
+* **Location**: `app/Modules/*/Infrastructure/Repository/`.
 * **Pattern**: Methods return Domain Objects or DTOs.
 * **Transactions**: Services manage transactions, Repositories accept `PDO` in constructor (shared connection).
 
@@ -985,7 +985,7 @@ Ad-hoc or convenience-based testing approaches are **NOT ACCEPTABLE**.
 
 **Reference**: `docs/ADMIN_PANEL_CANONICAL_TEMPLATE.md`
 
-### Target State (Phase 14+)
+### Target State
 
 * **Page Types**: LIST, CREATE, EDIT, VIEW.
 * **Routing**: strict `GET /{resource}` (UI) and `POST /api/{resource}/query` (API).
@@ -995,7 +995,7 @@ Ad-hoc or convenience-based testing approaches are **NOT ACCEPTABLE**.
 
 * **Compliance**:
 
-  * `Sessions` (Phase 14.3) is fully compliant.
+  * `Sessions` (Architecture Aligned) is fully compliant.
 * **Gaps (Observed)**:
 
   * `Admins`, `Roles`, `Permissions` pages are currently placeholders (`coming soon`). They do not yet implement the Canonical API-First pattern.
@@ -1009,7 +1009,7 @@ Ad-hoc or convenience-based testing approaches are **NOT ACCEPTABLE**.
 
 * **Files**:
 
-  * Create `app/Http/Controllers/Ui/Ui{Resource}Controller.php`.
+  * Create `app/Modules/*/Http/Controllers/Ui/Ui{Resource}Controller.php`.
   * Create `templates/pages/{resource}.twig`.
   * Update `routes/web.php` (Group: Protected UI).
 * **Target**: Follow the Canonical Template pattern (View -> API).
@@ -1018,8 +1018,8 @@ Ad-hoc or convenience-based testing approaches are **NOT ACCEPTABLE**.
 
 * **Files**:
 
-  * Create `app/Http/Controllers/Api/{Resource}{Action}Controller.php`.
-  * Create `App/Domain/DTO/{Resource}/{Action}RequestDTO.php`.
+  * Create `app/Modules/*/Http/Controllers/Api/{Resource}{Action}Controller.php`.
+  * Create `Maatify\AdminKernel\Domain\DTO/{Resource}/{Action}RequestDTO.php`.
   * Update `routes/web.php` (Group: `/api`, Middleware: `AuthorizationGuardMiddleware`).
 * **Security**: Ensure `AuthorizationGuardMiddleware` and proper Permission name.
 
@@ -1029,13 +1029,13 @@ Ad-hoc or convenience-based testing approaches are **NOT ACCEPTABLE**.
 
   * Update `database/schema.sql` (Canonical Schema).
   * Create `scripts/migrations/xxx_add_table.sql` (if strict migration required).
-* **Code**: Create `app/Infrastructure/Repository/Pdo{Resource}Repository.php` and Interface in `app/Domain/Contracts/`.
+* **Code**: Create `app/Modules/*/Infrastructure/Repository/Pdo{Resource}Repository.php` and Interface in `Maatify\AdminKernel\Domain\Contracts/`.
 
 ---
 
 ## ⚔️ L) CONFLICTS
 
-* **Web vs Ui Controllers**: `app/Http/Controllers/Web/` contains legacy logic. `app/Http/Controllers/Ui/` is the new standard.
+* **Web vs Ui Controllers**: `app/Modules/AdminKernel/Http/Controllers/Web/` contains legacy logic. `app/Modules/AdminKernel/Http/Controllers/Ui/` is the new standard.
 
   * *Conflict*: `LoginController` is in `Web` but wrapped by `UiLoginController`.
   * *Resolution*: Prefer `Ui` controllers for all new UI routes. Keep `Web` only for legacy support until fully migrated.
@@ -1129,7 +1129,7 @@ Any deviation is considered an **Architecture Violation**.
 
 **Status:** ARCHITECTURE-LOCKED / ACTIVE
 **Scope:** Cross-Domain Infrastructure
-**Phase:** 14+ (Async Infrastructure)
+**Phase:** Architecture Lock (Async Infrastructure)
 
 ---
 
@@ -1366,14 +1366,14 @@ Crypto Application Services are the ONLY allowed entry point for **application-l
 
 **Allowed services:**
 
-* `App\Application\Crypto\AdminIdentifierCryptoServiceInterface`
-* `App\Application\Crypto\NotificationCryptoServiceInterface`
-* `App\Application\Crypto\TotpSecretCryptoServiceInterface`
+* `Maatify\AdminKernel\Application\Crypto\AdminIdentifierCryptoServiceInterface`
+* `Maatify\AdminKernel\Application\Crypto\NotificationCryptoServiceInterface`
+* `Maatify\AdminKernel\Application\Crypto\TotpSecretCryptoServiceInterface`
 
 **Password note (canonical exception):**
 
-* Password hashing/verification is governed by `App\Domain\Service\PasswordService` (Argon2id + Pepper Ring).
-* `App\Application\Crypto\PasswordCryptoServiceInterface` MAY exist as a wrapper/adapter, but password correctness and policy remain owned by `PasswordService`.
+* Password hashing/verification is governed by `Maatify\AdminKernel\Domain\Service\PasswordService` (Argon2id + Pepper Ring).
+* `Maatify\AdminKernel\Application\Crypto\PasswordCryptoServiceInterface` MAY exist as a wrapper/adapter, but password correctness and policy remain owned by `PasswordService`.
 
 Rules:
 
@@ -1388,7 +1388,7 @@ Rules:
 
 All reversible encryption operations MUST use predefined, versioned contexts from:
 
-`App\Domain\Security\CryptoContext`
+`Maatify\AdminKernel\Domain\Security\CryptoContext`
 
 Rules:
 
@@ -1416,7 +1416,7 @@ Characteristics:
 
 Encrypted outputs are represented exclusively by:
 
-`App\Domain\DTO\Crypto\EncryptedPayloadDTO`
+`Maatify\AdminKernel\Domain\DTO\Crypto\EncryptedPayloadDTO`
 
 ---
 
@@ -1512,7 +1512,7 @@ Reversible encryption and identifier crypto are performed through the Crypto pip
 
 Password hashing/verification is performed via the canonical password service:
 
-* `App\Domain\Service\PasswordService`
+* `Maatify\AdminKernel\Domain\Service\PasswordService`
 
   * Argon2id + Pepper Ring
   * deterministic verification using stored `pepper_id`
@@ -1554,8 +1554,8 @@ Further discussion/refactor on this topic is **FORBIDDEN** unless a new ADR is o
 ## 🔎 Evidence Index
 
 * **Routing**: `routes/web.php`
-* **DI/Config**: `app/Bootstrap/Container.php`
-* **Session List Pattern**: `app/Http/Controllers/Ui/SessionListController.php`, `app/Http/Controllers/Api/SessionQueryController.php`
-* **Audit Model**: `docs/architecture/audit-model.md`, `app/Domain/Contracts/AuthoritativeSecurityAuditWriterInterface.php`
+* **DI/Config**: `Maatify\AdminKernel\Bootstrap\Container.php`
+* **Session List Pattern**: `app/Modules/AdminKernel/Http/Controllers/Ui/SessionListController.php`, `app/Modules/AdminKernel/Http/Controllers/Api/SessionQueryController.php`
+* **Audit Model**: `docs/architecture/audit-model.md`, `Maatify\AdminKernel\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface.php`
 * **Canonical Template**: `docs/ADMIN_PANEL_CANONICAL_TEMPLATE.md`
 * **Placeholders**: `templates/pages/admins.twig`, `templates/pages/roles.twig`

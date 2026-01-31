@@ -4,8 +4,8 @@ The Admin Kernel allows host applications to customize the UI via Dependency Inj
 
 ## 1. Navigation Injection
 
-The sidebar menu is driven by `App\Domain\Contracts\Ui\NavigationProviderInterface`.
-By default, the Kernel uses `App\Infrastructure\Ui\DefaultNavigationProvider` which provides the standard menu.
+The sidebar menu is driven by `Maatify\AdminKernel\Domain\Contracts\Ui\NavigationProviderInterface`.
+By default, the Kernel uses `Maatify\AdminKernel\Infrastructure\Ui\DefaultNavigationProvider` which provides the standard menu.
 
 ### How to Override
 
@@ -16,8 +16,8 @@ To provide your own menu items, implement the interface and bind it in the Conta
 ```php
 namespace App\Host\Ui;
 
-use App\Domain\DTO\Ui\NavigationItemDTO;
-use App\Domain\Contracts\Ui\NavigationProviderInterface;
+use Maatify\AdminKernel\Domain\DTO\Ui\NavigationItemDTO;
+use Maatify\AdminKernel\Domain\Contracts\Ui\NavigationProviderInterface;
 
 class HostNavigationProvider implements NavigationProviderInterface
 {
@@ -34,9 +34,9 @@ class HostNavigationProvider implements NavigationProviderInterface
 **2. Bind in host bootstrap (in your `public/index.php` or bootstrap):**
 
 ```php
-$container = \App\Bootstrap\Container::create(function (ContainerBuilder $builder) {
+$container = \Maatify\AdminKernel\Bootstrap\Container::create(function (ContainerBuilder $builder) {
     $builder->addDefinitions([
-        \App\Domain\Contracts\Ui\NavigationProviderInterface::class => \DI\autowire(\App\Host\Ui\HostNavigationProvider::class),
+        \Maatify\AdminKernel\Domain\Contracts\Ui\NavigationProviderInterface::class => \DI\autowire(\App\Host\Ui\HostNavigationProvider::class),
     ]);
 });
 ```
