@@ -192,9 +192,9 @@ php -S 0.0.0.0:8080 -t public
 For the authoritative list of exposed routes, please refer to:
 
 1. **`docs/API.md`** — The Canonical API Contract.
-2. **`routes/web.php`** — The source of truth for current routing configuration.
+2. **`routes/web.php`** — The implementation of the routing configuration.
 
-📌 **Note:** Any endpoint not documented in `docs/API.md` is considered unavailable.
+📌 **Note:** `docs/API.md` is the **canonical source of truth**. Any endpoint not documented there is considered unavailable, regardless of what exists in `routes/web.php`.
 
 ---
 
@@ -255,9 +255,10 @@ templates/
 
 ## 🔚 Final Notes
 
-This document is the **single source of truth** for running the project.
+This document serves as the **practical guide** for running the project.
 
-* Any conflict → this document is correct
+* **Authority:** Refer to `docs/index.md` for the document hierarchy.
+* **Conflict Resolution:** `docs/PROJECT_CANONICAL_CONTEXT.md` is the absolute source of truth.
 * Any feature request → outside this guide
 
 **Work carefully — the system will work with you 🔒**

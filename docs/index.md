@@ -40,6 +40,8 @@ Documentation is strictly layered.
 |--------|-----------------------------------|-----------|-----------------------------------------|
 | **A0** | PROJECT_CANONICAL_CONTEXT.md      | ABSOLUTE  | Canonical Memory & Security Truth       |
 | **A1** | ADMIN_PANEL_CANONICAL_TEMPLATE.md | HIGH      | Target Architecture (Pages & APIs)      |
+| **A1** | KERNEL_BOUNDARIES.md              | HIGH      | Core Kernel Security Boundaries         |
+| **A1** | docs/auth/                        | HIGH      | Authentication & Step-Up Specifications |
 | **A2** | API.md                            | HIGH      | API Contracts & Canonical LIST/QUERY    |
 | **B**  | docs/adr/                         | MEDIUM    | Architectural Decisions (WHY)           |
 | **C**  | docs/architecture/                | LOW       | Analysis & Explanations                 |
@@ -106,6 +108,16 @@ They MUST be followed whenever implementing, modifying, or reviewing code within
       - Migration constraints
   - Violations are considered **architectural hard blockers** and MUST be rejected
 
+### Input Validation
+
+- **docs/architecture/input-validation.md**
+    - Canonical design for request validation and error mapping.
+
+### Notification Delivery
+
+- **docs/architecture/notification-delivery.md**
+    - Canonical infrastructure for async email delivery and queue management.
+
 📌 These documents do NOT override:
 - PROJECT_CANONICAL_CONTEXT.md
 - ADMIN_PANEL_CANONICAL_TEMPLATE.md
@@ -170,18 +182,22 @@ PROJECT_CANONICAL_CONTEXT.md
 ### Backend Developer
 1. docs/index.md
 2. PROJECT_CANONICAL_CONTEXT.md
-3. ADMIN_PANEL_CANONICAL_TEMPLATE.md
-4. API.md
-5. Relevant ADR
+3. KERNEL_BOUNDARIES.md
+4. docs/auth/
+5. ADMIN_PANEL_CANONICAL_TEMPLATE.md
+6. API.md
+7. Relevant ADR
 
 ---
 
 ### AI Executor (STRICT)
 1. docs/index.md
 2. PROJECT_CANONICAL_CONTEXT.md
-3. ADMIN_PANEL_CANONICAL_TEMPLATE.md
-4. API.md
-5. Relevant ADR
+3. KERNEL_BOUNDARIES.md
+4. docs/auth/
+5. ADMIN_PANEL_CANONICAL_TEMPLATE.md
+6. API.md
+7. Relevant ADR
 
 ---
 
