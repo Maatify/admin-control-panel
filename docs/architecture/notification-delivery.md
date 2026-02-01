@@ -1,23 +1,44 @@
-# Notification Delivery Architecture
+# Notification Delivery Architecture (PENDING)
 
-## Notification Intent vs Notification Delivery
+> **Status:** INTENTIONALLY PENDING / DESIGN PHASE
+> **Context:** This subsystem is actively entering its design phase.
+> **Scope:** Email Delivery, Queue Management, Encryption
 
-### Notification Intent (Phase 8)
-- Represents the **request** or **need** to notify an admin.
-- Triggered by domain events or business logic.
-- Stored/Logged as an intent (e.g. `NotificationMessageDTO`).
-- Agnostic of the delivery mechanism (email, telegram, etc.) in terms of execution details.
+---
 
-### Notification Delivery (Phase 9)
-- Represents the **execution** of sending the notification to a specific destination.
-- Handles channel-specific logic (SMTP, API calls).
-- Operates on a `NotificationDeliveryDTO` which contains all necessary data for delivery.
-- Produces a `DeliveryResultDTO` to report success or failure without throwing exceptions for expected delivery errors.
+## ⚠️ Status: Pending Implementation
 
-## Phase 9.1: Contracts Only
-This phase strictly defines the contracts and data transfer objects for the delivery mechanism. It does not implement any actual sending logic or infrastructure adapters.
+This document outlines the **intended direction, constraints, and non-goals** for the Notification Delivery subsystem.
+It is **NOT** a complete implementation specification yet.
 
-The core components are:
-- `NotificationDeliveryDTO`: Encapsulates what is being sent.
-- `DeliveryResultDTO`: Encapsulates the outcome of the sending attempt.
-- `NotificationSenderInterface`: Defines the contract for any service that can deliver notifications.
+**Current State:**
+*   The contracts (`NotificationDeliveryDTO`, `DeliveryResultDTO`) are defined in concept.
+*   The actual infrastructure (Queues, Encryption, Workers) is **NOT** fully specified or implemented in this document.
+*   Consult `docs/PROJECT_CANONICAL_CONTEXT.md` for the authoritative architectural constraints (Encryption Contexts, Queue Tables).
+
+---
+
+## 🎯 Intended Direction
+
+The goal is to provide a robust, asynchronous delivery mechanism that:
+1.  **Decouples Intent from Execution**: The application generates "Intent" (Phase 8), and this subsystem handles "Delivery" (Phase 9).
+2.  **Enforces Encryption**: All sensitive payload data must be encrypted at rest in the queue.
+3.  **Ensures Reliability**: Delivery should be retriable and fail-safe.
+
+## 🚫 Constraints (Non-Negotiable)
+
+*   **Asynchronous Only**: No synchronous email sending.
+*   **Encrypted Storage**: Queue tables must use the specified Crypto Contexts (`email:recipient:v1`, etc.).
+*   **No Business Logic**: This layer only delivers; it does not decide *who* to notify or *what* to say.
+
+## 🛑 Non-Goals
+
+*   This subsystem does **NOT** handle user preferences (Routing Layer).
+*   This subsystem does **NOT** generate content (Templates are handled at the Intent layer).
+
+---
+
+**Next Steps:**
+*   Finalize the `email_queue` schema.
+*   Implement the `PdoEmailQueueWriter`.
+*   Implement the CLI Worker.
