@@ -1705,10 +1705,9 @@ Any change requires updating:
 | Admin direct permissions | ⏳ NEXT |
 
 ---
-
 ## 🔐 Roles & Roles Management
 
-The Role API surface is divided into two distinct documents:
+The Role API surface is divided into three distinct documents:
 
 *   **[Core Role APIs (ROLES.md)](API/ROLES.md)**
     *   Covers Role listing, creation, metadata updates, and renaming.
@@ -1718,4 +1717,10 @@ The Role API surface is divided into two distinct documents:
     *   Covers Permission assignment, Admin assignment, and View capabilities.
     *   Implemented and Active (Extension of Core APIs).
 
-*Both documents describe active, implemented APIs and are complementary.*
+*   **[Admin Permissions (ADMIN-PERMISSIONS.md)](API/ADMIN-PERMISSIONS.md)**
+    *   Covers Direct permissions assigned to admins and the Effective permissions snapshot.
+    *   Implemented and Active.
+
+*All documents describe active, implemented APIs and are complementary.
+Each document covers a distinct responsibility layer and none of them replaces another.*
+

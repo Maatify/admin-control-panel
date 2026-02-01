@@ -1,0 +1,404 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}Permissions - {{ display_name ?? 'N/A' }} | {{ ui.appName }}{% endblock %}
+
+{% block content %}
+
+    {# ===================================================================
+       Capabilities Injection
+       Computed server-side by AuthorizationService.
+       JavaScript reads window.adminPermissionsCapabilities — never infers.
+       =================================================================== #}
+    <script>
+        window.adminPermissionsCapabilities = {
+            can_view_permissions_effective:       {{ capabilities.can_view_permissions_effective       ?? false ? 'true' : 'false' }},
+            can_view_admin_direct_permissions:    {{ capabilities.can_view_admin_direct_permissions    ?? false ? 'true' : 'false' }},
+            can_assign_admin_direct_permissions:  {{ capabilities.can_assign_admin_direct_permissions  ?? false ? 'true' : 'false' }},
+            can_revoke_admin_direct_permissions:  {{ capabilities.can_revoke_admin_direct_permissions  ?? false ? 'true' : 'false' }},
+            can_view_admin_roles:                 {{ capabilities.can_view_admin_roles                 ?? false ? 'true' : 'false' }},
+            can_view_admin_profile:               {{ capabilities.can_view_admin_profile               ?? false ? 'true' : 'false' }},
+            can_view_admins:                      {{ capabilities.can_view_admins                      ?? false ? 'true' : 'false' }}
+        };
+        window.adminPermissionsAdminId = {{ admin_id }};
+        console.log('🔑 Admin Permissions Capabilities Injected:', window.adminPermissionsCapabilities);
+        console.log('🎯 Admin ID:', window.adminPermissionsAdminId);
+    </script>
+
+    {# ===================================================================
+       Page Header (breadcrumb + title)
+       =================================================================== #}
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <h2 class="text-xl font-semibold text-gray-800">Admin Permissions</h2>
+        <nav>
+            <ol class="flex items-center gap-1.5">
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700" href="{{ ui.adminUrl }}dashboard">
+                        Home
+                        <svg class="stroke-current" width="17" height="16" viewbox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </a>
+                </li>
+                <li>
+                    {% if capabilities.can_view_admins ?? false %}
+                        <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700" href="{{ ui.adminUrl }}admins">
+                            Admins
+                            <svg class="stroke-current" width="17" height="16" viewbox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                        </a>
+                    {% endif %}
+                </li>
+                <li>
+                    {% if capabilities.can_view_admin_profile ?? false %}
+                        <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700" href="{{ ui.adminUrl }}admins/{{ admin_id }}/profile">
+                            {{ display_name ?? 'Profile' }}
+                            <svg class="stroke-current" width="17" height="16" viewbox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                        </a>
+                    {% else %}
+                        <span class="text-sm text-gray-500">
+                            {{ display_name ?? 'Profile' }}
+                            <svg class="stroke-current inline" width="17" height="16" viewbox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                        </span>
+                    {% endif %}
+                </li>
+                <li class="text-sm text-gray-800">Permissions</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="px-0 py-2">
+
+        {# ================================================================
+           Admin Info Card
+           ================================================================ #}
+        <div class="bg-white rounded-lg shadow border border-gray-200 mb-6 p-5">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center justify-center w-11 h-11 bg-blue-100 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-blue-600">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-800">{{ display_name ?? 'N/A' }}</p>
+                        <p class="text-xs text-gray-500">Admin ID: #{{ admin_id }}</p>
+                    </div>
+                </div>
+                {% if capabilities.can_view_admin_profile ?? false %}
+                    <a href="{{ ui.adminUrl }}admins/{{ admin_id }}/profile"
+                       class="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 bg-white text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-all duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+                        </svg>
+                        Back to Profile
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        {# ================================================================
+           Tab Navigation
+           Logic: الأول tab المتاح يـ start active
+           Effective   → أول لو `can_view_permissions_effective`
+           Direct      → أول لو بس `can_view_admin_direct_permissions` متاح
+           Roles       → أول لو بس `can_view_admin_roles` متاح
+           ================================================================ #}
+        {% set firstActiveTab = null %}
+        {% if capabilities.can_view_permissions_effective ?? false %}
+            {% set firstActiveTab = 'effective' %}
+        {% elseif capabilities.can_view_admin_direct_permissions ?? false %}
+            {% set firstActiveTab = 'direct' %}
+        {% elseif capabilities.can_view_admin_roles ?? false %}
+            {% set firstActiveTab = 'roles' %}
+        {% endif %}
+
+        <div class="border-b border-gray-200 mb-6">
+            <nav class="-mb-px flex gap-6" id="admin-perms-tabs-nav">
+                {% if capabilities.can_view_permissions_effective ?? false %}
+                    <button
+                            data-tab="effective"
+                            class="admin-perms-tab-btn border-b-2 pb-2 text-sm font-medium transition-colors duration-200
+                           {% if firstActiveTab == 'effective' %}active border-blue-600 text-blue-600{% else %}border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300{% endif %}"
+                    >
+                        Effective
+                    </button>
+                {% endif %}
+
+                {% if capabilities.can_view_admin_direct_permissions ?? false %}
+                    <button
+                            data-tab="direct"
+                            class="admin-perms-tab-btn border-b-2 pb-2 text-sm font-medium transition-colors duration-200
+                           {% if firstActiveTab == 'direct' %}active border-blue-600 text-blue-600{% else %}border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300{% endif %}"
+                    >
+                        Direct
+                    </button>
+                {% endif %}
+
+                {% if capabilities.can_view_admin_roles ?? false %}
+                    <button
+                            data-tab="roles"
+                            class="admin-perms-tab-btn border-b-2 pb-2 text-sm font-medium transition-colors duration-200
+                           {% if firstActiveTab == 'roles' %}active border-blue-600 text-blue-600{% else %}border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300{% endif %}"
+                    >
+                        Roles
+                    </button>
+                {% endif %}
+            </nav>
+        </div>
+
+        {# ================================================================
+           Tab 1: Effective Permissions (Read-Only)
+           ================================================================ #}
+        {% if capabilities.can_view_permissions_effective ?? false %}
+            <div id="tab-effective" class="admin-perms-tab-content {% if firstActiveTab != 'effective' %}hidden{% endif %}">
+
+                <div class="bg-white rounded-lg shadow border border-gray-200 mb-6">
+                    <div class="px-2 py-4">
+                        <form id="effective-search-form" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label for="eff-filter-id" class="block text-sm font-medium text-gray-700 mb-1">Permission ID</label>
+                                <input type="text" id="eff-filter-id"
+                                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="Search by ID">
+                            </div>
+                            <div>
+                                <label for="eff-filter-name" class="block text-sm font-medium text-gray-700 mb-1">Permission Name</label>
+                                <input type="text" id="eff-filter-name"
+                                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="e.g. admin.permissions">
+                            </div>
+                            <div>
+                                <label for="eff-filter-group" class="block text-sm font-medium text-gray-700 mb-1">Group</label>
+                                <input type="text" id="eff-filter-group"
+                                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="e.g. admin">
+                            </div>
+                            <div class="flex items-end space-x-1">
+                                <button type="submit"
+                                        class="text-xs px-4 py-1 bg-blue-600 text-white rounded-md hover:bg-white hover:text-blue-600 border hover:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                    Search
+                                </button>
+                                <button type="button" id="eff-btn-reset"
+                                        class="text-xs px-4 py-1 bg-white text-gray-600 border border-gray-600 rounded-md hover:bg-gray-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+                                    Reset
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="container">
+                    <div id="effective-table-container" class="w-full"></div>
+                </div>
+            </div>
+        {% endif %}
+
+        {# ================================================================
+           Tab 2: Direct Permissions (Mutable — assign / revoke)
+           ================================================================ #}
+        {% if capabilities.can_view_admin_direct_permissions ?? false %}
+            <div id="tab-direct" class="admin-perms-tab-content {% if firstActiveTab != 'direct' %}hidden{% endif %}">
+
+                {# --- Assign Button (shown only if capability exists) --- #}
+                {% if capabilities.can_assign_admin_direct_permissions ?? false %}
+                    <div class="flex justify-end mb-4">
+                        <button type="button" id="btn-assign-direct"
+                                class="inline-flex items-center gap-1.5 text-xs px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 border border-blue-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5H4.5"/>
+                            </svg>
+                            Assign Permission
+                        </button>
+                    </div>
+                {% endif %}
+
+                <div class="bg-white rounded-lg shadow border border-gray-200 mb-6">
+                    <div class="px-2 py-4">
+                        <form id="direct-search-form" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label for="dir-filter-id" class="block text-sm font-medium text-gray-700 mb-1">Permission ID</label>
+                                <input type="text" id="dir-filter-id"
+                                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="Search by ID">
+                            </div>
+                            <div>
+                                <label for="dir-filter-name" class="block text-sm font-medium text-gray-700 mb-1">Permission Name</label>
+                                <input type="text" id="dir-filter-name"
+                                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="e.g. admin.permissions">
+                            </div>
+                            <div>
+                                <label for="dir-filter-group" class="block text-sm font-medium text-gray-700 mb-1">Group</label>
+                                <input type="text" id="dir-filter-group"
+                                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="e.g. admin">
+                            </div>
+                            <div>
+                                <label for="dir-filter-allowed" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                                <select id="dir-filter-allowed"
+                                        class="w-full px-3 py-2 border bg-white border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">All</option>
+                                    <option value="1">Allowed</option>
+                                    <option value="0">Denied</option>
+                                </select>
+                            </div>
+                            <div class="flex items-end space-x-1 md:col-span-4">
+                                <button type="submit"
+                                        class="text-xs px-4 py-1 bg-blue-600 text-white rounded-md hover:bg-white hover:text-blue-600 border hover:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                    Search
+                                </button>
+                                <button type="button" id="dir-btn-reset"
+                                        class="text-xs px-4 py-1 bg-white text-gray-600 border border-gray-600 rounded-md hover:bg-gray-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+                                    Reset
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="container">
+                    <div id="direct-table-container" class="w-full"></div>
+                </div>
+            </div>
+        {% endif %}
+
+        {# ================================================================
+           Tab 3: Roles (Context — Read-Only)
+           ================================================================ #}
+        {% if capabilities.can_view_admin_roles ?? false %}
+            <div id="tab-roles" class="admin-perms-tab-content {% if firstActiveTab != 'roles' %}hidden{% endif %}">
+
+                <div class="bg-white rounded-lg shadow border border-gray-200 mb-6">
+                    <div class="px-2 py-4">
+                        <form id="roles-search-form" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label for="role-filter-id" class="block text-sm font-medium text-gray-700 mb-1">Role ID</label>
+                                <input type="text" id="role-filter-id"
+                                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="Search by ID">
+                            </div>
+                            <div>
+                                <label for="role-filter-name" class="block text-sm font-medium text-gray-700 mb-1">Role Name</label>
+                                <input type="text" id="role-filter-name"
+                                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="e.g. admin.manager">
+                            </div>
+                            <div>
+                                <label for="role-filter-group" class="block text-sm font-medium text-gray-700 mb-1">Group</label>
+                                <input type="text" id="role-filter-group"
+                                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="e.g. admin">
+                            </div>
+                            <div>
+                                <label for="role-filter-active" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <select id="role-filter-active"
+                                        class="w-full px-3 py-2 border bg-white border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">All</option>
+                                    <option value="1">Active</option>
+                                    <option value="0">Inactive</option>
+                                </select>
+                            </div>
+                            <div class="flex items-end space-x-1 md:col-span-4">
+                                <button type="submit"
+                                        class="text-xs px-4 py-1 bg-blue-600 text-white rounded-md hover:bg-white hover:text-blue-600 border hover:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                    Search
+                                </button>
+                                <button type="button" id="role-btn-reset"
+                                        class="text-xs px-4 py-1 bg-white text-gray-600 border border-gray-600 rounded-md hover:bg-gray-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+                                    Reset
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="container">
+                    <div id="roles-table-container" class="w-full"></div>
+                </div>
+            </div>
+        {% endif %}
+
+    </div>
+
+    {# ================================================================
+       Assignable Permissions Modal
+       Paginated searchable table of ALL system permissions.
+       Shown only if can_assign_admin_direct_permissions.
+       Per-row: Assign (if not assigned) / Edit + Revoke (if assigned).
+       ================================================================ #}
+    {% if capabilities.can_assign_admin_direct_permissions ?? false %}
+        <div id="assign-direct-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[99999] flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+
+                <!-- Modal Header -->
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex-shrink-0">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-blue-600">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800">Assignable Permissions</h3>
+                                <p class="text-xs text-gray-500 mt-0.5">Select a permission to assign as allow or deny</p>
+                            </div>
+                        </div>
+                        <button type="button" id="close-assign-modal-btn" class="text-gray-400 hover:text-gray-600 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Modal Body (scrollable) -->
+                <div class="flex-1 overflow-y-auto px-6 py-5">
+
+                    <!-- Modal-level message (errors / success) -->
+                    <div id="assign-modal-message" class="hidden mb-4"></div>
+
+                    <!-- Search Bar -->
+                    <div class="flex gap-3 mb-4">
+                        <div class="flex-1">
+                            <input type="text" id="assignable-global-search"
+                                   class="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                   placeholder="Search available permissions…">
+                        </div>
+                        <select id="assignable-filter-assigned"
+                                class="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">All</option>
+                            <option value="0">Not Assigned</option>
+                            <option value="1">Assigned</option>
+                        </select>
+                        <button type="button" id="assignable-btn-reset"
+                                class="text-xs px-3 py-2 bg-white text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200">
+                            Reset
+                        </button>
+                    </div>
+
+                    <!-- Assignable Table Container -->
+                    <div id="assignable-table-container" class="w-full"></div>
+
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/callback_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/useInputChecker.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/data_table.js') }}"></script>
+
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/admin-permissions-tabs.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/admin-permissions-effective.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/admin-permissions-direct.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/admin-permissions-roles.js') }}"></script>
+{% endblock %}

@@ -115,7 +115,7 @@ class AdminRoutes
                     // Admin Profile (VIEW)
                     // ===============================
                     $protectedGroup->get(
-                        '/admins/{id:[0-9]}/profile',
+                        '/admins/{id:[0-9]+}/profile',
                         [\Maatify\AdminKernel\Http\Controllers\Ui\UiAdminsController::class, 'profile']
                     )
                         ->setName('admins.profile.view')
@@ -125,7 +125,7 @@ class AdminRoutes
                     // Admin Profile (EDIT FORM)
                     // ===============================
                     $protectedGroup->get(
-                        '/admins/{id:[0-9]}/profile/edit',
+                        '/admins/{id:[0-9]+}/profile/edit',
                         [\Maatify\AdminKernel\Http\Controllers\Ui\UiAdminsController::class, 'editProfile']
                     )
                         ->setName('admins.profile.edit.view')
@@ -136,7 +136,7 @@ class AdminRoutes
                     // Admin Profile (UPDATE)
                     // ===============================
                     $protectedGroup->post(
-                        '/admins/{id:[0-9]}/profile/edit',
+                        '/admins/{id:[0-9]+}/profile/edit',
                         [\Maatify\AdminKernel\Http\Controllers\Ui\UiAdminsController::class, 'updateProfile']
                     )
                         ->setName('admins.profile.edit')
@@ -146,7 +146,7 @@ class AdminRoutes
                     // Admin Email Control
                     // ─────────────────────────────
                     $protectedGroup->get(
-                        '/admins/{id:[0-9]}/emails',
+                        '/admins/{id:[0-9]+}/emails',
                         [\Maatify\AdminKernel\Http\Controllers\Ui\UiAdminsController::class, 'emails']
                     )
                         ->setName('admin.email.list.ui')
@@ -156,10 +156,20 @@ class AdminRoutes
                     // Admin Session Control
                     // ─────────────────────────────
                     $protectedGroup->get(
-                        '/admins/{id:[0-9]}/sessions',
+                        '/admins/{id:[0-9]+}/sessions',
                         [\Maatify\AdminKernel\Http\Controllers\Ui\UiAdminsController::class, 'sessions']
                     )
                         ->setName('admins.session.list')
+                        ->add(AuthorizationGuardMiddleware::class);
+
+                    // ─────────────────────────────
+                    // Admin Permissions Control
+                    // ─────────────────────────────
+                    $protectedGroup->get(
+                        '/admins/{id:[0-9]+}/permissions',
+                        [\Maatify\AdminKernel\Http\Controllers\Ui\UiAdminsController::class, 'permissions']
+                    )
+                        ->setName('admins.permissions')
                         ->add(AuthorizationGuardMiddleware::class);
 
                     $protectedGroup->get(
@@ -170,7 +180,7 @@ class AdminRoutes
                         ->add(AuthorizationGuardMiddleware::class);
 
                     $protectedGroup->get(
-                        '/roles/{id:[0-9]}',
+                        '/roles/{id:[0-9]+}',
                         [\Maatify\AdminKernel\Http\Controllers\Ui\UiRoleDetailsController::class, '__invoke']
                     )
                         ->setName('roles.view.ui')
@@ -265,30 +275,68 @@ class AdminRoutes
                         $admins->post('/create', [AdminController::class, 'create'])
                             ->setName('admin.create.api');
 
-                        $admins->get('/{admin_id:[0-9]}/preferences', [AdminNotificationPreferenceController::class, 'getPreferences'])
+                        $admins->get('/{admin_id:[0-9]+}/preferences', [AdminNotificationPreferenceController::class, 'getPreferences'])
                             ->setName('admin.preferences.read');
 
-                        $admins->put('/{admin_id:[0-9]}/preferences', [AdminNotificationPreferenceController::class, 'upsertPreference'])
+                        $admins->put('/{admin_id:[0-9]+}/preferences', [AdminNotificationPreferenceController::class, 'upsertPreference'])
                             ->setName('admin.preferences.write');
 
-                        $admins->get('/{admin_id:[0-9]}/notifications', [\Maatify\AdminKernel\Http\Controllers\AdminNotificationHistoryController::class, 'index'])
+                        $admins->get('/{admin_id:[0-9]+}/notifications', [\Maatify\AdminKernel\Http\Controllers\AdminNotificationHistoryController::class, 'index'])
                             ->setName('admin.notifications.history');
+
+                        // ─────────────────────────────
+                        // Admin Roles Query
+                        // ─────────────────────────────
+                        $admins->post('/{admin_id:[0-9]+}/roles/query',
+                            [\Maatify\AdminKernel\Http\Controllers\Api\Admin\AdminRolesQueryController::class, '__invoke']
+                        )
+                            ->setName('admin.roles.query');
+
+                        $admins->post('/{admin_id:[0-9]+}/permissions/effective',
+                            [\Maatify\AdminKernel\Http\Controllers\Api\Admin\EffectivePermissionsQueryController::class, '__invoke']
+                        )
+                            ->setName('admin.permissions.effective');
+
+                        $admins->post(
+                            '/{admin_id:[0-9]+}/permissions/direct/query',
+                            [\Maatify\AdminKernel\Http\Controllers\Api\Admin\DirectPermissionsQueryController::class, '__invoke']
+                        )
+                            ->setName('admin.permissions.direct.query');
+
+                        $admins->post(
+                            '/{admin_id:[0-9]+}/permissions/direct/assign',
+                            [\Maatify\AdminKernel\Http\Controllers\Api\Admin\AssignDirectPermissionController::class, '__invoke']
+                        )->setName('admin.permissions.direct.assign');
+
+                        $admins->post(
+                            '/{admin_id:[0-9]+}/permissions/direct/revoke',
+                            [\Maatify\AdminKernel\Http\Controllers\Api\Admin\RevokeDirectPermissionController::class, '__invoke']
+                        )->setName('admin.permissions.direct.revoke');
+
+                        // ─────────────────────────────
+                        // Direct Permissions (Assignable) — QUERY
+                        // ─────────────────────────────
+                        $admins->post(
+                            '/{admin_id:[0-9]+}/permissions/direct/assignable/query',
+                            [\Maatify\AdminKernel\Http\Controllers\Api\Admin\DirectPermissionsAssignableQueryController::class, '__invoke']
+                        )
+                            ->setName('admin.permissions.direct.assignable.query');
 
                         // ─────────────────────────────
                         // Admin Email Control
                         // ─────────────────────────────
-                        $admins->get('/{id:[0-9]}/emails', [AdminController::class, 'getEmails'])
+                        $admins->get('/{id:[0-9]+}/emails', [AdminController::class, 'getEmails'])
                             ->setName('admin.email.list.api');
-                        $admins->post('/{id:[0-9]}/emails', [AdminController::class, 'addEmail'])
+                        $admins->post('/{id:[0-9]+}/emails', [AdminController::class, 'addEmail'])
                             ->setName('admin.email.add');
                     });
 
                     $group->group('/admin-emails', function (RouteCollectorProxyInterface $adminEmails) {
-                        $adminEmails->post('/{emailId:[0-9]}/verify', [AdminEmailVerificationController::class, 'verify'])
+                        $adminEmails->post('/{emailId:[0-9]+}/verify', [AdminEmailVerificationController::class, 'verify'])
                             ->setName('admin.email.verify');
-                        $adminEmails->post('/{emailId:[0-9]}/replace', [AdminEmailVerificationController::class, 'replace'])
+                        $adminEmails->post('/{emailId:[0-9]+}/replace', [AdminEmailVerificationController::class, 'replace'])
                             ->setName('admin.email.replace');
-                        $adminEmails->post('/{emailId:[0-9]}/fail', [AdminEmailVerificationController::class, 'fail'])
+                        $adminEmails->post('/{emailId:[0-9]+}/fail', [AdminEmailVerificationController::class, 'fail'])
                             ->setName('admin.email.fail');
                         $adminEmails->post('/{emailId}/restart-verification', [AdminEmailVerificationController::class, 'restart'])
                             ->setName('admin.email.restart');
@@ -301,7 +349,7 @@ class AdminRoutes
                         $permissions->post('/query', [\Maatify\AdminKernel\Http\Controllers\Api\PermissionsController::class, '__invoke'])
                             ->setName('permissions.query.api');
 
-                        $permissions->post('/{id:[0-9]}/metadata', [\Maatify\AdminKernel\Http\Controllers\Api\PermissionMetadataUpdateController::class, '__invoke'])
+                        $permissions->post('/{id:[0-9]+}/metadata', [\Maatify\AdminKernel\Http\Controllers\Api\PermissionMetadataUpdateController::class, '__invoke'])
                             ->setName('permissions.metadata.update');
                     });
 
@@ -316,19 +364,19 @@ class AdminRoutes
                             ->setName('roles.query.api');
 
                         $roles->post(
-                            '/{id:[0-9]}/metadata',
+                            '/{id:[0-9]+}/metadata',
                             [\Maatify\AdminKernel\Http\Controllers\Api\Roles\RoleMetadataUpdateController::class, '__invoke']
                         )
                             ->setName('roles.metadata.update');
 
                         $roles->post(
-                            '/{id:[0-9]}/toggle',
+                            '/{id:[0-9]+}/toggle',
                             [\Maatify\AdminKernel\Http\Controllers\Api\Roles\RoleToggleController::class, '__invoke']
                         )
                             ->setName('roles.toggle');
 
                         $roles->post(
-                            '/{id:[0-9]}/rename',
+                            '/{id:[0-9]+}/rename',
                             [\Maatify\AdminKernel\Http\Controllers\Api\Roles\RoleRenameController::class, '__invoke']
                         )
                             ->setName('roles.rename');
@@ -343,7 +391,7 @@ class AdminRoutes
                         // Role → Permissions (QUERY)
                         // ─────────────────────────────
                         $roles->post(
-                            '/{id:[0-9]}/permissions/query',
+                            '/{id:[0-9]+}/permissions/query',
                             [\Maatify\AdminKernel\Http\Controllers\Api\Roles\RolePermissionsQueryController::class, '__invoke']
                         )
                             ->setName('roles.permissions.query');
@@ -352,7 +400,7 @@ class AdminRoutes
                         // Role → Permissions (ASSIGN)
                         // ─────────────────────────────
                         $roles->post(
-                            '/{id:[0-9]}/permissions/assign',
+                            '/{id:[0-9]+}/permissions/assign',
                             [\Maatify\AdminKernel\Http\Controllers\Api\Roles\RolePermissionAssignController::class, '__invoke']
                         )
                             ->setName('roles.permissions.assign');
@@ -361,19 +409,19 @@ class AdminRoutes
                         // Role → Permissions (UNASSIGN)
                         // ─────────────────────────────
                         $roles->post(
-                            '/{id:[0-9]}/permissions/unassign',
+                            '/{id:[0-9]+}/permissions/unassign',
                             [\Maatify\AdminKernel\Http\Controllers\Api\Roles\RolePermissionUnassignController::class, '__invoke']
                         )
                             ->setName('roles.permissions.unassign');
 
                         // AdminRoutes.php
                         $roles->post(
-                            '/{id:[0-9]}/admins/query',
+                            '/{id:[0-9]+}/admins/query',
                             [\Maatify\AdminKernel\Http\Controllers\Api\Roles\RoleAdminsQueryController::class, '__invoke']
                         )->setName('roles.admins.query');
 
                         $roles->post(
-                            '/{id:[0-9]}/admins/assign',
+                            '/{id:[0-9]+}/admins/assign',
                             [\Maatify\AdminKernel\Http\Controllers\Api\Roles\RoleAdminAssignController::class, '__invoke']
                         )->setName('roles.admins.assign');
 
