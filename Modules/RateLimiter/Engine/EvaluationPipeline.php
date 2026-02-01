@@ -83,31 +83,20 @@ class EvaluationPipeline
         // 8. New Device Flood (5.4)
         if ($ephemeralState && $context->accountId) {
              if ($ephemeralState->accountDeviceCount >= 6) {
-                  // SOFT_BLOCK (Account)
-                  // "Continued flood after soft block ... HARD_BLOCK (each new K5)"
-                  // Since we are ephemeral, we don't have K5.
-                  // But we must block Account if < 6? No, >= 6.
-                  // If we are here, we are potentially flooding.
-                  // We should return Soft Block on Account.
-                  // Duration? Not specified in 5.4, assuming L1 or Budget Config level.
-                  // "SOFT_BLOCK (Account)".
-                  // Check Active Soft Block?
-                  // If Account is already Soft Blocked, and we are here (continued flood), we Escalate?
-                  // "Continued flood after soft block ... HARD_BLOCK (each new K5)".
-                  // Since we don't create K5 (ephemeral), we can't block K5.
-                  // But we can block the REQUEST.
-                  // Return HARD_BLOCK result.
-
-                  // Check if Account is currently Soft Blocked
+                  // Check if Account is Active Blocked (Soft or Hard)
                   $accBlock = $this->store->checkBlock($realKeys['k4']);
-                  if ($accBlock) { // Any block
-                       // Escalation
-                       return $this->createBlockedResult(2, 60, RateLimitResultDTO::DECISION_HARD_BLOCK);
+                  if ($accBlock) {
+                       // Continued flood -> HARD_BLOCK (each new K5).
+                       // We block the K5 key (even if ephemeral for scoring, we block for enforcement).
+                       if (isset($realKeys['k5'])) {
+                           $this->store->block($realKeys['k5'], 2, 3600); // L2+
+                       }
+                       return $this->createBlockedResult(2, 3600, RateLimitResultDTO::DECISION_HARD_BLOCK);
                   }
 
                   // Apply Soft Block Account
-                  $this->store->block($realKeys['k4'], 1, 300); // L3 (5 min) or L1? "Soft Block" -> L1.
-                  return $this->createBlockedResult(1, 15, RateLimitResultDTO::DECISION_SOFT_BLOCK);
+                  $this->store->block($realKeys['k4'], 1, 300); // "Soft-block account"
+                  return $this->createBlockedResult(1, 300, RateLimitResultDTO::DECISION_SOFT_BLOCK);
              }
         }
 

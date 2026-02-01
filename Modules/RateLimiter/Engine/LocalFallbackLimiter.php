@@ -42,9 +42,19 @@ class LocalFallbackLimiter
                 if (!self::incrementAndCheck("deg:otp:ip:{$ip}", self::DEGRADED_OTP_IP)) {
                     $allowed = false;
                 }
+            } elseif ($policyName === 'api_heavy_protection') {
+                // API Heavy in Degraded Mode (via Circuit Breaker)
+                // "Even in FAIL_OPEN (or Degraded equivalent for API), apply per-node coarse throttles"
+                if (!self::incrementAndCheck("fail:api:ip:{$ip}", self::API_IP)) {
+                    $allowed = false;
+                }
+                $k2 = md5("{$ip}:{$ua}");
+                if (!self::incrementAndCheck("fail:api:k2:{$k2}", self::API_IP_UA)) {
+                    $allowed = false;
+                }
             }
         } elseif ($mode === 'FAIL_OPEN' && $policyName === 'api_heavy_protection') {
-             // API Heavy
+             // API Heavy (FAIL_OPEN)
              if (!self::incrementAndCheck("fail:api:ip:{$ip}", self::API_IP)) {
                  $allowed = false;
              }

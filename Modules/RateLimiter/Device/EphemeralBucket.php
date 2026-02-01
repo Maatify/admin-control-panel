@@ -23,10 +23,11 @@ class EphemeralBucket
         // Scope Key Calculation (IPv6 Prefix)
         $ipScope = $this->getIpPrefix($context->ip);
 
-        // Track per-account
+        // Track per-account (Scoped to IP Prefix)
+        // Ephemeral scope MUST be per (IP_PREFIX, AccountID)
         $accCount = 0;
         if ($context->accountId) {
-            $accKey = "dev_cap:acc:{$context->accountId}";
+            $accKey = "dev_cap:acc:{$context->accountId}:{$ipScope}";
             $accCount = $this->store->addDistinct($accKey, $realFingerprintHash, self::CAP_WINDOW);
         }
 
