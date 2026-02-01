@@ -327,7 +327,7 @@ This exception **does NOT apply** to runtime application logic.
   * Activity logs (`activity_logs`)
 * Retention policies MUST NOT be applied to:
 
-  * `audit_logs`
+  * `authoritative_audit_log`
   * `security_events`
 
 Any retention or deletion of authoritative logs is forbidden without
@@ -393,7 +393,7 @@ They exist purely for **staff activity tracking and operational transparency**.
 * Security events
 * Authorization records
 * Transaction guards
-* A replacement for `audit_logs`
+* A replacement for Authoritative Audit
 
 ---
 
@@ -448,7 +448,7 @@ These belong to:
 
 | Concern              | Correct Log       |
 |----------------------|-------------------|
-| Authority decisions  | `audit_logs`      |
+| Authority decisions  | `authoritative_audit_log`      |
 | Security attempts    | `security_events` |
 | Crashes / exceptions | PSR-3 logs        |
 
