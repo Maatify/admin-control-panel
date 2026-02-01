@@ -83,20 +83,28 @@ class EvaluationPipeline
         // 8. New Device Flood (5.4)
         if ($ephemeralState && $context->accountId) {
              if ($ephemeralState->accountDeviceCount >= 6) {
-                  // Check if Account is Active Blocked (Soft or Hard)
-                  $accBlock = $this->store->checkBlock($realKeys['k4']);
-                  if ($accBlock) {
+                  // Check for specific "Flood Stage" marker (Rule 5.4 marker)
+                  // "Continued flood trigger must be tied to the 5.4 soft-block marker/window"
+                  $floodKey = "flood_stage:acc:{$context->accountId}";
+                  $isFloodStage = $this->correlationStore->getWatchFlag($floodKey) > 0;
+
+                  if ($isFloodStage) {
                        // Continued flood -> HARD_BLOCK (each new K5).
-                       // We block the K5 key (even if ephemeral for scoring, we block for enforcement).
+                       // Block durations MUST follow Penalty Ladder exactly (L2 = 60s)
+                       $duration = PenaltyLadder::getDuration(2);
                        if (isset($realKeys['k5'])) {
-                           $this->store->block($realKeys['k5'], 2, 3600); // L2+
+                           $this->store->block($realKeys['k5'], 2, $duration);
                        }
-                       return $this->createBlockedResult(2, 3600, RateLimitResultDTO::DECISION_HARD_BLOCK);
+                       return $this->createBlockedResult(2, $duration, RateLimitResultDTO::DECISION_HARD_BLOCK);
                   }
 
-                  // Apply Soft Block Account
-                  $this->store->block($realKeys['k4'], 1, 300); // "Soft-block account"
-                  return $this->createBlockedResult(1, 300, RateLimitResultDTO::DECISION_SOFT_BLOCK);
+                  // Apply Soft Block Account (L1 = 15s)
+                  // Set marker for 15 minutes (900s) to define the flood window
+                  $duration = PenaltyLadder::getDuration(1);
+                  $this->store->block($realKeys['k4'], 1, $duration);
+                  $this->correlationStore->incrementWatchFlag($floodKey, 900);
+
+                  return $this->createBlockedResult(1, $duration, RateLimitResultDTO::DECISION_SOFT_BLOCK);
              }
         }
 
