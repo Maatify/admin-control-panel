@@ -41,7 +41,8 @@
       "Maatify\\Crypto\\": "Modules/Crypto",
       "Maatify\\EmailDelivery\\": "Modules/EmailDelivery",
       "Maatify\\InputNormalization\\": "Modules/InputNormalization",
-      "Maatify\\Validation\\": "Modules/Validation"
+      "Maatify\\Validation\\": "Modules/Validation",
+      "Maatify\\RateLimiter\\": "Modules/RateLimiter"
 
     }
   },
