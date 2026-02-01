@@ -14,9 +14,12 @@ class FailureModeResolver
         $state = $cb->getState($policy->getName());
 
         if ($state->state === FailureStateDTO::STATE_OPEN) {
-            // 5.2 Re-Entry Guard Action
             if ($cb->isReEntryGuardViolated($policy->getName())) {
                 return 'FAIL_CLOSED';
+            }
+            // If policy prefers FAIL_OPEN (API), respect it (with guardrails)
+            if ($policy->getFailureMode() === 'FAIL_OPEN') {
+                return 'FAIL_OPEN';
             }
             return 'DEGRADED_MODE';
         }

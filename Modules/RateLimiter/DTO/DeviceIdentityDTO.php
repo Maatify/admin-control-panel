@@ -10,6 +10,7 @@ class DeviceIdentityDTO
         public readonly ?string $fingerprintHash,
         public readonly string $confidence, // LOW, MEDIUM, HIGH
         public readonly bool $isTrustedSession,
-        public readonly bool $churnDetected = false
+        public readonly bool $churnDetected = false,
+        public readonly string $normalizedUa = ''
     ) {}
 }

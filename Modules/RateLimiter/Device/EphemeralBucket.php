@@ -5,37 +5,44 @@ declare(strict_types=1);
 namespace Maatify\RateLimiter\Device;
 
 use Maatify\RateLimiter\Contract\CorrelationStoreInterface;
+use Maatify\RateLimiter\DTO\EphemeralStateDTO;
 use Maatify\RateLimiter\DTO\RateLimitContextDTO;
 
 class EphemeralBucket
 {
     private const MAX_DEVICES_PER_ACCOUNT = 10;
     private const MAX_DEVICES_PER_IP = 50;
-    private const CAP_WINDOW = 1800; // <= 30 mins
+    private const CAP_WINDOW = 900; // 15 mins (Flood Window)
 
     public function __construct(
         private readonly CorrelationStoreInterface $store
     ) {}
 
-    public function resolveKey(RateLimitContextDTO $context, string $realFingerprintHash): string
+    public function check(RateLimitContextDTO $context, string $realFingerprintHash): EphemeralStateDTO
     {
-        // Scope Key Calculation
-        // Must use IP Prefix for IPv6 to prevent Key Explosion
+        // Scope Key Calculation (IPv6 Prefix)
         $ipScope = $this->getIpPrefix($context->ip);
 
-        $scopeKey = $context->accountId
-            ? "dev_cap:acc:{$context->accountId}"
-            : "dev_cap:ip:{$ipScope}";
-
-        $count = $this->store->addDistinct($scopeKey, $realFingerprintHash, self::CAP_WINDOW);
-
-        $limit = $context->accountId ? self::MAX_DEVICES_PER_ACCOUNT : self::MAX_DEVICES_PER_IP;
-
-        if ($count > $limit) {
-            return "ephemeral:{$scopeKey}";
+        // Track per-account
+        $accCount = 0;
+        if ($context->accountId) {
+            $accKey = "dev_cap:acc:{$context->accountId}";
+            $accCount = $this->store->addDistinct($accKey, $realFingerprintHash, self::CAP_WINDOW);
         }
 
-        return $realFingerprintHash;
+        // Track per-IP
+        $ipKey = "dev_cap:ip:{$ipScope}";
+        $ipCount = $this->store->addDistinct($ipKey, $realFingerprintHash, self::CAP_WINDOW);
+
+        $isEphemeral = false;
+        if ($context->accountId && $accCount > self::MAX_DEVICES_PER_ACCOUNT) {
+            $isEphemeral = true;
+        }
+        if ($ipCount > self::MAX_DEVICES_PER_IP) {
+            $isEphemeral = true;
+        }
+
+        return new EphemeralStateDTO($isEphemeral, $accCount, $ipCount);
     }
 
     private function getIpPrefix(string $ip): string
@@ -44,8 +51,7 @@ class EphemeralBucket
             $packed = inet_pton($ip);
             if ($packed !== false) {
                  $hex = bin2hex($packed);
-                 // /64 = 16 hex chars
-                 return substr($hex, 0, 16);
+                 return substr($hex, 0, 16); // /64
             }
         }
         return $ip;

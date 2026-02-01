@@ -40,7 +40,8 @@ class EvaluationPipeline
         DeviceIdentityDTO $device
     ): RateLimitResultDTO {
         // 1. Build Keys for Active Block Check (Original Hash)
-        $realKeys = $this->buildKeys($context, $device->fingerprintHash, $policy->getName());
+        // Use normalized UA for K2 from DeviceDTO
+        $realKeys = $this->buildKeys($context, $device->normalizedUa, $device->fingerprintHash, $policy->getName());
 
         // 2. Check Active Blocks (Fail-Fast) on Real Keys
         if ($blocked = $this->checkActiveBlocks($realKeys)) {
@@ -52,12 +53,18 @@ class EvaluationPipeline
             return $blocked;
         }
 
-        // 4. Resolve Effective Keys (Ephemeral Logic) for Scoring/Updates
-        $effectiveHash = $device->fingerprintHash;
-        if ($device->fingerprintHash) {
-             $effectiveHash = $this->ephemeralBucket->resolveKey($context, $device->fingerprintHash);
+        // 4. Resolve Ephemeral Status
+        // Do NOT create new K3/K5 if ephemeral.
+        $ephemeralState = $device->fingerprintHash
+            ? $this->ephemeralBucket->check($context, $device->fingerprintHash)
+            : null;
+
+        $isEphemeral = $ephemeralState?->isEphemeral ?? false;
+
+        $effectiveKeys = $realKeys;
+        if ($isEphemeral) {
+             unset($effectiveKeys['k3'], $effectiveKeys['k5']);
         }
-        $effectiveKeys = $this->buildKeys($context, $effectiveHash, $policy->getName());
 
         // 5. Fetch & Decay Scores (Using Effective Keys)
         $rawScores = $this->fetchScores($effectiveKeys);
@@ -69,16 +76,47 @@ class EvaluationPipeline
         }
 
         // 7. Check Correlation Rules
-        if ($blocked = $this->checkCorrelationRules($context, $device, $policy->getName())) {
+        if ($blocked = $this->checkCorrelationRules($context, $device, $policy->getName(), $isEphemeral)) {
              return $blocked;
         }
 
-        // 8. Pre-Check Only
+        // 8. New Device Flood (5.4)
+        if ($ephemeralState && $context->accountId) {
+             if ($ephemeralState->accountDeviceCount >= 6) {
+                  // SOFT_BLOCK (Account)
+                  // "Continued flood after soft block ... HARD_BLOCK (each new K5)"
+                  // Since we are ephemeral, we don't have K5.
+                  // But we must block Account if < 6? No, >= 6.
+                  // If we are here, we are potentially flooding.
+                  // We should return Soft Block on Account.
+                  // Duration? Not specified in 5.4, assuming L1 or Budget Config level.
+                  // "SOFT_BLOCK (Account)".
+                  // Check Active Soft Block?
+                  // If Account is already Soft Blocked, and we are here (continued flood), we Escalate?
+                  // "Continued flood after soft block ... HARD_BLOCK (each new K5)".
+                  // Since we don't create K5 (ephemeral), we can't block K5.
+                  // But we can block the REQUEST.
+                  // Return HARD_BLOCK result.
+
+                  // Check if Account is currently Soft Blocked
+                  $accBlock = $this->store->checkBlock($realKeys['k4']);
+                  if ($accBlock) { // Any block
+                       // Escalation
+                       return $this->createBlockedResult(2, 60, RateLimitResultDTO::DECISION_HARD_BLOCK);
+                  }
+
+                  // Apply Soft Block Account
+                  $this->store->block($realKeys['k4'], 1, 300); // L3 (5 min) or L1? "Soft Block" -> L1.
+                  return $this->createBlockedResult(1, 15, RateLimitResultDTO::DECISION_SOFT_BLOCK);
+             }
+        }
+
+        // 9. Pre-Check Only
         if ($request->isPreCheck) {
             return $this->createAllowResult();
         }
 
-        // 9. Process Updates (Failure / Access)
+        // 10. Process Updates (Failure / Access)
         if ($request->isFailure || isset($policy->getScoreDeltas()['access'])) {
              return $this->processUpdates($policy, $context, $request, $device, $effectiveKeys, $decayedScores);
         }
@@ -124,8 +162,6 @@ class EvaluationPipeline
             // Confidence Constraint (K3)
             if ($keyType === 'k3' && $device->confidence === 'LOW' && $level >= 2) {
                 // Passive-only fingerprints MUST NOT trigger HARD_BLOCK.
-                // We downgrade K3 contribution to Soft Block max.
-                // Note: If K2 (IP+UA) triggers Hard Block independently, highestLevel will catch it.
                 $level = 1;
             }
 
@@ -141,24 +177,69 @@ class EvaluationPipeline
         return null;
     }
 
-    private function checkCorrelationRules(RateLimitContextDTO $context, DeviceIdentityDTO $device, string $policyName): ?RateLimitResultDTO
+    private function checkCorrelationRules(RateLimitContextDTO $context, DeviceIdentityDTO $device, string $policyName, bool $isEphemeral): ?RateLimitResultDTO
     {
-        $k2 = $this->hashKey("{$policyName}:k2:{$this->getIpPrefix($context->ip)}:{$context->ua}");
+        $k2 = $this->hashKey("{$policyName}:k2:{$this->getIpPrefix($context->ip)}:{$device->normalizedUa}");
         if ($device->fingerprintHash) {
              $count = $this->correlationStore->addDistinct("churn:{$k2}", $device->fingerprintHash, 600);
              if ($count >= 3) {
-                 $this->store->block($k2, 2, 3600);
-                 return $this->createBlockedResult(2, 3600, RateLimitResultDTO::DECISION_HARD_BLOCK);
+                 $this->store->block($k2, 2, 60); // L2 = 60s
+                 return $this->createBlockedResult(2, 60, RateLimitResultDTO::DECISION_HARD_BLOCK);
              }
         }
 
-        if ($device->confidence !== 'LOW' && $device->fingerprintHash) {
+        if ($device->fingerprintHash) {
             $k3_raw = "dilution:{$device->fingerprintHash}";
+            // Dilution Rule: "distinct(IP) >= 6 within 10m"
+            // "Two consecutive 10-minute windows for MEDIUM+ confidence"
             $count = $this->correlationStore->addDistinct($k3_raw, $context->ip, 600);
+
             if ($count >= 6) {
-                 $k3 = $this->hashKey("{$policyName}:k3:{$this->getIpPrefix($context->ip)}:{$device->fingerprintHash}");
-                 $this->store->block($k3, 2, 3600);
-                 return $this->createBlockedResult(2, 3600, RateLimitResultDTO::DECISION_HARD_BLOCK);
+                $shouldBlock = false;
+                $targetKey = null;
+
+                if ($device->confidence === 'LOW') {
+                    // Downgrade to HARD_BLOCK(IP+UA) (K2)
+                    $targetKey = $k2;
+                    $shouldBlock = true;
+                } else {
+                    // MEDIUM+ -> Check 2 consecutive windows
+                    // We use a flag "dilution_warn" set in previous window?
+                    // Window logic is tricky with sliding distinct count.
+                    // But if we use "flag", we can approximate "Two consecutive windows".
+                    // Logic:
+                    // 1. If "dilution_warn" exists AND we hit threshold again -> Block.
+                    // 2. Set "dilution_warn" (TTL 10m).
+                    $warnKey = "dilution_warn:{$device->fingerprintHash}";
+                    $warn = $this->correlationStore->getWatchFlag($warnKey);
+
+                    if ($warn > 0) {
+                        // Confirmed in second window
+                        $targetKey = $this->hashKey("{$policyName}:k3:{$this->getIpPrefix($context->ip)}:{$device->fingerprintHash}");
+                        $shouldBlock = true;
+                    } else {
+                        // First detection, set warning
+                        $this->correlationStore->incrementWatchFlag($warnKey, 600);
+                    }
+                }
+
+                if ($shouldBlock && $targetKey) {
+                    // If targetKey is K3 and we are Ephemeral, we cannot block K3 (it doesn't exist/we shouldn't create it).
+                    // But we can return Block Result.
+                    // If K3 is ephemeral, we should probably block K2 or IP?
+                    // Or just return Block.
+                    if ($isEphemeral && strpos($targetKey, ':k3:') !== false) {
+                        // Fallback to K2 block if K3 is ephemeral/unstable?
+                        // Or just return Block result without storing Block on K3?
+                        // "Ephemeral routing MUST NOT create or update K3/K5".
+                        // Blocking K3 creates a key.
+                        // So we block K2.
+                        $targetKey = $k2;
+                    }
+
+                    $this->store->block($targetKey, 2, 60);
+                    return $this->createBlockedResult(2, 60, RateLimitResultDTO::DECISION_HARD_BLOCK);
+                }
             }
         }
 
@@ -236,6 +317,7 @@ class EvaluationPipeline
         if ($newMaxLevel > 0) {
             $decision = ($newMaxLevel >= 2) ? RateLimitResultDTO::DECISION_HARD_BLOCK : RateLimitResultDTO::DECISION_SOFT_BLOCK;
 
+            // Anti-Equilibrium
             if ($decision === RateLimitResultDTO::DECISION_SOFT_BLOCK && isset($keys['k4']) && $context->accountId) {
                 $this->antiEquilibriumGate->recordSoftBlock($context->accountId);
                 if ($this->antiEquilibriumGate->shouldEscalate($context->accountId)) {
@@ -246,26 +328,18 @@ class EvaluationPipeline
 
             $duration = PenaltyLadder::getDuration($newMaxLevel);
 
-            // Block appropriate keys
+            // Apply Blocks
             if ($context->accountId && isset($keys['k4'])) {
                 $this->store->block($keys['k4'], $newMaxLevel, $duration);
             }
             if ($policy->getName() === 'api_heavy_protection') {
                  if (isset($keys['k1'])) $this->store->block($keys['k1'], $newMaxLevel, $duration);
                  if (isset($keys['k2'])) $this->store->block($keys['k2'], $newMaxLevel, $duration);
-                 // Confidence Constraint: Block K3 only if Medium+
                  if (isset($keys['k3']) && $device->confidence !== 'LOW') {
                      $this->store->block($keys['k3'], $newMaxLevel, $duration);
                  } elseif (isset($keys['k3']) && $device->confidence === 'LOW') {
-                     // "Downgrade to HARD_BLOCK (IP+UA)"
-                     // Block K2 (IP+UA) instead.
                      if (isset($keys['k2'])) $this->store->block($keys['k2'], $newMaxLevel, $duration);
                  }
-            } else {
-                 // Login/OTP: Usually K4 block is enough.
-                 // But if triggeredKey was K1/K2 (e.g. spray), we might block those?
-                 // But DECISION_MATRIX says "Account safety always overrides IP".
-                 // K4 Block is sufficient.
             }
 
             return $this->createBlockedResult($newMaxLevel, $duration, $decision);
@@ -276,10 +350,11 @@ class EvaluationPipeline
 
     // --- Helpers ---
 
-    private function buildKeys(RateLimitContextDTO $context, ?string $fpHash, string $policyName): array
+    private function buildKeys(RateLimitContextDTO $context, string $ua, ?string $fpHash, string $policyName): array
     {
         $k1 = $this->hashKey("{$policyName}:k1:{$this->getIpPrefix($context->ip)}");
-        $k2 = $this->hashKey("{$policyName}:k2:{$this->getIpPrefix($context->ip)}:{$context->ua}");
+        // Use normalized UA
+        $k2 = $this->hashKey("{$policyName}:k2:{$this->getIpPrefix($context->ip)}:{$ua}");
         $k3 = $fpHash ? $this->hashKey("{$policyName}:k3:{$this->getIpPrefix($context->ip)}:{$fpHash}") : null;
         $k4 = $context->accountId ? $this->hashKey("{$policyName}:k4:{$context->accountId}") : null;
         $k5 = $context->accountId && $fpHash ? $this->hashKey("{$policyName}:k5:{$context->accountId}:{$fpHash}") : null;
@@ -387,7 +462,6 @@ class EvaluationPipeline
             if (isset($deltas['k5_failure'])) $result['k5'] = $deltas['k5_failure'];
             if (isset($deltas['k4_failure'])) $result['k4'] = $deltas['k4_failure'];
             if (isset($deltas['k2_missing_fp']) && empty($device->fingerprintHash)) $result['k2'] = $deltas['k2_missing_fp'];
-            // Fix: k1_spray should be applied
             if (isset($deltas['k1_spray'])) $result['k1'] = $deltas['k1_spray'];
         }
         return $result;

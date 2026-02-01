@@ -28,7 +28,6 @@ class DeviceIdentityResolver implements DeviceIdentityResolverInterface
             $confidence = 'HIGH';
         }
 
-        // Combine components
         $rawString = "v1|{$ua}|{$clientFp}|{$sessionFp}";
         $hash = $this->hasher->hash($rawString);
 
@@ -36,11 +35,12 @@ class DeviceIdentityResolver implements DeviceIdentityResolverInterface
             $hash,
             $confidence,
             $context->isSessionTrusted,
-            false
+            false,
+            $ua
         );
     }
 
-    private function normalizeUserAgent(string $ua): string
+    public static function normalizeUserAgent(string $ua): string
     {
         if (preg_match('#(Chrome|Firefox|Safari|Edge|OPR)/(\d+)#', $ua, $matches)) {
             return strtolower($matches[1] . '/' . $matches[2]);

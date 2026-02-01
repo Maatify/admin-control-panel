@@ -6,23 +6,22 @@ namespace Maatify\RateLimiter\Engine;
 
 class LocalFallbackLimiter
 {
-    // Simple static storage to simulate per-process/request memory
     private static array $counters = [];
     private static int $lastReset = 0;
 
     private const WINDOW = 600; // 10m
 
     // DEGRADED CAPS (LOCKED)
-    private const DEGRADED_LOGIN_ACCOUNT = 3; // per 10m
-    private const DEGRADED_LOGIN_IP = 20;     // per 10m
-    private const DEGRADED_OTP_ACCOUNT = 2;   // per 15m
-    private const DEGRADED_OTP_IP = 10;       // per 15m
+    private const DEGRADED_LOGIN_ACCOUNT = 3;
+    private const DEGRADED_LOGIN_IP = 20;
+    private const DEGRADED_OTP_ACCOUNT = 2;
+    private const DEGRADED_OTP_IP = 10;
 
     // FAIL_OPEN CAPS
     private const API_IP = 120; // per min
     private const API_IP_UA = 60; // per min
 
-    public static function check(string $policyName, string $mode, string $ip, ?string $accountId = null): bool
+    public static function check(string $policyName, string $mode, string $ip, ?string $accountId = null, string $ua = ''): bool
     {
         self::gc();
 
@@ -49,9 +48,11 @@ class LocalFallbackLimiter
              if (!self::incrementAndCheck("fail:api:ip:{$ip}", self::API_IP)) {
                  $allowed = false;
              }
-             // We don't have UA easily here without passing it.
-             // Assume IP check is sufficient for coarse guardrail or pass composite key.
-             // Given complexity, IP check is primary guardrail.
+             // Check K2 (IP+UA)
+             $k2 = md5("{$ip}:{$ua}");
+             if (!self::incrementAndCheck("fail:api:k2:{$k2}", self::API_IP_UA)) {
+                 $allowed = false;
+             }
         }
 
         return $allowed;
@@ -68,9 +69,6 @@ class LocalFallbackLimiter
 
     private static function gc(): void
     {
-        // Simple flush if window passed?
-        // Anti-reset guard: "counters MUST persist for the entire degraded epoch".
-        // Here we just use a simplified window reset.
         $now = time();
         if ($now - self::$lastReset > self::WINDOW) {
             self::$counters = [];

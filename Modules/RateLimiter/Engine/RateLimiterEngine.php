@@ -10,6 +10,7 @@ use Maatify\RateLimiter\DTO\RateLimitContextDTO;
 use Maatify\RateLimiter\DTO\RateLimitRequestDTO;
 use Maatify\RateLimiter\DTO\RateLimitResultDTO;
 use Maatify\RateLimiter\Exception\RateLimiterException;
+use Maatify\RateLimiter\Device\DeviceIdentityResolver;
 
 class RateLimiterEngine implements RateLimiterInterface
 {
@@ -47,24 +48,18 @@ class RateLimiterEngine implements RateLimiterInterface
 
             $mode = $this->failureResolver->resolve($policy, $this->circuitBreaker);
 
-            // Check Re-Entry Guard Violation
-            // FailureModeResolver might return DEGRADED, FAIL_OPEN, FAIL_CLOSED.
-            // If it returns FAIL_CLOSED due to Re-Entry, we need to add Metadata.
-            // Wait, FailureModeResolver logic calls `cb->isReEntryGuardViolated`.
-            // But FailureModeResolver returns string.
-            // We need to know if it was Re-Entry.
-
             $metadata = [];
             if ($mode === 'FAIL_CLOSED' && $this->circuitBreaker->isReEntryGuardViolated($policy->getName())) {
                  $metadata['signal'] = 'CRITICAL_RE_ENTRY_VIOLATION';
             }
 
             // Local Fallback Check
-            // Applies to DEGRADED and FAIL_OPEN
             if ($mode !== 'FAIL_CLOSED') {
-                if (!LocalFallbackLimiter::check($policy->getName(), $mode, $context->ip, $context->accountId)) {
-                    // Local limit exceeded. Fallback to safe block.
-                    // Max Level L2.
+                // Must pass normalized UA for K2 check
+                // We access the static normalizer directly for robustness in fallback
+                $normUa = DeviceIdentityResolver::normalizeUserAgent($context->ua);
+
+                if (!LocalFallbackLimiter::check($policy->getName(), $mode, $context->ip, $context->accountId, $normUa)) {
                     return new RateLimitResultDTO(RateLimitResultDTO::DECISION_HARD_BLOCK, 2, 60, $mode, $metadata);
                 }
             }
@@ -73,14 +68,6 @@ class RateLimiterEngine implements RateLimiterInterface
                 return new RateLimitResultDTO(RateLimitResultDTO::DECISION_ALLOW, 0, 0, $mode, $metadata);
             }
 
-            // DEGRADED_MODE default is Block L2 if not allowed by local limiter?
-            // LocalLimiter::check returned true -> Allow?
-            // "DEGRADED_MODE ... Apply coarse, local, in-memory limits".
-            // If limits NOT exceeded, we ALLOW.
-            // If exceeded, we BLOCK.
-            // My logic above: if (!check) return Block.
-            // So if (check) return Allow?
-            // Yes.
             if ($mode === 'DEGRADED_MODE') {
                  return new RateLimitResultDTO(RateLimitResultDTO::DECISION_ALLOW, 0, 0, $mode, $metadata);
             }
