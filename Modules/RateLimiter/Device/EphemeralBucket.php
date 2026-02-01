@@ -11,41 +11,43 @@ class EphemeralBucket
 {
     private const MAX_DEVICES_PER_ACCOUNT = 10;
     private const MAX_DEVICES_PER_IP = 50;
-    private const CAP_WINDOW = 3600; // 1 hour window for cap counting?
-    // Docs say "Caps MUST be time-windowed".
-    // "Ephemeral bucket MUST have TTL <= 30 minutes".
+    private const CAP_WINDOW = 1800; // <= 30 mins
 
     public function __construct(
         private readonly CorrelationStoreInterface $store
     ) {}
 
-    public function resolveKey(RateLimitContextDTO $context, string $fingerprintHash): string
+    public function resolveKey(RateLimitContextDTO $context, string $realFingerprintHash): string
     {
-        // If no account ID, we only check IP cap?
-        // But Ephemeral applies per (IP_PREFIX, AccountID).
+        // Scope Key Calculation
+        // Must use IP Prefix for IPv6 to prevent Key Explosion
+        $ipScope = $this->getIpPrefix($context->ip);
 
-        if ($context->accountId) {
-            $key = "dev_cap:acc:{$context->accountId}";
-            $count = $this->store->addDistinct($key, $fingerprintHash, self::CAP_WINDOW);
-            if ($count > self::MAX_DEVICES_PER_ACCOUNT) {
-                return $this->getEphemeralKey($context);
-            }
+        $scopeKey = $context->accountId
+            ? "dev_cap:acc:{$context->accountId}"
+            : "dev_cap:ip:{$ipScope}";
+
+        $count = $this->store->addDistinct($scopeKey, $realFingerprintHash, self::CAP_WINDOW);
+
+        $limit = $context->accountId ? self::MAX_DEVICES_PER_ACCOUNT : self::MAX_DEVICES_PER_IP;
+
+        if ($count > $limit) {
+            return "ephemeral:{$scopeKey}";
         }
 
-        $ipKey = "dev_cap:ip:{$context->ip}";
-        $count = $this->store->addDistinct($ipKey, $fingerprintHash, self::CAP_WINDOW);
-        if ($count > self::MAX_DEVICES_PER_IP) {
-            return $this->getEphemeralKey($context);
-        }
-
-        return $fingerprintHash;
+        return $realFingerprintHash;
     }
 
-    private function getEphemeralKey(RateLimitContextDTO $context): string
+    private function getIpPrefix(string $ip): string
     {
-        // Ephemeral key scoped to IP and Account (if present)
-        // "Ephemeral applies per (IP_PREFIX, AccountID) context"
-        $scope = $context->accountId ? "acc:{$context->accountId}" : "ip:{$context->ip}";
-        return "ephemeral:{$scope}";
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+            $packed = inet_pton($ip);
+            if ($packed !== false) {
+                 $hex = bin2hex($packed);
+                 // /64 = 16 hex chars
+                 return substr($hex, 0, 16);
+            }
+        }
+        return $ip;
     }
 }

@@ -47,15 +47,46 @@ class RateLimiterEngine implements RateLimiterInterface
 
             $mode = $this->failureResolver->resolve($policy, $this->circuitBreaker);
 
-            if ($mode === 'FAIL_OPEN') {
-                return new RateLimitResultDTO(RateLimitResultDTO::DECISION_ALLOW, 0, 0, $mode);
+            // Check Re-Entry Guard Violation
+            // FailureModeResolver might return DEGRADED, FAIL_OPEN, FAIL_CLOSED.
+            // If it returns FAIL_CLOSED due to Re-Entry, we need to add Metadata.
+            // Wait, FailureModeResolver logic calls `cb->isReEntryGuardViolated`.
+            // But FailureModeResolver returns string.
+            // We need to know if it was Re-Entry.
+
+            $metadata = [];
+            if ($mode === 'FAIL_CLOSED' && $this->circuitBreaker->isReEntryGuardViolated($policy->getName())) {
+                 $metadata['signal'] = 'CRITICAL_RE_ENTRY_VIOLATION';
             }
 
-            // DEGRADED_MODE or FAIL_CLOSED
-            // Without a working store, we default to blocking to ensure security (Fail Closed).
-            // Degraded mode implies we use a secondary store (memory).
-            // Since strict memory store implementation is outside scope/not injected, we fallback to safe block.
-            return new RateLimitResultDTO(RateLimitResultDTO::DECISION_HARD_BLOCK, 2, 60, $mode);
+            // Local Fallback Check
+            // Applies to DEGRADED and FAIL_OPEN
+            if ($mode !== 'FAIL_CLOSED') {
+                if (!LocalFallbackLimiter::check($policy->getName(), $mode, $context->ip, $context->accountId)) {
+                    // Local limit exceeded. Fallback to safe block.
+                    // Max Level L2.
+                    return new RateLimitResultDTO(RateLimitResultDTO::DECISION_HARD_BLOCK, 2, 60, $mode, $metadata);
+                }
+            }
+
+            if ($mode === 'FAIL_OPEN') {
+                return new RateLimitResultDTO(RateLimitResultDTO::DECISION_ALLOW, 0, 0, $mode, $metadata);
+            }
+
+            // DEGRADED_MODE default is Block L2 if not allowed by local limiter?
+            // LocalLimiter::check returned true -> Allow?
+            // "DEGRADED_MODE ... Apply coarse, local, in-memory limits".
+            // If limits NOT exceeded, we ALLOW.
+            // If exceeded, we BLOCK.
+            // My logic above: if (!check) return Block.
+            // So if (check) return Allow?
+            // Yes.
+            if ($mode === 'DEGRADED_MODE') {
+                 return new RateLimitResultDTO(RateLimitResultDTO::DECISION_ALLOW, 0, 0, $mode, $metadata);
+            }
+
+            // FAIL_CLOSED
+            return new RateLimitResultDTO(RateLimitResultDTO::DECISION_HARD_BLOCK, 2, 600, $mode, $metadata);
         }
     }
 }

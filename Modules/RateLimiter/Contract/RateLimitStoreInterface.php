@@ -30,6 +30,16 @@ interface RateLimitStoreInterface
     public function get(string $key): ?array;
 
     /**
+     * Set a value (overwrite).
+     *
+     * @param string $key
+     * @param int $value
+     * @param int $ttlSeconds
+     * @return void
+     */
+    public function set(string $key, int $value, int $ttlSeconds): void;
+
+    /**
      * Set a block on a key.
      *
      * @param string $key
