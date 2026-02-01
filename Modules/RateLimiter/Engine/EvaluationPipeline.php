@@ -9,6 +9,7 @@ use Maatify\RateLimiter\Contract\CorrelationStoreInterface;
 use Maatify\RateLimiter\Contract\RateLimitStoreInterface;
 use Maatify\RateLimiter\Device\EphemeralBucket;
 use Maatify\RateLimiter\DTO\DeviceIdentityDTO;
+use Maatify\RateLimiter\DTO\Internal\PipelineScoreDTO;
 use Maatify\RateLimiter\DTO\RateLimitContextDTO;
 use Maatify\RateLimiter\DTO\RateLimitRequestDTO;
 use Maatify\RateLimiter\DTO\RateLimitResultDTO;
@@ -42,23 +43,19 @@ class EvaluationPipeline
         RateLimitRequestDTO $request,
         DeviceIdentityDTO $device
     ): RateLimitResultDTO {
-        // 1. Build Keys for Active Block Check (Original Hash)
         $realKeysV2 = $this->buildKeys($context, $device->normalizedUa, $device->fingerprintHash, $policy->getName(), $this->secret);
         $realKeysV1 = $this->previousSecret
             ? $this->buildKeys($context, $device->normalizedUa, $device->fingerprintHash, $policy->getName(), $this->previousSecret)
             : [];
 
-        // 2. Check Active Blocks (Fail-Fast) on Real Keys (Active then Previous)
         if ($blocked = $this->checkActiveBlocks($realKeysV2, $realKeysV1)) {
             return $blocked;
         }
 
-        // 3. Check Account Budget (Fail-Fast)
         if ($blocked = $this->checkBudget($policy, $realKeysV2, $device)) {
             return $blocked;
         }
 
-        // 4. Resolve Effective Keys (Ephemeral Logic) for Scoring/Updates
         $effectiveHash = $device->fingerprintHash;
         if ($device->fingerprintHash) {
              $effectiveHash = $this->ephemeralBucket->resolveKey($context, $device->fingerprintHash);
@@ -78,24 +75,19 @@ class EvaluationPipeline
              unset($effectiveKeysV1['k3'], $effectiveKeysV1['k5']);
         }
 
-        // 5. Fetch & Decay Scores (Using Effective Keys)
         $rawScores = $this->fetchScores($effectiveKeysV2, $effectiveKeysV1);
         $decayedScores = $this->applyDecay($rawScores, $effectiveKeysV2);
 
-        // 6. Check Thresholds (Soft Blocks)
         if ($blocked = $this->checkThresholds($policy, $decayedScores, $effectiveKeysV2, $device)) {
             return $blocked;
         }
 
-        // 7. Check Correlation Rules
         if ($blocked = $this->checkCorrelationRules($context, $device, $policy->getName(), $isEphemeral)) {
              return $blocked;
         }
 
-        // 8. New Device Flood (5.4)
         if ($ephemeralState && $context->accountId) {
              if ($ephemeralState->accountDeviceCount >= 6) {
-                  // Check for specific "Flood Stage" marker (Rule 5.4 marker)
                   $floodKey = "flood_stage:acc:{$context->accountId}";
                   $isFloodStage = $this->correlationStore->getWatchFlag($floodKey) > 0;
 
@@ -115,27 +107,19 @@ class EvaluationPipeline
              }
         }
 
-        // 9. Pre-Check Only
         if ($request->isPreCheck) {
             return $this->createAllowResult();
         }
 
-        // 10. Process Updates (Failure / Access)
         if ($request->isFailure || isset($policy->getScoreDeltas()['access'])) {
-             // We write only to V2 (Active Key)
              return $this->processUpdates($policy, $context, $request, $device, $effectiveKeysV2, $rawScores);
         }
 
         return $this->createAllowResult();
     }
 
-    // --- Steps ---
-
     private function checkActiveBlocks(array $keysV2, array $keysV1): ?RateLimitResultDTO
     {
-        // Check V2 first, then V1
-        $keys = $keysV2 + $keysV1; // Union? No, check iterate.
-
         foreach ([$keysV2, $keysV1] as $keys) {
             foreach ($keys as $keyType => $key) {
                 if (!$key) continue;
@@ -169,7 +153,6 @@ class EvaluationPipeline
         foreach ($scores as $keyType => $score) {
             $level = $this->determineLevel($score, $keyType, $policy);
 
-            // Confidence Constraint (K3)
             if ($keyType === 'k3' && $device->confidence === 'LOW' && $level >= 2) {
                 $level = 1;
             }
@@ -216,7 +199,7 @@ class EvaluationPipeline
                         $targetKey = $this->hashKey("{$policyName}:k3:{$this->getIpPrefix($context->ip)}:{$device->fingerprintHash}", $this->secret);
                         $shouldBlock = true;
                     } else {
-                        $this->correlationStore->incrementWatchFlag($warnKey, 600);
+                        $this->correlationStore->incrementWatchFlag($warnKey, 1800);
                     }
                 }
 
@@ -239,12 +222,11 @@ class EvaluationPipeline
         RateLimitContextDTO $context,
         RateLimitRequestDTO $request,
         DeviceIdentityDTO $device,
-        array $keys, // V2 keys
-        array $rawScores // From dual fetch (max of V1, V2)
+        array $keys,
+        array $rawScores
     ): RateLimitResultDTO {
         $deltas = $this->calculateDeltas($policy, $context, $device, $request);
 
-        // Repeated Missing FP Logic
         if ($request->isFailure && empty($device->fingerprintHash) && $context->accountId) {
              $key = "last_missing_fp:acc:{$context->accountId}";
              $last = $this->store->get($key);
@@ -267,35 +249,19 @@ class EvaluationPipeline
 
             $delta = $deltas[$deltaKey] ?? 0;
             if ($delta > 0) {
-                // Decay Logic with Key Rotation support
-                // rawScores contains the 'effective' raw score (either V2 or V1 migrated)
-                $data = $rawScores[$keyType] ?? null;
-                $rawVal = $data ? $data['value'] : 0;
-                $updatedAt = $data ? $data['updated_at'] : time();
+                $scoreDto = $rawScores[$keyType] ?? null;
+                $rawVal = $scoreDto ? $scoreDto->value : 0;
+                $updatedAt = $scoreDto ? $scoreDto->updatedAt : time();
 
-                // Calculate decay on read
                 $decayed = $this->calculateDecayedScore($rawVal, $updatedAt, $keyType, $key);
 
-                // Write new value to V2
-                // Since we write to V2, we are essentially 'migrating' the score + delta.
-                // New Value = Decayed + Delta.
-                // We use set() instead of increment() because we have the absolute value.
-                // Or if we use increment, we need to know what's in V2.
-                // Using set() is cleaner if we assume we own the key logic.
-                // But RateLimitStoreInterface::increment handles race conditions better.
-                // If we use increment, we need to know current V2 value.
-                // fetchScores got us 'effective' value.
-                // If V2 was empty, we got V1.
-                // If we increment V2 by (Decayed - V2_Current + Delta), that's complex.
-                // Let's rely on set() for rotation migration?
-                // "If a backend cannot satisfy required atomicity... defer to Engine failure semantics".
-                // Simple approach: New Score = Decayed + Delta. Set V2.
-                $newScore = $decayed + $delta;
-                $this->store->set($key, $newScore, 86400);
+                $baseValue = ($scoreDto && !$scoreDto->isFromV1) ? $rawVal : 0;
+                $netChange = ($decayed + $delta) - $baseValue;
+
+                $newScore = $this->store->increment($key, 86400, (int)$netChange);
 
                 $level = $this->determineLevel($newScore, $keyType, $policy);
 
-                // N-1 Watch Logic
                 $thresholds = $this->getScopedThresholds($keyType, $policy);
                 foreach ($thresholds as $t => $l) {
                     if ($newScore == $t - 1) {
@@ -314,7 +280,6 @@ class EvaluationPipeline
             }
         }
 
-        // Budget Updates (K4)
         if (isset($keys['k4']) && $policy->getBudgetConfig()) {
             $this->budgetTracker->increment($keys['k4']);
             if ($this->budgetTracker->isExceeded($keys['k4'], $policy->getBudgetConfig()['threshold'])) {
@@ -381,18 +346,24 @@ class EvaluationPipeline
         return $keys;
     }
 
+    /**
+     * @return array<string, ?PipelineScoreDTO>
+     */
     private function fetchScores(array $keysV2, array $keysV1): array
     {
         $scores = [];
         foreach ($keysV2 as $keyType => $key) {
             $data = $key ? $this->store->get($key) : null;
+            $isFromV1 = false;
+
             if (!$data && isset($keysV1[$keyType]) && $keysV1[$keyType]) {
-                // Fallback to V1
                 $data = $this->store->get($keysV1[$keyType]);
+                if ($data) {
+                    $isFromV1 = true;
+                }
             }
 
-            // Convert DTO to array for internal processing (or use DTO internal)
-            $scores[$keyType] = $data ? ['value' => $data->value, 'updated_at' => $data->updatedAt] : null;
+            $scores[$keyType] = $data ? new PipelineScoreDTO($data->value, $data->updatedAt, $isFromV1) : null;
         }
         return $scores;
     }
@@ -412,16 +383,19 @@ class EvaluationPipeline
         return max(0, $value - $decayAmount);
     }
 
+    /**
+     * @param array<string, ?PipelineScoreDTO> $rawScores
+     */
     private function applyDecay(array $rawScores, array $keys): array
     {
         $decayed = [];
         foreach ($keys as $keyType => $key) {
-            if (!$key || !isset($rawScores[$keyType])) {
+            $dto = $rawScores[$keyType] ?? null;
+            if (!$key || !$dto) {
                 $decayed[$keyType] = 0;
                 continue;
             }
-            $data = $rawScores[$keyType];
-            $decayed[$keyType] = $this->calculateDecayedScore($data['value'], $data['updated_at'], $keyType, $key);
+            $decayed[$keyType] = $this->calculateDecayedScore($dto->value, $dto->updatedAt, $keyType, $key);
         }
         return $decayed;
     }
