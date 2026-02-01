@@ -1,4 +1,4 @@
-## 🔐 Roles Management API
+# 🔐 Roles Management API
 
 This section documents **Roles APIs** used to **list roles, manage their UI metadata,
 control role activation, and rename technical role keys**, and defines how
@@ -10,6 +10,20 @@ control role activation, and rename technical role keys**, and defines how
 > ℹ️ Role creation, permission assignment, admin binding, and lifecycle management are **NOT part of this API**
 >
 > ℹ️ All routes below are prefixed with `/api`.
+
+---
+
+## 🧭 Scope & Relationship
+
+This document (`ROLES.md`) defines the **Core Role APIs** (CRUD, Listing, Metadata).
+
+For **Advanced Role Operations** (Permission Assignment, Bulk Admin Assignment),
+refer to:
+
+> **[ROLE-MANAGEMENT.md](ROLE-MANAGEMENT.md)**
+>
+> *`ROLE-MANAGEMENT.md` is an **extension** of `ROLES.md`.*
+> *Both documents MUST be read together to understand the full Role API surface.*
 
 ---
 
@@ -421,8 +435,8 @@ Any change requires updating **all** of the following:
 | Role rename API          | ✅ DONE |
 | UI capabilities contract | ✅ DONE |
 | Role creation            | ✅ DONE |
-| Role-permission mapping  | ⏳ NEXT |
-| Admin-role assignment    | ⏳ NEXT |
+| Role-permission mapping  | **See ROLE-MANAGEMENT.md** |
+| Admin-role assignment    | **See ROLE-MANAGEMENT.md** |
 
 ---
 ## 🔀 Relationship Navigation Rules
@@ -463,4 +477,3 @@ Relationship tabs inside the role details page are controlled separately:
 
 These permissions control **UI visibility and actions only**.  
 All backend APIs continue to enforce authorization independently.
-
