@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Maatify\RateLimiter\Engine;
 
 use Maatify\RateLimiter\Contract\CircuitBreakerStoreInterface;
+use Maatify\RateLimiter\Contract\FailureSignalEmitterInterface;
+use Maatify\RateLimiter\DTO\FailureSignalDTO;
 use Maatify\RateLimiter\DTO\FailureStateDTO;
+use Maatify\RateLimiter\DTO\Store\CircuitBreakerStateDTO;
 
 class CircuitBreaker
 {
@@ -17,7 +20,8 @@ class CircuitBreaker
     private const RE_ENTRY_WINDOW = 1800; // 30 min
 
     public function __construct(
-        private readonly CircuitBreakerStoreInterface $store
+        private readonly CircuitBreakerStoreInterface $store,
+        private readonly FailureSignalEmitterInterface $emitter
     ) {}
 
     public function reportFailure(string $policyName): void
@@ -25,94 +29,104 @@ class CircuitBreaker
         $state = $this->loadState($policyName);
         $now = time();
 
-        // Add failure
-        $state['failures'][] = $now;
-        // Prune old failures
-        $state['failures'] = array_filter($state['failures'], fn($t) => $t >= $now - self::TRIP_WINDOW);
+        $failures = $state->failures;
+        $failures[] = $now;
+        $failures = array_filter($failures, fn($t) => $t >= $now - self::TRIP_WINDOW);
 
-        $state['last_failure'] = $now;
+        $status = $state->status;
+        $openSince = $state->openSince;
+        $reEntries = $state->reEntries;
 
-        // Check Trip
-        if (count($state['failures']) >= self::TRIP_THRESHOLD) {
-            if ($state['status'] !== FailureStateDTO::STATE_OPEN) {
+        if (count($failures) >= self::TRIP_THRESHOLD) {
+            if ($status !== FailureStateDTO::STATE_OPEN) {
                 // Trip!
-                $state['status'] = FailureStateDTO::STATE_OPEN;
-                $state['open_since'] = $now;
+                $status = FailureStateDTO::STATE_OPEN;
+                $openSince = $now;
 
-                // Track re-entries
-                $state['re_entries'][] = $now;
-                $state['re_entries'] = array_filter($state['re_entries'], fn($t) => $t >= $now - self::RE_ENTRY_WINDOW);
+                $reEntries[] = $now;
+                $reEntries = array_filter($reEntries, fn($t) => $t >= $now - self::RE_ENTRY_WINDOW);
+
+                $this->emitter->emit(new FailureSignalDTO(FailureSignalDTO::TYPE_CB_OPENED, $policyName));
+
+                if (count($reEntries) > self::RE_ENTRY_LIMIT) {
+                    $this->emitter->emit(new FailureSignalDTO(FailureSignalDTO::TYPE_CB_RE_ENTRY_VIOLATION, $policyName));
+                }
             }
         }
 
-        $this->saveState($policyName, $state);
+        $this->saveState($policyName, new CircuitBreakerStateDTO(
+            $status,
+            array_values($failures),
+            $now,
+            $openSince,
+            $state->lastSuccess,
+            array_values($reEntries)
+        ));
     }
 
     public function reportSuccess(string $policyName): void
     {
         $state = $this->loadState($policyName);
-        if ($state['status'] === FailureStateDTO::STATE_CLOSED) {
+        if ($state->status === FailureStateDTO::STATE_CLOSED) {
             return;
         }
 
         $now = time();
-        $state['last_success'] = $now;
+        $status = $state->status;
+        $failures = $state->failures;
 
-        // Check recovery
-        if ($state['status'] === FailureStateDTO::STATE_OPEN) {
-            if ($now - $state['open_since'] >= self::MIN_DEGRADED_DURATION) {
-                if ($now - $state['last_failure'] >= self::MIN_HEALTHY_INTERVAL) {
-                    $state['status'] = FailureStateDTO::STATE_CLOSED;
-                    $state['failures'] = [];
+        if ($status === FailureStateDTO::STATE_OPEN) {
+            if ($now - $state->openSince >= self::MIN_DEGRADED_DURATION) {
+                if ($now - $state->lastFailure >= self::MIN_HEALTHY_INTERVAL) {
+                    $status = FailureStateDTO::STATE_CLOSED;
+                    $failures = [];
+                    $this->emitter->emit(new FailureSignalDTO(FailureSignalDTO::TYPE_CB_RECOVERED, $policyName));
                 }
             }
         }
 
-        $this->saveState($policyName, $state);
+        $this->saveState($policyName, new CircuitBreakerStateDTO(
+            $status,
+            $failures,
+            $state->lastFailure,
+            $state->openSince,
+            $now,
+            $state->reEntries
+        ));
     }
 
     public function getState(string $policyName): FailureStateDTO
     {
         $data = $this->loadState($policyName);
-        $status = $data['status'];
-
         return new FailureStateDTO(
-            $status,
-            count($data['failures']),
-            $data['last_failure'] ?? 0,
-            $status === FailureStateDTO::STATE_OPEN
+            $data->status,
+            count($data->failures),
+            $data->lastFailure,
+            $data->status === FailureStateDTO::STATE_OPEN
         );
     }
 
     public function isReEntryGuardViolated(string $policyName): bool
     {
         $data = $this->loadState($policyName);
-        return count($data['re_entries']) > self::RE_ENTRY_LIMIT;
+        return count($data->reEntries) > self::RE_ENTRY_LIMIT;
     }
 
-    private function loadState(string $policyName): array
+    private function loadState(string $policyName): CircuitBreakerStateDTO
     {
         $data = $this->store->load($policyName);
-        if (is_array($data)) {
-            return array_merge($this->getDefaultState(), $data);
-        }
-        return $this->getDefaultState();
+        return $data ?? new CircuitBreakerStateDTO(
+            FailureStateDTO::STATE_CLOSED,
+            [],
+            0,
+            0,
+            0,
+            []
+        );
     }
 
-    private function saveState(string $policyName, array $state): void
+    private function saveState(string $policyName, CircuitBreakerStateDTO $state): void
     {
         $this->store->save($policyName, $state);
-    }
-
-    private function getDefaultState(): array
-    {
-        return [
-            'status' => FailureStateDTO::STATE_CLOSED,
-            'failures' => [],
-            'last_failure' => 0,
-            'open_since' => 0,
-            'last_success' => 0,
-            're_entries' => [],
-        ];
     }
 }

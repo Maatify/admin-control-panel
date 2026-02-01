@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace Maatify\RateLimiter\Contract;
 
+use Maatify\RateLimiter\DTO\Store\BlockStateDTO;
+use Maatify\RateLimiter\DTO\Store\BudgetStateDTO;
+use Maatify\RateLimiter\DTO\Store\RateLimitStateDTO;
+
 interface RateLimitStoreInterface
 {
     /**
      * Increment a counter atomically.
      * If the key does not exist, it is created with the given TTL.
-     * If it exists, the TTL is NOT updated (unless implementation specific, but usually preserving TTL is desired or resetting it).
-     * `DECISION_MATRIX` implies decay, but counters for budgets are fixed epoch.
-     * Standard rate limit counters usually reset TTL or slide.
-     * The Penalty/DecayCalculator might handle logic, but the store needs raw atomic increment.
+     * If it exists, the TTL is NOT updated.
      *
      * @param string $key
      * @param int $ttlSeconds
@@ -25,9 +26,9 @@ interface RateLimitStoreInterface
      * Get current counter value and metadata.
      *
      * @param string $key
-     * @return array{value: int, updated_at: int}|null
+     * @return RateLimitStateDTO|null
      */
-    public function get(string $key): ?array;
+    public function get(string $key): ?RateLimitStateDTO;
 
     /**
      * Set a value (overwrite).
@@ -53,17 +54,17 @@ interface RateLimitStoreInterface
      * Check if a key is blocked.
      *
      * @param string $key
-     * @return array|null Returns ['level' => int, 'expires_at' => int] or null if not blocked.
+     * @return BlockStateDTO|null
      */
-    public function checkBlock(string $key): ?array;
+    public function checkBlock(string $key): ?BlockStateDTO;
 
     /**
      * Get budget status.
      *
      * @param string $key
-     * @return array{count: int, epoch_start: int}|null
+     * @return BudgetStateDTO|null
      */
-    public function getBudget(string $key): ?array;
+    public function getBudget(string $key): ?BudgetStateDTO;
 
     /**
      * Increment a budget counter.
@@ -74,9 +75,9 @@ interface RateLimitStoreInterface
      * @param string $key
      * @param int $epochDurationSeconds
      * @param int $amount
-     * @return array{count: int, epoch_start: int}
+     * @return BudgetStateDTO
      */
-    public function incrementBudget(string $key, int $epochDurationSeconds, int $amount = 1): array;
+    public function incrementBudget(string $key, int $epochDurationSeconds, int $amount = 1): BudgetStateDTO;
 
     /**
      * Check backend health.

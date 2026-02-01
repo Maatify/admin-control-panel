@@ -14,30 +14,24 @@ class BudgetTracker
         private readonly RateLimitStoreInterface $store
     ) {}
 
-    public function increment(string $key): array
+    public function increment(string $key): void
     {
-        return $this->store->incrementBudget($key, self::EPOCH_DURATION);
+        $this->store->incrementBudget($key, self::EPOCH_DURATION);
     }
 
     public function getStatus(string $key): array
     {
-        return $this->store->getBudget($key) ?? ['count' => 0, 'epoch_start' => 0];
+        $dto = $this->store->getBudget($key);
+        return $dto ? ['count' => $dto->count, 'epoch_start' => $dto->epochStart] : ['count' => 0, 'epoch_start' => 0];
     }
 
     public function isExceeded(string $key, int $limit): bool
     {
-        $status = $this->getStatus($key);
-        // Check if epoch is active and expired?
-        // If epoch expired, the Store should have cleared it or we check time.
-        // But store implementation might be lazy.
-        // "Additional failures MUST NOT extend the epoch end time."
-        // If the store returns an old epoch, we should probably treat it as new?
-        // But standard RateLimitStore behavior for budget should handle TTL?
-        // Let's assume Store handles TTL or we check `epoch_start`.
+        $status = $this->store->getBudget($key);
 
-        if ($status['count'] >= $limit) {
+        if ($status && $status->count >= $limit) {
             $now = time();
-            if ($status['epoch_start'] + self::EPOCH_DURATION > $now) {
+            if ($status->epochStart + self::EPOCH_DURATION > $now) {
                 return true;
             }
         }
