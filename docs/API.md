@@ -1706,5 +1706,16 @@ Any change requires updating:
 
 ---
 
-## [🔐 Roles Management API](API/ROLES.md)
----
+## 🔐 Roles & Roles Management
+
+The Role API surface is divided into two distinct documents:
+
+*   **[Core Role APIs (ROLES.md)](API/ROLES.md)**
+    *   Covers Role listing, creation, metadata updates, and renaming.
+    *   Implemented and Active.
+
+*   **[Advanced Role Management (ROLE-MANAGEMENT.md)](API/ROLE-MANAGEMENT.md)**
+    *   Covers Permission assignment, Admin assignment, and View capabilities.
+    *   Implemented and Active (Extension of Core APIs).
+
+*Both documents describe active, implemented APIs and are complementary.*

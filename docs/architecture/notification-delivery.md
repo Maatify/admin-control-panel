@@ -1,6 +1,6 @@
 # Notification Delivery Architecture (PENDING)
 
-> **Status:** INTENTIONALLY PENDING / DESIGN PHASE
+> **Status:** DESIGN LOCKED / IMPLEMENTATION PENDING
 > **Context:** This subsystem is actively entering its design phase.
 > **Scope:** Email Delivery, Queue Management, Encryption
 
@@ -8,7 +8,7 @@
 
 ## ⚠️ Status: Pending Implementation
 
-This document outlines the **intended direction, constraints, and non-goals** for the Notification Delivery subsystem.
+This document outlines the **locked architectural design** for the Notification Delivery subsystem.
 It is **NOT** a complete implementation specification yet.
 
 **Current State:**

@@ -2,6 +2,19 @@
 
 **Frontend Reference**
 
+## 🧭 Scope & Relationship
+
+This document (`ROLE-MANAGEMENT.md`) defines the **Advanced Role Operations** (Permission Assignment, Bulk Admin Assignment).
+
+For **Core Role APIs** (CRUD, Listing, Metadata), refer to:
+
+> **[ROLES.md](ROLES.md)**
+>
+> *`ROLE-MANAGEMENT.md` is an **extension** of `ROLES.md`.*
+> *Both documents MUST be read together to understand the full Role API surface.*
+
+---
+
 ## Scope
 
 This document describes the APIs and UI rules for:
