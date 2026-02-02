@@ -1706,16 +1706,97 @@ Any change requires updating:
 
 ---
 
-## 🔐 Roles & Roles Management
+## 🔐 Roles & Permissions Management
 
-The Role API surface is divided into two distinct documents:
+The authorization API surface is divided into **four distinct documents**, each covering a **strict responsibility layer**.
 
-*   **[Core Role APIs (ROLES.md)](API/ROLES.md)**
-    *   Covers Role listing, creation, metadata updates, and renaming.
-    *   Implemented and Active.
+---
 
-*   **[Advanced Role Management (ROLE-MANAGEMENT.md)](API/ROLE-MANAGEMENT.md)**
-    *   Covers Permission assignment, Admin assignment, and View capabilities.
-    *   Implemented and Active (Extension of Core APIs).
+### **1️⃣ Core Role APIs — `ROLES.md`**
 
-*Both documents describe active, implemented APIs and are complementary.*
+**[Core Role APIs (ROLES.md)](API/ROLES.md)**
+
+* Covers role listing, creation, metadata updates, and renaming.
+* Focuses on **role entities only**.
+* Implemented and Active.
+
+---
+
+### **2️⃣ Advanced Role Management — `ROLE-MANAGEMENT.md`**
+
+**[Advanced Role Management (ROLE-MANAGEMENT.md)](API/ROLE-MANAGEMENT.md)**
+
+* Covers:
+
+    * Permission assignment to roles
+    * Admin assignment to roles
+    * Role-related view capabilities
+* Acts as an **extension layer** on top of Core Role APIs.
+* Implemented and Active.
+
+---
+
+### **3️⃣ Admin Permissions — `ADMIN-PERMISSIONS.md`**
+
+**[Admin Permissions (ADMIN-PERMISSIONS.md)](API/ADMIN-PERMISSIONS.md)**
+
+* Covers:
+
+    * Direct permissions assigned to admins
+    * Effective permissions snapshot per admin
+* Focuses on **admin-centric permission resolution**.
+* Implemented and Active.
+
+---
+
+### **4️⃣ Permission Details & Usage — `PERMISSION-DETAILS.md`**
+
+**[Permission Details & Usage (PERMISSION-DETAILS.md)](API/PERMISSION-DETAILS.md)**
+
+* Covers **permission-centric queries**, including:
+
+    * Roles that use a specific permission
+    * Admins with direct overrides for a specific permission
+* Used by the **Permission Details UI page**
+* Read-only, paginated, and filterable
+* Implemented and Active.
+
+---
+
+### 📌 Important Notes
+
+* All documents describe **active and implemented APIs**
+* Each document:
+
+    * Covers a **single responsibility layer**
+    * Is **not a replacement** for any other document
+    * Complements the others by design
+* No document duplicates ownership of authorization logic
+
+> **Rule:**
+> Role-centric, Admin-centric, and Permission-centric APIs are intentionally separated to prevent coupling and ambiguous responsibilities.
+
+---
+
+### 🧭 Responsibility Matrix (Quick Reference)
+
+| Document                | Primary Focus                      |
+|-------------------------|------------------------------------|
+| `ROLES.md`              | Role entity lifecycle              |
+| `ROLE-MANAGEMENT.md`    | Role ↔ Permission / Admin bindings |
+| `ADMIN-PERMISSIONS.md`  | Admin effective permissions        |
+| `PERMISSION-DETAILS.md` | Permission usage & impact          |
+
+---
+
+### ✅ Status
+
+All four documents:
+
+* Are aligned with the current kernel architecture
+* Reflect real, implemented endpoints
+* Are safe to reference as API contracts for UI and integrations
+
+---
+
+

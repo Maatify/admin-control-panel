@@ -292,6 +292,66 @@ readonly class UiAdminsController
 
     /**
      * ===============================
+     * Admin Permissions — LIST
+     * GET /admins/{id}/permissions
+     * ===============================
+     *
+     * - Read-only
+     * - UI only
+     * - No mutations
+     * - No audit
+     *
+     * @param   Request                $request
+     * @param   Response               $response
+     * @param   array<string, string>  $args
+     *
+     * @return Response
+     */
+    public function permissions(Request $request, Response $response, array $args): Response
+    {
+        $targetAdminId = $this->extractAdminId($args);
+
+        $displayName = $this->basicInfoReader->getDisplayName($targetAdminId);
+
+        if ($displayName === null) {
+            throw new HttpNotFoundException($request, 'Admin not found');
+        }
+
+        /** @var AdminContext $context */
+        $context = $request->getAttribute(AdminContext::class);
+        $adminId = $context->adminId;
+
+        // ─────────────────────────────
+        // Capabilities (UI visibility only)
+        // ─────────────────────────────
+        $capabilities = [
+            // Overview
+            'can_view_admin_roles'            => $this->authorizationService->hasPermission($adminId, 'admin.roles.query'),
+            'can_view_permissions_effective'            => $this->authorizationService->hasPermission($adminId, 'admin.permissions.effective'),
+
+            // Permissions tab
+            'can_view_admin_direct_permissions'     => $this->authorizationService->hasPermission($adminId, 'admin.permissions.direct.query'),
+            'can_assign_admin_direct_permissions'   => $this->authorizationService->hasPermission($adminId, 'admin.permissions.direct.assign'),
+            'can_revoke_admin_direct_permissions'   => $this->authorizationService->hasPermission($adminId, 'admin.permissions.direct.revoke'),
+
+            // Clickable breadcrumbs
+            'can_view_admin_profile'           => $this->authorizationService->hasPermission($adminId, 'admins.profile.view'),
+            'can_view_admins'           => $this->authorizationService->hasPermission($adminId, 'roles.admins.view'),
+        ];
+
+        return $this->view->render(
+            $response,
+            'pages/admin/permissions.list.twig',
+            [
+                'admin_id'     => $targetAdminId,
+                'display_name' => $displayName,
+                'capabilities' => $capabilities,
+            ]
+        );
+    }
+
+    /**
+     * ===============================
      * Internal Helper
      * ===============================
      *
