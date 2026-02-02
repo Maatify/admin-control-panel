@@ -6,6 +6,11 @@ namespace Maatify\AdminKernel\Bootstrap;
 
 use DI\ContainerBuilder;
 use Exception;
+use Maatify\AbuseProtection\Contracts\AbuseDecisionInterface;
+use Maatify\AbuseProtection\Contracts\AbuseSignatureProviderInterface;
+use Maatify\AbuseProtection\Contracts\ChallengeProviderInterface;
+use Maatify\AbuseProtection\Middleware\AbuseProtectionMiddleware;
+use Maatify\AbuseProtection\Policy\LoginAbusePolicy;
 use Maatify\AdminKernel\Application\Admin\AdminProfileUpdateService;
 use Maatify\AdminKernel\Application\Auth\AdminLoginService;
 use Maatify\AdminKernel\Application\Auth\AdminLogoutService;
@@ -20,6 +25,8 @@ use Maatify\AdminKernel\Domain\Admin\Reader\AdminBasicInfoReaderInterface;
 use Maatify\AdminKernel\Domain\Admin\Reader\AdminEmailReaderInterface;
 use Maatify\AdminKernel\Domain\Admin\Reader\AdminProfileReaderInterface;
 use Maatify\AdminKernel\Domain\Admin\Reader\AdminQueryReaderInterface;
+use Maatify\AdminKernel\Domain\Contracts\Abuse\AbuseCookieServiceInterface;
+use Maatify\AdminKernel\Domain\Contracts\Abuse\ChallengeWidgetRendererInterface;
 use Maatify\AdminKernel\Domain\Contracts\ActorProviderInterface;
 use Maatify\AdminKernel\Domain\Contracts\AdminDirectPermissionRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
@@ -156,6 +163,9 @@ use Maatify\AdminKernel\Infrastructure\Repository\Roles\PdoRoleAdminsRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\Roles\PdoRoleCreateRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\Roles\PdoRolePermissionsRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\Roles\PdoRoleRepository;
+use Maatify\AdminKernel\Infrastructure\Security\Abuse\AbuseCookieService;
+use Maatify\AdminKernel\Infrastructure\Security\Abuse\TurnstileChallengeProvider;
+use Maatify\AdminKernel\Infrastructure\Security\Abuse\TurnstileConfigDTO;
 use Maatify\AdminKernel\Infrastructure\Service\AdminTotpSecretStore;
 use Maatify\AdminKernel\Infrastructure\Service\Google2faTotpService;
 use Maatify\AdminKernel\Infrastructure\Updater\PDOPermissionsMetadataRepository;
@@ -262,6 +272,11 @@ class Container
             debugLevel: $runtime->mailDebugLevel
         );
 
+        $turnstileConfigDTO = new TurnstileConfigDTO(
+            siteKey: $runtime->turnstileSiteKey,
+            secretKey: $runtime->turnstileSecretKey
+        );
+
         // Enforce Timezone
         // date_default_timezone_set($config->timezone); // Removed in Kernelization Step 1(B)
 
@@ -288,6 +303,9 @@ class Container
             },
             TotpEnrollmentConfig::class => function () use ($totpEnrollmentConfig) {
                 return $totpEnrollmentConfig;
+            },
+            TurnstileConfigDTO::class => function () use ($turnstileConfigDTO) {
+                return $turnstileConfigDTO;
             },
             ValidatorInterface::class => function (ContainerInterface $c) {
                 return new RespectValidator();
@@ -702,24 +720,28 @@ class Container
                 $rememberMeService = $c->get(RememberMeService::class);
                 $cryptoService = $c->get(AdminIdentifierCryptoServiceInterface::class);
                 $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
-
+                $abuseCookieService = $c->get(AbuseCookieServiceInterface::class);
                 assert($authService instanceof AdminAuthenticationService);
                 assert($sessionRepo instanceof \Maatify\AdminKernel\Domain\Contracts\AdminSessionValidationRepositoryInterface);
                 assert($rememberMeService instanceof RememberMeService);
                 assert($cryptoService instanceof AdminIdentifierCryptoServiceInterface);
                 assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
+                assert($abuseCookieService instanceof AbuseCookieServiceInterface);
 
-                return new AdminLoginService($authService, $sessionRepo, $rememberMeService, $cryptoService, $clock);
+                return new AdminLoginService($authService, $sessionRepo, $rememberMeService, $cryptoService, $clock, $abuseCookieService);
             },
             LoginController::class => function (ContainerInterface $c) {
                 $adminLoginService = $c->get(AdminLoginService::class);
                 $view = $c->get(Twig::class);
+                $challengeRenderer = $c->get(ChallengeWidgetRendererInterface::class);
                 assert($adminLoginService instanceof AdminLoginService);
                 assert($view instanceof Twig);
+                assert($challengeRenderer instanceof ChallengeWidgetRendererInterface);
 
                 return new LoginController(
                     $adminLoginService,
                     $view,
+                    $challengeRenderer
                 );
             },
             \Maatify\AdminKernel\Application\Auth\AdminLogoutService::class => function (ContainerInterface $c) {
@@ -1923,7 +1945,52 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new \Maatify\AdminKernel\Infrastructure\Repository\Permissions\PdoPermissionAdminsQueryRepository($pdo);
-            }
+            },
+
+            \Maatify\AbuseProtection\Contracts\AbuseSignatureProviderInterface::class => function (ContainerInterface $c) {
+                $keyRotation = $c->get(KeyRotationService::class);
+                $hkdf = $c->get(HKDFService::class);
+                $cryptoContextProvider = $c->get(CryptoContextProviderInterface::class);
+
+                assert($keyRotation instanceof KeyRotationService);
+                assert($hkdf instanceof HKDFService);
+                assert($cryptoContextProvider instanceof CryptoContextProviderInterface);
+
+                return new \Maatify\AdminKernel\Infrastructure\Crypto\AbuseProtectionCryptoSignatureProvider($keyRotation, $hkdf, $cryptoContextProvider);
+            },
+
+            \Maatify\AdminKernel\Domain\Contracts\Abuse\AbuseCookieServiceInterface::class => function (ContainerInterface $c) {
+                $signatureProvider = $c->get(AbuseSignatureProviderInterface::class);
+                assert($signatureProvider instanceof AbuseSignatureProviderInterface);
+                return new AbuseCookieService($signatureProvider);
+            },
+
+            \Maatify\AbuseProtection\Contracts\AbuseDecisionInterface::class => function (ContainerInterface $c) {
+                return new LoginAbusePolicy(
+//                    challengeAfterFailures: 0,
+                );
+            },
+
+            \Maatify\AbuseProtection\Contracts\ChallengeProviderInterface::class => function (ContainerInterface $c) {
+                $turnstileConfig = $c->get(TurnstileConfigDTO::class);
+                assert($turnstileConfig instanceof TurnstileConfigDTO);
+
+                $secret = (string)($turnstileConfig->secretKey ?? '');
+                if ($secret === '') {
+                    // لو مش متظبط env، اقفلها بشكل واضح بدل ما تسيبها weak
+                    // ممكن برضه ترجع NullProvider في dev فقط لو تحب
+                    throw new \RuntimeException('TURNSTILE_SECRET_KEY is missing.');
+                }
+
+                return new TurnstileChallengeProvider($secret);
+            },
+
+            \Maatify\AdminKernel\Domain\Contracts\Abuse\ChallengeWidgetRendererInterface::class => function (ContainerInterface $c) {
+                $turnstileConfig = $c->get(TurnstileConfigDTO::class);
+                assert($turnstileConfig instanceof TurnstileConfigDTO);
+
+                return new \Maatify\AdminKernel\Infrastructure\Security\Abuse\TurnstileWidgetRenderer($turnstileConfig->siteKey ?? '');
+            },
 
         ]);
 

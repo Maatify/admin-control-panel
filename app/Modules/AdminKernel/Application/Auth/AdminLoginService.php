@@ -19,6 +19,7 @@ use Maatify\AdminKernel\Application\Auth\DTO\AdminLoginUseCaseResultDTO;
 use Maatify\AdminKernel\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use Maatify\AdminKernel\Context\RequestContext;
 use Maatify\AdminKernel\Domain\Contracts\AdminSessionValidationRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Abuse\AbuseCookieServiceInterface;
 use Maatify\AdminKernel\Domain\DTO\LoginRequestDTO;
 use Maatify\AdminKernel\Domain\Exception\InvalidCredentialsException;
 use Maatify\AdminKernel\Domain\Service\AdminAuthenticationService;
@@ -33,22 +34,27 @@ final readonly class AdminLoginService
         private AdminSessionValidationRepositoryInterface $sessionRepository,
         private RememberMeService $rememberMeService,
         private AdminIdentifierCryptoServiceInterface $cryptoService,
-        private ClockInterface $clock
-    )
-    {
+        private ClockInterface $clock,
+
+        // 🔒 Abuse Protection (Cookie issuance only – no HTTP here)
+        private AbuseCookieServiceInterface $abuseCookieService
+    ) {
     }
 
     public function login(
         LoginRequestDTO $dto,
         RequestContext $requestContext,
-        bool $rememberMeRequested
-    ): AdminLoginUseCaseResultDTO
-    {
+        bool $rememberMeRequested,
+        ?string $existingDeviceId
+    ): AdminLoginUseCaseResultDTO {
+        // 1. Blind Index (lookup)
         $blindIndex = $this->cryptoService->deriveEmailBlindIndex($dto->email);
 
+        // 2. Domain Authentication
         $result = $this->authService->login($blindIndex, $dto->password, $requestContext);
-        $token = $result->token;
+        $token  = $result->token;
 
+        // 3. Session Validation
         $session = $this->sessionRepository->findSession($token);
         if ($session === null) {
             throw new InvalidCredentialsException('Session creation failed.');
@@ -69,23 +75,35 @@ final readonly class AdminLoginService
             }
         }
 
+        // 4. TTL Calculation
         $expiresAt = new DateTimeImmutable($expiresAtStr, $this->clock->getTimezone());
-        $now = $this->clock->now();
+        $now       = $this->clock->now();
+
         $maxAge = $expiresAt->getTimestamp() - $now->getTimestamp();
         if ($maxAge < 0) {
             $maxAge = 0;
         }
 
+        // 5. Remember-Me (optional)
         $rememberMeToken = null;
         if ($rememberMeRequested) {
             $rememberMeToken = $this->rememberMeService->issue($adminId, $requestContext);
         }
 
+        // 6. 🔐 Abuse Cookie Issue (contract-compliant, no device identity available)
+        $abuseCookie = $this->abuseCookieService->issue(
+            sessionToken     : $token,
+            context          : $requestContext,
+            existingDeviceId : $existingDeviceId
+        );
+
+        // 7. Use-Case Result (DTO only – no headers)
         return new AdminLoginUseCaseResultDTO(
             authToken             : $token,
             authTokenMaxAgeSeconds: $maxAge,
             rememberMeToken       : $rememberMeToken,
-            adminId               : $adminId
+            adminId               : $adminId,
+            abuseCookie           : $abuseCookie
         );
     }
 }

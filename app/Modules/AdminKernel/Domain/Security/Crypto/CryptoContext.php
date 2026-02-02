@@ -59,6 +59,26 @@ final class CryptoContext
     public const EMAIL_QUEUE_RECIPIENT_V1 = 'email:queue:recipient:v1';
     public const EMAIL_QUEUE_PAYLOAD_V1   = 'email:queue:payload:v1';
 
+    /* ===============================
+     * ABUSE PROTECTION
+     * =============================== */
+
+    /**
+     * Context for signing abuse protection failure signals.
+     *
+     * Used for:
+     * - Login failure counters
+     * - Abuse mitigation cookies
+     * - Stateless abuse signals
+     *
+     * IMPORTANT:
+     * - HMAC / Signing only (NOT encryption)
+     * - MUST remain stable once released
+     * - MUST support key rotation
+     */
+    public const ABUSE_PROTECTION_SIGNAL_V1 = 'abuse:protection:signal:v1';
+
+
     private function __construct()
     {
         // Static registry only

@@ -99,9 +99,22 @@
                                     </span>
                                 </a> #}
                             </div>
-										<div class="mb-4">
-											<div class="g-recaptcha captchaDiv" id="captchaDiv"></div>
-										</div>
+										{% if challenge_error %}
+											<div class="mb-4 text-sm text-red-600">
+												{% if challenge_error == 'missing_challenge' %}
+													Please complete the security challenge.
+												{% elseif challenge_error starts with 'turnstile_' %}
+													Security challenge verification failed. Please try again.
+												{% else %}
+													Security verification failed.
+												{% endif %}
+											</div>
+										{% endif %}
+
+										{% if require_challenge %}
+											{{ challenge_widget|raw }}
+										{% endif %}
+
 										<button id="submitBtn" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition duration-200 cursor-pointer mt-6 font-[Ubuntu]" type="submit">
 											login
 										</button>

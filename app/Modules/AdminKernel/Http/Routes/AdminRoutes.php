@@ -47,7 +47,10 @@ class AdminRoutes
                 // Guest Routes
                 $group->group('', function (RouteCollectorProxyInterface $guestGroup) {
                     $guestGroup->get('/login', [\Maatify\AdminKernel\Http\Controllers\Ui\UiLoginController::class, 'index']);
-                    $guestGroup->post('/login', [\Maatify\AdminKernel\Http\Controllers\Ui\UiLoginController::class, 'login']);
+
+                    $guestGroup->post('/login', [\Maatify\AdminKernel\Http\Controllers\Ui\UiLoginController::class, 'login'])
+                        ->add(\Maatify\AbuseProtection\Middleware\AbuseProtectionMiddleware::class)
+                        ->add(\Maatify\AdminKernel\Http\Middleware\AbuseCookieReaderMiddleware::class);
 
                     $guestGroup->get('/verify-email', [\Maatify\AdminKernel\Http\Controllers\Ui\UiVerificationController::class, 'index']);
                     $guestGroup->post('/verify-email', [\Maatify\AdminKernel\Http\Controllers\Ui\UiVerificationController::class, 'verify']);
@@ -253,7 +256,8 @@ class AdminRoutes
             $app->group('/api', function (RouteCollectorProxyInterface $api) {
                 // Public API
                 $api->post('/auth/login', [AuthController::class, 'login'])
-                    ->add(ApiGuestGuardMiddleware::class);
+                    ->add(ApiGuestGuardMiddleware::class)
+                    ->add(\Maatify\AbuseProtection\Middleware\AbuseProtectionMiddleware::class);
 
                 // Step-Up API
                 $api->post('/auth/step-up', [\Maatify\AdminKernel\Http\Controllers\StepUpController::class, 'verify'])

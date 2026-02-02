@@ -19,7 +19,8 @@
     "slim/psr7": "^1.8",
     "slim/slim": "^4.15",
     "slim/twig-view": "^3.4",
-    "vlucas/phpdotenv": "^5.5"
+    "vlucas/phpdotenv": "^5.5",
+    "ext-curl": "*"
   },
 
   "require-dev": {
@@ -42,7 +43,8 @@
       "Maatify\\EmailDelivery\\": "Modules/EmailDelivery",
       "Maatify\\InputNormalization\\": "Modules/InputNormalization",
       "Maatify\\Validation\\": "Modules/Validation",
-      "Maatify\\RateLimiter\\": "Modules/RateLimiter"
+      "Maatify\\RateLimiter\\": "Modules/RateLimiter",
+      "Maatify\\AbuseProtection\\": "Modules/AbuseProtection"
 
     }
   },

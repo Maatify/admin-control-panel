@@ -72,6 +72,12 @@ final class AdminRuntimeConfigDTO
      * ───────────────────────────── */
     public bool $recoveryMode;
 
+    /* ─────────────────────────────
+     * Turnstile
+     * ───────────────────────────── */
+    public ?string $turnstileSiteKey;
+    public ?string $turnstileSecretKey;
+
     private function __construct() {}
 
     /**
@@ -131,6 +137,10 @@ final class AdminRuntimeConfigDTO
 
         // Flags
         $self->recoveryMode = self::optBool($data, 'RECOVERY_MODE', false);
+
+        // Turnstile
+        $self->turnstileSiteKey = self::optString($data, 'TURNSTILE_SITE_KEY', '');
+        $self->turnstileSecretKey = self::optString($data, 'TURNSTILE_SECRET_KEY', '');
 
         return $self;
     }

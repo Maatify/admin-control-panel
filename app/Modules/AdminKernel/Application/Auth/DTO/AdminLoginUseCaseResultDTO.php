@@ -15,13 +15,16 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Application\Auth\DTO;
 
+use Maatify\AdminKernel\Domain\DTO\Abuse\AbuseCookieIssueDTO;
+
 final readonly class AdminLoginUseCaseResultDTO
 {
     public function __construct(
         public string $authToken,
         public int $authTokenMaxAgeSeconds,
         public ?string $rememberMeToken,
-        public int $adminId
+        public int $adminId,
+        public ?AbuseCookieIssueDTO $abuseCookie
     ) {
     }
 }

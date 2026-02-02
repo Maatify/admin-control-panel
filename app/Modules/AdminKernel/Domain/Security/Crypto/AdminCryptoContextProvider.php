@@ -66,4 +66,9 @@ final class AdminCryptoContextProvider implements CryptoContextProviderInterface
     {
         return CryptoContext::EMAIL_QUEUE_PAYLOAD_V1;
     }
+
+    public function abuseProtection(): string
+    {
+        return CryptoContext::ABUSE_PROTECTION_SIGNAL_V1;
+    }
 }

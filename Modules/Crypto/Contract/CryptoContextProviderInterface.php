@@ -108,4 +108,27 @@ interface CryptoContextProviderInterface
      * Example: "system:secret:v1"
      */
     public function systemSecret(): string;
+
+
+
+    /* ===============================
+     * ABUSE PROTECTION
+     * =============================== */
+
+    /**
+     * Context for signing abuse protection failure signals.
+     *
+     * Used for:
+     * - Login failure counters
+     * - Abuse mitigation cookies
+     * - HMAC signing (NOT encryption)
+     *
+     * This context MUST:
+     * - Be versioned
+     * - Support key rotation
+     * - Remain stable once released
+     *
+     * Example: "abuse:protection:signal:v1"
+     */
+    public function abuseProtection(): string;
 }
