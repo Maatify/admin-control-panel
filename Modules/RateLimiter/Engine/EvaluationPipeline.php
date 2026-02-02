@@ -291,31 +291,21 @@ class EvaluationPipeline
         }
 
         if (isset($keys['k4']) && $policy->getBudgetConfig()) {
-            // Micro-cap Check logic using rawScores (K5)
-            // 2.4.1: "Same known device (K5) after a per-device micro-cap: If failed_login_count(K5) >= 8 within 24h"
-            // We use rawScores['k5'] (DTO)
-            $countK5 = 0;
-            if (isset($rawScores['k5']) && $rawScores['k5']) {
-                $countK5 = $rawScores['k5']->value; // This is decayed score, but good approximation for "failures" if deltas ~1-2.
-                // Or "failed_login_count" might imply separate counter?
-                // The prompt says "Implement... using existing stores (no new schema)".
-                // Using K5 score as proxy is standard for this architecture unless we want to add a separate counter.
-                // Assuming K5 score is sufficient proxy.
-            }
-            // "Include... K5 after micro-cap".
-            // If delta to K5 is > 0 (it's a failure from same device), we check cap.
-            // If $countK5 >= 8, we count towards budget.
-            // Also "Any failed login that increments K4" (New Device, Missing FP) counts.
-            // Also "Any failed login without DeviceFP" counts.
-
             $shouldCount = false;
             // Case 1: Increments K4 directly (New Device, Repeated Missing FP)
             if (isset($deltas['k4']) && $deltas['k4'] > 0) $shouldCount = true;
             // Case 2: Missing FP
             if (empty($device->fingerprintHash) && $request->isFailure) $shouldCount = true;
             // Case 3: Same Known Device (K5) > Micro-cap
-            if (isset($deltas['k5']) && $deltas['k5'] > 0) {
-                if ($countK5 >= 8) $shouldCount = true;
+            // Must use fixed 24h epoch counter, not decayed score.
+            if (isset($deltas['k5']) && $deltas['k5'] > 0 && $context->accountId && $device->fingerprintHash) {
+                $microKey = $this->hashKey("microcap:k5:{$context->accountId}:{$device->fingerprintHash}", $this->secret);
+                // Increment using BudgetTracker to ensure fixed 24h epoch
+                $this->budgetTracker->increment($microKey);
+                $microStatus = $this->budgetTracker->getStatus($microKey);
+                if ($microStatus->count >= 8) {
+                    $shouldCount = true;
+                }
             }
 
             if ($shouldCount) {
