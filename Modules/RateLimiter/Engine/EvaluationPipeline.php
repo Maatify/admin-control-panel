@@ -230,16 +230,23 @@ class EvaluationPipeline
                     $targetKey = $k2;
                     $shouldBlock = true;
                 } else {
-                    // Medium+ Confidence requires 2-window confirmation
-                    $warnKey = "dilution_warn:{$device->fingerprintHash}";
-                    $warn = $this->correlationStore->getWatchFlag($warnKey);
-                    if ($warn > 0) {
+                    // Medium+ Confidence requires 2-window confirmation (consecutive 10-minute windows)
+                    // We use a window-based key to track presence
+                    $windowId = (int) floor(time() / 600);
+                    $prevWindowId = $windowId - 1;
+
+                    $wKey = "dilution_warn:{$device->fingerprintHash}:{$windowId}";
+                    $this->correlationStore->incrementWatchFlag($wKey, 1200); // 20 min retention
+
+                    $prevWKey = "dilution_warn:{$device->fingerprintHash}:{$prevWindowId}";
+                    $prevCount = $this->correlationStore->getWatchFlag($prevWKey);
+
+                    if ($prevCount > 0) {
                         $targetKey = $this->hashKey("{$base}:k3:{$ver}:{$env}:{$this->getIpPrefix($context->ip)}:{$device->fingerprintHash}", $this->secret);
                         $shouldBlock = true;
-                    } else {
-                        $this->correlationStore->incrementWatchFlag($warnKey, 1800);
                     }
                 }
+
                 if ($shouldBlock && $targetKey) {
                     if ($isEphemeral && strpos($targetKey, ':k3:') !== false) {
                         $targetKey = $k2;
@@ -503,9 +510,9 @@ class EvaluationPipeline
         return $ip;
     }
     private function createBlockedResult(int $level, int $retryAfter, string $decision): RateLimitResultDTO {
-        return new RateLimitResultDTO($decision, $level, $retryAfter, 'NORMAL');
+        return new RateLimitResultDTO($decision, $level, $retryAfter, 'NORMAL', null);
     }
     private function createAllowResult(): RateLimitResultDTO {
-        return new RateLimitResultDTO(RateLimitResultDTO::DECISION_ALLOW, 0, 0, 'NORMAL');
+        return new RateLimitResultDTO(RateLimitResultDTO::DECISION_ALLOW, 0, 0, 'NORMAL', null);
     }
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Maatify\RateLimiter\DTO;
 
+use Maatify\RateLimiter\DTO\RateLimitMetadataDTO;
+
 class RateLimitResultDTO
 {
     public const DECISION_ALLOW = 'ALLOW';
@@ -15,7 +17,7 @@ class RateLimitResultDTO
         public readonly ?int $blockLevel,
         public readonly ?int $retryAfter, // in seconds
         public readonly string $failureMode, // NORMAL, DEGRADED, FAIL_OPEN
-        public readonly array $metadata = []
+        public readonly ?RateLimitMetadataDTO $metadata = null
     ) {}
 
     public function isAllowed(): bool
