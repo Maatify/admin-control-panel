@@ -128,7 +128,7 @@ class EvaluationPipeline
         }
 
         // 10. Process Updates (Failure / Access)
-        if ($request->isFailure || isset($policy->getScoreDeltas()['access'])) {
+        if ($request->isFailure || $policy->getScoreDeltas()->access > 0) {
              // We write only to V2 (Active Key)
              return $this->processUpdates($policy, $context, $request, $device, $effectiveKeysV2, $rawScores);
         }
@@ -154,8 +154,8 @@ class EvaluationPipeline
     {
         $config = $policy->getBudgetConfig();
         if ($config && isset($keys['k4'])) {
-            if ($this->budgetTracker->isExceeded($keys['k4'], $config['threshold'])) {
-                $level = $config['block_level'];
+            if ($this->budgetTracker->isExceeded($keys['k4'], $config->threshold)) {
+                $level = $config->block_level;
                 if ($device->isTrustedSession) {
                     $level = max(2, $level - 1);
                 }
@@ -259,8 +259,9 @@ class EvaluationPipeline
              $key = "last_missing_fp:acc:{$context->accountId}";
              $last = $this->store->get($key);
              if ($last && (time() - $last->value) <= 1800) {
-                 if (isset($policy->getScoreDeltas()['k4_repeated_missing_fp'])) {
-                      $deltas['k4'] = ($deltas['k4'] ?? 0) + $policy->getScoreDeltas()['k4_repeated_missing_fp'];
+                 $k4Repeated = $policy->getScoreDeltas()->k4_repeated_missing_fp;
+                 if ($k4Repeated > 0) {
+                      $deltas['k4'] = ($deltas['k4'] ?? 0) + $k4Repeated;
                  }
              }
              $this->store->set($key, time(), 3600);
@@ -305,6 +306,7 @@ class EvaluationPipeline
         }
 
         if (isset($keys['k4']) && $policy->getBudgetConfig()) {
+            $config = $policy->getBudgetConfig();
             $shouldCount = false;
             // Case 1: Increments K4 directly (New Device, Repeated Missing FP)
             if (isset($deltas['k4']) && $deltas['k4'] > 0) $shouldCount = true;
@@ -337,8 +339,8 @@ class EvaluationPipeline
 
             if ($shouldCount) {
                 $this->budgetTracker->increment($keys['k4']);
-                if ($this->budgetTracker->isExceeded($keys['k4'], $policy->getBudgetConfig()['threshold'])) {
-                    $newMaxLevel = max($newMaxLevel, $policy->getBudgetConfig()['block_level']);
+                if ($this->budgetTracker->isExceeded($keys['k4'], $config->threshold)) {
+                    $newMaxLevel = max($newMaxLevel, $config->block_level);
                 }
             }
         }
@@ -421,24 +423,26 @@ class EvaluationPipeline
         return $decayed;
     }
     private function calculateDeltas(BlockPolicyInterface $policy, RateLimitContextDTO $context, DeviceIdentityDTO $device, RateLimitRequestDTO $request): array {
-        $deltas = $policy->getScoreDeltas();
+        $deltasDto = $policy->getScoreDeltas();
         $result = [];
-        if (isset($deltas['access'])) {
-            $cost = $deltas['access'] * $request->cost;
+        if ($deltasDto->access > 0) {
+            $cost = $deltasDto->access * $request->cost;
             $result['k1'] = ($result['k1'] ?? 0) + $cost;
             $result['k2'] = ($result['k2'] ?? 0) + $cost;
             $result['k3'] = ($result['k3'] ?? 0) + $cost;
         }
         if ($request->isFailure) {
-            if (isset($deltas['k5_failure'])) $result['k5'] = $deltas['k5_failure'];
-            if (isset($deltas['k4_failure'])) $result['k4'] = $deltas['k4_failure'];
-            if (isset($deltas['k2_missing_fp']) && empty($device->fingerprintHash)) $result['k2'] = $deltas['k2_missing_fp'];
-            if (isset($deltas['k1_spray'])) $result['k1'] = $deltas['k1_spray'];
+            if ($deltasDto->k5_failure > 0) $result['k5'] = $deltasDto->k5_failure;
+            if ($deltasDto->k4_failure > 0) $result['k4'] = $deltasDto->k4_failure;
+            if ($deltasDto->k2_missing_fp > 0 && empty($device->fingerprintHash)) $result['k2'] = $deltasDto->k2_missing_fp;
+            if ($deltasDto->k1_spray > 0) $result['k1'] = $deltasDto->k1_spray;
         }
         return $result;
     }
     private function getScopedThresholds(string $keyType, BlockPolicyInterface $policy): array {
-        $thresholds = $policy->getScoreThresholds();
+        $thresholdsDto = $policy->getScoreThresholds();
+        $thresholds = $thresholdsDto->thresholds;
+
         $scoped = $thresholds[$keyType] ?? $thresholds;
         if (!is_array(reset($scoped))) {
             if (isset($thresholds[$keyType])) $scoped = $thresholds[$keyType];

@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Maatify\RateLimiter\Policy;
 
 use Maatify\RateLimiter\Contract\BlockPolicyInterface;
+use Maatify\RateLimiter\DTO\BudgetConfigDTO;
+use Maatify\RateLimiter\DTO\ScoreDeltasDTO;
+use Maatify\RateLimiter\DTO\ScoreThresholdsDTO;
 
 class OtpProtectionPolicy implements BlockPolicyInterface
 {
@@ -13,25 +16,25 @@ class OtpProtectionPolicy implements BlockPolicyInterface
         return 'otp_protection';
     }
 
-    public function getScoreThresholds(): array
+    public function getScoreThresholds(): ScoreThresholdsDTO
     {
-        return [
+        return new ScoreThresholdsDTO([
             'k4' => [
-                4 => 1, // Soft L1
-                7 => 2, // Hard L2
-                10 => 3, // Hard L3+
+                4 => 1,
+                7 => 2,
+                10 => 3,
             ],
-        ];
+        ]);
     }
 
-    public function getScoreDeltas(): array
+    public function getScoreDeltas(): ScoreDeltasDTO
     {
-        return [
-            'k5_failure' => 4,
-            'k4_failure' => 5,
-            'k2_missing_fp' => 6,
-            'k4_repeated_missing_fp' => 8,
-        ];
+        return new ScoreDeltasDTO(
+            k2_missing_fp: 6,
+            k4_failure: 5,
+            k4_repeated_missing_fp: 8,
+            k5_failure: 4
+        );
     }
 
     public function getFailureMode(): string
@@ -39,12 +42,8 @@ class OtpProtectionPolicy implements BlockPolicyInterface
         return 'FAIL_CLOSED';
     }
 
-    public function getBudgetConfig(): ?array
+    public function getBudgetConfig(): ?BudgetConfigDTO
     {
-        return [
-            'threshold' => 10,
-            'block_level' => 4,
-            'epoch_seconds' => 86400,
-        ];
+        return new BudgetConfigDTO(10, 4);
     }
 }
