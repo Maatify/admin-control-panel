@@ -84,6 +84,12 @@ final class AdminRuntimeConfigDTO
     public ?string $hCaptchaSiteKey;
     public ?string $hCaptchaSecretKey;
 
+    /* ─────────────────────────────
+     * RecaptchaV2
+     * ───────────────────────────── */
+    public ?string $recaptchaV2SiteKey;
+    public ?string $recaptchaV2SecretKey;
+
     private function __construct() {}
 
     /**
@@ -151,6 +157,10 @@ final class AdminRuntimeConfigDTO
         // HCaptcha
         $self->hCaptchaSiteKey = self::optString($data, 'HCAPTCHA_SITE_KEY', '');
         $self->hCaptchaSecretKey = self::optString($data, 'HCAPTCHA_SECRET_KEY', '');
+
+        // RecaptchaV2
+        $self->recaptchaV2SiteKey = self::optString($data, 'RECAPTCHA_V2_SITE_KEY', '');
+        $self->recaptchaV2SecretKey = self::optString($data, 'RECAPTCHA_V2_SECRET_KEY', '');
 
         return $self;
     }

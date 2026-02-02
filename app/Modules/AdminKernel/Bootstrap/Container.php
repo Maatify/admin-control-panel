@@ -166,6 +166,8 @@ use Maatify\AdminKernel\Infrastructure\Repository\Roles\PdoRoleRepository;
 use Maatify\AdminKernel\Infrastructure\Security\Abuse\AbuseCookieService;
 use Maatify\AdminKernel\Infrastructure\Security\Abuse\HCaptchaChallengeProvider;
 use Maatify\AdminKernel\Infrastructure\Security\Abuse\HCaptchaConfigDTO;
+use Maatify\AdminKernel\Infrastructure\Security\Abuse\RecaptchaV2ChallengeProvider;
+use Maatify\AdminKernel\Infrastructure\Security\Abuse\RecaptchaV2ConfigDTO;
 use Maatify\AdminKernel\Infrastructure\Security\Abuse\TurnstileChallengeProvider;
 use Maatify\AdminKernel\Infrastructure\Security\Abuse\TurnstileConfigDTO;
 use Maatify\AdminKernel\Infrastructure\Service\AdminTotpSecretStore;
@@ -286,6 +288,11 @@ class Container
             secretKey: $runtime->hCaptchaSecretKey
         );
 
+        $recaptchaV2ConfigDTO = new RecaptchaV2ConfigDto(
+            siteKey: $runtime->recaptchaV2SiteKey,
+            secretKey: $runtime->recaptchaV2SecretKey
+        );
+
         // Enforce Timezone
         // date_default_timezone_set($config->timezone); // Removed in Kernelization Step 1(B)
 
@@ -318,6 +325,9 @@ class Container
             },
             HCaptchaConfigDto::class => function () use ($hCaptchaConfigDTO) {
                 return $hCaptchaConfigDTO;
+            },
+            RecaptchaV2ConfigDto::class => function () use ($recaptchaV2ConfigDTO) {
+                return $recaptchaV2ConfigDTO;
             },
             ValidatorInterface::class => function (ContainerInterface $c) {
                 return new RespectValidator();
@@ -2016,6 +2026,21 @@ class Container
 //                    throw new \RuntimeException('HCAPTCHA_SECRET_KEY is missing.');
 //                }
 //                return new HCaptchaChallengeProvider($secret);
+
+                /*
+                 * Alternative provider: Google reCAPTCHA v2
+                 *
+                 * Enable ONLY when switching the active challenge provider.
+                 * Exactly one provider must be active.
+                 */
+
+//                $recaptchaV2Config = $c->get(RecaptchaV2ConfigDTO::class);
+//                assert($recaptchaV2Config instanceof RecaptchaV2ConfigDTO);
+//                $secret = (string)($recaptchaV2Config->secretKey ?? '');
+//                if ($secret === '') {
+//                    throw new \RuntimeException('RECAPTCHA_V2_SECRET_KEY is missing.');
+//                }
+//                return new RecaptchaV2ChallengeProvider($secret);
             },
 
             \Maatify\AdminKernel\Domain\Contracts\Abuse\ChallengeWidgetRendererInterface::class => function (ContainerInterface $c) {
@@ -2036,6 +2061,16 @@ class Container
 //                 return new \Maatify\AdminKernel\Infrastructure\Security\Abuse\HCaptchaWidgetRenderer(
 //                     $hCaptchaConfig->siteKey ?? ''
 //                 );
+
+                /*
+                 * Alternative widget renderer: Google reCAPTCHA v2
+                 *
+                 * Must match the active challenge provider.
+                 */
+
+//                $recaptchaV2Config = $c->get(RecaptchaV2ConfigDTO::class);
+//                assert($recaptchaV2Config instanceof RecaptchaV2ConfigDTO);
+//                return new \Maatify\AdminKernel\Infrastructure\Security\Abuse\RecaptchaV2WidgetRenderer($recaptchaV2Config->siteKey ?? '');
             },
 
         ]);
