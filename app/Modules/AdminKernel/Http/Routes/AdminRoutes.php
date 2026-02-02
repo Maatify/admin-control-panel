@@ -172,6 +172,16 @@ class AdminRoutes
                         ->setName('admins.permissions')
                         ->add(AuthorizationGuardMiddleware::class);
 
+                    // ─────────────────────────────
+                    // Permission By ID Control
+                    // ─────────────────────────────
+                    $protectedGroup->get(
+                        '/permissions/{permission_id:[0-9]+}',
+                        [\Maatify\AdminKernel\Http\Controllers\Ui\UiAPermissionDetailsController::class, 'index']
+                    )
+                        ->setName('permission.details.ui')
+                        ->add(AuthorizationGuardMiddleware::class);
+
                     $protectedGroup->get(
                         '/roles',
                         [\Maatify\AdminKernel\Http\Controllers\Ui\UiRolesController::class, 'index']
@@ -352,6 +362,28 @@ class AdminRoutes
                         $permissions->post('/{id:[0-9]+}/metadata', [\Maatify\AdminKernel\Http\Controllers\Api\PermissionMetadataUpdateController::class, '__invoke'])
                             ->setName('permissions.metadata.update');
                     });
+
+                    // ─────────────────────────────
+                    // Permission → Roles (Query)
+                    // ─────────────────────────────
+                    $group->post(
+                        '/permissions/{permission_id:[0-9]+}/roles/query',
+                        \Maatify\AdminKernel\Http\Controllers\Api\Permissions\PermissionRolesQueryController::class
+                    )
+                        ->setName('permissions.roles.query')
+                        ->add(AuthorizationGuardMiddleware::class);
+
+                    // ─────────────────────────────
+                    // Permission → Admins (Direct Overrides Query)
+                    // ─────────────────────────────
+                    $group->post(
+                        '/permissions/{permission_id:[0-9]+}/admins/query',
+                        \Maatify\AdminKernel\Http\Controllers\Api\Permissions\PermissionAdminsQueryController::class
+                    )
+                        ->setName('permissions.admins.query')
+                        ->add(AuthorizationGuardMiddleware::class);
+
+
 
                     // ─────────────────────────────
                     // Roles Control

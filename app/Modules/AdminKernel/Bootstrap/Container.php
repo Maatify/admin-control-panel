@@ -1885,6 +1885,44 @@ class Container
                 assert($validationGuard instanceof ValidationGuard);
                 assert($filterResolver instanceof ListFilterResolver);
                 return new \Maatify\AdminKernel\Http\Controllers\Api\Admin\DirectPermissionsAssignableQueryController($repo, $validationGuard, $filterResolver);
+            },
+
+            \Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionDetailsRepositoryInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\Permissions\PdoPermissionDetailsRepository($pdo);
+            },
+
+            \Maatify\AdminKernel\Http\Controllers\Ui\UiAPermissionDetailsController::class => function (ContainerInterface $c) {
+                $view = $c->get(Twig::class);
+                $authorizationService = $c->get(AuthorizationService::class);
+                $permissionDetailsRepository = $c->get(\Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionDetailsRepositoryInterface::class);
+                assert($view instanceof Twig);
+                assert($authorizationService instanceof AuthorizationService);
+                assert($permissionDetailsRepository instanceof \Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionDetailsRepositoryInterface);
+                return new \Maatify\AdminKernel\Http\Controllers\Ui\UiAPermissionDetailsController($view, $authorizationService, $permissionDetailsRepository);
+            },
+
+            \Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionRolesQueryRepositoryInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\Permissions\PdoPermissionRolesQueryRepository($pdo);
+            },
+
+            \Maatify\AdminKernel\Http\Controllers\Api\Permissions\PermissionRolesQueryController::class => function (ContainerInterface $c) {
+                $reader = $c->get(\Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionRolesQueryRepositoryInterface::class);
+                $validationGuard = $c->get(ValidationGuard::class);
+                $filterResolver = $c->get(ListFilterResolver::class);
+                assert($reader instanceof \Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionRolesQueryRepositoryInterface);
+                assert($validationGuard instanceof ValidationGuard);
+                assert($filterResolver instanceof ListFilterResolver);
+                return new \Maatify\AdminKernel\Http\Controllers\Api\Permissions\PermissionRolesQueryController($reader, $validationGuard, $filterResolver);
+            },
+
+            \Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionAdminsQueryRepositoryInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\Permissions\PdoPermissionAdminsQueryRepository($pdo);
             }
 
         ]);
