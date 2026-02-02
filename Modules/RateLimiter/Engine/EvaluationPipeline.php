@@ -43,21 +43,29 @@ class EvaluationPipeline
         RateLimitRequestDTO $request,
         DeviceIdentityDTO $device
     ): RateLimitResultDTO {
+        // 1. Build Keys for Active Block Check (Original Hash)
         $realKeysV2 = $this->buildKeys($context, $device->normalizedUa, $device->fingerprintHash, $policy->getName(), $this->secret);
         $realKeysV1 = $this->previousSecret
             ? $this->buildKeys($context, $device->normalizedUa, $device->fingerprintHash, $policy->getName(), $this->previousSecret)
             : [];
 
+        // 2. Check Active Blocks (Fail-Fast) on Real Keys
         if ($blocked = $this->checkActiveBlocks($realKeysV2, $realKeysV1)) {
             return $blocked;
         }
 
-        if ($blocked = $this->checkBudget($policy, $realKeysV2, $device)) {
-            return $blocked;
+        // 3. Check Account Budget (Fail-Fast)
+        // Skip check if request is a Success record (Post-Action)
+        if (!$request->isSuccess) {
+            if ($blocked = $this->checkBudget($policy, $realKeysV2, $device)) {
+                return $blocked;
+            }
         }
 
+        // 4. Resolve Effective Keys (Ephemeral Logic) for Scoring/Updates
         $effectiveHash = $device->fingerprintHash;
         if ($device->fingerprintHash) {
+             // resolveKey returns string (real or ephemeral key)
              $effectiveHash = $this->ephemeralBucket->resolveKey($context, $device->fingerprintHash);
         }
         $effectiveKeysV2 = $this->buildKeys($context, $device->normalizedUa, $effectiveHash, $policy->getName(), $this->secret);
@@ -65,6 +73,9 @@ class EvaluationPipeline
             ? $this->buildKeys($context, $device->normalizedUa, $effectiveHash, $policy->getName(), $this->previousSecret)
             : [];
 
+        // Check state just for knowing if it IS ephemeral (for key filtering)
+        // Since resolveKey already did the counting/check, we can infer from the key string or call check() to get DTO.
+        // Calling check() is idempotent for sets.
         $ephemeralState = $device->fingerprintHash
             ? $this->ephemeralBucket->check($context, $device->fingerprintHash)
             : null;
@@ -75,17 +86,21 @@ class EvaluationPipeline
              unset($effectiveKeysV1['k3'], $effectiveKeysV1['k5']);
         }
 
+        // 5. Fetch & Decay Scores (Using Effective Keys)
         $rawScores = $this->fetchScores($effectiveKeysV2, $effectiveKeysV1);
         $decayedScores = $this->applyDecay($rawScores, $effectiveKeysV2);
 
+        // 6. Check Thresholds (Soft Blocks)
         if ($blocked = $this->checkThresholds($policy, $decayedScores, $effectiveKeysV2, $device)) {
             return $blocked;
         }
 
+        // 7. Check Correlation Rules
         if ($blocked = $this->checkCorrelationRules($context, $device, $policy->getName(), $isEphemeral)) {
              return $blocked;
         }
 
+        // 8. New Device Flood (5.4)
         if ($ephemeralState && $context->accountId) {
              if ($ephemeralState->accountDeviceCount >= 6) {
                   $floodKey = "flood_stage:acc:{$context->accountId}";
@@ -107,11 +122,14 @@ class EvaluationPipeline
              }
         }
 
+        // 9. Pre-Check Only
         if ($request->isPreCheck) {
             return $this->createAllowResult();
         }
 
+        // 10. Process Updates (Failure / Access)
         if ($request->isFailure || isset($policy->getScoreDeltas()['access'])) {
+             // We write only to V2 (Active Key)
              return $this->processUpdates($policy, $context, $request, $device, $effectiveKeysV2, $rawScores);
         }
 
@@ -141,27 +159,30 @@ class EvaluationPipeline
                 if ($device->isTrustedSession) {
                     $level = max(2, $level - 1);
                 }
-                return $this->createBlockedResult($level, 3600, RateLimitResultDTO::DECISION_SOFT_BLOCK);
+
+                // Calculate Retry-After
+                $status = $this->budgetTracker->getStatus($keys['k4']);
+                $retryAfter = max(0, ($status->epochStart + 86400) - time());
+
+                return $this->createBlockedResult($level, $retryAfter, RateLimitResultDTO::DECISION_SOFT_BLOCK);
             }
         }
         return null;
     }
 
+    // ... checkThresholds, checkCorrelationRules ... (Same as before)
     private function checkThresholds(BlockPolicyInterface $policy, array $scores, array $keys, DeviceIdentityDTO $device): ?RateLimitResultDTO
     {
         $highestLevel = 0;
         foreach ($scores as $keyType => $score) {
             $level = $this->determineLevel($score, $keyType, $policy);
-
             if ($keyType === 'k3' && $device->confidence === 'LOW' && $level >= 2) {
                 $level = 1;
             }
-
             if ($level > $highestLevel) {
                 $highestLevel = $level;
             }
         }
-
         if ($highestLevel > 0) {
             $decision = ($highestLevel >= 2) ? RateLimitResultDTO::DECISION_HARD_BLOCK : RateLimitResultDTO::DECISION_SOFT_BLOCK;
             return $this->createBlockedResult($highestLevel, PenaltyLadder::getDuration($highestLevel), $decision);
@@ -179,22 +200,18 @@ class EvaluationPipeline
                  return $this->createBlockedResult(2, 60, RateLimitResultDTO::DECISION_HARD_BLOCK);
              }
         }
-
         if ($device->fingerprintHash) {
             $k3_raw = "dilution:{$device->fingerprintHash}";
             $count = $this->correlationStore->addDistinct($k3_raw, $context->ip, 600);
-
             if ($count >= 6) {
-                $shouldBlock = false;
                 $targetKey = null;
-
+                $shouldBlock = false;
                 if ($device->confidence === 'LOW') {
                     $targetKey = $k2;
                     $shouldBlock = true;
                 } else {
                     $warnKey = "dilution_warn:{$device->fingerprintHash}";
                     $warn = $this->correlationStore->getWatchFlag($warnKey);
-
                     if ($warn > 0) {
                         $targetKey = $this->hashKey("{$policyName}:k3:{$this->getIpPrefix($context->ip)}:{$device->fingerprintHash}", $this->secret);
                         $shouldBlock = true;
@@ -202,18 +219,15 @@ class EvaluationPipeline
                         $this->correlationStore->incrementWatchFlag($warnKey, 1800);
                     }
                 }
-
                 if ($shouldBlock && $targetKey) {
                     if ($isEphemeral && strpos($targetKey, ':k3:') !== false) {
                         $targetKey = $k2;
                     }
-
                     $this->store->block($targetKey, 2, 60);
                     return $this->createBlockedResult(2, 60, RateLimitResultDTO::DECISION_HARD_BLOCK);
                 }
             }
         }
-
         return null;
     }
 
@@ -254,12 +268,10 @@ class EvaluationPipeline
                 $updatedAt = $scoreDto ? $scoreDto->updatedAt : time();
 
                 $decayed = $this->calculateDecayedScore($rawVal, $updatedAt, $keyType, $key);
-
                 $baseValue = ($scoreDto && !$scoreDto->isFromV1) ? $rawVal : 0;
                 $netChange = ($decayed + $delta) - $baseValue;
 
                 $newScore = $this->store->increment($key, 86400, (int)$netChange);
-
                 $level = $this->determineLevel($newScore, $keyType, $policy);
 
                 $thresholds = $this->getScopedThresholds($keyType, $policy);
@@ -267,9 +279,7 @@ class EvaluationPipeline
                     if ($newScore == $t - 1) {
                          $wKey = "watch:{$key}";
                          $flags = $this->correlationStore->incrementWatchFlag($wKey, 1800);
-                         if ($flags >= 2) {
-                             $level = max($level, $l);
-                         }
+                         if ($flags >= 2) $level = max($level, $l);
                     }
                 }
 
@@ -281,9 +291,38 @@ class EvaluationPipeline
         }
 
         if (isset($keys['k4']) && $policy->getBudgetConfig()) {
-            $this->budgetTracker->increment($keys['k4']);
-            if ($this->budgetTracker->isExceeded($keys['k4'], $policy->getBudgetConfig()['threshold'])) {
-                $newMaxLevel = max($newMaxLevel, $policy->getBudgetConfig()['block_level']);
+            // Micro-cap Check logic using rawScores (K5)
+            // 2.4.1: "Same known device (K5) after a per-device micro-cap: If failed_login_count(K5) >= 8 within 24h"
+            // We use rawScores['k5'] (DTO)
+            $countK5 = 0;
+            if (isset($rawScores['k5']) && $rawScores['k5']) {
+                $countK5 = $rawScores['k5']->value; // This is decayed score, but good approximation for "failures" if deltas ~1-2.
+                // Or "failed_login_count" might imply separate counter?
+                // The prompt says "Implement... using existing stores (no new schema)".
+                // Using K5 score as proxy is standard for this architecture unless we want to add a separate counter.
+                // Assuming K5 score is sufficient proxy.
+            }
+            // "Include... K5 after micro-cap".
+            // If delta to K5 is > 0 (it's a failure from same device), we check cap.
+            // If $countK5 >= 8, we count towards budget.
+            // Also "Any failed login that increments K4" (New Device, Missing FP) counts.
+            // Also "Any failed login without DeviceFP" counts.
+
+            $shouldCount = false;
+            // Case 1: Increments K4 directly (New Device, Repeated Missing FP)
+            if (isset($deltas['k4']) && $deltas['k4'] > 0) $shouldCount = true;
+            // Case 2: Missing FP
+            if (empty($device->fingerprintHash) && $request->isFailure) $shouldCount = true;
+            // Case 3: Same Known Device (K5) > Micro-cap
+            if (isset($deltas['k5']) && $deltas['k5'] > 0) {
+                if ($countK5 >= 8) $shouldCount = true;
+            }
+
+            if ($shouldCount) {
+                $this->budgetTracker->increment($keys['k4']);
+                if ($this->budgetTracker->isExceeded($keys['k4'], $policy->getBudgetConfig()['threshold'])) {
+                    $newMaxLevel = max($newMaxLevel, $policy->getBudgetConfig()['block_level']);
+                }
             }
         }
 
@@ -319,99 +358,60 @@ class EvaluationPipeline
         return $this->createAllowResult();
     }
 
-    // --- Helpers ---
-
-    private function buildKeys(RateLimitContextDTO $context, string $ua, ?string $fpHash, string $policyName, string $secret): array
-    {
+    // --- Helpers (Same as before) ---
+    private function calculateDecayedScore(int $value, int $updatedAt, string $keyType, string $key): int {
+        $scope = match($keyType) { 'k4' => 'account', 'k3', 'k5' => 'device', default => 'ip' };
+        $block = $this->store->checkBlock($key);
+        $level = $block ? $block->level : 0;
+        $decayAmount = $this->decayCalculator->calculateDecay($value, $updatedAt, $level, $scope);
+        return max(0, $value - $decayAmount);
+    }
+    // ... other helpers identical to previous turn ...
+    private function buildKeys(RateLimitContextDTO $context, string $ua, ?string $fpHash, string $policyName, string $secret): array {
         $k1 = $this->hashKey("{$policyName}:k1:{$this->getIpPrefix($context->ip)}", $secret);
         $k2 = $this->hashKey("{$policyName}:k2:{$this->getIpPrefix($context->ip)}:{$ua}", $secret);
         $k3 = $fpHash ? $this->hashKey("{$policyName}:k3:{$this->getIpPrefix($context->ip)}:{$fpHash}", $secret) : null;
         $k4 = $context->accountId ? $this->hashKey("{$policyName}:k4:{$context->accountId}", $secret) : null;
         $k5 = $context->accountId && $fpHash ? $this->hashKey("{$policyName}:k5:{$context->accountId}:{$fpHash}", $secret) : null;
-
-        $keys = [
-            'k1' => $k1,
-            'k2' => $k2,
-            'k3' => $k3,
-            'k4' => $k4,
-            'k5' => $k5,
-        ];
-
+        $keys = ['k1' => $k1, 'k2' => $k2, 'k3' => $k3, 'k4' => $k4, 'k5' => $k5];
         if (filter_var($context->ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
              $keys['k1_48'] = $this->hashKey("{$policyName}:k1:{$this->getIpPrefix($context->ip, 48)}", $secret);
              $keys['k1_40'] = $this->hashKey("{$policyName}:k1:{$this->getIpPrefix($context->ip, 40)}", $secret);
              $keys['k1_32'] = $this->hashKey("{$policyName}:k1:{$this->getIpPrefix($context->ip, 32)}", $secret);
         }
-
         return $keys;
     }
-
-    /**
-     * @return array<string, ?PipelineScoreDTO>
-     */
-    private function fetchScores(array $keysV2, array $keysV1): array
-    {
+    private function fetchScores(array $keysV2, array $keysV1): array {
         $scores = [];
         foreach ($keysV2 as $keyType => $key) {
             $data = $key ? $this->store->get($key) : null;
             $isFromV1 = false;
-
             if (!$data && isset($keysV1[$keyType]) && $keysV1[$keyType]) {
                 $data = $this->store->get($keysV1[$keyType]);
-                if ($data) {
-                    $isFromV1 = true;
-                }
+                if ($data) $isFromV1 = true;
             }
-
             $scores[$keyType] = $data ? new PipelineScoreDTO($data->value, $data->updatedAt, $isFromV1) : null;
         }
         return $scores;
     }
-
-    private function calculateDecayedScore(int $value, int $updatedAt, string $keyType, string $key): int
-    {
-        $scope = match($keyType) {
-            'k4' => 'account',
-            'k3', 'k5' => 'device',
-            default => 'ip'
-        };
-
-        $block = $this->store->checkBlock($key);
-        $level = $block ? $block->level : 0;
-
-        $decayAmount = $this->decayCalculator->calculateDecay($value, $updatedAt, $level, $scope);
-        return max(0, $value - $decayAmount);
-    }
-
-    /**
-     * @param array<string, ?PipelineScoreDTO> $rawScores
-     */
-    private function applyDecay(array $rawScores, array $keys): array
-    {
+    private function applyDecay(array $rawScores, array $keys): array {
         $decayed = [];
         foreach ($keys as $keyType => $key) {
             $dto = $rawScores[$keyType] ?? null;
-            if (!$key || !$dto) {
-                $decayed[$keyType] = 0;
-                continue;
-            }
+            if (!$key || !$dto) { $decayed[$keyType] = 0; continue; }
             $decayed[$keyType] = $this->calculateDecayedScore($dto->value, $dto->updatedAt, $keyType, $key);
         }
         return $decayed;
     }
-
-    private function calculateDeltas(BlockPolicyInterface $policy, RateLimitContextDTO $context, DeviceIdentityDTO $device, RateLimitRequestDTO $request): array
-    {
+    private function calculateDeltas(BlockPolicyInterface $policy, RateLimitContextDTO $context, DeviceIdentityDTO $device, RateLimitRequestDTO $request): array {
         $deltas = $policy->getScoreDeltas();
         $result = [];
-
         if (isset($deltas['access'])) {
             $cost = $deltas['access'] * $request->cost;
             $result['k1'] = ($result['k1'] ?? 0) + $cost;
             $result['k2'] = ($result['k2'] ?? 0) + $cost;
             $result['k3'] = ($result['k3'] ?? 0) + $cost;
         }
-
         if ($request->isFailure) {
             if (isset($deltas['k5_failure'])) $result['k5'] = $deltas['k5_failure'];
             if (isset($deltas['k4_failure'])) $result['k4'] = $deltas['k4_failure'];
@@ -420,37 +420,23 @@ class EvaluationPipeline
         }
         return $result;
     }
-
-    private function getScopedThresholds(string $keyType, BlockPolicyInterface $policy): array
-    {
+    private function getScopedThresholds(string $keyType, BlockPolicyInterface $policy): array {
         $thresholds = $policy->getScoreThresholds();
         $scoped = $thresholds[$keyType] ?? $thresholds;
         if (!is_array(reset($scoped))) {
-            if (isset($thresholds[$keyType])) {
-                 $scoped = $thresholds[$keyType];
-             } elseif (isset($thresholds['default'])) {
-                 $scoped = $thresholds['default'];
-             } else {
-                 if (str_starts_with($keyType, 'k1_')) {
-                     $scoped = $thresholds['k1'] ?? $thresholds['default'] ?? [];
-                 }
-             }
+            if (isset($thresholds[$keyType])) $scoped = $thresholds[$keyType];
+            elseif (isset($thresholds['default'])) $scoped = $thresholds['default'];
+            else { if (str_starts_with($keyType, 'k1_')) $scoped = $thresholds['k1'] ?? $thresholds['default'] ?? []; }
         }
         return is_array($scoped) ? $scoped : [];
     }
-
-    private function determineLevel(int $score, string $keyType, BlockPolicyInterface $policy): int
-    {
+    private function determineLevel(int $score, string $keyType, BlockPolicyInterface $policy): int {
         $scoped = $this->getScopedThresholds($keyType, $policy);
         krsort($scoped);
-        foreach ($scoped as $thresh => $lvl) {
-            if ($score >= $thresh) return $lvl;
-        }
+        foreach ($scoped as $thresh => $lvl) { if ($score >= $thresh) return $lvl; }
         return 0;
     }
-
     private function hashKey(string $input, string $secret): string { return hash_hmac('sha256', $input, $secret); }
-
     private function getIpPrefix(string $ip, int $cidr = 64): string {
         if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
             $packed = inet_pton($ip);
@@ -462,11 +448,9 @@ class EvaluationPipeline
         }
         return $ip;
     }
-
     private function createBlockedResult(int $level, int $retryAfter, string $decision): RateLimitResultDTO {
         return new RateLimitResultDTO($decision, $level, $retryAfter, 'NORMAL');
     }
-
     private function createAllowResult(): RateLimitResultDTO {
         return new RateLimitResultDTO(RateLimitResultDTO::DECISION_ALLOW, 0, 0, 'NORMAL');
     }

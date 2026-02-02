@@ -12,6 +12,7 @@ class CircuitBreakerStateDTO
         public readonly int $lastFailure,
         public readonly int $openSince,
         public readonly int $lastSuccess,
-        public readonly array $reEntries
+        public readonly array $reEntries,
+        public readonly int $failClosedUntil = 0
     ) {}
 }

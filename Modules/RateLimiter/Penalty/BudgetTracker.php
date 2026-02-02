@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maatify\RateLimiter\Penalty;
 
 use Maatify\RateLimiter\Contract\RateLimitStoreInterface;
+use Maatify\RateLimiter\DTO\BudgetStatusDTO;
 
 class BudgetTracker
 {
@@ -19,17 +20,20 @@ class BudgetTracker
         $this->store->incrementBudget($key, self::EPOCH_DURATION);
     }
 
-    public function getStatus(string $key): array
+    public function getStatus(string $key): BudgetStatusDTO
     {
         $dto = $this->store->getBudget($key);
-        return $dto ? ['count' => $dto->count, 'epoch_start' => $dto->epochStart] : ['count' => 0, 'epoch_start' => 0];
+        if ($dto) {
+            return new BudgetStatusDTO($dto->count, $dto->epochStart);
+        }
+        return new BudgetStatusDTO(0, 0);
     }
 
     public function isExceeded(string $key, int $limit): bool
     {
-        $status = $this->store->getBudget($key);
+        $status = $this->getStatus($key);
 
-        if ($status && $status->count >= $limit) {
+        if ($status->count >= $limit) {
             $now = time();
             if ($status->epochStart + self::EPOCH_DURATION > $now) {
                 return true;

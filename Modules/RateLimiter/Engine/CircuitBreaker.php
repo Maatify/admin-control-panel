@@ -18,6 +18,7 @@ class CircuitBreaker
     private const MIN_HEALTHY_INTERVAL = 120; // 2 min
     private const RE_ENTRY_LIMIT = 2;
     private const RE_ENTRY_WINDOW = 1800; // 30 min
+    private const FAIL_CLOSED_DURATION = 600; // 10 min
 
     public function __construct(
         private readonly CircuitBreakerStoreInterface $store,
@@ -36,6 +37,7 @@ class CircuitBreaker
         $status = $state->status;
         $openSince = $state->openSince;
         $reEntries = $state->reEntries;
+        $failClosedUntil = $state->failClosedUntil;
 
         if (count($failures) >= self::TRIP_THRESHOLD) {
             if ($status !== FailureStateDTO::STATE_OPEN) {
@@ -50,6 +52,7 @@ class CircuitBreaker
 
                 if (count($reEntries) > self::RE_ENTRY_LIMIT) {
                     $this->emitter->emit(new FailureSignalDTO(FailureSignalDTO::TYPE_CB_RE_ENTRY_VIOLATION, $policyName));
+                    $failClosedUntil = $now + self::FAIL_CLOSED_DURATION;
                 }
             }
         }
@@ -60,7 +63,8 @@ class CircuitBreaker
             $now,
             $openSince,
             $state->lastSuccess,
-            array_values($reEntries)
+            array_values($reEntries),
+            $failClosedUntil
         ));
     }
 
@@ -91,7 +95,8 @@ class CircuitBreaker
             $state->lastFailure,
             $state->openSince,
             $now,
-            $state->reEntries
+            $state->reEntries,
+            $state->failClosedUntil
         ));
     }
 
@@ -109,7 +114,7 @@ class CircuitBreaker
     public function isReEntryGuardViolated(string $policyName): bool
     {
         $data = $this->loadState($policyName);
-        return count($data->reEntries) > self::RE_ENTRY_LIMIT;
+        return $data->failClosedUntil > time();
     }
 
     private function loadState(string $policyName): CircuitBreakerStateDTO
@@ -121,7 +126,8 @@ class CircuitBreaker
             0,
             0,
             0,
-            []
+            [],
+            0
         );
     }
 
