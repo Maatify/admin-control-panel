@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Maatify\RateLimiter\Contract;
 
 use Maatify\RateLimiter\DTO\BudgetConfigDTO;
+use Maatify\RateLimiter\DTO\PolicyThresholdsDTO;
 use Maatify\RateLimiter\DTO\ScoreDeltasDTO;
-use Maatify\RateLimiter\DTO\ScoreThresholdsDTO;
 
 interface BlockPolicyInterface
 {
@@ -15,7 +15,7 @@ interface BlockPolicyInterface
     /**
      * Get score thresholds mapping score to block level.
      */
-    public function getScoreThresholds(): ScoreThresholdsDTO;
+    public function getScoreThresholds(): PolicyThresholdsDTO;
 
     /**
      * Get score deltas for scenarios.

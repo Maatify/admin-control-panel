@@ -6,6 +6,7 @@ namespace Maatify\RateLimiter\Policy;
 
 use Maatify\RateLimiter\Contract\BlockPolicyInterface;
 use Maatify\RateLimiter\DTO\BudgetConfigDTO;
+use Maatify\RateLimiter\DTO\PolicyThresholdsDTO;
 use Maatify\RateLimiter\DTO\ScoreDeltasDTO;
 use Maatify\RateLimiter\DTO\ScoreThresholdsDTO;
 
@@ -16,15 +17,11 @@ class OtpProtectionPolicy implements BlockPolicyInterface
         return 'otp_protection';
     }
 
-    public function getScoreThresholds(): ScoreThresholdsDTO
+    public function getScoreThresholds(): PolicyThresholdsDTO
     {
-        return new ScoreThresholdsDTO([
-            'k4' => [
-                4 => 1,
-                7 => 2,
-                10 => 3,
-            ],
-        ]);
+        return new PolicyThresholdsDTO(
+            k4: new ScoreThresholdsDTO(4, 7, 10)
+        );
     }
 
     public function getScoreDeltas(): ScoreDeltasDTO

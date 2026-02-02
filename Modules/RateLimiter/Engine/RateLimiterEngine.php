@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Maatify\RateLimiter\Engine;
 
+use Maatify\RateLimiter\Contract\BlockPolicyInterface;
 use Maatify\RateLimiter\Contract\DeviceIdentityResolverInterface;
 use Maatify\RateLimiter\Contract\RateLimiterInterface;
 use Maatify\RateLimiter\DTO\RateLimitContextDTO;
@@ -14,7 +15,8 @@ use Maatify\RateLimiter\Device\DeviceIdentityResolver;
 
 class RateLimiterEngine implements RateLimiterInterface
 {
-    private array $policies;
+    /** @var array<string, BlockPolicyInterface> */
+    private array $policies = [];
 
     public function __construct(
         private readonly DeviceIdentityResolverInterface $deviceResolver,
@@ -24,8 +26,45 @@ class RateLimiterEngine implements RateLimiterInterface
         array $policies
     ) {
         foreach ($policies as $policy) {
-            $this->policies[$policy->getName()] = $policy;
+            $this->registerPolicy($policy);
         }
+    }
+
+    private function registerPolicy(BlockPolicyInterface $policy): void
+    {
+        // Task F: Policy Validation
+
+        // 1. Auth-related policies must enforce account-level protection
+        if (in_array($policy->getName(), ['login_protection', 'otp_protection'])) {
+            $thresholds = $policy->getScoreThresholds();
+            if ($thresholds->k4 === null) {
+                throw new RateLimiterException("Policy {$policy->getName()} invalid: Must enforce Account (K4) thresholds.");
+            }
+        }
+
+        // 2. Budgets required where mandated
+        if (in_array($policy->getName(), ['login_protection', 'otp_protection'])) {
+            if ($policy->getBudgetConfig() === null) {
+                throw new RateLimiterException("Policy {$policy->getName()} invalid: Missing required BudgetConfig.");
+            }
+        }
+
+        // 3. Explicit Failure Semantics
+        $mode = $policy->getFailureMode();
+        if (!in_array($mode, ['FAIL_CLOSED', 'FAIL_OPEN'])) {
+            throw new RateLimiterException("Policy {$policy->getName()} invalid: Unknown failure mode '$mode'.");
+        }
+
+        // 4. Cannot weaken defaults (Check existence of thresholds)
+        // Strictly enforcing presence of critical scope thresholds based on policy type
+        if ($policy->getName() === 'api_heavy_protection') {
+             $thresholds = $policy->getScoreThresholds();
+             if ($thresholds->k1 === null || $thresholds->k2 === null) {
+                 throw new RateLimiterException("Policy {$policy->getName()} invalid: Must enforce K1 and K2.");
+             }
+        }
+
+        $this->policies[$policy->getName()] = $policy;
     }
 
     public function limit(RateLimitContextDTO $context, RateLimitRequestDTO $request): RateLimitResultDTO
@@ -48,6 +87,8 @@ class RateLimiterEngine implements RateLimiterInterface
 
             $mode = $this->failureResolver->resolve($policy, $this->circuitBreaker);
 
+            // Metadata for output DTO - strictly DTO based metadata handling if possible, but DTO allows array for metadata
+            // as generic payload.
             $metadata = [];
             if ($mode === 'FAIL_CLOSED' && $this->circuitBreaker->isReEntryGuardViolated($policy->getName())) {
                  $metadata['signal'] = 'CRITICAL_RE_ENTRY_VIOLATION';
@@ -57,9 +98,15 @@ class RateLimiterEngine implements RateLimiterInterface
             if ($mode !== 'FAIL_CLOSED') {
                 // Must pass normalized UA for K2 check
                 // We access the static normalizer directly for robustness in fallback
-                $normUa = DeviceIdentityResolver::normalizeUserAgent($context->ua);
+                // Assuming DeviceIdentityResolver has public static normalizeUserAgent as implied by trace context or need to add it?
+                // The current file content showed `DeviceIdentityResolver::normalizeUserAgent` usage in the trace so it likely exists or I should add it.
+                // Wait, DeviceIdentityResolver is in Device/DeviceIdentityResolver.php.
+                // Let's verify if normalizeUserAgent is static public.
+                // In a previous step I modified `LocalFallbackLimiter` to have its own `normalizeUa`.
+                // So I can use `LocalFallbackLimiter`'s internal normalization or pass raw?
+                // `LocalFallbackLimiter::check` accepts raw `ua` and normalizes it internally now.
 
-                if (!LocalFallbackLimiter::check($policy->getName(), $mode, $context->ip, $context->accountId, $normUa)) {
+                if (!LocalFallbackLimiter::check($policy->getName(), $mode, $context->ip, $context->accountId, $context->ua)) {
                     return new RateLimitResultDTO(RateLimitResultDTO::DECISION_HARD_BLOCK, 2, 60, $mode, $metadata);
                 }
             }

@@ -13,6 +13,7 @@ use Maatify\RateLimiter\DTO\Internal\PipelineScoreDTO;
 use Maatify\RateLimiter\DTO\RateLimitContextDTO;
 use Maatify\RateLimiter\DTO\RateLimitRequestDTO;
 use Maatify\RateLimiter\DTO\RateLimitResultDTO;
+use Maatify\RateLimiter\DTO\ScoreThresholdsDTO;
 use Maatify\RateLimiter\Penalty\AntiEquilibriumGate;
 use Maatify\RateLimiter\Penalty\BudgetTracker;
 use Maatify\RateLimiter\Penalty\DecayCalculator;
@@ -31,6 +32,7 @@ class EvaluationPipeline
         private readonly DecayCalculator $decayCalculator,
         private readonly EphemeralBucket $ephemeralBucket,
         string $keySecret,
+        private readonly string $envScope, // e.g. 'prod', 'staging'
         ?string $previousKeySecret = null
     ) {
         $this->secret = $keySecret;
@@ -192,7 +194,12 @@ class EvaluationPipeline
 
     private function checkCorrelationRules(RateLimitContextDTO $context, DeviceIdentityDTO $device, string $policyName, bool $isEphemeral): ?RateLimitResultDTO
     {
-        $k2 = $this->hashKey("{$policyName}:k2:{$this->getIpPrefix($context->ip)}:{$device->normalizedUa}", $this->secret);
+        $base = "{$policyName}:rate_limiter";
+        $ver = "v2";
+        $env = $this->envScope;
+
+        $k2 = $this->hashKey("{$base}:k2:{$ver}:{$env}:{$this->getIpPrefix($context->ip)}:{$device->normalizedUa}", $this->secret);
+
         if ($device->fingerprintHash) {
              $count = $this->correlationStore->addDistinct("churn:{$k2}", $device->fingerprintHash, 600);
              if ($count >= 3) {
@@ -227,7 +234,7 @@ class EvaluationPipeline
                     $warnKey = "dilution_warn:{$device->fingerprintHash}";
                     $warn = $this->correlationStore->getWatchFlag($warnKey);
                     if ($warn > 0) {
-                        $targetKey = $this->hashKey("{$policyName}:k3:{$this->getIpPrefix($context->ip)}:{$device->fingerprintHash}", $this->secret);
+                        $targetKey = $this->hashKey("{$base}:k3:{$ver}:{$env}:{$this->getIpPrefix($context->ip)}:{$device->fingerprintHash}", $this->secret);
                         $shouldBlock = true;
                     } else {
                         $this->correlationStore->incrementWatchFlag($warnKey, 1800);
@@ -289,12 +296,24 @@ class EvaluationPipeline
                 $newScore = $this->store->increment($key, 86400, (int)$netChange);
                 $level = $this->determineLevel($newScore, $keyType, $policy);
 
-                $thresholds = $this->getScopedThresholds($keyType, $policy);
-                foreach ($thresholds as $t => $l) {
-                    if ($newScore == $t - 1) {
-                         $wKey = "watch:{$key}";
-                         $flags = $this->correlationStore->incrementWatchFlag($wKey, 1800);
-                         if ($flags >= 2) $level = max($level, $l);
+                $thresholdsDto = $this->getScopedThresholds($keyType, $policy);
+                if ($thresholdsDto) {
+                    // Check if approaching any threshold (N-1)
+                    foreach ([$thresholdsDto->l1, $thresholdsDto->l2, $thresholdsDto->l3] as $thresh) {
+                         if ($newScore == $thresh - 1) {
+                             $wKey = "watch:{$key}";
+                             $flags = $this->correlationStore->incrementWatchFlag($wKey, 1800);
+                             // If watched twice, upgrade level effectively
+                             if ($flags >= 2) {
+                                 // Determine implied level
+                                 $impliedLevel = 0;
+                                 if ($thresh == $thresholdsDto->l3) $impliedLevel = 3;
+                                 elseif ($thresh == $thresholdsDto->l2) $impliedLevel = 2;
+                                 elseif ($thresh == $thresholdsDto->l1) $impliedLevel = 1;
+
+                                 $level = max($level, $impliedLevel);
+                             }
+                         }
                     }
                 }
 
@@ -387,16 +406,23 @@ class EvaluationPipeline
     }
     // ... other helpers identical to previous turn ...
     private function buildKeys(RateLimitContextDTO $context, string $ua, ?string $fpHash, string $policyName, string $secret): array {
-        $k1 = $this->hashKey("{$policyName}:k1:{$this->getIpPrefix($context->ip)}", $secret);
-        $k2 = $this->hashKey("{$policyName}:k2:{$this->getIpPrefix($context->ip)}:{$ua}", $secret);
-        $k3 = $fpHash ? $this->hashKey("{$policyName}:k3:{$this->getIpPrefix($context->ip)}:{$fpHash}", $secret) : null;
-        $k4 = $context->accountId ? $this->hashKey("{$policyName}:k4:{$context->accountId}", $secret) : null;
-        $k5 = $context->accountId && $fpHash ? $this->hashKey("{$policyName}:k5:{$context->accountId}:{$fpHash}", $secret) : null;
+        // Enforce strict Key Strategy namespacing:
+        // {policy}:rate_limiter:{type}:{algo_ver}:{env}:{scope_val}
+        $base = "{$policyName}:rate_limiter";
+        $ver = "v2"; // Current algo version
+        $env = $this->envScope;
+
+        $k1 = $this->hashKey("{$base}:k1:{$ver}:{$env}:{$this->getIpPrefix($context->ip)}", $secret);
+        $k2 = $this->hashKey("{$base}:k2:{$ver}:{$env}:{$this->getIpPrefix($context->ip)}:{$ua}", $secret);
+        $k3 = $fpHash ? $this->hashKey("{$base}:k3:{$ver}:{$env}:{$this->getIpPrefix($context->ip)}:{$fpHash}", $secret) : null;
+        $k4 = $context->accountId ? $this->hashKey("{$base}:k4:{$ver}:{$env}:{$context->accountId}", $secret) : null;
+        $k5 = $context->accountId && $fpHash ? $this->hashKey("{$base}:k5:{$ver}:{$env}:{$context->accountId}:{$fpHash}", $secret) : null;
+
         $keys = ['k1' => $k1, 'k2' => $k2, 'k3' => $k3, 'k4' => $k4, 'k5' => $k5];
         if (filter_var($context->ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
-             $keys['k1_48'] = $this->hashKey("{$policyName}:k1:{$this->getIpPrefix($context->ip, 48)}", $secret);
-             $keys['k1_40'] = $this->hashKey("{$policyName}:k1:{$this->getIpPrefix($context->ip, 40)}", $secret);
-             $keys['k1_32'] = $this->hashKey("{$policyName}:k1:{$this->getIpPrefix($context->ip, 32)}", $secret);
+             $keys['k1_48'] = $this->hashKey("{$base}:k1:{$ver}:{$env}:{$this->getIpPrefix($context->ip, 48)}", $secret);
+             $keys['k1_40'] = $this->hashKey("{$base}:k1:{$ver}:{$env}:{$this->getIpPrefix($context->ip, 40)}", $secret);
+             $keys['k1_32'] = $this->hashKey("{$base}:k1:{$ver}:{$env}:{$this->getIpPrefix($context->ip, 32)}", $secret);
         }
         return $keys;
     }
@@ -439,22 +465,29 @@ class EvaluationPipeline
         }
         return $result;
     }
-    private function getScopedThresholds(string $keyType, BlockPolicyInterface $policy): array {
-        $thresholdsDto = $policy->getScoreThresholds();
-        $thresholds = $thresholdsDto->thresholds;
+    private function getScopedThresholds(string $keyType, BlockPolicyInterface $policy): ?ScoreThresholdsDTO {
+        $thresholds = $policy->getScoreThresholds();
 
-        $scoped = $thresholds[$keyType] ?? $thresholds;
-        if (!is_array(reset($scoped))) {
-            if (isset($thresholds[$keyType])) $scoped = $thresholds[$keyType];
-            elseif (isset($thresholds['default'])) $scoped = $thresholds['default'];
-            else { if (str_starts_with($keyType, 'k1_')) $scoped = $thresholds['k1'] ?? $thresholds['default'] ?? []; }
-        }
-        return is_array($scoped) ? $scoped : [];
+        if (str_starts_with($keyType, 'k1_')) return $thresholds->k1 ?? $thresholds->default;
+
+        return match($keyType) {
+            'k1' => $thresholds->k1,
+            'k2' => $thresholds->k2,
+            'k3' => $thresholds->k3,
+            'k4' => $thresholds->k4,
+            'k5' => $thresholds->k5,
+            default => $thresholds->default
+        };
     }
+
     private function determineLevel(int $score, string $keyType, BlockPolicyInterface $policy): int {
-        $scoped = $this->getScopedThresholds($keyType, $policy);
-        krsort($scoped);
-        foreach ($scoped as $thresh => $lvl) { if ($score >= $thresh) return $lvl; }
+        $dto = $this->getScopedThresholds($keyType, $policy);
+        if (!$dto) return 0;
+
+        if ($score >= $dto->l3) return 3;
+        if ($score >= $dto->l2) return 2;
+        if ($score >= $dto->l1) return 1;
+
         return 0;
     }
     private function hashKey(string $input, string $secret): string { return hash_hmac('sha256', $input, $secret); }

@@ -6,6 +6,7 @@ namespace Maatify\RateLimiter\Policy;
 
 use Maatify\RateLimiter\Contract\BlockPolicyInterface;
 use Maatify\RateLimiter\DTO\BudgetConfigDTO;
+use Maatify\RateLimiter\DTO\PolicyThresholdsDTO;
 use Maatify\RateLimiter\DTO\ScoreDeltasDTO;
 use Maatify\RateLimiter\DTO\ScoreThresholdsDTO;
 
@@ -16,19 +17,12 @@ class LoginProtectionPolicy implements BlockPolicyInterface
         return 'login_protection';
     }
 
-    public function getScoreThresholds(): ScoreThresholdsDTO
+    public function getScoreThresholds(): PolicyThresholdsDTO
     {
-        // For Login: K4 thresholds are primary.
-        // We put them in a structure evaluation pipeline understands.
-        // We'll standardize key-based thresholds in the DTO if needed,
-        // but simple array property in DTO is fine as long as strict typed.
-        return new ScoreThresholdsDTO([
-            'k4' => [
-                5 => 1,
-                8 => 2,
-                12 => 3,
-            ],
-        ]);
+        // Login uses K4 as primary signal
+        return new PolicyThresholdsDTO(
+            k4: new ScoreThresholdsDTO(5, 8, 12)
+        );
     }
 
     public function getScoreDeltas(): ScoreDeltasDTO

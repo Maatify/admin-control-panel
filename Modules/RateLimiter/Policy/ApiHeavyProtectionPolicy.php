@@ -6,6 +6,7 @@ namespace Maatify\RateLimiter\Policy;
 
 use Maatify\RateLimiter\Contract\BlockPolicyInterface;
 use Maatify\RateLimiter\DTO\BudgetConfigDTO;
+use Maatify\RateLimiter\DTO\PolicyThresholdsDTO;
 use Maatify\RateLimiter\DTO\ScoreDeltasDTO;
 use Maatify\RateLimiter\DTO\ScoreThresholdsDTO;
 
@@ -27,13 +28,14 @@ class ApiHeavyProtectionPolicy implements BlockPolicyInterface
         return 'api_heavy_protection';
     }
 
-    public function getScoreThresholds(): ScoreThresholdsDTO
+    public function getScoreThresholds(): PolicyThresholdsDTO
     {
-        return new ScoreThresholdsDTO([
-            'k2' => [$this->limits['k2'] => 1],
-            'k3' => [$this->limits['k3'] => 2],
-            'k1' => [$this->limits['k1'] => 3],
-        ]);
+        // Simple hard blocks for API
+        return new PolicyThresholdsDTO(
+            k1: new ScoreThresholdsDTO($this->limits['k1'], $this->limits['k1'], $this->limits['k1']),
+            k2: new ScoreThresholdsDTO($this->limits['k2'], $this->limits['k2'], $this->limits['k2']),
+            k3: new ScoreThresholdsDTO($this->limits['k3'], $this->limits['k3'], $this->limits['k3'])
+        );
     }
 
     public function getScoreDeltas(): ScoreDeltasDTO
