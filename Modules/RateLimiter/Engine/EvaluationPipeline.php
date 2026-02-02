@@ -203,13 +203,27 @@ class EvaluationPipeline
         if ($device->fingerprintHash) {
             $k3_raw = "dilution:{$device->fingerprintHash}";
             $count = $this->correlationStore->addDistinct($k3_raw, $context->ip, 600);
+
+            $thresholdMet = false;
             if ($count >= 6) {
+                $thresholdMet = true;
+            } elseif ($count === 5) {
+                // Dilution N-1 Watch
+                $wKey = "watch_dilution:{$device->fingerprintHash}";
+                $flags = $this->correlationStore->incrementWatchFlag($wKey, 1800);
+                if ($flags >= 2) {
+                    $thresholdMet = true;
+                }
+            }
+
+            if ($thresholdMet) {
                 $targetKey = null;
                 $shouldBlock = false;
                 if ($device->confidence === 'LOW') {
                     $targetKey = $k2;
                     $shouldBlock = true;
                 } else {
+                    // Medium+ Confidence requires 2-window confirmation
                     $warnKey = "dilution_warn:{$device->fingerprintHash}";
                     $warn = $this->correlationStore->getWatchFlag($warnKey);
                     if ($warn > 0) {
@@ -299,11 +313,24 @@ class EvaluationPipeline
             // Case 3: Same Known Device (K5) > Micro-cap
             // Must use fixed 24h epoch counter, not decayed score.
             if (isset($deltas['k5']) && $deltas['k5'] > 0 && $context->accountId && $device->fingerprintHash) {
-                $microKey = $this->hashKey("microcap:k5:{$context->accountId}:{$device->fingerprintHash}", $this->secret);
-                // Increment using BudgetTracker to ensure fixed 24h epoch
-                $this->budgetTracker->increment($microKey);
-                $microStatus = $this->budgetTracker->getStatus($microKey);
-                if ($microStatus->count >= 8) {
+                $microRaw = "{$policy->getName()}:rate_limiter:microcap:k5:v1:{$context->accountId}:{$device->fingerprintHash}";
+
+                // Write to V2 (Active Key)
+                $microKeyV2 = $this->hashKey($microRaw, $this->secret);
+                $this->budgetTracker->increment($microKeyV2);
+
+                // Read from V2
+                $statusV2 = $this->budgetTracker->getStatus($microKeyV2);
+                $maxCount = $statusV2->count;
+
+                // Read from V1 (Rotation Fallback) - Read Only
+                if ($this->previousSecret) {
+                    $microKeyV1 = $this->hashKey($microRaw, $this->previousSecret);
+                    $statusV1 = $this->budgetTracker->getStatus($microKeyV1);
+                    $maxCount = max($maxCount, $statusV1->count);
+                }
+
+                if ($maxCount >= 8) {
                     $shouldCount = true;
                 }
             }
