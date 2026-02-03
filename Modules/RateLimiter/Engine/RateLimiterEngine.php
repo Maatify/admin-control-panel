@@ -86,7 +86,9 @@ class RateLimiterEngine implements RateLimiterInterface
 
             if ($mode === 'FAIL_CLOSED' && $this->circuitBreaker->isReEntryGuardViolated($policy->getName())) {
                  $signal = 'CRITICAL_RE_ENTRY_VIOLATION';
-                 $this->emitter->emit(new FailureSignalDTO(FailureSignalDTO::TYPE_CB_RE_ENTRY_VIOLATION, $policy->getName()));
+                 $contextMeta = new RateLimitContextMetadataDTO('re_entry_violation');
+                 $meta = new RateLimitMetadataDTO($signal, 're_entry_violation', $contextMeta);
+                 $this->emitter->emit(new FailureSignalDTO(FailureSignalDTO::TYPE_CB_RE_ENTRY_VIOLATION, $policy->getName(), $meta));
             }
 
             // Local Fallback Check

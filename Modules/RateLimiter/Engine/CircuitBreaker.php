@@ -51,7 +51,10 @@ class CircuitBreaker
                 $this->emitter->emit(new FailureSignalDTO(FailureSignalDTO::TYPE_CB_OPENED, $policyName));
 
                 if (count($reEntries) > self::RE_ENTRY_LIMIT) {
-                    $this->emitter->emit(new FailureSignalDTO(FailureSignalDTO::TYPE_CB_RE_ENTRY_VIOLATION, $policyName));
+                    // Engine emits critical signal with full context; CB just tracks state
+                    // We can emit a basic signal here too if needed, but Engine handles the critical one.
+                    // For consistency with contract: "Circuit breaker trip/reset MUST be observable"
+                    // The OPENED signal handles the trip.
                     $failClosedUntil = $now + self::FAIL_CLOSED_DURATION;
                 }
             }

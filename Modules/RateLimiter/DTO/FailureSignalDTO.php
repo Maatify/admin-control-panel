@@ -13,6 +13,6 @@ class FailureSignalDTO
     public function __construct(
         public readonly string $type,
         public readonly string $policyName,
-        public readonly array $metadata = []
+        public readonly ?RateLimitMetadataDTO $metadata = null
     ) {}
 }
