@@ -1444,6 +1444,7 @@ class Container
                 return new PdoEmailQueueWriter($pdo, $crypto, $cryptoContextProvider);
             },
             EmailRendererInterface::class => function (ContainerInterface $c) use ($templatesPath) {
+                $templatesPath = $templatesPath ?? (__DIR__ . '/../Templates');
                 return new TwigEmailRenderer($templatesPath);
             },
             EmailTransportInterface::class => function (ContainerInterface $c) {
