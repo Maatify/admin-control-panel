@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Maatify\EmailDelivery\Renderer;
 
-use Maatify\AdminKernel\Domain\DTO\Email\EmailPayloadInterface;
+use Maatify\EmailDelivery\DTO\EmailPayloadInterface;
 use Maatify\EmailDelivery\DTO\RenderedEmailDTO;
 use Maatify\EmailDelivery\Exception\EmailRenderException;
 

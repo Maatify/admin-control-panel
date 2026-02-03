@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Maatify\EmailDelivery\DTO;
 
-use Maatify\AdminKernel\Domain\DTO\Email\EmailPayloadInterface;
-
 readonly class GenericEmailPayload implements EmailPayloadInterface
 {
     /**
