@@ -89,10 +89,6 @@ class RateLimiterEngine implements RateLimiterInterface
                  $this->emitter->emit(new FailureSignalDTO(FailureSignalDTO::TYPE_CB_RE_ENTRY_VIOLATION, $policy->getName()));
             }
 
-            if ($mode === 'DEGRADED_MODE') {
-                $this->emitter->emit(new FailureSignalDTO(FailureSignalDTO::TYPE_DEGRADED_MODE_ACTIVE, $policy->getName()));
-            }
-
             // Local Fallback Check
             if ($mode !== 'FAIL_CLOSED') {
                 $normUa = DeviceIdentityResolver::normalizeUserAgent($context->ua);
