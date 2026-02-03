@@ -44,7 +44,8 @@
       "Maatify\\InputNormalization\\": "Modules/InputNormalization",
       "Maatify\\Validation\\": "Modules/Validation",
       "Maatify\\RateLimiter\\": "Modules/RateLimiter",
-      "Maatify\\AbuseProtection\\": "Modules/AbuseProtection"
+      "Maatify\\AbuseProtection\\": "Modules/AbuseProtection",
+      "Maatify\\I18n\\": "Modules/I18n"
 
     }
   },
