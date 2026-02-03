@@ -271,13 +271,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
 
     async function loadActivityLogs(page = 1) {
-        const params = buildParams(page, 10);
-        await loadActivityLogsWithParams(params);
+        try{
+
+            const params = buildParams(page, 10);
+            await loadActivityLogsWithParams(params);
+        }catch(e){
+            console.log('Failed to load activity logs2222', e);
+        }
     }
 
     async function loadActivityLogsWithParams(params) {
 
         try {
+            
             await createTable(
                 'activity-logs/query',
                 params,
@@ -297,7 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setupGlobalSearchUI();
 
         } catch (e) {
-            console.error('Failed to load activity logs', e);
+            console.log('Failed to load activity logs', e);
         }
     }
 

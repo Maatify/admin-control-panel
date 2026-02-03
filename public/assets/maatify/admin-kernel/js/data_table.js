@@ -97,7 +97,7 @@ async function createTable(apiUrl, params, headersArg, rowsArg, withSelection = 
 
         const container = document.querySelector("#table-container");
         if (container) {
-            container.innerHTML = `<div class="bg-white rounded-lg p-8 shadow-lg text-center"><h3 class="text-lg font-medium text-gray-900">Error Loading Data</h3><p class="text-sm text-gray-500">${error.message}</p><button onclick="location.reload()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg">Retry</button></div>`;
+            container.innerHTML = `<div class="bg-white text-red-500 rounded-lg p-8 shadow-lg text-center"><h3 class="text-lg font-medium text-red-600">Error Loading Data</h3><p class="text-sm text-red-600">${error.message}</p><button onclick="location.reload()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg">Retry</button></div>`;
         }
         return { success: false, error: error.message };
     }
@@ -142,7 +142,7 @@ function showAlert(type, message) {
         info: 'bg-blue-100 border-blue-400 text-blue-700'
     };
     const el = document.createElement('div');
-    el.className = `fixed top-4 right-4 z-50 ${colors[t]} border px-4 py-3 rounded-lg shadow-lg max-w-md`;
+    el.className = `fixed top-4 right-4 z-50 ${colors[t]} border px-4 py-3 rounded-lg shadow-lg max-w-md z-99999 left-10 `;
     el.innerHTML = `<div class="flex items-center justify-between"><span>${message}</span><button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-lg">&times;</button></div>`;
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 5000);
@@ -209,7 +209,7 @@ function TableComponent(data, columns, rowNames, paginationData, actions = "", w
             </div>
             
             <!-- Optional: Container for custom filters (controlled by parent page) -->
-            <div id="table-custom-filters" class="flex-1 flex justify-end"></div>
+            <div id="table-custom-filters" class="flex-1 flex justify-start"></div>
         </div>
         <div class="overflow-x-auto">
             <table class="min-w-full">
@@ -278,7 +278,7 @@ function TableComponent(data, columns, rowNames, paginationData, actions = "", w
 
         for (let i = start; i <= end; i++) {
             const li = document.createElement("li");
-            li.innerHTML = `<span class="px-2 rounded cursor-pointer ${safePage === i ? 'bg-blue-600 text-white' : 'bg-blue-400 text-white hover:bg-blue-600'}">${i}</span>`;
+            li.innerHTML = `<span class="px-2 py-1 rounded cursor-pointer ${safePage === i ? 'bg-blue-600 text-white' : 'bg-blue-400 text-white hover:bg-blue-600'}">${i}</span>`;
             li.onclick = () => updatePage(i);
             paginationContainer.appendChild(li);
         }

@@ -90,10 +90,10 @@
 
 					<!-- Action Buttons -->
 					<div class="flex items-end space-x-1">
-						<button type="submit" class="text-xs px-4 py-1 bg-blue-600 text-white rounded-md hover:bg-white hover:text-blue-600 border  hover:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+						<button type="submit" class="text-xs px-4 py-1 bg-sky-600 text-white rounded-md hover:bg-white hover:text-sky-600 border  hover:border-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 transition-all duration-300 ">
 							Search
 						</button>
-						<button type="button" id="btn-reset" class="text-xs px-4 py-1 bg-white text-gray-600 border border-gray-600 rounded-md hover:bg-gray-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+						<button type="button" id="btn-reset" class="text-xs px-4 py-1 bg-white text-gray-600 border border-gray-600 rounded-md hover:bg-gray-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-all duration-300">
 							Reset
 						</button>
 						{# ✅ Show "Revoke" button only if user has can_revoke_bulk capability #}
@@ -110,14 +110,14 @@
 
 
 
-<div class="container mt-6"> <div id="table-container" class="w-full"></div>
+<div class="container mt-5"> <div id="table-container" class="w-full"></div>
 	</div>
 
 {% endblock %}
 
 {% block scripts %}
 <script src="{{ asset('assets/maatify/admin-kernel/js/callback_handler.js') }}"></script>
-<script src="{{ asset('assets/maatify/admin-kernel/js/useInputChecker.js') }}"></script>
+<script src="{{ asset('assets/maatify/admin-kernel/js/Input_checker.js') }}"></script>
 <script src="{{ asset('assets/maatify/admin-kernel/js/data_table.js') }}"></script>
 <script src="{{ asset('assets/maatify/admin-kernel/js/pages/sessions.js') }}"></script>
 	

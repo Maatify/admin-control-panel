@@ -312,7 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         filterContainer.innerHTML = `
             <div class="flex gap-4 items-center flex-wrap">
-                <div class="w-64">
+                <div class="w-100">
                     <input id="permissions-global-search" 
                         class="w-full border rounded-lg px-3 py-1 text-sm transition-colors duration-200" 
                         placeholder="Search permissions..." />

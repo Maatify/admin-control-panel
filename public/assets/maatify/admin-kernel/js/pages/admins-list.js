@@ -274,18 +274,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         filterContainer.innerHTML = `
             <div class="flex gap-4 items-center flex-wrap">
-                <div class="w-64">
+            <div class="flex gap-2">
+                    <span data-status="all" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white">All</span>
+                    <span data-status="ACTIVE" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white">Active</span>
+                    <span data-status="SUSPENDED" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white">Suspended</span>
+                    <span data-status="DISABLED" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white">Disabled</span>
+                </div>    
+            <div class="w-100">
                     <input id="admins-global-search" 
                         class="w-full border rounded-lg px-3 py-1 text-sm" 
                         placeholder="Search admins..." />
                 </div>
                 
-                <div class="flex gap-2">
-                    <span data-status="all" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white">All</span>
-                    <span data-status="ACTIVE" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white">Active</span>
-                    <span data-status="SUSPENDED" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white">Suspended</span>
-                    <span data-status="DISABLED" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white">Disabled</span>
-                </div>
+                
             </div>
         `;
 

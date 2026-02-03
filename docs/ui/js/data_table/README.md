@@ -1,80 +1,112 @@
-# Data Table Documentation
+# Generic Data Table Component
 
-`data_table.js` is a comprehensive component for rendering dynamic tables with server-side pagination, sorting, filtering, and export capabilities.
+A completely agnostic, reusable JavaScript data table component that handles API data fetching, rendering, pagination, selection, and export without knowing any business logic.
 
-## Integration Example
+## Features
+- 🚀 **Zero Business Logic**: Just displays what the API sends.
+- 📡 **Built-in API Fetching**: Handles `POST` requests with parameters.
+- 📄 **Pagination**: Supports server-side pagination with custom per-page options.
+- ✅ **Selection**: Optional row selection with "Select All" capability.
+- 🎨 **Custom Rendering**: Inject custom HTML for specific columns.
+- 📤 **Export**: Built-in CSV, Excel, and PDF export (client-side).
+- 🔔 **Event System**: Emits custom events for parent interaction.
+- 🧩 **Sorting**: Client-side sorting support.
 
-### 1. HTML Structure
-Ensure you have a container where the table will be rendered.
+## Dependencies
+- Tailwind CSS (for styling)
+- FontAwesome / HeroIcons (SVGs included inline)
+
+## Quick Start
+
 ```html
-<div class="container mt-6">
-    <div id="table-container" class="w-full"></div>
-</div>
+<div id="table-container"></div>
 
-<!-- Include Scripts -->
-<script src="/assets/js/data_table.js"></script>
+<script src="/path/to/data_table.js"></script>
+<script>
+    const headers = ["ID", "Name", "Email", "Status", "Actions"];
+    const rowKeys = ["id", "name", "email", "status", "actions"];
+    
+    // Initialize and load data
+    createTable(
+        '/api/users/list',  // API Endpoint
+        { page: 1 },        // Initial Params
+        headers,            // Header Labels
+        rowKeys,            // Keys in API response object
+        true                // Enable Selection
+    );
+</script>
 ```
 
-### 2. Javascript Initialization
+## API Reference
+
+### `createTable(apiUrl, params, headers, rowKeys, withSelection, primaryKey, onSelectionChange, customRenderers, selectableIds, getPaginationInfo)`
+
+Main entry point. Fetches data from the API and renders the table.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `apiUrl` | String | | The API endpoint to fetch data from (POST). |
+| `params` | Object | | Payload sending to the API (e.g., `{ page: 1, search: 'foo' }`). |
+| `headers` | Array | | Information text to display in the table header. |
+| `rowKeys` | Array | | Keys matching the data object properties. |
+| `withSelection` | Boolean | `false` | Enable checkbox selection column. |
+| `primaryKey` | String | `'id'` | Unique key for tracking selection. |
+| `onSelectionChange` | Function | `null` | Callback `(selectedIds) => {}`. |
+| `customRenderers` | Object | `{}` | Functions to render custom column HTML. |
+| `selectableIds` | Set/Array | `null` | Whitelist of IDs allowed to be selected. |
+| `getPaginationInfo` | Function | `null` | Callback to return custom `{ total, info }` text. |
+
+### `TableComponent(data, columns, rowNames, paginationData, ...)`
+
+Renders the UI. Usually called internally by `createTable`, but can be used directly if you have static data.
+
+## Custom Renderers
+
+You can format specific columns (e.g., adding buttons, badges, or links).
+
 ```javascript
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. Define Columns Headers (Display Names)
-    const headers = [
-        "User ID",
-        "Full Name", 
-        "Email Address",
-        "Account Status"
-    ];
+const renderers = {
+    status: (value, row) => {
+        const color = value === 'Active' ? 'green' : 'red';
+        return `<span class="text-${color}-600 font-bold">${value}</span>`;
+    },
+    actions: (value, row) => {
+        return `<button onclick="editUser(${row.id})" class="btn-primary">Edit</button>`;
+    }
+};
 
-    // 2. Define Row Keys (JSON keys from API response)
-    const rows = [
-        "id",
-        "full_name",
-        "email",
-        "status"
-    ];
+createTable(api, params, headers, keys, true, 'id', null, renderers);
+```
 
-    // 3. Define Initial Parameters
-    const params = {
-        per_page: 10,
-        filters: {} 
-    };
+## Events
 
-    // 4. Initialize Table
-    // Fetches data from /api/users/list
-    createTable("users/list", params, headers, rows);
+The table emits a `tableAction` event on the `document` for interactions.
+
+```javascript
+document.addEventListener('tableAction', (e) => {
+    const { action, value, currentParams } = e.detail;
+
+    if (action === 'pageChange') {
+        console.log(`Switched to page ${value}`);
+        // You usually want to reload the table here
+        currentParams.page = value;
+        createTable(apiUrl, currentParams, ...);
+    }
+    
+    if (action === 'perPageChange') {
+        console.log(`Per page changed to ${value}`);
+    }
 });
 ```
 
-## Global Functions
+## Exporting Data
+Three buttons are automatically generated at the top of the table:
+- **CSV**: Exports visible data to CSV.
+- **Excel**: Exports visible data to `.xls`.
+- **PDF**: Opens a print-friendly view.
 
-### `createTable(apiUrl, params, headers, rows)`
-Initializes or refreshes the table data.
-- **apiUrl**: Endpoint path (e.g., `"sessions/query"`).
-- **params**: Object containing `per_page`, filters, etc.
-- **headers**: Array of column display names.
-- **rows**: Array of object keys corresponding to columns.
-- **Behavior**: Fetches data from `/api/{apiUrl}` and calls `TableComponent`.
-
-## `TableComponent(data, columns, rowNames, pagination)`
-Renders the HTML table logic.
-- **data**: Array of row objects.
-- **columns**: Table header labels.
-- **rowNames**: Keys to access data in row objects.
-- **pagination**: Object `{ count, page, total }`.
-
-### Features
-1.  **Rendering**: Generates HTML for table structure, headers, and rows.
-2.  **Badge Logic**: Automatically styles specific fields like "status" (active=green, draft=red, etc.).
-3.  **Pagination**: Renders Next/Prev and numbered page buttons. Handles page changes via `updatePage`.
-4.  **Sorting**: Clickable headers to sort data client-side.
-5.  **Filtering**:
-    - **Search Input**: simple client-side text filter.
-    - **Status Filter**: buttons for "Active", "Draft", etc.
-6.  **Export**:
-    - **CSV**: Downloads client-side CSV.
-    - **Excel**: Downloads client-side XLS.
-    - **PDF**: Opens print view for PDF generation.
-
-## Dependencies- **Axios/Fetch**: Uses `fetch` for API calls.
-- **Tailwind/Bootstrap**: Relies on specific CSS classes for styling.
+## Error Handling
+If the API fails:
+1. Validates input arrays.
+2. Shows a loading spinner.
+3. Catches fetch errors and displays a user-friendly error UI with a "Retry" button.

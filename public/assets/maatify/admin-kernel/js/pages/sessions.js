@@ -293,19 +293,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!filterContainer) return;
 
         filterContainer.innerHTML = `
-            <div class="flex gap-4 items-center flex-wrap">
-                <div class="w-64">
-                    <input id="sessions-global-search" 
-                        class="w-full border rounded-lg px-3 py-1 text-sm transition-colors duration-200" 
-                        placeholder="Search sessions..." />
-                </div>
-                
-                <div class="flex gap-2">
+            <div class="flex gap-4 items-center justify-between flex-wrap">
+             <div class="flex gap-2">
                     <span data-status="all" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white transition-colors duration-200">All</span>
                     <span data-status="active" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white transition-colors duration-200">Active</span>
                     <span data-status="expired" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white transition-colors duration-200">Expired</span>
                     <span data-status="revoked" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white transition-colors duration-200">Revoked</span>
                 </div>
+                <div class="w-90">
+                    <input id="sessions-global-search" 
+                        class="w-full border rounded-lg px-3 py-1 text-sm transition-colors duration-200" 
+                        placeholder="Search sessions..." />
+                </div>
+                
+               
             </div>
         `;
 
