@@ -110,8 +110,7 @@ class EvaluationPipeline
 
                   if ($isFloodStage) {
                        $duration = PenaltyLadder::getDuration(2);
-                       // Fix Error 1: Ensure key is not null
-                       if (isset($realKeysV2['k5']) && is_string($realKeysV2['k5'])) {
+                       if ($realKeysV2['k5'] !== null) {
                            $this->store->block($realKeysV2['k5'], 2, $duration);
                        }
                        return $this->createBlockedResult(2, $duration, RateLimitResultDTO::DECISION_HARD_BLOCK);
@@ -188,14 +187,21 @@ class EvaluationPipeline
      * @param array<string, int> $scores
      * @param array<string, string|null> $keys
      */
+    /**
+     * @param array<string, int> $scores
+     * @param array<string, string|null> $keys
+     */
     private function checkThresholds(BlockPolicyInterface $policy, array $scores, array $keys, DeviceIdentityDTO $device): ?RateLimitResultDTO
     {
         $highestLevel = 0;
         foreach ($scores as $keyType => $score) {
             $level = $this->determineLevel($score, $keyType, $policy);
+
+            // Fix redundant isset/offset checks by trusting the loop and explicit checks
             if ($keyType === 'k3' && $device->confidence === 'LOW' && $level >= 2) {
                 $level = 1;
             }
+
             if ($level > $highestLevel) {
                 $highestLevel = $level;
             }
