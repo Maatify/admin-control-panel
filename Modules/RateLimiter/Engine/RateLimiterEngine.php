@@ -82,9 +82,15 @@ class RateLimiterEngine implements RateLimiterInterface
             $mode = $this->failureResolver->resolve($policy, $this->circuitBreaker);
 
             $signal = null;
+            $contextMeta = null;
+
             if ($mode === 'FAIL_CLOSED' && $this->circuitBreaker->isReEntryGuardViolated($policy->getName())) {
                  $signal = 'CRITICAL_RE_ENTRY_VIOLATION';
                  $this->emitter->emit(new FailureSignalDTO(FailureSignalDTO::TYPE_CB_RE_ENTRY_VIOLATION, $policy->getName()));
+            }
+
+            if ($mode === 'DEGRADED_MODE') {
+                $this->emitter->emit(new FailureSignalDTO(FailureSignalDTO::TYPE_DEGRADED_MODE_ACTIVE, $policy->getName()));
             }
 
             // Local Fallback Check
@@ -92,12 +98,13 @@ class RateLimiterEngine implements RateLimiterInterface
                 $normUa = DeviceIdentityResolver::normalizeUserAgent($context->ua);
 
                 if (!LocalFallbackLimiter::check($policy->getName(), $mode, $context->ip, $context->accountId, $normUa)) {
-                    $meta = new RateLimitMetadataDTO($signal, 'fallback_limit_exceeded');
+                    $contextMeta = new RateLimitContextMetadataDTO('fallback_limit_exceeded');
+                    $meta = new RateLimitMetadataDTO($signal, 'fallback_limit_exceeded', $contextMeta);
                     return new RateLimitResultDTO(RateLimitResultDTO::DECISION_HARD_BLOCK, 2, 60, $mode, $meta);
                 }
             }
 
-            $meta = new RateLimitMetadataDTO($signal, null);
+            $meta = new RateLimitMetadataDTO($signal, null, $contextMeta);
 
             if ($mode === 'FAIL_OPEN') {
                 return new RateLimitResultDTO(RateLimitResultDTO::DECISION_ALLOW, 0, 0, $mode, $meta);
