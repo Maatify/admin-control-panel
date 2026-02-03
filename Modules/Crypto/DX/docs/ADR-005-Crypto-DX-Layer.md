@@ -48,7 +48,6 @@ This layer provides:
 
       * Context-based encryption
       * Direct encryption
-      * Password hashing
 
 ---
 

@@ -70,33 +70,12 @@ $plaintext = $encrypter->decrypt($encryptedPayload);
 
 ---
 
-## 4. Password Hashing
-
-Provides direct access to the `PasswordService` for hashing and verification.
-This pipeline is **fully isolated** from encryption keys and reversible cryptography.
-
-**Pipeline:**
-`HMAC(Pepper)` → `Argon2id`
-
-```php
-$passwordService = $this->crypto->password();
-
-// Hash
-$hash = $passwordService->hash('user-password');
-
-// Verify
-$isValid = $passwordService->verify('user-password', $hash);
-```
-
----
-
 ## Summary of Methods
 
 | Method                 | Returns                   | Use Case                                         |
 |------------------------|---------------------------|--------------------------------------------------|
 | `context(string $ctx)` | `ReversibleCryptoService` | **Default**. Domain-separated encryption (HKDF). |
 | `direct()`             | `ReversibleCryptoService` | **Advanced**. Raw root-key encryption.           |
-| `password()`           | `PasswordService`         | Password hashing and verification.               |
 
 ---
 

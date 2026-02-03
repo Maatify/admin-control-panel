@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Maatify\Crypto\DX;
 
-use Maatify\AdminKernel\Domain\Service\PasswordService;
 use Maatify\Crypto\Reversible\ReversibleCryptoService;
 
 /**
@@ -15,7 +14,6 @@ use Maatify\Crypto\Reversible\ReversibleCryptoService;
  * Provides a single injection point for:
  * 1. Context-based encryption (HKDF Pipeline)
  * 2. Direct encryption (No-HKDF Pipeline)
- * 3. Password hashing (Password Pipeline)
  *
  * @internal This is a DX helper.
  */
@@ -23,8 +21,7 @@ final readonly class CryptoProvider
 {
     public function __construct(
         private CryptoContextFactory $contextFactory,
-        private CryptoDirectFactory $directFactory,
-        private PasswordService $passwordService
+        private CryptoDirectFactory $directFactory
     ) {
     }
 
@@ -53,17 +50,5 @@ final readonly class CryptoProvider
     public function direct(): ReversibleCryptoService
     {
         return $this->directFactory->create();
-    }
-
-    /**
-     * Access the password hashing service.
-     *
-     * Pipeline: HMAC(Pepper) -> Argon2id
-     *
-     * @return PasswordService
-     */
-    public function password(): PasswordService
-    {
-        return $this->passwordService;
     }
 }

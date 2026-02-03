@@ -8,7 +8,6 @@ It integrates the following isolated modules into unified pipelines:
 * **KeyRotation**: Root key management.
 * **HKDF**: Key derivation.
 * **Reversible**: AES-GCM encryption.
-* **Password**: Argon2id hashing.
 
 ## Purpose
 

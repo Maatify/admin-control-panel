@@ -1424,13 +1424,11 @@ class Container
             CryptoProvider::class => function (ContainerInterface $c) {
                 $contextFactory = $c->get(CryptoContextFactory::class);
                 $directFactory = $c->get(CryptoDirectFactory::class);
-                $passwordService = $c->get(PasswordService::class);
 
                 assert($contextFactory instanceof CryptoContextFactory);
                 assert($directFactory instanceof CryptoDirectFactory);
-                assert($passwordService instanceof PasswordService);
 
-                return new CryptoProvider($contextFactory, $directFactory, $passwordService);
+                return new CryptoProvider($contextFactory, $directFactory);
             },
             EmailQueueWriterInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);

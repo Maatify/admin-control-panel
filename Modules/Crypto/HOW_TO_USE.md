@@ -10,7 +10,7 @@ This guide is intended for:
 ## 2. High-Level Usage
 
 Consumers are expected to interact with this module primarily through the **DX Layer** (`CryptoProvider`).
-The underlying modules (`Password`, `KeyRotation`, `HKDF`, `Reversible`) are designed to be composed together, but direct usage is reserved for advanced custom integrations.
+The underlying modules (`KeyRotation`, `HKDF`, `Reversible`) are designed to be composed together, but direct usage is reserved for advanced custom integrations.
 
 Cryptographic services are **consumed**, not extended. You should not subclass the core services or attempt to override their behavior.
 
@@ -19,22 +19,22 @@ Cryptographic services are **consumed**, not extended. You should not subclass t
 The Password pipeline is strictly for one-way hashing of authentication credentials.
 
 **Conceptual Flow:**
-1. Retrieve the `PasswordService` via the `CryptoProvider` (or DI).
+1. Retrieve the `PasswordService` via Dependency Injection.
 2. **Hash** a plain text password for storage.
 3. **Verify** a plain text password against a stored hash.
 4. **Check** if a stored hash needs rehashing (e.g., after policy updates).
 
 ```php
 // 1. Hash a new password
-$hash = $cryptoProvider->password()->hash($inputPassword);
+$hash = $passwordService->hash($inputPassword);
 // Store $hash in your database (VARCHAR/TEXT)
 
 // 2. Verify a login attempt
-$isValid = $cryptoProvider->password()->verify($inputPassword, $storedHash);
+$isValid = $passwordService->verify($inputPassword, $storedHash);
 
 // 3. Maintenance (Login Flow)
-if ($isValid && $cryptoProvider->password()->needsRehash($storedHash)) {
-    $newHash = $cryptoProvider->password()->hash($inputPassword);
+if ($isValid && $passwordService->needsRehash($storedHash)) {
+    $newHash = $passwordService->hash($inputPassword);
     // Update storage with $newHash
 }
 ```
