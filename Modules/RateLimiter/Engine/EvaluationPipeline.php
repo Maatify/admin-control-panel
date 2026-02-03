@@ -110,7 +110,8 @@ class EvaluationPipeline
 
                   if ($isFloodStage) {
                        $duration = PenaltyLadder::getDuration(2);
-                       if (isset($realKeysV2['k5'])) {
+                       // Fix Error 1: Ensure key is not null
+                       if (isset($realKeysV2['k5']) && is_string($realKeysV2['k5'])) {
                            $this->store->block($realKeysV2['k5'], 2, $duration);
                        }
                        return $this->createBlockedResult(2, $duration, RateLimitResultDTO::DECISION_HARD_BLOCK);
@@ -159,10 +160,14 @@ class EvaluationPipeline
     /**
      * @param array<string, string|null> $keys
      */
+    /**
+     * @param array<string, string|null> $keys
+     */
     private function checkBudget(BlockPolicyInterface $policy, array $keys, DeviceIdentityDTO $device): ?RateLimitResultDTO
     {
         $config = $policy->getBudgetConfig();
-        if ($config && isset($keys['k4']) && $keys['k4']) {
+        // Fix Error 2: isset check on known offset is redundant, just check for null value
+        if ($config && $keys['k4'] !== null) {
             if ($this->budgetTracker->isExceeded($keys['k4'], $config->threshold)) {
                 $level = $config->block_level;
                 if ($device->isTrustedSession) {
@@ -486,16 +491,18 @@ class EvaluationPipeline
     }
 
     /**
-     * @return array<string, int>
+     * @return array{k1: int, k2: int, k3: int, k4: int, k5: int}
      */
     private function calculateDeltas(BlockPolicyInterface $policy, RateLimitContextDTO $context, DeviceIdentityDTO $device, RateLimitRequestDTO $request): array {
         $deltasDto = $policy->getScoreDeltas();
-        $result = [];
+        // Fix Error 3: Initialize with stable shape
+        $result = ['k1' => 0, 'k2' => 0, 'k3' => 0, 'k4' => 0, 'k5' => 0];
+
         if ($deltasDto->access > 0) {
             $cost = $deltasDto->access * $request->cost;
-            $result['k1'] = ($result['k1'] ?? 0) + $cost;
-            $result['k2'] = ($result['k2'] ?? 0) + $cost;
-            $result['k3'] = ($result['k3'] ?? 0) + $cost;
+            $result['k1'] += $cost;
+            $result['k2'] += $cost;
+            $result['k3'] += $cost;
         }
         if ($request->isFailure) {
             if ($deltasDto->k5_failure > 0) $result['k5'] = $deltasDto->k5_failure;
