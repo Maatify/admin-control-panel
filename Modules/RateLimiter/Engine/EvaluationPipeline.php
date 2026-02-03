@@ -138,6 +138,10 @@ class EvaluationPipeline
         return $this->createAllowResult();
     }
 
+    /**
+     * @param array<string, string|null> $keysV2
+     * @param array<string, string|null> $keysV1
+     */
     private function checkActiveBlocks(array $keysV2, array $keysV1): ?RateLimitResultDTO
     {
         foreach ([$keysV2, $keysV1] as $keys) {
@@ -152,10 +156,13 @@ class EvaluationPipeline
         return null;
     }
 
+    /**
+     * @param array<string, string|null> $keys
+     */
     private function checkBudget(BlockPolicyInterface $policy, array $keys, DeviceIdentityDTO $device): ?RateLimitResultDTO
     {
         $config = $policy->getBudgetConfig();
-        if ($config && isset($keys['k4'])) {
+        if ($config && isset($keys['k4']) && $keys['k4']) {
             if ($this->budgetTracker->isExceeded($keys['k4'], $config->threshold)) {
                 $level = $config->block_level;
                 if ($device->isTrustedSession) {
@@ -172,7 +179,10 @@ class EvaluationPipeline
         return null;
     }
 
-    // ... checkThresholds, checkCorrelationRules ... (Same as before)
+    /**
+     * @param array<string, int> $scores
+     * @param array<string, string|null> $keys
+     */
     private function checkThresholds(BlockPolicyInterface $policy, array $scores, array $keys, DeviceIdentityDTO $device): ?RateLimitResultDTO
     {
         $highestLevel = 0;
@@ -259,6 +269,10 @@ class EvaluationPipeline
         return null;
     }
 
+    /**
+     * @param array<string, string|null> $keys
+     * @param array<string, ?PipelineScoreDTO> $rawScores
+     */
     private function processUpdates(
         BlockPolicyInterface $policy,
         RateLimitContextDTO $context,
@@ -363,7 +377,7 @@ class EvaluationPipeline
                 }
             }
 
-            if ($shouldCount) {
+            if ($shouldCount && isset($keys['k4'])) {
                 $this->budgetTracker->increment($keys['k4']);
                 if ($this->budgetTracker->isExceeded($keys['k4'], $config->threshold)) {
                     $newMaxLevel = max($newMaxLevel, $config->block_level);
@@ -412,6 +426,9 @@ class EvaluationPipeline
         return max(0, $value - $decayAmount);
     }
     // ... other helpers identical to previous turn ...
+    /**
+     * @return array<string, string|null>
+     */
     private function buildKeys(RateLimitContextDTO $context, string $ua, ?string $fpHash, string $policyName, string $secret): array {
         // Enforce strict Key Strategy namespacing:
         // {policy}:rate_limiter:{type}:{algo_ver}:{env}:{scope_val}
@@ -433,6 +450,12 @@ class EvaluationPipeline
         }
         return $keys;
     }
+
+    /**
+     * @param array<string, string|null> $keysV2
+     * @param array<string, string|null> $keysV1
+     * @return array<string, ?PipelineScoreDTO>
+     */
     private function fetchScores(array $keysV2, array $keysV1): array {
         $scores = [];
         foreach ($keysV2 as $keyType => $key) {
@@ -446,6 +469,12 @@ class EvaluationPipeline
         }
         return $scores;
     }
+
+    /**
+     * @param array<string, ?PipelineScoreDTO> $rawScores
+     * @param array<string, string|null> $keys
+     * @return array<string, int>
+     */
     private function applyDecay(array $rawScores, array $keys): array {
         $decayed = [];
         foreach ($keys as $keyType => $key) {
@@ -455,6 +484,10 @@ class EvaluationPipeline
         }
         return $decayed;
     }
+
+    /**
+     * @return array<string, int>
+     */
     private function calculateDeltas(BlockPolicyInterface $policy, RateLimitContextDTO $context, DeviceIdentityDTO $device, RateLimitRequestDTO $request): array {
         $deltasDto = $policy->getScoreDeltas();
         $result = [];

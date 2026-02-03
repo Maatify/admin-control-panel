@@ -6,6 +6,7 @@ namespace Maatify\RateLimiter\Engine;
 
 class LocalFallbackLimiter
 {
+    /** @var array<string, int> */
     private static array $counters = [];
     private static int $lastGc = 0;
 

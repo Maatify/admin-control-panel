@@ -10,6 +10,7 @@ use Maatify\RateLimiter\Contract\FailureSignalEmitterInterface;
 use Maatify\RateLimiter\Contract\RateLimiterInterface;
 use Maatify\RateLimiter\DTO\FailureSignalDTO;
 use Maatify\RateLimiter\DTO\RateLimitContextDTO;
+use Maatify\RateLimiter\DTO\RateLimitContextMetadataDTO;
 use Maatify\RateLimiter\DTO\RateLimitMetadataDTO;
 use Maatify\RateLimiter\DTO\RateLimitRequestDTO;
 use Maatify\RateLimiter\DTO\RateLimitResultDTO;
@@ -21,6 +22,9 @@ class RateLimiterEngine implements RateLimiterInterface
     /** @var array<string, BlockPolicyInterface> */
     private array $policies = [];
 
+    /**
+     * @param BlockPolicyInterface[] $policies
+     */
     public function __construct(
         private readonly DeviceIdentityResolverInterface $deviceResolver,
         private readonly EvaluationPipeline $pipeline,

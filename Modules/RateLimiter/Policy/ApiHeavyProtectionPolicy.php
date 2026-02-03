@@ -12,8 +12,12 @@ use Maatify\RateLimiter\DTO\ScoreThresholdsDTO;
 
 class ApiHeavyProtectionPolicy implements BlockPolicyInterface
 {
+    /** @var array<string, int> */
     private array $limits;
 
+    /**
+     * @param array<string, int> $limits
+     */
     public function __construct(array $limits = [])
     {
         $this->limits = array_merge([

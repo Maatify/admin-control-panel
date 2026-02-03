@@ -6,6 +6,15 @@ namespace Maatify\RateLimiter\DTO\Store;
 
 class CircuitBreakerStateDTO
 {
+    /**
+     * @param string $status
+     * @param array<int, int> $failures
+     * @param int $lastFailure
+     * @param int $openSince
+     * @param int $lastSuccess
+     * @param array<int, int> $reEntries
+     * @param int $failClosedUntil
+     */
     public function __construct(
         public readonly string $status,
         public readonly array $failures,

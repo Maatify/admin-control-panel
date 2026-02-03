@@ -48,9 +48,13 @@ class DeviceIdentityResolver implements DeviceIdentityResolverInterface
         return strtolower(substr($ua, 0, 50));
     }
 
+    /**
+     * @param array<string, mixed> $fp
+     */
     private function normalizeClientFp(array $fp): string
     {
         ksort($fp);
-        return json_encode($fp);
+        $json = json_encode($fp);
+        return $json === false ? '' : $json;
     }
 }
