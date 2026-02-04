@@ -60,6 +60,11 @@ final readonly class PdoLanguageQueryReader implements LanguageQueryReaderInterf
                 $where[] = 'l.is_active = :is_active';
                 $params['is_active'] = (int)$value;
             }
+
+            if ($alias === 'direction') {
+                $where[] = 'ls.direction = :direction';
+                $params['direction'] = trim((string)$value);
+            }
         }
 
         $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
@@ -75,11 +80,15 @@ final readonly class PdoLanguageQueryReader implements LanguageQueryReaderInterf
 
         $total = (int)$stmtTotal->fetchColumn();
 
+        $fromSql = '
+    FROM languages l
+    LEFT JOIN language_settings ls ON ls.language_id = l.id
+';
         // ─────────────────────────────
         // Filtered
         // ─────────────────────────────
         $stmtFiltered = $this->pdo->prepare(
-            "SELECT COUNT(*) FROM languages l {$whereSql}"
+            "SELECT COUNT(*) {$fromSql} {$whereSql}"
         );
 
         $stmtFiltered->execute($params);
@@ -103,8 +112,7 @@ final readonly class PdoLanguageQueryReader implements LanguageQueryReaderInterf
                 ls.direction,
                 ls.icon,
                 ls.sort_order
-            FROM languages l
-            LEFT JOIN language_settings ls ON ls.language_id = l.id
+            {$fromSql}
             {$whereSql}
             ORDER BY
                 ls.sort_order ASC,

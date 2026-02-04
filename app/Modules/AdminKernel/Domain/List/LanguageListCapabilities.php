@@ -22,6 +22,7 @@ final class LanguageListCapabilities
                 'name' => 'name',
                 'code' => 'code',
                 'is_active' => 'is_active',
+                'direction' => 'direction',
             ],
 
             supportsDateFilter   : false,
