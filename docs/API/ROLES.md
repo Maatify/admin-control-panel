@@ -1,119 +1,136 @@
-# 🔐 Roles Management API
+# 🔐 Roles Management — UI & API Integration Guide
 
-This section documents **Roles APIs** used to **list roles, manage their UI metadata,
-control role activation, and rename technical role keys**, and defines how
-**UI capabilities** are computed and consumed.
-
-> ℹ️ Technical role keys (`roles.name`) are **immutable by default** and can **only**
-> be changed through the dedicated **Rename API**
->
-> ℹ️ Role creation, permission assignment, admin binding, and lifecycle management are **NOT part of this API**
->
-> ℹ️ All routes below are prefixed with `/api`.
+**Project:** `maatify/admin-control-panel`
+**Module:** `AdminKernel / Authorization`
+**Audience:** UI & Frontend Developers
+**Status:** **CANONICAL / BINDING CONTRACT**
 
 ---
 
-## 🧭 Scope & Relationship
+## 0) Why this document exists
 
-This document (`ROLES.md`) defines the **Core Role APIs** (CRUD, Listing, Metadata).
+This file is a **runtime integration contract** for the Roles UI.
 
-For **Advanced Role Operations** (Permission Assignment, Bulk Admin Assignment),
-refer to:
+It answers, precisely:
 
-> **[ROLE-MANAGEMENT.md](ROLE-MANAGEMENT.md)**
->
-> *`ROLE-MANAGEMENT.md` is an **extension** of `ROLES.md`.*
-> *Both documents MUST be read together to understand the full Role API surface.*
+*   What the UI is allowed to send
+*   How global search and filters actually work
+*   What each endpoint requires vs what is optional
+*   What response shapes exist (success + failure)
+*   Why you are getting `422` / runtime exceptions
+
+If something is not documented here, treat it as **not supported**.
+
+### ⚠️ CRITICAL: UI vs API Distinction
+
+You must understand the difference between the **UI Page** and the **API**:
+
+*   **`GET /roles`**
+    *   ❌ **This is NOT an API.**
+    *   ✅ This is the **browser entry point** that renders the HTML page.
+    *   It returns `text/html`.
+    *   Do not call this from JavaScript fetch/axios.
+
+*   **`POST /api/roles/*`**
+    *   ✅ **These ARE the APIs.**
+    *   They return `application/json` (or empty 200).
+    *   All programmatic interaction happens here.
+
+> ⚠️ **RUNTIME RULES:**
+> This document assumes **mandatory compliance** with the **[UI Runtime Integration Rules](UI_RUNTIME_RULES.md)**.
+> Refer to that file for:
+> *   Response parsing (JSON vs Empty Body)
+> *   Error handling (422/403)
+> *   Null handling in payloads
+> *   Canonical Query construction
 
 ---
 
-### 🧩 UI Authorization & Capabilities Model
+## 1) Page Architecture
 
-The UI does **NOT** perform authorization.
+```
+Twig Controller
+  ├─ injects capabilities
+  ├─ renders roles list page
+  └─ includes JS bundle
 
-Authorization decisions are made **server-side** using the `AuthorizationService`.
-The backend computes **capabilities** for the current admin and injects them into the Twig view.
+JavaScript
+  ├─ DataTable (query + pagination)
+  ├─ Modals (create, rename, update metadata)
+  └─ Actions (toggle active)
 
-These capabilities are used by **Twig and JavaScript for presentation only**
-(show / hide / enable / disable UI controls).
-
-> ⚠️ Hiding UI elements does **NOT** replace API authorization
-> ⚠️ All API endpoints must still enforce permissions server-side
+API (authoritative)
+  ├─ validates request schema
+  ├─ applies query resolver rules
+  └─ returns canonical envelope (queries) or empty 200 (actions)
+```
 
 ---
 
-#### Capability Injection (Backend → Twig)
+## 2) Capabilities (Authorization Contract)
 
-In the UI controller:
+The UI receives these **Roles-specific capability flags**:
+
+### 2.1 Injected Flags
 
 ```php
 $capabilities = [
-    'can_create'       => $authorizationService->hasPermission($adminId, 'roles.create'),
-    'can_update_meta'  => $authorizationService->hasPermission($adminId, 'roles.metadata.update'),
-    'can_rename'       => $authorizationService->hasPermission($adminId, 'roles.rename'),
-    'can_toggle'       => $authorizationService->hasPermission($adminId, 'roles.toggle'),
-    'can_view_role'    => $authorizationService->hasPermission($adminId, 'roles.view'),
+    'can_create'       => $this->authorizationService->hasPermission($adminId, 'roles.create'),
+    'can_update_meta'  => $this->authorizationService->hasPermission($adminId, 'roles.metadata.update'),
+    'can_rename'       => $this->authorizationService->hasPermission($adminId, 'roles.rename'),
+    'can_toggle'       => $this->authorizationService->hasPermission($adminId, 'roles.toggle'),
+    'can_view_role'    => $this->authorizationService->hasPermission($adminId, 'roles.view'),
 ];
-
-return $this->view->render($response, 'pages/roles.twig', [
-    'capabilities' => $capabilities
-]);
 ```
+
+### 2.2 Capability → UI Behavior Mapping
+
+| Capability        | UI Responsibility                                |
+|-------------------|--------------------------------------------------|
+| `can_create`      | Show/hide **Create Role** button                 |
+| `can_update_meta` | Enable/disable **metadata edit** (name/desc)     |
+| `can_rename`      | Enable/disable **rename** action (technical key) |
+| `can_toggle`      | Enable/disable **active toggle**                 |
+| `can_view_role`   | Show/hide **Role Details** link                  |
 
 ---
 
-#### Usage in Twig
+## 3) List Roles (table)
 
-```twig
-{% if capabilities.can_rename %}
-  <button class="rename-role">Rename</button>
-{% endif %}
-```
+**Endpoint:** `POST /api/roles/query`
+**Capability:** `can_query` (implicit/base)
 
----
+### Request — Specifics
 
-#### Usage in JavaScript
+*   **Global Search:** Free-text search applied on top of column filters. Matches against **name**.
+*   **Sorting:** ⚠️ **SERVER-CONTROLLED**.
+    *   `sort_order ASC` (Server default)
+    *   Clients **MUST NOT** send `sort` parameters.
 
-```twig
-<script>
-  window.rolesCapabilities = {{ capabilities|json_encode|raw }};
-</script>
-```
+**Example Request:**
 
-```js
-if (!window.rolesCapabilities.can_rename) {
-  document.querySelectorAll('.rename-role').forEach(el => el.remove());
+```json
+{
+  "page": 1,
+  "per_page": 25,
+  "search": {
+    "global": "admins",
+    "columns": {
+      "group": "admins"
+    }
+  }
 }
 ```
 
----
+### Supported Column Filters (`search.columns`)
 
-#### UI Rules (Mandatory)
+| Alias   | Type   | Example   | Semantics      |
+|---------|--------|-----------|----------------|
+| `id`    | int    | `12`      | exact match    |
+| `name`  | string | `"admin"` | `LIKE %value%` |
+| `group` | string | `"users"` | `LIKE %value%` |
 
-* ❌ Twig MUST NOT check permissions by name
-* ❌ JavaScript MUST NOT infer authorization
-* ❌ UI MUST NOT assume API access
-* ✅ Backend capabilities are the single UI contract
-* ✅ API authorization is always enforced server-side
-
----
-
-### 📋 List Roles
-
-Returns a paginated list of all roles with derived grouping and UI metadata.
-
-#### Endpoint
-
-```http
-POST /api/roles/query
-```
-
-**Auth Required:** Yes
-**Permission:** `roles.query`
-
----
-
-#### Response — 200 OK
+### Response Model
 
 ```json
 {
@@ -126,185 +143,37 @@ POST /api/roles/query
       "description": "Full access to admin management features",
       "is_active": true
     }
-  ]
+  ],
+  "pagination": {
+    "page": 1,
+    "per_page": 25,
+    "total": 10,
+    "filtered": 3
+  }
 }
 ```
 
----
-
-### ✏️ Update Role Metadata
-
-Updates **UI metadata only** for a role.
-
-#### Endpoint
-
-```http
-POST /api/roles/{id}/metadata
-```
-
-**Permission:** `roles.metadata.update`
+**Pagination Meanings:**
+*   `total`: total records in DB (no filters)
+*   `filtered`: total records after applying `search.global` and/or `search.columns`
+*   When no filters are applied, `filtered` MAY equal `total`.
 
 ---
 
-### 🔄 Toggle Role Activation
+## 4) Create Role
 
-Controls whether a role participates in **authorization decisions**.
-
-#### Endpoint
-
-```http
-POST /api/roles/{id}/toggle
-```
-
-**Permission:** `roles.toggle`
-
----
-
-### ✏️ Rename Role (Technical Key)
-
-Renames the **technical role key** (`roles.name`).
-
-This is a **high-impact administrative operation** and must be performed
-**explicitly and deliberately**.
-
----
-
-#### Endpoint
-
-```http
-POST /api/roles/{id}/rename
-```
-
-**Auth Required:** Yes
-**Permission:** `roles.rename`
-
----
-
-#### Request Body
-
-```json
-{
-  "name": "admins.super_manage"
-}
-```
-
----
-
-#### Validation Rules
-
-* `name` is required
-* Must be a non-empty string
-* Must follow the canonical format:
-
-```text
-<group>.<action>[.<sub_action>]
-```
-
-Examples:
-
-* `admins.manage`
-* `admins.super.manage`
-* `roles.metadata.update`
-
----
-
-#### Behavior Rules
-
-* Updates **only** the technical role key (`roles.name`)
-* Does **NOT** modify:
-
-  * role metadata
-  * role activation state
-  * role-permission mappings
-  * admin-role assignments
-* Existing bindings remain valid
-* Operation is **idempotent**
-* No cascading side effects
-* No authorization recalculation is triggered automatically
-
----
-
-#### Authorization Impact
-
-* All permissions referencing the role **immediately resolve** to the new name
-* Admins bound to the role remain bound
-* Disabled roles remain disabled
-
----
-
-#### Responses
-
-**200 OK**
-
-```json
-{}
-```
-
----
-
-#### Possible Errors
-
-| Code | Reason                   |
-|------|--------------------------|
-| 403  | Permission denied        |
-| 409  | Role name already exists |
-| 500  | Role not found           |
-| 500  | Rename operation failed  |
-
----
-
-### 📊 Role Fields
-
-| Field          | Description                      | Mutable           |
-|----------------|----------------------------------|-------------------|
-| `id`           | Internal role identifier         | ❌                 |
-| `name`         | Technical role key               | ✅ *(rename only)* |
-| `group`        | Derived from `name`              | ❌                 |
-| `display_name` | UI label                         | ✅                 |
-| `description`  | UI help text                     | ✅                 |
-| `is_active`    | Authorization participation flag | ✅ *(toggle only)* |
-
----
-
-### 🧠 Design Principles
-
-* Roles are **RBAC aggregators**, not lifecycle entities
-* Technical keys are **stable identifiers**
-* Rename is **explicit, isolated, and auditable**
-* UI metadata is **presentation-only**
-* Authorization logic is **fully decoupled**
-* No role deletion via API
-* No permission assignment via this API
-
----
-
-## ➕ Create Role
-
-Creates a **new technical role** with optional UI metadata.
-
-> ⚠️ This endpoint is **NOT** responsible for:
->
-> * assigning permissions to the role
-> * binding admins to the role
-> * modifying existing roles
->
-> Role creation is **isolated**, explicit, and auditable.
-
----
-
-### Endpoint
-
-```http
-POST /api/roles/create
-```
-
-**Auth Required:** Yes
-**Permission:** `roles.create`
-
----
+**Endpoint:** `POST /api/roles/create`
+**Capability:** `can_create`
 
 ### Request Body
 
+*   `name` (string, required, canonical format `group.action`)
+*   `display_name` (string, optional)
+*   `description` (string, optional)
+
+> **Format:** `name` must match `^[a-z][a-z0-9_.-]*$`.
+
+**Example:**
 ```json
 {
   "name": "admins.manage",
@@ -313,167 +182,88 @@ POST /api/roles/create
 }
 ```
 
----
+### Response
 
-### Validation Rules
-
-#### `name` (required)
-
-* Must be a non-empty string
-* Length: `3 → 190`
-* Must match canonical role key format:
-
-```text
-^[a-z][a-z0-9_.-]*$
-```
-
-Examples:
-
-* `admins.manage`
-* `roles.metadata.update`
-* `reports.view.daily`
+*   ✅ **200 OK (EMPTY BODY)**
+*   ❌ **409** if role name already exists.
 
 ---
 
-#### `display_name` (optional)
+## 5) Update Role Metadata
 
-* String
-* Length: `1 → 128`
-* UI-only label
-* No authorization impact
+**Endpoint:** `POST /api/roles/{id}/metadata`
+**Capability:** `can_update_meta`
 
----
+### Request Body
 
-#### `description` (optional)
+*   `display_name` (string, optional)
+*   `description` (string, optional)
 
-* String
-* Length: `1 → 255`
-* UI-only help text
-* No authorization impact
+> **Note:** At least one field should be provided.
+> Send **real values** only. Do not send `null`.
 
----
-
-### Behavior Rules
-
-* Creates a **new role row**
-* Technical role key (`name`) is **immutable after creation**
-* Role is created with:
-
-  * `is_active = true`
-* No permissions are assigned
-* No admins are bound
-* Operation is **not idempotent**
-* Duplicate role keys are rejected
-
----
-
-### Authorization Impact
-
-* Newly created role **does not grant any permissions**
-* Role has **zero effect** on authorization until:
-
-  * permissions are assigned
-  * admins are bound
-* Safe by default
-
----
-
-### Responses
-
-#### ✅ 201 Created
-
+**Example:**
 ```json
 {
-  "id": 12
+  "display_name": "Updated Label"
 }
 ```
 
----
+### Response
 
-### Possible Errors
-
-| Code | Reason                   |
-|------|--------------------------|
-| 400  | Validation failed        |
-| 403  | Permission denied        |
-| 409  | Role name already exists |
-| 500  | Role creation failed     |
+*   ✅ **200 OK (EMPTY BODY)**
+*   ✅ **204 No Content** (if no changes were requested)
 
 ---
 
-### Design Notes
+## 6) Rename Role (Technical Key)
 
-* Role creation is **structural**, not behavioral
-* Roles are **RBAC aggregators**, not lifecycle entities
-* UI metadata is **optional and presentation-only**
-* Authorization remains **fully decoupled**
-* No cascading side effects
+**Endpoint:** `POST /api/roles/{id}/rename`
+**Capability:** `can_rename`
 
----
-### 🔒 Status
+### Request Body
 
-**LOCKED — Roles Management Contract (Query · Metadata · Toggle · Rename · Create)**
+*   `name` (string, required)
 
-Any change requires updating **all** of the following:
+> ⚠️ This changes the stable technical key.
 
-* Controllers
-* Repository contracts & logic
-* Validation schemas
-* Authorization mapping
-* UI capabilities
-* This documentation
+**Example:**
+```json
+{
+  "name": "admins.super_manage"
+}
+```
 
----
+### Response
 
-### ✅ Current Implementation Status
-
-| Feature                  | Status |
-|--------------------------|--------|
-| Roles listing            | ✅ DONE |
-| Metadata update API      | ✅ DONE |
-| Role activation toggle   | ✅ DONE |
-| Role rename API          | ✅ DONE |
-| UI capabilities contract | ✅ DONE |
-| Role creation            | ✅ DONE |
-| Role-permission mapping  | **See ROLE-MANAGEMENT.md** |
-| Admin-role assignment    | **See ROLE-MANAGEMENT.md** |
+*   ✅ **200 OK (EMPTY BODY)**
 
 ---
-## 🔀 Relationship Navigation Rules
 
-- Roles are the central aggregation unit
-- Permissions are never assigned directly to admins
-- Admins receive permissions only through roles
-- Each relationship is managed through a dedicated view
-- Bidirectional navigation is allowed for visibility, not shortcut authorization
+## 7) Toggle Role Activation
 
-Roles are managed through a dedicated Role Details page.
-Relationship management (permissions, admins) is always scoped
-to a specific role context and never performed from the roles list view.
+**Endpoint:** `POST /api/roles/{id}/toggle`
+**Capability:** `can_toggle`
 
-All role-related relationships (permissions, admins)
-are managed strictly within the role context
-(`/roles/{id}`) and are never edited from the roles list.
+### Request Body
 
-## 🧭 View-Level Authorization (Roles)
+*   `is_active` (boolean, required)
 
-Access to role-related views is governed by explicit **view permissions**.
+**Example:**
+```json
+{
+  "is_active": false
+}
+```
 
-The roles list view requires:
-- `roles.query`
+### Response
 
-The role details page (`/roles/{id}`) requires:
-- `roles.view`
+*   ✅ **200 OK (EMPTY BODY)**
 
-Relationship tabs inside the role details page are controlled separately:
+---
 
-### Permissions Tab
-- View assigned permissions: `roles.permissions.view`
-- Assign / unassign permissions: `roles.permissions.assign`
+## 8) Implementation Checklist (Roles Specific)
 
-### Admins Tab
-- View assigned admins: `roles.admins.view`
-- Assign / unassign admins: `roles.admins.assign`
-
-These permissions control **UI visibility and actions only**.  
-All backend APIs continue to enforce authorization independently.
+*   [ ] **Never send `sort`** to `/api/roles/query`.
+*   [ ] Validate `name` format regex in UI before sending.
+*   [ ] Handle **204 No Content** gracefully for metadata updates.

@@ -1,92 +1,119 @@
-# Permission Details — APIs
+# Permission Details — UI & API Integration Guide
 
-These APIs provide **read-only access** to entities related to a single permission:
-
-* Roles that use the permission
-* Admins that have **direct overrides** for the permission
-
-> **Important Notes**
->
-> * All endpoints are **read-only**
-> * Authorization is enforced via `AuthorizationGuardMiddleware`
-> * UI behavior (visibility, navigation, clickable links) is controlled via **Capabilities**
-> * APIs never infer permissions or UI logic
+**Project:** `maatify/admin-control-panel`
+**Module:** `AdminKernel / Authorization`
+**Audience:** UI & Frontend Developers
+**Status:** **CANONICAL / BINDING CONTRACT**
 
 ---
 
-## 1️⃣ Query Roles Using a Permission
+## 0) Why this document exists
 
-### Endpoint
+This file is a **runtime integration contract** for the Permission Details Page.
+It answers, precisely:
+*   How to view usage of a permission across Roles.
+*   How to view usage of a permission across Admins (Direct Overrides).
 
-```http
-POST /api/permissions/{permission_id}/roles/query
+### ⚠️ CRITICAL: UI vs API Distinction
+
+*   **`GET /permissions/{id}`**
+    *   ❌ **This is NOT an API.**
+    *   ✅ This is the **browser entry point** that renders the Permission Details HTML page.
+    *   It returns `text/html`.
+
+*   **`POST /api/permissions/{id}/*`**
+    *   ✅ **These ARE the APIs.**
+    *   They return `application/json` (or empty 200/204).
+    *   All programmatic interaction happens here.
+
+> ⚠️ **RUNTIME RULES:**
+> This document assumes **mandatory compliance** with the **[UI Runtime Integration Rules](UI_RUNTIME_RULES.md)**.
+> Refer to that file for:
+> *   Response parsing (JSON vs Empty Body)
+> *   Error handling (422/403)
+> *   Null handling in payloads
+> *   Canonical Query construction
+
+---
+
+## 1) Page Architecture
+
+```
+Twig Controller
+  ├─ loads permission entity
+  ├─ injects capabilities
+  └─ renders permission details page
+
+JavaScript
+  ├─ Tab Switcher (Roles / Admins)
+  ├─ DataTable (Roles using Permission)
+  └─ DataTable (Admins with Direct Overrides)
 ```
 
 ---
 
-### Description
+## 2) Capabilities (Authorization Contract)
 
-Returns a paginated list of **roles that use a specific permission**.
+The UI receives these **Permission Details-specific capability flags**:
 
-* Paginated
-* Filterable
-* UI-driven
-* Read-only
+### 2.1 Injected Flags
+
+```php
+$capabilities = [
+    // Navigation
+    'can_view_permissions'   => $hasPermission('permissions.query.ui'),
+    'can_view_admin_profile' => $hasPermission('admins.profile.view'),
+    'can_view_role_details'  => $hasPermission('roles.view.ui'),
+
+    // Tabs
+    'can_view_roles_tab'     => $hasPermission('permissions.roles.query'),
+    'can_view_admins_tab'    => $hasPermission('permissions.admins.query'),
+];
+```
+
+### 2.2 Capability → UI Behavior Mapping
+
+| Capability               | UI Responsibility                                  |
+|--------------------------|----------------------------------------------------|
+| `can_view_roles_tab`     | Show/hide **Roles Tab**                            |
+| `can_view_admins_tab`    | Show/hide **Admins Tab**                           |
+| `can_view_role_details`  | Enable link to Role Details from table             |
+| `can_view_admin_profile` | Enable link to Admin Profile from table            |
 
 ---
 
-### Path Parameters
+## 3) Roles using Permission (Read-Only)
 
-| Name          | Type | Description   |
-|---------------|------|---------------|
-| permission_id | int  | Permission ID |
+**Endpoint:** `POST /api/permissions/{id}/roles/query`
+**Capability:** `can_view_roles_tab`
 
----
+### Request — Specifics
 
-### Request Body (Canonical List Query)
+*   **Global Search:** Matches **name**, **display_name**, **description**, or **group**.
+*   **Sorting:** ⚠️ **SERVER-CONTROLLED**.
+
+**Example Request:**
 
 ```json
 {
   "page": 1,
-  "per_page": 10,
+  "per_page": 25,
   "search": {
-    "global": "admin",
-    "columns": {
-      "group": "permissions",
-      "is_active": "1"
-    }
+    "global": "admin"
   }
 }
 ```
 
-All fields are optional.
-Validated using `SharedListQuerySchema`.
+### Supported Column Filters (`search.columns`)
 
----
+| Alias       | Type   | Example   | Semantics                       |
+|-------------|--------|-----------|---------------------------------|
+| `id`        | int    | `12`      | exact match                     |
+| `name`      | string | `"admin"` | `LIKE %value%`                  |
+| `group`     | string | `"users"` | `LIKE %value%`                  |
+| `is_active` | string | `"1"`     | `"1"` (Active) / `"0"` (Inactive) |
 
-### Supported Search & Filters
-
-#### Global Search
-
-Searches across:
-
-* `name`
-* `display_name`
-* `description`
-* permission group (derived from role name prefix)
-
-#### Column Filters
-
-| Column    | Type   | Description                    |
-|-----------|--------|--------------------------------|
-| id        | int    | Exact role ID                  |
-| name      | string | Partial match on role name     |
-| group     | string | Role group (prefix before `.`) |
-| is_active | bool   | Active / inactive roles        |
-
----
-
-### Response — 200 OK
+### Response Model
 
 ```json
 {
@@ -100,7 +127,7 @@ Searches across:
   ],
   "pagination": {
     "page": 1,
-    "perPage": 10,
+    "per_page": 25,
     "total": 4,
     "filtered": 1
   }
@@ -109,96 +136,36 @@ Searches across:
 
 ---
 
-### UI Behavior Notes
+## 4) Admins with Direct Overrides (Read-Only)
 
-* Each row **may be clickable**
-* Clicking a role ID or name should navigate to:
+**Endpoint:** `POST /api/permissions/{id}/admins/query`
+**Capability:** `can_view_admins_tab`
 
-```text
-GET /roles/{role_id}
-```
+### Request — Specifics
 
-* Navigation is allowed **only if** the UI capability
-  `can_view_role_details === true`
+*   **Global Search:** Matches **admin_display_name**.
+*   **Sorting:** ⚠️ **SERVER-CONTROLLED**.
 
-The API **does not decide** navigation or visibility.
-
----
-
-### Error Responses
-
-| Status | Reason                     |
-|--------|----------------------------|
-| 404    | Permission not found       |
-| 400    | Invalid list query payload |
-| 403    | Authorization failed       |
-
----
-
-## 2️⃣ Query Admins With Direct Permission Overrides
-
-### Endpoint
-
-```http
-POST /api/permissions/{permission_id}/admins/query
-```
-
----
-
-### Description
-
-Returns a paginated list of **admins who have direct overrides** for a permission.
-
-* Includes allow/deny overrides
-* Includes expiration metadata
-* Paginated and filterable
-* Read-only
-
----
-
-### Path Parameters
-
-| Name          | Type | Description   |
-|---------------|------|---------------|
-| permission_id | int  | Permission ID |
-
----
-
-### Request Body (Canonical List Query)
+**Example Request:**
 
 ```json
 {
   "page": 1,
-  "per_page": 10,
+  "per_page": 25,
   "search": {
-    "global": "john",
-    "columns": {
-      "is_allowed": "1"
-    }
+    "global": "john"
   }
 }
 ```
 
----
+### Supported Column Filters (`search.columns`)
 
-### Supported Search & Filters
+| Alias        | Type   | Example | Semantics                       |
+|--------------|--------|---------|---------------------------------|
+| `admin_id`   | int    | `12`    | exact match                     |
+| `is_allowed` | string | `"1"`   | `"1"` (Allowed) / `"0"` (Denied)|
 
-#### Global Search
-
-Searches:
-
-* `admin_display_name`
-
-#### Column Filters
-
-| Column     | Type | Description           |
-|------------|------|-----------------------|
-| admin_id   | int  | Exact admin ID        |
-| is_allowed | bool | Allow / deny override |
-
----
-
-### Response — 200 OK
+### Response Model
 
 ```json
 {
@@ -213,7 +180,7 @@ Searches:
   ],
   "pagination": {
     "page": 1,
-    "perPage": 10,
+    "per_page": 25,
     "total": 5,
     "filtered": 1
   }
@@ -222,46 +189,8 @@ Searches:
 
 ---
 
-### UI Behavior Notes
+## 5) Implementation Checklist (Permission Details)
 
-* Each admin row **may be clickable**
-* Clicking an admin ID or name should navigate to:
-
-```text
-GET /admins/{admin_id}/profile
-```
-
-* Navigation is allowed **only if** the UI capability
-  `can_view_admin_profile === true`
-
-Again:
-
-> The API **never enforces UI navigation** — it only returns data.
-
----
-
-### Error Responses
-
-| Status | Reason                     |
-|--------|----------------------------|
-| 404    | Permission not found       |
-| 400    | Invalid list query payload |
-| 403    | Authorization failed       |
-
----
-
-## Summary
-
-| Endpoint                             | Purpose                  |
-|--------------------------------------|--------------------------|
-| `/api/permissions/{id}/roles/query`  | Roles using a permission |
-| `/api/permissions/{id}/admins/query` | Admin direct overrides   |
-
-Both endpoints:
-
-* Are read-only
-* Use canonical list querying
-* Are safe to consume directly by UI DataTables
-* Delegate navigation & visibility to UI capabilities
-
----
+*   [ ] **Read-Only**: This page is strictly for viewing relationships.
+*   [ ] **Navigation**: Use capabilities to conditionalize links to Admin Profile / Role Details.
+*   [ ] **Context**: This view shows *who* has this permission, not *what* this permission does.

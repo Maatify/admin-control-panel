@@ -1,190 +1,126 @@
-# Admin Permissions Management – API Documentation
+# Admin Permissions Management — UI & API Integration Guide
 
-**Frontend Reference**
-
----
-
-## 🧭 Scope & Relationship
-
-This document (`ADMIN-PERMISSIONS.md`) defines **Admin-Centric Permission Management**:
-
-* Effective permissions (final RBAC resolution)
-* Direct permissions (explicit allow / deny)
-* Role-based permissions (read-only context)
-* Assignable permissions (selection & assignment flow)
-
-For **Role-Centric Permission Management**, refer to:
-
-> **[ROLE-MANAGEMENT.md](ROLE-MANAGEMENT.md)**
-
-> These two documents are **complementary**:
->
-> * **Admin → Permissions** (this document)
-> * **Role → Permissions** (`ROLE-MANAGEMENT.md`)
+**Project:** `maatify/admin-control-panel`
+**Module:** `AdminKernel / Authorization`
+**Audience:** UI & Frontend Developers
+**Status:** **CANONICAL / BINDING CONTRACT**
 
 ---
 
-## Scope
+## 0) Why this document exists
 
-This document describes:
+This file is a **runtime integration contract** for the Admin Permissions Page.
+It answers, precisely:
+*   How to view the final (effective) permission state for an admin.
+*   How to manage direct permission overrides (allow/deny).
+*   How to view assigned roles for context.
 
-* Admin Permissions page
-* Tabs behavior and visibility
-* Query APIs (pagination, filters, search)
-* Assign / revoke direct permissions
-* Assignable permissions flow (modal-based)
-* Authorization & UI capability contract
+### ⚠️ CRITICAL: UI vs API Distinction
 
-All APIs follow the **canonical `/query` pagination pattern**.
+*   **`GET /admins/{id}/permissions`**
+    *   ❌ **This is NOT an API.**
+    *   ✅ This is the **browser entry point** that renders the Admin Permissions HTML page.
+    *   It returns `text/html`.
+
+*   **`POST /api/admins/{id}/*`**
+    *   ✅ **These ARE the APIs.**
+    *   They return `application/json` (or empty 200/204).
+    *   All programmatic interaction happens here.
+
+> ⚠️ **RUNTIME RULES:**
+> This document assumes **mandatory compliance** with the **[UI Runtime Integration Rules](UI_RUNTIME_RULES.md)**.
+> Refer to that file for:
+> *   Response parsing (JSON vs Empty Body)
+> *   Error handling (422/403)
+> *   Null handling in payloads
+> *   Canonical Query construction
 
 ---
 
-## Page Context
-
-### Admin Permissions Page
+## 1) Page Architecture
 
 ```
-GET /admins/{adminId}/permissions
-```
+Twig Controller
+  ├─ injects capabilities
+  ├─ renders admin permissions page
+  └─ includes JS bundle
 
-This page provides a **complete permission snapshot for a single admin**, split into logical tabs and contextual actions.
-
----
-
-## Page Tabs Overview
-
-| Tab Name              | Purpose                                      | Mutations |
-|-----------------------|----------------------------------------------|-----------|
-| Effective Permissions | Final RBAC result (roles + direct overrides) | ❌ No      |
-| Direct Permissions    | Explicit allow / deny overrides              | ✅ Yes     |
-| Roles (Context)       | Roles assigned to admin                      | ❌ No      |
-
-> ❗ **Roles tab is informational only**
-> Role assignment is managed elsewhere.
-
----
-
-## Assignable Permissions (Important UX Rule)
-
-**Assignable permissions are NOT a tab.**
-
-They are loaded inside a **Modal / Drawer** triggered from the **Direct Permissions tab**.
-
-Reasoning:
-
-* Assignable permissions are:
-
-    * Large
-    * Paginated
-    * Contextual
-* Mixing them with Direct Permissions would:
-
-    * Break pagination semantics
-    * Confuse state (assigned vs assignable)
-
----
-
-## Capabilities Object (UI Control Contract)
-
-The backend injects a **capabilities object**.
-The frontend **MUST NOT infer permissions**.
-
-```json
-{
-  "can_view_permissions_effective": true,
-
-  "can_view_admin_direct_permissions": true,
-  "can_assign_admin_direct_permissions": true,
-  "can_revoke_admin_direct_permissions": true,
-
-  "can_view_admin_roles": true,
-
-  "can_view_admin_profile": true,
-  "can_view_admins": true
-}
-```
-
-### UI Rules
-
-* Tabs are shown only if the corresponding `can_view_*` is `true`
-* Action buttons depend on `can_assign_*` / `can_revoke_*`
-* Navigation links depend on `can_view_admin_profile`
-
----
-
-# Tab 1: Effective Permissions
-
-## Purpose
-
-Shows the **final permission decision** after applying:
-
-1. Role-based permissions
-2. Direct permission overrides
-3. Expiration rules
-
-This is a **read-only snapshot**.
-
----
-
-## Query Effective Permissions
-
-### Endpoint
-
-```
-POST /api/admins/{adminId}/permissions/effective
-```
-
-### Required Capability
-
-```
-admin.permissions.effective
+JavaScript
+  ├─ Tab Switcher (Effective / Direct / Roles)
+  ├─ DataTable (Effective Permissions)
+  ├─ DataTable (Direct Permissions)
+  ├─ Modal (Assignable Permissions)
+  └─ Actions (Assign / Revoke)
 ```
 
 ---
 
-### Request Body
+## 2) Capabilities (Authorization Contract)
+
+The UI receives these **Admin Permissions-specific capability flags**:
+
+### 2.1 Injected Flags
+
+```php
+$capabilities = [
+    // Overview
+    'can_view_admin_roles'            => $hasPermission('admin.roles.query'),
+    'can_view_permissions_effective'  => $hasPermission('admin.permissions.effective'),
+
+    // Permissions tab
+    'can_view_admin_direct_permissions'     => $hasPermission('admin.permissions.direct.query'),
+    'can_assign_admin_direct_permissions'   => $hasPermission('admin.permissions.direct.assign'),
+    'can_revoke_admin_direct_permissions'   => $hasPermission('admin.permissions.direct.revoke'),
+
+    // Navigation
+    'can_view_admin_profile'           => $hasPermission('admins.profile.view'),
+    'can_view_admins'                  => $hasPermission('roles.admins.view'),
+];
+```
+
+### 2.2 Capability → UI Behavior Mapping
+
+| Capability                            | UI Responsibility                                  |
+|---------------------------------------|----------------------------------------------------|
+| `can_view_permissions_effective`      | Show/hide **Effective Permissions Tab**            |
+| `can_view_admin_direct_permissions`   | Show/hide **Direct Permissions Tab**               |
+| `can_assign_admin_direct_permissions` | Enable **Assign Permission** button (opens modal)  |
+| `can_revoke_admin_direct_permissions` | Enable **Revoke** action on Direct Permissions row |
+| `can_view_admin_roles`                | Show/hide **Roles Tab**                            |
+
+---
+
+## 3) Effective Permissions (Read-Only)
+
+**Endpoint:** `POST /api/admins/{id}/permissions/effective`
+**Capability:** `can_view_permissions_effective`
+
+### Request — Specifics
+
+*   **Global Search:** Matches **name**, **display_name**, **description**, or **group**.
+*   **Sorting:** ⚠️ **SERVER-CONTROLLED**.
+
+**Example Request:**
 
 ```json
 {
   "page": 1,
   "per_page": 25,
   "search": {
-    "global": "permissions",
-    "columns": {
-      "group": "admin"
-    }
+    "global": "admin"
   }
 }
 ```
 
----
+### Supported Column Filters (`search.columns`)
 
-### Global Search Behavior
+| Alias   | Type   | Example   | Semantics                          |
+|---------|--------|-----------|------------------------------------|
+| `id`    | int    | `12`      | exact match                        |
+| `name`  | string | `"admin"` | `LIKE %value%`                     |
+| `group` | string | `"users"` | `LIKE %value%`                     |
 
-`search.global` searches across:
-
-* `permission.name`
-* `permission.display_name`
-* `permission.description`
-* permission **group** (first segment before `.`)
-
-📌 **Suggested placeholder**
-
-> “Search by permission name, group, or description”
-
----
-
-### Supported Column Filters
-
-| Field | Description                      |
-|-------|----------------------------------|
-| id    | Permission ID                    |
-| name  | Permission technical name        |
-| group | First segment of permission name |
-
----
-
-### Response
+### Response Model
 
 ```json
 {
@@ -194,98 +130,58 @@ admin.permissions.effective
       "name": "admin.permissions.direct.assign",
       "group": "admin",
       "display_name": "Assign Direct Permissions",
-      "description": "Allow assigning direct permissions to admins",
+      "description": "Allow assigning direct permissions",
       "source": "direct_allow",
       "role_name": null,
       "is_allowed": true,
       "expires_at": null
     }
   ],
-  "pagination": {
-    "page": 1,
-    "perPage": 25,
-    "total": 180,
-    "filtered": 12
+  "pagination": { ... }
+}
+```
+
+**Source Semantics:**
+*   `role`: Granted via a role.
+*   `direct_allow`: Explicitly allowed for this admin.
+*   `direct_deny`: Explicitly denied for this admin.
+
+---
+
+## 4) Direct Permissions (Manage)
+
+**Endpoint:** `POST /api/admins/{id}/permissions/direct/query`
+**Capability:** `can_view_admin_direct_permissions`
+
+### Request — Specifics
+
+*   **Global Search:** Matches **name**, **display_name**, **description**, or **group**.
+*   **Filter:** `is_allowed` ("1" for Allow, "0" for Deny).
+
+**Example Request:**
+
+```json
+{
+  "page": 1,
+  "per_page": 20,
+  "search": {
+    "columns": {
+      "is_allowed": "1"
+    }
   }
 }
 ```
 
----
+### Supported Column Filters (`search.columns`)
 
-### Source Field Semantics
+| Alias        | Type   | Example | Semantics                       |
+|--------------|--------|---------|---------------------------------|
+| `id`         | int    | `42`    | exact match                     |
+| `name`       | string | `"adm"` | `LIKE %value%`                  |
+| `group`      | string | `"adm"` | `LIKE %value%`                  |
+| `is_allowed` | string | `"1"`   | `"1"` (Allow) / `"0"` (Deny)    |
 
-| source       | Meaning                 |
-|--------------|-------------------------|
-| role         | Granted via role        |
-| direct_allow | Explicit allow override |
-| direct_deny  | Explicit deny override  |
-
----
-
-### UI Rules
-
-* ❌ No action buttons
-* ❌ No toggles
-* ✔ Visual indicators only
-* Expired direct permissions are **not shown**
-
----
-
-# Tab 2: Direct Permissions
-
-## Purpose
-
-Manage **explicit overrides** for a specific admin.
-
-* Allow or deny a permission
-* Optional expiration
-* Overrides role-based decisions
-
----
-
-## Query Direct Permissions
-
-### Endpoint
-
-```
-POST /api/admins/{adminId}/permissions/direct/query
-```
-
-### Required Capability
-
-```
-admin.permissions.direct.query
-```
-
----
-
-### Global Search Behavior
-
-`search.global` searches:
-
-* `permission.name`
-* `permission.display_name`
-* `permission.description`
-* permission **group**
-
-📌 **Suggested placeholder**
-
-> “Search direct permissions by name or group”
-
----
-
-### Supported Column Filters
-
-| Field      | Description             |
-|------------|-------------------------|
-| id         | Permission ID           |
-| name       | Permission name         |
-| group      | Permission group        |
-| is_allowed | `1` = allow, `0` = deny |
-
----
-
-### Response
+### Response Model
 
 ```json
 {
@@ -295,168 +191,66 @@ admin.permissions.direct.query
       "name": "admin.permissions.direct.assign",
       "group": "admin",
       "display_name": "Assign Direct Permissions",
-      "description": "Allow assigning direct permissions",
+      "description": "...",
       "is_allowed": true,
       "expires_at": "2026-12-31 23:59:59",
       "granted_at": "2026-02-01 20:11:44"
     }
   ],
-  "pagination": {
-    "page": 1,
-    "perPage": 20,
-    "total": 8,
-    "filtered": 3
-  }
+  "pagination": { ... }
 }
 ```
 
 ---
 
-## Assign / Update Direct Permission (Action Entry Point)
+## 5) Assignable Permissions (Modal)
 
-### UI Entry
+**Endpoint:** `POST /api/admins/{id}/permissions/direct/assignable/query`
+**Capability:** `can_assign_admin_direct_permissions`
 
-* Button: **“+ Assign Permission”**
-* Visible only if:
+### Request — Specifics
 
-  ```
-  can_assign_admin_direct_permissions = true
-  ```
+*   **Global Search:** Matches **name**, **display_name**, **description**, or **group**.
+*   **Filter:** `assigned` ("0" to find new permissions to assign).
 
-Clicking this button opens the **Assignable Permissions Modal**.
-
----
-
-# Assignable Permissions (Modal / Drawer)
-
-## Purpose
-
-Provide a **paginated, searchable list of all system permissions**, annotated with assignment state for the current admin.
-
-This view exists **only inside a modal**.
-
----
-
-## Query Assignable Permissions
-
-### Endpoint
-
-```
-POST /api/admins/{adminId}/permissions/direct/assignable/query
-```
-
-### Required Capability
-
-```
-admin.permissions.direct.assign
-```
-
----
-
-### Request Body
+**Example Request:**
 
 ```json
 {
   "page": 1,
-  "per_page": 25,
+  "per_page": 10,
   "search": {
     "global": "assign",
     "columns": {
-      "group": "admin",
       "assigned": "0"
     }
   }
 }
 ```
 
----
+### Supported Column Filters (`search.columns`)
 
-### Global Search Behavior
-
-Searches:
-
-* `permission.name`
-* `permission.display_name`
-* `permission.description`
-* permission **group**
-
-📌 Placeholder
-
-> “Search available permissions”
+| Alias      | Type   | Example | Semantics                              |
+|------------|--------|---------|----------------------------------------|
+| `id`       | int    | `42`    | exact match                            |
+| `name`     | string | `"adm"` | `LIKE %value%`                         |
+| `group`    | string | `"adm"` | `LIKE %value%`                         |
+| `assigned` | string | `"0"`   | `"1"` (Already Assigned) / `"0"` (New) |
 
 ---
 
-### Supported Column Filters
+## 6) Assign Direct Permission
 
-| Field    | Description                                |
-|----------|--------------------------------------------|
-| id       | Permission ID                              |
-| name     | Permission name                            |
-| group    | Permission group                           |
-| assigned | `1` = already assigned, `0` = not assigned |
-
----
-
-### Response
-
-```json
-{
-  "data": [
-    {
-      "id": 42,
-      "name": "admin.permissions.direct.assign",
-      "group": "admin",
-      "display_name": "Assign Direct Permissions",
-      "description": "Allow assigning direct permissions",
-      "assigned": false,
-      "is_allowed": null,
-      "expires_at": null
-    }
-  ],
-  "pagination": {
-    "page": 1,
-    "perPage": 25,
-    "total": 180,
-    "filtered": 60
-  }
-}
-```
-
----
-
-### UI Rules (Assignable Modal)
-
-* Each row shows:
-
-    * Permission info
-    * Assignment state
-* Actions per row:
-
-    * **Assign** (if not assigned)
-    * **Edit / Revoke** (if already assigned)
-* Pagination is **modal-scoped**
-* No client-side caching
-
----
-
-## Assign Direct Permission
-
-### Endpoint
-
-```
-POST /api/admins/{adminId}/permissions/direct/assign
-```
-
-### Required Capability
-
-```
-admin.permissions.direct.assign
-```
-
----
+**Endpoint:** `POST /api/admins/{id}/permissions/direct/assign`
+**Capability:** `can_assign_admin_direct_permissions`
 
 ### Request Body
 
+*   `permission_id` (int, required)
+*   `is_allowed` (bool, required)
+*   `expires_at` (string Y-m-d H:i:s, optional)
+
+**Example:**
 ```json
 {
   "permission_id": 42,
@@ -465,136 +259,70 @@ admin.permissions.direct.assign
 }
 ```
 
-* `expires_at` is optional
-* Format: `Y-m-d H:i:s`
-
----
-
 ### Response
 
-```
-204 No Content
-```
+*   ✅ **204 No Content**
 
 ---
 
-## Revoke Direct Permission
+## 7) Revoke Direct Permission
 
-### Endpoint
-
-```
-POST /api/admins/{adminId}/permissions/direct/revoke
-```
-
-### Required Capability
-
-```
-admin.permissions.direct.revoke
-```
-
----
+**Endpoint:** `POST /api/admins/{id}/permissions/direct/revoke`
+**Capability:** `can_revoke_admin_direct_permissions`
 
 ### Request Body
 
+*   `permission_id` (int, required)
+
+**Example:**
 ```json
 {
   "permission_id": 42
 }
 ```
 
----
-
 ### Response
 
-```
-204 No Content
-```
+*   ✅ **204 No Content**
 
 ---
 
-### Revoke Rules
+## 8) Admin Roles (Context)
 
-* Hard delete
-* No soft state
-* No client-side confirmation cache
+**Endpoint:** `POST /api/admins/{id}/roles/query`
+**Capability:** `can_view_admin_roles`
 
----
+### Request — Specifics
 
-# Tab 3: Roles (Context)
+*   **Global Search:** Matches **name**, **display_name**, **description**, or **group**.
+*   **Filter:** `is_active`.
 
-## Purpose
-
-Show roles assigned to the admin for **context only**.
-
----
-
-## Query Admin Roles
-
-### Endpoint
-
-```
-POST /api/admins/{adminId}/roles/query
-```
-
-### Required Capability
-
-```
-admin.roles.query
-```
-
----
-
-### Global Search Behavior
-
-Searches:
-
-* `role.name`
-* `role.display_name`
-* `role.description`
-* role group (first segment)
-
-📌 Placeholder
-
-> “Search roles by name or group”
-
----
-
-### UI Rules
-
-* ❌ No assign / unassign buttons
-* ❌ No toggles
-* ✔ Display-only table
-
----
-
-# Navigation Rules
-
-If:
+**Example Request:**
 
 ```json
-"can_view_admin_profile": true
+{
+  "page": 1,
+  "per_page": 20,
+  "search": {
+    "global": "admin"
+  }
+}
 ```
 
-Then allow links to:
+### Supported Column Filters (`search.columns`)
 
-```
-/admins/{adminId}/profile
-```
-
-Otherwise, render text only.
+| Alias       | Type   | Example | Semantics                       |
+|-------------|--------|---------|---------------------------------|
+| `id`        | int    | `1`     | exact match                     |
+| `name`      | string | `"adm"` | `LIKE %value%`                  |
+| `group`     | string | `"adm"` | `LIKE %value%`                  |
+| `is_active` | string | `"1"`   | `"1"` (Active) / `"0"` (Inactive) |
 
 ---
 
-# Frontend Implementation Checklist
+## 9) Implementation Checklist (Admin Permissions)
 
-* Use `capabilities` strictly
-* Never infer permissions client-side
-* Always send pagination params
-* Assignable permissions live **only in modal**
-* Re-fetch Effective + Direct tabs after mutation
-* Do not cache permission state
-* Respect read-only vs mutable contexts
-
----
-
-## End of Document
+*   [ ] **Modal Strategy**: Load "Assignable Permissions" only when modal opens.
+*   [ ] **Pagination**: Modal must have its own independent pagination state.
+*   [ ] **Refresh**: After Assign/Revoke, refresh "Direct" and "Effective" tabs.
+*   [ ] **Expiration**: If `expires_at` is passed, format it as `Y-m-d H:i:s`.

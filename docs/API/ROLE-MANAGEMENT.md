@@ -1,96 +1,112 @@
-# Roles Management – API Documentation
+# Roles Management (Advanced) — UI & API Integration Guide
 
-**Frontend Reference**
-
-## 🧭 Scope & Relationship
-
-This document (`ROLE-MANAGEMENT.md`) defines the **Advanced Role Operations** (Permission Assignment, Bulk Admin Assignment).
-
-For **Core Role APIs** (CRUD, Listing, Metadata), refer to:
-
-> **[ROLES.md](ROLES.md)**
->
-> *`ROLE-MANAGEMENT.md` is an **extension** of `ROLES.md`.*
-> *Both documents MUST be read together to understand the full Role API surface.*
+**Project:** `maatify/admin-control-panel`
+**Module:** `AdminKernel / Authorization`
+**Audience:** UI & Frontend Developers
+**Status:** **CANONICAL / BINDING CONTRACT**
 
 ---
 
-## Scope
+## 0) Why this document exists
 
-This document describes the APIs and UI rules for:
+This file is a **runtime integration contract** for the Role Details Page (Permissions & Admins assignment).
+It extends the core `ROLES.md`.
 
-* Role Details page
-* Permissions management
-* Admins assignment to roles
-* Pagination, filtering, and authorization handling
+It answers, precisely:
+*   How to list and filter permissions within a role context.
+*   How to assign/unassign permissions.
+*   How to list and filter admins within a role context.
+*   How to assign/unassign admins.
 
-All APIs follow the **canonical `/query` pagination pattern**.
+### ⚠️ CRITICAL: UI vs API Distinction
 
----
+*   **`GET /roles/{id}`**
+    *   ❌ **This is NOT an API.**
+    *   ✅ This is the **browser entry point** that renders the Role Details HTML page.
+    *   It returns `text/html`.
 
-## Page Context
+*   **`POST /api/roles/{id}/*`**
+    *   ✅ **These ARE the APIs.**
+    *   They return `application/json` (or empty 200/204).
+    *   All programmatic interaction happens here.
 
-### Role Details Page
-
-```
-GET /roles/{roleId}
-```
-
-This page provides:
-
-* Role overview data
-* Permissions tab (if allowed)
-* Admins tab (if allowed)
-
-The backend provides a **capabilities object** that must be used by the frontend to control visibility and actions.
-
----
-
-## Capabilities Object (UI Control Contract)
-
-The frontend **must not infer permissions**.
-All UI behavior must be driven by the following boolean flags:
-
-```json
-{
-  "can_view_permissions": true,
-  "can_assign_permissions": true,
-  "can_unassign_permissions": true,
-
-  "can_view_admin_profile": true,
-  "can_view_admins": true,
-  "can_assign_admins": true,
-  "can_unassign_admins": true
-}
-```
-
-### Frontend Responsibilities
-
-* Tabs visibility depends on `can_view_*`
-* Action buttons (assign / unassign / toggle) depend on the corresponding capability
-* Profile links depend on `can_view_admin_profile`
+> ⚠️ **RUNTIME RULES:**
+> This document assumes **mandatory compliance** with the **[UI Runtime Integration Rules](UI_RUNTIME_RULES.md)**.
+> Refer to that file for:
+> *   Response parsing (JSON vs Empty Body)
+> *   Error handling (422/403)
+> *   Null handling in payloads
+> *   Canonical Query construction
 
 ---
 
-# Permissions Tab
-
-## Query Role Permissions (Paginated)
-
-### Endpoint
+## 1) Page Architecture
 
 ```
-POST /api/roles/{roleId}/permissions/query
-```
+Twig Controller
+  ├─ loads role entity
+  ├─ injects capabilities (permissions & admins view/assign)
+  └─ renders role details page
 
-### Required Capability
-
-```
-roles.permissions.view
+JavaScript
+  ├─ Tab Switcher (Permissions / Admins)
+  ├─ DataTable (Permissions Query with 'assigned' filter)
+  ├─ DataTable (Admins Query with 'assigned' filter)
+  └─ Actions (Assign / Unassign)
 ```
 
 ---
 
-### Request Body
+## 2) Capabilities (Authorization Contract)
+
+The UI receives these **Role Details-specific capability flags**:
+
+### 2.1 Injected Flags
+
+```php
+$capabilities = [
+    // Overview
+    'can_view_roles'            => $hasPermission('roles.query'),
+
+    // Permissions tab
+    'can_view_permissions'      => $hasPermission('roles.permissions.view'),
+    'can_assign_permissions'    => $hasPermission('roles.permissions.assign'),
+    'can_unassign_permissions'  => $hasPermission('roles.permissions.unassign'),
+
+    // Admins tab
+    'can_view_admin_profile'    => $hasPermission('admins.profile.view'),
+    'can_view_admins'           => $hasPermission('roles.admins.view'),
+    'can_assign_admins'         => $hasPermission('roles.admins.assign'),
+    'can_unassign_admins'       => $hasPermission('roles.admins.unassign'),
+];
+```
+
+### 2.2 Capability → UI Behavior Mapping
+
+| Capability                 | UI Responsibility                                  |
+|----------------------------|----------------------------------------------------|
+| `can_view_permissions`     | Show/hide **Permissions Tab**                      |
+| `can_assign_permissions`   | Enable **Assign** action (on unassigned items)     |
+| `can_unassign_permissions` | Enable **Unassign** action (on assigned items)     |
+| `can_view_admins`          | Show/hide **Admins Tab**                           |
+| `can_assign_admins`        | Enable **Assign** action (on unassigned admins)    |
+| `can_unassign_admins`      | Enable **Unassign** action (on assigned admins)    |
+| `can_view_admin_profile`   | Enable link to Admin Profile from table            |
+
+---
+
+## 3) List Role Permissions (table)
+
+**Endpoint:** `POST /api/roles/{id}/permissions/query`
+**Capability:** `can_view_permissions`
+
+### Request — Specifics
+
+*   **Global Search:** Matches against **permission name** (`roles.view`).
+*   **Sorting:** ⚠️ **SERVER-CONTROLLED**.
+*   **Assigned Filter:** Use `assigned` column (`"1"` or `"0"`) to show only assigned or unassigned permissions.
+
+**Example Request:**
 
 ```json
 {
@@ -99,26 +115,22 @@ roles.permissions.view
   "search": {
     "global": "roles",
     "columns": {
-      "group": "permissions",
       "assigned": "1"
     }
   }
 }
 ```
 
-### Supported Filters
+### Supported Column Filters (`search.columns`)
 
-| Type   | Field         | Description                        |
-|--------|---------------|------------------------------------|
-| Global | search.global | Searches permission technical name |
-| Column | id            | Permission ID                      |
-| Column | name          | Permission technical name          |
-| Column | group         | First segment of permission name   |
-| Column | assigned      | `1` = assigned, `0` = not assigned |
+| Alias      | Type   | Example   | Semantics                          |
+|------------|--------|-----------|------------------------------------|
+| `id`       | int    | `12`      | exact match                        |
+| `name`     | string | `"roles"` | `LIKE %value%`                     |
+| `group`    | string | `"admin"` | `LIKE %value%`                     |
+| `assigned` | string | `"1"`     | `"1"` (Assigned) / `"0"` (Unassigned) |
 
----
-
-### Response
+### Response Model
 
 ```json
 {
@@ -133,37 +145,30 @@ roles.permissions.view
   ],
   "pagination": {
     "page": 1,
-    "perPage": 25,
+    "per_page": 25,
     "total": 184,
     "filtered": 12
   }
 }
 ```
 
-### UI Usage Notes
-
-* `assigned` determines toggle state
-* Pagination data must be respected
-* No client-side filtering or guessing
+**Pagination Meanings:**
+*   `total`: total permissions in DB (no filters)
+*   `filtered`: total permissions matching search/filters
+*   `assigned`: boolean flag indicating if this permission is linked to the current role.
 
 ---
 
-## Assign Permission to Role
+## 4) Assign Permission to Role
 
-### Endpoint
-
-```
-POST /api/roles/{roleId}/permissions/assign
-```
-
-### Required Capability
-
-```
-roles.permissions.assign
-```
+**Endpoint:** `POST /api/roles/{id}/permissions/assign`
+**Capability:** `can_assign_permissions`
 
 ### Request Body
 
+*   `permission_id` (int, required)
+
+**Example:**
 ```json
 {
   "permission_id": 12
@@ -172,28 +177,21 @@ roles.permissions.assign
 
 ### Response
 
-```
-204 No Content
-```
+*   ✅ **204 No Content**
+*   ❌ **409** if already assigned.
 
 ---
 
-## Unassign Permission from Role
+## 5) Unassign Permission from Role
 
-### Endpoint
-
-```
-POST /api/roles/{roleId}/permissions/unassign
-```
-
-### Required Capability
-
-```
-roles.permissions.unassign
-```
+**Endpoint:** `POST /api/roles/{id}/permissions/unassign`
+**Capability:** `can_unassign_permissions`
 
 ### Request Body
 
+*   `permission_id` (int, required)
+
+**Example:**
 ```json
 {
   "permission_id": 12
@@ -202,57 +200,44 @@ roles.permissions.unassign
 
 ### Response
 
-```
-204 No Content
-```
+*   ✅ **204 No Content**
+*   ❌ **404** if not assigned.
 
 ---
 
-# Admins Tab
+## 6) List Role Admins (table)
 
-## Query Admins for Role (Paginated)
+**Endpoint:** `POST /api/roles/{id}/admins/query`
+**Capability:** `can_view_admins`
 
-### Endpoint
+### Request — Specifics
 
-```
-POST /api/roles/{roleId}/admins/query
-```
+*   **Global Search:** Matches against **display_name** OR **status**.
+*   **Assigned Filter:** Use `assigned` column (`"1"` or `"0"`).
 
-### Required Capability
-
-```
-roles.admins.view
-```
-
----
-
-### Request Body
+**Example Request:**
 
 ```json
 {
   "page": 1,
   "per_page": 20,
   "search": {
-    "global": "ACTIVE",
     "columns": {
-      "assigned": "0"
+      "assigned": "1"
     }
   }
 }
 ```
 
-### Supported Filters
+### Supported Column Filters (`search.columns`)
 
-| Type   | Field         | Description                        |
-|--------|---------------|------------------------------------|
-| Global | search.global | display_name or status             |
-| Column | id            | Admin ID                           |
-| Column | status        | ACTIVE / SUSPENDED / DISABLED      |
-| Column | assigned      | `1` = assigned, `0` = not assigned |
+| Alias      | Type   | Example    | Semantics                          |
+|------------|--------|------------|------------------------------------|
+| `id`       | int    | `5`        | exact match                        |
+| `status`   | string | `"ACTIVE"` | exact match (enum)                 |
+| `assigned` | string | `"1"`      | `"1"` (Assigned) / `"0"` (Unassigned) |
 
----
-
-### Response
+### Response Model
 
 ```json
 {
@@ -261,36 +246,30 @@ roles.admins.view
       "id": 5,
       "display_name": "Ahmed Hassan",
       "status": "ACTIVE",
-      "assigned": false
+      "assigned": true
     }
   ],
   "pagination": {
     "page": 1,
-    "perPage": 20,
+    "per_page": 20,
     "total": 43,
-    "filtered": 9
+    "filtered": 1
   }
 }
 ```
 
 ---
 
-## Assign Admin to Role
+## 7) Assign Admin to Role
 
-### Endpoint
-
-```
-POST /api/roles/{roleId}/admins/assign
-```
-
-### Required Capability
-
-```
-roles.admins.assign
-```
+**Endpoint:** `POST /api/roles/{id}/admins/assign`
+**Capability:** `can_assign_admins`
 
 ### Request Body
 
+*   `admin_id` (int, required)
+
+**Example:**
 ```json
 {
   "admin_id": 5
@@ -299,28 +278,20 @@ roles.admins.assign
 
 ### Response
 
-```
-204 No Content
-```
+*   ✅ **204 No Content**
 
 ---
 
-## Unassign Admin from Role
+## 8) Unassign Admin from Role
 
-### Endpoint
-
-```
-POST /api/roles/{roleId}/admins/unassign
-```
-
-### Required Capability
-
-```
-roles.admins.unassign
-```
+**Endpoint:** `POST /api/roles/{id}/admins/unassign`
+**Capability:** `can_unassign_admins`
 
 ### Request Body
 
+*   `admin_id` (int, required)
+
+**Example:**
 ```json
 {
   "admin_id": 5
@@ -329,47 +300,13 @@ roles.admins.unassign
 
 ### Response
 
-```
-204 No Content
-```
+*   ✅ **204 No Content**
 
 ---
 
-# Admin Profile Navigation
+## 9) Implementation Checklist (Role Management)
 
-### Rule
-
-If the frontend receives:
-
-```json
-"can_view_admin_profile": true
-```
-
-Then every admin item may link to:
-
-```
-/admins/{admin_id}/profile
-```
-
-### UI Behavior
-
-* If capability is `false`, render plain text
-* If capability is `true`, render clickable link
-
----
-
-# Frontend Implementation Checklist
-
-* Use `capabilities` object to control:
-
-  * Tabs visibility
-  * Action buttons visibility
-  * Toggle availability
-* Use `assigned` flag only for toggle state
-* Always send pagination parameters
-* Do not infer permissions or role state
-* Do not cache assignment state client-side
-
----
-
-## End of Document
+*   [ ] **Never send `sort`** to query endpoints.
+*   [ ] Use `assigned="1"` filter to show "My Permissions" or "My Admins".
+*   [ ] Use `assigned="0"` filter to show "Available Permissions" or "Available Admins".
+*   [ ] Refresh table after Assign/Unassign (204 response).
