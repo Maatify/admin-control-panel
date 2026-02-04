@@ -6,7 +6,7 @@
 **Status:** **CANONICAL / BINDING CONTRACT**
 
 > ⚠️ **RUNTIME RULES:**
-> This document strictly follows the **[UI Runtime Integration Rules](UI_RUNTIME_RULES.md)**.
+> This document assumes **mandatory compliance** with the **[UI Runtime Integration Rules](UI_RUNTIME_RULES.md)**.
 > Refer to that file for:
 > *   Response parsing (JSON vs Empty Body)
 > *   Error handling (422/403)
@@ -77,7 +77,7 @@ $capabilities = [
 
 ### Request — Specifics
 
-*   **Global Search:** Matches against **name OR code**.
+*   **Global Search:** Free-text search applied on top of column filters. Matches against **name OR code**.
 *   **Sorting:** ⚠️ **SERVER-CONTROLLED**.
     *   `sort_order ASC, id ASC`
     *   Clients **MUST NOT** send `sort` parameters.
@@ -107,9 +107,19 @@ $capabilities = [
       "fallback_language_id": 2
     }
   ],
-  "pagination": { ... }
+  "pagination": {
+    "page": 1,
+    "per_page": 25,
+    "total": 10,
+    "filtered": 3
+  }
 }
 ```
+
+**Pagination Meanings:**
+*   `total`: total records in DB (no filters)
+*   `filtered`: total records after applying `search.global` and/or `search.columns`
+*   When no filters are applied, `filtered` MAY equal `total`.
 
 ---
 
