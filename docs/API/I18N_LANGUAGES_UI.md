@@ -5,6 +5,37 @@
 **Audience:** UI & Frontend Developers
 **Status:** **CANONICAL / BINDING CONTRACT**
 
+---
+
+## 0) Why this document exists
+
+This file is a **runtime integration contract** for the Languages UI.
+
+It answers, precisely:
+
+*   What the UI is allowed to send
+*   How global search and filters actually work
+*   What each endpoint requires vs what is optional
+*   What response shapes exist (success + failure)
+*   Why you are getting `422` / runtime exceptions
+
+If something is not documented here, treat it as **not supported**.
+
+### ⚠️ CRITICAL: UI vs API Distinction
+
+You must understand the difference between the **UI Page** and the **API**:
+
+*   **`GET /languages`**
+    *   ❌ **This is NOT an API.**
+    *   ✅ This is the **browser entry point** that renders the HTML page.
+    *   It returns `text/html`.
+    *   Do not call this from JavaScript fetch/axios.
+
+*   **`POST /api/languages/*`**
+    *   ✅ **These ARE the APIs.**
+    *   They return `application/json` (or empty 200).
+    *   All programmatic interaction happens here.
+
 > ⚠️ **RUNTIME RULES:**
 > This document assumes **mandatory compliance** with the **[UI Runtime Integration Rules](UI_RUNTIME_RULES.md)**.
 > Refer to that file for:
@@ -81,6 +112,21 @@ $capabilities = [
 *   **Sorting:** ⚠️ **SERVER-CONTROLLED**.
     *   `sort_order ASC, id ASC`
     *   Clients **MUST NOT** send `sort` parameters.
+
+**Example Request:**
+
+```json
+{
+  "page": 1,
+  "per_page": 25,
+  "search": {
+    "global": "en",
+    "columns": {
+      "is_active": "1"
+    }
+  }
+}
+```
 
 ### Supported Column Filters (`search.columns`)
 
