@@ -79,6 +79,7 @@ use Maatify\AdminKernel\Domain\Security\Crypto\CryptoKeyRingConfig;
 use Maatify\AdminKernel\Domain\Security\Password\PasswordPepperRing;
 use Maatify\AdminKernel\Domain\Security\Password\PasswordPepperRingConfig;
 use Maatify\AdminKernel\Domain\Security\PermissionMapper;
+use Maatify\AdminKernel\Domain\Security\PermissionMapperV2;
 use Maatify\AdminKernel\Domain\Service\AdminAuthenticationService;
 use Maatify\AdminKernel\Domain\Service\AdminEmailVerificationService;
 use Maatify\AdminKernel\Domain\Service\AdminNotificationRoutingService;
@@ -1807,6 +1808,10 @@ class Container
 //            PermissionMapperInterface::class => function () {
 //                return new PermissionMapper();
 //            },
+
+            PermissionMapperV2Interface::class => function (ContainerInterface $c) {
+                return new PermissionMapperV2();
+            },
 
             \Maatify\AdminKernel\Domain\Contracts\Roles\RolePermissionsRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
