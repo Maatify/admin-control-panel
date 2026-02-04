@@ -2368,6 +2368,14 @@ class Container
                 return new \Maatify\AdminKernel\Http\Controllers\Api\TranslationValueDeleteController($translationWriteService, $validationGuard);
             },
 
+            \Maatify\AdminKernel\Http\Controllers\Ui\I18n\TranslationsListUiController::class => function (\Psr\Container\ContainerInterface $c) {
+                $twig = $c->get(Twig::class);
+                $authorizationService = $c->get(AuthorizationService::class);
+                assert($twig instanceof Twig);
+                assert($authorizationService instanceof AuthorizationService);
+                return new \Maatify\AdminKernel\Http\Controllers\Ui\I18n\TranslationsListUiController($twig, $authorizationService);
+            },
+
 
         ]);
 
