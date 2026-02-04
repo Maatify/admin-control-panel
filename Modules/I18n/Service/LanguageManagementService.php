@@ -64,7 +64,6 @@ final readonly class LanguageManagementService
             $languageId,
             $direction,
             $icon,
-            $sortOrder
         );
 
         return $languageId;
@@ -153,5 +152,26 @@ final readonly class LanguageManagementService
             targetSort: $newSortOrder
         );
     }
+
+    public function updateLanguageName(
+        int $languageId,
+        string $name
+    ): void {
+        $language = $this->languageRepository->getById($languageId);
+
+        if ($language === null) {
+            throw new RuntimeException('Language not found.');
+        }
+
+        if (trim($name) === '') {
+            throw new RuntimeException('Language name cannot be empty.');
+        }
+
+        $this->languageRepository->updateName(
+            $languageId,
+            $name
+        );
+    }
+
 
 }

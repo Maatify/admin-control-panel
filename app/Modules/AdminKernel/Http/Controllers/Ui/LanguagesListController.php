@@ -39,10 +39,11 @@ final readonly class LanguagesListController
         $capabilities = [
             'can_create' => $this->authorizationService->hasPermission($adminId, 'languages.create.api'),
             'can_update' => $this->authorizationService->hasPermission($adminId, 'languages.update.settings.api'),
+            'can_update_name'    => $this->authorizationService->hasPermission($adminId, 'languages.update.name.api'),
+            'can_update_sort' => $this->authorizationService->hasPermission($adminId, 'languages.update.sort.api'),
             'can_active' => $this->authorizationService->hasPermission($adminId, 'languages.set.active.api'),
-            'can_set_fallback' => $this->authorizationService->hasPermission($adminId, 'languages.set.fallback.api'),
+            'can_fallback_set' => $this->authorizationService->hasPermission($adminId, 'languages.set.fallback.api'),
             'can_fallback_clear' => $this->authorizationService->hasPermission($adminId, 'languages.clear.fallback.api'),
-            'can_sort' => $this->authorizationService->hasPermission($adminId, 'languages.update.sort.api'),
         ];
 
         return $this->twig->render(
