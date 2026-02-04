@@ -101,6 +101,46 @@ $capabilities = [
 
 ---
 
+## 2.3) Language Selector API (Shared Infrastructure)
+
+Although the Languages UI primarily operates on **row-level language entities**,
+the system exposes a shared **Language Selector API** used by other modules.
+
+### Endpoint
+
+`POST /languages/select`
+
+### Purpose
+
+This endpoint exists to provide a **safe, ordered list of active languages** for:
+
+* Translations UI
+* Any future i18n-aware modules
+* Cross-module language context selection
+
+### Important Notes
+
+* The **Languages Management UI does NOT depend on this endpoint**
+* Languages listed in the table may include:
+
+    * inactive languages
+    * languages without settings (visible for management)
+* `/languages/select` returns **ONLY languages valid for UI context usage**
+
+> ⚠️ Do NOT use `/languages/select` to populate the Languages table.
+> It is intentionally restrictive.
+
+### Authorization
+
+Access is granted if the admin has **any of**:
+
+* `i18n.languages.select`
+* `i18n.translations.upsert`
+
+This is enforced centrally via `PermissionMapperV2`.
+
+---
+
 ## 3) List Languages (table)
 
 **Endpoint:** `POST /api/languages/query`
