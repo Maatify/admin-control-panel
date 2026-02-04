@@ -134,6 +134,11 @@ $capabilities = [
 }
 ```
 
+**Pagination Meanings:**
+*   `total`: total records in DB (no filters)
+*   `filtered`: total records after applying `search.global` and/or `search.columns`
+*   When no filters are applied, `filtered` MAY equal `total`.
+
 ---
 
 ## 4) Admins with Direct Overrides (Read-Only)
@@ -186,6 +191,11 @@ $capabilities = [
   }
 }
 ```
+
+**Pagination Meanings:**
+*   `total`: total records in DB (no filters)
+*   `filtered`: total records after applying `search.global` and/or `search.columns`
+*   When no filters are applied, `filtered` MAY equal `total`.
 
 ---
 

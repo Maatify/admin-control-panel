@@ -137,9 +137,19 @@ $capabilities = [
       "expires_at": null
     }
   ],
-  "pagination": { ... }
+  "pagination": {
+    "page": 1,
+    "per_page": 25,
+    "total": 10,
+    "filtered": 3
+  }
 }
 ```
+
+**Pagination Meanings:**
+*   `total`: total records in DB (no filters)
+*   `filtered`: total records after applying `search.global` and/or `search.columns`
+*   When no filters are applied, `filtered` MAY equal `total`.
 
 **Source Semantics:**
 *   `role`: Granted via a role.
@@ -197,9 +207,19 @@ $capabilities = [
       "granted_at": "2026-02-01 20:11:44"
     }
   ],
-  "pagination": { ... }
+  "pagination": {
+    "page": 1,
+    "per_page": 20,
+    "total": 10,
+    "filtered": 3
+  }
 }
 ```
+
+**Pagination Meanings:**
+*   `total`: total records in DB (no filters)
+*   `filtered`: total records after applying `search.global` and/or `search.columns`
+*   When no filters are applied, `filtered` MAY equal `total`.
 
 ---
 
@@ -236,6 +256,36 @@ $capabilities = [
 | `name`     | string | `"adm"` | `LIKE %value%`                         |
 | `group`    | string | `"adm"` | `LIKE %value%`                         |
 | `assigned` | string | `"0"`   | `"1"` (Already Assigned) / `"0"` (New) |
+
+### Response Model
+
+```json
+{
+  "data": [
+    {
+      "id": 42,
+      "name": "admin.permissions.direct.assign",
+      "group": "admin",
+      "display_name": "Assign Direct Permissions",
+      "description": "...",
+      "assigned": false,
+      "is_allowed": null,
+      "expires_at": null
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "per_page": 10,
+    "total": 100,
+    "filtered": 10
+  }
+}
+```
+
+**Pagination Meanings:**
+*   `total`: total records in DB (no filters)
+*   `filtered`: total records after applying `search.global` and/or `search.columns`
+*   When no filters are applied, `filtered` MAY equal `total`.
 
 ---
 
@@ -317,6 +367,34 @@ $capabilities = [
 | `name`      | string | `"adm"` | `LIKE %value%`                  |
 | `group`     | string | `"adm"` | `LIKE %value%`                  |
 | `is_active` | string | `"1"`   | `"1"` (Active) / `"0"` (Inactive) |
+
+### Response Model
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "admins.manage",
+      "group": "admins",
+      "display_name": "Admin Management",
+      "description": "Full access to admin management features",
+      "is_active": true
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "per_page": 20,
+    "total": 5,
+    "filtered": 1
+  }
+}
+```
+
+**Pagination Meanings:**
+*   `total`: total records in DB (no filters)
+*   `filtered`: total records after applying `search.global` and/or `search.columns`
+*   When no filters are applied, `filtered` MAY equal `total`.
 
 ---
 

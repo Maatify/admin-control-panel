@@ -153,9 +153,9 @@ $capabilities = [
 ```
 
 **Pagination Meanings:**
-*   `total`: total permissions in DB (no filters)
-*   `filtered`: total permissions matching search/filters
-*   `assigned`: boolean flag indicating if this permission is linked to the current role.
+*   `total`: total records in DB (no filters)
+*   `filtered`: total records after applying `search.global` and/or `search.columns`
+*   When no filters are applied, `filtered` MAY equal `total`.
 
 ---
 
@@ -257,6 +257,11 @@ $capabilities = [
   }
 }
 ```
+
+**Pagination Meanings:**
+*   `total`: total records in DB (no filters)
+*   `filtered`: total records after applying `search.global` and/or `search.columns`
+*   When no filters are applied, `filtered` MAY equal `total`.
 
 ---
 
