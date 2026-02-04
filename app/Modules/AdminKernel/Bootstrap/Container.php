@@ -100,6 +100,7 @@ use Maatify\AdminKernel\Http\Controllers\AdminNotificationPreferenceController;
 use Maatify\AdminKernel\Http\Controllers\AdminNotificationReadController;
 use Maatify\AdminKernel\Http\Controllers\Api\AdminQueryController;
 use Maatify\AdminKernel\Http\Controllers\Api\LanguagesCreateController;
+use Maatify\AdminKernel\Http\Controllers\Api\LanguagesSetActiveController;
 use Maatify\AdminKernel\Http\Controllers\Api\LanguagesUpdateSettingsController;
 use Maatify\AdminKernel\Http\Controllers\Api\PermissionMetadataUpdateController;
 use Maatify\AdminKernel\Http\Controllers\Api\PermissionsController;
@@ -2164,6 +2165,19 @@ class Container
                 assert($validationGuard instanceof ValidationGuard);
 
                 return new LanguagesUpdateSettingsController(
+                    $languageManagementService,
+                    $validationGuard
+                );
+            },
+
+            LanguagesSetActiveController::class => function (ContainerInterface $c) {
+                $languageManagementService = $c->get(LanguageManagementService::class);
+                $validationGuard = $c->get(ValidationGuard::class);
+
+                assert($languageManagementService instanceof LanguageManagementService);
+                assert($validationGuard instanceof ValidationGuard);
+
+                return new LanguagesSetActiveController(
                     $languageManagementService,
                     $validationGuard
                 );

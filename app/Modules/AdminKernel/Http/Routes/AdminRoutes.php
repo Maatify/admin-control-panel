@@ -10,6 +10,7 @@ use Maatify\AdminKernel\Http\Controllers\AdminNotificationPreferenceController;
 use Maatify\AdminKernel\Http\Controllers\Api\AdminQueryController;
 use Maatify\AdminKernel\Http\Controllers\Api\LanguagesCreateController;
 use Maatify\AdminKernel\Http\Controllers\Api\LanguagesQueryController;
+use Maatify\AdminKernel\Http\Controllers\Api\LanguagesSetActiveController;
 use Maatify\AdminKernel\Http\Controllers\Api\LanguagesUpdateSettingsController;
 use Maatify\AdminKernel\Http\Controllers\AuthController;
 use Maatify\AdminKernel\Http\Controllers\NotificationQueryController;
@@ -294,6 +295,9 @@ class AdminRoutes
 
                         $languages->post('/update-settings', [LanguagesUpdateSettingsController::class, '__invoke'])
                             ->setName('languages.update.settings.api');
+
+                        $languages->post('/set-active', [LanguagesSetActiveController::class, '__invoke'])
+                            ->setName('languages.set.active.api');
                     });
 
                     // ─────────────────────────────
