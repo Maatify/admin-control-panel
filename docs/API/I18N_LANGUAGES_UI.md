@@ -21,6 +21,21 @@ It answers, precisely:
 
 If something is not documented here, treat it as **not supported**.
 
+### ⚠️ CRITICAL: UI vs API Distinction
+
+You must understand the difference between the **UI Page** and the **API**:
+
+*   **`GET /languages`**
+    *   ❌ **This is NOT an API.**
+    *   ✅ This is the **browser entry point** that renders the HTML page.
+    *   It returns `text/html`.
+    *   Do not call this from JavaScript fetch/axios.
+
+*   **`POST /api/languages/*`**
+    *   ✅ **These ARE the APIs.**
+    *   They return `application/json` (or empty 200).
+    *   All programmatic interaction happens here.
+
 ---
 
 ## 1) Hard rules (no debate)
@@ -85,10 +100,11 @@ Your actual runtime middleware/handlers enforce this:
 
 * ✅ Typically return **200 + JSON** envelope
 
-#### 1.3.2 UPDATE/ACTION endpoints
+#### 1.3.2 MUTATION / ACTION endpoints (Create, Update, Delete)
 
-* ✅ Typically return **200 OK with EMPTY BODY** (no JSON payload)
-* UI must treat **empty body** as success when status is `200`
+* ✅ Return **200 OK with EMPTY BODY** (no JSON payload)
+* ❌ Do **NOT** try to parse JSON from these responses.
+* UI must treat **empty body** as success when status is `200`.
 
 #### 1.3.3 Validation failures
 
@@ -334,11 +350,13 @@ Example:
 
 ### Sorting
 
-This endpoint has **fixed ordering**. UI must not send `sort`.
+> ⚠️ **SERVER-CONTROLLED SORTING**
 
-Effective ordering:
+*   ❌ Clients **MUST NOT** send `sort` parameters.
+*   ❌ `sort_order` is **ignored** in the request.
+*   ✅ The server enforces strict ordering: `ORDER BY language_settings.sort_order ASC, languages.id ASC`.
 
-* `ORDER BY language_settings.sort_order ASC, languages.id ASC`
+To change the order, you must use the dedicated **Update Language Sort Order** endpoint.
 
 ## Response — 200 OK (canonical envelope)
 
@@ -399,9 +417,8 @@ POST /api/languages/create
 * `icon` (string)
 * `is_active` (boolean, default: true if omitted)
 * `fallback_language_id` (int)
-* `sort_order` (int)
 
-> **Important:** `sort_order` is accepted on create, and is later re-orderable.
+> **Important:** `sort_order` is **NOT** accepted here. New languages are automatically appended to the end of the list.
 
 ### ✅ Valid examples
 
@@ -415,7 +432,7 @@ POST /api/languages/create
 }
 ```
 
-**With icon + explicit active + sort:**
+**With icon + explicit active:**
 
 ```json
 {
@@ -423,8 +440,7 @@ POST /api/languages/create
   "code": "en",
   "direction": "ltr",
   "is_active": true,
-  "icon": "🇬🇧",
-  "sort_order": 1
+  "icon": "🇬🇧"
 }
 ```
 
@@ -452,26 +468,9 @@ POST /api/languages/create
 
 ## Response
 
-### Success (200 + JSON)
-
-```json
-{
-  "data": {
-    "id": 12
-  }
-}
-```
-
-### Failure (422)
-
-```json
-{
-  "error": "Invalid request payload",
-  "errors": {
-    "code": "Already exists"
-  }
-}
-```
+*   ✅ **200 OK (EMPTY BODY)**
+*   The ID of the created language is not returned. The UI should refresh the list.
+*   ❌ **422** on schema validation failure (e.g. Code already exists)
 
 ---
 
@@ -527,7 +526,7 @@ Example (clear icon):
 
 # 7) Update Language Sort Order
 
-> Sorting changes must be done through a dedicated endpoint.
+> This is the **ONLY** way to change the sort order of languages.
 
 ## Endpoint
 
@@ -679,6 +678,13 @@ POST /api/languages/set-fallback
 
 * `languagesCapabilities.can_fallback_set`
 
+## Conceptual Logic: What is a Fallback?
+
+*   There is **only ONE** fallback language in the entire system at any given time.
+*   Setting a language as the fallback **automatically unsets** any previous fallback.
+*   **Purpose:** If a user requests a translation key that is missing in their current language, the system falls back to this language.
+*   **Constraint:** You cannot deactivate the fallback language.
+
 ## Request body
 
 ### Required
@@ -689,7 +695,9 @@ POST /api/languages/set-fallback
 
 * `fallback_language_id` (int)
 
-Example:
+**Example:**
+
+To set Language ID `1` (e.g. English) as the fallback for Language ID `2`:
 
 ```json
 {
@@ -715,6 +723,12 @@ POST /api/languages/clear-fallback
 ## Capability
 
 * `languagesCapabilities.can_fallback_clear`
+
+## Logic
+
+*   Removes the fallback status from the language.
+*   After this, **no language** is the fallback.
+*   Missing translations may return keys instead of text.
 
 ## Request body
 
@@ -752,7 +766,7 @@ Your UI logged this request:
 This fails the canonical schema because:
 
 * `limit` is forbidden → must be `per_page`
-* `sort` is not part of the schema contract for this endpoint
+* `sort` is **forbidden** → sorting is server-controlled
 
 ✅ Fix (minimum valid):
 
@@ -760,22 +774,6 @@ This fails the canonical schema because:
 {
   "page": 1,
   "per_page": 25
-}
-```
-
-✅ Fix (global + columns combined):
-
-```json
-{
-  "page": 1,
-  "per_page": 25,
-  "search": {
-    "global": "en",
-    "columns": {
-      "name": "English",
-      "is_active": "1"
-    }
-  }
 }
 ```
 
@@ -816,7 +814,7 @@ if (raw && raw.trim() !== '') {
 * [ ] use `search.global` for global search
 * [ ] use `search.columns.{alias}` for column filters
 * [ ] never send any key with `null` value
-* [ ] never send `sort` to `/api/languages/query`
+* [ ] **never send `sort`** to `/api/languages/query`
 
 ## Modals / Actions
 
