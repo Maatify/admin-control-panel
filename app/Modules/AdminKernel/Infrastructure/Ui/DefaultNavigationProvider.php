@@ -48,6 +48,12 @@ class DefaultNavigationProvider implements NavigationProviderInterface
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 21l5.25-11.25M10.5 21L6 9.75M10.5 21h3.75M6 9.75h12M9.75 3h4.5M12 3v6.75" />
                 </svg>'
             ),
+            // 🌐 Translation Keys (I18n)
+            new NavigationItemDTO(
+                'Translation Keys',
+                '/i18n/keys',
+                '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25l3 3m0 0l-3 3m3-3H9.75M4.5 18.75l3-3m0 0l-3-3m3 3h8.25" /></svg>'
+            ),
             new NavigationItemDTO(
                 'Telemetry',
                 '/telemetry',

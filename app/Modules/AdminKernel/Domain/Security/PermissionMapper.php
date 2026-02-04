@@ -46,6 +46,9 @@ final class PermissionMapper implements PermissionMapperInterface
         'languages.list.api' => 'languages.list',
 
         'languages.clear.fallback.api' => 'languages.set.fallback',
+
+        'i18n.keys.list.ui'   => 'i18n.keys.list',
+        'i18n.keys.list.api'  => 'i18n.keys.list',
     ];
 
     public function map(string $routeName): string

@@ -128,6 +128,7 @@ use Maatify\AdminKernel\Http\Controllers\Ui\LanguagesListController;
 use Maatify\AdminKernel\Http\Controllers\Ui\SessionListController;
 use Maatify\AdminKernel\Http\Controllers\Ui\UiAdminsController;
 use Maatify\AdminKernel\Http\Controllers\Ui\UiDashboardController;
+use Maatify\AdminKernel\Http\Controllers\Ui\TranslationKeysListController;
 use Maatify\AdminKernel\Http\Controllers\Ui\UiPermissionsController;
 use Maatify\AdminKernel\Http\Controllers\Ui\UiRolesController;
 use Maatify\AdminKernel\Http\Controllers\Ui\UiSettingsController;
@@ -2333,6 +2334,14 @@ class Container
                 assert($translationWriteService instanceof TranslationWriteService);
                 assert($validationGuard instanceof ValidationGuard);
                 return new TranslationKeysCreateController($translationWriteService, $validationGuard);
+            },
+
+            TranslationKeysListController::class => function (ContainerInterface $c) {
+                $twig = $c->get(Twig::class);
+                $authorizationService = $c->get(AuthorizationService::class);
+                assert($twig instanceof Twig);
+                assert($authorizationService instanceof AuthorizationService);
+                return new TranslationKeysListController($twig, $authorizationService);
             },
 
 
