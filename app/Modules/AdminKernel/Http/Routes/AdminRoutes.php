@@ -326,6 +326,9 @@ class AdminRoutes
 
                             $translations->post('/upsert', [\Maatify\AdminKernel\Http\Controllers\Api\TranslationValueUpsertController::class, '__invoke'])
                                 ->setName('i18n.translations.upsert.api');
+
+                            $translations->post('/delete', [\Maatify\AdminKernel\Http\Controllers\Api\TranslationValueDeleteController::class, '__invoke'])
+                                ->setName('i18n.translations.delete.api');
                         });
                     });
 

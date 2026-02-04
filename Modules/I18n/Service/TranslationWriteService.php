@@ -87,4 +87,13 @@ final readonly class TranslationWriteService
             $value
         );
     }
+
+    public function deleteTranslation(int $languageId, int $keyId): void
+    {
+        // No logic here – delegate to repository
+        $this->translationRepository->deleteByLanguageAndKey(
+            languageId: $languageId,
+            keyId: $keyId
+        );
+    }
 }

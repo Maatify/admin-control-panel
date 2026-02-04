@@ -2360,6 +2360,15 @@ class Container
                 return new \Maatify\AdminKernel\Http\Controllers\Api\TranslationValueUpsertController($translationWriteService, $validationGuard);
             },
 
+            \Maatify\AdminKernel\Http\Controllers\Api\TranslationValueDeleteController::class => function (\Psr\Container\ContainerInterface $c) {
+                $translationWriteService = $c->get(\Maatify\I18n\Service\TranslationWriteService::class);
+                $validationGuard = $c->get(\Maatify\Validation\Guard\ValidationGuard::class);
+                assert($translationWriteService instanceof \Maatify\I18n\Service\TranslationWriteService);
+                assert($validationGuard instanceof \Maatify\Validation\Guard\ValidationGuard);
+                return new \Maatify\AdminKernel\Http\Controllers\Api\TranslationValueDeleteController($translationWriteService, $validationGuard);
+            },
+
+
         ]);
 
         // Extension Hook: Allow host projects to override/extend bindings
