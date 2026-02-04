@@ -70,6 +70,7 @@ use Maatify\AdminKernel\Domain\Contracts\VerificationCodeValidatorInterface;
 use Maatify\AdminKernel\Domain\DTO\AdminConfigDTO;
 use Maatify\AdminKernel\Domain\DTO\TotpEnrollmentConfig;
 use Maatify\AdminKernel\Domain\DTO\Ui\UiConfigDTO;
+use Maatify\AdminKernel\Domain\I18n\Reader\LanguageQueryReaderInterface;
 use Maatify\AdminKernel\Domain\Ownership\SystemOwnershipRepositoryInterface;
 use Maatify\AdminKernel\Domain\Security\Crypto\AdminCryptoContextProvider;
 use Maatify\AdminKernel\Domain\Security\Crypto\CryptoKeyRingConfig;
@@ -97,6 +98,7 @@ use Maatify\AdminKernel\Http\Controllers\AdminEmailVerificationController;
 use Maatify\AdminKernel\Http\Controllers\AdminNotificationHistoryController;
 use Maatify\AdminKernel\Http\Controllers\AdminNotificationPreferenceController;
 use Maatify\AdminKernel\Http\Controllers\AdminNotificationReadController;
+use Maatify\AdminKernel\Http\Controllers\Api\AdminQueryController;
 use Maatify\AdminKernel\Http\Controllers\Api\PermissionMetadataUpdateController;
 use Maatify\AdminKernel\Http\Controllers\Api\PermissionsController;
 use Maatify\AdminKernel\Http\Controllers\Api\Roles\RoleCreateController;
@@ -138,6 +140,7 @@ use Maatify\AdminKernel\Infrastructure\Database\PDOFactory;
 use Maatify\AdminKernel\Infrastructure\Notification\TelegramHandler;
 use Maatify\AdminKernel\Infrastructure\Query\ListFilterResolver;
 use Maatify\AdminKernel\Infrastructure\Reader\Admin\PdoAdminQueryReader;
+use Maatify\AdminKernel\Infrastructure\Reader\I18n\PdoLanguageQueryReader;
 use Maatify\AdminKernel\Infrastructure\Reader\PDOPermissionsReaderRepository;
 use Maatify\AdminKernel\Infrastructure\Reader\PDORolesReaderRepository;
 use Maatify\AdminKernel\Infrastructure\Reader\Session\PdoSessionListReader;
@@ -2100,6 +2103,23 @@ class Container
                     })(),
                 };
             },
+
+            LanguageQueryReaderInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+
+                return new PdoLanguageQueryReader($pdo);
+            },
+
+            AdminQueryController::class => function (ContainerInterface $c) {
+                $reader = $c->get(AdminQueryReaderInterface::class);
+                $validationGuard = $c->get(ValidationGuard::class);
+                $filterResolver = $c->get(ListFilterResolver::class);
+                assert($reader instanceof AdminQueryReaderInterface);
+                assert($validationGuard instanceof ValidationGuard);
+                assert($filterResolver instanceof ListFilterResolver);
+                return new AdminQueryController($reader, $validationGuard, $filterResolver);
+            }
 
         ]);
 
