@@ -45,6 +45,11 @@ final readonly class PdoTranslationKeyQueryReader implements TranslationKeyQuery
         // ─────────────────────────────
         foreach ($filters->columnFilters as $alias => $value) {
 
+            if ($alias === 'id') {
+                $where[] = 'k.id = :id';
+                $params['id'] = (int)$value;
+            }
+
             if ($alias === 'key_name') {
                 $where[] = 'k.key_name LIKE :key_name';
                 $params['key_name'] = '%' . trim((string)$value) . '%';

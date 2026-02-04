@@ -46,6 +46,11 @@ final readonly class PdoLanguageQueryReader implements LanguageQueryReaderInterf
         // ─────────────────────────────
         foreach ($filters->columnFilters as $alias => $value) {
 
+            if ($alias === 'id') {
+                $where[] = 'l.id = :id';
+                $params['id'] = (int)$value;
+            }
+
             if ($alias === 'name') {
                 $where[] = 'l.name LIKE :name';
                 $params['name'] = '%' . trim((string)$value) . '%';

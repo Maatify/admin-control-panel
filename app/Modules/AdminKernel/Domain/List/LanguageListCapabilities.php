@@ -19,6 +19,7 @@ final class LanguageListCapabilities
             // 🎯 Explicit column filters
             supportsColumnFilters: true,
             filterableColumns    : [
+                'id' => 'id',
                 'name' => 'name',
                 'code' => 'code',
                 'is_active' => 'is_active',

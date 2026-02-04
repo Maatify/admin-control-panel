@@ -51,6 +51,10 @@ final readonly class PdoTranslationValueQueryReader implements TranslationValueQ
         // Column filters (explicit only)
         // ─────────────────────────────
         foreach ($filters->columnFilters as $alias => $value) {
+            if ($alias === 'id') {
+                $where[] = 'k.id LIKE :id';
+                $params['id'] = (int)$value;
+            }
             if ($alias === 'key_name') {
                 $where[] = 'k.key_name LIKE :key_name';
                 $params['key_name'] = '%' . trim((string)$value) . '%';

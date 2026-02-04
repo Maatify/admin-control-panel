@@ -19,8 +19,9 @@ final class TranslationValueListCapabilities
             // 🎯 Explicit column filters
             supportsColumnFilters: true,
             filterableColumns    : [
-                'key_name' => 'key_name',
-                'value' => 'value',
+                'id'        => 'id',
+                'key_name'  => 'key_name',
+                'value'     => 'value',
             ],
 
             supportsDateFilter   : false,
