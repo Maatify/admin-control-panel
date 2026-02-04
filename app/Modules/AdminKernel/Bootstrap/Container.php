@@ -116,6 +116,7 @@ use Maatify\AdminKernel\Http\Controllers\Api\SessionRevokeController;
 use Maatify\AdminKernel\Http\Controllers\AuthController;
 use Maatify\AdminKernel\Http\Controllers\NotificationQueryController;
 use Maatify\AdminKernel\Http\Controllers\TelegramWebhookController;
+use Maatify\AdminKernel\Http\Controllers\Ui\LanguagesListController;
 use Maatify\AdminKernel\Http\Controllers\Ui\SessionListController;
 use Maatify\AdminKernel\Http\Controllers\Ui\UiAdminsController;
 use Maatify\AdminKernel\Http\Controllers\Ui\UiDashboardController;
@@ -2196,6 +2197,14 @@ class Container
                     $validationGuard
                 );
             },
+
+            LanguagesListController::class => function (ContainerInterface $c) {
+                $twig = $c->get(Twig::class);
+                $authorizationService = $c->get(AuthorizationService::class);
+                assert($twig instanceof Twig);
+                assert($authorizationService instanceof AuthorizationService);
+                return new LanguagesListController($twig, $authorizationService);
+            }
 
 
         ]);

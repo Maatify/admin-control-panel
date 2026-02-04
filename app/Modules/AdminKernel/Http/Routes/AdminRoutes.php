@@ -15,6 +15,7 @@ use Maatify\AdminKernel\Http\Controllers\Api\LanguagesSetFallbackController;
 use Maatify\AdminKernel\Http\Controllers\Api\LanguagesUpdateSettingsController;
 use Maatify\AdminKernel\Http\Controllers\AuthController;
 use Maatify\AdminKernel\Http\Controllers\NotificationQueryController;
+use Maatify\AdminKernel\Http\Controllers\Ui\LanguagesListController;
 use Maatify\AdminKernel\Http\DTO\AdminMiddlewareOptionsDTO;
 use Maatify\AdminKernel\Http\Middleware\ApiGuestGuardMiddleware;
 use Maatify\AdminKernel\Http\Middleware\AuthorizationGuardMiddleware;
@@ -209,6 +210,10 @@ class AdminRoutes
                         [\Maatify\AdminKernel\Http\Controllers\Ui\UiPermissionsController::class, 'index']
                     )
                         ->setName('permissions.query.ui')
+                        ->add(AuthorizationGuardMiddleware::class);
+
+                    $protectedGroup->get('/languages', [LanguagesListController::class, '__invoke'])
+                        ->setName('languages.list.ui')
                         ->add(AuthorizationGuardMiddleware::class);
 
                     $protectedGroup->get('/settings', [\Maatify\AdminKernel\Http\Controllers\Ui\UiSettingsController::class, 'index']);

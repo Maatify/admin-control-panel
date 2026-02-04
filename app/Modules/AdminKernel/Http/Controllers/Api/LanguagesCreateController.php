@@ -85,6 +85,8 @@ final readonly class LanguagesCreateController
         );
 
         // 4) No Content
-        return $response->withStatus(204);
+        return $response
+            ->withHeader('Content-Type', 'application/json')
+            ->withStatus(200);
     }
 }
