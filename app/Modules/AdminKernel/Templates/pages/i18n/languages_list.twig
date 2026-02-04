@@ -40,19 +40,27 @@
        - JavaScript MUST NOT infer authorization
        - API authorization is always enforced server-side
 
-       Available capabilities:
-       - can_create   → Create new language
-       - can_update   → Update language settings
-       - can_active   → Activate / deactivate language
-       - can_fallback → Set fallback language
+       Available capabilities (per I18N_LANGUAGES_UI.md contract):
+       - can_create         → Create new language
+       - can_update         → Update language settings (direction/icon)
+       - can_update_name    → Update language name
+       - can_update_code    → Update language code
+       - can_update_sort    → Update sort order (reposition)
+       - can_active         → Activate / deactivate language
+       - can_fallback_set   → Set fallback language
+       - can_fallback_clear → Clear fallback language
        ============================================================ #}
 
     <script>
         window.languagesCapabilities = {
-            can_create  : {{ capabilities.can_create   ?? false ? 'true' : 'false' }},
-            can_update  : {{ capabilities.can_update   ?? false ? 'true' : 'false' }},
-            can_active  : {{ capabilities.can_active   ?? false ? 'true' : 'false' }},
-            can_fallback: {{ capabilities.can_fallback ?? false ? 'true' : 'false' }}
+            can_create        : {{ capabilities.can_create         ?? false ? 'true' : 'false' }},
+            can_update        : {{ capabilities.can_update         ?? false ? 'true' : 'false' }},
+            can_update_name   : {{ capabilities.can_update_name    ?? false ? 'true' : 'false' }},
+            can_update_code   : {{ capabilities.can_update_code    ?? false ? 'true' : 'false' }},
+            can_update_sort   : {{ capabilities.can_update_sort    ?? false ? 'true' : 'false' }},
+            can_active        : {{ capabilities.can_active         ?? false ? 'true' : 'false' }},
+            can_fallback_set  : {{ capabilities.can_fallback_set   ?? false ? 'true' : 'false' }},
+            can_fallback_clear: {{ capabilities.can_fallback_clear ?? false ? 'true' : 'false' }}
         };
 
         console.log('🔐 Languages Capabilities Injected:', window.languagesCapabilities);
@@ -66,17 +74,31 @@
                ============================================================ #}
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
                 <form id="languages-search-form" class="space-y-4">
-                    {# Global Search #}
+                    {# Column Filters #}
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {# ID Filter - NEW #}
+                        <div>
+                            <label for="filter-id" class="block text-sm font-medium text-gray-700 mb-2">
+                                🆔 Language ID
+                            </label>
+                            <input
+                                    type="number"
+                                    id="filter-id"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                    placeholder="e.g., 1, 2, 3..."
+                                    min="1"
+                            />
+                        </div>
+
                         <div>
                             <label for="filter-search" class="block text-sm font-medium text-gray-700 mb-2">
-                                🔍 Search (Name or Code)
+                                📝 Language Name
                             </label>
                             <input
                                     type="text"
                                     id="filter-search"
                                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                                    placeholder="e.g., English, ar, Arabic..."
+                                    placeholder="e.g., English, Arabic..."
                             />
                         </div>
 
@@ -118,20 +140,6 @@
                                 <option value="">All Statuses</option>
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label for="filter-has-fallback" class="block text-sm font-medium text-gray-700 mb-2">
-                                🔗 Fallback Language
-                            </label>
-                            <select
-                                    id="filter-has-fallback"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                            >
-                                <option value="">All Languages</option>
-                                <option value="yes">Has Fallback</option>
-                                <option value="no">No Fallback</option>
                             </select>
                         </div>
                     </div>
@@ -217,12 +225,17 @@
 
 {% block scripts %}
     {# Shared infrastructure scripts #}
-    <script src="{{ asset('assets/maatify/admin-kernel/js/api_error_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/api_handler.js') }}"></script>
     <script src="{{ asset('assets/maatify/admin-kernel/js/callback_handler.js') }}"></script>
     <script src="{{ asset('assets/maatify/admin-kernel/js/Input_checker.js') }}"></script>
     <script src="{{ asset('assets/maatify/admin-kernel/js/data_table.js') }}"></script>
 
+    {# Languages-specific helpers #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/languages-helpers.js') }}"></script>
+
     {# Languages management scripts #}
     <script src="{{ asset('assets/maatify/admin-kernel/js/pages/languages.js') }}"></script>
     <script src="{{ asset('assets/maatify/admin-kernel/js/pages/languages-modals.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/languages-actions.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/languages-fallback.js') }}"></script>
 {% endblock %}

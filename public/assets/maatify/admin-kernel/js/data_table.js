@@ -142,7 +142,7 @@ function showAlert(type, message) {
         info: 'bg-blue-100 border-blue-400 text-blue-700'
     };
     const el = document.createElement('div');
-    el.className = `fixed top-4 right-4 z-50 ${colors[t]} border px-4 py-3 rounded-lg shadow-lg max-w-md z-99999 left-10 `;
+    el.className = `fixed top-4 right-4 z-999990 ${colors[t]} border px-4 py-3 rounded-lg shadow-lg max-w-md z-99999 left-10 `;
     el.innerHTML = `<div class="flex items-center justify-between"><span>${message}</span><button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-lg">&times;</button></div>`;
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 5000);
