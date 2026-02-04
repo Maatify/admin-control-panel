@@ -97,4 +97,26 @@ final readonly class LanguageManagementService
             $sortOrder
         );
     }
+
+    public function setFallbackLanguage(
+        int $languageId,
+        int $fallbackLanguageId
+    ): void {
+        if ($languageId === $fallbackLanguageId) {
+            throw new RuntimeException('Language cannot fallback to itself.');
+        }
+
+        if ($this->languageRepository->getById($languageId) === null) {
+            throw new RuntimeException('Language not found.');
+        }
+
+        if ($this->languageRepository->getById($fallbackLanguageId) === null) {
+            throw new RuntimeException('Fallback language not found.');
+        }
+
+        $this->languageRepository->setFallbackLanguage(
+            $languageId,
+            $fallbackLanguageId
+        );
+    }
 }

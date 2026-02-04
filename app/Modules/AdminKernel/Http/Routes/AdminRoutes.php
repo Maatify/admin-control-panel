@@ -11,6 +11,7 @@ use Maatify\AdminKernel\Http\Controllers\Api\AdminQueryController;
 use Maatify\AdminKernel\Http\Controllers\Api\LanguagesCreateController;
 use Maatify\AdminKernel\Http\Controllers\Api\LanguagesQueryController;
 use Maatify\AdminKernel\Http\Controllers\Api\LanguagesSetActiveController;
+use Maatify\AdminKernel\Http\Controllers\Api\LanguagesSetFallbackController;
 use Maatify\AdminKernel\Http\Controllers\Api\LanguagesUpdateSettingsController;
 use Maatify\AdminKernel\Http\Controllers\AuthController;
 use Maatify\AdminKernel\Http\Controllers\NotificationQueryController;
@@ -298,6 +299,10 @@ class AdminRoutes
 
                         $languages->post('/set-active', [LanguagesSetActiveController::class, '__invoke'])
                             ->setName('languages.set.active.api');
+
+                        $languages->post('/set-fallback', [LanguagesSetFallbackController::class, '__invoke'])
+                            ->setName('languages.set.fallback.api');
+
                     });
 
                     // ─────────────────────────────
