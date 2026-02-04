@@ -47,7 +47,8 @@ use Maatify\AdminKernel\Domain\Contracts\AdminTotpSecretStoreInterface;
 use Maatify\AdminKernel\Domain\Contracts\FailedNotificationRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\NotificationReadRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\NotificationRoutingInterface;
-use Maatify\AdminKernel\Domain\Contracts\PermissionMapperInterface;
+//use Maatify\AdminKernel\Domain\Contracts\PermissionMapperInterface;
+use Maatify\AdminKernel\Domain\Contracts\PermissionMapperV2Interface;
 use Maatify\AdminKernel\Domain\Contracts\Permissions\DirectPermissionsWriterRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\PermissionsMetadataRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\PermissionsReaderRepositoryInterface;
@@ -391,20 +392,22 @@ class Container
                 $rolePermissionRepo = $c->get(RolePermissionRepositoryInterface::class);
                 $directPermissionRepo = $c->get(AdminDirectPermissionRepositoryInterface::class);
                 $ownershipRepo = $c->get(SystemOwnershipRepositoryInterface::class);
-                $permissionMapper = $c->get(PermissionMapperInterface::class);
-
+//                $permissionMapper = $c->get(PermissionMapperInterface::class);
+                $permissionMapperV2 = $c->get(PermissionMapperV2Interface::class);
                 assert($adminRoleRepo instanceof AdminRoleRepositoryInterface);
                 assert($rolePermissionRepo instanceof RolePermissionRepositoryInterface);
                 assert($directPermissionRepo instanceof AdminDirectPermissionRepositoryInterface);
                 assert($ownershipRepo instanceof SystemOwnershipRepositoryInterface);
-                assert($permissionMapper instanceof PermissionMapperInterface);
+//                assert($permissionMapper instanceof PermissionMapperInterface);
+                assert($permissionMapperV2 instanceof PermissionMapperV2Interface);
 
                 return new AuthorizationService(
                     $adminRoleRepo,
                     $rolePermissionRepo,
                     $directPermissionRepo,
                     $ownershipRepo,
-                    $permissionMapper
+//                    $permissionMapper,
+                    $permissionMapperV2
                 );
             },
             \Maatify\AdminKernel\Domain\Contracts\Ui\NavigationProviderInterface::class => function (ContainerInterface $c) {
@@ -1800,9 +1803,9 @@ class Container
                 return new \Maatify\AdminKernel\Infrastructure\Logging\SecuritySignalsMaatifyAdapter($recorder);
             },
 
-            PermissionMapperInterface::class => function () {
-                return new PermissionMapper();
-            },
+//            PermissionMapperInterface::class => function () {
+//                return new PermissionMapper();
+//            },
 
             \Maatify\AdminKernel\Domain\Contracts\Roles\RolePermissionsRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);

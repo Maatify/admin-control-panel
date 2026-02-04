@@ -52,6 +52,8 @@ final class PermissionMapper implements PermissionMapperInterface
 
         'i18n.translations.list.ui' => 'i18n.translations.list',
         'i18n.translations.list.api' => 'i18n.translations.list',
+
+        'i18n.translations.select.api' => 'i18n.translations.upsert.api',
     ];
 
     public function map(string $routeName): string

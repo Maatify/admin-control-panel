@@ -6,12 +6,12 @@ namespace Maatify\AdminKernel\Domain\Service;
 
 use Maatify\AdminKernel\Domain\Contracts\AdminDirectPermissionRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\AdminRoleRepositoryInterface;
-use Maatify\AdminKernel\Context\RequestContext;
-use Maatify\AdminKernel\Domain\Contracts\PermissionMapperInterface;
+use Maatify\AdminKernel\Domain\Contracts\PermissionMapperV2Interface;
 use Maatify\AdminKernel\Domain\Contracts\RolePermissionRepositoryInterface;
 use Maatify\AdminKernel\Domain\Exception\PermissionDeniedException;
 use Maatify\AdminKernel\Domain\Exception\UnauthorizedException;
 use Maatify\AdminKernel\Domain\Ownership\SystemOwnershipRepositoryInterface;
+use Maatify\AdminKernel\Context\RequestContext;
 
 readonly class AuthorizationService
 {
@@ -20,19 +20,102 @@ readonly class AuthorizationService
         private RolePermissionRepositoryInterface $rolePermissionRepository,
         private AdminDirectPermissionRepositoryInterface $directPermissionRepository,
         private SystemOwnershipRepositoryInterface $systemOwnershipRepository,
-        private PermissionMapperInterface $permissionMapper,
+//        private PermissionMapperInterface $permissionMapper,        // V1
+        private PermissionMapperV2Interface $permissionMapperV2,    // V2
     ) {
     }
 
-    public function checkPermission(int $adminId, string $permission, RequestContext $context): void
-    {
+    /**
+     * Authorization decision (throws on failure)
+     */
+    public function checkPermission(
+        int $adminId,
+        string $routeName,
+        RequestContext $context
+    ): void {
         // 0. System Owner Bypass
         // Authorization decision only — no audit, no activity
         if ($this->systemOwnershipRepository->isOwner($adminId)) {
             return;
         }
 
-        $permission = $this->permissionMapper->map($permission);
+        $requirement = $this->permissionMapperV2->resolve($routeName);
+
+        // AND logic
+        if ($requirement->allOf !== []) {
+            foreach ($requirement->allOf as $permission) {
+                $this->assertSinglePermission($adminId, $permission);
+            }
+            return;
+        }
+
+        // OR logic
+        if ($requirement->anyOf !== []) {
+            foreach ($requirement->anyOf as $permission) {
+                if ($this->hasSinglePermission($adminId, $permission)) {
+                    return;
+                }
+            }
+
+            throw new PermissionDeniedException(
+                "Admin $adminId lacks required permissions (anyOf)."
+            );
+        }
+
+        // Absolute fallback (defensive)
+//        $permission = $this->permissionMapper->map($routeName);
+//        $this->assertSinglePermission($adminId, $permission);
+    }
+
+    /**
+     * Read-only helper — no logging
+     */
+    public function hasPermission(int $adminId, string $routeName): bool
+    {
+        if ($this->systemOwnershipRepository->isOwner($adminId)) {
+            return true;
+        }
+
+        $requirement = $this->permissionMapperV2->resolve($routeName);
+
+        // AND logic
+        if ($requirement->allOf !== []) {
+            foreach ($requirement->allOf as $permission) {
+                if (!$this->hasSinglePermission($adminId, $permission)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // OR logic: must have AT LEAST ONE permission
+        if ($requirement->anyOf !== []) {
+            foreach ($requirement->anyOf as $permission) {
+                if ($this->hasSinglePermission($adminId, $permission)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Absolute fallback
+//        $permission = $this->permissionMapper->map($routeName);
+//        return $this->hasSinglePermission($adminId, $permission);
+
+        /**
+         * Defensive default:
+         * - No requirements resolved
+         * - Treat as denied (secure by default)
+         */
+        return false;
+    }
+
+    /**
+     * Core single-permission assertion (throws)
+     */
+    private function assertSinglePermission(int $adminId, string $permission): void
+    {
+//        $permission = $this->permissionMapper->map($permission);
 
         if (!$this->rolePermissionRepository->permissionExists($permission)) {
             throw new UnauthorizedException("Permission '$permission' does not exist.");
@@ -46,7 +129,7 @@ readonly class AuthorizationService
                     throw new PermissionDeniedException("Explicit deny for '$permission'.");
                 }
 
-                // Explicit allow — authorization decision only
+                // Explicit allow
                 return;
             }
         }
@@ -55,21 +138,20 @@ readonly class AuthorizationService
         $roleIds = $this->adminRoleRepository->getRoleIds($adminId);
 
         if ($this->rolePermissionRepository->hasPermission($roleIds, $permission)) {
-            // Role-based allow — authorization decision only
             return;
         }
 
-        throw new PermissionDeniedException("Admin $adminId lacks permission '$permission'.");
+        throw new PermissionDeniedException(
+            "Admin $adminId lacks permission '$permission'."
+        );
     }
 
-    public function hasPermission(int $adminId, string $permission): bool
+    /**
+     * Core single-permission check (boolean)
+     */
+    private function hasSinglePermission(int $adminId, string $permission): bool
     {
-        // Read-only helper — no logging
-        if ($this->systemOwnershipRepository->isOwner($adminId)) {
-            return true;
-        }
-
-        $permission = $this->permissionMapper->map($permission);
+//        $permission = $this->permissionMapper->map($permission);
 
         if (!$this->rolePermissionRepository->permissionExists($permission)) {
             return false;
