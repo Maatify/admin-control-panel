@@ -103,6 +103,7 @@ use Maatify\AdminKernel\Http\Controllers\Api\LanguagesClearFallbackController;
 use Maatify\AdminKernel\Http\Controllers\Api\LanguagesCreateController;
 use Maatify\AdminKernel\Http\Controllers\Api\LanguagesSetActiveController;
 use Maatify\AdminKernel\Http\Controllers\Api\LanguagesSetFallbackController;
+use Maatify\AdminKernel\Http\Controllers\Api\LanguagesUpdateCodeController;
 use Maatify\AdminKernel\Http\Controllers\Api\LanguagesUpdateNameController;
 use Maatify\AdminKernel\Http\Controllers\Api\LanguagesUpdateSettingsController;
 use Maatify\AdminKernel\Http\Controllers\Api\LanguagesUpdateSortOrderController;
@@ -2243,6 +2244,19 @@ class Container
                 assert($validationGuard instanceof ValidationGuard);
 
                 return new LanguagesUpdateNameController(
+                    $languageService,
+                    $validationGuard
+                );
+            },
+
+            LanguagesUpdateCodeController::class => function (ContainerInterface $c) {
+                $languageService = $c->get(LanguageManagementService::class);
+                $validationGuard = $c->get(ValidationGuard::class);
+
+                assert($languageService instanceof LanguageManagementService);
+                assert($validationGuard instanceof ValidationGuard);
+
+                return new LanguagesUpdateCodeController(
                     $languageService,
                     $validationGuard
                 );

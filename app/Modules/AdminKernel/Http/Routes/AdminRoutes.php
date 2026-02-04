@@ -13,6 +13,7 @@ use Maatify\AdminKernel\Http\Controllers\Api\LanguagesCreateController;
 use Maatify\AdminKernel\Http\Controllers\Api\LanguagesQueryController;
 use Maatify\AdminKernel\Http\Controllers\Api\LanguagesSetActiveController;
 use Maatify\AdminKernel\Http\Controllers\Api\LanguagesSetFallbackController;
+use Maatify\AdminKernel\Http\Controllers\Api\LanguagesUpdateCodeController;
 use Maatify\AdminKernel\Http\Controllers\Api\LanguagesUpdateNameController;
 use Maatify\AdminKernel\Http\Controllers\Api\LanguagesUpdateSettingsController;
 use Maatify\AdminKernel\Http\Controllers\Api\LanguagesUpdateSortOrderController;
@@ -319,6 +320,9 @@ class AdminRoutes
 
                         $languages->post('/update-name', [LanguagesUpdateNameController::class, '__invoke'])
                             ->setName('languages.update.name.api');
+
+                        $languages->post('/update-code', [LanguagesUpdateCodeController::class, '__invoke'])
+                            ->setName('languages.update.code.api');
 
                     });
 

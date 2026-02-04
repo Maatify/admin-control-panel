@@ -173,5 +173,33 @@ final readonly class LanguageManagementService
         );
     }
 
+    public function updateLanguageCode(
+        int $languageId,
+        string $code
+    ): void {
+        $language = $this->languageRepository->getById($languageId);
+
+        if ($language === null) {
+            throw new RuntimeException('Language not found.');
+        }
+
+        $code = trim($code);
+
+        if ($code === '') {
+            throw new RuntimeException('Language code cannot be empty.');
+        }
+
+        $existing = $this->languageRepository->getByCode($code);
+
+        if ($existing !== null && $existing->id !== $languageId) {
+            throw new RuntimeException('Language code already exists.');
+        }
+
+        $this->languageRepository->updateCode(
+            $languageId,
+            $code
+        );
+    }
+
 
 }

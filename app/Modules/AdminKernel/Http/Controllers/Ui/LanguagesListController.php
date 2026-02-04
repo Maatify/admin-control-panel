@@ -40,6 +40,7 @@ final readonly class LanguagesListController
             'can_create' => $this->authorizationService->hasPermission($adminId, 'languages.create.api'),
             'can_update' => $this->authorizationService->hasPermission($adminId, 'languages.update.settings.api'),
             'can_update_name'    => $this->authorizationService->hasPermission($adminId, 'languages.update.name.api'),
+            'can_update_code'    => $this->authorizationService->hasPermission($adminId, 'languages.update.code.api'),
             'can_update_sort' => $this->authorizationService->hasPermission($adminId, 'languages.update.sort.api'),
             'can_active' => $this->authorizationService->hasPermission($adminId, 'languages.set.active.api'),
             'can_fallback_set' => $this->authorizationService->hasPermission($adminId, 'languages.set.fallback.api'),
