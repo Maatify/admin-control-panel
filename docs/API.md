@@ -1800,3 +1800,32 @@ All four documents:
 ---
 
 
+
+
+---
+
+## 🌍 Languages & i18n (UI Management)
+
+Language and localization management APIs are documented separately.
+
+**Canonical Reference:**
+
+```
+
+docs/API/I18N_LANGUAGES_UI.md
+
+```
+
+This document defines the **authoritative contract** for:
+
+* Language lifecycle management
+* Activation & fallback rules
+* Ordering (server-controlled)
+* UI capability flags
+* Language-specific LIST / QUERY behavior
+
+All endpoints described there are **part of this API contract**
+and fully inherit the global rules defined in this document.
+
+---
+
