@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Controllers;
+namespace Maatify\AdminKernel\Http\Controllers\Api\Admin;
 
 use JsonException;
 use Maatify\AdminKernel\Application\Crypto\AdminIdentifierCryptoServiceInterface;
@@ -32,7 +32,7 @@ use RuntimeException;
 use Slim\Exception\HttpBadRequestException;
 use Slim\Exception\HttpNotFoundException;
 
-class AdminController
+readonly class AdminController
 {
     public function __construct(
         private AdminRepository $adminRepository,

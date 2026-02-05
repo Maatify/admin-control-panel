@@ -91,33 +91,33 @@ use Maatify\AdminKernel\Domain\Service\VerificationCodeGenerator;
 use Maatify\AdminKernel\Domain\Service\VerificationCodePolicyResolver;
 use Maatify\AdminKernel\Domain\Service\VerificationCodeValidator;
 use Maatify\AdminKernel\Domain\Session\Reader\SessionListReaderInterface;
-use Maatify\AdminKernel\Http\Controllers\AdminController;
-use Maatify\AdminKernel\Http\Controllers\AdminEmailVerificationController;
 use Maatify\AdminKernel\Http\Controllers\AdminNotificationHistoryController;
 use Maatify\AdminKernel\Http\Controllers\AdminNotificationPreferenceController;
 use Maatify\AdminKernel\Http\Controllers\AdminNotificationReadController;
-use Maatify\AdminKernel\Http\Controllers\Api\AdminQueryController;
-use Maatify\AdminKernel\Http\Controllers\Api\LanguagesClearFallbackController;
-use Maatify\AdminKernel\Http\Controllers\Api\LanguagesCreateController;
-use Maatify\AdminKernel\Http\Controllers\Api\LanguagesSetActiveController;
-use Maatify\AdminKernel\Http\Controllers\Api\LanguagesSetFallbackController;
-use Maatify\AdminKernel\Http\Controllers\Api\LanguagesUpdateCodeController;
-use Maatify\AdminKernel\Http\Controllers\Api\LanguagesUpdateNameController;
-use Maatify\AdminKernel\Http\Controllers\Api\LanguagesUpdateSettingsController;
-use Maatify\AdminKernel\Http\Controllers\Api\LanguagesUpdateSortOrderController;
-use Maatify\AdminKernel\Http\Controllers\Api\PermissionMetadataUpdateController;
-use Maatify\AdminKernel\Http\Controllers\Api\PermissionsController;
+use Maatify\AdminKernel\Http\Controllers\Api\Admin\AdminController;
+use Maatify\AdminKernel\Http\Controllers\Api\Admin\AdminEmailVerificationController;
+use Maatify\AdminKernel\Http\Controllers\Api\Admin\AdminQueryController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationKeysCreateController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationKeysUpdateDescriptionController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationKeysUpdateNameController;
+use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesClearFallbackController;
+use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesCreateController;
+use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesSetActiveController;
+use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesSetFallbackController;
+use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesUpdateCodeController;
+use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesUpdateNameController;
+use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesUpdateSettingsController;
+use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesUpdateSortOrderController;
+use Maatify\AdminKernel\Http\Controllers\Api\Permissions\PermissionMetadataUpdateController;
+use Maatify\AdminKernel\Http\Controllers\Api\Permissions\PermissionsController;
 use Maatify\AdminKernel\Http\Controllers\Api\Roles\RoleCreateController;
 use Maatify\AdminKernel\Http\Controllers\Api\Roles\RoleMetadataUpdateController;
 use Maatify\AdminKernel\Http\Controllers\Api\Roles\RoleRenameController;
 use Maatify\AdminKernel\Http\Controllers\Api\Roles\RolesControllerQuery;
 use Maatify\AdminKernel\Http\Controllers\Api\Roles\RoleToggleController;
-use Maatify\AdminKernel\Http\Controllers\Api\SessionBulkRevokeController;
-use Maatify\AdminKernel\Http\Controllers\Api\SessionQueryController;
-use Maatify\AdminKernel\Http\Controllers\Api\SessionRevokeController;
-use Maatify\AdminKernel\Http\Controllers\Api\TranslationKeysCreateController;
-use Maatify\AdminKernel\Http\Controllers\Api\TranslationKeysUpdateDescriptionController;
-use Maatify\AdminKernel\Http\Controllers\Api\TranslationKeysUpdateNameController;
+use Maatify\AdminKernel\Http\Controllers\Api\Sessions\SessionBulkRevokeController;
+use Maatify\AdminKernel\Http\Controllers\Api\Sessions\SessionQueryController;
+use Maatify\AdminKernel\Http\Controllers\Api\Sessions\SessionRevokeController;
 use Maatify\AdminKernel\Http\Controllers\AuthController;
 use Maatify\AdminKernel\Http\Controllers\NotificationQueryController;
 use Maatify\AdminKernel\Http\Controllers\TelegramWebhookController;
@@ -2358,20 +2358,20 @@ class Container
                 return new \Maatify\AdminKernel\Infrastructure\Reader\I18n\PdoTranslationValueQueryReader($pdo);
             },
 
-            \Maatify\AdminKernel\Http\Controllers\Api\TranslationValueUpsertController::class => function (\Psr\Container\ContainerInterface $c) {
+            \Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationValueUpsertController::class => function (\Psr\Container\ContainerInterface $c) {
                 $translationWriteService = $c->get(\Maatify\I18n\Service\TranslationWriteService::class);
                 $validationGuard = $c->get(\Maatify\Validation\Guard\ValidationGuard::class);
                 assert($translationWriteService instanceof \Maatify\I18n\Service\TranslationWriteService);
                 assert($validationGuard instanceof \Maatify\Validation\Guard\ValidationGuard);
-                return new \Maatify\AdminKernel\Http\Controllers\Api\TranslationValueUpsertController($translationWriteService, $validationGuard);
+                return new \Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationValueUpsertController($translationWriteService, $validationGuard);
             },
 
-            \Maatify\AdminKernel\Http\Controllers\Api\TranslationValueDeleteController::class => function (\Psr\Container\ContainerInterface $c) {
+            \Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationValueDeleteController::class => function (\Psr\Container\ContainerInterface $c) {
                 $translationWriteService = $c->get(\Maatify\I18n\Service\TranslationWriteService::class);
                 $validationGuard = $c->get(\Maatify\Validation\Guard\ValidationGuard::class);
                 assert($translationWriteService instanceof \Maatify\I18n\Service\TranslationWriteService);
                 assert($validationGuard instanceof \Maatify\Validation\Guard\ValidationGuard);
-                return new \Maatify\AdminKernel\Http\Controllers\Api\TranslationValueDeleteController($translationWriteService, $validationGuard);
+                return new \Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationValueDeleteController($translationWriteService, $validationGuard);
             },
 
             \Maatify\AdminKernel\Http\Controllers\Ui\I18n\TranslationsListUiController::class => function (\Psr\Container\ContainerInterface $c) {

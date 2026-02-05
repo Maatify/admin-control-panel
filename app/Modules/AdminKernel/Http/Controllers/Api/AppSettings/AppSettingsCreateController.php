@@ -13,7 +13,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Controllers\Api;
+namespace Maatify\AdminKernel\Http\Controllers\Api\AppSettings;
 
 use Maatify\AdminKernel\Validation\Schemas\AppSettings\AppSettingsCreateSchema;
 use Maatify\AppSettings\AppSettingsServiceInterface;

@@ -1,22 +1,34 @@
 <?php
 
+/**
+ * @copyright   ©2026 Maatify.dev
+ * @Library     maatify/admin-control-panel
+ * @Project     maatify:admin-control-panel
+ * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
+ * @since       2026-02-05 10:33
+ * @see         https://www.maatify.dev Maatify.dev
+ * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
+ * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
+ */
+
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Controllers\Api;
+namespace Maatify\AdminKernel\Http\Controllers\Api\AppSettings;
 
+use Maatify\AdminKernel\Validation\Schemas\AppSettings\AppSettingsUpdateSchema;
 use Maatify\AppSettings\AppSettingsServiceInterface;
-use Maatify\AppSettings\DTO\AppSettingKeyDTO;
-use Maatify\AdminKernel\Validation\Schemas\AppSettings\AppSettingsSetActiveSchema;
+use Maatify\AppSettings\DTO\AppSettingUpdateDTO;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-final readonly class AppSettingsSetActiveController
+final readonly class AppSettingsUpdateController
 {
     public function __construct(
         private AppSettingsServiceInterface $service,
         private ValidationGuard $validationGuard
-    ) {
+    )
+    {
     }
 
     public function __invoke(Request $request, Response $response): Response
@@ -26,7 +38,7 @@ final readonly class AppSettingsSetActiveController
 
         // 1) Validate
         $this->validationGuard->check(
-            new AppSettingsSetActiveSchema(),
+            new AppSettingsUpdateSchema(),
             $body
         );
 
@@ -34,21 +46,19 @@ final readonly class AppSettingsSetActiveController
          * @var array{
          *   setting_group: string,
          *   setting_key: string,
-         *   is_active: bool
+         *   setting_value: string
          * } $body
          */
 
         // 2) DTO
-        $keyDto = new AppSettingKeyDTO(
+        $dto = new AppSettingUpdateDTO(
             group: $body['setting_group'],
-            key: $body['setting_key']
+            key  : $body['setting_key'],
+            value: $body['setting_value']
         );
 
         // 3) Execute domain service
-        $this->service->setActive(
-            $keyDto,
-            (bool)$body['is_active']
-        );
+        $this->service->update($dto);
 
         // 4) Response
         $response->getBody()->write(

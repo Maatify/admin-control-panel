@@ -4,23 +4,23 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Routes;
 
-use Maatify\AdminKernel\Http\Controllers\AdminController;
-use Maatify\AdminKernel\Http\Controllers\AdminEmailVerificationController;
 use Maatify\AdminKernel\Http\Controllers\AdminNotificationPreferenceController;
-use Maatify\AdminKernel\Http\Controllers\Api\AdminQueryController;
-use Maatify\AdminKernel\Http\Controllers\Api\LanguagesClearFallbackController;
-use Maatify\AdminKernel\Http\Controllers\Api\LanguagesCreateController;
-use Maatify\AdminKernel\Http\Controllers\Api\LanguagesQueryController;
-use Maatify\AdminKernel\Http\Controllers\Api\LanguagesSetActiveController;
-use Maatify\AdminKernel\Http\Controllers\Api\LanguagesSetFallbackController;
-use Maatify\AdminKernel\Http\Controllers\Api\LanguagesUpdateCodeController;
-use Maatify\AdminKernel\Http\Controllers\Api\LanguagesUpdateNameController;
-use Maatify\AdminKernel\Http\Controllers\Api\LanguagesUpdateSettingsController;
-use Maatify\AdminKernel\Http\Controllers\Api\LanguagesUpdateSortOrderController;
-use Maatify\AdminKernel\Http\Controllers\Api\TranslationKeysCreateController;
-use Maatify\AdminKernel\Http\Controllers\Api\TranslationKeysQueryController;
-use Maatify\AdminKernel\Http\Controllers\Api\TranslationKeysUpdateDescriptionController;
-use Maatify\AdminKernel\Http\Controllers\Api\TranslationKeysUpdateNameController;
+use Maatify\AdminKernel\Http\Controllers\Api\Admin\AdminController;
+use Maatify\AdminKernel\Http\Controllers\Api\Admin\AdminEmailVerificationController;
+use Maatify\AdminKernel\Http\Controllers\Api\Admin\AdminQueryController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationKeysCreateController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationKeysQueryController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationKeysUpdateDescriptionController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationKeysUpdateNameController;
+use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesClearFallbackController;
+use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesCreateController;
+use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesQueryController;
+use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesSetActiveController;
+use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesSetFallbackController;
+use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesUpdateCodeController;
+use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesUpdateNameController;
+use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesUpdateSettingsController;
+use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesUpdateSortOrderController;
 use Maatify\AdminKernel\Http\Controllers\AuthController;
 use Maatify\AdminKernel\Http\Controllers\NotificationQueryController;
 use Maatify\AdminKernel\Http\Controllers\Ui\I18n\TranslationKeysListController;
@@ -304,13 +304,13 @@ class AdminRoutes
                 $api->group('', function (RouteCollectorProxyInterface $group) {
                     // Phase 14.3: Sessions Query
                     $group->group('/sessions', function (RouteCollectorProxyInterface $sessions) {
-                        $sessions->post('/query', [\Maatify\AdminKernel\Http\Controllers\Api\SessionQueryController::class, '__invoke'])
+                        $sessions->post('/query', [\Maatify\AdminKernel\Http\Controllers\Api\Sessions\SessionQueryController::class, '__invoke'])
                             ->setName('sessions.list.api');
 
-                        $sessions->delete('/{session_id}', [\Maatify\AdminKernel\Http\Controllers\Api\SessionRevokeController::class, '__invoke'])
+                        $sessions->delete('/{session_id}', [\Maatify\AdminKernel\Http\Controllers\Api\Sessions\SessionRevokeController::class, '__invoke'])
                             ->setName('sessions.revoke.id');
 
-                        $sessions->post('/revoke-bulk', [\Maatify\AdminKernel\Http\Controllers\Api\SessionBulkRevokeController::class, '__invoke'])
+                        $sessions->post('/revoke-bulk', [\Maatify\AdminKernel\Http\Controllers\Api\Sessions\SessionBulkRevokeController::class, '__invoke'])
                             ->setName('sessions.revoke.bulk');
                     });
 
@@ -333,13 +333,13 @@ class AdminRoutes
                         });
 
                         $i18n->group('/translations', function (\Slim\Interfaces\RouteCollectorProxyInterface $translations) {
-                            $translations->post('/query', [\Maatify\AdminKernel\Http\Controllers\Api\TranslationValuesQueryController::class, '__invoke'])
+                            $translations->post('/query', [\Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationValuesQueryController::class, '__invoke'])
                                 ->setName('i18n.translations.list.api');
 
-                            $translations->post('/upsert', [\Maatify\AdminKernel\Http\Controllers\Api\TranslationValueUpsertController::class, '__invoke'])
+                            $translations->post('/upsert', [\Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationValueUpsertController::class, '__invoke'])
                                 ->setName('i18n.translations.upsert.api');
 
-                            $translations->post('/delete', [\Maatify\AdminKernel\Http\Controllers\Api\TranslationValueDeleteController::class, '__invoke'])
+                            $translations->post('/delete', [\Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationValueDeleteController::class, '__invoke'])
                                 ->setName('i18n.translations.delete.api');
                         });
                     });
@@ -351,7 +351,7 @@ class AdminRoutes
                             $appSettings->post(
                                 '/query',
                                 [
-                                    \Maatify\AdminKernel\Http\Controllers\Api\AppSettingsQueryController::class,
+                                    \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsQueryController::class,
                                     '__invoke'
                                 ]
                             )
@@ -360,7 +360,7 @@ class AdminRoutes
                         $appSettings->post(
                             '/create',
                             [
-                                \Maatify\AdminKernel\Http\Controllers\Api\AppSettingsCreateController::class,
+                                \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsCreateController::class,
                                 '__invoke'
                             ]
                         )->setName('app_settings.create.api');
@@ -368,7 +368,7 @@ class AdminRoutes
                         $appSettings->post(
                             '/metadata',
                             [
-                                \Maatify\AdminKernel\Http\Controllers\Api\AppSettingsMetadataController::class,
+                                \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsMetadataController::class,
                                 '__invoke'
                             ]
                         )->setName('app_settings.metadata.api');
@@ -376,7 +376,7 @@ class AdminRoutes
                         $appSettings->post(
                             '/update',
                             [
-                                \Maatify\AdminKernel\Http\Controllers\Api\AppSettingsUpdateController::class,
+                                \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsUpdateController::class,
                                 '__invoke'
                             ]
                         )->setName('app_settings.update.api');
@@ -384,7 +384,7 @@ class AdminRoutes
                         $appSettings->post(
                             '/set-active',
                             [
-                                \Maatify\AdminKernel\Http\Controllers\Api\AppSettingsSetActiveController::class,
+                                \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsSetActiveController::class,
                                 '__invoke'
                             ]
                         )->setName('app_settings.set_active.api');
@@ -513,10 +513,10 @@ class AdminRoutes
                     // Permissions Control
                     // ─────────────────────────────
                     $group->group('/permissions', function (RouteCollectorProxyInterface $permissions) {
-                        $permissions->post('/query', [\Maatify\AdminKernel\Http\Controllers\Api\PermissionsController::class, '__invoke'])
+                        $permissions->post('/query', [\Maatify\AdminKernel\Http\Controllers\Api\Permissions\PermissionsController::class, '__invoke'])
                             ->setName('permissions.query.api');
 
-                        $permissions->post('/{id:[0-9]+}/metadata', [\Maatify\AdminKernel\Http\Controllers\Api\PermissionMetadataUpdateController::class, '__invoke'])
+                        $permissions->post('/{id:[0-9]+}/metadata', [\Maatify\AdminKernel\Http\Controllers\Api\Permissions\PermissionMetadataUpdateController::class, '__invoke'])
                             ->setName('permissions.metadata.update');
                     });
 

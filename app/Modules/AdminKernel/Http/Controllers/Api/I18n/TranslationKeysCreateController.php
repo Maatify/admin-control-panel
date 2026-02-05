@@ -5,7 +5,7 @@
  * @Library     maatify/admin-control-panel
  * @Project     maatify:admin-control-panel
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
- * @since       2026-02-04 12:06
+ * @since       2026-02-04 12:01
  * @see         https://www.maatify.dev Maatify.dev
  * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
  * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
@@ -13,44 +13,53 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Controllers\Api;
+namespace Maatify\AdminKernel\Http\Controllers\Api\I18n;
 
-use Maatify\AdminKernel\Validation\Schemas\I18n\TranslationKeyUpdateNameSchema;
+use Maatify\AdminKernel\Validation\Schemas\I18n\TranslationKeyCreateSchema;
 use Maatify\I18n\Service\TranslationWriteService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use RuntimeException;
 
-final readonly class TranslationKeysUpdateNameController
+final readonly class TranslationKeysCreateController
 {
     public function __construct(
         private TranslationWriteService $translationWriteService,
         private ValidationGuard $validationGuard
-    ) {}
+    ) {
+    }
 
     public function __invoke(Request $request, Response $response): Response
     {
         /** @var array<string, mixed> $body */
         $body = (array) $request->getParsedBody();
 
-        $this->validationGuard->check(
-            new TranslationKeyUpdateNameSchema(),
-            $body
-        );
+        // 1) Validate request
+        $this->validationGuard->check(new TranslationKeyCreateSchema(), $body);
 
-        $keyId = $body['key_id'];
+        // 2) Explicit type narrowing (phpstan-safe)
         $keyName = $body['key_name'];
 
-        if (! is_int($keyId) || ! is_string($keyName)) {
-            throw new RuntimeException('Invalid validated payload.');
+        if (!is_string($keyName)) {
+            // Defensive guard – should never happen after validation
+            throw new \RuntimeException('Invalid validated payload.');
         }
 
-        $this->translationWriteService->renameKey(
-            keyId: $keyId,
-            newKey: $keyName
+        $description = null;
+        if (array_key_exists('description', $body)) {
+            if (!is_string($body['description'])) {
+                throw new \RuntimeException('Invalid description value.');
+            }
+            $description = $body['description'];
+        }
+
+        // 3) Execute service
+        $this->translationWriteService->createKey(
+            key: $keyName,
+            description: $description
         );
 
+        // 4) Response
         $response->getBody()->write(
             json_encode(['status' => 'ok'], JSON_THROW_ON_ERROR)
         );

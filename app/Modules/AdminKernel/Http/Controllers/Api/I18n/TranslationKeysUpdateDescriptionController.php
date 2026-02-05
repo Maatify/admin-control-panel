@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Controllers\Api;
+namespace Maatify\AdminKernel\Http\Controllers\Api\I18n;
 
 use Maatify\AdminKernel\Validation\Schemas\I18n\TranslationKeyUpdateDescriptionSchema;
 use Maatify\I18n\Service\TranslationWriteService;

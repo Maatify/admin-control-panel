@@ -5,7 +5,7 @@
  * @Library     maatify/admin-control-panel
  * @Project     maatify:admin-control-panel
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
- * @since       2026-02-04 09:05
+ * @since       2026-02-04 02:05
  * @see         https://www.maatify.dev Maatify.dev
  * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
  * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
@@ -13,21 +13,21 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Controllers\Api;
+namespace Maatify\AdminKernel\Http\Controllers\Api\Languages;
 
-use Maatify\AdminKernel\Domain\I18n\Reader\TranslationKeyQueryReaderInterface;
+use Maatify\AdminKernel\Domain\I18n\Reader\LanguageQueryReaderInterface;
+use Maatify\AdminKernel\Domain\List\LanguageListCapabilities;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
-use Maatify\AdminKernel\Domain\List\TranslationKeyListCapabilities;
 use Maatify\AdminKernel\Infrastructure\Query\ListFilterResolver;
 use Maatify\Validation\Guard\ValidationGuard;
 use Maatify\Validation\Schemas\SharedListQuerySchema;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-final readonly class TranslationKeysQueryController
+final readonly class LanguagesQueryController
 {
     public function __construct(
-        private TranslationKeyQueryReaderInterface $reader,
+        private LanguageQueryReaderInterface $reader,
         private ValidationGuard $validationGuard,
         private ListFilterResolver $filterResolver
     )
@@ -62,19 +62,17 @@ final readonly class TranslationKeysQueryController
         $query = ListQueryDTO::fromArray($validated);
 
         // 3) Capabilities
-        $capabilities = TranslationKeyListCapabilities::define();
+        $capabilities = LanguageListCapabilities::define();
 
         // 4) Resolve filters
         $filters = $this->filterResolver->resolve($query, $capabilities);
 
         // 5) Execute reader
-        $result = $this->reader->queryTranslationKeys($query, $filters);
+        $result = $this->reader->queryLanguages($query, $filters);
 
         // 6) Return JSON
         $response->getBody()->write(json_encode($result, JSON_THROW_ON_ERROR));
 
-        return $response
-            ->withHeader('Content-Type', 'application/json')
-            ->withStatus(200);
+        return $response->withHeader('Content-Type', 'application/json');
     }
 }

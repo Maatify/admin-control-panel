@@ -5,7 +5,7 @@
  * @Library     maatify/admin-control-panel
  * @Project     maatify:admin-control-panel
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
- * @since       2026-02-04 12:01
+ * @since       2026-02-04 13:25
  * @see         https://www.maatify.dev Maatify.dev
  * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
  * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
@@ -13,15 +13,15 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Controllers\Api;
+namespace Maatify\AdminKernel\Http\Controllers\Api\I18n;
 
-use Maatify\AdminKernel\Validation\Schemas\I18n\TranslationKeyCreateSchema;
+use Maatify\AdminKernel\Validation\Schemas\I18n\TranslationValueUpsertSchema;
 use Maatify\I18n\Service\TranslationWriteService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-final readonly class TranslationKeysCreateController
+final readonly class TranslationValueUpsertController
 {
     public function __construct(
         private TranslationWriteService $translationWriteService,
@@ -31,32 +31,27 @@ final readonly class TranslationKeysCreateController
 
     public function __invoke(Request $request, Response $response): Response
     {
-        /** @var array<string, mixed> $body */
-        $body = (array) $request->getParsedBody();
+        /** @var array<string,mixed> $body */
+        $body = (array)$request->getParsedBody();
 
-        // 1) Validate request
-        $this->validationGuard->check(new TranslationKeyCreateSchema(), $body);
+        // 1) Validate payload
+        $this->validationGuard->check(new TranslationValueUpsertSchema(), $body);
 
         // 2) Explicit type narrowing (phpstan-safe)
-        $keyName = $body['key_name'];
+        $languageId = $body['language_id'] ?? null;
+        $keyId      = $body['key_id'] ?? null;
+        $value      = $body['value'] ?? null;
 
-        if (!is_string($keyName)) {
+        if (!\is_int($languageId) || !\is_int($keyId) || !\is_string($value)) {
             // Defensive guard – should never happen after validation
             throw new \RuntimeException('Invalid validated payload.');
         }
 
-        $description = null;
-        if (array_key_exists('description', $body)) {
-            if (!is_string($body['description'])) {
-                throw new \RuntimeException('Invalid description value.');
-            }
-            $description = $body['description'];
-        }
-
-        // 3) Execute service
-        $this->translationWriteService->createKey(
-            key: $keyName,
-            description: $description
+        // 3) Call domain service (no logic here)
+        $this->translationWriteService->upsertTranslation(
+            languageId: $languageId,
+            keyId: $keyId,
+            value: $value
         );
 
         // 4) Response
@@ -69,3 +64,4 @@ final readonly class TranslationKeysCreateController
             ->withStatus(200);
     }
 }
+

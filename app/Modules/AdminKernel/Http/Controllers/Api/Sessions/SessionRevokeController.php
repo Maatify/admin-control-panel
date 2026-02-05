@@ -2,27 +2,32 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Controllers\Api;
+namespace Maatify\AdminKernel\Http\Controllers\Api\Sessions;
 
 use DomainException;
 use Maatify\AdminKernel\Context\RequestContext;
+use Maatify\AdminKernel\Domain\Exception\IdentifierNotFoundException;
 use Maatify\AdminKernel\Domain\Service\AuthorizationService;
 use Maatify\AdminKernel\Domain\Service\SessionRevocationService;
-use Maatify\AdminKernel\Validation\Schemas\Session\SessionBulkRevokeSchema;
+use Maatify\AdminKernel\Validation\Schemas\Session\SessionRevokeSchema;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-readonly class SessionBulkRevokeController
+class SessionRevokeController
 {
     public function __construct(
-        private SessionRevocationService $revocationService,
-        private AuthorizationService $authorizationService,
-        private ValidationGuard $validationGuard,
+        private readonly SessionRevocationService $revocationService,
+        private readonly AuthorizationService $authorizationService,
+        private readonly ValidationGuard $validationGuard,
+
     ) {
     }
 
-    public function __invoke(Request $request, Response $response): Response
+    /**
+     * @param array<string, string> $args
+     */
+    public function __invoke(Request $request, Response $response, array $args): Response
     {
         $adminContext = $request->getAttribute(\Maatify\AdminKernel\Context\AdminContext::class);
         if (!$adminContext instanceof \Maatify\AdminKernel\Context\AdminContext) {
@@ -37,11 +42,9 @@ readonly class SessionBulkRevokeController
 
         $this->authorizationService->checkPermission($adminId, 'sessions.revoke', $context);
 
-        $body = (array)$request->getParsedBody();
-        $this->validationGuard->check(new SessionBulkRevokeSchema(), $body);
+        $this->validationGuard->check(new SessionRevokeSchema(), $args);
 
-        /** @var string[] $hashes */
-        $hashes = $body['session_ids'];
+        $targetSessionHash = $args['session_id'];
 
         // Fetch Current Session Hash
         $cookies = $request->getCookieParams();
@@ -56,11 +59,16 @@ readonly class SessionBulkRevokeController
         }
 
         try {
-            $this->revocationService->revokeBulk(
-                $hashes,
+            $targetAdminId = $this->revocationService->revokeByHash(
+                $targetSessionHash,
                 $currentSessionHash,
                 $context
             );
+
+            $requestContext = $request->getAttribute(RequestContext::class);
+            if (! $requestContext instanceof RequestContext) {
+                throw new \RuntimeException('Request Context not present');
+            }
 
             $response->getBody()->write(json_encode(['status' => 'ok'], JSON_THROW_ON_ERROR));
             return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
@@ -71,6 +79,13 @@ readonly class SessionBulkRevokeController
                 json_encode(['error' => $e->getMessage()], JSON_THROW_ON_ERROR)
             );
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+
+        } catch (IdentifierNotFoundException $e) {
+
+            $response->getBody()->write(
+                json_encode(['error' => $e->getMessage()], JSON_THROW_ON_ERROR)
+            );
+            return $response->withStatus(404)->withHeader('Content-Type', 'application/json');
         }
     }
 }

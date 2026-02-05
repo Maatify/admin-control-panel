@@ -13,7 +13,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Controllers\Api;
+namespace Maatify\AdminKernel\Http\Controllers\Api\AppSettings;
 
 use Maatify\AdminKernel\Domain\AppSettings\Metadata\AppSettingsMetadataProvider;
 use Psr\Http\Message\ResponseInterface as Response;

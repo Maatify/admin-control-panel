@@ -13,7 +13,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Controllers\Api;
+namespace Maatify\AdminKernel\Http\Controllers\Api\Languages;
 
 use Maatify\AdminKernel\Validation\Schemas\I18n\LanguageCreateSchema;
 use Maatify\I18n\Enum\TextDirectionEnum;

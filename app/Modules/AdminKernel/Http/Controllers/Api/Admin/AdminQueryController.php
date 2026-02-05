@@ -13,7 +13,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Controllers\Api;
+namespace Maatify\AdminKernel\Http\Controllers\Api\Admin;
 
 use Maatify\AdminKernel\Domain\Admin\Reader\AdminQueryReaderInterface;
 use Maatify\AdminKernel\Domain\List\AdminListCapabilities;

@@ -5,7 +5,7 @@
  * @Library     maatify/admin-control-panel
  * @Project     maatify:admin-control-panel
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
- * @since       2026-02-04 13:25
+ * @since       2026-02-04 16:28
  * @see         https://www.maatify.dev Maatify.dev
  * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
  * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
@@ -13,20 +13,21 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Controllers\Api;
+namespace Maatify\AdminKernel\Http\Controllers\Api\I18n;
 
+use Maatify\AdminKernel\Validation\Schemas\I18n\TranslationValueDeleteSchema;
 use Maatify\I18n\Service\TranslationWriteService;
-use Maatify\AdminKernel\Validation\Schemas\I18n\TranslationValueUpsertSchema;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-final readonly class TranslationValueUpsertController
+final readonly class TranslationValueDeleteController
 {
     public function __construct(
         private TranslationWriteService $translationWriteService,
         private ValidationGuard $validationGuard
-    ) {
+    )
+    {
     }
 
     public function __invoke(Request $request, Response $response): Response
@@ -35,23 +36,21 @@ final readonly class TranslationValueUpsertController
         $body = (array)$request->getParsedBody();
 
         // 1) Validate payload
-        $this->validationGuard->check(new TranslationValueUpsertSchema(), $body);
+        $this->validationGuard->check(new TranslationValueDeleteSchema(), $body);
 
-        // 2) Explicit type narrowing (phpstan-safe)
+        // 2) Explicit type narrowing
         $languageId = $body['language_id'] ?? null;
-        $keyId      = $body['key_id'] ?? null;
-        $value      = $body['value'] ?? null;
+        $keyId = $body['key_id'] ?? null;
 
-        if (!\is_int($languageId) || !\is_int($keyId) || !\is_string($value)) {
+        if (! is_int($languageId) || ! is_int($keyId)) {
             // Defensive guard – should never happen after validation
             throw new \RuntimeException('Invalid validated payload.');
         }
 
-        // 3) Call domain service (no logic here)
-        $this->translationWriteService->upsertTranslation(
+        // 3) Call domain service only
+        $this->translationWriteService->deleteTranslation(
             languageId: $languageId,
-            keyId: $keyId,
-            value: $value
+            keyId     : $keyId
         );
 
         // 4) Response
@@ -64,4 +63,3 @@ final readonly class TranslationValueUpsertController
             ->withStatus(200);
     }
 }
-

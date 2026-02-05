@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Controllers\Api;
+namespace Maatify\AdminKernel\Http\Controllers\Api\Sessions;
 
 use Maatify\AdminKernel\Application\Services\DiagnosticsTelemetryService;
 use Maatify\AdminKernel\Context\RequestContext;
