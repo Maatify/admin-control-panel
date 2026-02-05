@@ -2399,6 +2399,10 @@ class Container
                 return new \Maatify\AdminKernel\Infrastructure\Reader\AppSettings\PdoAppSettingsQueryReader($pdo);
             },
 
+            \Maatify\AdminKernel\Domain\AppSettings\Metadata\AppSettingsMetadataProvider::class => function (ContainerInterface $c) {
+                return new \Maatify\AdminKernel\Domain\AppSettings\Metadata\AppSettingsMetadataProvider();
+            },
+
         ]);
 
         // Extension Hook: Allow host projects to override/extend bindings

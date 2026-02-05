@@ -356,6 +356,14 @@ class AdminRoutes
                                 '__invoke'
                             ]
                         )->setName('app_settings.create.api');
+
+                        $appSettings->post(
+                            '/metadata',
+                            [
+                                \Maatify\AdminKernel\Http\Controllers\Api\AppSettingsMetadataController::class,
+                                '__invoke'
+                            ]
+                        )->setName('app_settings.metadata.api');
                     });
 
                     // ─────────────────────────────

@@ -64,4 +64,10 @@ final class AppSettingsProtectionPolicy
     {
         return strtolower(trim($value));
     }
+
+    public static function isProtected(string $group, string $key): bool
+    {
+        $identifier = self::normalize($group) . '.' . self::normalize($key);
+        return in_array($identifier, self::PROTECTED, true);
+    }
 }

@@ -82,6 +82,8 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
 
         'app_settings.create.api' => 'app_settings.create',
 
+        'app_settings.metadata.api' => 'app_settings.create',
+
         /**
          * Shared selector:
          * - allowed from translations UI (upsert permission implies ability to select context)
