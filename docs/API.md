@@ -37,6 +37,14 @@ Documentation is split by logical domain.
 
 ---
 
+## ⚙️ App Settings
+
+Admin UI & API integration contract for application settings.
+
+- [App Settings — UI & API Guide](API/APP_SETTINGS_UI.md)
+
+---
+
 ## ⚙️ System & Utilities
 
 | Document                                           | Scope                                                 |
