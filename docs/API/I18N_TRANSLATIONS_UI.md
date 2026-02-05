@@ -31,9 +31,9 @@ You must understand the difference between the **UI Page** and the **API**:
     *   It returns `text/html`.
     *   Do not call this from JavaScript fetch/axios.
 
-*   **`POST /i18n/translations/*`**
+*   **`POST /api/i18n/translations/*`**
     *   ✅ **These ARE the APIs.**
-    *   They return `application/json` (or empty 204).
+    *   They return `application/json`.
     *   All programmatic interaction happens here.
 
 > ⚠️ **RUNTIME RULES:**
@@ -62,7 +62,7 @@ JavaScript
 API (authoritative)
   ├─ validates request schema
   ├─ applies query resolver rules
-  └─ returns canonical envelope (queries) or empty 204 (actions)
+  └─ returns canonical envelope (queries) or {"status":"ok"} (actions)
 ```
 
 ---
@@ -73,11 +73,12 @@ The UI receives these **Translations-specific capability flags**:
 
 ### 2.1 Injected Flags
 
-```javascript
-window.translationValuesCapabilities = {
-  can_upsert, // boolean (checks 'i18n.translations.upsert.api')
-  can_delete  // boolean (checks 'i18n.translations.delete.api')
-};
+```php
+// Injected as 'capabilities' variable to Twig
+$capabilities = [
+    'can_upsert' => $hasPermission('i18n.translations.upsert.api'),
+    'can_delete' => $hasPermission('i18n.translations.delete.api'),
+];
 ```
 
 ### 2.2 Capability → UI Behavior Mapping
@@ -100,7 +101,7 @@ It must always be obtained from the **Language Context Selector API**.
 ### 2.5.1 Selector Endpoint
 
 **Endpoint:**
-`POST /languages/select`
+`POST /api/languages/select`
 
 **Route name:**
 `i18n.languages.select.api`
@@ -176,11 +177,11 @@ Languages **without settings are NEVER exposed to UI**.
 
 The frontend **MUST** obey the following rules:
 
-* The language dropdown **MUST be populated exclusively** from `/languages/select`
+* The language dropdown **MUST be populated exclusively** from `/api/languages/select`
 * The UI **MUST NOT hardcode language IDs**
 * The selected `language_id`:
 
-    * MUST be sent in **every** `/i18n/translations/*` request
+    * MUST be sent in **every** `/api/i18n/translations/*` request
     * MUST be treated as the **current UI context**
 * If the selector API returns an empty list:
 
@@ -191,11 +192,11 @@ The frontend **MUST** obey the following rules:
 
 ### 2.5.5 Relationship to Translations APIs
 
-| API                              | Requires `language_id` | Source of truth     |
-|----------------------------------|------------------------|---------------------|
-| `POST /i18n/translations/query`  | ✅ Yes                  | `/languages/select` |
-| `POST /i18n/translations/upsert` | ✅ Yes                  | `/languages/select` |
-| `POST /i18n/translations/delete` | ✅ Yes                  | `/languages/select` |
+| API                                  | Requires `language_id` | Source of truth         |
+|--------------------------------------|------------------------|-------------------------|
+| `POST /api/i18n/translations/query`  | ✅ Yes                  | `/api/languages/select` |
+| `POST /api/i18n/translations/upsert` | ✅ Yes                  | `/api/languages/select` |
+| `POST /api/i18n/translations/delete` | ✅ Yes                  | `/api/languages/select` |
 
 There is **NO fallback** and **NO default injection** on the API side.
 
@@ -203,21 +204,9 @@ If `language_id` is missing or invalid → **422 is expected behavior**.
 
 ---
 
-### 2.5.6 Why this design exists
-
-This strict separation guarantees:
-
-* No accidental use of inactive languages
-* No UI drift from backend configuration
-* Single source of truth for language ordering
-* Safe reuse of the selector across multiple modules
-* Future-proof permission logic (via PermissionMapperV2)
-
----
-
 ## 3) List Translations (table)
 
-**Endpoint:** `POST /i18n/translations/query`
+**Endpoint:** `POST /api/i18n/translations/query`
 **Capability:** Available by default for authenticated admins.
 
 ### Request Payload
@@ -292,17 +281,16 @@ This strict separation guarantees:
 }
 ```
 
-### Pagination Meanings (REQUIRED)
-
-* `total`: total records in DB (no filters)
-* `filtered`: total records after applying `search.global` and/or `search.columns`
-* When no filters are applied, `filtered` MAY equal `total`
+**Pagination Meanings:**
+*   `total`: total records in DB (no filters)
+*   `filtered`: total records after applying `search.global` and/or `search.columns`
+*   When no filters are applied, `filtered` MAY equal `total`.
 
 ---
 
 ## 4) Upsert Translation
 
-**Endpoint:** `POST /i18n/translations/upsert`
+**Endpoint:** `POST /api/i18n/translations/upsert`
 **Capability:** `can_upsert`
 
 ### Request Payload
@@ -330,8 +318,8 @@ This strict separation guarantees:
 
 ### Success Response
 
-*   **Status:** `204 No Content`
-*   **Body:** (empty)
+*   **Status:** `200 OK`
+*   **Body:** `{"status": "ok"}`
 
 ### Error Response Example (Validation)
 
@@ -350,7 +338,7 @@ This strict separation guarantees:
 
 ## 5) Delete Translation
 
-**Endpoint:** `POST /i18n/translations/delete`
+**Endpoint:** `POST /api/i18n/translations/delete`
 **Capability:** `can_delete`
 
 ### Purpose
@@ -378,8 +366,8 @@ Removes the translation value for the specific language, effectively reverting i
 
 ### Success Response
 
-*   **Status:** `204 No Content`
-*   **Body:** (empty)
+*   **Status:** `200 OK`
+*   **Body:** `{"status": "ok"}`
 
 ### Error Response Example (Validation)
 
@@ -400,5 +388,6 @@ Removes the translation value for the specific language, effectively reverting i
 
 *   [ ] **Always send `language_id`** in query payload.
 *   [ ] Handle `translation_id` and `value` being `null` (untranslated state).
+*   [ ] Handle **200 OK {"status": "ok"}** for write actions.
 *   [ ] Refresh list (or update row) after `upsert` or `delete`.
-*   [ ] **Never send `sort`** to `/i18n/translations/query`.
+*   [ ] **Never send `sort`** to `/api/i18n/translations/query`.

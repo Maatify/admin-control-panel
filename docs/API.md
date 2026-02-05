@@ -30,10 +30,11 @@ Documentation is split by logical domain.
 
 ## 🌍 I18n & Localization
 
-| Document                                             | Scope                                                   |
-|:-----------------------------------------------------|:--------------------------------------------------------|
-| **[I18N_LANGUAGES_UI.md](API/I18N_LANGUAGES_UI.md)** | **Contract Template**. Languages management (UI + API). |
-| **[I18N_KEYS_UI.md](API/I18N_KEYS_UI.md)**           | Translation Keys management (UI + API).                 |
+| Document                                                   | Scope                                                   |
+|:-----------------------------------------------------------|:--------------------------------------------------------|
+| **[I18N_LANGUAGES_UI.md](API/I18N_LANGUAGES_UI.md)**       | **Contract Template**. Languages management (UI + API). |
+| **[I18N_KEYS_UI.md](API/I18N_KEYS_UI.md)**                 | Translation Keys management (UI + API).                 |
+| **[I18N_TRANSLATIONS_UI.md](API/I18N_TRANSLATIONS_UI.md)** | Translation Values management (UI + API).               |
 
 ---
 
@@ -42,6 +43,7 @@ Documentation is split by logical domain.
 | Document                                           | Scope                                                 |
 |:---------------------------------------------------|:------------------------------------------------------|
 | **[SYSTEM_TELEMETRY.md](API/SYSTEM_TELEMETRY.md)** | Notifications, Preferences, Telemetry, Health Checks. |
+| **[APP_SETTINGS_UI.md](API/APP_SETTINGS_UI.md)**   | App Settings Management (UI + API).                   |
 
 ---
 
