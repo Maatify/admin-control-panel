@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Controllers\Ui;
+namespace Maatify\AdminKernel\Http\Controllers\Ui\I18n;
 
 use Maatify\AdminKernel\Context\AdminContext;
 use Maatify\AdminKernel\Domain\Service\AuthorizationService;

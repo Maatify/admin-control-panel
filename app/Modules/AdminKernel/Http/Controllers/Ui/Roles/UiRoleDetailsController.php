@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Controllers\Ui;
+namespace Maatify\AdminKernel\Http\Controllers\Ui\Roles;
 
 use Maatify\AdminKernel\Context\AdminContext;
 use Maatify\AdminKernel\Domain\Contracts\Roles\RoleRepositoryInterface;

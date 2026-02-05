@@ -13,7 +13,7 @@ use Maatify\AdminKernel\Domain\Contracts\TotpServiceInterface;
 use Maatify\AdminKernel\Domain\DTO\TotpVerificationResultDTO;
 use Maatify\AdminKernel\Domain\Enum\Scope;
 use Maatify\AdminKernel\Domain\Service\StepUpService;
-use Maatify\AdminKernel\Http\Controllers\Ui\UiStepUpController;
+use Maatify\AdminKernel\Http\Controllers\Ui\Auth\UiStepUpController;
 use Maatify\AdminKernel\Http\Controllers\Web\TwoFactorController;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;

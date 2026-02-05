@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Http;
 
-use Maatify\AdminKernel\Http\Controllers\Ui\UiStepUpController;
+use Maatify\AdminKernel\Http\Controllers\Ui\Auth\UiStepUpController;
 use Maatify\AdminKernel\Http\Controllers\Web\TwoFactorController;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use Slim\Psr7\Response;

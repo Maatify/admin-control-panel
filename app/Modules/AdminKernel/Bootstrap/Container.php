@@ -6,10 +6,7 @@ namespace Maatify\AdminKernel\Bootstrap;
 
 use DI\ContainerBuilder;
 use Exception;
-use Maatify\AbuseProtection\Contracts\AbuseDecisionInterface;
 use Maatify\AbuseProtection\Contracts\AbuseSignatureProviderInterface;
-use Maatify\AbuseProtection\Contracts\ChallengeProviderInterface;
-use Maatify\AbuseProtection\Middleware\AbuseProtectionMiddleware;
 use Maatify\AbuseProtection\Policy\LoginAbusePolicy;
 use Maatify\AbuseProtection\Providers\NullChallengeProvider;
 use Maatify\AdminKernel\Application\Admin\AdminProfileUpdateService;
@@ -47,7 +44,6 @@ use Maatify\AdminKernel\Domain\Contracts\AdminTotpSecretStoreInterface;
 use Maatify\AdminKernel\Domain\Contracts\FailedNotificationRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\NotificationReadRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\NotificationRoutingInterface;
-//use Maatify\AdminKernel\Domain\Contracts\PermissionMapperInterface;
 use Maatify\AdminKernel\Domain\Contracts\PermissionMapperV2Interface;
 use Maatify\AdminKernel\Domain\Contracts\Permissions\DirectPermissionsWriterRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\PermissionsMetadataRepositoryInterface;
@@ -78,7 +74,6 @@ use Maatify\AdminKernel\Domain\Security\Crypto\AdminCryptoContextProvider;
 use Maatify\AdminKernel\Domain\Security\Crypto\CryptoKeyRingConfig;
 use Maatify\AdminKernel\Domain\Security\Password\PasswordPepperRing;
 use Maatify\AdminKernel\Domain\Security\Password\PasswordPepperRingConfig;
-use Maatify\AdminKernel\Domain\Security\PermissionMapper;
 use Maatify\AdminKernel\Domain\Security\PermissionMapperV2;
 use Maatify\AdminKernel\Domain\Service\AdminAuthenticationService;
 use Maatify\AdminKernel\Domain\Service\AdminEmailVerificationService;
@@ -121,18 +116,18 @@ use Maatify\AdminKernel\Http\Controllers\Api\SessionBulkRevokeController;
 use Maatify\AdminKernel\Http\Controllers\Api\SessionQueryController;
 use Maatify\AdminKernel\Http\Controllers\Api\SessionRevokeController;
 use Maatify\AdminKernel\Http\Controllers\Api\TranslationKeysCreateController;
-use Maatify\AdminKernel\Http\Controllers\Api\TranslationKeysUpdateNameController;
 use Maatify\AdminKernel\Http\Controllers\Api\TranslationKeysUpdateDescriptionController;
+use Maatify\AdminKernel\Http\Controllers\Api\TranslationKeysUpdateNameController;
 use Maatify\AdminKernel\Http\Controllers\AuthController;
 use Maatify\AdminKernel\Http\Controllers\NotificationQueryController;
 use Maatify\AdminKernel\Http\Controllers\TelegramWebhookController;
+use Maatify\AdminKernel\Http\Controllers\Ui\Admin\UiAdminsController;
+use Maatify\AdminKernel\Http\Controllers\Ui\I18n\TranslationKeysListController;
 use Maatify\AdminKernel\Http\Controllers\Ui\LanguagesListController;
+use Maatify\AdminKernel\Http\Controllers\Ui\Permissions\UiPermissionsController;
+use Maatify\AdminKernel\Http\Controllers\Ui\Roles\UiRolesController;
 use Maatify\AdminKernel\Http\Controllers\Ui\SessionListController;
-use Maatify\AdminKernel\Http\Controllers\Ui\UiAdminsController;
 use Maatify\AdminKernel\Http\Controllers\Ui\UiDashboardController;
-use Maatify\AdminKernel\Http\Controllers\Ui\TranslationKeysListController;
-use Maatify\AdminKernel\Http\Controllers\Ui\UiPermissionsController;
-use Maatify\AdminKernel\Http\Controllers\Ui\UiRolesController;
 use Maatify\AdminKernel\Http\Controllers\Ui\UiSettingsController;
 use Maatify\AdminKernel\Http\Controllers\Web\DashboardController;
 use Maatify\AdminKernel\Http\Controllers\Web\EmailVerificationController;
@@ -245,6 +240,8 @@ use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Slim\Views\Twig;
+
+//use Maatify\AdminKernel\Domain\Contracts\PermissionMapperInterface;
 
 class Container
 {
@@ -1805,9 +1802,9 @@ class Container
                 return new \Maatify\AdminKernel\Infrastructure\Logging\SecuritySignalsMaatifyAdapter($recorder);
             },
 
-//            PermissionMapperInterface::class => function () {
-//                return new PermissionMapper();
-//            },
+            //            PermissionMapperInterface::class => function () {
+            //                return new PermissionMapper();
+            //            },
 
             PermissionMapperV2Interface::class => function (ContainerInterface $c) {
                 return new PermissionMapperV2();
@@ -1819,7 +1816,7 @@ class Container
                 return new PdoRolePermissionsRepository($pdo);
             },
 
-            \Maatify\AdminKernel\Http\Controllers\Ui\UiRoleDetailsController::class => function (ContainerInterface $c) {
+            \Maatify\AdminKernel\Http\Controllers\Ui\Roles\UiRoleDetailsController::class => function (ContainerInterface $c) {
                 $view = $c->get(Twig::class);
                 $authorizationService = $c->get(AuthorizationService::class);
                 $roleRepository = $c->get(\Maatify\AdminKernel\Domain\Contracts\Roles\RoleRepositoryInterface::class);
@@ -1828,7 +1825,7 @@ class Container
                 assert($authorizationService instanceof AuthorizationService);
                 assert($roleRepository instanceof \Maatify\AdminKernel\Domain\Contracts\Roles\RoleRepositoryInterface);
 
-                return new \Maatify\AdminKernel\Http\Controllers\Ui\UiRoleDetailsController($view, $authorizationService, $roleRepository);
+                return new \Maatify\AdminKernel\Http\Controllers\Ui\Roles\UiRoleDetailsController($view, $authorizationService, $roleRepository);
             },
 
             \Maatify\AdminKernel\Http\Controllers\Api\Roles\RolePermissionAssignController::class => function (ContainerInterface $c) {
@@ -1986,14 +1983,14 @@ class Container
                 return new \Maatify\AdminKernel\Infrastructure\Repository\Permissions\PdoPermissionDetailsRepository($pdo);
             },
 
-            \Maatify\AdminKernel\Http\Controllers\Ui\UiAPermissionDetailsController::class => function (ContainerInterface $c) {
+            \Maatify\AdminKernel\Http\Controllers\Ui\Permissions\UiAPermissionDetailsController::class => function (ContainerInterface $c) {
                 $view = $c->get(Twig::class);
                 $authorizationService = $c->get(AuthorizationService::class);
                 $permissionDetailsRepository = $c->get(\Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionDetailsRepositoryInterface::class);
                 assert($view instanceof Twig);
                 assert($authorizationService instanceof AuthorizationService);
                 assert($permissionDetailsRepository instanceof \Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionDetailsRepositoryInterface);
-                return new \Maatify\AdminKernel\Http\Controllers\Ui\UiAPermissionDetailsController($view, $authorizationService, $permissionDetailsRepository);
+                return new \Maatify\AdminKernel\Http\Controllers\Ui\Permissions\UiAPermissionDetailsController($view, $authorizationService, $permissionDetailsRepository);
             },
 
             \Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionRolesQueryRepositoryInterface::class => function (ContainerInterface $c) {
@@ -2289,7 +2286,7 @@ class Container
                 return new PdoTranslationKeyQueryReader($pdo);
             },
 
-                TranslationKeyRepositoryInterface::class => function (ContainerInterface $c) {
+            TranslationKeyRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new MysqlTranslationKeyRepository($pdo);

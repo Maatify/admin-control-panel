@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Controllers\Ui;
+namespace Maatify\AdminKernel\Http\Controllers\Ui\Auth;
 
 use Maatify\AdminKernel\Http\Controllers\Web\LoginController;
 use Psr\Http\Message\ResponseInterface as Response;

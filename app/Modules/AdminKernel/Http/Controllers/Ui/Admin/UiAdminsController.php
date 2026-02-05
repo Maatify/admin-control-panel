@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Controllers\Ui;
+namespace Maatify\AdminKernel\Http\Controllers\Ui\Admin;
 
 use Maatify\AdminKernel\Application\Admin\AdminProfileUpdateService;
 use Maatify\AdminKernel\Context\AdminContext;
