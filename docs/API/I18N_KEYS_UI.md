@@ -31,9 +31,9 @@ You must understand the difference between the **UI Page** and the **API**:
     *   It returns `text/html`.
     *   Do not call this from JavaScript fetch/axios.
 
-*   **`POST /i18n/keys/*`**
+*   **`POST /api/i18n/keys/*`**
     *   ✅ **These ARE the APIs.**
-    *   They return `application/json` (or empty 200/204).
+    *   They return `application/json`.
     *   All programmatic interaction happens here.
 
 > ⚠️ **RUNTIME RULES:**
@@ -62,7 +62,7 @@ JavaScript
 API (authoritative)
   ├─ validates request schema
   ├─ applies query resolver rules
-  └─ returns canonical envelope (queries) or empty 200/204 (actions)
+  └─ returns canonical envelope (queries) or {"status":"ok"} (actions)
 ```
 
 ---
@@ -93,13 +93,14 @@ $capabilities = [
 
 ## 3) List Translation Keys (table)
 
-**Endpoint:** `POST /i18n/keys/query`
-**Capability:** `can_query` (implicit/base)
+**Endpoint:** `POST /api/i18n/keys/query`
+**Capability:** Available by default for authenticated admins.
 
 ### Request — Specifics
 
 *   **Global Search:** Matches against **key_name OR description**.
 *   **Sorting:** ⚠️ **SERVER-CONTROLLED**.
+    *   `id ASC`
     *   Clients **MUST NOT** send `sort` parameters.
 
 **Example Request:**
@@ -133,7 +134,8 @@ $capabilities = [
     {
       "key_id": 123,
       "key_name": "app.home.welcome_title",
-      "description": "Welcome message on dashboard"
+      "description": "Welcome message on dashboard",
+      "created_at": "2024-01-01 12:00:00"
     }
   ],
   "pagination": {
@@ -154,7 +156,7 @@ $capabilities = [
 
 ## 4) Create Translation Key
 
-**Endpoint:** `POST /i18n/keys/create`
+**Endpoint:** `POST /api/i18n/keys/create`
 **Capability:** `can_create`
 
 ### Request Body
@@ -162,7 +164,7 @@ $capabilities = [
 *   `key_name` (string, required)
 *   `description` (string, optional)
 
-> **Note:** If `description` is omitted, do NOT send `null`.
+> **Note:** `description` is optional but if sent, must be a string.
 
 **Example:**
 ```json
@@ -174,14 +176,14 @@ $capabilities = [
 
 ### Response
 
-*   ✅ **204 No Content**
-*   ❌ **409** if key already exists.
+*   ✅ **200 OK**
+*   Body: `{"status": "ok"}`
 
 ---
 
 ## 5) Update Key Name
 
-**Endpoint:** `POST /i18n/keys/update-name`
+**Endpoint:** `POST /api/i18n/keys/update-name`
 **Capability:** `can_update_name`
 
 ### Request Body
@@ -199,14 +201,15 @@ $capabilities = [
 
 ### Response
 
-*   ✅ **200 OK (EMPTY BODY)**
+*   ✅ **200 OK**
+*   Body: `{"status": "ok"}`
 *   ❌ **409** if new key name already exists.
 
 ---
 
 ## 6) Update Key Description
 
-**Endpoint:** `POST /i18n/keys/update-description`
+**Endpoint:** `POST /api/i18n/keys/update-description`
 **Capability:** `can_update_description`
 
 ### Request Body
@@ -224,13 +227,13 @@ $capabilities = [
 
 ### Response
 
-*   ✅ **200 OK (EMPTY BODY)**
+*   ✅ **200 OK**
+*   Body: `{"status": "ok"}`
 
 ---
 
 ## 7) Implementation Checklist (Translation Keys Specific)
 
-*   [ ] **Never send `sort`** to `/i18n/keys/query`.
-*   [ ] Handle **204 No Content** for creation.
-*   [ ] Handle **200 OK (Empty Body)** for updates.
+*   [ ] **Never send `sort`** to `/api/i18n/keys/query`.
+*   [ ] Handle **200 OK {"status": "ok"}** for all write actions.
 *   [ ] Refresh list after create/update actions.
