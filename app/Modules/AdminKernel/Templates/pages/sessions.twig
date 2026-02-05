@@ -5,22 +5,22 @@
 
 {% block content %}
 	<div class="flex flex-wrap items-center justify-between gap-3 ">
-		<h2 class="text-xl font-semibold text-gray-800">Sessions</h2>
+		<h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">Sessions</h2>
 		<nav>
 			<ol class="flex items-center gap-1.5">
 				<li>
-					<a class="inline-flex items-center gap-1.5 text-sm text-gray-500" href="{{ ui.adminUrl }}dashboard">
+					<a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" href="{{ ui.adminUrl }}dashboard">
 						Home
 						<svg class="stroke-current" width="17" height="16" viewbox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
 							<path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
 						</svg>
 					</a>
 				</li>
-				<li class="text-sm text-gray-800">Sessions</li>
+				<li class="text-sm text-gray-800 dark:text-gray-200">Sessions</li>
 			</ol>
 		</nav>
 	</div>
-    {# ✅ Inject capabilities for JavaScript #}
+    {# âœ… Inject capabilities for JavaScript #}
     {#
     Capabilities are computed server-side by AuthorizationService
     and control what UI elements are visible/enabled.
@@ -31,10 +31,10 @@
     - can_view_admin: Show "Link" button within table in actions (GET /admins/{id}/profile)
 
     UI Rules:
-    ❌ Twig MUST NOT check permissions by name
-    ❌ JavaScript MUST NOT infer authorization
-    ✅ Backend capabilities are the single UI contract
-    ✅ API authorization is always enforced server-side
+    âŒ Twig MUST NOT check permissions by name
+    âŒ JavaScript MUST NOT infer authorization
+    âœ… Backend capabilities are the single UI contract
+    âœ… API authorization is always enforced server-side
     #}
     <script>
         window.sessionsCapabilities = {
@@ -49,38 +49,60 @@
 		<!-- Header -->
 
 
-		
+
 
 		<!-- Description -->
 
 
 		<!-- Search Section -->
-		<div class="bg-white rounded-lg shadow border border-gray-200 mb-6">
+		<div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 mb-6">
 			<div class="px-2 py-4">
 				<form
 					id="sessions-search-form" class="grid grid-cols-1 md:grid-cols-4 gap-4">
 					<!-- Session ID Filter -->
 					<div>
-						<label for="filter-session-id" class="block text-sm font-medium text-gray-700 mb-1">
+						<label for="filter-session-id" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
 							Session ID
 						</label>
-						<input type="text" id="filter-session-id" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Search by ID fragment">
+						<input type="text" id="filter-session-id"
+						       class="w-full px-3 py-2 text-sm
+						              bg-white dark:bg-gray-700
+						              text-gray-900 dark:text-gray-100
+						              border border-gray-300 dark:border-gray-600
+						              rounded-md
+						              placeholder-gray-400 dark:placeholder-gray-500
+						              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+						       placeholder="Search by ID fragment">
 					</div>
 
 					<!-- Admin Filter -->
 					<div>
-						<label for="filter-admin-id" class="block text-sm font-medium text-gray-700 mb-1">
+						<label for="filter-admin-id" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
 							Filter by Admin
 						</label>
-						<input type="text" id="filter-admin-id" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Search by Admin id">
+						<input type="text" id="filter-admin-id"
+						       class="w-full px-3 py-2 text-sm
+						              bg-white dark:bg-gray-700
+						              text-gray-900 dark:text-gray-100
+						              border border-gray-300 dark:border-gray-600
+						              rounded-md
+						              placeholder-gray-400 dark:placeholder-gray-500
+						              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+						       placeholder="Search by Admin id">
 					</div>
 
 					<!-- Status Filter -->
 					<div>
-						<label for="filter-status" class="block text-sm font-medium text-gray-700 mb-1">
+						<label for="filter-status" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
 							Status
 						</label>
-						<select id="filter-status" class="w-full px-3 py-2 border bg-white border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+						<select id="filter-status"
+						        class="w-full px-3 py-2
+						               bg-white dark:bg-gray-700
+						               text-gray-900 dark:text-gray-100
+						               border border-gray-300 dark:border-gray-600
+						               rounded-md
+						               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
 							<option value="">All</option>
 							<option value="active">Active</option>
 							<option value="revoked">Revoked</option>
@@ -90,16 +112,43 @@
 
 					<!-- Action Buttons -->
 					<div class="flex items-end space-x-1">
-						<button type="submit" class="text-xs px-4 py-1 bg-sky-600 text-white rounded-md hover:bg-white hover:text-sky-600 border  hover:border-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 transition-all duration-300 ">
+						<button type="submit"
+						        class="text-xs px-4 py-1
+						               bg-sky-600 dark:bg-sky-500
+						               text-white
+						               rounded-md
+						               hover:bg-white hover:text-sky-600
+						               dark:hover:bg-sky-600 dark:hover:text-white
+						               border border-transparent hover:border-sky-600
+						               focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2
+						               transition-all duration-300">
 							Search
 						</button>
-						<button type="button" id="btn-reset" class="text-xs px-4 py-1 bg-white text-gray-600 border border-gray-600 rounded-md hover:bg-gray-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-all duration-300">
+						<button type="button" id="btn-reset"
+						        class="text-xs px-4 py-1
+						               bg-white dark:bg-gray-700
+						               text-gray-600 dark:text-gray-200
+						               border border-gray-600 dark:border-gray-500
+						               rounded-md
+						               hover:bg-gray-600 hover:text-white
+						               dark:hover:bg-gray-600 dark:hover:border-gray-400
+						               focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2
+						               transition-all duration-300">
 							Reset
 						</button>
 						{# ✅ Show "Revoke" button only if user has can_revoke_bulk capability #}
 						{# NOTE: This capability should be provided by the backend. If missing, add it to AuthorizationService #}
 						{% if capabilities.can_revoke_bulk ?? false %}
-						<button class="text-xs px-4 py-1 bg-white text-red-600 border border-red-600 rounded-md hover:bg-red-600 hover:text-white transition-all duration-300 cursor-not-allowed opacity-50" id="btn-bulk-revoke" disabled>
+						<button class="text-xs px-4 py-1
+						               bg-white dark:bg-gray-700
+						               text-red-600 dark:text-red-400
+						               border border-red-600 dark:border-red-500
+						               rounded-md
+						               hover:bg-red-600 hover:text-white
+						               dark:hover:bg-red-600 dark:hover:border-red-400
+						               transition-all duration-300
+						               cursor-not-allowed opacity-50"
+						        id="btn-bulk-revoke" disabled>
 							Revoke (<span id="selected-count" class="font-semibold">0</span>)
 						</button>
 						{% endif %}

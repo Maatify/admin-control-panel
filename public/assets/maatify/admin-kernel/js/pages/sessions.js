@@ -35,16 +35,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (isCurrent && status === 'active') {
             statusText = "Current";
-            statusClass = "bg-green-600"; // 🟢
+            statusClass = "bg-green-600 dark:bg-green-500"; // 🟢
         } else if (status === 'active') {
             statusText = "Active";
-            statusClass = "bg-blue-600"; // 🔵
+            statusClass = "bg-blue-600 dark:bg-blue-500"; // 🔵
         } else if (status === 'expired') {
             statusText = "Expired";
-            statusClass = "bg-orange-600"; // 🟠
+            statusClass = "bg-orange-600 dark:bg-orange-500"; // 🟠
         } else if (status === 'revoked') {
             statusText = "Revoked";
-            statusClass = "bg-red-600"; // 🔴
+            statusClass = "bg-red-600 dark:bg-red-500"; // 🔴
         }
 
         return `<span class="${statusClass} text-white px-3 py-1 rounded-lg text-xs font-medium uppercase tracking-wide">${statusText}</span>`;
@@ -55,12 +55,12 @@ document.addEventListener('DOMContentLoaded', () => {
      * Clickable to copy to clipboard
      */
     const sessionIdRenderer = (value, row) => {
-        if (!value) return '<span class="text-gray-400 italic">N/A</span>';
+        if (!value) return '<span class="text-gray-400 dark:text-gray-500 italic">N/A</span>';
 
         const displayValue = value.length > 16 ? value.substring(0, 16) + '...' : value;
 
         return `
-            <span class="font-mono text-xs text-blue-600 hover:text-blue-800 cursor-pointer underline decoration-dotted relative session-id-copy" 
+            <span class="font-mono text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 cursor-pointer underline decoration-dotted relative session-id-copy"  
                   data-session-id="${value}"
                   title="Click to copy: ${value}">
                 ${displayValue}
@@ -73,19 +73,19 @@ document.addEventListener('DOMContentLoaded', () => {
      * Clickable link to admin profile (if capability exists)
      */
     const adminIdRenderer = (value, row) => {
-        if (!value) return '<span class="text-gray-400 italic">N/A</span>';
+        if (!value) return '<span class="text-gray-400 dark:text-gray-500 italic">N/A</span>';
 
         // Check if user has can_view_admin capability
         const canViewAdmin = window.sessionsCapabilities?.can_view_admin ?? false;
 
         if (canViewAdmin) {
             return `<a href="/admins/${value}/profile" 
-                       class="text-blue-600 hover:text-blue-800 hover:underline font-medium"
+                       class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline font-medium"
                        title="View admin profile">
                        ${value}
                     </a>`;
         } else {
-            return `<span class="text-gray-700 font-medium">${value}</span>`;
+            return `<span class="text-gray-700 dark:text-gray-300 font-medium">${value}</span>`;
         }
     };
 
@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 3. Session is not current
         if (canRevokeId && status === 'active' && !isCurrent) {
             return `
-                <button class="text-xs px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-all duration-300 revoke-session-btn"
+                <button class="text-xs px-3 py-1 bg-red-600 dark:bg-red-500 text-white rounded-md hover:bg-red-700 dark:hover:bg-red-600 transition-all duration-300 revoke-session-btn"
                         data-session-id="${row.session_id}"
                         title="Revoke this session">
                     Revoke
