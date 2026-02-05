@@ -265,20 +265,20 @@ document.addEventListener('DOMContentLoaded', () => {
         messageBox.className = 'mb-4 p-4 rounded-lg flex items-start gap-3';
 
         if (type === 'error') {
-            messageBox.classList.add('bg-red-50', 'border', 'border-red-200');
+            messageBox.classList.add('bg-red-50', 'border', 'border-red-200', 'dark:bg-red-900/20', 'dark:border-red-800');
             messageBox.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
                 </svg>
-                <p class="text-sm text-red-800">${message}</p>
+                <p class="text-sm text-red-800 dark:text-red-300">${message}</p>
             `;
         } else if (type === 'success') {
-            messageBox.classList.add('bg-green-50', 'border', 'border-green-200');
+            messageBox.classList.add('bg-green-50', 'border', 'border-green-200', 'dark:bg-green-900/20', 'dark:border-green-800');
             messageBox.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                 </svg>
-                <p class="text-sm text-green-800">${message}</p>
+                <p class="text-sm text-green-800 dark:text-green-300">${message}</p>
             `;
         }
 

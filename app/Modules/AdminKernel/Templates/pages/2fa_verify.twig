@@ -2,8 +2,8 @@
 {% block content %}
 
 
-	<main class="flex justify-center bg-gray-50 h-[100vh] w-[100vw]">
-				<img src="{{ asset('assets/maatify/admin-kernel/images/login-bg.webp') }}" class="w-full h-[100vh] absolute top-0 left-0 z-[-1] opacity-100 sm:opacity-25 object-cover object-center" alt="bg">
+	<main class="flex justify-center bg-gray-50 dark:bg-gray-900 h-[100vh] w-[100vw]">
+				<img src="{{ asset('assets/maatify/admin-kernel/images/login-bg.webp') }}" class="w-full h-[100vh] absolute top-0 left-0 z-[-1] opacity-100 sm:opacity-25 dark:opacity-20 object-cover object-center" alt="bg">
 		<div class="w-full max-w-6xl px-4 z-[1] ">
 			<div class="flex justify-center mt-4 mb-6 ">
 				<div
@@ -11,24 +11,24 @@
 
 					<!-- Left Image -->
 					<div class="flex justify-center hidden sm:block h-full">
-						<div class="bg-white shadow-lg rounded-md p-4 flex items-center justify-center">
+						<div class="bg-white dark:bg-gray-800 shadow-lg dark:shadow-gray-900/50 rounded-md p-4 flex items-center justify-center">
 							<img lazyload class="  w-[700px]  object-cover object-center rounded-md" src="{{ asset('assets/maatify/admin-kernel/images/login_model.webp') }}" alt="login-model">
 						</div>
 					</div>
 
 					<!-- Right Form -->
 					<div>
-						<div class=" bg-white shadow-lg rounded-lg  md:p-6 sm:p-4 h-full  sm:mt-0">
+						<div class=" bg-white dark:bg-gray-800 shadow-lg dark:shadow-gray-900/50 rounded-lg  md:p-6 sm:p-4 h-full  sm:mt-0">
 							<div
 								class="flex flex-col items-center justify-center h-full md:px-10 sm:p-4 p-3">
 
 								<!-- Header -->
 								<div class="text-center mb-10 flex flex-col items-center">
 									{# <img src="{{ asset('assets/maatify/admin-kernel/images/logo.png') }}" class="w-24 h-24 mb-[-10px] ml-[-45px] " alt="logo"> #}
-									<h2 class="text-2xl font-normal font-[Ubuntu] mb-2 capitalize">
+									<h2 class="text-2xl font-normal font-[Ubuntu] mb-2 capitalize dark:text-gray-100">
 										Enter your Auth Code
 									</h2>
-									<p class="text-gray-600 text-sm capitalize tracking-wider font-normal">
+									<p class="text-gray-600 dark:text-gray-400 text-sm capitalize tracking-wider font-normal">
 										Check Your Authenticator App on Your Mobile Device For the 6-digit Authenticator code
 									</p>
 								</div>
@@ -36,8 +36,8 @@
 								<!-- OTP Inputs -->
 								<form method="post" action="/2fa/verify" class="mb-6 w-full">
 									{% if error %}
-										<div class="text-red-500 text-sm mb-2 w-full  border border-red-500 p-2 rounded-md bg-red-100/50 flex items-center gap-2">
-											<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 stroke-2 text-red-500">
+										<div class="text-red-500 dark:text-red-400 text-sm mb-2 w-full  border border-red-500 dark:border-red-700 p-2 rounded-md bg-red-100/50 dark:bg-red-900/20 flex items-center gap-2">
+											<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 stroke-2 text-red-500 dark:text-red-400">
 												<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/>
 											</svg>
 											{{ error }}</div>
@@ -51,11 +51,11 @@
 									<div class="flex flex-col gap-1">
 
 										<div class="flex flex-col gap-1 mt-5 mb-5">
-											<label class="form-label block mb-1 font-medium" for="codeInput">
+											<label class="form-label block mb-1 font-medium dark:text-gray-300" for="codeInput">
 												code<span class="text-red-500">*</span>
 											</label>
 											<div class="input-wrapper relative">
-												<input type="code" id="codeInput" name="code" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500" placeholder="Enter your code"/>
+												<input type="code" id="codeInput" name="code" required class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded px-3 py-2 dark:placeholder-gray-400 focus:outline-none focus:ring focus:ring-blue-500" placeholder="Enter your code"/>
 
 
 											</div>
@@ -63,7 +63,7 @@
 										<div class="mb-4">
 											<div class="g-recaptcha captchaDiv" id="captchaDiv"></div>
 										</div>
-										<button id="submitBtn" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition duration-200 cursor-pointer mt-6 font-[Ubuntu]" type="submit">
+										<button id="submitBtn" class="w-full bg-blue-500 dark:bg-blue-600 text-white py-2 rounded hover:bg-blue-600 dark:hover:bg-blue-700 transition duration-200 cursor-pointer mt-6 font-[Ubuntu]" type="submit">
 											Verify
 										</button>
 									</div>

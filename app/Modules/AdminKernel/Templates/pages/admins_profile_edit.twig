@@ -20,36 +20,36 @@
 {% block content %}
 
 	<div class="flex flex-wrap items-center justify-between gap-3 mb-6 mt-2 ">
-		<h2 class="text-xl font-semibold text-gray-800">Edit Admin Profile</h2>
+		<h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">Edit Admin Profile</h2>
 		<nav>
 			<ol class="flex items-center gap-1.5 text-sm">
 				<li>
-					<a href="{{ ui.adminUrl }}dashboard" class="text-gray-500 hover:text-blue-600">
+					<a href="{{ ui.adminUrl }}dashboard" class="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400">
 						Home
 					</a>
 				</li>
-				<li>/</li>
+				<li class="dark:text-gray-600">/</li>
 				<li>
-					<a href="{{ ui.adminUrl }}admins" class="text-gray-500 hover:text-blue-600">
+					<a href="{{ ui.adminUrl }}admins" class="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400">
 						Admins
 
 					</a>
 				</li>
-				<li>/</li>
+				<li class="dark:text-gray-600">/</li>
 				<li>
-					<a href="{{ ui.adminUrl }}admins/{{ admin.id }}/profile" class="text-gray-500 hover:text-blue-600">
+					<a href="{{ ui.adminUrl }}admins/{{ admin.id }}/profile" class="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400">
 						Profile
 					</a>
 				</li>
-				<li>/</li>
-				<li class="text-gray-800 font-medium">
+				<li class="dark:text-gray-600">/</li>
+				<li class="text-gray-800 dark:text-gray-200 font-medium">
 					Edit
 				</li>
 			</ol>
 		</nav>
 	</div>
-	<div class=" bg-white rounded-2xl shadow border border-gray-200 w-full p-6">
-    <h2 class="text-xl font-semibold text-gray-800 mb-6">Edit Basic Information</h2>
+	<div class=" bg-white dark:bg-gray-800 rounded-2xl shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 w-full p-6">
+    <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-6">Edit Basic Information</h2>
 		<div class="page page-admin-profile-edit mx-auto">
 
 			{# =====================================================
@@ -92,14 +92,14 @@
 			       Edit Form Card
 			       ===================================================== #}
 				<form
-				method="post" action="/admins/{{ admin.id }}/profile/edit" class="bg-white rounded-2xl shadow border border-gray-200 w-full"> {# -------------------------------------------------
+				method="post" action="/admins/{{ admin.id }}/profile/edit" class="bg-white dark:bg-gray-700 rounded-2xl shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-600 w-full"> {# -------------------------------------------------
 					           Card Header
 					           ------------------------------------------------- #}
-				<div class="px-6 py-4 border-b border-gray-200 w-full">
-					<h3 class="text-lg font-semibold text-gray-800">
+				<div class="px-6 py-4 border-b border-gray-200 dark:border-gray-600 w-full">
+					<h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">
 						Basic Information
 					</h3>
-					<p class="text-sm text-gray-500 mt-1">
+					<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
 						Update admin display name or status.
 						                    Changes will be audited automatically.
 					</p>
@@ -115,14 +115,14 @@
 					               Display Name
 					               =========================== #}
 					<div>
-						<label for="display_name" class="block text-sm font-medium text-gray-700 mb-1">
+						<label for="display_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
 							Display Name
 						</label>
 
-						<input type="text" id="display_name" name="display_name" value="{{ admin.display_name ?? '' }}" placeholder="Admin name" class="w-full rounded-lg border border-gray-300 px-4 py-2
-							                           focus:outline-none focus:ring-2 focus:ring-gray-300"/>
+						<input type="text" id="display_name" name="display_name" value="{{ admin.display_name ?? '' }}" placeholder="Admin name" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 dark:placeholder-gray-400
+							                           focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600"/>
 
-						<p class="text-xs text-gray-500 mt-1">
+						<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
 							Optional. Used for display purposes only.
 						</p>
 					</div>
@@ -131,13 +131,13 @@
 					               Status
 					               =========================== #}
 					<div>
-						<label for="status" class="block text-sm font-medium text-gray-700 mb-1">
+						<label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
 							Status
 						</label>
 
 						<select
-							id="status" name="status" class="w-full rounded-lg border border-gray-300 px-4 py-2
-								                           focus:outline-none focus:ring-2 focus:ring-gray-300">
+							id="status" name="status" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+								                           focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600">
 							{# IMPORTANT:
 							                       - Values must match domain enum exactly
 							                       - Do NOT change values without backend change
@@ -156,7 +156,7 @@
 							</option>
 						</select>
 
-						<p class="text-xs text-gray-500 mt-1">
+						<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
 							Status affects authentication and access.
 						</p>
 					</div>
@@ -164,12 +164,12 @@
 					{# ===========================
 					               Read-only Email Notice
 					               =========================== #}
-					<div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-						<p class="text-sm text-gray-700">
+					<div class="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+						<p class="text-sm text-gray-700 dark:text-gray-300">
 							<strong>Email:</strong>
 							{{ email.masked_address ?? '—' }}
 						</p>
-						<p class="text-xs text-gray-500 mt-1">
+						<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
 							Email addresses are managed on a separate screen.
 						</p>
 					</div>
@@ -179,9 +179,9 @@
 				{# -------------------------------------------------
 				           Card Footer / Actions
 				           ------------------------------------------------- #}
-				<div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+				<div class="px-6 py-4 border-t border-gray-200 dark:border-gray-600 flex items-center justify-between">
 
-					<a href="{{ ui.adminUrl }}admins/{{ admin.id }}/profile" class="inline-flex items-center gap-2 text-gray-600 hover:text-gray-800">
+					<a href="{{ ui.adminUrl }}admins/{{ admin.id }}/profile" class="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
 						← Cancel
 					</a>
 

@@ -59,7 +59,7 @@
     /** ID column – plain mono badge */
     const idRenderer = (value) => {
         if (!value && value !== 0) return '<span class="text-gray-400 italic">N/A</span>';
-        return `<span class="font-mono text-sm text-gray-800 font-medium">#${value}</span>`;
+        return `<span class="font-mono text-sm text-gray-800 dark:text-gray-200 font-medium">#${value}</span>`;
     };
 
     /**

@@ -35,11 +35,11 @@
      * Create Language Modal Template
      */
     const createLanguageModalHTML = `
-        <div id="create-language-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
-            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-gray-800">🆕 Create New Language</h3>
-                    <button class="close-modal text-gray-400 hover:text-gray-600">
+        <div id="create-language-modal" class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-50 flex items-center justify-center hidden">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto border border-transparent dark:border-gray-700">
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">🆕 Create New Language</h3>
+                    <button class="close-modal text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -50,7 +50,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Language Name -->
                         <div class="md:col-span-2">
-                            <label for="create-name" class="block text-sm font-medium text-gray-700 mb-2">
+                            <label for="create-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Language Name <span class="text-red-500">*</span>
                             </label>
                             <input
@@ -58,14 +58,14 @@
                                 id="create-name"
                                 name="name"
                                 required
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="e.g., English, العربية, Français"
                             />
                         </div>
 
                         <!-- Language Code -->
                         <div>
-                            <label for="create-code" class="block text-sm font-medium text-gray-700 mb-2">
+                            <label for="create-code" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Language Code <span class="text-red-500">*</span>
                             </label>
                             <input
@@ -75,22 +75,22 @@
                                 required
                                 maxlength="5"
                                 pattern="[a-z]{2,5}"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 uppercase"
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 uppercase"
                                 placeholder="e.g., en, ar, fr"
                             />
-                            <p class="mt-1 text-xs text-gray-500">ISO 639-1 code (2-5 lowercase letters)</p>
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">ISO 639-1 code (2-5 lowercase letters)</p>
                         </div>
 
                         <!-- Direction -->
                         <div>
-                            <label for="create-direction" class="block text-sm font-medium text-gray-700 mb-2">
+                            <label for="create-direction" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Text Direction <span class="text-red-500">*</span>
                             </label>
                             <select
                                 id="create-direction"
                                 name="direction"
                                 required
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                             >
                                 <option value="ltr">← LTR (Left to Right)</option>
                                 <option value="rtl">→ RTL (Right to Left)</option>
@@ -99,7 +99,7 @@
 
                         <!-- Icon (Emoji) -->
                         <div>
-                            <label for="create-icon" class="block text-sm font-medium text-gray-700 mb-2">
+                            <label for="create-icon" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Icon (Emoji)
                             </label>
                             <input
@@ -107,7 +107,7 @@
                                 id="create-icon"
                                 name="icon"
                                 maxlength="4"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-2xl"
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-2xl"
                                 placeholder="🇬🇧"
                             />
                         </div>
@@ -119,40 +119,40 @@
                                 id="create-active"
                                 name="is_active"
                                 checked
-                                class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                class="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded focus:ring-blue-500"
                             />
-                            <label for="create-active" class="ml-2 text-sm text-gray-700">
+                            <label for="create-active" class="ml-2 text-sm text-gray-700 dark:text-gray-100">
                                 Set as active immediately
                             </label>
                         </div>
 
                         <!-- Fallback Language -->
                         <div class="md:col-span-2">
-                            <label for="create-fallback" class="block text-sm font-medium text-gray-700 mb-2">
+                            <label for="create-fallback" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Fallback Language (Optional)
                             </label>
                             <select
                                 id="create-fallback"
                                 name="fallback_language_id"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                             >
                                 <option value="">No fallback</option>
                                 <!-- Will be populated dynamically -->
                             </select>
-                            <p class="mt-1 text-xs text-gray-500">Used when translation is missing</p>
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Used when translation is missing</p>
                         </div>
                     </div>
 
-                    <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                    <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                         <button
                             type="button"
-                            class="close-modal px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                            class="close-modal px-4 py-2 text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            class="px-4 py-2 text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                            class="px-4 py-2 text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 shadow-sm"
                         >
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -171,11 +171,11 @@
      * Name, code, sort_order have dedicated endpoints in Phase 3
      */
     const editSettingsModalHTML = `
-        <div id="edit-settings-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
-            <div class="bg-white rounded-lg shadow-xl max-w-xl w-full mx-4">
-                <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-gray-800">⚙️ Edit Language Settings</h3>
-                    <button class="close-modal text-gray-400 hover:text-gray-600">
+        <div id="edit-settings-modal" class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-50 flex items-center justify-center hidden">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-xl w-full mx-4 border border-transparent dark:border-gray-700">
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">⚙️ Edit Language Settings</h3>
+                    <button class="close-modal text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -187,24 +187,24 @@
 
                     <!-- Language Name (Display Only) -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Language
                         </label>
-                        <div id="edit-language-name" class="px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 font-medium">
+                        <div id="edit-language-name" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 font-medium">
                             <!-- Populated dynamically -->
                         </div>
-                        <p class="mt-1 text-xs text-gray-500">Name, Code, and Sort Order can be edited separately via inline actions</p>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Name, Code, and Sort Order can be edited separately via inline actions</p>
                     </div>
 
                     <!-- Direction -->
                     <div>
-                        <label for="edit-direction" class="block text-sm font-medium text-gray-700 mb-2">
+                        <label for="edit-direction" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Text Direction
                         </label>
                         <select
                             id="edit-direction"
                             name="direction"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                         >
                             <option value="ltr">← LTR (Left to Right)</option>
                             <option value="rtl">→ RTL (Right to Left)</option>
@@ -213,7 +213,7 @@
 
                     <!-- Icon (Emoji) -->
                     <div>
-                        <label for="edit-icon" class="block text-sm font-medium text-gray-700 mb-2">
+                        <label for="edit-icon" class="block text-sm font-medium text-gray-700 dark:text-gray-300  mb-2">
                             Icon (Emoji)
                         </label>
                         <input
@@ -221,22 +221,22 @@
                             id="edit-icon"
                             name="icon"
                             maxlength="4"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-2xl"
+                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-2xl"
                             placeholder="🇬🇧"
                         />
-                        <p class="mt-1 text-xs text-gray-500">Leave empty to clear icon, or enter emoji to set/update</p>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Leave empty to clear icon, or enter emoji to set/update</p>
                     </div>
 
-                    <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                    <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                         <button
                             type="button"
-                            class="close-modal px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                            class="close-modal px-4 py-2 text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            class="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                            class="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
                         >
                             Save Settings
                         </button>

@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return `
             <button
-                class="text-xs px-3 py-1 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200"
+                class="text-xs px-3 py-1 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 dark:text-gray-200"
                 data-action="view-metadata"
                 data-metadata='${JSON.stringify(value)}'
             >
@@ -204,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <input
                         id="activity-global-search"
                         type="text"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
                         placeholder="Search activity logs..."
                     />
                 </div>
@@ -257,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let info = `<span>${startItem} to ${endItem}</span> of <span>${displayCount}</span>`;
         if (isFiltered) {
-            info += ` <span class="text-gray-500 text-xs">(filtered from ${total} total)</span>`;
+            info += ` <span class="text-gray-500 dark:text-gray-400 text-xs">(filtered from ${total} total)</span>`;
         }
 
         return {
@@ -320,8 +320,8 @@ document.addEventListener('DOMContentLoaded', () => {
         Object.entries(metadata).forEach(([key, value]) => {
             body.innerHTML += `
                 <tr>
-                    <td class="border px-3 py-2 font-mono">${key}</td>
-                    <td class="border px-3 py-2">${formatMetadataValue(value)}</td>
+                    <td class="border px-3 py-2 font-mono dark:border-gray-700">${key}</td>
+                    <td class="border px-3 py-2 dark:border-gray-700">${formatMetadataValue(value)}</td>
                 </tr>
             `;
         });

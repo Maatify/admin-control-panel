@@ -39,13 +39,13 @@
      * Before: 14 lines | After: 9 lines | Saved: 5 lines
      */
     const nameRenderer = (value, row) => {
-        if (!value) return '<span class="text-gray-400 italic">N/A</span>';
+        if (!value) return '<span class="text-gray-400 dark:text-gray-100 italic">N/A</span>';
 
         const icon = AdminUIComponents.renderIcon(row.icon, { size: 'md' });
 
         return `<div class="flex items-center" data-field="name">
             ${icon}
-            <span class="font-medium text-gray-900 ml-2">${value}</span>
+            <span class="font-medium text-gray-900 ml-2 dark:text-gray-200">${value}</span>
         </div>`;
     };
 
@@ -196,7 +196,7 @@
         if (canFallbackSet || canFallbackClear) {
             const hasFallback = row.fallback_language_id !== null && row.fallback_language_id !== undefined;
 
-            if (hasFallback && canFallbackClear) {
+            if (hasFallback || canFallbackClear) {
                 // Clear Fallback Button
                 actions.push(AdminUIComponents.buildActionButton({
                     cssClass: 'clear-fallback-btn',
@@ -207,7 +207,7 @@
                     title: 'Clear fallback language',
                     dataAttributes: { 'language-id': row.id }
                 }));
-            } else if (canFallbackSet) {
+            } else if (!hasFallback && canFallbackSet) {
                 // Set Fallback Button
                 actions.push(AdminUIComponents.buildActionButton({
                     cssClass: 'set-fallback-btn',

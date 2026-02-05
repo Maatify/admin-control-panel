@@ -65,11 +65,11 @@
      * Allows selecting a fallback language from dropdown
      */
     const setFallbackModalHTML = `
-        <div id="set-fallback-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
-            <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-                <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-gray-800">🔗 Set Fallback Language</h3>
-                    <button class="close-modal text-gray-400 hover:text-gray-600">
+        <div id="set-fallback-modal" class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-50 flex items-center justify-center hidden">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 border border-transparent dark:border-gray-700">
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">🔗 Set Fallback Language</h3>
+                    <button class="close-modal text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -80,30 +80,30 @@
                     <input type="hidden" id="fallback-language-id" name="language_id" />
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Language
                         </label>
-                        <div id="fallback-current-language" class="px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 font-medium">
+                        <div id="fallback-current-language" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 font-medium">
                         </div>
                     </div>
 
                     <div id="fallback-current-status-container">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Current Fallback
                         </label>
-                        <div id="fallback-current-status" class="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-600">
+                        <div id="fallback-current-status" class="px-4 py-2 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-600 dark:text-gray-400">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Set Fallback To <span class="text-red-500">*</span>
                         </label>
                         
                         <div id="fallback-target-language" class="w-full relative">
-                            <div class="js-select-box relative flex items-center justify-between px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors bg-white">
+                            <div class="js-select-box relative flex items-center justify-between px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg cursor-pointer hover:border-gray-400 dark:hover:border-gray-500 transition-colors bg-white dark:bg-gray-800">
                                 <input type="text" 
-                                       class="js-select-input pointer-events-none bg-transparent flex-1 outline-none text-gray-700" 
+                                       class="js-select-input pointer-events-none bg-transparent flex-1 outline-none text-gray-700 dark:text-gray-200" 
                                        placeholder="-- Select Fallback Language --" 
                                        readonly>
                                 <span class="js-arrow ml-2 transition-transform duration-200 text-gray-400">
@@ -113,37 +113,37 @@
                                 </span>
                             </div>
                             
-                            <div class="js-dropdown hidden absolute z-50 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-64">
-                                <div class="p-2 border-b border-gray-200">
+                            <div class="js-dropdown hidden absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg max-h-64">
+                                <div class="p-2 border-b border-gray-200 dark:border-gray-700">
                                     <input type="text" 
-                                           class="js-search-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" 
+                                           class="js-search-input w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm dark:text-gray-100" 
                                            placeholder="🔍 Search languages...">
                                 </div>
                                 <ul class="js-select-list max-h-48 overflow-y-auto"></ul>
                             </div>
                         </div>
                         
-                        <p class="mt-1 text-xs text-gray-500">
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                             💡 This language will be used when translations are missing
                         </p>
                     </div>
 
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        <p class="text-sm text-blue-800">
+                    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                        <p class="text-sm text-blue-800 dark:text-blue-300">
                             <strong>Note:</strong> Only ONE language can be the system fallback. Setting a new fallback automatically unsets the previous one.
                         </p>
                     </div>
 
-                    <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                    <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                         <button
                             type="button"
-                            class="close-modal px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                            class="close-modal px-4 py-2 text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            class="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                            class="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
                         >
                             Set as Fallback
                         </button>

@@ -1,26 +1,82 @@
 {% extends "layout.twig" %}
 
-{% block title %}2FA Verification{% endblock %}
+{% block title %}2FA Verification | {{ ui.appName }}{% endblock %}
 
 {% block content %}
-<h1>Two-Factor Authentication Required</h1>
+<main class="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 px-4 py-12">
+    <div class="w-full max-w-md">
+        <!-- Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <!-- Header -->
+            <div class="px-8 pt-8 pb-6 text-center">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-2xl mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-blue-600 dark:text-blue-400">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z" />
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Verify Identity</h1>
+                <p class="text-gray-500 dark:text-gray-400 mt-2">Enter the verification code from your device</p>
+            </div>
 
-<form method="POST" action="/2fa/verify">
-    <label for="code">Enter Code:</label>
-    <input type="text" id="code" name="code" required>
+            <div class="px-8 pb-8">
+                <!-- Form -->
+                <form method="POST" action="/2fa/verify" class="space-y-6">
+                    {% if scope %}
+                        <input type="hidden" name="scope" value="{{ scope }}">
+                    {% endif %}
 
-    {% if scope %}
-        <input type="hidden" name="scope" value="{{ scope }}">
-    {% endif %}
+                    {% if return_to %}
+                        <input type="hidden" name="return_to" value="{{ return_to }}">
+                    {% endif %}
+                    
+                    <div>
+                        <label for="code" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Authenticator Code</label>
+                        <input 
+                            type="text" 
+                            id="code" 
+                            name="code" 
+                            required 
+                            autofocus
+                            placeholder="······"
+                            class="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-center text-4xl tracking-widest font-mono font-bold"
+                            maxlength="6"
+                            pattern="\d{6}"
+                        >
+                    </div>
 
-    {% if return_to %}
-        <input type="hidden" name="return_to" value="{{ return_to }}">
-    {% endif %}
+                    {% if error %}
+                    <div class="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                        </svg>
+                        {{ error }}
+                    </div>
+                    {% endif %}
 
-    <button type="submit">Verify</button>
-</form>
-
-{% if error %}
-<p style="color: red">{{ error }}</p>
-{% endif %}
+                    <button 
+                        type="submit" 
+                        class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 transform transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    >
+                        Verify Code
+                    </button>
+                    
+                    <div class="text-center">
+                        <button type="button" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                            Don't have access to your device?
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="text-center mt-8">
+            <a href="/login" class="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                </svg>
+                Back to Login
+            </a>
+        </div>
+    </div>
+</main>
 {% endblock %}

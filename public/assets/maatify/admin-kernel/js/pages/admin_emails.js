@@ -381,11 +381,11 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('ℹ️ No emails to display');
             emailsContainer.innerHTML = `
                 <div class="text-center py-12">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16 text-gray-300 mx-auto mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                     </svg>
-                    <p class="text-gray-500 text-lg font-medium">No emails found</p>
-                    <p class="text-gray-400 text-sm mt-1">
+                    <p class="text-gray-500 dark:text-gray-400 text-lg font-medium">No emails found</p>
+                    <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">
                         ${currentStatusFilter !== 'all'
                 ? 'Try selecting a different status filter'
                 : 'Add a new email address to get started'}
@@ -412,7 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
         switch(status) {
             case 'pending':
                 statusBadge = `
-                    <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wide flex items-center gap-1">
+                    <span class="bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300 px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wide flex items-center gap-1">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                         </svg>
@@ -422,7 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 'verified':
                 statusBadge = `
-                    <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wide flex items-center gap-1">
+                    <span class="bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wide flex items-center gap-1">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                         </svg>
@@ -432,7 +432,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 'failed':
                 statusBadge = `
-                    <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wide flex items-center gap-1">
+                    <span class="bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wide flex items-center gap-1">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                         </svg>
@@ -442,7 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 'replaced':
                 statusBadge = `
-                    <span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wide flex items-center gap-1">
+                    <span class="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wide flex items-center gap-1">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
                         </svg>
@@ -534,7 +534,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Verified date (if available)
         const verifiedInfo = email.verified_at
             ? `
-                <div class="flex items-center gap-2 text-sm text-gray-500">
+                <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                     </svg>
@@ -544,23 +544,23 @@ document.addEventListener('DOMContentLoaded', () => {
             : '';
 
         return `
-            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200 bg-gray-50">
+            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700">
                 <div class="flex items-start justify-between gap-4">
                     <!-- Left: Email info -->
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-3 mb-2">
-                            <div class="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full flex-shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-blue-600">
+                            <div class="flex items-center justify-center w-10 h-10 bg-blue-100 dark:bg-blue-900/40 rounded-full flex-shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-blue-600 dark:text-blue-400">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                                 </svg>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-base font-mono font-medium text-gray-900 truncate">${email.email}</p>
-                                <p class="text-xs text-gray-500">ID: #${email.email_id}</p>
+                                <p class="text-base font-mono font-medium text-gray-900 dark:text-gray-100 truncate">${email.email}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">ID: #${email.email_id}</p>
                             </div>
                         </div>
                         
-                        <div class="flex items-center gap-4 mt-2">
+                        <div class="flex items-center gap-4 mt-2 dark:text-gray-100">
                             ${statusBadge}
                             ${verifiedInfo}
                         </div>
@@ -611,7 +611,7 @@ document.addEventListener('DOMContentLoaded', () => {
             emailsContainer.innerHTML = `
                 <div class="flex flex-col items-center justify-center py-12">
                     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-                    <p class="text-gray-600">Loading emails...</p>
+                    <p class="text-gray-600 dark:text-gray-400">Loading emails...</p>
                 </div>
             `;
         }
@@ -621,11 +621,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (emailsContainer) {
             emailsContainer.innerHTML = `
                 <div class="text-center py-12">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16 text-red-300 mx-auto mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16 text-red-300 dark:text-red-900/40 mx-auto mb-4">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
                     </svg>
-                    <p class="text-red-600 text-lg font-medium mb-2">Error</p>
-                    <p class="text-gray-500 text-sm">${message}</p>
+                    <p class="text-red-600 dark:text-red-400 text-lg font-medium mb-2">Error</p>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">${message}</p>
                     <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                         Retry
                     </button>
@@ -640,28 +640,28 @@ document.addEventListener('DOMContentLoaded', () => {
         addEmailMessage.className = 'mb-4 p-4 rounded-lg flex items-start gap-3';
 
         if (type === 'error') {
-            addEmailMessage.classList.add('bg-red-50', 'border', 'border-red-200');
+            addEmailMessage.classList.add('bg-red-50', 'border', 'border-red-200', 'dark:bg-red-900/20', 'dark:border-red-800');
             addEmailMessage.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
                 </svg>
-                <p class="text-sm text-red-800">${message}</p>
+                <p class="text-sm text-red-800 dark:text-red-300">${message}</p>
             `;
         } else if (type === 'success') {
-            addEmailMessage.classList.add('bg-green-50', 'border', 'border-green-200');
+            addEmailMessage.classList.add('bg-green-50', 'border', 'border-green-200', 'dark:bg-green-900/20', 'dark:border-green-800');
             addEmailMessage.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                 </svg>
-                <p class="text-sm text-green-800">${message}</p>
+                <p class="text-sm text-green-800 dark:text-green-300">${message}</p>
             `;
         } else if (type === 'info') {
-            addEmailMessage.classList.add('bg-blue-50', 'border', 'border-blue-200');
+            addEmailMessage.classList.add('bg-blue-50', 'border', 'border-blue-200', 'dark:bg-blue-900/20', 'dark:border-blue-800');
             addEmailMessage.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
                 </svg>
-                <p class="text-sm text-blue-800">${message}</p>
+                <p class="text-sm text-blue-800 dark:text-blue-300">${message}</p>
             `;
         }
 

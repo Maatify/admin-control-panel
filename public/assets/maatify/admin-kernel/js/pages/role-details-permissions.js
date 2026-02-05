@@ -57,14 +57,14 @@
 
     /** ID column – plain mono badge */
     const idRenderer = (value) => {
-        if (!value && value !== 0) return '<span class="text-gray-400 italic">N/A</span>';
-        return `<span class="font-mono text-sm text-gray-800 font-medium">#${value}</span>`;
+        if (!value && value !== 0) return '<span class="text-gray-400 dark:text-gray-500 italic">N/A</span>';
+        return `<span class="font-mono text-sm text-gray-800 dark:text-gray-300 font-medium">#${value}</span>`;
     };
 
     /** Name column – code-style badge */
     const nameRenderer = (value) => {
-        if (!value) return '<span class="text-gray-400 italic">N/A</span>';
-        return `<code class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-mono border border-gray-200">${value}</code>`;
+        if (!value) return '<span class="text-gray-400 dark:text-gray-500 italic">N/A</span>';
+        return `<code class="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded text-xs font-mono border border-gray-200 dark:border-gray-600">${value}</code>`;
     };
 
     /** Group column – colored pill (same palette as roles list) */
@@ -72,29 +72,29 @@
         if (!value) return '<span class="text-gray-400 italic">N/A</span>';
 
         const groupColors = {
-            'admins':      'bg-blue-100 text-blue-800 border-blue-200',
-            'sessions':    'bg-green-100 text-green-800 border-green-200',
-            'permissions': 'bg-purple-100 text-purple-800 border-purple-200',
-            'roles':       'bg-orange-100 text-orange-800 border-orange-200'
+            'admins':      'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+            'sessions':    'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800',
+            'permissions': 'bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+            'roles':       'bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-800'
         };
-        const cls = groupColors[value.toLowerCase()] || 'bg-gray-100 text-gray-800 border-gray-200';
+        const cls = groupColors[value.toLowerCase()] || 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600';
 
         return `<span class="${cls} px-3 py-1 rounded-full text-xs font-medium border">${value}</span>`;
     };
 
     /** Display Name column */
     const displayNameRenderer = (value) => {
-        if (!value || !value.trim()) return '<span class="text-gray-400 italic text-xs">Not set</span>';
-        return `<span class="text-sm text-gray-800">${value}</span>`;
+        if (!value || !value.trim()) return '<span class="text-gray-400 dark:text-gray-500 italic text-xs">Not set</span>';
+        return `<span class="text-sm text-gray-800 dark:text-gray-200">${value}</span>`;
     };
 
     /** Description column – truncated at 60 chars */
     const descriptionRenderer = (value) => {
-        if (!value || !value.trim()) return '<span class="text-gray-400 italic text-xs">No description</span>';
+        if (!value || !value.trim()) return '<span class="text-gray-400 dark:text-gray-500 italic text-xs">No description</span>';
         if (value.length > 60) {
-            return `<span class="text-sm text-gray-600" title="${value}">${value.substring(0, 60)}…</span>`;
+            return `<span class="text-sm text-gray-600 dark:text-gray-400" title="${value}">${value.substring(0, 60)}…</span>`;
         }
-        return `<span class="text-sm text-gray-600">${value}</span>`;
+        return `<span class="text-sm text-gray-600 dark:text-gray-400">${value}</span>`;
     };
 
     /**
@@ -112,7 +112,7 @@
         // Toggle is interactive only if the matching capability exists
         const canToggle = isAssigned ? canOff : canOn;
 
-        const trackBg  = isAssigned ? 'bg-blue-600' : 'bg-gray-300';
+        const trackBg  = isAssigned ? 'bg-blue-600 dark:bg-blue-500' : 'bg-gray-300 dark:bg-gray-600';
         const knobPos  = isAssigned ? 'translate-x-5' : 'translate-x-0';
         const cursor   = canToggle  ? 'cursor-pointer' : 'cursor-not-allowed opacity-60';
 
@@ -185,7 +185,7 @@
 
         let infoText = `<span>${startItem} to ${endItem}</span> of <span>${displayCount}</span>`;
         if (isFiltered) {
-            infoText += ` <span class="text-gray-500 text-xs">(filtered from ${total} total)</span>`;
+            infoText += ` <span class="text-gray-500 dark:text-gray-500 text-xs">(filtered from ${total} total)</span>`;
         }
 
         return { total: displayCount, info: infoText };
@@ -288,15 +288,15 @@
             <div class="flex gap-4 items-center flex-wrap">
                 <div class="w-64">
                     <input id="perm-global-search"
-                        class="w-full border rounded-lg px-3 py-1 text-sm transition-colors duration-200"
+                        class="w-full border dark:border-gray-600 rounded-lg px-3 py-1 text-sm transition-colors duration-200 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 outline-none"
                         placeholder="Search permissions..."
                         value="${currentGlobalSearch}" />
                 </div>
 
                 <div class="flex gap-2">
-                    <span data-assigned="all" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white transition-colors duration-200 ${currentAssignedFilter === 'all' ? 'bg-blue-600 text-white' : ''}">All</span>
-                    <span data-assigned="1"   class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white transition-colors duration-200 ${currentAssignedFilter === '1'   ? 'bg-blue-600 text-white' : ''}">Assigned</span>
-                    <span data-assigned="0"   class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white transition-colors duration-200 ${currentAssignedFilter === '0'   ? 'bg-blue-600 text-white' : ''}">Not Assigned</span>
+                    <span data-assigned="all" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 dark:hover:bg-blue-500 hover:text-white transition-colors duration-200 ${currentAssignedFilter === 'all' ? 'bg-blue-600 dark:bg-blue-500 text-white' : ''}">All</span>
+                    <span data-assigned="1"   class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 dark:hover:bg-blue-500 hover:text-white transition-colors duration-200 ${currentAssignedFilter === '1'   ? 'bg-blue-600 dark:bg-blue-500 text-white' : ''}">Assigned</span>
+                    <span data-assigned="0"   class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 dark:hover:bg-blue-500 hover:text-white transition-colors duration-200 ${currentAssignedFilter === '0'   ? 'bg-blue-600 dark:bg-blue-500 text-white' : ''}">Not Assigned</span>
                 </div>
             </div>
         `;
@@ -314,9 +314,9 @@
             globalSearch.addEventListener('input', (e) => {
                 const value = e.target.value.trim();
                 if (value.length > 0) {
-                    globalSearch.classList.add('border-blue-300', 'bg-blue-50');
+                    globalSearch.classList.add('border-blue-300', 'bg-blue-50', 'dark:bg-blue-900/20', 'dark:border-blue-800');
                 } else {
-                    globalSearch.classList.remove('border-blue-300', 'bg-blue-50');
+                    globalSearch.classList.remove('border-blue-300', 'bg-blue-50', 'dark:bg-blue-900/20', 'dark:border-blue-800');
                 }
             });
         }

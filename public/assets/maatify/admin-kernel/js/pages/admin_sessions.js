@@ -59,23 +59,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const status = value?.toLowerCase();
 
         let statusText = value || 'Unknown';
-        let statusClass = "bg-gray-600";
+        let statusClass = "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600";
 
         if (isCurrent && status === 'active') {
             statusText = "Current";
-            statusClass = "bg-green-600"; // 🟢
+            statusClass = "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800";
         } else if (status === 'active') {
             statusText = "Active";
-            statusClass = "bg-blue-600"; // 🔵
+            statusClass = "bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800";
         } else if (status === 'expired') {
             statusText = "Expired";
-            statusClass = "bg-orange-600"; // 🟠
+            statusClass = "bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-800";
         } else if (status === 'revoked') {
             statusText = "Revoked";
-            statusClass = "bg-red-600"; // 🔴
+            statusClass = "bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800";
         }
 
-        return `<span class="${statusClass} text-white px-3 py-1 rounded-lg text-xs font-medium uppercase tracking-wide">${statusText}</span>`;
+        return `<span class="${statusClass} px-3 py-1 rounded-full text-xs font-medium border">${statusText}</span>`;
     };
 
     /**
@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const displayValue = value.length > 16 ? value.substring(0, 16) + '...' : value;
 
         return `
-            <span class="font-mono text-xs text-blue-600 hover:text-blue-800 cursor-pointer underline decoration-dotted relative session-id-copy" 
+            <span class="font-mono text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 cursor-pointer underline decoration-dotted relative session-id-copy" 
                   data-session-id="${value}"
                   title="Click to copy: ${value}">
                 ${displayValue}
@@ -261,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="flex gap-4 items-center flex-wrap">
                 <div class="w-64">
                     <input id="admin-sessions-global-search" 
-                        class="w-full border rounded-lg px-3 py-1 text-sm transition-colors duration-200" 
+                        class="w-full border rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400" 
                         placeholder="Search sessions..." />
                 </div>
                 
@@ -287,9 +287,9 @@ document.addEventListener('DOMContentLoaded', () => {
             globalSearch.addEventListener('input', (e) => {
                 const value = e.target.value.trim();
                 if (value.length > 0) {
-                    globalSearch.classList.add('border-blue-300', 'bg-blue-50');
+                    globalSearch.classList.add('border-blue-300', 'bg-blue-50', 'dark:bg-blue-900/20', 'dark:border-blue-800');
                 } else {
-                    globalSearch.classList.remove('border-blue-300', 'bg-blue-50');
+                    globalSearch.classList.remove('border-blue-300', 'bg-blue-50', 'dark:bg-blue-900/20', 'dark:border-blue-800');
                 }
             });
         }
@@ -400,7 +400,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let infoText = `<span>${startItem} to ${endItem}</span> of <span>${displayCount}</span>`;
         if (isFiltered) {
-            infoText += ` <span class="text-gray-500 text-xs">(filtered from ${total} total)</span>`;
+            infoText += ` <span class="text-gray-500 dark:text-gray-400 text-xs">(filtered from ${total} total)</span>`;
         }
 
         console.log("📤 Returning:", { total: displayCount, info: infoText });

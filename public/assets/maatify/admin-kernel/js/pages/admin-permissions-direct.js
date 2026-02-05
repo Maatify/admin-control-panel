@@ -79,69 +79,69 @@
     // ====================================================================
 
     const idRenderer = (value) => {
-        if (!value && value !== 0) return '<span class="text-gray-400 italic">N/A</span>';
-        return `<span class="font-mono text-sm text-gray-800 font-medium">#${value}</span>`;
+        if (!value && value !== 0) return '<span class="text-gray-400 dark:text-gray-500 italic">N/A</span>';
+        return `<span class="font-mono text-sm text-gray-800 dark:text-gray-300 font-medium">#${value}</span>`;
     };
 
     const nameRenderer = (value) => {
-        if (!value) return '<span class="text-gray-400 italic">N/A</span>';
-        return `<code class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-mono border border-gray-200">${value}</code>`;
+        if (!value) return '<span class="text-gray-400 dark:text-gray-500 italic">N/A</span>';
+        return `<code class="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded text-xs font-mono border border-gray-200 dark:border-gray-600">${value}</code>`;
     };
 
     const groupRenderer = (value) => {
         if (!value) return '<span class="text-gray-400 italic">N/A</span>';
         const groupColors = {
-            'admins':      'bg-blue-100 text-blue-800 border-blue-200',
-            'sessions':    'bg-green-100 text-green-800 border-green-200',
-            'permissions': 'bg-purple-100 text-purple-800 border-purple-200',
-            'roles':       'bg-orange-100 text-orange-800 border-orange-200'
+            'admins':      'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+            'sessions':    'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800',
+            'permissions': 'bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+            'roles':       'bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-800'
         };
-        const cls = groupColors[value.toLowerCase()] || 'bg-gray-100 text-gray-800 border-gray-200';
+        const cls = groupColors[value.toLowerCase()] || 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600';
         return `<span class="${cls} px-3 py-1 rounded-full text-xs font-medium border">${value}</span>`;
     };
 
     const displayNameRenderer = (value) => {
-        if (!value || !value.trim()) return '<span class="text-gray-400 italic text-xs">Not set</span>';
-        return `<span class="text-sm text-gray-800">${value}</span>`;
+        if (!value || !value.trim()) return '<span class="text-gray-400 dark:text-gray-500 italic text-xs">Not set</span>';
+        return `<span class="text-sm text-gray-800 dark:text-gray-200">${value}</span>`;
     };
 
     const isAllowedRenderer = (value) => {
         const isAllowed = value === true || value === 1 || value === '1';
         if (isAllowed) {
-            return `<span class="bg-green-100 text-green-800 border border-green-200 px-3 py-1 rounded-full text-xs font-medium">Allowed</span>`;
+            return `<span class="bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-800 px-3 py-1 rounded-full text-xs font-medium">Allowed</span>`;
         }
-        return `<span class="bg-red-100 text-red-800 border border-red-200 px-3 py-1 rounded-full text-xs font-medium">Denied</span>`;
+        return `<span class="bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-800 px-3 py-1 rounded-full text-xs font-medium">Denied</span>`;
     };
 
     const expiresAtRenderer = (value) => {
-        if (!value) return '<span class="text-gray-400 text-xs">Never</span>';
+        if (!value) return '<span class="text-gray-400 dark:text-gray-500 text-xs">Never</span>';
         const date      = new Date(value.replace(' ', 'T'));
         const now       = new Date();
         const formatted = date.toLocaleString();
         if (date < now) {
-            return `<span class="text-red-600 text-xs font-medium">${formatted} <span class="text-red-400">(expired)</span></span>`;
+            return `<span class="text-red-600 dark:text-red-400 text-xs font-medium">${formatted} <span class="text-red-400 dark:text-red-500">(expired)</span></span>`;
         }
-        return `<span class="text-sm text-gray-600">${formatted}</span>`;
+        return `<span class="text-sm text-gray-600 dark:text-gray-400">${formatted}</span>`;
     };
 
     const grantedAtRenderer = (value) => {
-        if (!value) return '<span class="text-gray-400 text-xs">—</span>';
+        if (!value) return '<span class="text-gray-400 dark:text-gray-500 text-xs">—</span>';
         const date = new Date(value.replace(' ', 'T'));
-        return `<span class="text-sm text-gray-600">${date.toLocaleString()}</span>`;
+        return `<span class="text-sm text-gray-600 dark:text-gray-400">${date.toLocaleString()}</span>`;
     };
 
     /** Actions column — Edit + Revoke buttons (if can_revoke) */
     const actionsRenderer = (value, row) => {
-        if (!canRevoke) return '<span class="text-gray-400">—</span>';
+        if (!canRevoke) return '<span class="text-gray-400 dark:text-gray-500">—</span>';
         const permId = row.id;
-        if (!permId) return '<span class="text-gray-400">—</span>';
+        if (!permId) return '<span class="text-gray-400 dark:text-gray-500">—</span>';
 
         const currentAllowed = row.is_allowed === true || row.is_allowed === 1 || row.is_allowed === '1' ? '1' : '0';
         const currentExpires = row.expires_at || '';
 
         return `
             <div class="flex gap-1.5">
-                <button class="direct-edit-btn text-xs px-3 py-1 bg-gray-100 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-200 transition-all duration-200"
+                <button class="direct-edit-btn text-xs px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200"
                         data-permission-id="${permId}"
                         data-current-allowed="${currentAllowed}"
                         data-current-expires="${currentExpires}">
@@ -314,14 +314,14 @@
             <div class="flex gap-4 items-center flex-wrap">
                 <div class="w-64">
                     <input id="dir-global-search"
-                        class="w-full border rounded-lg px-3 py-1 text-sm transition-colors duration-200"
+                        class="w-full border dark:border-gray-600 rounded-lg px-3 py-1 text-sm transition-colors duration-200 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 outline-none"
                         placeholder="Search direct permissions..."
                         value="${currentGlobalSearch}" />
                 </div>
                 <div class="flex gap-2">
-                    <span data-allowed="all" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white transition-colors duration-200 ${currentAllowedFilter === 'all' ? 'bg-blue-600 text-white' : ''}">All</span>
-                    <span data-allowed="1"   class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white transition-colors duration-200 ${currentAllowedFilter === '1'   ? 'bg-blue-600 text-white' : ''}">Allowed</span>
-                    <span data-allowed="0"   class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white transition-colors duration-200 ${currentAllowedFilter === '0'   ? 'bg-blue-600 text-white' : ''}">Denied</span>
+                    <span data-allowed="all" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 dark:hover:bg-blue-500 hover:text-white transition-colors duration-200 ${currentAllowedFilter === 'all' ? 'bg-blue-600 dark:bg-blue-500 text-white' : ''}">All</span>
+                    <span data-allowed="1"   class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 dark:hover:bg-blue-500 hover:text-white transition-colors duration-200 ${currentAllowedFilter === '1'   ? 'bg-blue-600 dark:bg-blue-500 text-white' : ''}">Allowed</span>
+                    <span data-allowed="0"   class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 dark:hover:bg-blue-500 hover:text-white transition-colors duration-200 ${currentAllowedFilter === '0'   ? 'bg-blue-600 dark:bg-blue-500 text-white' : ''}">Denied</span>
                 </div>
             </div>
         `;
@@ -339,9 +339,9 @@
             globalSearch.addEventListener('input', (e) => {
                 const value = e.target.value.trim();
                 if (value.length > 0) {
-                    globalSearch.classList.add('border-blue-300', 'bg-blue-50');
+                    globalSearch.classList.add('border-blue-300', 'bg-blue-50', 'dark:bg-blue-900/20', 'dark:border-blue-800');
                 } else {
-                    globalSearch.classList.remove('border-blue-300', 'bg-blue-50');
+                    globalSearch.classList.remove('border-blue-300', 'bg-blue-50', 'dark:bg-blue-900/20', 'dark:border-blue-800');
                 }
             });
         }
@@ -356,11 +356,11 @@
                 currentAllowedFilter = value;
 
                 allowedBtns.forEach(b => {
-                    b.classList.remove('bg-blue-600', 'text-white');
-                    b.classList.add('hover:bg-blue-400', 'hover:text-white');
+                    b.classList.remove('bg-blue-600', 'text-white', 'dark:bg-blue-500');
+                    b.classList.add('hover:bg-blue-400', 'hover:text-white', 'dark:hover:bg-blue-500');
                 });
-                btn.classList.add('bg-blue-600', 'text-white');
-                btn.classList.remove('hover:bg-blue-400', 'hover:text-white');
+                btn.classList.add('bg-blue-600', 'text-white', 'dark:bg-blue-500');
+                btn.classList.remove('hover:bg-blue-400', 'hover:text-white', 'dark:hover:bg-blue-500');
 
                 handleAllowedFilter(value);
             });
@@ -485,36 +485,36 @@
         }
 
         const formHtml = `
-            <tr class="direct-inline-form bg-blue-50 border-t border-blue-200">
+            <tr class="direct-inline-form bg-blue-50 dark:bg-blue-900/20 border-t border-blue-200 dark:border-blue-800">
                 <td colspan="8" class="px-4 py-3">
                     <div class="flex flex-wrap items-end gap-3">
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Permission Type</label>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Permission Type</label>
                             <div class="flex gap-2">
                                 <label class="inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-md cursor-pointer transition-colors duration-200
-                                    ${preAllowed ? 'border-green-400 bg-green-50' : 'border-gray-300'}
+                                    ${preAllowed ? 'border-green-400 bg-green-50 dark:bg-green-900/30' : 'border-gray-300 dark:border-gray-600'}
                                     direct-inline-type" data-type="allow">
                                     <input type="radio" name="direct-inline-type-${permId}" value="allow" class="sr-only" ${preAllowed ? 'checked' : ''}>
-                                    <span class="text-xs font-medium ${preAllowed ? 'text-green-700' : 'text-gray-600'}">Allow</span>
+                                    <span class="text-xs font-medium ${preAllowed ? 'text-green-700 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'}">Allow</span>
                                 </label>
                                 <label class="inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-md cursor-pointer transition-colors duration-200
-                                    ${!preAllowed ? 'border-red-400 bg-red-50' : 'border-gray-300'}
+                                    ${!preAllowed ? 'border-red-400 bg-red-50 dark:bg-red-900/30' : 'border-gray-300 dark:border-gray-600'}
                                     direct-inline-type" data-type="deny">
                                     <input type="radio" name="direct-inline-type-${permId}" value="deny" class="sr-only" ${!preAllowed ? 'checked' : ''}>
-                                    <span class="text-xs font-medium ${!preAllowed ? 'text-red-700' : 'text-gray-600'}">Deny</span>
+                                    <span class="text-xs font-medium ${!preAllowed ? 'text-red-700 dark:text-red-400' : 'text-gray-600 dark:text-gray-400'}">Deny</span>
                                 </label>
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Expiration <span class="text-gray-400 font-normal">(Optional)</span></label>
-                            <input type="datetime-local" class="direct-inline-expires px-3 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Expiration <span class="text-gray-400 dark:text-gray-500 font-normal">(Optional)</span></label>
+                            <input type="datetime-local" class="direct-inline-expires px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 outline-none"
                                    value="${preExpiresLocal}">
                         </div>
-                        <button type="button" class="direct-inline-save-btn text-xs px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        <button type="button" class="direct-inline-save-btn text-xs px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                                 data-permission-id="${permId}">
                             Save
                         </button>
-                        <button type="button" class="direct-inline-cancel-btn text-xs px-3 py-1.5 bg-white text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-all duration-200">
+                        <button type="button" class="direct-inline-cancel-btn text-xs px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 transition-all duration-200">
                             Cancel
                         </button>
                     </div>
@@ -536,16 +536,20 @@
                 typeLabels.forEach(l => {
                     const isSelected = l.dataset.type === type;
                     const isAllow    = l.dataset.type === 'allow';
-                    l.classList.remove('border-green-400', 'bg-green-50', 'border-red-400', 'bg-red-50', 'border-gray-300');
+                    l.classList.remove('border-green-400', 'bg-green-50', 'bg-green-900/30', 'border-red-400', 'bg-red-50', 'bg-red-900/30', 'border-gray-300', 'dark:border-gray-600');
                     if (isSelected) {
                         l.classList.add(isAllow ? 'border-green-400' : 'border-red-400');
-                        l.classList.add(isAllow ? 'bg-green-50'      : 'bg-red-50');
+                        if (isAllow) {
+                            l.classList.add('bg-green-50', 'dark:bg-green-900/30');
+                        } else {
+                            l.classList.add('bg-red-50', 'dark:bg-red-900/30');
+                        }
                     } else {
-                        l.classList.add('border-gray-300');
+                        l.classList.add('border-gray-300', 'dark:border-gray-600');
                     }
                     const span = l.querySelector('span');
                     if (span) {
-                        span.className = `text-xs font-medium ${isSelected ? (isAllow ? 'text-green-700' : 'text-red-700') : 'text-gray-600'}`;
+                        span.className = `text-xs font-medium ${isSelected ? (isAllow ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400') : 'text-gray-600 dark:text-gray-400'}`;
                     }
                 });
             });
@@ -632,7 +636,7 @@
         assignModalDirty        = false;
         if (assignableGlobalSearch)   {
             assignableGlobalSearch.value = '';
-            assignableGlobalSearch.classList.remove('border-blue-300', 'bg-blue-50');
+            assignableGlobalSearch.classList.remove('border-blue-300', 'bg-blue-50', 'dark:bg-blue-900/20', 'dark:border-blue-800');
         }
         if (assignableFilterAssigned) assignableFilterAssigned.value = '';
 
@@ -720,9 +724,9 @@
     const assignedRenderer = (value) => {
         const isAssigned = value === true || value === 1 || value === '1';
         if (isAssigned) {
-            return `<span class="bg-blue-100 text-blue-800 border border-blue-200 px-3 py-1 rounded-full text-xs font-medium">Assigned</span>`;
+            return `<span class="bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-3 py-1 rounded-full text-xs font-medium">Assigned</span>`;
         }
-        return `<span class="bg-gray-100 text-gray-600 border border-gray-200 px-3 py-1 rounded-full text-xs font-medium">—</span>`;
+        return `<span class="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 px-3 py-1 rounded-full text-xs font-medium">—</span>`;
     };
 
     /** is_allowed inside assignable — only meaningful if assigned */
@@ -750,7 +754,7 @@
 
         if (!isAssigned) {
             return `
-                <button class="assignable-assign-btn text-xs px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all duration-200"
+                <button class="assignable-assign-btn text-xs px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all duration-200 shadow-sm"
                         data-permission-id="${permId}">
                     Assign
                 </button>
@@ -762,13 +766,13 @@
 
         return `
             <div class="flex gap-1.5">
-                <button class="assignable-edit-btn text-xs px-3 py-1 bg-gray-100 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-200 transition-all duration-200"
+                <button class="assignable-edit-btn text-xs px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200"
                         data-permission-id="${permId}"
                         data-current-allowed="${currentAllowed}"
                         data-current-expires="${currentExpires}">
                     Edit
                 </button>
-                <button class="assignable-revoke-btn text-xs px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-all duration-200"
+                <button class="assignable-revoke-btn text-xs px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-all duration-200 shadow-sm"
                         data-permission-id="${permId}">
                     Revoke
                 </button>
@@ -875,9 +879,9 @@
 
         assignableGlobalSearch.addEventListener('input', (e) => {
             if (e.target.value.trim().length > 0) {
-                assignableGlobalSearch.classList.add('border-blue-300', 'bg-blue-50');
+                assignableGlobalSearch.classList.add('border-blue-300', 'bg-blue-50', 'dark:bg-blue-900/20', 'dark:border-blue-800');
             } else {
-                assignableGlobalSearch.classList.remove('border-blue-300', 'bg-blue-50');
+                assignableGlobalSearch.classList.remove('border-blue-300', 'bg-blue-50', 'dark:bg-blue-900/20', 'dark:border-blue-800');
             }
         });
     }
@@ -897,7 +901,7 @@
             assignableAssignedValue = '';
             if (assignableGlobalSearch)   {
                 assignableGlobalSearch.value = '';
-                assignableGlobalSearch.classList.remove('border-blue-300', 'bg-blue-50');
+                assignableGlobalSearch.classList.remove('border-blue-300', 'bg-blue-50', 'dark:bg-blue-900/20', 'dark:border-blue-800');
             }
             if (assignableFilterAssigned) assignableFilterAssigned.value = '';
             loadAssignable(1);
@@ -933,36 +937,36 @@
         }
 
         const formHtml = `
-            <tr class="assignable-inline-form bg-blue-50 border-t border-blue-200">
+            <tr class="assignable-inline-form bg-blue-50 dark:bg-blue-900/20 border-t border-blue-200 dark:border-blue-800">
                 <td colspan="8" class="px-4 py-3">
                     <div class="flex flex-wrap items-end gap-3">
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Permission Type</label>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Permission Type</label>
                             <div class="flex gap-2">
                                 <label class="inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-md cursor-pointer transition-colors duration-200
-                                    ${preAllowed ? 'border-green-400 bg-green-50' : 'border-gray-300'}
+                                    ${preAllowed ? 'border-green-400 bg-green-50 dark:bg-green-900/30' : 'border-gray-300 dark:border-gray-600'}
                                     inline-assign-type" data-type="allow">
                                     <input type="radio" name="inline-assign-type-${permId}" value="allow" class="sr-only" ${preAllowed ? 'checked' : ''}>
-                                    <span class="text-xs font-medium ${preAllowed ? 'text-green-700' : 'text-gray-600'}">Allow</span>
+                                    <span class="text-xs font-medium ${preAllowed ? 'text-green-700 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'}">Allow</span>
                                 </label>
                                 <label class="inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-md cursor-pointer transition-colors duration-200
-                                    ${!preAllowed ? 'border-red-400 bg-red-50' : 'border-gray-300'}
+                                    ${!preAllowed ? 'border-red-400 bg-red-50 dark:bg-red-900/30' : 'border-gray-300 dark:border-gray-600'}
                                     inline-assign-type" data-type="deny">
                                     <input type="radio" name="inline-assign-type-${permId}" value="deny" class="sr-only" ${!preAllowed ? 'checked' : ''}>
-                                    <span class="text-xs font-medium ${!preAllowed ? 'text-red-700' : 'text-gray-600'}">Deny</span>
+                                    <span class="text-xs font-medium ${!preAllowed ? 'text-red-700 dark:text-red-400' : 'text-gray-600 dark:text-gray-400'}">Deny</span>
                                 </label>
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Expiration <span class="text-gray-400 font-normal">(Optional)</span></label>
-                            <input type="datetime-local" class="inline-assign-expires px-3 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Expiration <span class="text-gray-400 dark:text-gray-500 font-normal">(Optional)</span></label>
+                            <input type="datetime-local" class="inline-assign-expires px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                    value="${preExpiresLocal}">
                         </div>
                         <button type="button" class="inline-assign-save-btn text-xs px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                 data-permission-id="${permId}">
                             Save
                         </button>
-                        <button type="button" class="inline-assign-cancel-btn text-xs px-3 py-1.5 bg-white text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-all duration-200">
+                        <button type="button" class="inline-assign-cancel-btn text-xs px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 transition-all duration-200">
                             Cancel
                         </button>
                     </div>
@@ -984,16 +988,20 @@
                 typeLabels.forEach(l => {
                     const isSelected = l.dataset.type === type;
                     const isAllow    = l.dataset.type === 'allow';
-                    l.classList.remove('border-green-400', 'bg-green-50', 'border-red-400', 'bg-red-50', 'border-gray-300');
+                    l.classList.remove('border-green-400', 'bg-green-50', 'bg-green-900/30', 'border-red-400', 'bg-red-50', 'bg-red-900/30', 'border-gray-300', 'dark:border-gray-600');
                     if (isSelected) {
                         l.classList.add(isAllow ? 'border-green-400' : 'border-red-400');
-                        l.classList.add(isAllow ? 'bg-green-50'      : 'bg-red-50');
+                        if (isAllow) {
+                            l.classList.add('bg-green-50', 'dark:bg-green-900/30');
+                        } else {
+                            l.classList.add('bg-red-50', 'dark:bg-red-900/30');
+                        }
                     } else {
-                        l.classList.add('border-gray-300');
+                        l.classList.add('border-gray-300', 'dark:border-gray-600');
                     }
                     const span = l.querySelector('span');
                     if (span) {
-                        span.className = `text-xs font-medium ${isSelected ? (isAllow ? 'text-green-700' : 'text-red-700') : 'text-gray-600'}`;
+                        span.className = `text-xs font-medium ${isSelected ? (isAllow ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400') : 'text-gray-600 dark:text-gray-400'}`;
                     }
                 });
             });

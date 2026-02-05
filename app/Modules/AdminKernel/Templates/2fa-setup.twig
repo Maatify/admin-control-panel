@@ -1,20 +1,80 @@
 {% extends "layout.twig" %}
 
-{% block title %}2FA Setup{% endblock %}
+{% block title %}2FA Setup | {{ ui.appName }}{% endblock %}
 
 {% block content %}
-<h1>Setup Two-Factor Authentication</h1>
-<p>Please enter the following secret into your Authenticator App:</p>
-<pre>{{ secret }}</pre>
+<main class="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 px-4 py-12">
+    <div class="w-full max-w-md">
+        <!-- Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <!-- Header -->
+            <div class="px-8 pt-8 pb-6 text-center">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-2xl mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-blue-600 dark:text-blue-400">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Secure Your Account</h1>
+                <p class="text-gray-500 dark:text-gray-400 mt-2">Setup two-factor authentication</p>
+            </div>
 
-<form method="POST" action="/2fa/setup">
-    <input type="hidden" name="secret" value="{{ secret }}">
-    <label for="code">Enter Code:</label>
-    <input type="text" id="code" name="code" required>
-    <button type="submit">Verify & Save</button>
-</form>
+            <div class="px-8 pb-8">
+                <!-- Info Section -->
+                <div class="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl">
+                    <p class="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
+                        Enter this secret code manually into your Authenticator App (Google Authenticator, Authy, etc.):
+                    </p>
+                    <div class="mt-3 flex items-center justify-between bg-white dark:bg-gray-900 border border-blue-200 dark:border-blue-700 rounded-lg p-3">
+                        <code class="text-lg font-mono font-bold text-blue-700 dark:text-blue-400 tracking-wider">{{ secret }}</code>
+                        <button type="button" class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors" onclick="navigator.clipboard.writeText('{{ secret }}')">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
 
-{% if error %}
-<p style="color: red">{{ error }}</p>
-{% endif %}
+                <!-- Form -->
+                <form method="POST" action="/2fa/setup" class="space-y-6">
+                    <input type="hidden" name="secret" value="{{ secret }}">
+                    
+                    <div>
+                        <label for="code" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Verify Code</label>
+                        <input 
+                            type="text" 
+                            id="code" 
+                            name="code" 
+                            required 
+                            autofocus
+                            placeholder="Enter 6-digit code"
+                            class="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-center text-2xl tracking-[0.5em] font-bold"
+                            maxlength="6"
+                            pattern="\d{6}"
+                        >
+                    </div>
+
+                    {% if error %}
+                    <div class="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                        </svg>
+                        {{ error }}
+                    </div>
+                    {% endif %}
+
+                    <button 
+                        type="submit" 
+                        class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 transform transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    >
+                        Verify & Save
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <p class="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
+            Having trouble? <a href="#" class="text-blue-600 dark:text-blue-400 font-medium hover:underline">Contact Support</a>
+        </p>
+    </div>
+</main>
 {% endblock %}

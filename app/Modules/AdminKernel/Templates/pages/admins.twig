@@ -5,18 +5,18 @@
 
 {% block content %}
     <div class="flex flex-wrap items-center justify-between gap-3 ">
-        <h2 class="text-xl font-semibold text-gray-800">Admins Management</h2>
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">Admins Management</h2>
         <nav>
             <ol class="flex items-center gap-1.5">
                 <li>
-                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500" href="{{ ui.adminUrl }}dashboard">
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 dark:hover:text-gray-200" href="{{ ui.adminUrl }}dashboard">
                         Home
                         <svg class="stroke-current" width="17" height="16" viewbox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
                         </svg>
                     </a>
                 </li>
-                <li class="text-sm text-gray-800">Admins</li>
+                <li class="text-sm text-gray-800 dark:text-gray-200">Admins</li>
             </ol>
         </nav>
     </div>
@@ -46,61 +46,61 @@
 
     <div class=" px-0 py-2">
         <!-- Search Section -->
-        <div class="bg-white rounded-lg shadow border border-gray-200 mb-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 mb-6">
             <div class="px-2 py-4">
                 <form
                         id="admins-search-form" class="grid grid-cols-1 md:grid-cols-5 gap-4">
                     <!-- Admin ID Filter -->
                     <div>
-                        <label for="filter-admin-id" class="block text-sm font-medium text-gray-700 mb-1">
+                        <label for="filter-admin-id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Admin ID
                         </label>
-                        <input type="text" id="filter-admin-id" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Search by ID">
+                        <input type="text" id="filter-admin-id" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Search by ID">
                     </div>
 
                     <!-- Email Filter -->
                     <div>
-                        <label for="filter-email" class="block text-sm font-medium text-gray-700 mb-1">
+                        <label for="filter-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Email
                         </label>
-                        <input type="text" id="filter-email" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Search by email">
+                        <input type="text" id="filter-email" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Search by email">
                     </div>
 
                     <!-- Display Name Filter -->
                     <div>
-                        <label for="filter-display-name" class="block text-sm font-medium text-gray-700 mb-1">
+                        <label for="filter-display-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Display Name
                         </label>
-                        <input type="text" id="filter-display-name" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Search by name">
+                        <input type="text" id="filter-display-name" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Search by name">
                     </div>
 
                     <!-- Date From Filter -->
                     <div>
-                        <label for="filter-date-from" class="block text-sm font-medium text-gray-700 mb-1">
+                        <label for="filter-date-from" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Created From
                         </label>
-                        <input type="date" id="filter-date-from" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <input type="date" id="filter-date-from" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
 
                     <!-- Date To Filter -->
                     <div>
-                        <label for="filter-date-to" class="block text-sm font-medium text-gray-700 mb-1">
+                        <label for="filter-date-to" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Created To
                         </label>
-                        <input type="date" id="filter-date-to" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <input type="date" id="filter-date-to" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
 
                     <!-- Action Buttons -->
                     <div class="flex justify-end items-end space-x-1 md:col-span-5">
-                        <button type="submit" class="text-sm px-4 py-1 bg-sky-600 text-white rounded-md hover:bg-white hover:text-sky-600 border  hover:border-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 transition-colors duration-300 ease-in-out">
+                        <button type="submit" class="text-sm px-4 py-1 bg-sky-600 text-white rounded-md hover:bg-white hover:text-sky-600 border  hover:border-sky-600 dark:hover:bg-gray-700 dark:hover:text-sky-400 dark:border-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 transition-colors duration-300 ease-in-out">
                             Search
                         </button>
-                        <button type="button" id="btn-reset" class="text-sm px-4 py-1 bg-white text-gray-600 border border-gray-600 rounded-md hover:bg-gray-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors duration-300 ease-in-out">
+                        <button type="button" id="btn-reset" class="text-sm px-4 py-1 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-600 dark:border-gray-500 rounded-md hover:bg-gray-600 hover:text-white dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors duration-300 ease-in-out">
                             Reset
                         </button>
                         {# ✅ Show "Add Admin" button only if user has can_create capability #}
                         {% if capabilities.can_create ?? false %}
-                            <a href="{{ ui.adminUrl }}admins/create" id="btn-add-admin" class="text-sm px-4 py-1 bg-blue-600 text-white rounded-md hover:bg-white hover:text-blue-600 border border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 inline-flex items-center gap-1 transition-colors duration-300 ease-in-out">
+                            <a href="{{ ui.adminUrl }}admins/create" id="btn-add-admin" class="text-sm px-4 py-1 bg-blue-600 text-white rounded-md hover:bg-white hover:text-blue-600 dark:hover:bg-gray-700 dark:hover:text-blue-400 border border-blue-600 dark:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 inline-flex items-center gap-1 transition-colors duration-300 ease-in-out">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                                 </svg>

@@ -6,12 +6,12 @@
 
 {% block content %}
 	<div class="flex flex-wrap items-center justify-between gap-3 my-4">
-		<h2 class="text-xl font-semibold text-gray-800">Create Admin</h2>
+		<h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">Create Admin</h2>
 
 		<nav>
 			<ol class="flex items-center gap-1.5">
 				<li>
-					<a class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors" href="{{ ui.adminUrl }}dashboard">
+					<a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" href="{{ ui.adminUrl }}dashboard">
 						Home
 						<svg class="stroke-current" width="17" height="16" viewbox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
 							<path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -19,14 +19,14 @@
 					</a>
 				</li>
 				<li>
-					<a class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors" href="{{ ui.adminUrl }}admins">
+					<a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" href="{{ ui.adminUrl }}admins">
 						Admins
 						<svg class="stroke-current" width="17" height="16" viewbox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
 							<path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
 						</svg>
 					</a>
 				</li>
-				<li class="text-sm text-gray-800">Create</li>
+				<li class="text-sm text-gray-800 dark:text-gray-200">Create</li>
 			</ol>
 		</nav>
 	</div>
@@ -36,33 +36,33 @@
 		<div
 			class="px-0 py-4 w-full">
 			<!-- Form Card -->
-			<div id="form-container" class="bg-white rounded-lg shadow-lg border border-gray-200">
+			<div id="form-container" class="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700">
 				<div
 					class="px-6 py-6">
 					<!-- Header with Icon -->
 					<div class="flex items-center gap-3 mb-4">
-						<div class="flex items-center justify-center w-12 h-12 bg-blue-50/70 rounded-lg">
-							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-blue-600">
+						<div class="flex items-center justify-center w-12 h-12 bg-blue-50/70 dark:bg-blue-900/30 rounded-lg">
+							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-blue-600 dark:text-blue-400">
 								<path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z"/>
 							</svg>
 						</div>
 						<div>
-							<h3 class="text-lg font-semibold text-gray-800">
+							<h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">
 								New Admin Account
 							</h3>
-							<p class="text-xs text-gray-500">Create a new administrator with full access</p>
+							<p class="text-xs text-gray-500 dark:text-gray-400">Create a new administrator with full access</p>
 						</div>
 					</div>
 
 					<!-- Info Alert -->
-					<div class="mb-6 p-4 bg-blue-50/50 border border-blue-200 rounded-lg">
+					<div class="mb-6 p-4 bg-blue-50/50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
 						<div class="flex items-start gap-3">
-							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5">
+							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5">
 								<path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/>
 							</svg>
-							<div class="text-sm text-blue-800">
+							<div class="text-sm text-blue-800 dark:text-blue-300">
 								<p class="font-medium mb-1">Important Information:</p>
-								<ul class="space-y-1 text-blue-700">
+								<ul class="space-y-1 text-blue-700 dark:text-blue-400">
 									<li>• Provide a unique email address for the new admin</li>
 									<li>• A secure temporary password will be automatically generated</li>
 									<li>• The password will only be shown once - save it securely</li>
@@ -80,48 +80,48 @@
 						id="create-admin-form" class="space-y-5">
 						<!-- Display Name -->
 						<div>
-							<label for="admin-display-name" class="block text-sm font-medium text-gray-700 mb-2">
+							<label for="admin-display-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
 								Display Name
 								<span class="text-red-500">*</span>
 							</label>
 							<div class="relative">
 								<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-									<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-gray-400">
+									<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-gray-400 dark:text-gray-500">
 										<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/>
 									</svg>
 								</div>
-								<input type="text" id="admin-display-name" required class="w-full pl-10 pr-4 py-3 text-sm border border-gray-300 rounded-lg
-									                                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="e.g. Ahmed Hassan">
+								<input type="text" id="admin-display-name" required class="w-full pl-10 pr-4 py-3 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
+									                                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400" placeholder="e.g. Ahmed Hassan">
 							</div>
 						</div>
 
 						<!-- Email -->
 						<div>
-							<label for="admin-email" class="block text-sm font-medium text-gray-700 mb-2">
+							<label for="admin-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
 								Admin Email
 								<span class="text-red-500">*</span>
 							</label>
 							<div class="relative">
 								<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-									<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-gray-400">
+									<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-gray-400 dark:text-gray-500">
 										<path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/>
 									</svg>
 								</div>
-								<input type="email" id="admin-email" required class="w-full pl-10 pr-4 py-3 text-sm border border-gray-300 rounded-lg
-									                                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="admin@example.com">
+								<input type="email" id="admin-email" required class="w-full pl-10 pr-4 py-3 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
+									                                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400" placeholder="admin@example.com">
 							</div>
-							<p class="mt-1 text-xs text-gray-500">Must be a unique and valid email address</p>
+							<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Must be a unique and valid email address</p>
 						</div>
 						
 						<!-- Action Buttons -->
-						<div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+						<div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
 
-							<a href="{{ ui.adminUrl }}admins" class="inline-flex items-center gap-2 text-gray-600 hover:text-gray-800">
+							<a href="{{ ui.adminUrl }}admins" class="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
 								← Cancel
 							</a>
 
-							<button type="submit" id="submit-btn" class="inline-flex items-center gap-2 px-6 py-3 bg-blue-500 text-white font-medium rounded-lg
-									                                   hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+							<button type="submit" id="submit-btn" class="inline-flex items-center gap-2 px-6 py-3 bg-blue-500 dark:bg-blue-600 text-white font-medium rounded-lg
+									                                   hover:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
 									                                   transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
 								<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
 									<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
@@ -136,8 +136,8 @@
 			</div>
 
 			<!-- Success Result Card -->
-			<div id="create-admin-result" class="hidden bg-white rounded-lg shadow-lg border-2 border-green-500 overflow-hidden">
-				<div class="px-6 py-4 bg-green-50 border-b border-green-200">
+			<div id="create-admin-result" class="hidden bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 border-2 border-green-500 overflow-hidden">
+				<div class="px-6 py-4 bg-green-50 dark:bg-green-900/20 border-b border-green-200 dark:border-green-800">
 					<div class="flex items-center gap-3">
 						<div class="flex items-center justify-center w-10 h-10 bg-green-100 rounded-full">
 							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-green-600">
@@ -145,10 +145,10 @@
 							</svg>
 						</div>
 						<div>
-							<h4 class="text-lg font-semibold text-green-800">
+							<h4 class="text-lg font-semibold text-green-800 dark:text-green-300">
 								Admin Created Successfully!
 							</h4>
-							<p class="text-sm text-green-700">Save the temporary password before leaving this page</p>
+							<p class="text-sm text-green-700 dark:text-green-400">Save the temporary password before leaving this page</p>
 						</div>
 					</div>
 				</div>
@@ -156,12 +156,12 @@
 				<div
 					class="px-6 py-6">
 					<!-- Warning Alert -->
-					<div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+					<div class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
 						<div class="flex items-start gap-3">
 							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5">
 								<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
 							</svg>
-							<div class="text-sm text-red-800">
+							<div class="text-sm text-red-800 dark:text-red-300">
 								<p class="font-semibold mb-1">⚠️ Critical: Save This Password Now!</p>
 								<p>This password will
 									<strong>NOT</strong>
@@ -174,11 +174,11 @@
 					<div
 						class="space-y-4">
 						<!-- Admin ID -->
-						<div class="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-							<label class="block text-sm font-medium text-gray-700 mb-2">Admin ID</label>
+						<div class="p-4 bg-gray-50 dark:bg-gray-900/30 border border-gray-200 dark:border-gray-700 rounded-lg">
+							<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Admin ID</label>
 							<div class="flex items-center justify-between gap-3">
-								<code id="result-admin-id" class="flex-1 px-3 py-2 bg-white border border-gray-300 rounded font-mono text-sm text-gray-900"></code>
-								<button type="button" class="copy-btn flex-shrink-0 p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-all" data-copy-target="result-admin-id">
+								<code id="result-admin-id" class="flex-1 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded font-mono text-sm text-gray-900 dark:text-gray-100"></code>
+								<button type="button" class="copy-btn flex-shrink-0 p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded transition-all" data-copy-target="result-admin-id">
 									<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
 										<path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184"/>
 									</svg>
@@ -187,8 +187,8 @@
 						</div>
 
 						<!-- Temporary Password -->
-						<div class="p-4 bg-red-50 border-2 border-red-300 rounded-lg">
-							<label class="block text-sm font-medium text-red-800 mb-2">
+						<div class="p-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-300 dark:border-red-800 rounded-lg">
+							<label class="block text-sm font-medium text-red-800 dark:text-red-300 mb-2">
 								<span class="flex items-center gap-2">
 									<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
 										<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z"/>
@@ -197,19 +197,19 @@
 								</span>
 							</label>
 							<div class="flex items-center justify-between gap-3">
-								<code id="result-temp-password" class="flex-1 px-3 py-2 bg-white border border-red-400 rounded font-mono text-sm text-red-700 select-all font-semibold"></code>
-								<button type="button" class="copy-btn flex-shrink-0 p-2 text-red-600 hover:text-red-700 hover:bg-red-100 rounded transition-all" data-copy-target="result-temp-password">
+								<code id="result-temp-password" class="flex-1 px-3 py-2 bg-white dark:bg-gray-800 border border-red-400 dark:border-red-600 rounded font-mono text-sm text-red-700 dark:text-red-400 select-all font-semibold"></code>
+								<button type="button" class="copy-btn flex-shrink-0 p-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-all" data-copy-target="result-temp-password">
 									<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
 										<path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184"/>
 									</svg>
 								</button>
 							</div>
-							<p class="mt-2 text-xs text-red-700">Click to select and copy the password</p>
+							<p class="mt-2 text-xs text-red-700 dark:text-red-400">Click to select and copy the password</p>
 						</div>
 					</div>
 
 					<!-- Action Buttons -->
-					<div class="flex items-center gap-3 mt-6 pt-6 border-t border-gray-200">
+					<div class="flex items-center gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
 						<a href="{{ ui.adminUrl }}admins" class="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white font-medium rounded-lg
 								                              hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md">
 							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
@@ -218,8 +218,8 @@
 							<span>I have saved the password</span>
 						</a>
 
-						<button type="button" id="create-another-btn" class="px-6 py-3 bg-white text-blue-600 border border-blue-600 rounded-lg
-								                                   hover:bg-blue-50 transition-all duration-200">
+						<button type="button" id="create-another-btn" class="px-6 py-3 bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 border border-blue-600 dark:border-blue-500 rounded-lg
+								                                   hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all duration-200">
 							Create Another
 						</button>
 					</div>

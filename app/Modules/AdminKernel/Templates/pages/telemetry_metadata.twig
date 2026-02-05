@@ -5,19 +5,19 @@
    ========================= #}
 {% macro render_metadata(data) %}
     {% for key, value in data %}
-        <tr class="border-t">
-            <td class="px-4 py-2 align-top font-medium text-gray-700">
+        <tr class="border-t dark:border-gray-700">
+            <td class="px-4 py-2 align-top font-medium text-gray-700 dark:text-gray-300">
                 {{ key }}
             </td>
             <td class="px-4 py-2">
                 {% if value is iterable %}
-                    <table class="min-w-full border border-gray-200 mt-2 text-sm">
+                    <table class="min-w-full border border-gray-200 dark:border-gray-700 mt-2 text-sm">
                         <tbody>
                         {{ _self.render_metadata(value) }}
                         </tbody>
                     </table>
                 {% else %}
-                    <span class="break-all text-gray-700">{{ value }}</span>
+                    <span class="break-all text-gray-700 dark:text-gray-400">{{ value }}</span>
                 {% endif %}
             </td>
         </tr>
@@ -32,23 +32,23 @@
 
     <!-- Header + Breadcrumb -->
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <h2 class="text-xl font-semibold text-gray-800">
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">
             Telemetry Metadata
         </h2>
 
         <nav>
             <ol class="flex items-center gap-1.5">
                 <li>
-                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500" href="{{ ui.adminUrl }}dashboard">
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" href="{{ ui.adminUrl }}dashboard">
                         Home
                     </a>
                 </li>
                 <li>
-                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500" href="{{ ui.adminUrl }}telemetry">
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" href="{{ ui.adminUrl }}telemetry">
                         Telemetry
                     </a>
                 </li>
-                <li class="text-sm text-gray-800">
+                <li class="text-sm text-gray-800 dark:text-gray-200">
                     Metadata
                 </li>
             </ol>
@@ -56,11 +56,11 @@
     </div>
 
     <!-- Event Information -->
-    <div class="bg-white rounded-lg shadow border border-gray-200 mb-6">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 mb-6">
         <div class="px-4 py-4">
-            <h3 class="text-lg font-semibold text-gray-700 mb-4">Event Information</h3>
+            <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-100 mb-4">Event Information</h3>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm dark:text-gray-300">
                 <div><strong>ID:</strong> {{ telemetry.id }}</div>
                 <div><strong>Event Key:</strong> {{ telemetry.eventKey }}</div>
                 <div><strong>Severity:</strong> {{ telemetry.severity }}</div>
@@ -70,11 +70,11 @@
     </div>
 
     <!-- Actor Information -->
-    <div class="bg-white rounded-lg shadow border border-gray-200 mb-6">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 mb-6">
         <div class="px-4 py-4">
-            <h3 class="text-lg font-semibold text-gray-700 mb-4">Actor</h3>
+            <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-100 mb-4">Actor</h3>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm dark:text-gray-300">
                 <div><strong>Actor Type:</strong> {{ telemetry.actorType }}</div>
                 <div><strong>Actor ID:</strong> {{ telemetry.actorId }}</div>
             </div>
@@ -82,17 +82,17 @@
     </div>
 
     <!-- Request Information -->
-    <div class="bg-white rounded-lg shadow border border-gray-200 mb-6">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 mb-6">
         <div class="px-4 py-4">
-            <h3 class="text-lg font-semibold text-gray-700 mb-4">Request</h3>
+            <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-100 mb-4">Request</h3>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm dark:text-gray-300">
                 <div><strong>Route Name:</strong> {{ telemetry.routeName }}</div>
                 <div><strong>Request ID:</strong> {{ telemetry.requestId }}</div>
                 <div><strong>IP Address:</strong> {{ telemetry.ipAddress }}</div>
                 <div class="md:col-span-2">
                     <strong>User Agent:</strong>
-                    <div class="break-all text-gray-700 mt-1">
+                    <div class="break-all text-gray-700 dark:text-gray-400 mt-1">
                         {{ telemetry.userAgent }}
                     </div>
                 </div>
@@ -101,22 +101,22 @@
     </div>
 
     <!-- Metadata -->
-    <div class="bg-white rounded-lg shadow border border-gray-200">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700">
         <div class="px-4 py-4">
-            <h3 class="text-lg font-semibold text-gray-700 mb-4">Metadata</h3>
+            <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-100 mb-4">Metadata</h3>
 
             <div class="overflow-x-auto">
-                <table class="min-w-full border border-gray-200 text-sm">
-                    <thead class="bg-gray-50">
+                <table class="min-w-full border border-gray-200 dark:border-gray-700 text-sm">
+                    <thead class="bg-gray-50 dark:bg-gray-700/50">
                     <tr>
-                        <th class="px-4 py-2 text-left border-b">Key</th>
-                        <th class="px-4 py-2 text-left border-b">Value</th>
+                        <th class="px-4 py-2 text-left border-b dark:border-gray-700 dark:text-gray-100">Key</th>
+                        <th class="px-4 py-2 text-left border-b dark:border-gray-700 dark:text-gray-100">Value</th>
                     </tr>
                     </thead>
                     <tbody>
                     {% if metadata is empty %}
                         <tr>
-                            <td colspan="2" class="px-4 py-4 text-center text-gray-500">
+                            <td colspan="2" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">
                                 No metadata recorded
                             </td>
                         </tr>

@@ -51,13 +51,13 @@
 
     /** Admin ID column — plain mono badge with optional link */
     const adminIdRenderer = (value, row) => {
-        if (!value && value !== 0) return '<span class="text-gray-400 italic">N/A</span>';
+        if (!value && value !== 0) return '<span class="text-gray-400 dark:text-gray-500 italic">N/A</span>';
 
-        const idText = `<span class="font-mono text-sm text-gray-800 font-medium">#${value}</span>`;
+        const idText = `<span class="font-mono text-sm text-gray-800 dark:text-gray-300 font-medium">#${value}</span>`;
 
         if (capabilities.can_view_admin_profile) {
             return `<a href="/admins/${value}/profile" 
-                       class="text-blue-600 hover:text-blue-800 hover:underline"
+                       class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline"
                        title="View admin profile">
                        ${idText}
                     </a>`;
@@ -72,17 +72,17 @@
      * Otherwise plain text
      */
     const displayNameRenderer = (value, row) => {
-        if (!value) return '<span class="text-gray-400 italic">N/A</span>';
+        if (!value) return '<span class="text-gray-400 dark:text-gray-500 italic">N/A</span>';
 
         if (capabilities.can_view_admin_profile && row.admin_id) {
             return `<a href="/admins/${row.admin_id}/profile" 
-                       class="text-blue-600 hover:text-blue-800 hover:underline font-medium text-sm"
+                       class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline font-medium text-sm"
                        title="View admin profile">
                        ${value}
                     </a>`;
         }
 
-        return `<span class="text-sm text-gray-800 font-medium">${value}</span>`;
+        return `<span class="text-sm text-gray-800 dark:text-gray-200 font-medium">${value}</span>`;
     };
 
     /**
@@ -101,7 +101,7 @@
      * Expires At column
      */
     const expiresAtRenderer = (value) => {
-        if (!value) return '<span class="text-gray-500 text-sm">Never</span>';
+        if (!value) return '<span class="text-gray-500 dark:text-gray-400 text-sm">Never</span>';
 
         // Parse the date and format it nicely
         try {
@@ -118,10 +118,10 @@
             });
 
             if (isExpired) {
-                return `<span class="text-red-600 text-sm font-medium" title="Expired">${formatted} ⚠️</span>`;
+                return `<span class="text-red-600 dark:text-red-400 text-sm font-medium" title="Expired">${formatted} ⚠️</span>`;
             }
 
-            return `<span class="text-gray-700 text-sm">${formatted}</span>`;
+            return `<span class="text-gray-700 dark:text-gray-300 text-sm">${formatted}</span>`;
         } catch (e) {
             return `<span class="text-gray-500 text-sm">${value}</span>`;
         }
@@ -143,7 +143,7 @@
                 minute: '2-digit'
             });
 
-            return `<span class="text-gray-600 text-sm">${formatted}</span>`;
+            return `<span class="text-gray-600 dark:text-gray-400 text-sm">${formatted}</span>`;
         } catch (e) {
             return `<span class="text-gray-500 text-sm">${value}</span>`;
         }

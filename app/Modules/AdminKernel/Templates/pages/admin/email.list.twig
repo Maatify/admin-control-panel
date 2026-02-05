@@ -6,11 +6,11 @@
 {% block content %}
     <!-- Page Header with Breadcrumb -->
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <h2 class="text-xl font-semibold text-gray-800">Admin Emails Management</h2>
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">Admin Emails Management</h2>
         <nav>
             <ol class="flex items-center gap-1.5">
                 <li>
-                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors" href="{{ ui.adminUrl }}dashboard">
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" href="{{ ui.adminUrl }}dashboard">
                         Home
                         <svg class="stroke-current" width="17" height="16" viewbox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -21,7 +21,7 @@
                 {# NOTE: This capability should be provided by the backend. If missing, add it to AuthorizationService #}
                 {% if capabilities.can_view_admins ?? false %}
                     <li>
-                        <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors" href="{{ ui.adminUrl }}admins">
+                        <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" href="{{ ui.adminUrl }}admins">
                             Admins
                             <svg class="stroke-current" width="17" height="16" viewbox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -33,7 +33,7 @@
                 {# ✅ Show "Profile" button only if user has can_view_profile capability #}
                 {% if capabilities.can_view_profile ?? false %}
                     <li>
-                        <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors" href="{{ ui.adminUrl }}admins/{{ admin_id }}/profile">
+                        <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" href="{{ ui.adminUrl }}admins/{{ admin_id }}/profile">
                             Profile
                             <svg class="stroke-current" width="17" height="16" viewbox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -41,34 +41,34 @@
                         </a>
                     </li>
                 {% endif %}
-                <li class="text-sm text-gray-800">Emails</li>
+                <li class="text-sm text-gray-800 dark:text-gray-200">Emails</li>
             </ol>
         </nav>
     </div>
 
     <!-- Admin Info Header -->
-    <div class="bg-white rounded-lg shadow border border-gray-200 mb-6 overflow-hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 mb-6 overflow-hidden">
         <div class="px-6 py-4">
             <div class="flex items-center justify-between gap-4">
                 <!-- Admin Info -->
                 <div class="flex items-center gap-3">
-                    <div class="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-blue-600">
+                    <div class="flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-blue-600 dark:text-blue-400">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/>
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-gray-800">
+                        <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100">
                             {{ display_name ?? 'N/A' }}
                         </h3>
-                        <p class="text-sm text-gray-500">Admin ID: #{{ admin_id }}</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Admin ID: #{{ admin_id }}</p>
                     </div>
                 </div>
 
                 {# ✅ Show "Profile" button only if user has can_view_profile capability #}
                 {% if capabilities.can_view_profile ?? false %}
                     <!-- Back Button -->
-                    <a href="{{ ui.adminUrl }}admins/{{ admin_id }}/profile" class="inline-flex items-center gap-2 px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200">
+                    <a href="{{ ui.adminUrl }}admins/{{ admin_id }}/profile" class="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-all duration-200">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
                         </svg>
@@ -83,8 +83,8 @@
     {% if capabilities.can_add ?? false %}
         <div class="px-0 py-2">
         <!-- Add Email Section -->
-        <div class="bg-white rounded-lg shadow border border-gray-200 mb-6">
-            <div class="px-6 py-4 border-b border-gray-200">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 mb-6">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                 <div class="flex items-center gap-3">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-blue-600">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
@@ -95,14 +95,14 @@
 
             <div class="px-6 py-4">
                 <!-- Info Alert -->
-                <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div class="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                     <div class="flex items-start gap-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/>
                         </svg>
-                        <div class="text-sm text-blue-800">
+                        <div class="text-sm text-blue-800 dark:text-blue-300">
                             <p class="font-medium mb-1">Email Management Rules:</p>
-                            <ul class="space-y-1 text-blue-700 text-xs">
+                            <ul class="space-y-1 text-blue-700 dark:text-blue-400 text-xs">
                                 <li>• Each admin can have multiple email addresses</li>
                                 <li>• New emails start with "pending" status and require verification</li>
                                 <li>• Replaced emails can be reactivated (reset to pending)</li>
@@ -128,7 +128,7 @@
                                     type="email"
                                     id="new-email-input"
                                     required
-                                    class="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                    class="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400"
                                     placeholder="Enter new email address"
                             />
                         </div>
@@ -179,33 +179,33 @@
     </script>
 
     <!-- Emails List -->
-    <div class="bg-white rounded-lg shadow border border-gray-200">
-        <div class="px-6 py-4 border-b border-gray-200">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-blue-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-blue-600 dark:text-blue-400">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/>
                     </svg>
-                    <h3 class="text-lg font-semibold text-gray-800">Email Addresses</h3>
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Email Addresses</h3>
                 </div>
 
                 <!-- Status Filter Buttons -->
                 <div class="flex gap-2">
                     <span data-status="all" class="cursor-pointer text-sm px-3 py-1 rounded-lg bg-blue-600 text-white transition-colors duration-200">All</span>
-                    <span data-status="pending" class="cursor-pointer text-sm px-3 py-1 rounded-lg hover:bg-blue-400 hover:text-white transition-colors duration-200">Pending</span>
-                    <span data-status="verified" class="cursor-pointer text-sm px-3 py-1 rounded-lg hover:bg-blue-400 hover:text-white transition-colors duration-200">Verified</span>
-                    <span data-status="failed" class="cursor-pointer text-sm px-3 py-1 rounded-lg hover:bg-blue-400 hover:text-white transition-colors duration-200">Failed</span>
-                    <span data-status="replaced" class="cursor-pointer text-sm px-3 py-1 rounded-lg hover:bg-blue-400 hover:text-white transition-colors duration-200">Replaced</span>
+                    <span data-status="pending" class="cursor-pointer text-sm px-3 py-1 rounded-lg dark:text-gray-200 hover:bg-blue-400 hover:text-white transition-colors duration-200">Pending</span>
+                    <span data-status="verified" class="cursor-pointer text-sm px-3 py-1 rounded-lg dark:text-gray-200 hover:bg-blue-400 hover:text-white transition-colors duration-200">Verified</span>
+                    <span data-status="failed" class="cursor-pointer text-sm px-3 py-1 rounded-lg dark:text-gray-200 hover:bg-blue-400 hover:text-white transition-colors duration-200">Failed</span>
+                    <span data-status="replaced" class="cursor-pointer text-sm px-3 py-1 rounded-lg dark:text-gray-200 hover:bg-blue-400 hover:text-white transition-colors duration-200">Replaced</span>
                 </div>
             </div>
         </div>
 
         <!-- Emails Container -->
         <div class="px-6 py-6">
-            <div id="emails-container" class="space-y-4">
+            <div id="emails-container" class="space-y-4 dark:text-gray-100 dark:bg-gray-800">
                 <!-- Loading indicator -->
                 <div class="flex items-center justify-center py-12">
-                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 dark:bg-gray-800"></div>
                 </div>
             </div>
         </div>

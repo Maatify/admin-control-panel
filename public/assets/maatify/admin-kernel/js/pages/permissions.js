@@ -81,8 +81,8 @@ document.addEventListener('DOMContentLoaded', () => {
      * Custom renderer for ID column
      */
     const idRenderer = (value, row) => {
-        if (!value) return '<span class="text-gray-400 italic">N/A</span>';
-        return `<span class="font-mono text-sm text-gray-800 font-medium">#${value}</span>`;
+        if (!value) return '<span class="text-gray-400 dark:text-gray-500 italic">N/A</span>';
+        return `<span class="font-mono text-sm text-gray-800 dark:text-gray-300 font-medium">#${value}</span>`;
     };
 
     /**
@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const nameRenderer = (value, row) => {
         if (!value) return '<span class="text-gray-400 italic">N/A</span>';
         return `
-            <code class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-mono border border-gray-200">
+            <code class="px-2 py-1 bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-500 rounded text-xs font-mono border border-gray-200">
                 ${value}
             </code>
         `;
@@ -105,11 +105,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Different colors for different groups
         const groupColors = {
-            'admins': 'bg-blue-100 text-blue-800 border-blue-200',
-            'sessions': 'bg-green-100 text-green-800 border-green-200',
-            'permissions': 'bg-purple-100 text-purple-800 border-purple-200',
-            'roles': 'bg-orange-100 text-orange-800 border-orange-200',
-            'default': 'bg-gray-100 text-gray-800 border-gray-200'
+            'admins':      'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+            'sessions':    'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800',
+            'permissions': 'bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+            'roles':       'bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-800',
+            'default':     'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600'
         };
 
         const colorClass = groupColors[value.toLowerCase()] || groupColors['default'];
@@ -126,9 +126,9 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     const displayNameRenderer = (value, row) => {
         if (!value || value.trim() === '') {
-            return '<span class="text-gray-400 italic text-xs">Not set</span>';
+            return '<span class="text-gray-400 dark:text-gray-500 italic text-xs">Not set</span>';
         }
-        return `<span class="text-sm text-gray-800">${value}</span>`;
+        return `<span class="text-sm text-gray-800 dark:text-gray-300">${value}</span>`;
     };
 
     /**
@@ -136,17 +136,17 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     const descriptionRenderer = (value, row) => {
         if (!value || value.trim() === '') {
-            return '<span class="text-gray-400 italic text-xs">No description</span>';
+            return '<span class="text-gray-400 dark:text-gray-500 italic text-xs">No description</span>';
         }
 
         // Truncate long descriptions
         const maxLength = 60;
         if (value.length > maxLength) {
             const truncated = value.substring(0, maxLength) + '...';
-            return `<span class="text-sm text-gray-600" title="${value}">${truncated}</span>`;
+            return `<span class="text-sm text-gray-600 dark:text-gray-400" title="${value}">${truncated}</span>`;
         }
 
-        return `<span class="text-sm text-gray-600">${value}</span>`;
+        return `<span class="text-sm text-gray-600 dark:text-gray-400">${value}</span>`;
     };
 
     /**
@@ -314,7 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="flex gap-4 items-center flex-wrap">
                 <div class="w-100">
                     <input id="permissions-global-search" 
-                        class="w-full border rounded-lg px-3 py-1 text-sm transition-colors duration-200" 
+                        class="w-full border rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400" 
                         placeholder="Search permissions..." />
                 </div>
             </div>
@@ -338,9 +338,9 @@ document.addEventListener('DOMContentLoaded', () => {
             globalSearch.addEventListener('input', (e) => {
                 const value = e.target.value.trim();
                 if (value.length > 0) {
-                    globalSearch.classList.add('border-blue-300', 'bg-blue-50');
+                    globalSearch.classList.add('border-blue-300', 'bg-blue-50', 'dark:bg-blue-900/20', 'dark:border-blue-800');
                 } else {
-                    globalSearch.classList.remove('border-blue-300', 'bg-blue-50');
+                    globalSearch.classList.remove('border-blue-300', 'bg-blue-50', 'dark:bg-blue-900/20', 'dark:border-blue-800');
                 }
             });
         }
@@ -414,7 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Build info text
         let infoText = `<span>${startItem} to ${endItem}</span> of <span>${displayCount}</span>`;
         if (isFiltered) {
-            infoText += ` <span class="text-gray-500 text-xs">(filtered from ${total} total)</span>`;
+            infoText += ` <span class="text-gray-500 dark:text-gray-400 text-xs">(filtered from ${total} total)</span>`;
         }
 
         console.log("📤 Returning:", { total: displayCount, info: infoText });
@@ -645,28 +645,28 @@ document.addEventListener('DOMContentLoaded', () => {
         modalMessage.className = 'mb-4 p-4 rounded-lg flex items-start gap-3';
 
         if (type === 'error') {
-            modalMessage.classList.add('bg-red-50', 'border', 'border-red-200');
+            modalMessage.classList.add('bg-red-50', 'border', 'border-red-200', 'dark:bg-red-900/20', 'dark:border-red-800');
             modalMessage.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
                 </svg>
-                <p class="text-sm text-red-800">${message}</p>
+                <p class="text-sm text-red-800 dark:text-red-300">${message}</p>
             `;
         } else if (type === 'success') {
-            modalMessage.classList.add('bg-green-50', 'border', 'border-green-200');
+            modalMessage.classList.add('bg-green-50', 'border', 'border-green-200', 'dark:bg-green-900/20', 'dark:border-green-800');
             modalMessage.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                 </svg>
-                <p class="text-sm text-green-800">${message}</p>
+                <p class="text-sm text-green-800 dark:text-green-300">${message}</p>
             `;
         } else if (type === 'info') {
-            modalMessage.classList.add('bg-blue-50', 'border', 'border-blue-200');
+            modalMessage.classList.add('bg-blue-50', 'border', 'border-blue-200', 'dark:bg-blue-900/20', 'dark:border-blue-800');
             modalMessage.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
                 </svg>
-                <p class="text-sm text-blue-800">${message}</p>
+                <p class="text-sm text-blue-800 dark:text-blue-300">${message}</p>
             `;
         }
 

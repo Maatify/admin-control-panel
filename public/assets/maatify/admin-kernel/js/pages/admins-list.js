@@ -79,19 +79,19 @@ document.addEventListener('DOMContentLoaded', () => {
      * Clickable link to admin profile (only if can_view_admin capability exists)
      */
     const idRenderer = (value, row) => {
-        if (!value) return '<span class="text-gray-400 italic">N/A</span>';
+        if (!value) return '<span class="text-gray-400 dark:text-gray-500 italic">N/A</span>';
 
         // ✅ Check capability
         const canViewAdmin = window.adminsCapabilities?.can_view_admin ?? false;
 
         if (!canViewAdmin) {
             // Show ID without link
-            return `<span class="font-mono text-sm text-gray-800 font-medium">#${value}</span>`;
+            return `<span class="font-mono text-sm text-gray-800 dark:text-gray-300 font-medium">#${value}</span>`;
         }
 
         return `
             <a href="/admins/${value}/profile" 
-               class="font-mono text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer font-medium"
+               class="font-mono text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline cursor-pointer font-medium"
                title="View admin profile">
                 #${value}
             </a>
@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * Clickable link to admin profile (only if can_view_admin capability exists)
      */
     const displayNameRenderer = (value, row) => {
-        if (!value) return '<span class="text-gray-400 italic">N/A</span>';
+        if (!value) return '<span class="text-gray-400 dark:text-gray-500 italic">N/A</span>';
 
         const adminId = row.id;
 
@@ -112,12 +112,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!canViewAdmin || !adminId) {
             // Show name without link
-            return `<span class="text-sm font-medium text-gray-800">${value}</span>`;
+            return `<span class="text-sm font-medium text-gray-800 dark:text-gray-200">${value}</span>`;
         }
 
         return `
             <a href="/admins/${adminId}/profile" 
-               class="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+               class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline cursor-pointer"
                title="View admin profile">
                 ${value}
             </a>
@@ -128,8 +128,8 @@ document.addEventListener('DOMContentLoaded', () => {
      * Custom renderer for created_at column
      */
     const createdAtRenderer = (value, row) => {
-        if (!value) return '<span class="text-gray-400 italic">N/A</span>';
-        return `<span class="text-sm text-gray-600">${value}</span>`;
+        if (!value) return '<span class="text-gray-400 dark:text-gray-500 italic">N/A</span>';
+        return `<span class="text-sm text-gray-600 dark:text-gray-400">${value}</span>`;
     };
 
     /**
@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     const actionsRenderer = (value, row) => {
         const adminId = row.id;
-        if (!adminId) return '<span class="text-gray-400 italic">-</span>';
+        if (!adminId) return '<span class="text-gray-400 dark:text-gray-500 italic">-</span>';
 
         return `
             <div class="flex items-center gap-2">
@@ -275,18 +275,16 @@ document.addEventListener('DOMContentLoaded', () => {
         filterContainer.innerHTML = `
             <div class="flex gap-4 items-center flex-wrap">
             <div class="flex gap-2">
-                    <span data-status="all" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white">All</span>
-                    <span data-status="ACTIVE" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white">Active</span>
-                    <span data-status="SUSPENDED" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white">Suspended</span>
-                    <span data-status="DISABLED" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 hover:text-white">Disabled</span>
+                    <span data-status="all" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 dark:hover:bg-blue-500 hover:text-white transition-colors duration-200">All</span>
+                    <span data-status="ACTIVE" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 dark:hover:bg-blue-500 hover:text-white transition-colors duration-200">Active</span>
+                    <span data-status="SUSPENDED" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 dark:hover:bg-blue-500 hover:text-white transition-colors duration-200">Suspended</span>
+                    <span data-status="DISABLED" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 dark:hover:bg-blue-500 hover:text-white transition-colors duration-200">Disabled</span>
                 </div>    
             <div class="w-100">
                     <input id="admins-global-search" 
-                        class="w-full border rounded-lg px-3 py-1 text-sm" 
+                        class="w-full border dark:border-gray-600 rounded-lg px-3 py-1 text-sm dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 outline-none transition-all" 
                         placeholder="Search admins..." />
                 </div>
-                
-                
             </div>
         `;
 
@@ -308,9 +306,9 @@ document.addEventListener('DOMContentLoaded', () => {
             globalSearch.addEventListener('input', (e) => {
                 const value = e.target.value.trim();
                 if (value.length > 0) {
-                    globalSearch.classList.add('border-blue-300', 'bg-blue-50');
+                    globalSearch.classList.add('border-blue-300', 'bg-blue-50', 'dark:bg-blue-900/20', 'dark:border-blue-800');
                 } else {
-                    globalSearch.classList.remove('border-blue-300', 'bg-blue-50');
+                    globalSearch.classList.remove('border-blue-300', 'bg-blue-50', 'dark:bg-blue-900/20', 'dark:border-blue-800');
                 }
             });
         }
@@ -321,8 +319,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // ✅ Restore active state based on currentStatusFilter
             if (status === currentStatusFilter) {
-                btn.classList.add('active', 'bg-blue-600', 'text-white');
-                btn.classList.remove('hover:bg-blue-400', 'hover:text-white');
+                btn.classList.add('active', 'bg-blue-600', 'dark:bg-blue-500', 'text-white');
+                btn.classList.remove('hover:bg-blue-400', 'dark:hover:bg-blue-500', 'hover:text-white');
             }
 
             btn.addEventListener('click', () => {
@@ -333,13 +331,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // ✅ Remove active from all buttons
                 statusBtns.forEach(b => {
-                    b.classList.remove('active', 'bg-blue-600', 'text-white');
-                    b.classList.add('hover:bg-blue-400', 'hover:text-white');
+                    b.classList.remove('active', 'bg-blue-600', 'dark:bg-blue-500', 'text-white');
+                    b.classList.add('hover:bg-blue-400', 'dark:hover:bg-blue-500', 'hover:text-white');
                 });
 
                 // ✅ Add active to clicked button
-                btn.classList.add('active', 'bg-blue-600', 'text-white');
-                btn.classList.remove('hover:bg-blue-400', 'hover:text-white');
+                btn.classList.add('active', 'bg-blue-600', 'dark:bg-blue-500', 'text-white');
+                btn.classList.remove('hover:bg-blue-400', 'dark:hover:bg-blue-500', 'hover:text-white');
 
                 handleStatusFilter(status);
             });
@@ -447,7 +445,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Build info text
         let infoText = `<span>${startItem} to ${endItem}</span> of <span>${displayCount}</span>`;
         if (isFiltered) {
-            infoText += ` <span class="text-gray-500 text-xs">(filtered from ${total} total)</span>`;
+            infoText += ` <span class="text-gray-500 dark:text-gray-500 text-xs">(filtered from ${total} total)</span>`;
         }
 
         console.log("📤 Returning:", { total: displayCount, info: infoText });

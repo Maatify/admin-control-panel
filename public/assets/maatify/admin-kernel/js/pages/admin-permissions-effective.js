@@ -49,14 +49,14 @@
 
     /** ID column */
     const idRenderer = (value) => {
-        if (!value && value !== 0) return '<span class="text-gray-400 italic">N/A</span>';
-        return `<span class="font-mono text-sm text-gray-800 font-medium">#${value}</span>`;
+        if (!value && value !== 0) return '<span class="text-gray-400 dark:text-gray-500 italic">N/A</span>';
+        return `<span class="font-mono text-sm text-gray-800 dark:text-gray-300 font-medium">#${value}</span>`;
     };
 
     /** Name column — code badge */
     const nameRenderer = (value) => {
-        if (!value) return '<span class="text-gray-400 italic">N/A</span>';
-        return `<code class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-mono border border-gray-200">${value}</code>`;
+        if (!value) return '<span class="text-gray-400 dark:text-gray-500 italic">N/A</span>';
+        return `<code class="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded text-xs font-mono border border-gray-200 dark:border-gray-600">${value}</code>`;
     };
 
     /** Group column — colored pill */
@@ -64,28 +64,28 @@
         if (!value) return '<span class="text-gray-400 italic">N/A</span>';
 
         const groupColors = {
-            'admins':      'bg-blue-100 text-blue-800 border-blue-200',
-            'sessions':    'bg-green-100 text-green-800 border-green-200',
-            'permissions': 'bg-purple-100 text-purple-800 border-purple-200',
-            'roles':       'bg-orange-100 text-orange-800 border-orange-200'
+            'admins':      'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+            'sessions':    'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800',
+            'permissions': 'bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+            'roles':       'bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-800'
         };
-        const cls = groupColors[value.toLowerCase()] || 'bg-gray-100 text-gray-800 border-gray-200';
+        const cls = groupColors[value.toLowerCase()] || 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600';
         return `<span class="${cls} px-3 py-1 rounded-full text-xs font-medium border">${value}</span>`;
     };
 
     /** Display Name */
     const displayNameRenderer = (value) => {
-        if (!value || !value.trim()) return '<span class="text-gray-400 italic text-xs">Not set</span>';
-        return `<span class="text-sm text-gray-800">${value}</span>`;
+        if (!value || !value.trim()) return '<span class="text-gray-400 dark:text-gray-500 italic text-xs">Not set</span>';
+        return `<span class="text-sm text-gray-800 dark:text-gray-200">${value}</span>`;
     };
 
     /** Description — truncated at 55 chars */
     const descriptionRenderer = (value) => {
-        if (!value || !value.trim()) return '<span class="text-gray-400 italic text-xs">No description</span>';
+        if (!value || !value.trim()) return '<span class="text-gray-400 dark:text-gray-500 italic text-xs">No description</span>';
         if (value.length > 55) {
-            return `<span class="text-sm text-gray-600" title="${value}">${value.substring(0, 55)}…</span>`;
+            return `<span class="text-sm text-gray-600 dark:text-gray-400" title="${value}">${value.substring(0, 55)}…</span>`;
         }
-        return `<span class="text-sm text-gray-600">${value}</span>`;
+        return `<span class="text-sm text-gray-600 dark:text-gray-400">${value}</span>`;
     };
 
     /**
@@ -103,18 +103,18 @@
 
         if (source === 'direct_allow') {
             label = 'Direct Allow';
-            cls   = 'bg-green-100 text-green-800 border-green-200';
+            cls   = 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800';
         } else if (source === 'direct_deny') {
             label = 'Direct Deny';
-            cls   = 'bg-red-100 text-red-800 border-red-200';
+            cls   = 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800';
         } else if (source === 'role') {
             label = isAllowed ? 'Role' : 'Role (Denied)';
             cls   = isAllowed
-                ? 'bg-blue-100 text-blue-800 border-blue-200'
-                : 'bg-red-100 text-red-800 border-red-200';
+                ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800'
+                : 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800';
         } else {
             label = value || 'Unknown';
-            cls   = 'bg-gray-100 text-gray-800 border-gray-200';
+            cls   = 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600';
         }
 
         // Append role_name if source is "role"
@@ -127,7 +127,7 @@
 
     /** Expires At — formatted or "Never" */
     const expiresAtRenderer = (value) => {
-        if (!value) return '<span class="text-gray-400 text-xs">Never</span>';
+        if (!value) return '<span class="text-gray-400 dark:text-gray-500 text-xs">Never</span>';
 
         const date = new Date(value.replace(' ', 'T'));
         const now  = new Date();
@@ -135,9 +135,9 @@
 
         // Highlight if already expired (shouldn't appear per API contract, but defensive)
         if (date < now) {
-            return `<span class="text-red-600 text-xs font-medium">${formatted} <span class="text-red-400">(expired)</span></span>`;
+            return `<span class="text-red-600 dark:text-red-400 text-xs font-medium">${formatted} <span class="text-red-400 dark:text-red-500">(expired)</span></span>`;
         }
-        return `<span class="text-sm text-gray-600">${formatted}</span>`;
+        return `<span class="text-sm text-gray-600 dark:text-gray-400">${formatted}</span>`;
     };
 
     // ====================================================================
@@ -297,7 +297,7 @@
             <div class="flex gap-4 items-center flex-wrap">
                 <div class="w-64">
                     <input id="eff-global-search"
-                        class="w-full border rounded-lg px-3 py-1 text-sm transition-colors duration-200"
+                        class="w-full border dark:border-gray-600 rounded-lg px-3 py-1 text-sm transition-colors duration-200 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 outline-none"
                         placeholder="Search by name, group, or description..."
                         value="${currentGlobalSearch}" />
                 </div>
@@ -316,9 +316,9 @@
             globalSearch.addEventListener('input', (e) => {
                 const value = e.target.value.trim();
                 if (value.length > 0) {
-                    globalSearch.classList.add('border-blue-300', 'bg-blue-50');
+                    globalSearch.classList.add('border-blue-300', 'bg-blue-50', 'dark:bg-blue-900/20', 'dark:border-blue-800');
                 } else {
-                    globalSearch.classList.remove('border-blue-300', 'bg-blue-50');
+                    globalSearch.classList.remove('border-blue-300', 'bg-blue-50', 'dark:bg-blue-900/20', 'dark:border-blue-800');
                 }
             });
         }

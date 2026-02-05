@@ -2,3 +2,11 @@ vendor/
 .env
 composer.lock
 storage/
+.idea/admin-control-panel.iml
+.gitignore
+.gitignore
+.gitignore
+.idea/modules.xml
+.idea/php.xml
+.idea/phpunit.xml
+.idea/vcs.xml

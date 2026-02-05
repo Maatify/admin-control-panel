@@ -52,13 +52,13 @@
      * Clickable to view role details if user has permission
      */
     const idRenderer = (value, row) => {
-        if (!value) return '<span class="text-gray-400 italic">N/A</span>';
+        if (!value) return '<span class="text-gray-400 dark:text-gray-500 italic">N/A</span>';
 
         // ✅ Make clickable if user has view permission
         if (capabilities.can_view_role) {
             return `
-                <a href="/roles/${value}" 
-                   class="font-mono text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer font-medium"
+                <a href="/roles/${value}"
+                   class="font-mono text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline cursor-pointer font-medium"
                    title="View role details">
                     #${value}
                 </a>
@@ -66,7 +66,7 @@
         }
 
         // ❌ Read-only if no view permission
-        return `<span class="font-mono text-sm text-gray-800 font-medium">#${value}</span>`;
+        return `<span class="font-mono text-sm text-gray-800 dark:text-gray-300 font-medium">#${value}</span>`;
     };
 
     /**
@@ -74,15 +74,15 @@
      * Clickable to view role details if user has permission
      */
     const nameRenderer = (value, row) => {
-        if (!value) return '<span class="text-gray-400 italic">N/A</span>';
+        if (!value) return '<span class="text-gray-400 dark:text-gray-500 italic">N/A</span>';
 
         const roleId = row.id;
 
         // ✅ Make clickable if user has view permission
         if (capabilities.can_view_role && roleId) {
             return `
-                <a href="/roles/${roleId}" 
-                   class="inline-block px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-mono border border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all cursor-pointer"
+                <a href="/roles/${roleId}"
+                   class="inline-block px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded text-xs font-mono border border-gray-200 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-blue-900/40 hover:border-blue-300 dark:hover:border-blue-800 hover:text-blue-700 dark:hover:text-blue-300 transition-all cursor-pointer"
                    title="View role details">
                     ${value}
                 </a>
@@ -91,7 +91,7 @@
 
         // ❌ Read-only if no view permission
         return `
-            <code class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-mono border border-gray-200">
+            <code class="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded text-xs font-mono border border-gray-200 dark:border-gray-600">
                 ${value}
             </code>
         `;
@@ -101,15 +101,15 @@
      * Custom renderer for group column (derived from name)
      */
     const groupRenderer = (value, row) => {
-        if (!value) return '<span class="text-gray-400 italic">N/A</span>';
+        if (!value) return '<span class="text-gray-400 dark:text-gray-500 italic">N/A</span>';
 
         // Different colors for different groups
         const groupColors = {
-            'admins': 'bg-blue-100 text-blue-800 border-blue-200',
-            'sessions': 'bg-green-100 text-green-800 border-green-200',
-            'permissions': 'bg-purple-100 text-purple-800 border-purple-200',
-            'roles': 'bg-orange-100 text-orange-800 border-orange-200',
-            'default': 'bg-gray-100 text-gray-800 border-gray-200'
+            'admins': 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+            'sessions': 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800',
+            'permissions': 'bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+            'roles': 'bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-800',
+            'default': 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600'
         };
 
         const colorClass = groupColors[value.toLowerCase()] || groupColors['default'];
@@ -126,27 +126,20 @@
      */
     const displayNameRenderer = (value, row) => {
         if (!value || value.trim() === '') {
-            return '<span class="text-gray-400 italic text-xs">Not set</span>';
+            return '<span class="text-gray-400 dark:text-gray-500 italic text-xs">Not set</span>';
         }
-        return `<span class="text-sm text-gray-800">${value}</span>`;
+        return `<span class="text-sm text-gray-800 dark:text-gray-200">${value}</span>`;
     };
 
     /**
      * Custom renderer for description column
      */
     const descriptionRenderer = (value, row) => {
-        if (!value || value.trim() === '') {
-            return '<span class="text-gray-400 italic text-xs">No description</span>';
+        if (!value) return '<span class="text-gray-400 dark:text-gray-500 italic text-xs">No description</span>';
+        if (value.length > 55) {
+            return `<span class="text-xs text-gray-600 dark:text-gray-400" title="${value}">${value.substring(0, 55)}…</span>`;
         }
-
-        // Truncate long descriptions
-        const maxLength = 60;
-        if (value.length > maxLength) {
-            const truncated = value.substring(0, maxLength) + '...';
-            return `<span class="text-sm text-gray-600" title="${value}">${truncated}</span>`;
-        }
-
-        return `<span class="text-sm text-gray-600">${value}</span>`;
+        return `<span class="text-xs text-gray-600 dark:text-gray-400">${value}</span>`;
     };
 
     /**
@@ -177,7 +170,7 @@
         // ✅ Edit Metadata (if user has permission)
         if (capabilities.can_update_meta) {
             actions.push(`
-                <button 
+                <button
                     class="edit-metadata-btn inline-flex items-center gap-1 text-xs px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
                     data-role-id="${roleId}"
                     data-role-name="${row.name || ''}"
@@ -196,7 +189,7 @@
         // ✅ Rename (if user has permission)
         if (capabilities.can_rename) {
             actions.push(`
-                <button 
+                <button
                     class="rename-role-btn inline-flex items-center gap-1 text-xs px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors duration-200"
                     data-role-id="${roleId}"
                     data-role-name="${row.name || ''}"
@@ -219,7 +212,7 @@
                 : '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />';
 
             actions.push(`
-                <button 
+                <button
                     class="toggle-role-btn inline-flex items-center gap-1 text-xs px-3 py-1 ${toggleClass} text-white rounded-md transition-colors duration-200"
                     data-role-id="${roleId}"
                     data-role-name="${row.name || ''}"
@@ -385,6 +378,9 @@
     // ========================================================================
     // Table Filters
     // ========================================================================
+    let currentGlobalSearch = ''; // To store the current global search value
+    let currentActiveFilter = 'all'; // To store the current active filter ('all', '1', '0')
+
     function setupTableFiltersAfterRender() {
         setTimeout(() => setupTableFilters(), 100);
     }
@@ -396,9 +392,16 @@
         filterContainer.innerHTML = `
             <div class="flex gap-4 items-center flex-wrap">
                 <div class="w-64">
-                    <input id="roles-global-search" 
-                        class="w-full border rounded-lg px-3 py-1 text-sm transition-colors duration-200" 
-                        placeholder="Search roles..." />
+                    <input id="roles-global-search"
+                        class="w-full border dark:border-gray-600 rounded-lg px-3 py-1 text-sm transition-colors duration-200 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 outline-none"
+                        placeholder="Search roles by name or group..."
+                        value="${currentGlobalSearch}" />
+                </div>
+
+                <div class="flex gap-2">
+                    <span data-active="all" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 dark:hover:bg-blue-500 hover:text-white transition-colors duration-200 ${currentActiveFilter === 'all' ? 'bg-blue-600 dark:bg-blue-500 text-white' : ''}">All</span>
+                    <span data-active="1"   class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 dark:hover:bg-blue-500 hover:text-white transition-colors duration-200 ${currentActiveFilter === '1'   ? 'bg-blue-600 dark:bg-blue-500 text-white' : ''}">Active</span>
+                    <span data-active="0"   class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 dark:hover:bg-blue-500 hover:text-white transition-colors duration-200 ${currentActiveFilter === '0'   ? 'bg-blue-600 dark:bg-blue-500 text-white' : ''}">Inactive</span>
                 </div>
             </div>
         `;
@@ -407,6 +410,7 @@
         if (globalSearch) {
             globalSearch.addEventListener('keyup', (e) => {
                 const value = e.target.value.trim();
+                currentGlobalSearch = value; // Update current global search value
                 clearTimeout(globalSearch.searchTimeout);
                 globalSearch.searchTimeout = setTimeout(() => {
                     handleGlobalSearch(value);
@@ -416,12 +420,25 @@
             globalSearch.addEventListener('input', (e) => {
                 const value = e.target.value.trim();
                 if (value.length > 0) {
-                    globalSearch.classList.add('border-blue-300', 'bg-blue-50');
+                    globalSearch.classList.add('border-blue-300', 'bg-blue-50', 'dark:bg-blue-900/20', 'dark:border-blue-800');
                 } else {
-                    globalSearch.classList.remove('border-blue-300', 'bg-blue-50');
+                    globalSearch.classList.remove('border-blue-300', 'bg-blue-50', 'dark:bg-blue-900/20', 'dark:border-blue-800');
                 }
             });
         }
+
+        // Event listeners for active/inactive filters
+        filterContainer.querySelectorAll('[data-active]').forEach(span => {
+            span.addEventListener('click', (e) => {
+                const filterValue = e.target.dataset.active;
+                if (filterValue === currentActiveFilter) return; // Already active
+
+                currentActiveFilter = filterValue; // Update current active filter
+                // Re-render filters to update active state
+                setupTableFilters();
+                handleActiveFilter(filterValue);
+            });
+        });
     }
 
     function handleGlobalSearch(searchValue) {

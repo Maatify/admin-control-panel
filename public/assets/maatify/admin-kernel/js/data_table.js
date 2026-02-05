@@ -97,7 +97,7 @@ async function createTable(apiUrl, params, headersArg, rowsArg, withSelection = 
 
         const container = document.querySelector("#table-container");
         if (container) {
-            container.innerHTML = `<div class="bg-white text-red-500 rounded-lg p-8 shadow-lg text-center"><h3 class="text-lg font-medium text-red-600">Error Loading Data</h3><p class="text-sm text-red-600">${error.message}</p><button onclick="location.reload()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg">Retry</button></div>`;
+            container.innerHTML = `<div class="bg-white dark:bg-gray-800 text-red-500 dark:text-red-400 rounded-lg p-8 shadow-lg text-center border border-gray-100 dark:border-gray-700"><h3 class="text-lg font-medium text-red-600 dark:text-red-500">Error Loading Data</h3><p class="text-sm text-gray-600 dark:text-gray-400">${error.message}</p><button onclick="location.reload()" class="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">Retry</button></div>`;
         }
         return { success: false, error: error.message };
     }
@@ -127,7 +127,7 @@ function selectItems(ids) {
 
 function showLoadingIndicator() {
     const c = document.querySelector("#table-container");
-    if (c) c.innerHTML = `<div class="bg-white rounded-lg p-12 shadow-lg flex flex-col items-center"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div><p class="mt-4 text-gray-600">Loading...</p></div>`;
+    if (c) c.innerHTML = `<div class="bg-white dark:bg-gray-800 rounded-lg p-12 shadow-lg flex flex-col items-center border border-gray-100 dark:border-gray-700"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div><p class="mt-4 text-gray-600 dark:text-gray-400 font-medium">Loading Data...</p></div>`;
 }
 
 function hideLoadingIndicator() {}
@@ -136,13 +136,13 @@ function showAlert(type, message) {
     const typeMap = { d: 'danger', s: 'success', w: 'warning', i: 'info' };
     const t = typeMap[type] || type;
     const colors = {
-        success: 'bg-green-100 border-green-400 text-green-700',
-        danger: 'bg-red-100 border-red-400 text-red-700',
-        warning: 'bg-yellow-100 border-yellow-400 text-yellow-700',
-        info: 'bg-blue-100 border-blue-400 text-blue-700'
+        success: 'bg-green-100 dark:bg-green-900/80 border-green-400 dark:border-green-800 text-green-700 dark:text-green-200',
+        danger: 'bg-red-100 dark:bg-red-900/80 border-red-400 dark:border-red-800 text-red-700 dark:text-red-100',
+        warning: 'bg-yellow-100 dark:bg-yellow-900/80 border-yellow-400 dark:border-yellow-800 text-yellow-700 dark:text-yellow-200',
+        info: 'bg-blue-100 dark:bg-blue-900/80 border-blue-400 dark:border-blue-800 text-blue-700 dark:text-blue-200'
     };
     const el = document.createElement('div');
-    el.className = `fixed top-4 right-4 z-999990 ${colors[t]} border px-4 py-3 rounded-lg shadow-lg max-w-md z-99999 left-10 `;
+    el.className = `fixed top-6  left-10 min-w-[300px] z-[99999] ${colors[t]} border px-4 py-3 rounded-lg shadow-lg max-w-md `;
     el.innerHTML = `<div class="flex items-center justify-between"><span>${message}</span><button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-lg">&times;</button></div>`;
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 5000);
@@ -197,15 +197,15 @@ function TableComponent(data, columns, rowNames, paginationData, actions = "", w
     const container = document.querySelector("#table-container");
     if (!container) return;
 
-    const checkboxHeader = withSelection ? `<th class="w-10 pl-4 py-3 bg-white"><input type="checkbox" id="select-all" class="rounded border-gray-300 text-blue-600 w-4 h-4 cursor-pointer"></th>` : '';
+    const checkboxHeader = withSelection ? `<th class="w-10 pl-4 py-3 bg-white dark:bg-gray-800"><input type="checkbox" id="select-all" class="rounded border-gray-300 dark:border-gray-600 text-blue-600 w-4 h-4 cursor-pointer bg-white dark:bg-gray-700"></th>` : '';
 
     container.innerHTML = `
-    <div class="table-container bg-white rounded-lg p-4 shadow-lg">
+    <div class="table-container bg-white dark:bg-gray-800 rounded-lg p-4 shadow-lg border border-gray-100 dark:border-gray-700">
         <div class="tableHeader flex flex-wrap justify-between items-center mb-4 gap-4">
             <div class="flex gap-2">
-                <button class="text-sm px-3 py-1 bg-white hover:bg-blue-400 hover:text-white transition-all text-gray-500 border rounded-2xl" id="export-csv">CSV</button>
-                <button class="text-sm px-3 py-1 bg-white hover:bg-blue-400 hover:text-white transition-all text-gray-500 border rounded-2xl" id="export-excel">Excel</button>
-                <button class="text-sm px-3 py-1 bg-white hover:bg-blue-400 hover:text-white transition-all text-gray-500 border rounded-2xl" id="export-pdf">PDF</button>
+                <button class="text-sm px-3 py-1 bg-white dark:bg-gray-700 hover:bg-blue-400 dark:hover:bg-blue-500 hover:text-white transition-all text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600 rounded-2xl" id="export-csv">CSV</button>
+                <button class="text-sm px-3 py-1 bg-white dark:bg-gray-700 hover:bg-blue-400 dark:hover:bg-blue-500 hover:text-white transition-all text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600 rounded-2xl" id="export-excel">Excel</button>
+                <button class="text-sm px-3 py-1 bg-white dark:bg-gray-700 hover:bg-blue-400 dark:hover:bg-blue-500 hover:text-white transition-all text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600 rounded-2xl" id="export-pdf">PDF</button>
             </div>
             
             <!-- Optional: Container for custom filters (controlled by parent page) -->
@@ -213,21 +213,21 @@ function TableComponent(data, columns, rowNames, paginationData, actions = "", w
         </div>
         <div class="overflow-x-auto">
             <table class="min-w-full">
-                <thead class="bg-gray-50">
+                <thead class="bg-gray-50 dark:bg-gray-700/50">
                     <tr>
                         ${checkboxHeader}
-                        ${columns.map(col => `<th data-key="${col.toLowerCase()}" class="pr-6 py-3 text-left text-xs font-medium text-gray-500 capitalize cursor-pointer bg-white"><span class="flex items-center">${col}<span class="ml-2 flex flex-col"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-2 rotate-[270deg] up"><path d="M3 3.732a1.5 1.5 0 0 1 2.305-1.265l6.706 4.267a1.5 1.5 0 0 1 0 2.531l-6.706 4.268A1.5 1.5 0 0 1 3 12.267V3.732Z"/></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-2 rotate-90 down"><path d="M3 3.732a1.5 1.5 0 0 1 2.305-1.265l6.706 4.267a1.5 1.5 0 0 1 0 2.531l-6.706 4.268A1.5 1.5 0 0 1 3 12.267V3.732Z"/></svg></span></span></th>`).join('')}
+                        ${columns.map(col => `<th data-key="${col.toLowerCase()}" class="pr-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 capitalize cursor-pointer bg-white dark:bg-gray-800"><span class="flex items-center">${col}<span class="ml-2 flex flex-col"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-2 rotate-[270deg] up"><path d="M3 3.732a1.5 1.5 0 0 1 2.305-1.265l6.706 4.267a1.5 1.5 0 0 1 0 2.531l-6.706 4.268A1.5 1.5 0 0 1 3 12.267V3.732Z"/></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-2 rotate-90 down"><path d="M3 3.732a1.5 1.5 0 0 1 2.305-1.265l6.706 4.267a1.5 1.5 0 0 1 0 2.531l-6.706 4.268A1.5 1.5 0 0 1 3 12.267V3.732Z"/></svg></span></span></th>`).join('')}
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200"></tbody>
+                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"></tbody>
             </table>
         </div>
-        <footer class="pt-4 p-5 flex flex-wrap justify-between items-center">
+        <footer class="pt-4 p-5 flex flex-wrap justify-between items-center border-t border-gray-100 dark:border-gray-700">
             <div class="flex items-center gap-3">
-                <p class="text-sm text-gray-700">${infoText}</p>
+                <p class="text-sm text-gray-700 dark:text-gray-300">${infoText}</p>
                 <div class="flex gap-1 items-center">
-                    <span class="text-sm">show</span>
-                    <select class="form-group-select border rounded px-2 py-1 text-sm bg-white cursor-pointer">
+                    <span class="text-sm dark:text-gray-400">show</span>
+                    <select class="form-group-select border border-gray-200 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 cursor-pointer focus:ring-2 focus:ring-blue-500/50 transition-all outline-none">
                         <option value="10" ${safePerPage == 10 ? "selected" : ""}>10</option>
                         <option value="25" ${safePerPage == 25 ? "selected" : ""}>25</option>
                         <option value="50" ${safePerPage == 50 ? "selected" : ""}>50</option>
@@ -299,6 +299,7 @@ function TableComponent(data, columns, rowNames, paginationData, actions = "", w
         tbody.innerHTML = rowsData.map(row => {
             const rowId = row[primaryKey];
             const isSelected = selectedItems.has(String(rowId));
+            const rowClass = isSelected ? 'bg-blue-50 dark:bg-blue-900/20' : '';
 
             // ✅ Check if this specific ID is in the selectable list
             const isSelectable = !selectableIds || selectableIds.has(String(rowId));
@@ -306,8 +307,8 @@ function TableComponent(data, columns, rowNames, paginationData, actions = "", w
             const checkboxCell = withSelection ? `
                 <td class="pl-4">
                     ${isSelectable
-                ? `<input type="checkbox" class="row-checkbox rounded border-gray-300 text-blue-600 w-4 h-4 cursor-pointer" value="${rowId}" ${isSelected ? 'checked' : ''}>`
-                : `<span class="text-gray-300 text-xs">—</span>`
+                ? `<input type="checkbox" class="row-checkbox rounded border-gray-300 dark:border-gray-600 text-blue-600 w-4 h-4 cursor-pointer bg-white dark:bg-gray-700" value="${rowId}" ${isSelected ? 'checked' : ''}>`
+                : `<span class="text-gray-300 dark:text-gray-600 text-xs">—</span>`
             }
                 </td>` : '';
 
@@ -346,7 +347,7 @@ function TableComponent(data, columns, rowNames, paginationData, actions = "", w
                 return `<td class="text-sm">${v}</td>`;
             }).join("");
 
-            return `<tr class="${isSelected ? 'bg-blue-50' : ''}">${checkboxCell}${cells}</tr>`;
+            return `<tr class="${rowClass} transition-colors duration-150">${checkboxCell}${cells}</tr>`;
         }).join("");
 
         if (withSelection) {
