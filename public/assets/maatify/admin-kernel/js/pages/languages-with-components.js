@@ -196,7 +196,7 @@
         if (canFallbackSet || canFallbackClear) {
             const hasFallback = row.fallback_language_id !== null && row.fallback_language_id !== undefined;
 
-            if (hasFallback || canFallbackClear) {
+            if (hasFallback && canFallbackClear) {
                 // Clear Fallback Button
                 actions.push(AdminUIComponents.buildActionButton({
                     cssClass: 'clear-fallback-btn',
