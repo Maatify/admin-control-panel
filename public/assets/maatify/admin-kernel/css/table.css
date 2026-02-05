@@ -1,19 +1,23 @@
-
 button{
     cursor: pointer;
 }
 button:disabled{
     cursor: not-allowed;
 }
+
+/* ====================================
+   📊 TABLE CONTAINER - DARK MODE SUPPORT
+   ==================================== */
 .table-container {
-    /* width: 95%; */
-    /* box-shadow: var(--box-shadow);
- border-radius: var(--border-radius-md); */
     position: relative;
     transition: 0.5s ease-in-out;
     filter: drop-shadow(0px 1px 4px rgba(0, 0, 0, 0.1));
-    background: #fff;
+    background: var(--bg-primary);
     border-radius: 7px;
+}
+
+.dark .table-container {
+    filter: drop-shadow(0px 1px 4px rgba(0, 0, 0, 0.5));
 }
 
 table {
@@ -31,10 +35,7 @@ table>* {
 }
 
 thead {
-    /*font-family: 'cairo';
-	font-size: var(--font-size-sm);
-	*/
-    color: #666;
+    color: var(--text-secondary);
     transition: 0.5s ease-in-out;
     -webkit-transition: 0.5s ease-in-out;
     -moz-transition: 0.5s ease-in-out;
@@ -46,7 +47,6 @@ thead th {
     padding: 2px 10px;
     font-weight: 300;
     font-size: 14px;
-    /*background:#f7f8fa !important;*/
 }
 
 tbody {
@@ -56,28 +56,29 @@ tbody {
 }
 
 table td {
-    border-top: 1px solid #e5e7eb;
-    color: #000;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-primary);
     font-weight: 300;
-    /* text-align: center; */
     padding: 10px;
     cursor: pointer;
 }
 
 table td>a {
     display: block;
-    /* padding: var(--spacing-sm) var(--spacing-md); */
 }
 
 table tbody tr:hover {
-    background-color: #f5f5f5;
+    background-color: var(--bg-hover);
 }
 
+/* ====================================
+   📋 TABLE HEADER - DARK MODE SUPPORT
+   ==================================== */
 .tableHeader {
-    background-color: #fff;
+    background-color: var(--bg-primary);
     border-top-left-radius: 7px;
     border-top-right-radius: 7px;
-    color: #000;
+    color: var(--text-primary);
     flex-direction: row-reverse;
     font-size: 14px;
     margin-top: 10px;
@@ -104,23 +105,25 @@ table tbody tr:hover {
 
 .filterTypes span.active,
 .filterTypes span:hover {
-    color:  #fff;
+    color: #fff;
     border-radius: 15px;
 }
 
-/* dropDown */
-
+/* ====================================
+   📂 DROPDOWN MENU - DARK MODE SUPPORT
+   ==================================== */
 .dropdown-menu {
     position: absolute;
     list-style: none;
     display: none;
-    background-color: #fff;
-    box-shadow: var(--box-shadow);
+    background-color: var(--bg-primary);
+    box-shadow: var(--shadow-md);
     padding: var(--spacing-md) 0;
     right: 10px;
     z-index: 9;
     top: 45px;
     border-radius: var(--border-radius-md);
+    border: 1px solid var(--border-color);
     -webkit-border-radius: var(--border-radius-md);
     -moz-border-radius: var(--border-radius-md);
     -ms-border-radius: var(--border-radius-md);
@@ -128,7 +131,7 @@ table tbody tr:hover {
 }
 
 .tableHeader .dropdown-menu a {
-    color: #000;
+    color: var(--text-primary);
     cursor: pointer;
     display: flex;
     font-size: 12px;
@@ -148,9 +151,9 @@ table tbody tr:hover {
 
 .tableHeader .dropdown-menu a .sortCheck {
     display: inline-block;
-    border: 1px solid #eeeeee;
+    border: 1px solid var(--border-light);
     border-radius: 50% !important;
-    color: #081021;
+    color: var(--text-primary);
     content: "";
     height: 18px;
     width: 18px;
@@ -161,7 +164,7 @@ table tbody tr:hover {
 }
 
 .tableHeader .dropdown-menu span {
-    color: #000;
+    color: var(--text-primary);
     display: flex;
     font-size: 13px;
     font-weight: 300;
@@ -169,11 +172,11 @@ table tbody tr:hover {
 }
 
 .tableHeader .dropdown-menu a .sortCheck.active {
-    border: 5px solid #000;
+    border: 5px solid var(--text-primary);
 }
 
 .tableHeader .dropdown-menu>li:hover {
-    background-color: #f5f5f5;
+    background-color: var(--bg-hover);
 }
 
 .tableHeader .sortList svg {
@@ -187,14 +190,17 @@ table tbody tr:hover {
 }
 
 .tableHeader .sortList {
-    border: 1px solid #eeeeee !important;
+    border: 1px solid var(--border-light) !important;
     border-radius: 4px;
-    box-shadow: var(--box-shadow);
+    box-shadow: var(--shadow-sm);
     margin-right: 10px;
     padding: 3px 4px;
     cursor: pointer;
 }
 
+/* ====================================
+   📄 TABLE FOOTER - DARK MODE SUPPORT
+   ==================================== */
 .table-container footer {
     margin-block: 15px;
     align-items: center;
@@ -207,12 +213,7 @@ table tbody tr:hover {
     display: flex;
     list-style: none;
     margin: 0;
-
 }
-
-
-
-
 
 .table-container footer ul .page-link svg {
     vertical-align: middle;
@@ -231,15 +232,21 @@ table tbody tr:hover {
 .table-container footer .table-count {
     font-size: 12px;
     margin: 0;
-
+    color: var(--text-secondary);
 }
 
 .table-container footer .table-count span {
     font-size: 12px;
-
     color: #1515cd;
 }
 
+.dark .table-container footer .table-count span {
+    color: #60a5fa;
+}
+
+/* ====================================
+   🎯 TD DROPDOWN - DARK MODE SUPPORT
+   ==================================== */
 td .dropdown {
     position: relative;
 }
@@ -258,16 +265,20 @@ td .dropdown-menu a {
     font-size: 12px;
     padding: 5px 15px;
     display: flex;
+    color: var(--text-primary);
 }
 
 td .dropdown-menu a:hover {
-    background-color: #f5f5f5;
+    background-color: var(--bg-hover);
 }
 
 td.text-center {
     text-align: center;
 }
 
+/* ====================================
+   🔽 CUSTOM DROPDOWN - DARK MODE SUPPORT
+   ==================================== */
 .custom-dropdown {
     position: relative;
     display: inline-block;
@@ -275,7 +286,6 @@ td.text-center {
 
 .dropdown-toggle {
     border: none;
-    /*background: none;*/
     cursor: pointer;
     padding: 4px 8px;
     font-size: 18px;
@@ -285,14 +295,12 @@ td.text-center {
     opacity: unset;
     background-color: unset;
     box-shadow: unset;
-
 }
 
 .dropdown-toggle::after {
     border: none;
     margin: 0;
     content: none;
-
 }
 
 .dropdown-menu {
@@ -301,10 +309,9 @@ td.text-center {
     right: 0;
     top: 100%;
     min-width: 120px;
-    /*background: #fff;*/
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     border-radius: 6px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-md);
     z-index: 999;
     flex-direction: column;
 }
@@ -317,9 +324,9 @@ td.text-center {
     background: none;
     cursor: pointer;
     font-size: 14px;
-
+    color: var(--text-primary);
 }
 
 .dropdown-menu .dropdown-item:hover {
-    background: #f5f5f5;
+    background: var(--bg-hover);
 }

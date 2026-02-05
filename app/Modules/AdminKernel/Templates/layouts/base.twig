@@ -1,141 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    {% block head_meta %}
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>
-        {% block title %}
-			{{ ui.appName }}
-        {% endblock %}
-    </title>
-    {% endblock %}
+	{% block head_meta %}
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>
+			{% block title %}
+				{{ ui.appName }}
+			{% endblock %}
+		</title>
+	{% endblock %}
 
-    {% block head_assets %}
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100..900;1,100..900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap"
-          rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('assets/maatify/admin-kernel/css/style.css') }}">
+	{% block head_assets %}
+		<!-- 🎨 Tailwind CSS v3 with Dark Mode Support -->
+		<script src="https://cdn.tailwindcss.com"></script>
+		<script>
+			tailwind.config = {
+				darkMode: 'class'
+			}
+		</script>
 
-    <style>
-        .sidebar.collapsed ul li a:hover {
-            position: relative;
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100..900;1,100..900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap"
+			  rel="stylesheet">
+		<link rel="stylesheet" href="{{ asset('assets/maatify/admin-kernel/css/style.css') }}">
 
-            span {
-                position: absolute;
-                display: block;
-                top: 0;
-                left: 138%;
-                background: white;
-                width: fit-content;
-                padding: 7px 20px;
-                border: 1px solid #80808024;
-                border-left-width: 1px;
-                border-left-style: solid;
-                border-left-color: rgba(128, 128, 128, 0.14);
-                border-top-right-radius: 9px;
-                border-bottom-right-radius: 9px;
-                border-left: none;
-            }
+		<style>
+			.sidebar.collapsed ul li a:hover {
+				position: relative;
 
-        }
-    </style>
-    {% endblock %}
+				span {
+					position: absolute;
+					display: block;
+					top: 0;
+					left: 138%;
+					background: var(--bg-primary);
+					width: fit-content;
+					padding: 7px 20px;
+					border: 1px solid var(--border-color);
+					border-left-width: 1px;
+					border-left-style: solid;
+					border-top-right-radius: 9px;
+					border-bottom-right-radius: 9px;
+					border-left: none;
+					color: var(--text-primary);
+				}
+
+			}
+		</style>
+
+		<!-- 🌓 Dark Mode Initialization (Must run before page renders) -->
+		<script>
+			// Initialize dark mode based on localStorage or system preference
+			(function() {
+				const theme = localStorage.getItem('theme');
+				const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+				if (theme === 'dark' || (!theme && systemPrefersDark)) {
+					document.documentElement.classList.add('dark');
+				} else {
+					document.documentElement.classList.remove('dark');
+				}
+			})();
+		</script>
+	{% endblock %}
 
 </head>
 
-<body class="bg-blue-50/15 flex flex-col min-h-screen ">
+<body class="bg-blue-50/15 dark:bg-gray-900 flex flex-col min-h-screen transition-colors duration-200">
 {% block page_header %}
-<header class="header-section fixed top-0  right-0 z-[1] w-[82%] [&.collapsed]:w-[95%]  max-w-[calc(100%-50px)] bg-white h-16 px-4 shadow-blue-200/40 shadow-sm  mb-5 transition-all duration-300 flex items-center justify-between">
-    <div class="flex w-[40%] items-center">
-				<span class="p-1  mr-3 rounded-md flex items-center justify-center cursor-pointer border border-gray-100">
+	<header class="header-section fixed top-0 right-0 z-[1] w-[82%] [&.collapsed]:w-[95%] max-w-[calc(100%-50px)] bg-white dark:bg-gray-800 h-16 px-4 shadow-blue-200/40 dark:shadow-gray-900/40 shadow-sm mb-5 transition-all duration-300 flex items-center justify-between">
+		<div class="flex w-[40%] items-center">
+				<span class="p-1 mr-3 rounded-md flex items-center justify-center cursor-pointer border border-gray-100 dark:border-gray-700 dark:hover:bg-gray-700">
 					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                         class="size-6 cursor-pointer m-[2px] stroke-gray-500" onclick="toggleSidebar()">
+						 class="size-6 cursor-pointer m-[2px] stroke-gray-500 dark:stroke-gray-400" onclick="toggleSidebar()">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h16.5"/>
 					</svg>
 				</span>
 
-        <input type="search" placeholder="Search or type command..." aria-label="Search"
-               class="border border-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-main/50 text-sm w-full"/>
-    </div>
+			<input type="search" placeholder="Search or type command..." aria-label="Search"
+				   class="border border-gray-100 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-main/50 text-sm w-full"/>
+		</div>
 
-	{#
-	current_admin is injected globally via TwigAdminContextMiddleware
-    Source: AdminContext (session snapshot, UI-only)
-	#}
-	<div class="relative" id="adminDropdown">
+		<!-- 🌓 Dark Mode Toggle Button -->
 		<button
-				type="button"
-				onclick="toggleAdminDropdown()"
-				class="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-gray-100 transition"
+				onclick="toggleDarkMode()"
+				class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+				aria-label="Toggle Dark Mode"
+				title="Toggle Dark Mode"
 		>
-			{% if current_admin.avatar_url %}
-				<img
-						src="{{ current_admin.avatar_url }}"
-						alt="Avatar"
-						class="w-9 h-9 rounded-full object-cover border border-gray-200"
-				>
-			{% else %}
-				<div class="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center">
-					<svg xmlns="http://www.w3.org/2000/svg"
-						 class="w-5 h-5 text-blue-600"
-						 fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-							  d="M15.75 6a3.75 3.75 0 1 1-7.5 0M4.5 20.1a7.5 7.5 0 0 1 15 0"/>
-					</svg>
-				</div>
-			{% endif %}
+			<!-- Sun Icon (shown in dark mode) -->
+			<svg
+					class="w-5 h-5 text-gray-600 dark:text-yellow-400 hidden dark:block"
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+			>
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364 6.364l-1.414-1.414M6.05 6.05L4.636 4.636m12.728 0l-1.414 1.414M6.05 17.95l-1.414 1.414M12 8a4 4 0 100 8 4 4 0 000-8z" />
+			</svg>
+			<!-- Moon Icon (shown in light mode) -->
+			<svg
+					class="w-5 h-5 text-gray-600 block dark:hidden"
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+			>
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+			</svg>
+		</button>
+		</div>
 
-			<span class="text-sm font-medium text-gray-700">
+		{#
+		current_admin is injected globally via TwigAdminContextMiddleware
+        Source: AdminContext (session snapshot, UI-only)
+		#}
+		<div class="relative" id="adminDropdown">
+			<button
+					type="button"
+					onclick="toggleAdminDropdown()"
+					class="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+			>
+				{% if current_admin.avatar_url %}
+					<img
+							src="{{ current_admin.avatar_url }}"
+							alt="Avatar"
+							class="w-9 h-9 rounded-full object-cover border border-gray-200 dark:border-gray-600"
+					>
+				{% else %}
+					<div class="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+						<svg xmlns="http://www.w3.org/2000/svg"
+							 class="w-5 h-5 text-blue-600 dark:text-blue-400"
+							 fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+								  d="M15.75 6a3.75 3.75 0 1 1-7.5 0M4.5 20.1a7.5 7.5 0 0 1 15 0"/>
+						</svg>
+					</div>
+				{% endif %}
+
+				<span class="text-sm font-medium text-gray-700 dark:text-gray-200">
             {{ current_admin.display_name }}
         </span>
 
-			<svg class="w-4 h-4 text-gray-400"
-				 xmlns="http://www.w3.org/2000/svg"
-				 fill="none" viewBox="0 0 24 24" stroke="currentColor">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-					  d="m19 9-7 7-7-7"/>
-			</svg>
-		</button>
-
-		<!-- Dropdown -->
-		<div
-				id="adminDropdownMenu"
-				class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
-		>
-			<a
-					href="/profile"
-					class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
-			>
-				<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="w-5 h-5 text-gray-500"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-						aria-hidden="true"
-				>
-					<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="1.8"
-							d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.118a7.5 7.5 0 0 1 15 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.5-1.632Z"
-					/>
+				<svg class="w-4 h-4 text-gray-400 dark:text-gray-500"
+					 xmlns="http://www.w3.org/2000/svg"
+					 fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+						  d="m19 9-7 7-7-7"/>
 				</svg>
+			</button>
 
-				<span>Profile</span>
-			</a>
-
-			<form method="post" action="/logout">
-				<button
-						type="submit"
-						class="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
+			<!-- Dropdown -->
+			<div
+					id="adminDropdownMenu"
+					class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50"
+			>
+				<a
+						href="/profile"
+						class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
 				>
 					<svg
 							xmlns="http://www.w3.org/2000/svg"
-							class="w-5 h-5 text-red-500"
+							class="w-5 h-5 text-gray-500 dark:text-gray-400"
 							fill="none"
 							viewBox="0 0 24 24"
 							stroke="currentColor"
@@ -144,126 +172,166 @@
 						<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
-								stroke-width="2"
-								d="M20 12H8m12 0-4 4m4-4-4-4M9 4H7a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h2"
+								stroke-width="1.8"
+								d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.118a7.5 7.5 0 0 1 15 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.5-1.632Z"
 						/>
 					</svg>
 
-					<span>Logout</span>
-				</button>
-			</form>
+					<span>Profile</span>
+				</a>
 
+				<form method="post" action="/logout">
+					<button
+							type="submit"
+							class="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+					>
+						<svg
+								xmlns="http://www.w3.org/2000/svg"
+								class="w-5 h-5 text-red-500 dark:text-red-400"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+								aria-hidden="true"
+						>
+							<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M20 12H8m12 0-4 4m4-4-4-4M9 4H7a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h2"
+							/>
+						</svg>
+
+						<span>Logout</span>
+					</button>
+				</form>
+
+			</div>
 		</div>
-	</div>
 
 
-</header>
+	</header>
 {% endblock %}
 
 <!-- Alert Container -->
 <div id="alert-container" class="absolute top-0 left-0 z-99999"></div>
 
-<nav class="sidebar fixed top-0 left-0 h-full w-[18%] bg-white text-main flex flex-col py-5 transition-[width] transition-all duration-300 shadow-md z-[1111] [&.collapsed]:w-[5%] [&.collapsed_.li-text]:hidden [&.collapsed_.arrow-icon]:hidden [&.collapsed_.logo]:text-base min-w-[50px] ">
-    {% block sidebar_header %}
-    <div class="logo text-center text-xl font-bold whitespace-nowrap flex items-center justify-center gap-2">
-		<img
-				src="{{ ui.logoUrl ?? asset('assets/maatify/admin-kernel/images/logo-small.png') }}"
-				alt="{{ ui.appName }}"
-				class="w-12 h-12 mb-[-10px] mr-2"
-		/>
+<nav class="sidebar fixed top-0 left-0 h-full w-[18%] bg-white dark:bg-gray-800 text-main dark:text-gray-100 flex flex-col py-5 transition-[width] transition-all duration-300 shadow-md dark:shadow-gray-900/50 z-[1111] [&.collapsed]:w-[5%] [&.collapsed_.li-text]:hidden [&.collapsed_.arrow-icon]:hidden [&.collapsed_.logo]:text-base min-w-[50px]">
+	{% block sidebar_header %}
+		<div class="logo text-center text-xl font-bold whitespace-nowrap flex items-center justify-center gap-2 dark:text-gray-100">
+			<img
+					src="{{ ui.logoUrl ?? asset('assets/maatify/admin-kernel/images/logo-small.png') }}"
+					alt="{{ ui.appName }}"
+					class="w-12 h-12 mb-[-10px] mr-2"
+			/>
 
-		<span>{{ ui.appName }}</span>
-        <hr class="mt-6 mb-5 border-gray-200"/>
-    </div>
-    {% endblock %}
+			<span>{{ ui.appName }}</span>
+			<hr class="mt-6 mb-5 border-gray-200 dark:border-gray-700"/>
+		</div>
+	{% endblock %}
 
-    <ul class="space-y-2 px-4 mt-5">
-        {% for item in nav_items %}
-            <li>
-                <a href="{{ item.path }}"
-                   class="flex items-center justify-start gap-2 text-gray-900 hover:bg-gray-100 p-2 rounded-md hover:[>span]:text-blue-600">
-                    {{ item.icon|raw }}
-                    <span>{{ item.title }}</span>
-                </a>
-            </li>
-        {% endfor %}
-    </ul>
-    {% block sidebar_footer %}{% endblock %}
+	<ul class="space-y-2 px-4 mt-5">
+		{% for item in nav_items %}
+			<li>
+				<a href="{{ item.path }}"
+				   class="flex items-center justify-start gap-2 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 p-2 rounded-md hover:[>span]:text-blue-600 dark:hover:[>span]:text-blue-400">
+					{{ item.icon|raw }}
+					<span>{{ item.title }}</span>
+				</a>
+			</li>
+		{% endfor %}
+	</ul>
+	{% block sidebar_footer %}{% endblock %}
 </nav>
 
-<main class="page-content flex-1 p-6  sm:p-6 mt-12 text-gray-600 w-[82%] [&.collapsed]:w-[92%] sm:[&.collapsed]:w-[95%] ml-[18%] [&.collapsed]:ml-[8%] sm:[&.collapsed]:ml-[5%] transition-all duration-300"> {% block content %}{% endblock %}
+<main class="page-content flex-1 p-6 sm:p-6 mt-12 text-gray-600 dark:text-gray-300 w-[82%] [&.collapsed]:w-[92%] sm:[&.collapsed]:w-[95%] ml-[18%] [&.collapsed]:ml-[8%] sm:[&.collapsed]:ml-[5%] transition-all duration-300"> {% block content %}{% endblock %}
 </main>
 
 {% block content_footer %}
-<footer class="bg-white text-center py-4 text-gray-600 border-t border-gray-100">
-    &copy;
-    {{ "now"|date("Y") }} MAATIFY |
-    Admin Control Panel
-</footer>
+	<footer class="bg-white dark:bg-gray-800 text-center py-4 text-gray-600 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700">
+		&copy;
+		{{ "now"|date("Y") }} MAATIFY |
+		Admin Control Panel
+	</footer>
 {% endblock %}
 
 {% block body_scripts %}
-{% block scripts %}{% endblock %}
+	{% block scripts %}{% endblock %}
 
 
-<script>
+	<script>
 
-    function toggleSidebar() {
-        document.querySelector(".sidebar").classList.toggle("collapsed");
-        document.querySelector(".page-content").classList.toggle("collapsed");
-        document.querySelector(".header-section ").classList.toggle("collapsed");
-        document.querySelector(".logo span").classList.toggle("hidden");
+		function toggleSidebar() {
+			document.querySelector(".sidebar").classList.toggle("collapsed");
+			document.querySelector(".page-content").classList.toggle("collapsed");
+			document.querySelector(".header-section ").classList.toggle("collapsed");
+			document.querySelector(".logo span").classList.toggle("hidden");
 
-        if (document.querySelector(".sidebar").classList.contains("collapsed")) {
-            document.querySelector(".sidebar").querySelectorAll("a").forEach(link => {
-                link.querySelector("span").classList.add("hidden");
-            });
-        } else {
-            document.querySelector(".sidebar").querySelectorAll("a").forEach(link => {
-                link.querySelector("span").classList.remove("hidden");
-            });
-        }
+			if (document.querySelector(".sidebar").classList.contains("collapsed")) {
+				document.querySelector(".sidebar").querySelectorAll("a").forEach(link => {
+					link.querySelector("span").classList.add("hidden");
+				});
+			} else {
+				document.querySelector(".sidebar").querySelectorAll("a").forEach(link => {
+					link.querySelector("span").classList.remove("hidden");
+				});
+			}
 
-    }
-
-
-    function setActiveNavItem() {
-        const currentPath = window.location.pathname;
-
-        const navLinks = document.querySelectorAll('nav a');
-
-        navLinks.forEach(link => {
-            link.classList.remove('bg-blue-300/40');
-        });
-
-        navLinks.forEach(link => {
-            const linkPath = link.getAttribute('href');
-
-            if (linkPath === currentPath) {
-                link.classList.add('bg-blue-300/40');
-            } else if (currentPath.startsWith(linkPath) && linkPath !== '/') {
-                link.classList.add('bg-blue-300/40');
-            }
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', setActiveNavItem);
-
-	function toggleAdminDropdown() {
-		document
-				.getElementById('adminDropdownMenu')
-				.classList.toggle('hidden');
-	}
-
-	document.addEventListener('click', function (event) {
-		const dropdown = document.getElementById('adminDropdown');
-		const menu = document.getElementById('adminDropdownMenu');
-
-		if (!dropdown.contains(event.target)) {
-			menu.classList.add('hidden');
 		}
-	});
-</script>
+
+		// 🌓 Dark Mode Toggle Function
+		function toggleDarkMode() {
+			const html = document.documentElement;
+			const isDark = html.classList.contains('dark');
+
+			if (isDark) {
+				html.classList.remove('dark');
+				localStorage.setItem('theme', 'light');
+			} else {
+				html.classList.add('dark');
+				localStorage.setItem('theme', 'dark');
+			}
+		}
+
+		function setActiveNavItem() {
+			const currentPath = window.location.pathname;
+
+			const navLinks = document.querySelectorAll('nav a');
+
+			navLinks.forEach(link => {
+				link.classList.remove('bg-blue-300/40');
+				link.classList.remove('dark:bg-blue-900/40');
+			});
+
+			navLinks.forEach(link => {
+				const linkPath = link.getAttribute('href');
+
+				if (linkPath === currentPath) {
+					link.classList.add('bg-blue-300/40');
+					link.classList.add('dark:bg-blue-900/40');
+				} else if (currentPath.startsWith(linkPath) && linkPath !== '/') {
+					link.classList.add('bg-blue-300/40');
+					link.classList.add('dark:bg-blue-900/40');
+				}
+			});
+		}
+
+		document.addEventListener('DOMContentLoaded', setActiveNavItem);
+
+		function toggleAdminDropdown() {
+			document
+					.getElementById('adminDropdownMenu')
+					.classList.toggle('hidden');
+		}
+
+		document.addEventListener('click', function (event) {
+			const dropdown = document.getElementById('adminDropdown');
+			const menu = document.getElementById('adminDropdownMenu');
+
+			if (!dropdown.contains(event.target)) {
+				menu.classList.add('hidden');
+			}
+		});
+	</script>
 {% endblock %}
 
 </body>
