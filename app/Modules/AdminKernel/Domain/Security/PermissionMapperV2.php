@@ -77,6 +77,9 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'i18n.translations.list.ui'  => 'i18n.translations.list',
         'i18n.translations.list.api' => 'i18n.translations.list',
 
+        // App Settings Control
+        'app_settings.list.api' => 'app_settings.list',
+
         /**
          * Shared selector:
          * - allowed from translations UI (upsert permission implies ability to select context)

@@ -337,6 +337,20 @@ class AdminRoutes
                     });
 
                     // ─────────────────────────────
+                    // App Settings Control
+                    // ─────────────────────────────
+                    $group->group('/app-settings', function (RouteCollectorProxyInterface $appSettings) {
+                            $appSettings->post(
+                                '/query',
+                                [
+                                    \Maatify\AdminKernel\Http\Controllers\Api\AppSettingsQueryController::class,
+                                    '__invoke'
+                                ]
+                            )
+                                ->setName('app_settings.list.api');
+                    });
+
+                    // ─────────────────────────────
                     // languages Control
                     // ─────────────────────────────
                     $group->group('/languages', function (RouteCollectorProxyInterface $languages) {

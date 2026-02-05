@@ -2393,6 +2393,11 @@ class Container
                 return new LanguageSelectController($languageRepository, $settingsRepository);
             },
 
+            \Maatify\AdminKernel\Domain\AppSettings\Reader\AppSettingsQueryReaderInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\AdminKernel\Infrastructure\Reader\AppSettings\PdoAppSettingsQueryReader($pdo);
+            },
 
         ]);
 
