@@ -348,6 +348,14 @@ class AdminRoutes
                                 ]
                             )
                                 ->setName('app_settings.list.api');
+
+                        $appSettings->post(
+                            '/create',
+                            [
+                                \Maatify\AdminKernel\Http\Controllers\Api\AppSettingsCreateController::class,
+                                '__invoke'
+                            ]
+                        )->setName('app_settings.create.api');
                     });
 
                     // ─────────────────────────────
