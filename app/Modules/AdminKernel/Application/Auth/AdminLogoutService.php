@@ -18,7 +18,7 @@ namespace Maatify\AdminKernel\Application\Auth;
 use Maatify\AdminKernel\Application\Auth\DTO\AdminLogoutRequestDTO;
 use Maatify\AdminKernel\Application\Auth\DTO\AdminLogoutResultDTO;
 use Maatify\AdminKernel\Application\Services\DiagnosticsTelemetryService;
-use Maatify\AdminKernel\Domain\Contracts\AdminSessionValidationRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionValidationRepositoryInterface;
 use Maatify\AdminKernel\Domain\Service\AdminAuthenticationService;
 use Maatify\AdminKernel\Domain\Service\RememberMeService;
 use Throwable;

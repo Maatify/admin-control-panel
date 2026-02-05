@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Infrastructure\Repository;
 
-use Maatify\AdminKernel\Domain\Contracts\AdminNotificationPersistenceWriterInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminNotificationPersistenceWriterInterface;
 use Maatify\AdminKernel\Domain\DTO\Notification\AckNotificationReadDTO;
 use Maatify\AdminKernel\Domain\DTO\Notification\PersistNotificationDTO;
 use PDO;

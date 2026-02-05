@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\Permissions;
 
-use Maatify\AdminKernel\Domain\Contracts\PermissionsReaderRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionsReaderRepositoryInterface;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
 use Maatify\AdminKernel\Domain\List\PermissionsCapabilities;
 use Maatify\AdminKernel\Infrastructure\Query\ListFilterResolver;

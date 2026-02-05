@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Service;
 
-use Maatify\AdminKernel\Domain\Contracts\AdminNotificationChannelRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\AdminNotificationPreferenceRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\NotificationRoutingInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminNotificationChannelRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminNotificationPreferenceRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Notification\NotificationRoutingInterface;
 use Maatify\AdminKernel\Domain\Enum\NotificationChannelType;
 use Maatify\AdminKernel\Domain\Notification\NotificationChannelType as RoutingChannelType;
 

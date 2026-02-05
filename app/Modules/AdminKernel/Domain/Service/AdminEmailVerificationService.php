@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Domain\Service;
 
 use Maatify\AdminKernel\Context\RequestContext;
-use Maatify\AdminKernel\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminEmailVerificationRepositoryInterface;
 use Maatify\AdminKernel\Domain\Enum\VerificationStatus;
 use Maatify\AdminKernel\Domain\Exception\InvalidIdentifierStateException;
 use Maatify\SharedCommon\Contracts\ClockInterface;

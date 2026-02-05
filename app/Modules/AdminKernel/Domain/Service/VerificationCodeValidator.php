@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Service;
 
-use Maatify\AdminKernel\Domain\Contracts\VerificationCodeRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\VerificationCodeValidatorInterface;
+use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodeRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodeValidatorInterface;
 use Maatify\AdminKernel\Domain\DTO\VerificationResult;
 use Maatify\AdminKernel\Domain\Enum\IdentityTypeEnum;
 use Maatify\AdminKernel\Domain\Enum\VerificationCodeStatus;

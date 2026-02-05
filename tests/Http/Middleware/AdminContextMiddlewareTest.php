@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Tests\Http\Middleware;
 
 use Maatify\AdminKernel\Context\AdminContext;
-use Maatify\AdminKernel\Domain\Contracts\AdminSessionRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionRepositoryInterface;
 use Maatify\AdminKernel\Http\Middleware\AdminContextMiddleware;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Psr\Http\Message\ResponseInterface;
 
 class AdminContextMiddlewareTest extends TestCase
 {

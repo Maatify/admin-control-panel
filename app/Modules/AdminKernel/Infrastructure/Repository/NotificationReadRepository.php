@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Infrastructure\Repository;
 
-use Maatify\AdminKernel\Domain\Contracts\NotificationReadRepositoryInterface;
-use Maatify\AdminKernel\Domain\DTO\NotificationSummaryDTO;
 use DateTimeImmutable;
+use Maatify\AdminKernel\Domain\Contracts\Notification\NotificationReadRepositoryInterface;
+use Maatify\AdminKernel\Domain\DTO\NotificationSummaryDTO;
 use PDO;
 
 class NotificationReadRepository implements NotificationReadRepositoryInterface

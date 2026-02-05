@@ -15,9 +15,9 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Infrastructure\Service;
 
-use Maatify\AdminKernel\Domain\Contracts\AdminTotpSecretStoreInterface;
-use Maatify\AdminKernel\Domain\Contracts\AdminTotpSecretRepositoryInterface;
 use Maatify\AdminKernel\Application\Crypto\TotpSecretCryptoServiceInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminTotpSecretRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminTotpSecretStoreInterface;
 
 final class AdminTotpSecretStore implements AdminTotpSecretStoreInterface
 {

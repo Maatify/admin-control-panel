@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\Contracts;
+namespace Maatify\AdminKernel\Domain\Contracts\Admin;
 
 use Maatify\AdminKernel\Domain\DTO\Notification\Preference\AdminNotificationPreferenceDTO;
 use Maatify\AdminKernel\Domain\DTO\Notification\Preference\UpdateAdminNotificationPreferenceDTO;

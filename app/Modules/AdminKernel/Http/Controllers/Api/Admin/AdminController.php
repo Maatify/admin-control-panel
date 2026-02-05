@@ -10,7 +10,7 @@ use Maatify\AdminKernel\Context\RequestContext;
 use Maatify\AdminKernel\Domain\Admin\DTO\AdminEmailListItemDTO;
 use Maatify\AdminKernel\Domain\Admin\Reader\AdminBasicInfoReaderInterface;
 use Maatify\AdminKernel\Domain\Admin\Reader\AdminEmailReaderInterface;
-use Maatify\AdminKernel\Domain\Contracts\AdminPasswordRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminPasswordRepositoryInterface;
 use Maatify\AdminKernel\Domain\DTO\Request\CreateAdminEmailRequestDTO;
 use Maatify\AdminKernel\Domain\DTO\Response\ActionResultResponseDTO;
 use Maatify\AdminKernel\Domain\DTO\Response\AdminCreateResponseDTO;

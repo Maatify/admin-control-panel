@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Infrastructure\Repository;
 
-use Maatify\AdminKernel\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\AdminIdentifierLookupInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminEmailVerificationRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminIdentifierLookupInterface;
 use Maatify\AdminKernel\Domain\DTO\AdminEmailIdentifierDTO;
 use Maatify\AdminKernel\Domain\DTO\Crypto\EncryptedPayloadDTO;
 use Maatify\AdminKernel\Domain\Enum\VerificationStatus;

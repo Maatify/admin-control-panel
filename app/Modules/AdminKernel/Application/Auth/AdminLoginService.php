@@ -15,17 +15,17 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Application\Auth;
 
+use DateTimeImmutable;
 use Maatify\AdminKernel\Application\Auth\DTO\AdminLoginUseCaseResultDTO;
 use Maatify\AdminKernel\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use Maatify\AdminKernel\Context\RequestContext;
-use Maatify\AdminKernel\Domain\Contracts\AdminSessionValidationRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\Abuse\AbuseCookieServiceInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionValidationRepositoryInterface;
 use Maatify\AdminKernel\Domain\DTO\LoginRequestDTO;
 use Maatify\AdminKernel\Domain\Exception\InvalidCredentialsException;
 use Maatify\AdminKernel\Domain\Service\AdminAuthenticationService;
 use Maatify\AdminKernel\Domain\Service\RememberMeService;
 use Maatify\SharedCommon\Contracts\ClockInterface;
-use DateTimeImmutable;
 
 final readonly class AdminLoginService
 {

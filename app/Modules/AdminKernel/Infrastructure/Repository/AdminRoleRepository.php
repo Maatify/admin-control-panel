@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Infrastructure\Repository;
 
-use Maatify\AdminKernel\Domain\Contracts\AdminRoleRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminRoleRepositoryInterface;
 use PDO;
 
 class AdminRoleRepository implements AdminRoleRepositoryInterface

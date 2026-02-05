@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Infrastructure\Updater;
 
-use Maatify\AdminKernel\Domain\Contracts\PermissionsMetadataRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionsMetadataRepositoryInterface;
 use PDO;
 use RuntimeException;
 

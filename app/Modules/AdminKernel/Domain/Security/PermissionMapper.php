@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Security;
 
-use Maatify\AdminKernel\Domain\Contracts\PermissionMapperInterface;
+use Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionMapperInterface;
 
 final class PermissionMapper implements PermissionMapperInterface
 {

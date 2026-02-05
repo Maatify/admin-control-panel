@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Infrastructure\Repository;
 
-use Maatify\AdminKernel\Domain\Contracts\VerificationCodeRepositoryInterface;
+use DateTimeImmutable;
+use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodeRepositoryInterface;
 use Maatify\AdminKernel\Domain\DTO\VerificationCode;
 use Maatify\AdminKernel\Domain\Enum\IdentityTypeEnum;
 use Maatify\AdminKernel\Domain\Enum\VerificationCodeStatus;
 use Maatify\AdminKernel\Domain\Enum\VerificationPurposeEnum;
 use Maatify\SharedCommon\Contracts\ClockInterface;
-use DateTimeImmutable;
 use PDO;
 
 class PdoVerificationCodeRepository implements VerificationCodeRepositoryInterface

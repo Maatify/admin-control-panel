@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Http\Controllers;
 
 use DateTimeImmutable;
-use Maatify\AdminKernel\Domain\Contracts\AdminNotificationHistoryReaderInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminNotificationHistoryReaderInterface;
 use Maatify\AdminKernel\Domain\DTO\Notification\History\AdminNotificationHistoryQueryDTO;
 use Maatify\AdminKernel\Validation\Schemas\Admin\AdminNotificationHistorySchema;
 use Maatify\Validation\Guard\ValidationGuard;

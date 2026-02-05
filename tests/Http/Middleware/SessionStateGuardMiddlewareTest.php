@@ -6,13 +6,12 @@ namespace Tests\Http\Middleware;
 
 use Maatify\AdminKernel\Context\AdminContext;
 use Maatify\AdminKernel\Context\RequestContext;
-use Maatify\AdminKernel\Domain\Contracts\AdminTotpSecretStoreInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminTotpSecretStoreInterface;
 use Maatify\AdminKernel\Domain\Enum\SessionState;
 use Maatify\AdminKernel\Domain\Service\StepUpService;
 use Maatify\AdminKernel\Http\Middleware\SessionStateGuardMiddleware;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Http\Server\RequestHandlerInterface;

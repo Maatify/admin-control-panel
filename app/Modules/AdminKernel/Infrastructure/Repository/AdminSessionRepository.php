@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Infrastructure\Repository;
 
-use Maatify\AdminKernel\Domain\Contracts\AdminSessionRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\AdminSessionValidationRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionValidationRepositoryInterface;
 use Maatify\AdminKernel\Domain\DTO\AdminSessionIdentityDTO;
 use Maatify\SharedCommon\Contracts\ClockInterface;
 use PDO;

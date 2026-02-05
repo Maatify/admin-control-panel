@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Infrastructure\Repository;
 
-use Maatify\AdminKernel\Domain\Contracts\AdminTotpSecretRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminTotpSecretRepositoryInterface;
 use Maatify\AdminKernel\Domain\DTO\Crypto\EncryptedPayloadDTO;
 use PDO;
 use PDOException;

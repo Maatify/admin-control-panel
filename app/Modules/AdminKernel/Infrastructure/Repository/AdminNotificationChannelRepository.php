@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Infrastructure\Repository;
 
-use Maatify\AdminKernel\Domain\Contracts\AdminNotificationChannelRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminNotificationChannelRepositoryInterface;
 use Maatify\AdminKernel\Domain\DTO\AdminNotificationChannelDTO;
 use Maatify\AdminKernel\Domain\Enum\NotificationChannelType;
 use PDO;

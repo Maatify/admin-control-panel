@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Domain\Service;
 
 use Maatify\AdminKernel\Context\RequestContext;
-use Maatify\AdminKernel\Domain\Contracts\AdminSessionRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\RememberMeRepositoryInterface;
 use Maatify\AdminKernel\Domain\DTO\RememberMeTokenDTO;
 use Maatify\AdminKernel\Domain\Exception\InvalidCredentialsException;

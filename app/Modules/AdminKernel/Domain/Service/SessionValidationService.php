@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Service;
 
+use DateTimeImmutable;
+use Exception;
 use Maatify\AdminKernel\Context\RequestContext;
-use Maatify\AdminKernel\Domain\Contracts\AdminSessionValidationRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionValidationRepositoryInterface;
 use Maatify\AdminKernel\Domain\Exception\ExpiredSessionException;
 use Maatify\AdminKernel\Domain\Exception\InvalidSessionException;
 use Maatify\AdminKernel\Domain\Exception\RevokedSessionException;
 use Maatify\SharedCommon\Contracts\ClockInterface;
-use DateTimeImmutable;
-use Exception;
 
 class SessionValidationService
 {

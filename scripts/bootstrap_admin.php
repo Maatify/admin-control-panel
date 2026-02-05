@@ -2,19 +2,16 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use Maatify\AdminKernel\Bootstrap\Container;
-use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
 use Dotenv\Dotenv;
-
-use Maatify\AdminKernel\Domain\Contracts\AdminTotpSecretStoreInterface;
-use Maatify\AdminKernel\Infrastructure\Repository\AdminRepository;
-use Maatify\AdminKernel\Infrastructure\Repository\AdminEmailRepository;
-use Maatify\AdminKernel\Domain\Contracts\AdminPasswordRepositoryInterface;
+use Maatify\AdminKernel\Bootstrap\Container;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminPasswordRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminTotpSecretStoreInterface;
 use Maatify\AdminKernel\Domain\Contracts\TotpServiceInterface;
-use Maatify\AdminKernel\Domain\DTO\AdminConfigDTO;
-use Maatify\AdminKernel\Domain\Service\PasswordService;
 use Maatify\AdminKernel\Domain\Ownership\SystemOwnershipRepositoryInterface;
-use Ramsey\Uuid\Uuid;
+use Maatify\AdminKernel\Domain\Service\PasswordService;
+use Maatify\AdminKernel\Infrastructure\Repository\AdminEmailRepository;
+use Maatify\AdminKernel\Infrastructure\Repository\AdminRepository;
+use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
 
 /*
 |--------------------------------------------------------------------------

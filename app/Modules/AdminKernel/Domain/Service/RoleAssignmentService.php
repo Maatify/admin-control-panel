@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Service;
 
-use Maatify\AdminKernel\Domain\Contracts\AdminRoleRepositoryInterface;
+use LogicException;
 use Maatify\AdminKernel\Context\RequestContext;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminRoleRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\StepUpGrantRepositoryInterface;
 use Maatify\AdminKernel\Domain\Enum\Scope;
 use Maatify\AdminKernel\Domain\Exception\PermissionDeniedException;
-use LogicException;
 use PDO;
 
 class RoleAssignmentService

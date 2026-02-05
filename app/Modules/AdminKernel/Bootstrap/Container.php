@@ -26,32 +26,32 @@ use Maatify\AdminKernel\Domain\Admin\Reader\AdminQueryReaderInterface;
 use Maatify\AdminKernel\Domain\Contracts\Abuse\AbuseCookieServiceInterface;
 use Maatify\AdminKernel\Domain\Contracts\Abuse\ChallengeWidgetRendererInterface;
 use Maatify\AdminKernel\Domain\Contracts\ActorProviderInterface;
-use Maatify\AdminKernel\Domain\Contracts\AdminDirectPermissionRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\AdminEmailVerificationRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\AdminIdentifierLookupInterface;
-use Maatify\AdminKernel\Domain\Contracts\AdminNotificationChannelRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\AdminNotificationHistoryReaderInterface;
-use Maatify\AdminKernel\Domain\Contracts\AdminNotificationPersistenceWriterInterface;
-use Maatify\AdminKernel\Domain\Contracts\AdminNotificationPreferenceReaderInterface;
-use Maatify\AdminKernel\Domain\Contracts\AdminNotificationPreferenceRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\AdminNotificationPreferenceWriterInterface;
-use Maatify\AdminKernel\Domain\Contracts\AdminNotificationReadMarkerInterface;
-use Maatify\AdminKernel\Domain\Contracts\AdminPasswordRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\AdminRoleRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\AdminSessionRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\AdminTotpSecretRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\AdminTotpSecretStoreInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminDirectPermissionRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminEmailVerificationRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminIdentifierLookupInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminNotificationChannelRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminNotificationHistoryReaderInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminNotificationPersistenceWriterInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminNotificationPreferenceReaderInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminNotificationPreferenceRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminNotificationPreferenceWriterInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminNotificationReadMarkerInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminPasswordRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminRoleRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminTotpSecretRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminTotpSecretStoreInterface;
 use Maatify\AdminKernel\Domain\Contracts\FailedNotificationRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\NotificationReadRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\NotificationRoutingInterface;
-use Maatify\AdminKernel\Domain\Contracts\PermissionMapperV2Interface;
+use Maatify\AdminKernel\Domain\Contracts\Notification\NotificationReadRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Notification\NotificationRoutingInterface;
 use Maatify\AdminKernel\Domain\Contracts\Permissions\DirectPermissionsWriterRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\PermissionsMetadataRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\PermissionsReaderRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionMapperV2Interface;
+use Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionsMetadataRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionsReaderRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\RememberMeRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\RolePermissionRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\Roles\RoleAdminsRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\Roles\RoleCreateRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Roles\RolePermissionRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\Roles\RolePermissionsRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\Roles\RoleRenameRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\Roles\RoleRepositoryInterface;
@@ -60,10 +60,10 @@ use Maatify\AdminKernel\Domain\Contracts\Roles\RolesReaderRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\Roles\RoleToggleRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\StepUpGrantRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\TotpServiceInterface;
-use Maatify\AdminKernel\Domain\Contracts\VerificationCodeGeneratorInterface;
-use Maatify\AdminKernel\Domain\Contracts\VerificationCodePolicyResolverInterface;
-use Maatify\AdminKernel\Domain\Contracts\VerificationCodeRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\VerificationCodeValidatorInterface;
+use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodeGeneratorInterface;
+use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodePolicyResolverInterface;
+use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodeRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodeValidatorInterface;
 use Maatify\AdminKernel\Domain\DTO\AdminConfigDTO;
 use Maatify\AdminKernel\Domain\DTO\TotpEnrollmentConfig;
 use Maatify\AdminKernel\Domain\DTO\Ui\UiConfigDTO;
@@ -480,13 +480,13 @@ class Container
                 assert($pdo instanceof PDO);
                 return new AdminRepository($pdo);
             },
-            AdminController::class => function (ContainerInterface $c) {
+            AdminController::class                                                                       => function (ContainerInterface $c) {
                 $adminRepo = $c->get(AdminRepository::class);
                 $emailRepo = $c->get(AdminEmailRepository::class);
                 $validationGuard = $c->get(ValidationGuard::class);
                 $cryptoService = $c->get(AdminIdentifierCryptoServiceInterface::class);
 
-                $passwordRepository = $c->get(\Maatify\AdminKernel\Domain\Contracts\AdminPasswordRepositoryInterface::class);
+                $passwordRepository = $c->get(\Maatify\AdminKernel\Domain\Contracts\Admin\AdminPasswordRepositoryInterface::class);
                 $passwordService = $c->get(\Maatify\AdminKernel\Domain\Service\PasswordService::class);
                 $pdo = $c->get(PDO::class);
 
@@ -498,7 +498,7 @@ class Container
                 assert($validationGuard instanceof ValidationGuard);
                 assert($cryptoService instanceof AdminIdentifierCryptoServiceInterface);
 
-                assert($passwordRepository instanceof \Maatify\AdminKernel\Domain\Contracts\AdminPasswordRepositoryInterface);
+                assert($passwordRepository instanceof \Maatify\AdminKernel\Domain\Contracts\Admin\AdminPasswordRepositoryInterface);
                 assert($passwordService instanceof \Maatify\AdminKernel\Domain\Service\PasswordService);
                 assert($pdo instanceof PDO);
 
@@ -586,10 +586,10 @@ class Container
                 assert($pdo instanceof PDO);
                 return new AdminPasswordRepository($pdo);
             },
-            \Maatify\AdminKernel\Domain\Service\SessionValidationService::class       => function (ContainerInterface $c) {
-                $repo = $c->get(\Maatify\AdminKernel\Domain\Contracts\AdminSessionValidationRepositoryInterface::class);
+            \Maatify\AdminKernel\Domain\Service\SessionValidationService::class                          => function (ContainerInterface $c) {
+                $repo = $c->get(\Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionValidationRepositoryInterface::class);
                 $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
-                assert($repo instanceof \Maatify\AdminKernel\Domain\Contracts\AdminSessionValidationRepositoryInterface);
+                assert($repo instanceof \Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionValidationRepositoryInterface);
                 assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
                 return new \Maatify\AdminKernel\Domain\Service\SessionValidationService($repo, $clock);
             },
@@ -664,14 +664,14 @@ class Container
                 assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
                 return new AdminSessionRepository($pdo, $clock);
             },
-            \Maatify\AdminKernel\Domain\Contracts\AdminSessionValidationRepositoryInterface::class => function (ContainerInterface $c) {
+            \Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionValidationRepositoryInterface::class => function (ContainerInterface $c) {
                 return $c->get(AdminSessionRepositoryInterface::class);
             },
-            SessionRevocationService::class => function (ContainerInterface $c) {
-                $repo = $c->get(\Maatify\AdminKernel\Domain\Contracts\AdminSessionValidationRepositoryInterface::class);
+            SessionRevocationService::class                                                              => function (ContainerInterface $c) {
+                $repo = $c->get(\Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionValidationRepositoryInterface::class);
                 $pdo = $c->get(PDO::class);
 
-                assert($repo instanceof \Maatify\AdminKernel\Domain\Contracts\AdminSessionValidationRepositoryInterface);
+                assert($repo instanceof \Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionValidationRepositoryInterface);
                 assert($pdo instanceof PDO);
 
                 return new SessionRevocationService($repo, $pdo);
@@ -779,15 +779,15 @@ class Container
                     $validationGuard
                 );
             },
-            AdminLoginService::class                                  => function (ContainerInterface $c) {
+            AdminLoginService::class                                                                     => function (ContainerInterface $c) {
                 $authService = $c->get(AdminAuthenticationService::class);
-                $sessionRepo = $c->get(\Maatify\AdminKernel\Domain\Contracts\AdminSessionValidationRepositoryInterface::class);
+                $sessionRepo = $c->get(\Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionValidationRepositoryInterface::class);
                 $rememberMeService = $c->get(RememberMeService::class);
                 $cryptoService = $c->get(AdminIdentifierCryptoServiceInterface::class);
                 $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
                 $abuseCookieService = $c->get(AbuseCookieServiceInterface::class);
                 assert($authService instanceof AdminAuthenticationService);
-                assert($sessionRepo instanceof \Maatify\AdminKernel\Domain\Contracts\AdminSessionValidationRepositoryInterface);
+                assert($sessionRepo instanceof \Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionValidationRepositoryInterface);
                 assert($rememberMeService instanceof RememberMeService);
                 assert($cryptoService instanceof AdminIdentifierCryptoServiceInterface);
                 assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
@@ -809,15 +809,15 @@ class Container
                     $challengeRenderer
                 );
             },
-            \Maatify\AdminKernel\Application\Auth\AdminLogoutService::class => function (ContainerInterface $c) {
-                $sessionRepo = $c->get(\Maatify\AdminKernel\Domain\Contracts\AdminSessionValidationRepositoryInterface::class);
+            \Maatify\AdminKernel\Application\Auth\AdminLogoutService::class                              => function (ContainerInterface $c) {
+                $sessionRepo = $c->get(\Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionValidationRepositoryInterface::class);
                 $rememberMeService = $c->get(RememberMeService::class);
                 $authService = $c->get(AdminAuthenticationService::class);
 
                 // Telemetry
                 $telemetryService = $c->get(\Maatify\AdminKernel\Application\Services\DiagnosticsTelemetryService::class);
 
-                assert($sessionRepo instanceof \Maatify\AdminKernel\Domain\Contracts\AdminSessionValidationRepositoryInterface);
+                assert($sessionRepo instanceof \Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionValidationRepositoryInterface);
                 assert($rememberMeService instanceof RememberMeService);
                 assert($authService instanceof AdminAuthenticationService);
                 assert($telemetryService instanceof \Maatify\AdminKernel\Application\Services\DiagnosticsTelemetryService);

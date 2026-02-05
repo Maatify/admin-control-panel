@@ -6,7 +6,7 @@ namespace Tests\Integration\Context;
 
 use Maatify\AdminKernel\Context\AdminContext;
 use Maatify\AdminKernel\Context\RequestContext;
-use Maatify\AdminKernel\Domain\Contracts\AdminSessionRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionRepositoryInterface;
 use Maatify\AdminKernel\Domain\Service\SessionValidationService;
 use Maatify\AdminKernel\Http\Middleware\AdminContextMiddleware;
 use Maatify\AdminKernel\Http\Middleware\SessionGuardMiddleware;

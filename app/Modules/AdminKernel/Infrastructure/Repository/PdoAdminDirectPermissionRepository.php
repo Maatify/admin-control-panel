@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Infrastructure\Repository;
 
-use Maatify\AdminKernel\Domain\Contracts\AdminDirectPermissionRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminDirectPermissionRepositoryInterface;
 use PDO;
 
 class PdoAdminDirectPermissionRepository implements AdminDirectPermissionRepositoryInterface

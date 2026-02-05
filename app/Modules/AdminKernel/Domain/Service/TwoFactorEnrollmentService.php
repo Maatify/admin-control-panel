@@ -16,8 +16,8 @@ namespace Maatify\AdminKernel\Domain\Service;
 
 use Maatify\AdminKernel\Application\Crypto\TotpSecretCryptoServiceInterface;
 use Maatify\AdminKernel\Context\RequestContext;
-use Maatify\AdminKernel\Domain\Contracts\AdminSessionRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\AdminTotpSecretRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminTotpSecretRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\TotpServiceInterface;
 use Maatify\AdminKernel\Domain\DTO\Crypto\EncryptedPayloadDTO;
 use Maatify\AdminKernel\Domain\DTO\TotpEnrollmentConfig;

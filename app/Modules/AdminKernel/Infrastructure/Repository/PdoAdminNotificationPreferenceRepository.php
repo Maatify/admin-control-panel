@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Infrastructure\Repository;
 
-use Maatify\AdminKernel\Domain\Contracts\AdminNotificationPreferenceReaderInterface;
-use Maatify\AdminKernel\Domain\Contracts\AdminNotificationPreferenceWriterInterface;
-use Maatify\AdminKernel\Domain\Contracts\AdminNotificationPreferenceRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminNotificationPreferenceReaderInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminNotificationPreferenceRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminNotificationPreferenceWriterInterface;
 use Maatify\AdminKernel\Domain\DTO\Notification\Preference\AdminNotificationPreferenceDTO;
 use Maatify\AdminKernel\Domain\DTO\Notification\Preference\AdminNotificationPreferenceListDTO;
-use Maatify\AdminKernel\Domain\DTO\Notification\Preference\GetAdminPreferencesQueryDTO;
 use Maatify\AdminKernel\Domain\DTO\Notification\Preference\GetAdminPreferencesByTypeQueryDTO;
+use Maatify\AdminKernel\Domain\DTO\Notification\Preference\GetAdminPreferencesQueryDTO;
 use Maatify\AdminKernel\Domain\DTO\Notification\Preference\UpdateAdminNotificationPreferenceDTO;
 use Maatify\AdminKernel\Domain\Enum\NotificationChannelType as LegacyNotificationChannelType;
 use Maatify\AdminKernel\Domain\Notification\NotificationChannelType;

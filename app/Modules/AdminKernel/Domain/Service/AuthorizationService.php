@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Service;
 
-use Maatify\AdminKernel\Domain\Contracts\AdminDirectPermissionRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\AdminRoleRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\PermissionMapperV2Interface;
-use Maatify\AdminKernel\Domain\Contracts\RolePermissionRepositoryInterface;
+use Maatify\AdminKernel\Context\RequestContext;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminDirectPermissionRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminRoleRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionMapperV2Interface;
+use Maatify\AdminKernel\Domain\Contracts\Roles\RolePermissionRepositoryInterface;
 use Maatify\AdminKernel\Domain\Exception\PermissionDeniedException;
 use Maatify\AdminKernel\Domain\Exception\UnauthorizedException;
 use Maatify\AdminKernel\Domain\Ownership\SystemOwnershipRepositoryInterface;
-use Maatify\AdminKernel\Context\RequestContext;
 
 readonly class AuthorizationService
 {

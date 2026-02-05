@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Service;
 
-use Maatify\AdminKernel\Domain\Contracts\VerificationCodeGeneratorInterface;
-use Maatify\AdminKernel\Domain\Contracts\VerificationCodePolicyResolverInterface;
-use Maatify\AdminKernel\Domain\Contracts\VerificationCodeRepositoryInterface;
+use Exception;
+use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodeGeneratorInterface;
+use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodePolicyResolverInterface;
+use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodeRepositoryInterface;
 use Maatify\AdminKernel\Domain\DTO\GeneratedVerificationCode;
 use Maatify\AdminKernel\Domain\DTO\VerificationCode;
 use Maatify\AdminKernel\Domain\Enum\IdentityTypeEnum;
 use Maatify\AdminKernel\Domain\Enum\VerificationCodeStatus;
 use Maatify\AdminKernel\Domain\Enum\VerificationPurposeEnum;
 use Maatify\SharedCommon\Contracts\ClockInterface;
-use Exception;
 use RuntimeException;
 
 class VerificationCodeGenerator implements VerificationCodeGeneratorInterface

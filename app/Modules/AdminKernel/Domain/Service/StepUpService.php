@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Service;
 
+use DateTimeImmutable;
 use Maatify\AdminKernel\Context\RequestContext;
-use Maatify\AdminKernel\Domain\Contracts\AdminTotpSecretStoreInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminTotpSecretStoreInterface;
 use Maatify\AdminKernel\Domain\Contracts\StepUpGrantRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\TotpServiceInterface;
 use Maatify\AdminKernel\Domain\DTO\StepUpGrant;
@@ -13,7 +14,6 @@ use Maatify\AdminKernel\Domain\DTO\TotpVerificationResultDTO;
 use Maatify\AdminKernel\Domain\Enum\Scope;
 use Maatify\AdminKernel\Domain\Enum\SessionState;
 use Maatify\SharedCommon\Contracts\ClockInterface;
-use DateTimeImmutable;
 use PDO;
 
 readonly class StepUpService

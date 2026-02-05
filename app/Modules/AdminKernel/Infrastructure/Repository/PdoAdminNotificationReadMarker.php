@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Infrastructure\Repository;
 
-use Maatify\AdminKernel\Domain\Contracts\AdminNotificationReadMarkerInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminNotificationReadMarkerInterface;
 use Maatify\AdminKernel\Domain\DTO\Notification\History\MarkNotificationReadDTO;
 use PDO;
 

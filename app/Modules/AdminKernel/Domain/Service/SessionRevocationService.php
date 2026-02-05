@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Service;
 
-use Maatify\AdminKernel\Domain\Contracts\AdminSessionValidationRepositoryInterface;
-use Maatify\AdminKernel\Context\RequestContext;
-use Maatify\AdminKernel\Domain\Exception\IdentifierNotFoundException;
 use DomainException;
+use Maatify\AdminKernel\Context\RequestContext;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionValidationRepositoryInterface;
+use Maatify\AdminKernel\Domain\Exception\IdentifierNotFoundException;
 use PDO;
 
 class SessionRevocationService

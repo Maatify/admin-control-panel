@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Infrastructure\Repository;
 
-use Maatify\AdminKernel\Domain\Contracts\AdminPasswordRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminPasswordRepositoryInterface;
 use Maatify\AdminKernel\Domain\DTO\AdminPasswordRecordDTO;
 use PDO;
 

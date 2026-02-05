@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Security;
 
-use Maatify\AdminKernel\Domain\Contracts\PermissionMapperV2Interface;
+use Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionMapperV2Interface;
 
 /**
  * V2 Permission Mapper (Hierarchy-aware shape, OR/AND ready)

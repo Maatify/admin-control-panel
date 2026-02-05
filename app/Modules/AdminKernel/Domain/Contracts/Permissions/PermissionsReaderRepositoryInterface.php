@@ -13,7 +13,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\Contracts;
+namespace Maatify\AdminKernel\Domain\Contracts\Permissions;
 
 use Maatify\AdminKernel\Domain\DTO\Permission\PermissionsQueryResponseDTO;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;

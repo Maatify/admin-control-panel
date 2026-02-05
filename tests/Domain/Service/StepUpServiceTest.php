@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Domain\Service;
 
+use DateTimeImmutable;
+use DateTimeZone;
 use Maatify\AdminKernel\Context\RequestContext;
-use Maatify\AdminKernel\Domain\Contracts\AdminTotpSecretStoreInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminTotpSecretStoreInterface;
 use Maatify\AdminKernel\Domain\Contracts\StepUpGrantRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\TotpServiceInterface;
 use Maatify\AdminKernel\Domain\DTO\StepUpGrant;
@@ -13,8 +15,6 @@ use Maatify\AdminKernel\Domain\Enum\Scope;
 use Maatify\AdminKernel\Domain\Service\RecoveryStateService;
 use Maatify\AdminKernel\Domain\Service\StepUpService;
 use Maatify\SharedCommon\Contracts\ClockInterface;
-use DateTimeImmutable;
-use DateTimeZone;
 use PDO;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;

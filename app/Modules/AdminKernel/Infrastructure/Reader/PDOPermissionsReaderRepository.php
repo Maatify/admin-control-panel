@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Infrastructure\Reader;
 
-use Maatify\AdminKernel\Domain\Contracts\PermissionsReaderRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionsReaderRepositoryInterface;
 use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
 use Maatify\AdminKernel\Domain\DTO\Permission\PermissionListItemDTO;
 use Maatify\AdminKernel\Domain\DTO\Permission\PermissionsQueryResponseDTO;

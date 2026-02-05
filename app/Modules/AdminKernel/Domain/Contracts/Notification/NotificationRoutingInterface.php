@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\Contracts;
+namespace Maatify\AdminKernel\Domain\Contracts\Notification;
 
 use Maatify\AdminKernel\Domain\Notification\NotificationChannelType;
 
