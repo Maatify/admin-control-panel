@@ -2302,10 +2302,12 @@ class Container
                 $languageRepository = $c->get(LanguageRepositoryInterface::class);
                 $keyRepository = $c->get(TranslationKeyRepositoryInterface::class);
                 $translationRepository = $c->get(TranslationRepositoryInterface::class);
+                $governancePolicy = $c->get(\Maatify\I18n\Service\I18nGovernancePolicyService::class);
                 assert($languageRepository instanceof LanguageRepositoryInterface);
                 assert($keyRepository instanceof TranslationKeyRepositoryInterface);
                 assert($translationRepository instanceof TranslationRepositoryInterface);
-                return new TranslationWriteService($languageRepository, $keyRepository, $translationRepository);
+                assert($governancePolicy instanceof \Maatify\I18n\Service\I18nGovernancePolicyService);
+                return new TranslationWriteService($languageRepository, $keyRepository, $translationRepository, $governancePolicy);
             },
 
             TranslationKeysUpdateNameController::class => function (ContainerInterface $c) {
@@ -2407,6 +2409,48 @@ class Container
                 assert($authorizationService instanceof AuthorizationService);
             return new \Maatify\AdminKernel\Http\Controllers\Ui\AppSettings\AppSettingsListUiController($twig, $authorizationService);
             },
+
+            \Maatify\I18n\Service\TranslationDomainReadService::class => function (ContainerInterface $c) {
+                $languageRepository = $c->get(LanguageRepositoryInterface::class);
+                assert($languageRepository instanceof LanguageRepositoryInterface);
+                $keyRepository = $c->get(TranslationKeyRepositoryInterface::class);
+                assert($keyRepository instanceof TranslationKeyRepositoryInterface);
+                $translationRepository = $c->get(TranslationRepositoryInterface::class);
+                assert($translationRepository instanceof TranslationRepositoryInterface);
+                $policyService = $c->get(\Maatify\I18n\Service\I18nGovernancePolicyService::class);
+                assert($policyService instanceof \Maatify\I18n\Service\I18nGovernancePolicyService);
+                /**
+                 * NOTE:
+                 * This method is FAIL-SOFT by design.
+                 * Governance policy is used for boundary validation only.
+                 * Invalid scope/domain will result in empty output, never an exception.
+                 */
+                return new \Maatify\I18n\Service\TranslationDomainReadService(
+                    $languageRepository,
+                    $keyRepository,
+                    $translationRepository,
+                    $policyService,
+                );
+            },
+
+            \Maatify\I18n\Contract\ScopeRepositoryInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\I18n\Infrastructure\Mysql\MysqlScopeRepository($pdo);
+            },
+
+            \Maatify\I18n\Contract\DomainScopeRepositoryInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\I18n\Infrastructure\Mysql\MysqlDomainScopeRepository($pdo);
+            },
+
+            \Maatify\I18n\Contract\DomainRepositoryInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\I18n\Infrastructure\Mysql\MysqlDomainRepository($pdo);
+            },
+
 
         ]);
 

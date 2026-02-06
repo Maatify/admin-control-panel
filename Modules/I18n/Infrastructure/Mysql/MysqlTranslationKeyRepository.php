@@ -2,12 +2,12 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/admin-control-panel
- * @Project     maatify:admin-control-panel
+ * @Library     maatify/i18n
+ * @Project     maatify:i18n
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-02-04 01:21
  * @see         https://www.maatify.dev Maatify.dev
- * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
+ * @link        https://github.com/Maatify/i18n view Project on GitHub
  * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
  */
 
@@ -18,27 +18,35 @@ namespace Maatify\I18n\Infrastructure\Mysql;
 use PDO;
 use PDOStatement;
 use Maatify\I18n\Contract\TranslationKeyRepositoryInterface;
-use Maatify\I18n\DTO\TranslationKeyCollectionDTO;
 use Maatify\I18n\DTO\TranslationKeyDTO;
+use Maatify\I18n\DTO\TranslationKeyCollectionDTO;
 
 final readonly class MysqlTranslationKeyRepository implements TranslationKeyRepositoryInterface
 {
     public function __construct(
         private PDO $pdo
-    ) {}
+    ) {
+    }
 
-    public function create(string $key, ?string $description): int
-    {
-        $sql = 'INSERT INTO i18n_keys (translation_key, description)
-                VALUES (:translation_key, :description)';
+    public function create(
+        string $scope,
+        string $domain,
+        string $key,
+        ?string $description
+    ): int {
+        $stmt = $this->pdo->prepare(
+            'INSERT INTO i18n_keys (scope, domain, key_part, description)
+             VALUES (:scope, :domain, :key, :description)'
+        );
 
-        $stmt = $this->pdo->prepare($sql);
         if (!$stmt instanceof PDOStatement) {
             return 0;
         }
 
         $stmt->execute([
-            'translation_key' => $key,
+            'scope' => $scope,
+            'domain' => $domain,
+            'key' => $key,
             'description' => $description,
         ]);
 
@@ -47,70 +55,69 @@ final readonly class MysqlTranslationKeyRepository implements TranslationKeyRepo
 
     public function getById(int $id): ?TranslationKeyDTO
     {
-        $sql = 'SELECT id, translation_key, description, created_at
-                FROM i18n_keys
-                WHERE id = :id
-                LIMIT 1';
+        $stmt = $this->pdo->prepare(
+            'SELECT id, scope, domain, key_part, description, created_at
+             FROM i18n_keys
+             WHERE id = :id
+             LIMIT 1'
+        );
 
-        $stmt = $this->pdo->prepare($sql);
         if (!$stmt instanceof PDOStatement) {
             return null;
         }
 
         $stmt->execute(['id' => $id]);
-
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (!is_array($row)) {
-            return null;
-        }
 
-        return $this->mapRowToDTO($row);
+        return is_array($row) ? $this->map($row) : null;
     }
 
-    public function getByKey(string $key): ?TranslationKeyDTO
-    {
-        $sql = 'SELECT id, translation_key, description, created_at
-                FROM i18n_keys
-                WHERE translation_key = :translation_key
-                LIMIT 1';
+    public function getByStructuredKey(
+        string $scope,
+        string $domain,
+        string $key
+    ): ?TranslationKeyDTO {
+        $stmt = $this->pdo->prepare(
+            'SELECT id, scope, domain, key_part, description, created_at
+             FROM i18n_keys
+             WHERE scope = :scope
+               AND domain = :domain
+               AND key_part = :key
+             LIMIT 1'
+        );
 
-        $stmt = $this->pdo->prepare($sql);
         if (!$stmt instanceof PDOStatement) {
             return null;
         }
 
-        $stmt->execute(['translation_key' => $key]);
+        $stmt->execute([
+            'scope' => $scope,
+            'domain' => $domain,
+            'key' => $key,
+        ]);
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (!is_array($row)) {
-            return null;
-        }
 
-        return $this->mapRowToDTO($row);
+        return is_array($row) ? $this->map($row) : null;
     }
 
     public function listAll(): TranslationKeyCollectionDTO
     {
-        $sql = 'SELECT id, translation_key, description, created_at
-                FROM i18n_keys
-                ORDER BY id ASC';
+        $stmt = $this->pdo->query(
+            'SELECT id, scope, domain, key_part, description, created_at
+             FROM i18n_keys
+             ORDER BY id ASC'
+        );
 
-        $stmt = $this->pdo->query($sql);
         if (!$stmt instanceof PDOStatement) {
             return new TranslationKeyCollectionDTO([]);
         }
 
         $items = [];
 
-        while (true) {
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            if (!is_array($row)) {
-                break;
-            }
-
-            $dto = $this->mapRowToDTO($row);
-            if ($dto !== null) {
-                $items[] = $dto;
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            if (is_array($row)) {
+                $items[] = $this->map($row);
             }
         }
 
@@ -119,9 +126,10 @@ final readonly class MysqlTranslationKeyRepository implements TranslationKeyRepo
 
     public function updateDescription(int $id, ?string $description): void
     {
-        $sql = 'UPDATE i18n_keys SET description = :description WHERE id = :id';
+        $stmt = $this->pdo->prepare(
+            'UPDATE i18n_keys SET description = :description WHERE id = :id'
+        );
 
-        $stmt = $this->pdo->prepare($sql);
         if (!$stmt instanceof PDOStatement) {
             return;
         }
@@ -132,47 +140,93 @@ final readonly class MysqlTranslationKeyRepository implements TranslationKeyRepo
         ]);
     }
 
-    public function renameKey(int $id, string $newKey): void
-    {
-        $sql = 'UPDATE i18n_keys SET translation_key = :translation_key WHERE id = :id';
+    public function rename(
+        int $id,
+        string $scope,
+        string $domain,
+        string $key
+    ): void {
+        $stmt = $this->pdo->prepare(
+            'UPDATE i18n_keys
+             SET scope = :scope,
+                 domain = :domain,
+                 key_part = :key
+             WHERE id = :id'
+        );
 
-        $stmt = $this->pdo->prepare($sql);
         if (!$stmt instanceof PDOStatement) {
             return;
         }
 
         $stmt->execute([
             'id' => $id,
-            'translation_key' => $newKey,
+            'scope' => $scope,
+            'domain' => $domain,
+            'key' => $key,
         ]);
     }
 
     /**
      * @param array<string, mixed> $row
      */
-    private function mapRowToDTO(array $row): ?TranslationKeyDTO
+    private function map(array $row): TranslationKeyDTO
     {
-        $id = $row['id'] ?? null;
-        $key = $row['translation_key'] ?? null;
-        $createdAt = $row['created_at'] ?? null;
-
-        if (!is_numeric($id) || !is_string($key) || $key === '') {
-            return null;
-        }
-
-        $createdAtStr = is_string($createdAt) ? $createdAt : null;
-        if ($createdAtStr === null || $createdAtStr === '') {
-            return null;
-        }
-
-        $desc = $row['description'] ?? null;
-        $descStr = is_string($desc) ? $desc : null;
+        $idRaw = $row['id'] ?? null;
+        $scopeRaw = $row['scope'] ?? null;
+        $domainRaw = $row['domain'] ?? null;
+        $keyPartRaw = $row['key_part'] ?? null;
+        $createdAtRaw = $row['created_at'] ?? null;
 
         return new TranslationKeyDTO(
-            (int) $id,
-            $key,
-            $descStr,
-            $createdAtStr
+            is_numeric($idRaw) ? (int) $idRaw : 0,
+            is_string($scopeRaw) ? $scopeRaw : '',
+            is_string($domainRaw) ? $domainRaw : '',
+            is_string($keyPartRaw) ? $keyPartRaw : '',
+            is_string($row['description'] ?? null) ? $row['description'] : null,
+            is_string($createdAtRaw) ? $createdAtRaw : ''
         );
     }
+
+    public function listByScopeAndDomain(
+        string $scope,
+        string $domain
+    ): TranslationKeyCollectionDTO {
+        $sql = '
+        SELECT
+            id,
+            scope,
+            domain,
+            key_part,
+            description,
+            created_at
+        FROM i18n_keys
+        WHERE scope = :scope
+          AND domain = :domain
+        ORDER BY key_part ASC
+    ';
+
+        $stmt = $this->pdo->prepare($sql);
+        if (!$stmt instanceof \PDOStatement) {
+            return new TranslationKeyCollectionDTO([]);
+        }
+
+        $stmt->execute([
+            'scope' => $scope,
+            'domain' => $domain,
+        ]);
+
+        $items = [];
+
+        while (true) {
+            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+            if (!is_array($row)) {
+                break;
+            }
+
+            $items[] = $this->map($row);
+        }
+
+        return new TranslationKeyCollectionDTO($items);
+    }
+
 }

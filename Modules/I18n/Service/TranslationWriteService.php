@@ -2,12 +2,12 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/admin-control-panel
- * @Project     maatify:admin-control-panel
+ * @Library     maatify/i18n
+ * @Project     maatify:i18n
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-02-04 01:34
  * @see         https://www.maatify.dev Maatify.dev
- * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
+ * @link        https://github.com/Maatify/i18n view Project on GitHub
  * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
  */
 
@@ -25,18 +25,31 @@ final readonly class TranslationWriteService
     public function __construct(
         private LanguageRepositoryInterface $languageRepository,
         private TranslationKeyRepositoryInterface $keyRepository,
-        private TranslationRepositoryInterface $translationRepository
-    )
-    {
+        private TranslationRepositoryInterface $translationRepository,
+        private I18nGovernancePolicyService $governancePolicy
+    ) {
     }
 
-    public function createKey(string $key, ?string $description = null): int
-    {
-        if ($this->keyRepository->getByKey($key) !== null) {
+    public function createKey(
+        string $scope,
+        string $domain,
+        string $key,
+        ?string $description = null
+    ): int {
+        $this->governancePolicy
+            ->assertScopeAndDomainAllowed($scope, $domain);
+
+        if ($this->keyRepository
+                ->getByStructuredKey($scope, $domain, $key) !== null) {
             throw new RuntimeException('Translation key already exists.');
         }
 
-        $id = $this->keyRepository->create($key, $description);
+        $id = $this->keyRepository->create(
+            scope: $scope,
+            domain: $domain,
+            key: $key,
+            description: $description
+        );
 
         if ($id <= 0) {
             throw new RuntimeException('Failed to create translation key.');
@@ -45,17 +58,32 @@ final readonly class TranslationWriteService
         return $id;
     }
 
-    public function renameKey(int $keyId, string $newKey): void
-    {
+    public function renameKey(
+        int $keyId,
+        string $scope,
+        string $domain,
+        string $key
+    ): void {
         if ($this->keyRepository->getById($keyId) === null) {
             throw new RuntimeException('Translation key not found.');
         }
 
-        if ($this->keyRepository->getByKey($newKey) !== null) {
+        $this->governancePolicy
+            ->assertScopeAndDomainAllowed($scope, $domain);
+
+        $existing = $this->keyRepository
+            ->getByStructuredKey($scope, $domain, $key);
+
+        if ($existing !== null && $existing->id !== $keyId) {
             throw new RuntimeException('Target key already exists.');
         }
 
-        $this->keyRepository->renameKey($keyId, $newKey);
+        $this->keyRepository->rename(
+            id: $keyId,
+            scope: $scope,
+            domain: $domain,
+            key: $key
+        );
     }
 
     public function updateKeyDescription(int $keyId, string $description): void
@@ -71,8 +99,7 @@ final readonly class TranslationWriteService
         int $languageId,
         int $keyId,
         string $value
-    ): int
-    {
+    ): int {
         if ($this->languageRepository->getById($languageId) === null) {
             throw new RuntimeException('Language not found.');
         }

@@ -4,6 +4,9 @@ SET FOREIGN_KEY_CHECKS=0;
  * =========================== */
 DROP TABLE IF EXISTS languages;
 DROP TABLE IF EXISTS language_settings;
+DROP TABLE IF EXISTS i18n_scopes;
+DROP TABLE IF EXISTS i18n_domains;
+DROP TABLE IF EXISTS i18n_domain_scopes;
 DROP TABLE IF EXISTS i18n_keys;
 DROP TABLE IF EXISTS i18n_translations;
 
@@ -95,36 +98,159 @@ CREATE TABLE language_settings (
   COLLATE=utf8mb4_unicode_ci
     COMMENT='UI-only language settings (direction, icon, ordering). Not part of kernel logic.';
 
-
 /* ==========================================================
- * 3) Translation Keys (CANONICAL KEYS)
+ * I18N SCOPES (GOVERNANCE)
  * ----------------------------------------------------------
- * Defines the universe of translation keys.
- * Keys are language-agnostic and stable.
+ * Purpose:
+ * - Define supported scopes for translation keys
+ * - Used for validation, UI dropdowns, and governance
+ * - NOT enforced via FK on i18n_keys
  *
  * Examples:
- * - auth.login.title
- * - admin.sessions.empty
- * - errors.permission_denied
+ * - ct   (Customer / Client)
+ * - ad   (Admin)
+ * - sys  (System / Emails / Background)
+ * - api  (API responses)
+ * ========================================================== */
+
+CREATE TABLE i18n_scopes (
+                             id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    -- Canonical scope code (used in i18n_keys.scope)
+                             code VARCHAR(32) NOT NULL,
+
+    -- Human-readable name (UI only)
+                             name VARCHAR(64) NOT NULL,
+
+    -- Optional description for admins / developers
+                             description TEXT NULL,
+
+    -- Whether this scope is selectable/active
+                             is_active TINYINT(1) NOT NULL DEFAULT 1,
+
+    -- UI ordering
+                             sort_order INT NOT NULL DEFAULT 0,
+
+                             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    -- Enforce unique scope codes
+                             UNIQUE KEY uq_i18n_scopes_code (code)
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci
+    COMMENT='Governance table for i18n scopes. Used for validation and UI only. No FK enforcement.';
+
+/* ==========================================================
+ * I18N DOMAINS (GOVERNANCE)
+ * ----------------------------------------------------------
+ * Purpose:
+ * - Define allowed translation domains
+ * - Used for grouping, UI, caching boundaries, and validation
+ * - NOT enforced via FK on i18n_keys
+ *
+ * Examples:
+ * - home
+ * - auth
+ * - products
+ * - errors
+ * - emails
+ * ========================================================== */
+
+CREATE TABLE i18n_domains (
+                              id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    -- Canonical domain code (used in i18n_keys.domain)
+                              code VARCHAR(64) NOT NULL,
+
+    -- Human-readable name (UI only)
+                              name VARCHAR(128) NOT NULL,
+
+    -- Optional description
+                              description TEXT NULL,
+
+    -- Whether this domain is selectable/active
+                              is_active TINYINT(1) NOT NULL DEFAULT 1,
+
+    -- UI ordering
+                              sort_order INT NOT NULL DEFAULT 0,
+
+                              created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    -- Enforce unique domain codes
+                              UNIQUE KEY uq_i18n_domains_code (code)
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci
+    COMMENT='Governance table for i18n domains. Used for validation and UI only. No FK enforcement.';
+
+/* ==========================================================
+ * I18N DOMAIN ↔ SCOPE RELATION (POLICY)
+ * ----------------------------------------------------------
+ * Purpose:
+ * - Define which domains are allowed under which scopes
+ * - Used strictly for validation and UI guidance
+ * - NOT enforced on i18n_keys
+ *
+ * Example:
+ * - ct  → home, auth, products
+ * - ad  → dashboard, users, roles
+ * - sys → emails, errors
+ * ========================================================== */
+
+CREATE TABLE i18n_domain_scopes (
+                                    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    -- Scope code (matches i18n_scopes.code)
+                                    scope_code VARCHAR(32) NOT NULL,
+
+    -- Domain code (matches i18n_domains.code)
+                                    domain_code VARCHAR(64) NOT NULL,
+
+    -- Whether this mapping is active
+                                    is_active TINYINT(1) NOT NULL DEFAULT 1,
+
+                                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    -- Prevent duplicate mappings
+                                    UNIQUE KEY uq_i18n_domain_scopes (scope_code, domain_code)
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci
+    COMMENT='Policy table linking domains to scopes. Used for validation only. No FK enforcement.';
+
+
+/* ==========================================================
+ * I18N KEYS (STRUCTURED / CANONICAL)
+ * ----------------------------------------------------------
+ * Library-grade translation key identity.
+ * No legacy support. No implicit parsing.
  * ========================================================== */
 
 CREATE TABLE i18n_keys (
                            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
-    -- Canonical translation key (dot-notation recommended)
-                           translation_key VARCHAR(191) NOT NULL,
+    -- Logical consumer scope (ct, ad, sys, api, ...)
+                           scope VARCHAR(32) NOT NULL,
 
-    -- Optional description for admins / developers
+    -- Functional domain (auth, home, products, errors, ...)
+                           domain VARCHAR(64) NOT NULL,
+
+    -- Leaf key identifier within domain
+    -- Can contain dots (e.g. login.title, form.email.label)
+                           key_part VARCHAR(128) NOT NULL,
+
+    -- Optional developer / admin description
                            description VARCHAR(255) NULL,
 
                            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    -- Enforce unique canonical keys
-                           UNIQUE KEY uq_i18n_keys_key (translation_key)
+    -- Enforce canonical identity
+                           UNIQUE KEY uq_i18n_keys_identity (scope, domain, key_part)
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci
-    COMMENT='Canonical translation keys. Language-agnostic. Backbone of the i18n system.';
+    COMMENT='Canonical structured i18n keys (scope + domain + key_part). Library-grade.';
+
 
 
 /* ==========================================================

@@ -1,6 +1,6 @@
 # I18n Module
 
-**Project:** maatify/admin-control-panel  
+**Project:** maatify/i18n  
 **Module:** I18n  
 **Namespace:** `Maatify\I18n`  
 **Scope:** Shared Internationalization & Language Management  

@@ -15,4 +15,9 @@ final readonly class TranslationKeyCollectionDTO
     )
     {
     }
+
+    public function isEmpty(): bool
+    {
+        return $this->items === [];
+    }
 }
