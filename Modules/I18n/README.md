@@ -1,214 +1,121 @@
-# I18n Module
+# Maatify/I18n
 
-**Project:** maatify/i18n  
-**Module:** I18n  
-**Namespace:** `Maatify\I18n`  
-**Scope:** Shared Internationalization & Language Management  
-**Database:** Shared (Single DB, Multi-Consumer)
+**Kernel-Grade Internationalization Subsystem**
 
----
+This library provides a robust, database-driven internationalization (I18n) system designed for strict governance, structured keys, and high-performance runtime reads. It separates language identity from UI concerns and enforces a strong policy model for translation keys.
 
-## 1. Purpose
-
-The **I18n module** provides a **single, canonical internationalization system** designed to serve:
-
-- Admin Panel (management & authoring)
-- Website (read-only rendering)
-- Mobile Applications (read-only rendering)
-
-All consumers operate on **one shared database** with **strict separation of responsibilities**.
-
-This module is **UI-agnostic**, **framework-agnostic**, and **safe for extraction** as a standalone library.
+![Maatify.dev](https://www.maatify.dev/assets/img/img/maatify_logo_white.svg)
 
 ---
 
-## 2. Architectural Principles (LOCKED)
+[![Version](https://img.shields.io/packagist/v/maatify/i18n?label=Version&color=4C1)](https://packagist.org/packages/maatify/i18n)
+[![PHP](https://img.shields.io/packagist/php-v/maatify/i18n?label=PHP&color=777BB3)](https://packagist.org/packages/maatify/i18n)
+![PHP Version](https://img.shields.io/badge/php-%3E%3D8.2-blue)
 
-The following rules are **non-negotiable**:
+![Monthly Downloads](https://img.shields.io/packagist/dm/maatify/i18n?label=Monthly%20Downloads&color=00A8E8)
+![Total Downloads](https://img.shields.io/packagist/dt/maatify/i18n?label=Total%20Downloads&color=2AA9E0)
 
-1. **One database – multiple consumers**
-2. **Admin is the only write authority**
-3. **Web / App are read-only consumers**
-4. **Repositories never throw business exceptions**
-5. **Services are the only integration point**
-6. **Table naming decisions are final**
+![Stars](https://img.shields.io/github/stars/Maatify/i18n?label=Stars&color=FFD43B)
+[![License](https://img.shields.io/github/license/Maatify/i18n?label=License&color=blueviolet)](LICENSE)
+![Status](https://img.shields.io/badge/Status-Stable-success)
+[![Code Quality](https://img.shields.io/codefactor/grade/github/Maatify/i18n/main?color=brightgreen)](https://www.codefactor.io/repository/github/Maatify/i18n)
 
----
+![PHPStan](https://img.shields.io/badge/PHPStan-Level%20Max-4E8CAE)
 
-## 3. Domain Separation
+[//]: # ([![Changelog]&#40;https://img.shields.io/badge/Changelog-View-blue&#41;]&#40;CHANGELOG.md&#41;)
+[//]: # ([![Security]&#40;https://img.shields.io/badge/Security-Policy-important&#41;]&#40;SECURITY.md&#41;)
 
-The module intentionally separates **System Language** from **Translation Content**.
-
-### 3.1 System Language (Core Entity)
-
-Tables:
-
-```text
-languages
-language_settings
-````
-
-These tables represent **languages as first-class system entities**, not just translations.
-
-They are used for:
-
-* UI language selection
-* Text direction (LTR / RTL)
-* Sorting and presentation
-* Notifications & emails
-* Application bootstrap logic
-* Fallback relationships
-
-This data is **system-level**, not content-level.
 
 ---
 
-### 3.2 I18n Translation Domain
+## Documentation Contract
 
-Tables:
+This README serves as a high-level identity summary and architectural contract.
 
-```text
-i18n_keys
-i18n_translations
-```
+**All authoritative usage rules, lifecycle definitions, and runtime behaviors are defined in:**
+👉 [**Maatify/I18n/BOOK/**](./BOOK/INDEX.md) (The Usage Book)
+👉 [**Maatify/I18n/HOW_TO_USE.md**](./HOW_TO_USE.md) (Integration Guide)
 
-These tables represent **translatable content only**.
-
-They are used for:
-
-* Translation keys
-* Language-specific values
-* Safe fallback resolution
-* Content rendering
-
-The `i18n_` prefix explicitly marks this as a **dedicated domain**, separate from core system entities.
+**Contract Rules:**
+1.  **The Book is Authoritative:** If this README and the Book diverge, the Book is the source of truth.
+2.  **Illustrative Only:** Examples in this README are for architectural context. Real implementation code must follow `HOW_TO_USE.md`.
+3.  **Strict Governance:** Usage of this library implies adherence to the Governance Model defined in `BOOK/03_governance_model.md`.
 
 ---
 
-## 4. Table Naming Decision (FINAL)
+## 1. Library Identity
 
-The following naming is **intentional and locked**:
-
-```text
-languages            → Core system entity
-language_settings    → System/UI extension
-
-i18n_keys            → I18n domain
-i18n_translations    → I18n domain
-```
-
-This is **not an inconsistency** but a **deliberate architectural boundary**.
-
-❌ Renaming, merging, or re-prefixing these tables is forbidden after this point.
+*   **Database-Driven:** All languages, keys, and translations reside in the database.
+*   **Governance-First:** Enforces structural rules (Scopes & Domains) to prevent key sprawl.
+*   **Fail-Soft Reads:** Runtime lookups **must never** crash the application; they return `null` on failure.
+*   **Strict Writes:** Administrative operations **must** fail hard with typed exceptions to maintain data integrity.
 
 ---
 
-## 5. Responsibilities by Consumer
+## 2. Core Concepts
 
-### 5.1 Admin Panel (Write Authority)
+### Language Identity vs. Settings
+*   **Identity (`languages`):** The immutable core (e.g., `en-US`). Used for foreign keys.
+*   **Settings (`language_settings`):** UI-specific attributes (Direction, Icons, Sort Order).
 
-The Admin Panel is the **only component allowed to mutate data**.
+### Structured Keys
+Translation keys are enforced as tuples: `scope` + `domain` + `key_part`.
+*   **Scope:** `admin`, `client`, `api`
+*   **Domain:** `auth`, `products`, `errors`
+*   **Key Part:** `login.title`
 
-Allowed operations:
-
-* Create / update / activate languages
-* Manage language settings
-* Create / rename translation keys
-* Insert / update translations
-
-Admin interacts with:
-
-```text
-LanguageManagementService
-TranslationWriteService
-```
+### Governance
+*   **Policy:** A key cannot be created unless its Scope and Domain exist.
+*   **Mapping:** A Domain must be explicitly allowed for a Scope in `i18n_domain_scopes`.
 
 ---
 
-### 5.2 Website & Mobile Apps (Read-Only)
+## 3. Architecture
 
-Web and mobile applications:
+The module adheres to a strict layered architecture:
 
-* Never write
-* Never validate existence
-* Never throw exceptions
-
-They interact only with:
-
-```text
-TranslationReadService
-```
-
-Example usage:
-
-```php
-$value = $i18n->getValue('ar', 'login.button.submit');
-```
-
-Returned value:
-
-* `string` → resolved translation
-* `null` → unresolved (caller decides fallback)
+*   **Contracts (`Contract/`):** Repository interfaces.
+*   **Services (`Service/`):** Business logic (Read, Write, Governance).
+*   **Infrastructure (`Infrastructure/Mysql/`):** PDO-based repositories.
+*   **DTOs (`DTO/`):** Strictly typed Data Transfer Objects.
+*   **Exceptions (`Exception/`):** Typed exceptions for all failure scenarios.
 
 ---
 
-## 6. Repository Rules
+## 4. Database Schema
 
-Repositories are **database-bound adapters only**.
+The system relies on 7 mandatory tables:
 
-Rules:
-
-* Any PDO failure → return `null` or empty collection
-* No business validation
-* No exceptions
-* No fallback logic
-* No assumptions about correctness
-
-Repositories may **defensively validate row structure**, but must stop immediately on invalid data.
+1.  **`languages`**: Canonical identity.
+2.  **`language_settings`**: UI configuration.
+3.  **`i18n_scopes`**: Allowed scopes.
+4.  **`i18n_domains`**: Allowed domains.
+5.  **`i18n_domain_scopes`**: Many-to-Many policy mapping.
+6.  **`i18n_keys`**: Registry of valid keys.
+7.  **`i18n_translations`**: Text values.
 
 ---
 
-## 7. Services as the Only Boundary
+## 5. Read vs. Write Semantics
 
-All business decisions live in **Services**, never in repositories.
-
-```text
-Repositories → Raw data access
-Services     → Use-cases & orchestration
-Consumers    → Call services only
-```
-
-This ensures:
-
-* Clean boundaries
-* Safe reuse
-* Kernel compatibility
-* Predictable behavior
+| Feature        | Writes (Admin/Setup)           | Reads (Runtime)               |
+|:---------------|:-------------------------------|:------------------------------|
+| **Strategy**   | **Fail-Hard**                  | **Fail-Soft**                 |
+| **Exceptions** | Throws typed exceptions.       | Returns `null` or empty DTOs. |
+| **Validation** | Strict governance enforcement. | Minimal validation for speed. |
+| **Output**     | Void or ID (int).              | Strictly typed DTOs.          |
 
 ---
 
-## 8. Extensibility (Future Phases)
+## 6. Integration
 
-No additional tables are required for the current scope.
+### Requirements
+*   PHP 8.2+
+*   PDO (MySQL)
 
-Future extensions (NOT part of baseline) may include:
-
-* Multi-tenant language isolation
-* Versioned translations
-* Per-user overrides
-* A/B text experiments
-* External translation provider sync
-
-Any such changes require **explicit new phases** and **separate approval**.
-
----
-
-## 9. Status
-
-✅ Schema: Locked  
-✅ Naming: Final  
-✅ Responsibilities: Clear  
-✅ Multi-consumer ready  
-✅ Safe for reuse & extraction
-
-This module is considered **architecturally complete** for its intended scope.
+### Quick Start
+Refer to **[HOW_TO_USE.md](HOW_TO_USE.md)** for:
+*   Wiring Services & Repositories
+*   Creating Languages
+*   Handling Governance Exceptions
+*   Fetching Translations
