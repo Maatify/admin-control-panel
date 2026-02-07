@@ -32,11 +32,6 @@ final class I18nScopeCreateSchema extends AbstractSchema
                 v::optional(v::boolVal()),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
-
-            'sort_order' => [
-                v::optional(v::intVal()->min(0)),
-                ValidationErrorCodeEnum::REQUIRED_FIELD
-            ],
         ];
     }
 }

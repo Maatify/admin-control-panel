@@ -66,7 +66,6 @@ final readonly class I18nScopeCreateController
             name: $name,
             description: $description,
             is_active: $isActive,
-            sort_order: $sortOrder,
         );
 
         $id = $this->writer->create($dto);

@@ -11,7 +11,6 @@ final readonly class I18nScopeCreateDTO
         public string $name,
         public string $description,
         public int $is_active,
-        public int $sort_order
     ) {}
 }
 
