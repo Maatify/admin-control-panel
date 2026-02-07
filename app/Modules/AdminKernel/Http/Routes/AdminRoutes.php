@@ -356,6 +356,14 @@ class AdminRoutes
                             ]
                         )
                             ->setName('i18n.scopes.list.api');
+
+                        $i18nScopes->post(
+                            '/create',
+                            [
+                                \Maatify\AdminKernel\Http\Controllers\Api\I18nScopeCreateController::class,
+                                '__invoke'
+                            ]
+                        )->setName('i18n.scopes.create.api');
                     });
 
                     // ─────────────────────────────

@@ -2398,6 +2398,12 @@ class Container
                 return new \Maatify\AdminKernel\Infrastructure\Reader\I18n\PdoI18nScopesQueryReader($pdo);
             },
 
+            \Maatify\AdminKernel\Domain\I18n\Scope\Writer\I18nScopeCreateWriterInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\AdminKernel\Infrastructure\Writer\I18n\PdoI18nScopeCreateWriter($pdo);
+            },
+
             \Maatify\AdminKernel\Domain\AppSettings\Reader\AppSettingsQueryReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
