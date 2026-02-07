@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Maatify\AdminKernel\Context\RequestContext;
 use Maatify\AdminKernel\Domain\Exception\EntityAlreadyExistsException;
+use Maatify\AdminKernel\Domain\Exception\EntityInUseException;
 use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\AdminKernel\Domain\Exception\InvalidOperationException;
 use Maatify\AdminKernel\Domain\Exception\PermissionDeniedException;
@@ -181,6 +182,20 @@ return function (App $app): void {
             return $httpJsonError(
                 409,
                 'ENTITY_ALREADY_EXISTS',
+                $exception->getMessage()
+            );
+        }
+    );
+
+    $errorMiddleware->setErrorHandler(
+        EntityInUseException::class,
+        function (
+            ServerRequestInterface $request,
+            Throwable $exception
+        ) use ($httpJsonError) {
+            return $httpJsonError(
+                409,
+                'ENTITY_IN_USE',
                 $exception->getMessage()
             );
         }
