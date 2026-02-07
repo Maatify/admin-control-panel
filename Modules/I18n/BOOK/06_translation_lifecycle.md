@@ -1,10 +1,10 @@
 # 06. Translation Lifecycle
 
-This chapter covers the complete lifecycle of managing translation keys and their values using the `TranslationWriteService`.
+This chapter documents the lifecycle of translation keys and values managed by `TranslationWriteService`.
 
 ## 1. Creating Keys
 
-Use `createKey` to define a new structured key. This enforces strict governance policies.
+The `createKey` method defines a new structured key, enforcing strict governance.
 
 ```php
 // Define a new key for the 'auth' domain in 'client' scope
@@ -16,19 +16,19 @@ $keyId = $service->createKey(
 );
 ```
 
-**Validations:**
+**Mandatory Validations:**
 1.  **Scope** must exist and be active.
 2.  **Domain** must exist and be active.
 3.  **Mapping** must exist (`client` <-> `auth`).
-4.  **Uniqueness:** The combination `(client, auth, login.title)` must be unique.
+4.  **Uniqueness:** The combination `(client, auth, login.title)` must not already exist.
 
 **Exceptions:**
-*   `DomainScopeViolationException`
-*   `TranslationKeyAlreadyExistsException`
+*   `DomainScopeViolationException` (Governance failure)
+*   `TranslationKeyAlreadyExistsException` (Duplicate key)
 
 ## 2. Renaming Keys
 
-Keys are often renamed as requirements change. The library supports renaming the `key_part` while preserving the ID and existing translations.
+The `renameKey` method updates the `key_part` of an existing key, preserving its ID and translations.
 
 ```php
 // Rename 'login.title' to 'login.header'
@@ -41,12 +41,12 @@ $service->renameKey(
 ```
 
 **Constraints:**
-*   You cannot rename a key to one that already exists in the same Scope/Domain.
-*   You *cannot* change the Scope or Domain of a key directly. This would break historical data integrity. To "move" a key, you must create a new one and migrate translations manually.
+*   The new key name must not already exist in the target Scope/Domain.
+*   The Scope and Domain **cannot** be changed via this method. Key movement requires explicit re-creation and migration.
 
 ## 3. Managing Descriptions
 
-Descriptions help translators understand context. They are purely metadata.
+Descriptions provide metadata for translators.
 
 ```php
 $service->updateKeyDescription(
@@ -57,7 +57,7 @@ $service->updateKeyDescription(
 
 ## 4. Upserting Translations
 
-We use "Upsert" (Update or Insert) for translation values.
+The `upsertTranslation` method inserts or updates a translation value.
 
 ```php
 // Set English Value
@@ -76,13 +76,13 @@ $service->upsertTranslation(
 ```
 
 **Behavior:**
-*   If a translation row exists for `(languageId, keyId)`, it is updated.
-*   If not, a new row is inserted.
-*   The `updated_at` timestamp is refreshed automatically.
+*   If a row exists for `(languageId, keyId)`, it is updated.
+*   If no row exists, a new row is inserted.
+*   `updated_at` timestamp is refreshed.
 
 ## 5. Deleting Translations
 
-You can remove a specific translation without deleting the key.
+The `deleteTranslation` method removes a specific translation value.
 
 ```php
 $service->deleteTranslation(
@@ -91,4 +91,4 @@ $service->deleteTranslation(
 );
 ```
 
-**Note:** If you delete a Key (`i18n_keys`), all associated translations cascade delete automatically via foreign keys. However, the service currently exposes `deleteTranslation` for precise control. Deleting a KEY is a destructive operation usually reserved for database admins or specific cleanup scripts, not routine application flow.
+**Note:** Deleting a `TranslationKey` (via `i18n_keys` cascade) automatically removes all associated translations. This method allows targeted removal of a single language's value.

@@ -1,25 +1,24 @@
 # 07. Runtime Reads
 
-This chapter explains how to fetch translations efficiently in your application.
+This chapter details the fail-soft behavior of runtime translation reads.
 
 ## 1. Fail-Soft Philosophy
 
-The read services (`TranslationReadService` and `TranslationDomainReadService`) are designed to be **fail-soft**.
+All read services (`TranslationReadService`, `TranslationDomainReadService`) implement a strict **fail-soft** strategy.
 
 *   **Exceptions:**
-    *   They rarely throw exceptions.
-    *   `LanguageNotFoundException` is the only exception you might encounter if you request a language code that doesn't exist (e.g., `xx-YY`).
+    *   `LanguageNotFoundException` is the **only** exception thrown during reads (e.g., if an invalid language code is provided).
 *   **Missing Data:**
-    *   If a key is missing -> returns `null`.
-    *   If a translation is missing -> returns `null` (after trying fallback).
-    *   If a domain is empty -> returns empty DTO.
+    *   Missing Key → Returns `null`.
+    *   Missing Translation → Returns `null` (after attempting fallback).
+    *   Invalid Domain → Returns empty DTO.
 
-**Why?**
-A missing translation should result in a blank string or a fallback in the UI, not a fatal error or a 500 page.
+**Rationale:**
+A missing translation must not cause a fatal application error.
 
 ## 2. Single Value Read (`TranslationReadService`)
 
-Use this service to fetch a specific translation string. It handles fallback logic automatically.
+Fetches a specific translation string, resolving fallback logic automatically.
 
 ```php
 $value = $readService->getValue(
@@ -31,15 +30,15 @@ $value = $readService->getValue(
 
 // Returns "Log In" OR null
 if ($value === null) {
-    // Key doesn't exist or translation missing
+    // Key or translation missing
 }
 ```
 
-**Performance Note:** This performs a query for every call. For bulk usage (e.g., rendering a full page), use the Domain Read service instead.
+**Performance:** Execute one query per call. Not recommended for bulk operations.
 
 ## 3. Bulk Domain Read (`TranslationDomainReadService`)
 
-Use this service to fetch ALL translations for a specific `Scope` + `Domain`. This is highly optimized (1 query) and ideal for passing to frontend frameworks (React, Vue) or template engines.
+Fetches all translations for a specific `Scope` + `Domain`. Optimized for high performance (single query).
 
 ```php
 $dto = $domainReadService->getDomainValues(
@@ -56,15 +55,14 @@ $translations = $dto->translations;
 
 **Behavior:**
 *   Returns strictly typed `TranslationDomainValuesDTO`.
-*   Includes fallback values if the primary language is missing a key.
-*   Returns an empty array `[]` if the domain has no keys or is invalid.
+*   Includes fallback values if primary language key is missing.
+*   Returns empty array `[]` if domain has no keys or is invalid.
 
 ## 4. Caching Strategy
 
-The library itself does **not** implement caching. It hits the database directly.
+The library implementation does **not** cache data. It queries the database directly.
 
-**Recommendation:**
-Wrap the `TranslationDomainReadService` in a caching layer (Redis/Memcached). Cache by:
-`i18n:domain:{scope}:{domain}:{lang_code}`
-
-Invalidate this cache whenever `TranslationWriteService` performs an upsert or delete.
+**Integration Requirement:**
+You **must** wrap `TranslationDomainReadService` in a caching layer (e.g., Redis).
+*   **Key Pattern:** `i18n:domain:{scope}:{domain}:{lang_code}`
+*   **Invalidation:** Must occur on `TranslationWriteService` upsert/delete.

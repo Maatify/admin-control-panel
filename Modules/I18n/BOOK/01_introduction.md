@@ -2,35 +2,35 @@
 
 ## Library Identity
 
-`Modules/I18n` is a kernel-grade internationalization library designed for enterprise applications that require strict governance, structured data, and high-performance runtime reads.
+`Modules/I18n` is a kernel-grade internationalization subsystem for enterprise applications requiring strict governance, structured data, and high-performance runtime reads.
 
-Unlike traditional i18n solutions that rely on filesystem arrays (PHP/JSON) or key-value storage, this library is **strictly database-driven**. It treats languages, keys, and translations as first-class relational entities.
+The library operates exclusively as a **database-driven** solution. It treats languages, keys, and translations as relational entities with referential integrity. It does not support filesystem arrays (PHP/JSON) or key-value storage.
 
 ## Design Philosophy
 
-The library is built on four core pillars:
+The library implements four mandatory design pillars:
 
 ### 1. Governance-First
-In large systems, translation keys often become a dumping ground for arbitrary strings. This library enforces a strict **Scope + Domain** policy. You cannot create a translation key unless it belongs to a pre-defined Scope and Domain, and that Domain is explicitly allowed for that Scope.
+The system enforces a strict **Scope + Domain** policy. A translation key cannot be created unless it belongs to a pre-defined Scope and Domain, and that Domain is explicitly mapped to that Scope in the `i18n_domain_scopes` table.
 
 ### 2. Structured Keys
-Keys are not flat strings like `error_message_invalid_email`. They are structured hierarchical identifiers: `scope.domain.key_part`. This structure is enforced at the database level and by the `TranslationWriteService`.
+Keys are structured hierarchical tuples: `scope.domain.key_part`. This structure is enforced by the database schema (unique constraint) and by the `TranslationWriteService`. Flat keys (e.g., `error_message`) are prohibited.
 
 ### 3. Fail-Hard Writes / Fail-Soft Reads
-*   **Writes (Admin/Setup):** Operations that modify the state (creating languages, keys, updating values) are designed to fail hard. If a policy is violated, a typed exception is thrown immediately. This ensures data integrity.
-*   **Reads (Runtime):** Operations that fetch data for the end-user are designed to never crash the application. If a key is missing, a language is invalid, or a translation is not found, the service returns `null` or an empty object—never an exception.
+*   **Writes (Admin/Setup):** State-modifying operations (creating languages, keys, updating values) **must** fail hard. Policy violations throw typed exceptions immediately to ensure data integrity.
+*   **Reads (Runtime):** Data fetching operations **must** fail soft. Missing keys, invalid languages, or missing translations return `null` or empty DTOs. They do not throw exceptions, ensuring application stability.
 
 ### 4. Zero Implicit Magic
-There is no "auto-discovery" of keys from your codebase. There is no "magic" fallback to filesystem files. All state exists explicitly in the database. If it's not in the database, it doesn't exist.
+The library performs no auto-discovery or implicit loading. All state exists explicitly in the database. If a record is not in the database, it does not exist.
 
-## What This Library Is NOT
+## Architectural Boundaries
 
-*   **It is NOT a filesystem loader.** It does not read `.php` or `.json` files.
-*   **It is NOT a frontend asset generator.** It provides the API to fetch translations, but it does not bundle them for JavaScript clients (though it supports endpoints to do so).
-*   **It is NOT a drop-in replacement for Laravel/Symfony translators.** It uses its own services and contracts.
+*   **Infrastructure:** Implemented via `PDO` MySQL repositories.
+*   **Services:** Strictly separated into `Read`, `Write`, and `Governance` responsibilities.
+*   **Data Transport:** All data transfer occurs via strict DTOs. Arrays are not used for internal data passing.
 
-## Architecture at a Glance
+## Non-Goals
 
-*   **Infrastructure:** purely `PDO` based MySQL implementation.
-*   **Services:** Separated into `Read`, `Write`, and `Governance` concerns.
-*   **Data Transport:** All data is moved via strict DTOs (Data Transfer Objects). Arrays are rarely used.
+*   **Filesystem Loading:** The library does not read `.php` or `.json` files.
+*   **Frontend Asset Generation:** The library provides APIs to fetch translations but does not bundle them for clients.
+*   **Framework Integration:** The library uses independent services and contracts, not framework-specific adapters.

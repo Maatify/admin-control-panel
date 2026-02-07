@@ -1,34 +1,31 @@
 # 05. Key Design Patterns
 
-This chapter explains the strict key structure enforced by the library and best practices for creating manageable translation keys.
+This chapter documents the mandatory key structure and best practices.
 
 ## 1. The Structure
 
-All keys MUST follow the `Scope . Domain . KeyPart` pattern.
+All keys **must** adhere to the `Scope . Domain . KeyPart` pattern.
 
-### Why not flat keys?
+### Rationale
 
-In many legacy systems, keys like `error_invalid_email` or `btn_submit` are common. However, as the application grows:
-1.  **Collision:** `btn_submit` might be used on a login form (say "Log In") and a payment form (say "Pay Now").
-2.  **Pollution:** Loading all keys into memory wastes resources.
-3.  **Context Loss:** It's unclear where `error_system_failure` is actually used.
+Flat keys (e.g., `error_message`, `btn_submit`) are prohibited because they lead to:
+1.  **Collision:** `btn_submit` used ambiguously across features.
+2.  **Pollution:** Loading unrelated keys into memory.
+3.  **Context Loss:** Unclear usage context.
 
-### The Solution: Structured Metadata
+### The Standard: Structured Metadata
 
-By enforcing `Scope` and `Domain`, we solve these problems:
+Enforcing `Scope` and `Domain` ensures:
 
-1.  **No Collisions:**
+1.  **Uniqueness:**
     *   `client.auth.btn.submit` -> "Log In"
     *   `client.checkout.btn.submit` -> "Pay Now"
-2.  **Efficient Loading:**
-    *   When the user visits `/login`, we only load `client.auth.*`.
-    *   We do NOT load `admin.*` or `system.*`.
-3.  **Clear Context:**
-    *   `admin.users.table.header.email` -> Clearly for the Admin User Management table.
+2.  **Efficiency:** Loading `client.auth` only fetches relevant keys.
+3.  **Context:** `admin.users.table.header.email` is self-describing.
 
 ## 2. Best Practices for Key Parts
 
-The `KeyPart` is the final segment of the key (after scope and domain). While it is a single string field in the database, you should use dot-notation for clarity.
+The `KeyPart` is the final segment of the key. Use dot-notation for clarity.
 
 ### Recommended Hierarchy
 
@@ -45,19 +42,19 @@ The `KeyPart` is the final segment of the key (after scope and domain). While it
 | **Password Error** | `form.password.error.required` | `pass_req_err` |
 | **Submit Button** | `form.submit.label` | `btn_login` |
 
-### Avoiding Redundancy
+### Redundancy Rule
 
 Do not repeat the Scope or Domain in the Key Part.
 
-*   **BAD:** `client.auth.client_auth_login_title`
-*   **GOOD:** `client.auth.login.title`
+*   **PROHIBITED:** `client.auth.client_auth_login_title`
+*   **REQUIRED:** `client.auth.login.title`
 
 ## 3. Handling Dynamic Content
 
-The library stores **static strings**. It does not have a built-in template engine (like `sprintf` or `{{name}}`).
+The library stores **static strings**. It does not provide a template engine.
 
-### Recommendation
-Store placeholders in the string, but handle replacement in your application logic or a higher-level wrapper.
+### Implementation
+Store placeholders in the string, but handle replacement in application logic.
 
 *   **Stored Value:** `Welcome back, :name!`
 *   **Usage:**
@@ -65,5 +62,3 @@ Store placeholders in the string, but handle replacement in your application log
     $text = $readService->getValue(..., 'welcome');
     echo str_replace(':name', $user->name, $text);
     ```
-
-This keeps the core library focused on storage and retrieval, not string manipulation.

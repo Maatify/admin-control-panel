@@ -1,12 +1,12 @@
 # How To Use: Modules/I18n
 
-This guide provides practical examples for integrating and using the `Modules/I18n` library. It covers setup, language management, governance, and translation lifecycle.
+This guide provides practical integration examples for the `Modules/I18n` library. It covers mandatory setup steps, strict governance enforcement, and the definitive lifecycle for keys and translations.
 
 ---
 
 ## 1. Setup & Wiring
 
-The library relies on `PDO` for database access. You must instantiate the repositories and inject them into the services.
+The library requires `PDO` for database access. You **must** instantiate all repositories and inject them into the services.
 
 ```php
 <?php
@@ -39,7 +39,7 @@ $transRepo      = new TranslationRepository($pdo);
 
 // 3. Services
 
-// Governance (STRICT mode is default)
+// Governance (STRICT mode is mandatory for production)
 $governanceService = new I18nGovernancePolicyService(
     $scopeRepo,
     $domainRepo,
@@ -50,7 +50,7 @@ $governanceService = new I18nGovernancePolicyService(
 // Language Management
 $langService = new LanguageManagementService($langRepo, $settingsRepo);
 
-// Write Operations (Keys & Translations)
+// Write Operations (Keys & Translations) - Fail-Hard
 $writeService = new TranslationWriteService(
     $langRepo,
     $keyRepo,
@@ -58,7 +58,7 @@ $writeService = new TranslationWriteService(
     $governanceService
 );
 
-// Read Operations (Runtime)
+// Read Operations (Runtime) - Fail-Soft
 $readService = new TranslationReadService($langRepo, $keyRepo, $transRepo);
 $domainReadService = new TranslationDomainReadService(
     $langRepo,
@@ -72,7 +72,7 @@ $domainReadService = new TranslationDomainReadService(
 
 ## 2. Managing Languages
 
-Use `LanguageManagementService` to handle language lifecycle.
+Use `LanguageManagementService` for all language lifecycle operations.
 
 ### Create a Language
 ```php
@@ -119,14 +119,16 @@ $langService->updateLanguageSortOrder($gbId, 1);
 
 ## 3. Governance & Policy
 
-The `I18nGovernancePolicyService` ensures that translation keys adhere to strict structural rules.
+The `I18nGovernancePolicyService` enforces strict structural rules for all write operations.
 
-### Rules (STRICT Mode)
+### Mandatory Rules (STRICT Mode)
 1.  **Scope** must exist and be active.
 2.  **Domain** must exist and be active.
 3.  **Domain** must be explicitly allowed for the **Scope** (via `i18n_domain_scopes` table).
 
-If any rule is violated during a write operation (e.g., creating a key), the service throws:
+**Violation Consequence:**
+The service throws strict exceptions. The operation is aborted.
+
 *   `ScopeNotAllowedException`
 *   `DomainNotAllowedException`
 *   `DomainScopeViolationException`
@@ -145,7 +147,7 @@ try {
 
 ## 4. Translation Keys Lifecycle
 
-Keys are structured as `scope.domain.key_part`.
+Keys must follow the structured format: `scope.domain.key_part`.
 
 ### Create a Key
 ```php
@@ -172,7 +174,7 @@ $writeService->renameKey(
 
 ## 5. Translations Lifecycle
 
-Manage the actual text values for keys.
+Manage the text values for keys.
 
 ### Upsert (Insert or Update)
 ```php
@@ -200,10 +202,10 @@ $writeService->deleteTranslation($langId, $keyId);
 
 ## 6. Runtime Reads (Fail-Soft)
 
-Reading services are designed to be safe for runtime use. They avoid throwing exceptions for missing data, returning `null` or empty objects instead.
+Reading services implement a strictly fail-soft strategy. They return `null` or empty objects for missing data.
 
 ### Single Value Read
-Ideal for sparse usage or specific lookups.
+Fetches a specific translation string.
 
 ```php
 $value = $readService->getValue('en-US', 'admin', 'dashboard', 'welcome.message');
@@ -216,8 +218,8 @@ if ($value === null) {
 }
 ```
 
-### Bulk Domain Read (Recommended for UI)
-Fetches all translations for a specific `scope` + `domain`. Efficient (1 query).
+### Bulk Domain Read (Optimized for UI)
+Fetches all translations for a specific `scope` + `domain` in one query.
 
 ```php
 $dto = $domainReadService->getDomainValues('en-US', 'admin', 'dashboard');
@@ -229,7 +231,7 @@ $translations = $dto->translations;
 // Non-existent keys or empty domains return an empty array, NOT an error.
 ```
 
-> **Note:** `getDomainValues` *will* throw `LanguageNotFoundException` if the requested language code is invalid, as this usually indicates a configuration error.
+> **Exception:** `getDomainValues` **throws** `LanguageNotFoundException` if the requested language code is invalid.
 
 ---
 
@@ -269,4 +271,4 @@ Write operations enforce data integrity and throw typed exceptions.
 3.  **Active Status:** Ensure both scope and domain are `is_active = 1`.
 
 ### "Why are my changes not appearing?"
-*   This library does **not** implement caching internally. If you have a caching layer (Redis/Memcached) above this, ensure you invalidate it after write operations.
+*   This library does **not** implement caching internally. If you utilize a caching layer (Redis/Memcached), you **must** invalidate it after write operations.

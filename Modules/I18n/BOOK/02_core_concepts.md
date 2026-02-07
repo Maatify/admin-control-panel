@@ -1,13 +1,13 @@
 # 02. Core Concepts
 
-This chapter defines the strict terminology and mental models used by the library.
+This chapter defines the strictly enforced terminology and data models used by the `Modules/I18n` library.
 
 ## Language Identity vs. Settings
 
-In many systems, a "language" is just a code like `en-US`. In this library, the concept of a "Language" is split into two distinct entities:
+The library separates language identity from UI configuration into distinct, immutable entities.
 
 ### 1. Language Identity (`languages`)
-The immutable core. This represents the language as a foreign key for business logic and relationships.
+This entity represents the canonical language reference.
 *   **Attributes:**
     *   `id` (int): Internal primary key.
     *   `code` (string): Canonical BCP 47 code (e.g., `en-US`, `ar-EG`).
@@ -15,20 +15,20 @@ The immutable core. This represents the language as a foreign key for business l
     *   `is_active` (bool): Global switch to disable/enable the language.
     *   `fallback_language_id` (int|null): Pointer to another language for missing keys.
 
-This identity is stable. It is rarely modified once created.
+This identity is rarely modified once created.
 
 ### 2. Language Settings (`language_settings`)
-The mutable UI configuration. This represents how the language *looks* and *behaves* in the frontend application.
+This entity stores UI-specific configuration.
 *   **Attributes:**
     *   `direction` (enum): Text direction, strictly `LTR` or `RTL`.
     *   `icon` (string): Path or URL to a flag/icon.
     *   `sort_order` (int): Display priority in lists.
 
-Separating these concepts allows the kernel to operate on `Language Identity` without caring about UI concerns like icons or text direction.
+Separating these concepts allows the kernel to operate on `Language Identity` without concern for UI attributes like icons or text direction.
 
 ## Structured Keys
 
-A "Translation Key" is the unique identifier for a piece of text. In this library, a key is **never** just a string. It is a structured tuple of three parts:
+A "Translation Key" is a structured tuple of three parts, enforced by the database schema (unique constraint on `scope, domain, key_part`).
 
 ```text
 scope . domain . key_part
@@ -37,24 +37,24 @@ scope . domain . key_part
 ### 1. Scope
 The high-level consumer or boundary of the translation.
 *   **Examples:** `admin`, `client`, `system`, `api`, `email`.
-*   **Purpose:** Partitions the translation database. An `admin` key is never accidentally loaded in the `client` app.
+*   **Constraint:** A translation key cannot exist unless its `scope` is defined in `i18n_scopes` and is active.
 
 ### 2. Domain
 The functional area or feature set within a scope.
 *   **Examples:** `auth`, `billing`, `products`, `errors`.
-*   **Purpose:** Groups related keys together. All `auth` keys (login, register, reset password) live in one domain.
+*   **Constraint:** A translation key cannot exist unless its `domain` is defined in `i18n_domains` and is mapped to the `scope`.
 
 ### 3. Key Part
 The specific label or message identifier.
 *   **Examples:** `login.title`, `form.email.label`, `error.required`.
-*   **Purpose:** Identifies the exact string. It can contain dots for further nesting (e.g., `form.email.label`), but the library treats it as a single string unit within the domain.
+*   **Format:** Typically uses dot-notation (e.g., `form.email.label`), but the library treats it as a single string unit.
 
 ### The Full Key
-When you request a translation in code, you must provide all three parts:
+When requesting a translation, you **must** provide all three parts:
 
 | Scope | Domain | Key Part | Full Key String |
 | :--- | :--- | :--- | :--- |
 | `admin` | `dashboard` | `welcome` | `admin.dashboard.welcome` |
 | `client` | `auth` | `login.btn` | `client.auth.login.btn` |
 
-This structure is enforced by the database schema (unique constraint on `scope, domain, key_part`) and the `TranslationWriteService`.
+This structure prevents naming collisions and ensures deterministic loading of translation subsets.

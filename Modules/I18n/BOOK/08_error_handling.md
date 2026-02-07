@@ -1,25 +1,25 @@
 # 08. Error Handling
 
-This chapter catalogs the specific exceptions and error scenarios you will encounter when working with the library.
+This chapter catalogs the specific exceptions and error scenarios enforced by the library.
 
 ## 1. Fail-Hard Writes (Exceptions)
 
-All write operations (Admin APIs, Setup Scripts) are designed to enforce strict rules and data integrity. They throw explicitly typed exceptions that you **must** handle.
+All write operations (Admin APIs, Setup Scripts) **must** enforce strict rules and data integrity. They throw explicitly typed exceptions that **must** be handled.
 
 | Exception Class | Description | Typically Thrown By |
 | :--- | :--- | :--- |
-| `LanguageNotFoundException` | You tried to reference a language ID or Code that doesn't exist. | All Services |
-| `LanguageAlreadyExistsException` | You tried to create a language with a `code` that is already taken. | `LanguageManagementService` |
-| `LanguageCreateFailedException` | Database insertion failed (generic SQL error). | `LanguageManagementService` |
-| `TranslationKeyNotFoundException` | You tried to update/delete/rename a key ID that doesn't exist. | `TranslationWriteService` |
-| `TranslationKeyAlreadyExistsException` | You tried to create a key `scope.domain.key` that already exists. | `TranslationWriteService` |
-| `TranslationKeyCreateFailedException` | Database insertion failed (generic SQL error). | `TranslationWriteService` |
-| `ScopeNotAllowedException` | The `scope` provided is invalid or inactive. | `I18nGovernancePolicyService` |
-| `DomainNotAllowedException` | The `domain` provided is invalid or inactive. | `I18nGovernancePolicyService` |
-| `DomainScopeViolationException` | The `domain` exists but is not mapped to the `scope`. | `I18nGovernancePolicyService` |
-| `TranslationUpsertFailedException` | Failed to insert/update a translation value. | `TranslationWriteService` |
+| `LanguageNotFoundException` | Language ID or Code does not exist. | All Services |
+| `LanguageAlreadyExistsException` | Language code already taken. | `LanguageManagementService` |
+| `LanguageCreateFailedException` | Database insertion failure. | `LanguageManagementService` |
+| `TranslationKeyNotFoundException` | Key ID does not exist. | `TranslationWriteService` |
+| `TranslationKeyAlreadyExistsException` | Key `scope.domain.key` already exists. | `TranslationWriteService` |
+| `TranslationKeyCreateFailedException` | Database insertion failure. | `TranslationWriteService` |
+| `ScopeNotAllowedException` | Scope is invalid or inactive. | `I18nGovernancePolicyService` |
+| `DomainNotAllowedException` | Domain is invalid or inactive. | `I18nGovernancePolicyService` |
+| `DomainScopeViolationException` | Domain is not mapped to Scope. | `I18nGovernancePolicyService` |
+| `TranslationUpsertFailedException` | Translation insert/update failure. | `TranslationWriteService` |
 
-### Try-Catch Example
+### Handling Example
 
 ```php
 try {
@@ -40,11 +40,11 @@ try {
 Runtime read operations (`TranslationReadService`) avoid exceptions to prevent application crashes.
 
 *   **Missing Key:** Returns `null`.
-*   **Missing Translation:** Returns `null` (after trying fallback).
+*   **Missing Translation:** Returns `null` (after attempting fallback).
 *   **Invalid Domain/Scope:** Returns empty `TranslationDomainValuesDTO` (`[]`).
 
 **Handling Nulls:**
-Your application code must be prepared to handle `null`.
+Application code **must** be robust to `null` returns.
 
 ```php
 $text = $readService->getValue(..., 'welcome');
@@ -54,11 +54,10 @@ echo $text ?? 'Welcome';
 
 // Option 2: Fallback Logic
 if ($text === null) {
-    // Log missing key for later fix
     Logger::warning('Missing translation key: welcome');
     echo 'Welcome';
 }
 ```
 
 **Exception:**
-`TranslationDomainReadService` *will* throw `LanguageNotFoundException` if the `languageCode` passed is invalid. This is considered a developer error (passing garbage), not a runtime data issue.
+`TranslationDomainReadService` **throws** `LanguageNotFoundException` if the `languageCode` is invalid. This signals a developer error, not a runtime data issue.

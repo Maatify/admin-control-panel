@@ -1,10 +1,10 @@
 # 04. Language Lifecycle
 
-This chapter covers the complete lifecycle of managing languages using the `LanguageManagementService`.
+This chapter documents the lifecycle of languages managed by `LanguageManagementService`.
 
 ## 1. Creating a Language
 
-Creating a language involves establishing both its immutable identity and its mutable settings.
+Language creation establishes an immutable identity and mutable settings.
 
 ```php
 use Maatify\I18n\Enum\TextDirectionEnum;
@@ -20,14 +20,20 @@ $langId = $service->createLanguage(
 );
 ```
 
-**Constraints:**
-*   `code` must be unique.
+**Validation Rules:**
+*   `code` must be unique (case-insensitive).
 *   `name` cannot be empty.
 *   `direction` must be a valid `TextDirectionEnum` case (`LTR` or `RTL`).
+*   `fallbackLanguageId` must point to an existing language ID or be `null`.
+
+**Exceptions:**
+*   `LanguageAlreadyExistsException`
+*   `LanguageCreateFailedException`
+*   `LanguageNotFoundException` (if fallback ID is invalid)
 
 ## 2. Managing Settings
 
-Once created, you can update a language's UI properties without affecting its identity.
+Once created, settings can be updated without affecting identity.
 
 ```php
 // Update Direction & Icon
@@ -41,6 +47,10 @@ $service->updateLanguageSettings(
 // Moves this language to position 1, shifting others down.
 $service->updateLanguageSortOrder($langId, 1);
 ```
+
+**Exceptions:**
+*   `LanguageNotFoundException`
+*   `LanguageUpdateFailedException`
 
 ## 3. Activation & Deactivation
 
@@ -56,11 +66,11 @@ $service->setLanguageActive($langId, true);
 
 **Impact:**
 *   Inactive languages are excluded from `LanguageRepository::listActive()`.
-*   Runtime translation lookups for inactive languages will return `null` (unless the specific `TranslationReadService` implementation chooses to bypass this check for debugging).
+*   Runtime translation lookups for inactive languages return `null` (unless explicitly bypassed).
 
 ## 4. Fallback Chains
 
-The library supports a single-level fallback mechanism. This is useful for regional variants (e.g., `en-GB` falling back to `en-US`).
+The library supports a single-level fallback mechanism.
 
 ### Setting a Fallback
 
@@ -75,15 +85,15 @@ $gbId = $service->createLanguage('English (UK)', 'en-GB', ...);
 $service->setFallbackLanguage($gbId, $usId);
 ```
 
-### How Fallback Works
+### Fallback Resolution
 When resolving a translation key:
-1.  System checks the primary language (`en-GB`).
+1.  The system checks the primary language (`en-GB`).
 2.  If the key exists but the *translation value* is missing, it checks the fallback language (`en-US`).
 3.  If found in fallback, that value is returned.
 
 **Rules:**
-*   **No Circular References:** `A -> B -> A` is strictly forbidden. The service checks `id !== fallbackId`.
-*   **One Level Deep:** The current read implementation (`TranslationReadService`) supports one level of fallback. Multi-level chains (A -> B -> C) are technically possible in the database but resolution behavior depends on the service implementation (standard `TranslationReadService` does `Language -> Fallback` only).
+*   **No Circular References:** `A -> B -> A` throws `LanguageInvalidFallbackException`.
+*   **One Level Deep:** The `TranslationReadService` implementation supports strictly one level of fallback.
 
 ### Removing a Fallback
 
