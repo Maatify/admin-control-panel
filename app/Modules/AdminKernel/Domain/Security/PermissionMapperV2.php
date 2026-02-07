@@ -77,6 +77,9 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'i18n.translations.list.ui'  => 'i18n.translations.list',
         'i18n.translations.list.api' => 'i18n.translations.list',
 
+        // I18n Scopes Control
+        'i18n.scopes.list.api' => 'i18n.scopes.list',
+
         // App Settings Control
         'app_settings.list.api' => 'app_settings.list',
         // App Settings UI
