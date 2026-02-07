@@ -33,6 +33,7 @@ Documentation is split by logical domain.
 | Document                                                   | Scope                                                   |
 |:-----------------------------------------------------------|:--------------------------------------------------------|
 | **[I18N_LANGUAGES_UI.md](API/I18N_LANGUAGES_UI.md)**       | **Contract Template**. Languages management (UI + API). |
+| **[I18N_SCOPES_UI.md](API/I18N_SCOPES_UI.md)**             | Scopes management (UI + API).                           |
 | **[I18N_KEYS_UI.md](API/I18N_KEYS_UI.md)**                 | Translation Keys management (UI + API).                 |
 | **[I18N_TRANSLATIONS_UI.md](API/I18N_TRANSLATIONS_UI.md)** | Translation Values management (UI + API).               |
 
