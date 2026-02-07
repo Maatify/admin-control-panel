@@ -34,7 +34,7 @@
                     </div>
 
                     {# Recursive call #}
-                    {{ _self.render(item, level + 1) }}
+                    {{ _self.render(item.children, level + 1) }}
                 {% endif %}
             </li>
         {% endfor %}
