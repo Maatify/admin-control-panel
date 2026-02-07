@@ -153,7 +153,11 @@ final readonly class MysqlLanguageSettingsRepository implements LanguageSettings
         int $currentSort,
         int $targetSort
     ): void {
-        $this->pdo->beginTransaction();
+        $ownsTransaction = !$this->pdo->inTransaction();
+
+        if ($ownsTransaction) {
+            $this->pdo->beginTransaction();
+        }
 
         try {
             if ($targetSort < $currentSort) {
@@ -167,10 +171,12 @@ final readonly class MysqlLanguageSettingsRepository implements LanguageSettings
                 '
                 );
 
-                $stmt->execute([
-                    'target'  => $targetSort,
-                    'current' => $currentSort,
-                ]);
+                if ($stmt instanceof \PDOStatement) {
+                    $stmt->execute([
+                        'target'  => $targetSort,
+                        'current' => $currentSort,
+                    ]);
+                }
             } elseif ($targetSort > $currentSort) {
                 // move down
                 $stmt = $this->pdo->prepare(
@@ -182,10 +188,12 @@ final readonly class MysqlLanguageSettingsRepository implements LanguageSettings
                 '
                 );
 
-                $stmt->execute([
-                    'current' => $currentSort,
-                    'target'  => $targetSort,
-                ]);
+                if ($stmt instanceof \PDOStatement) {
+                    $stmt->execute([
+                        'current' => $currentSort,
+                        'target'  => $targetSort,
+                    ]);
+                }
             }
 
             // place language at target position
@@ -197,15 +205,23 @@ final readonly class MysqlLanguageSettingsRepository implements LanguageSettings
             '
             );
 
-            $stmt->execute([
-                'target'      => $targetSort,
-                'language_id' => $languageId,
-            ]);
+            if ($stmt instanceof \PDOStatement) {
+                $stmt->execute([
+                    'target'      => $targetSort,
+                    'language_id' => $languageId,
+                ]);
+            }
 
-            $this->pdo->commit();
+            if ($ownsTransaction) {
+                $this->pdo->commit();
+            }
         } catch (\Throwable $e) {
-            $this->pdo->rollBack();
-            throw $e;
+            if ($ownsTransaction && $this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            // fail-soft: do NOT rethrow
+            return;
         }
     }
 
