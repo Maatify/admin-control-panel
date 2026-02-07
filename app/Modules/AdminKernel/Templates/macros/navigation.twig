@@ -1,42 +1,107 @@
 {% macro render(items, level = 0) %}
-    <ul class="{{ level == 0 ? 'space-y-2 px-4 mt-5' : 'ml-6 mt-1 space-y-1' }}">
+    <ul class="{{ level == 0 ? 'space-y-2 px-4 mt-5' : 'ml-6 mt-1 space-y-1' }} overflow-y-auto">
         {% for item in items %}
             <li>
-                {% if item.isLink %}
+                {% if item.children %}
+                    {# Group Item #}
+                    {% if item.path %}
+                        <div class="flex items-center gap-1 p-2 rounded-md   hover:bg-gray-100 dark:hover:bg-gray-700 {{ level == 0
+                               ? 'text-gray-900 dark:text-gray-100'
+                               : 'text-sm text-gray-700 dark:text-gray-300'
+                               }}">
+                            <a href="{{ item.path }}"
+                               class="
+                                   flex items-center gap-2 flex-1
+                                   font-semibold rounded-md
+                                 
+                                  
+                               ">
+                                {{ item.icon|raw }}
+                                <span class="flex-1">{{ item.title }}</span>
+                            </a>
+                            <button onclick="toggleNav(this)" 
+                                    class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" 
+                                     fill="none" 
+                                     viewBox="0 0 24 24" 
+                                     stroke-width="2" 
+                                     stroke="currentColor" 
+                                     class="size-4 transition-transform duration-200 {{ level == 0 ? 'rotate-180' : '' }} arrow">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                </svg>
+                            </button>
+                        </div>
+                    {% else %}
+                        <div onclick="toggleNav(this)"
+                             class="
+                             rounded-md
+                                flex items-center gap-2 w-full
+                                p-2 font-semibold rounded-md
+                                hover:bg-gray-100 dark:hover:bg-gray-700
+                                {{ level == 0
+                                ? 'text-gray-500 dark:text-gray-400 uppercase text-xs tracking-wider'
+                                : 'text-sm text-gray-600 dark:text-gray-300'
+                                }}
+                                cursor-pointer
+                            ">
+                            {% if item.icon %}
+                                {{ item.icon|raw }}
+                            {% endif %}
+                            <span class="flex-1">{{ item.title }}</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" 
+                                 fill="none" 
+                                 viewBox="0 0 24 24" 
+                                 stroke-width="2" 
+                                 stroke="currentColor" 
+                                  class="size-4 transition-transform duration-200 {{ level == 0 ? 'rotate-180' : '' }} arrow">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                            </svg>
+                        </div>
+                    {% endif %}
+
+                    {# Recursive Children with Toggle #}
+                    <div class="nav-children overflow-hidden transition-all duration-300 rounded-md {{ level == 0 ? '' : 'hidden' }}" style="{{ level == 0 ? 'max-height: 1000px;' : 'max-height: 0;' }}">
+                        {{ _self.render(item.children, level + 1) }}
+                    </div>
+
+                {% else %}
+                    {# Leaf Link Item #}
+                                            <div class="">
+
                     <a href="{{ item.path }}"
                        class="
-                           flex items-center gap-2
-                           {{ level == 0
-                       ? 'text-gray-900 dark:text-gray-100'
-                       : 'text-sm text-gray-700 dark:text-gray-300'
-                       }}
-                           hover:bg-gray-100 dark:hover:bg-gray-700
-                           p-2 rounded-md
-                       ">
+                          flex items-center gap-1 p-2 rounded-md   hover:bg-gray-100 dark:hover:bg-gray-700 {{ level == 0
+                               ? 'text-gray-900 dark:text-gray-100'
+                               : 'text-sm text-gray-700 dark:text-gray-300'
+                               }}">
                         {{ item.icon|raw }}
                         <span>{{ item.title }}</span>
                     </a>
-
-                {% elseif item.isGroup %}
-                    <div
-                            class="
-                            flex items-center gap-2
-                            p-2 font-semibold
-                            {{ level == 0
-                            ? 'text-gray-700 dark:text-gray-200'
-                            : 'text-gray-600 dark:text-gray-300 text-sm'
-                            }}
-                            cursor-pointer
-                        "
-                    >
-                        {{ item.icon|raw }}
-                        <span>{{ item.title }}</span>
-                    </div>
-
-                    {# Recursive call #}
-                    {{ _self.render(item.children, level + 1) }}
                 {% endif %}
             </li>
         {% endfor %}
     </ul>
+    
+    {% if level == 0 %}
+    <script>
+        function toggleNav(element) {
+            const parent = element.closest('li');
+            const childrenContainer = parent.querySelector('.nav-children');
+            const chevron = element.querySelector('.arrow');
+            
+            if (childrenContainer.style.maxHeight === '0px' || childrenContainer.classList.contains('hidden')) {
+                childrenContainer.classList.remove('hidden');
+                childrenContainer.style.maxHeight = '1000px';
+
+                chevron.classList.add('rotate-180');
+            } else {
+                childrenContainer.style.maxHeight = '0px';
+                chevron.classList.remove('rotate-180');
+                setTimeout(() => {
+                    childrenContainer.classList.add('hidden');
+                }, 300);
+            }
+        }
+    </script>
+    {% endif %}
 {% endmacro %}

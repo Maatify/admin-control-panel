@@ -290,19 +290,20 @@
 			const navLinks = document.querySelectorAll('nav a');
 
 			navLinks.forEach(link => {
-				link.classList.remove('bg-blue-300/40');
-				link.classList.remove('dark:bg-blue-900/40');
+				link.parentElement.classList.remove('bg-blue-300/40');
+				link.parentElement.classList.remove('dark:bg-blue-900/40');
 			});
 
 			navLinks.forEach(link => {
 				const linkPath = link.getAttribute('href');
 
 				if (linkPath === currentPath) {
-					link.classList.add('bg-blue-300/40');
-					link.classList.add('dark:bg-blue-900/40');
+					link.parentElement.classList.add('bg-blue-300/40');
+					link.parentElement.classList.add('rounded-md');
+					link.parentElement.classList.add('dark:bg-blue-900/40');
 				} else if (currentPath.startsWith(linkPath) && linkPath !== '/') {
-					link.classList.add('bg-blue-300/40');
-					link.classList.add('dark:bg-blue-900/40');
+					link.parentElement.classList.add('bg-blue-300/40');
+					link.parentElement.classList.add('dark:bg-blue-900/40');
 				}
 			});
 		}
