@@ -28,4 +28,6 @@ interface I18nScopeUpdaterInterface
     public function changeCode(int $id, string $newCode): void;
 
     public function setActive(int $id, int $isActive): void;
+
+    public function repositionSortOrder(int $id, int $newPosition): void;
 }

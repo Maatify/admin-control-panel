@@ -380,6 +380,14 @@ class AdminRoutes
                                 '__invoke'
                             ]
                         )->setName('i18n.scopes.set_active.api');
+
+                        $i18nScopes->post(
+                            '/update-sort',
+                            [
+                                \Maatify\AdminKernel\Http\Controllers\Api\I18nScopeUpdateSortController::class,
+                                '__invoke'
+                            ]
+                        )->setName('i18n.scopes.update_sort.api');
                     });
 
                     // ─────────────────────────────

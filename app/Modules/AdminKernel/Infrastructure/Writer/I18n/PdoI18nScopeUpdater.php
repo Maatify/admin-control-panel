@@ -100,4 +100,117 @@ final readonly class PdoI18nScopeUpdater implements I18nScopeUpdaterInterface
             throw new RuntimeException('Failed to change scope code');
         }
     }
+
+    /**
+     * Repositions scope sort_order using range-based updates.
+     *
+     * - Transaction-aware (joins existing transaction if present)
+     * - Uses DB-level range updates (no full reindexing)
+     * - Fail-soft by design (admin/UI ordering concern)
+     *
+     * This method is intended ONLY for UI ordering and MUST NOT
+     * be used for security- or logic-critical ordering.
+     */
+    public function repositionSortOrder(
+        int $id,
+        int $newPosition
+    ): void {
+        $ownsTransaction = ! $this->pdo->inTransaction();
+
+        if ($ownsTransaction) {
+            $this->pdo->beginTransaction();
+        }
+
+        try {
+            // 1) Fetch current sort_order
+            $stmt = $this->pdo->prepare(
+                'SELECT sort_order FROM i18n_scopes WHERE id = :id'
+            );
+            $stmt->execute(['id' => $id]);
+
+            $currentSort = $stmt->fetchColumn();
+
+            if (!is_numeric($currentSort)) {
+                // fail-soft: invalid scope id
+                if ($ownsTransaction && $this->pdo->inTransaction()) {
+                    $this->pdo->rollBack();
+                }
+                return;
+            }
+
+            $currentSort = (int)$currentSort;
+
+            // No-op
+            if ($currentSort === $newPosition) {
+                if ($ownsTransaction) {
+                    $this->pdo->commit();
+                }
+                return;
+            }
+
+            if ($newPosition < $currentSort) {
+                // Move up
+                $stmt = $this->pdo->prepare(
+                    '
+                UPDATE i18n_scopes
+                SET sort_order = sort_order + 1
+                WHERE sort_order >= :target
+                  AND sort_order < :current
+                '
+                );
+
+                if ($stmt instanceof \PDOStatement) {
+                    $stmt->execute([
+                        'target'  => $newPosition,
+                        'current' => $currentSort,
+                    ]);
+                }
+            } elseif ($newPosition > $currentSort) {
+                // Move down
+                $stmt = $this->pdo->prepare(
+                    '
+                UPDATE i18n_scopes
+                SET sort_order = sort_order - 1
+                WHERE sort_order > :current
+                  AND sort_order <= :target
+                '
+                );
+
+                if ($stmt instanceof \PDOStatement) {
+                    $stmt->execute([
+                        'current' => $currentSort,
+                        'target'  => $newPosition,
+                    ]);
+                }
+            }
+
+            // 2) Place scope at target position
+            $stmt = $this->pdo->prepare(
+                '
+            UPDATE i18n_scopes
+            SET sort_order = :target
+            WHERE id = :id
+            '
+            );
+
+            if ($stmt instanceof \PDOStatement) {
+                $stmt->execute([
+                    'target' => $newPosition,
+                    'id'     => $id,
+                ]);
+            }
+
+            if ($ownsTransaction) {
+                $this->pdo->commit();
+            }
+        } catch (\Throwable $e) {
+            if ($ownsTransaction && $this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            // fail-soft: ordering must never break admin flow
+            return;
+        }
+    }
+
 }
