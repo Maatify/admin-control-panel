@@ -37,4 +37,17 @@ final readonly class I18nScopeReadService
     {
         return $this->scopeRepository->listAll();
     }
+
+    /**
+     * List only ACTIVE scopes.
+     *
+     * - Intended for UI selectors and runtime filtering
+     * - FAIL-SOFT by design
+     * - No policy enforcement (policy applies at domain level)
+     */
+    public function listActiveScopes(): ScopeCollectionDTO
+    {
+        return $this->scopeRepository->listActive();
+    }
+
 }

@@ -23,6 +23,7 @@ use Maatify\I18n\Exception\TranslationKeyAlreadyExistsException;
 use Maatify\I18n\Exception\TranslationKeyCreateFailedException;
 use Maatify\I18n\Exception\TranslationKeyNotFoundException;
 use Maatify\I18n\Exception\TranslationUpsertFailedException;
+use Maatify\I18n\Exception\TranslationUpdateFailedException;
 
 final readonly class TranslationWriteService
 {
@@ -94,12 +95,16 @@ final readonly class TranslationWriteService
             );
         }
 
-        $this->keyRepository->rename(
-            id: $keyId,
-            scope: $scope,
-            domain: $domain,
-            key: $key
-        );
+        if (
+            !$this->keyRepository->rename(
+                id: $keyId,
+                scope: $scope,
+                domain: $domain,
+                key: $key
+            )
+        ) {
+            throw new TranslationUpdateFailedException('key.rename');
+        }
     }
 
     public function updateKeyDescription(
@@ -110,10 +115,14 @@ final readonly class TranslationWriteService
             throw new TranslationKeyNotFoundException($keyId);
         }
 
-        $this->keyRepository->updateDescription(
-            $keyId,
-            $description
-        );
+        if (
+            !$this->keyRepository->updateDescription(
+                $keyId,
+                $description
+            )
+        ) {
+            throw new TranslationUpdateFailedException('key.description');
+        }
     }
 
     public function upsertTranslation(
@@ -149,7 +158,15 @@ final readonly class TranslationWriteService
         int $languageId,
         int $keyId
     ): void {
-        // fail-soft by design
+        // fail-soft BUT validated
+        if ($this->languageRepository->getById($languageId) === null) {
+            throw new LanguageNotFoundException($languageId);
+        }
+
+        if ($this->keyRepository->getById($keyId) === null) {
+            throw new TranslationKeyNotFoundException($keyId);
+        }
+
         $this->translationRepository->deleteByLanguageAndKey(
             languageId: $languageId,
             keyId: $keyId

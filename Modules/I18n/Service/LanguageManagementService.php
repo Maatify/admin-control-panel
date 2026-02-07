@@ -63,12 +63,17 @@ final readonly class LanguageManagementService
             throw new LanguageCreateFailedException();
         }
 
-        $this->settingsRepository->upsert(
-            $languageId,
-            $direction,
-            $icon,
-        );
+        if (
+            !$this->settingsRepository->upsert(
+                $languageId,
+                $direction,
+                $icon
+            )
+        ) {
+            throw new LanguageUpdateFailedException('settings');
+        }
 
+        // intentionally fail-soft
         $this->settingsRepository->updateSortOrder(
             $languageId,
             $sortOrder
@@ -83,7 +88,11 @@ final readonly class LanguageManagementService
             throw new LanguageNotFoundException($languageId);
         }
 
-        $this->languageRepository->setActive($languageId, $isActive);
+        $ok = $this->languageRepository->setActive($languageId, $isActive);
+
+        if (!$ok) {
+            throw new LanguageUpdateFailedException('is_active');
+        }
     }
 
     public function updateLanguageSettings(
@@ -95,11 +104,15 @@ final readonly class LanguageManagementService
             throw new LanguageNotFoundException($languageId);
         }
 
-        $this->settingsRepository->upsert(
-            $languageId,
-            $direction,
-            $icon,
-        );
+        if (
+            !$this->settingsRepository->upsert(
+                $languageId,
+                $direction,
+                $icon
+            )
+        ) {
+            throw new LanguageUpdateFailedException('settings');
+        }
     }
 
     public function setFallbackLanguage(
@@ -118,10 +131,14 @@ final readonly class LanguageManagementService
             throw new LanguageNotFoundException($fallbackLanguageId);
         }
 
-        $this->languageRepository->setFallbackLanguage(
-            $languageId,
-            $fallbackLanguageId
-        );
+        if (
+            !$this->languageRepository->setFallbackLanguage(
+                $languageId,
+                $fallbackLanguageId
+            )
+        ) {
+            throw new LanguageInvalidFallbackException($languageId);
+        }
     }
 
     public function clearFallbackLanguage(int $languageId): void
@@ -130,7 +147,9 @@ final readonly class LanguageManagementService
             throw new LanguageNotFoundException($languageId);
         }
 
-        $this->languageRepository->clearFallbackLanguage($languageId);
+        if(!$this->languageRepository->clearFallbackLanguage($languageId)) {
+            throw new LanguageInvalidFallbackException($languageId);
+        }
     }
 
     public function updateLanguageSortOrder(
@@ -172,10 +191,9 @@ final readonly class LanguageManagementService
             throw new LanguageUpdateFailedException('name');
         }
 
-        $this->languageRepository->updateName(
-            $languageId,
-            $name
-        );
+        if (!$this->languageRepository->updateName($languageId, $name)) {
+            throw new LanguageUpdateFailedException('name');
+        }
     }
 
     public function updateLanguageCode(
@@ -198,9 +216,13 @@ final readonly class LanguageManagementService
             throw new LanguageAlreadyExistsException($code);
         }
 
-        $this->languageRepository->updateCode(
-            $languageId,
-            $code
-        );
+        if (
+            !$this->languageRepository->updateCode(
+                $languageId,
+                $code
+            )
+        ) {
+            throw new LanguageUpdateFailedException('code');
+        }
     }
 }

@@ -53,14 +53,14 @@ final readonly class TranslationReadService
             return null;
         }
 
-        $value = $this->getDirectValue($language->id, $translationKey->id);
+        $value = $this->getValueByLanguageAndKey($language->id, $translationKey->id);
         if ($value !== null) {
             return $value;
         }
 
         // Fallback chain (one level only by design)
         if ($language->fallbackLanguageId !== null) {
-            return $this->getDirectValue(
+            return $this->getValueByLanguageAndKey(
                 $language->fallbackLanguageId,
                 $translationKey->id
             );
@@ -69,7 +69,7 @@ final readonly class TranslationReadService
         return null;
     }
 
-    private function getDirectValue(int $languageId, int $keyId): ?string
+    private function getValueByLanguageAndKey(int $languageId, int $keyId): ?string
     {
         $translation = $this->translationRepository
             ->getByLanguageAndKey($languageId, $keyId);

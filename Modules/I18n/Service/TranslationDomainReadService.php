@@ -19,6 +19,7 @@ use Maatify\I18n\Contract\LanguageRepositoryInterface;
 use Maatify\I18n\Contract\TranslationKeyRepositoryInterface;
 use Maatify\I18n\Contract\TranslationRepositoryInterface;
 use Maatify\I18n\DTO\TranslationDomainValuesDTO;
+use Maatify\I18n\Exception\LanguageNotFoundException;
 
 final readonly class TranslationDomainReadService
 {
@@ -52,7 +53,7 @@ final readonly class TranslationDomainReadService
         // 2) Resolve language
         $language = $this->languageRepository->getByCode($languageCode);
         if ($language === null) {
-            return new TranslationDomainValuesDTO([]);
+            throw new LanguageNotFoundException($languageCode);
         }
 
         // 3) Resolve keys for (scope + domain)

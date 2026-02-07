@@ -146,6 +146,7 @@ final readonly class MysqlDomainRepository implements DomainRepositoryInterface
         SELECT id, code, name, description, is_active, sort_order, created_at
         FROM i18n_domains
         WHERE code IN ($placeholders)
+              AND is_active = 1
         ORDER BY sort_order ASC, code ASC
     ";
 
