@@ -15,9 +15,10 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Infrastructure\Repository\I18n\Keys;
 
+use Maatify\AdminKernel\Domain\I18n\Keys\I18nKeyInterface;
 use PDO;
 
-final readonly class I18nKeyRepository
+final readonly class I18nKeyRepository implements I18nKeyInterface
 {
     public function __construct(private PDO $pdo)
     {
