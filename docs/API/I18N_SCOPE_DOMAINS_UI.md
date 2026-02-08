@@ -216,7 +216,7 @@ window.scopeDetailsCapabilities = {
 
 ### Request Body
 
-*   `domain_code` (string, required, max 64 chars)
+*   `domain_code` (string, required, 1-64 chars)
 
 **Example Request:**
 
@@ -252,3 +252,6 @@ window.scopeDetailsCapabilities = {
 *   [ ] **Never send `sort`** to `/api/i18n/scopes/{scope_id}/domains/query`.
 *   [ ] Treat `is_active` and `assigned` as integers (`0`/`1`).
 *   [ ] Respect `window.scopeDetailsCapabilities` for UI controls.
+
+## Audit Result
+Document corrected to match enforced runtime behavior.
