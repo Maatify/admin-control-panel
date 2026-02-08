@@ -392,6 +392,11 @@ class AdminRoutes
                                     '__invoke'
                                 ]
                             )->setName('i18n.scopes.update_metadata.api');
+
+                            $i18nScopes->post(
+                                    '/{scope_id:[0-9]+}/domains/query',
+                                    \Maatify\AdminKernel\Http\Controllers\Api\I18n\ScopeDomains\I18nScopeDomainsQueryController::class
+                            )->setName('i18n.scopes.domains.query.api');
                         });
 
                         // ─────────────────────────────

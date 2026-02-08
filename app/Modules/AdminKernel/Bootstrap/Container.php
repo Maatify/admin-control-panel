@@ -2525,6 +2525,12 @@ class Container
                 return new I18nKeyRepository($pdo);
             },
 
+            \Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsQueryReaderInterface::class
+            => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\ScopeDomains\PdoI18nScopeDomainsQueryReader($pdo);
+            },
 
         ]);
 
