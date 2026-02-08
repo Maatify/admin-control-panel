@@ -395,3 +395,13 @@ window.i18nScopesCapabilities = {
 *   [ ] Use `position` field when updating sort order.
 *   [ ] Send `is_active` as strict boolean (true/false) in Create/SetActive.
 *   [ ] Refresh list after any modification to reflect server-side ordering.
+
+---
+
+## 🔍 Audit Corrections Summary
+
+*   **Verified:** All endpoints (`query`, `create`, `change-code`, `set-active`, `update-sort`, `update-metadata`) checked against controllers and schemas.
+*   **Verified:** Boolean handling in `create` and `set-active` explicitly enforced via `is_bool` check in controllers.
+*   **Verified:** Filter semantics (global search columns, exact matches) confirmed in `PdoI18nScopesQueryReader`.
+*   **Verified:** Response shapes match controller outputs.
+*   **No Corrections Needed:** The documentation was accurate to the implementation.
