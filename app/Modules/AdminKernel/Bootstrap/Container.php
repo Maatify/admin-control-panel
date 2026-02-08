@@ -97,17 +97,17 @@ use Maatify\AdminKernel\Http\Controllers\AdminNotificationReadController;
 use Maatify\AdminKernel\Http\Controllers\Api\Admin\AdminController;
 use Maatify\AdminKernel\Http\Controllers\Api\Admin\AdminEmailVerificationController;
 use Maatify\AdminKernel\Http\Controllers\Api\Admin\AdminQueryController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesClearFallbackController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesCreateController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesSetActiveController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesSetFallbackController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesUpdateCodeController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesUpdateNameController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesUpdateSettingsController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesUpdateSortOrderController;
 use Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationKeysCreateController;
 use Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationKeysUpdateDescriptionController;
 use Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationKeysUpdateNameController;
-use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesClearFallbackController;
-use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesCreateController;
-use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesSetActiveController;
-use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesSetFallbackController;
-use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesUpdateCodeController;
-use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesUpdateNameController;
-use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesUpdateSettingsController;
-use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesUpdateSortOrderController;
 use Maatify\AdminKernel\Http\Controllers\Api\Permissions\PermissionMetadataUpdateController;
 use Maatify\AdminKernel\Http\Controllers\Api\Permissions\PermissionsController;
 use Maatify\AdminKernel\Http\Controllers\Api\Roles\RoleCreateController;
@@ -151,8 +151,6 @@ use Maatify\AdminKernel\Infrastructure\Database\PDOFactory;
 use Maatify\AdminKernel\Infrastructure\Notification\TelegramHandler;
 use Maatify\AdminKernel\Infrastructure\Query\ListFilterResolver;
 use Maatify\AdminKernel\Infrastructure\Reader\Admin\PdoAdminQueryReader;
-use Maatify\AdminKernel\Infrastructure\Reader\I18n\PdoLanguageQueryReader;
-use Maatify\AdminKernel\Infrastructure\Reader\I18n\PdoTranslationKeyQueryReader;
 use Maatify\AdminKernel\Infrastructure\Reader\PDOPermissionsReaderRepository;
 use Maatify\AdminKernel\Infrastructure\Reader\PDORolesReaderRepository;
 use Maatify\AdminKernel\Infrastructure\Reader\Session\PdoSessionListReader;
@@ -164,6 +162,10 @@ use Maatify\AdminKernel\Infrastructure\Repository\AdminRoleRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\AdminSessionRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\AdminTotpSecretRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\FailedNotificationRepository;
+use Maatify\AdminKernel\Infrastructure\Repository\I18n\Domains\PdoI18nDomainCreate;
+use Maatify\AdminKernel\Infrastructure\Repository\I18n\Domains\PdoI18nDomainsQueryReader;
+use Maatify\AdminKernel\Infrastructure\Repository\I18n\Languages\PdoLanguageQueryReader;
+use Maatify\AdminKernel\Infrastructure\Repository\I18n\PdoTranslationKeyQueryReader;
 use Maatify\AdminKernel\Infrastructure\Repository\NotificationReadRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\PdoAdminDirectPermissionRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\PdoAdminNotificationHistoryReader;
@@ -2357,7 +2359,7 @@ class Container
                 $pdo = $c->get(\PDO::class);
                 \assert($pdo instanceof \PDO);
 
-                return new \Maatify\AdminKernel\Infrastructure\Reader\I18n\PdoTranslationValueQueryReader($pdo);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\PdoTranslationValueQueryReader($pdo);
             },
 
             \Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationValueUpsertController::class => function (\Psr\Container\ContainerInterface $c) {
@@ -2395,13 +2397,19 @@ class Container
             \Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopesQueryReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
-                return new \Maatify\AdminKernel\Infrastructure\Reader\I18n\PdoI18nScopesQueryReader($pdo);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Scope\PdoI18nScopesQueryReader($pdo);
+            },
+
+            \Maatify\AdminKernel\Domain\I18n\Scope\Writer\I18nScopeUpdaterInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Scope\PdoI18nScopeUpdater($pdo);
             },
 
             \Maatify\AdminKernel\Domain\I18n\Scope\Writer\I18nScopeCreateWriterInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
-                return new \Maatify\AdminKernel\Infrastructure\Writer\I18n\PdoI18nScopeCreateWriter($pdo);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Scope\PdoI18nScopeCreateWriter($pdo);
             },
 
             \Maatify\AdminKernel\Domain\AppSettings\Reader\AppSettingsQueryReaderInterface::class => function (ContainerInterface $c) {
@@ -2463,11 +2471,36 @@ class Container
                 return new \Maatify\I18n\Infrastructure\Mysql\MysqlDomainRepository($pdo);
             },
 
-            \Maatify\AdminKernel\Domain\I18n\Scope\Writer\I18nScopeChangeCodeWriterInterface::class
+            \Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopesListUiController::class
             => function (ContainerInterface $c) {
+                $twig = $c->get(Twig::class);
+                $authorization = $c->get(AuthorizationService::class);
+
+                assert($twig instanceof Twig);
+                assert($authorization instanceof AuthorizationService);
+
+                return new \Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopesListUiController(
+                    $twig,
+                    $authorization
+                );
+            },
+
+            \Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainsQueryReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
-                return new \Maatify\AdminKernel\Infrastructure\Writer\I18n\PdoI18nScopeChangeCodeWriter($pdo);
+                return new PdoI18nDomainsQueryReader($pdo);
+            },
+
+            \Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainCreateInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new PdoI18nDomainCreate($pdo);
+            },
+
+            \Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainUpdaterInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Domains\PdoI18nDomainUpdater($pdo);
             },
 
 

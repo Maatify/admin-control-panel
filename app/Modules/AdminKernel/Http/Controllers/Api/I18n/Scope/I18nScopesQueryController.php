@@ -5,7 +5,7 @@
  * @Library     maatify/admin-control-panel
  * @Project     maatify:admin-control-panel
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
- * @since       2026-02-04 14:32
+ * @since       2026-02-07 12:35
  * @see         https://www.maatify.dev Maatify.dev
  * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
  * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
@@ -13,21 +13,21 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Controllers\Api\I18n;
+namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\Scope;
 
-use Maatify\AdminKernel\Domain\I18n\Reader\TranslationValueQueryReaderInterface;
+use Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopesQueryReaderInterface;
+use Maatify\AdminKernel\Domain\List\I18nScopesListCapabilities;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
-use Maatify\AdminKernel\Domain\List\TranslationValueListCapabilities;
 use Maatify\AdminKernel\Infrastructure\Query\ListFilterResolver;
-use Maatify\AdminKernel\Validation\Schemas\I18n\TranslationValue\TranslationValuesQuerySchema;
 use Maatify\Validation\Guard\ValidationGuard;
+use Maatify\Validation\Schemas\SharedListQuerySchema;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-final readonly class TranslationValuesQueryController
+final readonly class I18nScopesQueryController
 {
     public function __construct(
-        private TranslationValueQueryReaderInterface $reader,
+        private I18nScopesQueryReaderInterface $reader,
         private ValidationGuard $validationGuard,
         private ListFilterResolver $filterResolver
     ) {
@@ -38,19 +38,11 @@ final readonly class TranslationValuesQueryController
         /** @var array<string,mixed> $body */
         $body = (array)$request->getParsedBody();
 
-        // 1) Validate request shape (language_id + list query payload)
-        $this->validationGuard->check(new TranslationValuesQuerySchema(), $body);
-
-        // 2) Explicit type narrowing (phpstan-safe)
-        $languageId = $body['language_id'] ?? null;
-        if (!is_int($languageId)) {
-            // Defensive guard – should never happen after validation
-            throw new \RuntimeException('Invalid validated payload.');
-        }
+        // 1) Validate request shape
+        $this->validationGuard->check(new SharedListQuerySchema(), $body);
 
         /**
          * @var array{
-         *   language_id: int,
          *   page?: int,
          *   per_page?: int,
          *   search?: array{
@@ -65,24 +57,23 @@ final readonly class TranslationValuesQueryController
          */
         $validated = $body;
 
-        // 3) Build canonical ListQueryDTO
+        // 2) Build canonical ListQueryDTO
         $query = ListQueryDTO::fromArray($validated);
 
-        // 4) Capabilities
-        $capabilities = TranslationValueListCapabilities::define();
+        // 3) Capabilities
+        $capabilities = I18nScopesListCapabilities::define();
 
-        // 5) Resolve filters
+        // 4) Resolve filters
         $filters = $this->filterResolver->resolve($query, $capabilities);
 
-        // 6) Execute reader
-        $result = $this->reader->queryTranslationValues($languageId, $query, $filters);
+        // 5) Execute reader
+        $result = $this->reader->queryI18nScopes($query, $filters);
 
-        // 7) Return JSON
-        $response->getBody()->write(\json_encode($result, JSON_THROW_ON_ERROR));
+        // 6) Return JSON
+        $response->getBody()->write(json_encode($result, JSON_THROW_ON_ERROR));
 
-        return $response
-            ->withHeader('Content-Type', 'application/json')
-            ->withStatus(200);
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     }
 }
+
 

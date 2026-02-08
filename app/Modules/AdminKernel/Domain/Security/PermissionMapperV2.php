@@ -78,9 +78,22 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'i18n.translations.list.api' => 'i18n.translations.list',
 
         // I18n Scopes Control
+        'i18n.scopes.list.ui' => 'i18n.scopes.list',
         'i18n.scopes.list.api' => 'i18n.scopes.list',
         'i18n.scopes.create.api' => 'i18n.scopes.create',
-        'i18n.scopes.update.api' => 'i18n.scopes.update',
+        'i18n.scopes.change_code.api' => 'i18n.scopes.change_code',
+        'i18n.scopes.set_active.api' => 'i18n.scopes.set_active',
+        'i18n.scopes.update_sort.api' => 'i18n.scopes.update_sort',
+        'i18n.scopes.update_metadata.api' => 'i18n.scopes.update_metadata',
+
+        // I18n Domains Control
+        'i18n.domains.list.ui' => 'i18n.domains.list',
+        'i18n.domains.list.api' => 'i18n.domains.list',
+        'i18n.domains.create.api' => 'i18n.domains.create',
+        'i18n.domains.change_code.api' => 'i18n.domains.change_code',
+        'i18n.domains.set_active.api' => 'i18n.domains.set_active',
+        'i18n.domains.update_sort.api' => 'i18n.domains.update_sort',
+        'i18n.domains.update_metadata.api' => 'i18n.domains.update_metadata',
 
         // App Settings Control
         'app_settings.list.api' => 'app_settings.list',

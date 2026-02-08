@@ -8,19 +8,19 @@ use Maatify\AdminKernel\Http\Controllers\AdminNotificationPreferenceController;
 use Maatify\AdminKernel\Http\Controllers\Api\Admin\AdminController;
 use Maatify\AdminKernel\Http\Controllers\Api\Admin\AdminEmailVerificationController;
 use Maatify\AdminKernel\Http\Controllers\Api\Admin\AdminQueryController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesClearFallbackController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesCreateController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesQueryController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesSetActiveController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesSetFallbackController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesUpdateCodeController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesUpdateNameController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesUpdateSettingsController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesUpdateSortOrderController;
 use Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationKeysCreateController;
 use Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationKeysQueryController;
 use Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationKeysUpdateDescriptionController;
 use Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationKeysUpdateNameController;
-use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesClearFallbackController;
-use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesCreateController;
-use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesQueryController;
-use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesSetActiveController;
-use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesSetFallbackController;
-use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesUpdateCodeController;
-use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesUpdateNameController;
-use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesUpdateSettingsController;
-use Maatify\AdminKernel\Http\Controllers\Api\Languages\LanguagesUpdateSortOrderController;
 use Maatify\AdminKernel\Http\Controllers\AuthController;
 use Maatify\AdminKernel\Http\Controllers\NotificationQueryController;
 use Maatify\AdminKernel\Http\Controllers\Ui\I18n\TranslationKeysListController;
@@ -226,6 +226,20 @@ class AdminRoutes
                         ->setName('languages.list.ui')
                         ->add(AuthorizationGuardMiddleware::class);
 
+                    $protectedGroup->get(
+                        '/i18n/scopes',
+                        [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopesListUiController::class, '__invoke']
+                    )
+                        ->setName('i18n.scopes.list.ui')
+                        ->add(AuthorizationGuardMiddleware::class);
+
+                    $protectedGroup->get(
+                        '/i18n/domains',
+                        [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\DomainsListUiController::class, '__invoke']
+                    )
+                        ->setName('i18n.domains.list.ui')
+                        ->add(AuthorizationGuardMiddleware::class);
+
                     $protectedGroup->get('/i18n/keys', [TranslationKeysListController::class, '__invoke'])
                         ->setName('i18n.keys.list.ui')
                         ->add(AuthorizationGuardMiddleware::class);
@@ -315,9 +329,121 @@ class AdminRoutes
                     });
 
                     // ─────────────────────────────
-                    // i18n Keys Control
+                    // i18n Root Control
                     // ─────────────────────────────
                     $group->group('/i18n', function (RouteCollectorProxyInterface $i18n) {
+
+                        // ─────────────────────────────
+                        // i18n Scope Control
+                        // ─────────────────────────────
+                        $i18n->group('/scopes', function (RouteCollectorProxyInterface $i18nScopes) {
+                            $i18nScopes->post(
+                                '/query',
+                                [
+                                    \Maatify\AdminKernel\Http\Controllers\Api\I18n\Scope\I18nScopesQueryController::class,
+                                    '__invoke'
+                                ]
+                            )
+                                ->setName('i18n.scopes.list.api');
+
+                            $i18nScopes->post(
+                                '/create',
+                                [
+                                    \Maatify\AdminKernel\Http\Controllers\Api\I18n\Scope\I18nScopeCreateController::class,
+                                    '__invoke'
+                                ]
+                            )->setName('i18n.scopes.create.api');
+
+                            $i18nScopes->post(
+                                '/change-code',
+                                [
+                                    \Maatify\AdminKernel\Http\Controllers\Api\I18n\Scope\I18nScopeChangeCodeController::class,
+                                    '__invoke'
+                                ]
+                            )->setName('i18n.scopes.change_code.api');
+
+                            $i18nScopes->post(
+                                '/set-active',
+                                [
+                                    \Maatify\AdminKernel\Http\Controllers\Api\I18n\Scope\I18nScopeSetActiveController::class,
+                                    '__invoke'
+                                ]
+                            )->setName('i18n.scopes.set_active.api');
+
+                            $i18nScopes->post(
+                                '/update-sort',
+                                [
+                                    \Maatify\AdminKernel\Http\Controllers\Api\I18n\Scope\I18nScopeUpdateSortController::class,
+                                    '__invoke'
+                                ]
+                            )->setName('i18n.scopes.update_sort.api');
+
+                            $i18nScopes->post(
+                                '/update-metadata',
+                                [
+                                    \Maatify\AdminKernel\Http\Controllers\Api\I18n\Scope\I18nScopeUpdateMetadataController::class,
+                                    '__invoke'
+                                ]
+                            )->setName('i18n.scopes.update_metadata.api');
+                        });
+
+                        // ─────────────────────────────
+                        // i18n Domains Control
+                        // ─────────────────────────────
+                        $i18n->group('/domains', function (RouteCollectorProxyInterface $i18nDomains) {
+                            $i18nDomains->post(
+                                '/query',
+                                [
+                                    \Maatify\AdminKernel\Http\Controllers\Api\I18n\Domains\I18nDomainsQueryController::class,
+                                    '__invoke'
+                                ]
+                            )
+                                ->setName('i18n.domains.list.api');
+
+                            $i18nDomains->post(
+                                '/create',
+                                [
+                                    \Maatify\AdminKernel\Http\Controllers\Api\I18n\Domains\I18nDomainCreateController::class,
+                                    '__invoke'
+                                ]
+                            )->setName('i18n.domains.create.api');
+
+                            $i18nDomains->post(
+                                '/change-code',
+                                [
+                                    \Maatify\AdminKernel\Http\Controllers\Api\I18n\Domains\I18nDomainChangeCodeController::class,
+                                    '__invoke'
+                                ]
+                            )->setName('i18n.domains.change_code.api');
+
+                            $i18nDomains->post(
+                                '/set-active',
+                                [
+                                    \Maatify\AdminKernel\Http\Controllers\Api\I18n\Domains\I18nDomainSetActiveController::class,
+                                    '__invoke'
+                                ]
+                            )->setName('i18n.domains.set_active.api');
+
+                            $i18nDomains->post(
+                                '/update-sort',
+                                [
+                                    \Maatify\AdminKernel\Http\Controllers\Api\I18n\Domains\I18nScopeDomainSortController::class,
+                                    '__invoke'
+                                ]
+                            )->setName('i18n.domains.update_sort.api');
+
+                            $i18nDomains->post(
+                                '/update-metadata',
+                                [
+                                    \Maatify\AdminKernel\Http\Controllers\Api\I18n\Domains\I18nDomainUpdateMetadataController::class,
+                                    '__invoke'
+                                ]
+                            )->setName('i18n.domains.update_metadata.api');
+                        });
+
+                        // ─────────────────────────────
+                        // i18n Keys Control
+                        // ─────────────────────────────
                         $i18n->group('/keys', function (RouteCollectorProxyInterface $keys) {
                             $keys->post('/query', [TranslationKeysQueryController::class, '__invoke'])
                                 ->setName('i18n.keys.list.api');
@@ -332,6 +458,9 @@ class AdminRoutes
                                 ->setName('i18n.keys.update.description.api');
                         });
 
+                        // ─────────────────────────────
+                        // i18n translations Control
+                        // ─────────────────────────────
                         $i18n->group('/translations', function (\Slim\Interfaces\RouteCollectorProxyInterface $translations) {
                             $translations->post('/query', [\Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationValuesQueryController::class, '__invoke'])
                                 ->setName('i18n.translations.list.api');
@@ -342,36 +471,6 @@ class AdminRoutes
                             $translations->post('/delete', [\Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationValueDeleteController::class, '__invoke'])
                                 ->setName('i18n.translations.delete.api');
                         });
-                    });
-
-                    // ─────────────────────────────
-                    // I18n Scopes Control
-                    // ─────────────────────────────
-                    $group->group('/i18n/scopes', function (RouteCollectorProxyInterface $i18nScopes) {
-                        $i18nScopes->post(
-                            '/query',
-                            [
-                                \Maatify\AdminKernel\Http\Controllers\Api\I18nScopesQueryController::class,
-                                '__invoke'
-                            ]
-                        )
-                            ->setName('i18n.scopes.list.api');
-
-                        $i18nScopes->post(
-                            '/create',
-                            [
-                                \Maatify\AdminKernel\Http\Controllers\Api\I18nScopeCreateController::class,
-                                '__invoke'
-                            ]
-                        )->setName('i18n.scopes.create.api');
-
-                        $i18nScopes->post(
-                            '/change-code',
-                            [
-                                \Maatify\AdminKernel\Http\Controllers\Api\I18nScopeChangeCodeController::class,
-                                '__invoke'
-                            ]
-                        )->setName('i18n.scopes.change_code.api');
                     });
 
                     // ─────────────────────────────

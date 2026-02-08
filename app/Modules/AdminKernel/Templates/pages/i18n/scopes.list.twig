@@ -1,0 +1,69 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}
+    I18n Scopes | {{ ui.appName }}
+{% endblock %}
+
+{% block content %}
+    <!-- Header -->
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <h2 class="text-xl font-semibold text-gray-800">I18n Scopes</h2>
+
+        <nav>
+            <ol class="flex items-center gap-1.5">
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500"
+                       href="{{ ui.adminUrl }}dashboard">
+                        Home
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                  stroke-width="1.2"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+                <li class="text-sm text-gray-800">I18n</li>
+                <li class="text-sm text-gray-800">Scopes</li>
+            </ol>
+        </nav>
+    </div>
+
+    {# ============================================================
+       🔐 Capabilities Injection (LOCKED UI CONTRACT)
+       ------------------------------------------------------------
+       - Permissions resolved server-side
+       - Twig NEVER checks permission names
+       - JS NEVER infers authorization
+       ============================================================ #}
+
+    <script>
+        window.i18nScopesCapabilities = {
+            can_create      : {{ capabilities.can_create ? 'true' : 'false' }},
+            can_update      : {{ capabilities.can_update ? 'true' : 'false' }},
+            can_change_code : {{ capabilities.can_change_code ? 'true' : 'false' }},
+            can_set_active  : {{ capabilities.can_set_active ? 'true' : 'false' }},
+            can_update_sort : {{ capabilities.can_update_sort ? 'true' : 'false' }},
+            can_update_meta : {{ capabilities.can_update_meta ? 'true' : 'false' }},
+        };
+
+        console.log('🔐 I18n Scopes Capabilities:', window.i18nScopesCapabilities);
+    </script>
+
+    <!-- Body placeholder -->
+    <div class="px-0 py-2">
+        <div class="container mt-6">
+            <div id="i18n-scopes-table-container" class="w-full"></div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/api_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/callback_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/Input_checker.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/data_table.js') }}"></script>
+
+    {# لاحقًا #}
+    {# <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n_scopes_list.js') }}"></script> #}
+{% endblock %}
