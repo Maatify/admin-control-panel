@@ -45,6 +45,7 @@
             can_set_active  : {{ capabilities.can_set_active ? 'true' : 'false' }},
             can_update_sort : {{ capabilities.can_update_sort ? 'true' : 'false' }},
             can_update_meta : {{ capabilities.can_update_meta ? 'true' : 'false' }},
+            can_view_scope_details : {{ capabilities.can_view_scope_details ? 'true' : 'false' }},
         };
 
         console.log('🔐 I18n Scopes Capabilities:', window.i18nScopesCapabilities);
