@@ -1,4 +1,4 @@
-# ⚙️ App Settings Management — UI & API Integration Guide
+# 🌍 App Settings Management — UI & API Integration Guide
 
 **Project:** `maatify/admin-control-panel`
 **Module:** `AdminKernel / AppSettings`
@@ -31,7 +31,7 @@ You must understand the difference between the **UI Page** and the **API**:
     *   It returns `text/html`.
     *   Do not call this from JavaScript fetch/axios.
 
-*   **`POST /api/app-settings/*`**
+*   **`POST /app-settings/*`**
     *   ✅ **These ARE the APIs.**
     *   They return `application/json` (or empty 200).
     *   All programmatic interaction happens here.
@@ -56,7 +56,7 @@ Twig Controller
 
 JavaScript
   ├─ DataTable (query + pagination)
-  ├─ Modals (create, update)
+  ├─ Modals (create, update settings)
   └─ Actions (toggle active)
 
 API (authoritative)
@@ -83,50 +83,43 @@ $capabilities = [
 
 ### 2.2 Capability → UI Behavior Mapping
 
-| Capability       | UI Responsibility                       |
-|------------------|-----------------------------------------|
-| `can_create`     | Show/hide **Create App Setting** button |
-| `can_update`     | Enable/disable **edit** actions         |
-| `can_set_active` | Enable/disable **active toggle**        |
+| Capability       | UI Responsibility                                      |
+|------------------|--------------------------------------------------------|
+| `can_create`     | Show/hide **Create Setting** button                    |
+| `can_update`     | Enable/disable **edit** functionality                  |
+| `can_set_active` | Enable/disable **active toggle**                       |
 
 ---
 
 ## 3) List App Settings (table)
 
-**Endpoint:** `POST /api/app-settings/query`
+**Endpoint:** `POST /app-settings/query`
 **Capability:** Available by default for authenticated admins.
 
-### Request Payload
+### Request — Specifics
 
-| Field            | Type   | Required | Description                                     |
-|:-----------------|:-------|:---------|:------------------------------------------------|
-| `page`           | int    | Optional | Page number (default: 1)                        |
-| `per_page`       | int    | Optional | Records per page (default: 25, max: 100)        |
-| `search`         | object | Optional | Search criteria wrapper                         |
-| `search.global`  | string | Optional | Free-text search (matches group, key, or value) |
-| `search.columns` | object | Optional | Key-value pairs for column filters              |
+*   **Global Search:** Free-text search applied on top of column filters. Matches against **group, key, OR value**.
+*   **Sorting:** ⚠️ **SERVER-CONTROLLED**.
+    *   `setting_group ASC, setting_key ASC, id ASC`
+    *   Clients **MUST NOT** send `sort` parameters.
 
-### Sorting Rule
-*   ⚠️ **SERVER-CONTROLLED**: `setting_group ASC, setting_key ASC, id ASC`.
-*   Clients **MUST NOT** send `sort` parameters.
+### Request Body
 
-### Supported Column Filters (`search.columns`)
+| Field      | Type   | Required | Description                                      |
+|------------|--------|----------|--------------------------------------------------|
+| `page`     | int    | Optional | Page number (default: 1)                         |
+| `per_page` | int    | Optional | Items per page (default: 25)                     |
+| `search`   | object | Optional | Search object (`global` + `columns`)             |
+| `date`     | object | Optional | Date filter (`from` + `to`) - **NOT SUPPORTED**  |
 
-| Alias           | Type   | Example | Semantics         |
-|-----------------|--------|---------|-------------------|
-| `id`            | string | `"1"`   | exact match       |
-| `setting_group` | string | `"sys"` | exact match       |
-| `setting_key`   | string | `"ver"` | `LIKE %value%`    |
-| `is_active`     | string | `"1"`   | cast to int (1/0) |
-
-### Example Request
+**Example Request:**
 
 ```json
 {
   "page": 1,
   "per_page": 25,
   "search": {
-    "global": "config",
+    "global": "social",
     "columns": {
       "is_active": "1"
     }
@@ -134,16 +127,25 @@ $capabilities = [
 }
 ```
 
-### Success Response
+### Supported Column Filters (`search.columns`)
+
+| Alias           | Type   | Example    | Semantics         |
+|-----------------|--------|------------|-------------------|
+| `id`            | string | `"1"`      | exact match       |
+| `setting_group` | string | `"social"` | exact match       |
+| `setting_key`   | string | `"face"`   | `LIKE %value%`    |
+| `is_active`     | string | `"1"`      | cast to int (1/0) |
+
+### Response Model
 
 ```json
 {
   "data": [
     {
       "id": 1,
-      "setting_group": "system",
-      "setting_key": "version",
-      "setting_value": "1.0.0",
+      "setting_group": "social",
+      "setting_key": "facebook_url",
+      "setting_value": "https://facebook.com/maatify",
       "is_active": 1
     }
   ],
@@ -161,50 +163,54 @@ $capabilities = [
 *   `filtered`: total records after applying `search.global` and/or `search.columns`
 *   When no filters are applied, `filtered` MAY equal `total`.
 
-### Error Response Example (422 Invalid Filter)
+### Error Responses
+
+*   `422 Unprocessable Entity`: Invalid filter format or types.
+
+**Example Error Response:**
 
 ```json
 {
-  "success": false,
-  "error": {
-    "code": 422,
-    "type": "VALIDATION_FAILED",
-    "details": {
-      "search": "INVALID_VALUE"
-    }
+  "error": "Invalid request payload",
+  "errors": {
+    "page": "must be an integer"
   }
 }
 ```
 
 ---
 
-## 4) Metadata (Critical Dependency)
+## 4) Metadata (Pre-Create Dependency)
 
-**Endpoint:** `POST /api/app-settings/metadata`
-**Capability:** Available by default for authenticated admins.
+**Endpoint:** `POST /app-settings/metadata`
+**Capability:** `can_create` (Derived dependency)
 
-> ⚠️ **CRITICAL DEPENDENCY:**
-> The UI **MUST** call this endpoint **before** rendering the **Create App Setting** form.
-> It defines the allowed Groups and Keys that can be created.
+### ⚠️ CRITICAL DEPENDENCY
 
-### Request Payload
+The **Create App Setting** UI **MUST** call this endpoint before rendering the creation form.
+It defines:
+*   Allowed setting groups (whitelist).
+*   Which keys are protected.
+*   Which keys allow wildcard usage.
 
-| Field | Type | Required | Description                                       |
-|:------|:-----|:---------|:--------------------------------------------------|
-| -     | -    | -        | No payload required. Send empty JSON object `{}`. |
+### Request Body
 
-### Success Response
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| -     | -    | -        | Empty JSON object `{}` |
+
+### Response Model
 
 ```json
 {
   "groups": [
     {
-      "name": "system",
-      "label": "System",
+      "name": "social",
+      "label": "Social",
       "keys": [
         {
-          "key": "version",
-          "protected": true,
+          "key": "facebook_url",
+          "protected": false,
           "wildcard": false
         },
         {
@@ -213,20 +219,32 @@ $capabilities = [
           "wildcard": true
         }
       ]
+    },
+    {
+      "name": "system",
+      "label": "System",
+      "keys": [
+        {
+          "key": "base_url",
+          "protected": true,
+          "wildcard": false
+        }
+      ]
     }
   ]
 }
 ```
 
-### Error Response Example (401 Unauthorized)
+### Error Responses
+
+*   `403 Forbidden`: If user lacks permissions.
+
+**Example Error Response:**
 
 ```json
 {
-  "success": false,
-  "error": {
-    "code": 401,
-    "type": "UNAUTHORIZED"
-  }
+  "message": "Access Denied",
+  "code": "FORBIDDEN"
 }
 ```
 
@@ -234,25 +252,32 @@ $capabilities = [
 
 ## 5) Create App Setting
 
-**Endpoint:** `POST /api/app-settings/create`
+**Endpoint:** `POST /app-settings/create`
 **Capability:** `can_create`
 
-### Request Payload
+### Request Body
 
-| Field           | Type   | Required | Description                                                                             |
-|:----------------|:-------|:---------|:----------------------------------------------------------------------------------------|
-| `setting_group` | string | **Yes**  | 1-64 characters. Must match a valid group from Metadata.                                |
-| `setting_key`   | string | **Yes**  | 1-64 characters. Must match a valid key from Metadata (or any key if wildcard allowed). |
-| `setting_value` | string | **Yes**  | The value to store. At least 1 character.                                               |
-| `is_active`     | bool   | No       | Defaults to `true` if omitted.                                                          |
+| Field           | Type   | Required | Description                                      |
+|-----------------|--------|----------|--------------------------------------------------|
+| `setting_group` | string | **Yes**  | Group name (must be whitelisted in Metadata).    |
+| `setting_key`   | string | **Yes**  | Key name (must be valid for group).              |
+| `setting_value` | string | **Yes**  | Value content.                                   |
+| `is_active`     | bool   | No       | Active status (default: true).                   |
 
-### Example Request
+### Validation Rules
+
+*   `setting_group`: Length 1-64.
+*   `setting_key`: Length 1-64.
+*   `setting_value`: Min length 1.
+*   **Business Rule:** Group/Key must exist in Metadata whitelist.
+
+**Example Request:**
 
 ```json
 {
-  "setting_group": "system",
-  "setting_key": "maintenance_mode",
-  "setting_value": "off",
+  "setting_group": "social",
+  "setting_key": "instagram_url",
+  "setting_value": "https://instagram.com/maatify",
   "is_active": true
 }
 ```
@@ -265,17 +290,18 @@ $capabilities = [
 }
 ```
 
-### Error Response Example (422 Missing Field)
+### Error Responses
+
+*   `422 Unprocessable Entity`: Validation failure.
+*   `400 Bad Request`: Domain exception (e.g. Setting already exists).
+
+**Example Error Response:**
 
 ```json
 {
-  "success": false,
-  "error": {
-    "code": 422,
-    "type": "VALIDATION_FAILED",
-    "details": {
-      "setting_key": "REQUIRED_FIELD"
-    }
+  "error": "Invalid request payload",
+  "errors": {
+    "setting_group": "Length must be between 1 and 64"
   }
 }
 ```
@@ -284,24 +310,32 @@ $capabilities = [
 
 ## 6) Update App Setting
 
-**Endpoint:** `POST /api/app-settings/update`
+**Endpoint:** `POST /app-settings/update`
 **Capability:** `can_update`
 
-### Request Payload
+### Request Body
 
-| Field           | Type   | Required | Description      |
-|:----------------|:-------|:---------|:-----------------|
-| `setting_group` | string | **Yes**  | 1-64 characters. |
-| `setting_key`   | string | **Yes**  | 1-64 characters. |
-| `setting_value` | string | **Yes**  | The new value.   |
+| Field           | Type   | Required | Description                                      |
+|-----------------|--------|----------|--------------------------------------------------|
+| `setting_group` | string | **Yes**  | Group identifier.                                |
+| `setting_key`   | string | **Yes**  | Key identifier.                                  |
+| `setting_value` | string | **Yes**  | New value content.                               |
 
-### Example Request
+> **Note:** The update is keyed by `(group, key)`, NOT by `id`.
+
+### Validation Rules
+
+*   `setting_group`: Length 1-64.
+*   `setting_key`: Length 1-64.
+*   `setting_value`: Required string.
+
+**Example Request:**
 
 ```json
 {
-  "setting_group": "system",
-  "setting_key": "maintenance_mode",
-  "setting_value": "on"
+  "setting_group": "social",
+  "setting_key": "instagram_url",
+  "setting_value": "https://instagram.com/new_maatify"
 }
 ```
 
@@ -313,39 +347,49 @@ $capabilities = [
 }
 ```
 
-### Error Response Example (403 Forbidden)
+### Error Responses
+
+*   `404 Not Found`: If the setting `(group, key)` does not exist.
+*   `422 Unprocessable Entity`: Validation failure.
+
+**Example Error Response:**
 
 ```json
 {
-  "success": false,
-  "error": {
-    "code": 403,
-    "type": "INSUFFICIENT_PERMISSIONS"
-  }
+  "message": "App Setting not found",
+  "code": "NOT_FOUND"
 }
 ```
 
 ---
 
-## 7) Set Active
+## 7) Toggle Active
 
-**Endpoint:** `POST /api/app-settings/set-active`
+**Endpoint:** `POST /app-settings/set-active`
 **Capability:** `can_set_active`
 
-### Request Payload
+### Request Body
 
-| Field           | Type   | Required | Description                           |
-|:----------------|:-------|:---------|:--------------------------------------|
-| `setting_group` | string | **Yes**  | 1-64 characters.                      |
-| `setting_key`   | string | **Yes**  | 1-64 characters.                      |
-| `is_active`     | bool   | **Yes**  | `true` to enable, `false` to disable. |
+| Field           | Type   | Required | Description                                      |
+|-----------------|--------|----------|--------------------------------------------------|
+| `setting_group` | string | **Yes**  | Group identifier.                                |
+| `setting_key`   | string | **Yes**  | Key identifier.                                  |
+| `is_active`     | bool   | **Yes**  | New active status.                               |
 
-### Example Request
+> **Note:** The toggle is keyed by `(group, key)`, NOT by `id`.
+
+### Validation Rules
+
+*   `setting_group`: Length 1-64.
+*   `setting_key`: Length 1-64.
+*   `is_active`: Must be boolean.
+
+**Example Request:**
 
 ```json
 {
-  "setting_group": "system",
-  "setting_key": "maintenance_mode",
+  "setting_group": "social",
+  "setting_key": "instagram_url",
   "is_active": false
 }
 ```
@@ -358,17 +402,18 @@ $capabilities = [
 }
 ```
 
-### Error Response Example (422 Type Mismatch)
+### Error Responses
+
+*   `404 Not Found`: If the setting `(group, key)` does not exist.
+*   `422 Unprocessable Entity`: Validation failure.
+
+**Example Error Response:**
 
 ```json
 {
-  "success": false,
-  "error": {
-    "code": 422,
-    "type": "VALIDATION_FAILED",
-    "details": {
-      "is_active": "INVALID_TYPE"
-    }
+  "error": "Invalid request payload",
+  "errors": {
+    "is_active": "must be a boolean"
   }
 }
 ```
@@ -377,7 +422,7 @@ $capabilities = [
 
 ## 8) Implementation Checklist (App Settings Specific)
 
-*   [ ] **Never send `sort`** to `/api/app-settings/query`.
-*   [ ] Fetch **Metadata** before opening the Create Modal.
-*   [ ] Use Metadata to validate/populate Group and Key dropdowns/inputs.
-*   [ ] Update requires Group and Key to identify the record (Composite Key).
+*   [ ] **Never send `sort`** to `/app-settings/query`.
+*   [ ] Fetch **Metadata** before showing the Create Modal.
+*   [ ] Use `(group, key)` composite key for Update/Toggle, not `id`.
+*   [ ] Respect `protected` flag in Metadata (prevent edit/toggle if true).

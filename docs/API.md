@@ -42,8 +42,8 @@ Documentation is split by logical domain.
 
 | Document                                           | Scope                                                 |
 |:---------------------------------------------------|:------------------------------------------------------|
-| **[SYSTEM_TELEMETRY.md](API/SYSTEM_TELEMETRY.md)** | Notifications, Preferences, Telemetry, Health Checks. |
 | **[APP_SETTINGS_UI.md](API/APP_SETTINGS_UI.md)**   | App Settings Management (UI + API).                   |
+| **[SYSTEM_TELEMETRY.md](API/SYSTEM_TELEMETRY.md)** | Notifications, Preferences, Telemetry, Health Checks. |
 
 ---
 
