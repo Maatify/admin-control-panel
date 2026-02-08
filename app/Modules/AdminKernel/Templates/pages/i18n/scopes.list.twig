@@ -1,70 +1,221 @@
 {% extends "layouts/base.twig" %}
 
-{% block title %}
-    I18n Scopes | {{ ui.appName }}
-{% endblock %}
+{% block title %}I18n Scopes | {{ ui.appName }}{% endblock %}
 
 {% block content %}
-    <!-- Header -->
-    <div class="flex flex-wrap items-center justify-between gap-3">
-        <h2 class="text-xl font-semibold text-gray-800">I18n Scopes</h2>
+
+    {# ===================================================================
+       Capabilities Injection
+       Computed server-side. JS reads window.i18nScopesCapabilities.
+       =================================================================== #}
+    <script>
+        window.i18nScopesCapabilities = {
+            can_create:             {{ capabilities.can_create             ?? false ? 'true' : 'false' }},
+            can_update:             {{ capabilities.can_update             ?? false ? 'true' : 'false' }},
+            can_change_code:        {{ capabilities.can_change_code        ?? false ? 'true' : 'false' }},
+            can_set_active:         {{ capabilities.can_set_active         ?? false ? 'true' : 'false' }},
+            can_update_sort:        {{ capabilities.can_update_sort        ?? false ? 'true' : 'false' }},
+            can_update_meta:        {{ capabilities.can_update_meta        ?? false ? 'true' : 'false' }},
+            can_view_scope_details: {{ capabilities.can_view_scope_details ?? false ? 'true' : 'false' }}
+        };
+    </script>
+
+    {# ===================================================================
+       Page Header (breadcrumb + title)
+       =================================================================== #}
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div class="flex items-center gap-3">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                🌐 I18n Scopes
+            </h2>
+            <span class="px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+                Management
+            </span>
+        </div>
 
         <nav>
             <ol class="flex items-center gap-1.5">
                 <li>
-                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500"
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
                        href="{{ ui.adminUrl }}dashboard">
                         Home
                         <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none">
                             <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
-                                  stroke-width="1.2"
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"/>
+                                  stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </a>
                 </li>
-                <li class="text-sm text-gray-800">I18n</li>
-                <li class="text-sm text-gray-800">Scopes</li>
+                <li class="text-sm text-gray-800 dark:text-gray-200">
+                    I18n Scopes
+                </li>
             </ol>
         </nav>
     </div>
 
-    {# ============================================================
-       🔐 Capabilities Injection (LOCKED UI CONTRACT)
-       ------------------------------------------------------------
-       - Permissions resolved server-side
-       - Twig NEVER checks permission names
-       - JS NEVER infers authorization
-       ============================================================ #}
-
-    <script>
-        window.i18nScopesCapabilities = {
-            can_create      : {{ capabilities.can_create ? 'true' : 'false' }},
-            can_update      : {{ capabilities.can_update ? 'true' : 'false' }},
-            can_change_code : {{ capabilities.can_change_code ? 'true' : 'false' }},
-            can_set_active  : {{ capabilities.can_set_active ? 'true' : 'false' }},
-            can_update_sort : {{ capabilities.can_update_sort ? 'true' : 'false' }},
-            can_update_meta : {{ capabilities.can_update_meta ? 'true' : 'false' }},
-            can_view_scope_details : {{ capabilities.can_view_scope_details ? 'true' : 'false' }},
-        };
-
-        console.log('🔐 I18n Scopes Capabilities:', window.i18nScopesCapabilities);
-    </script>
-
-    <!-- Body placeholder -->
+    {# ===================================================================
+       Main Content Container
+       =================================================================== #}
     <div class="px-0 py-2">
         <div class="container mt-6">
-            <div id="i18n-scopes-table-container" class="w-full"></div>
+            {# ============================================================
+               🔍 Filters Section
+               ============================================================ #}
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+                <form id="scopes-filter-form" class="space-y-4">
+                    {# Column Filters #}
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+                        {# ID Filter #}
+                        <div>
+                            <label for="filter-id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                🆔 Scope ID
+                            </label>
+                            <input
+                                    type="number"
+                                    id="filter-id"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400"
+                                    placeholder="e.g., 1, 2, 3..."
+                                    min="1"
+                            />
+                        </div>
+
+                        {# Name Filter #}
+                        <div>
+                            <label for="filter-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                📝 Scope Name
+                            </label>
+                            <input
+                                    type="text"
+                                    id="filter-name"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400"
+                                    placeholder="e.g., User Profile..."
+                            />
+                        </div>
+
+                        {# Code Filter #}
+                        <div>
+                            <label for="filter-code" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                🏷️ Scope Code
+                            </label>
+                            <input
+                                    type="text"
+                                    id="filter-code"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400"
+                                    placeholder="e.g., user.profile..."
+                            />
+                        </div>
+
+                        {# Status Filter #}
+                        <div>
+                            <label for="filter-status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                📊 Status
+                            </label>
+                            <select
+                                    id="filter-status"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                            >
+                                <option value="">All Statuses</option>
+                                <option value="1">Active</option>
+                                <option value="0">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {# Action Buttons #}
+                    <div class="flex flex-wrap gap-3 pt-4">
+                        <button
+                                type="submit"
+                                class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            Search
+                        </button>
+
+                        <button
+                                type="button"
+                                id="scopes-reset-filters"
+                                class="px-6 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium flex items-center gap-2"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Reset
+                        </button>
+
+                        {# Create Scope Button (Shown only if can_create capability exists) #}
+                        {% if capabilities.can_create ?? false %}
+                            <button
+                                    type="button"
+                                    id="btn-create-scope"
+                                    class="ml-auto px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                                Create Scope
+                            </button>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+
+            {# ============================================================
+               📋 Scopes Table Container
+               ============================================================ #}
+
+            {# Global Search Bar (Above Table) #}
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4">
+                <div class="flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input
+                            type="text"
+                            id="scopes-search"
+                            class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400"
+                            placeholder="🔍 Quick search by code, name, or description..."
+                    />
+                    <button
+                            type="button"
+                            id="scopes-search-btn"
+                            class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    >
+                        Search
+                    </button>
+                    <button
+                            type="button"
+                            id="scopes-clear-search"
+                            class="px-6 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
+                    >
+                        Clear
+                    </button>
+                </div>
+            </div>
+
+            {# Data Table #}
+            <div id="table-container" class="w-full"></div>
         </div>
     </div>
+
 {% endblock %}
 
 {% block scripts %}
+    {# Shared infrastructure scripts #}
     <script src="{{ asset('assets/maatify/admin-kernel/js/api_handler.js') }}"></script>
     <script src="{{ asset('assets/maatify/admin-kernel/js/callback_handler.js') }}"></script>
     <script src="{{ asset('assets/maatify/admin-kernel/js/Input_checker.js') }}"></script>
     <script src="{{ asset('assets/maatify/admin-kernel/js/data_table.js') }}"></script>
 
-    {# لاحقًا #}
-    {# <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n_scopes_list.js') }}"></script> #}
+    {# ✨ Select2 - Custom dropdown with search #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/select2.js') }}"></script>
+
+    {# ✨ Project-wide reusable UI components library #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
+
+    {# 🌐 Scopes modular scripts #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n-scopes-core.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n-scopes-modals.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n-scopes-actions.js') }}"></script>
 {% endblock %}
