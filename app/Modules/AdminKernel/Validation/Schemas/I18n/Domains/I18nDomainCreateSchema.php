@@ -8,7 +8,7 @@ use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
 
-class I18nDomainCreateSchema extends AbstractSchema
+final class I18nDomainCreateSchema extends AbstractSchema
 {
     protected function rules(): array
     {
