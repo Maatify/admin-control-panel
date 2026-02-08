@@ -43,4 +43,14 @@ final readonly class I18nScopeDomainsRepository implements I18nScopeDomainsInter
 
         return $stmt->fetchColumn() !== false;
     }
+
+    public function isAssigned(string $scopeCode, string $domainCode): bool
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT 1 FROM i18n_domain_scopes WHERE scope_code = :scope_code AND domain_code = :domain_code LIMIT 1'
+        );
+        $stmt->execute(['scope_code' => $scopeCode, 'domain_code' => $domainCode]);
+
+        return $stmt->fetchColumn() !== false;
+    }
 }

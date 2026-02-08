@@ -2532,6 +2532,12 @@ class Container
                 return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\ScopeDomains\PdoI18nScopeDomainsQueryReader($pdo);
             },
 
+            \Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsWriterInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\ScopeDomains\PdoI18nScopeDomainsWriter($pdo);
+            }
+
         ]);
 
         // Extension Hook: Allow host projects to override/extend bindings
