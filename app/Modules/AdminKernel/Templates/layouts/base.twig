@@ -28,27 +28,166 @@
 		<link rel="stylesheet" href="{{ asset('assets/maatify/admin-kernel/css/style.css') }}">
 
 		<style>
-			.sidebar.collapsed ul li a:hover {
-				position: relative;
-
-				span {
-					position: absolute;
-					display: block;
-					top: 0;
-					left: 138%;
-					background: var(--bg-primary);
-					width: fit-content;
-					padding: 7px 20px;
-					border: 1px solid var(--border-color);
-					border-left-width: 1px;
-					border-left-style: solid;
-					border-top-right-radius: 9px;
-					border-bottom-right-radius: 9px;
-					border-left: none;
-					color: var(--text-primary);
-				}
-
+		*{
+			transition: all 0.3s ease-in-out !important;
+		}
+			/* Sidebar Collapsed Logic */
+			.sidebar.collapsed > ul {
+				padding-left: 0 !important;
+				padding-right: 0 !important;
 			}
+
+			.sidebar.collapsed > ul > li {
+				position: relative;
+			}
+
+			.sidebar.collapsed > ul > li > div,
+			.sidebar.collapsed > ul > li > div > a {
+				justify-content: center;
+			}
+
+			.sidebar.collapsed > ul > li > div > button,
+			.sidebar.collapsed > ul > li > div > .arrow {
+				display: none;
+			}
+
+			/* Ensure ONLY the top-level children are hidden in collapsed mode unless hovered */
+			.sidebar.collapsed > ul > li > .nav-children {
+				display: none !important;
+			}
+
+	
+		/* Hover Effect: Show Item Name */
+		.sidebar.collapsed > ul > li:hover > div > a .li-name,
+		.sidebar.collapsed > ul > li:hover > div .li-name {
+			position: absolute;
+			display: flex !important; /* Changed to flex for vertical centering if needed */
+			align-items: center;
+			top: 0;
+			left: 100%;
+			background: var(--bg-primary, #ffffff);
+			padding: 12px 15px;
+			border: 1px solid var(--border-color, #e5e7eb);
+			border-radius: 8px;
+			color: var(--text-primary, #374151);
+			width: 220px;
+			z-index: 100;
+			box-shadow: 4px 4px 10px rgba(0,0,0,0.1);
+			white-space: normal;
+			min-height: 100%; /* Ensure it covers the full height of the parent LI */
+		}
+		
+		/* Ensure the parent div itself shows the tooltip when it doesn't have a link */
+		.sidebar.collapsed > ul > li > div:not(:has(a)):hover .li-name {
+			position: absolute;
+			display: flex !important;
+			align-items: center;
+			top: 0;
+			left: 100%;
+			background: var(--bg-primary, #ffffff);
+			padding: 12px 15px;
+			border: 1px solid var(--border-color, #e5e7eb);
+			border-radius: 8px;
+			color: var(--text-primary, #374151);
+			width: 220px;
+			z-index: 100;
+			box-shadow: 4px 4px 10px rgba(0,0,0,0.1);
+			white-space: normal;
+		}
+		 .sidebar.collapsed > ul > li > div:not(:has(a)) {
+
+& .li-name{
+				gap: 10px;
+}
+			&>div{
+			width: fit-content;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		 }
+		}
+		 .sidebar.collapsed > ul > li > div:not(:has(a)) span.li-name{
+			display: none;
+		 }
+
+		.dark .sidebar.collapsed > ul > li:hover > div > a .li-name,
+		.dark .sidebar.collapsed > ul > li:hover > div .li-name,
+		.dark .sidebar.collapsed > ul > li > div:not(:has(a)):hover .li-name {
+			background: #1f2937;
+			border-color: #374151;
+			color: #f3f4f6;
+		}
+
+			/* Connect Item Name with Children Popup */
+			.sidebar.collapsed > ul > li:has(.nav-children):hover > div > a .li-name,
+			.sidebar.collapsed > ul > li:has(.nav-children):hover > div .li-name {
+				border-bottom: none;
+				border-bottom-left-radius: 0;
+				border-bottom-right-radius: 0;
+			}
+
+			/* Hover Effect: Show Children (The Popup) */
+			.sidebar.collapsed > ul > li:hover > .nav-children {
+				display: block !important;
+				position: absolute;
+				left: 100%;
+				top: 100%; /* Changed from 44px to 100% to attach to bottom of LI */
+				width: 220px;
+				background: var(--bg-primary, #ffffff);
+				border: 1px solid var(--border-color, #e5e7eb);
+				border-top: none;
+				border-radius: 0 0 8px 8px;
+				padding: 10px;
+				box-shadow: 4px 4px 10px rgba(0,0,0,0.1);
+				max-height: 80vh !important; /* Allow expansion but prevent overflow off-screen */
+				overflow-y: auto !important;
+				z-index: 99;
+			}
+
+			.dark .sidebar.collapsed > ul > li:hover > .nav-children {
+				background: #1f2937;
+				border-color: #374151;
+			}
+
+			/* Reset styles for children inside the popup */
+			.sidebar.collapsed .nav-children .li-name,
+			.sidebar.collapsed .nav-children span {
+				display: inline-block !important;
+				position: static !important;
+				background: transparent !important;
+				border: none !important;
+				box-shadow: none !important;
+				width: auto !important;
+				padding: 0 !important;
+				color: inherit !important;
+				min-height: auto !important; /* Reset min-height for children */
+			}
+
+			.sidebar.collapsed .nav-children ul {
+				margin-left: 0 !important;
+			}
+
+			/* ---------------------------------------------------------
+			   NESTED CHILDREN SUPPORT (Children of Children)
+			   --------------------------------------------------------- */
+
+			/* Ensure nested children behave as a normal accordion inside the popup */
+			.sidebar.collapsed .nav-children .nav-children {
+				position: static !important;
+				box-shadow: none !important;
+				border: none !important;
+				background: transparent !important;
+				padding-left: 12px !important; /* Indent nested items */
+				width: 100% !important;
+				/* We do NOT force display here. We let the JS toggle the 'hidden' class and max-height. */
+			}
+
+			/* Ensure the arrow/toggle button is visible for items inside the popup */
+			.sidebar.collapsed .nav-children button,
+			.sidebar.collapsed .nav-children .arrow {
+				display: block !important;
+			}
+
 		</style>
 
 		<!-- 🌓 Dark Mode Initialization (Must run before page renders) -->
@@ -83,6 +222,7 @@
 			<input type="search" placeholder="Search or type command..." aria-label="Search"
 				   class="border border-gray-100 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-main/50 text-sm w-full"/>
 		</div>
+	
 
 		<!-- 🌓 Dark Mode Toggle Button -->
 		<button
@@ -252,23 +392,47 @@
 
 	<script>
 
-		function toggleSidebar() {
-			document.querySelector(".sidebar").classList.toggle("collapsed");
-			document.querySelector(".page-content").classList.toggle("collapsed");
-			document.querySelector(".header-section ").classList.toggle("collapsed");
-			document.querySelector(".logo span").classList.toggle("hidden");
+	function toggleSidebar() {
+		const sidebar = document.querySelector(".sidebar");
+		const isCollapsed = sidebar.classList.toggle("collapsed");
+		
+		document.querySelector(".page-content").classList.toggle("collapsed");
+		document.querySelector(".header-section ").classList.toggle("collapsed");
+		document.querySelector(".logo span").classList.toggle("hidden");
 
-			if (document.querySelector(".sidebar").classList.contains("collapsed")) {
-				document.querySelector(".sidebar").querySelectorAll("a").forEach(link => {
-					link.querySelector("span").classList.add("hidden");
-				});
-			} else {
-				document.querySelector(".sidebar").querySelectorAll("a").forEach(link => {
-					link.querySelector("span").classList.remove("hidden");
-				});
-			}
-
+		if (isCollapsed) {
+			document.querySelector(".sidebar").querySelectorAll("a").forEach(link => {
+				link.querySelector("span").classList.add("hidden");
+			});
+			// Save collapsed state to localStorage
+			localStorage.setItem('sidebarCollapsed', 'true');
+		} else {
+			document.querySelector(".sidebar").querySelectorAll("a").forEach(link => {
+				link.querySelector("span").classList.remove("hidden");
+			});
+			// Save expanded state to localStorage
+			localStorage.setItem('sidebarCollapsed', 'false');
 		}
+	}
+	
+	// Initialize sidebar state from localStorage on page load
+	(function() {
+		const sidebarCollapsed = localStorage.getItem('sidebarCollapsed');
+		
+		if (sidebarCollapsed === 'true') {
+			// Apply collapsed state
+			document.querySelector(".sidebar").classList.add("collapsed");
+			document.querySelector(".page-content").classList.add("collapsed");
+			document.querySelector(".header-section").classList.add("collapsed");
+			document.querySelector(".logo span").classList.add("hidden");
+			
+			document.querySelector(".sidebar").querySelectorAll("a").forEach(link => {
+				if (link.querySelector("span")) {
+					link.querySelector("span").classList.add("hidden");
+				}
+			});
+		}
+	})();
 
 		// 🌓 Dark Mode Toggle Function
 		function toggleDarkMode() {
@@ -323,6 +487,63 @@
 			if (!dropdown.contains(event.target)) {
 				menu.classList.add('hidden');
 			}
+		});
+
+		// Adjust Sidebar Popup Position on Hover
+		document.addEventListener('DOMContentLoaded', () => {
+			const sidebarItems = document.querySelectorAll('.sidebar > ul > li');
+
+			sidebarItems.forEach(item => {
+				item.addEventListener('mouseenter', function() {
+					const sidebar = document.querySelector('.sidebar');
+					if (!sidebar.classList.contains('collapsed')) return;
+
+					const children = this.querySelector('.nav-children');
+					if (!children) return;
+
+					// Ensure it's visible for measurement
+					let rect = children.getBoundingClientRect();
+					if (rect.height === 0) {
+						children.style.display = 'block';
+						rect = children.getBoundingClientRect();
+						children.style.display = '';
+					}
+
+					const viewportHeight = window.innerHeight;
+					const itemRect = this.getBoundingClientRect();
+
+					// Check if the menu overflows the bottom of the screen
+					if (rect.bottom > viewportHeight) {
+						const overflow = rect.bottom - viewportHeight;
+						// Calculate new top based on 100% (itemRect.height) minus overflow
+						// But we are modifying style.top which overrides CSS.
+						// CSS is 100%.
+						// We need to shift it UP.
+						// Current top relative to LI is itemRect.height.
+						// We want to shift it up by 'overflow' + padding.
+
+						let newTop = itemRect.height - overflow - 10;
+
+						// Prevent top from going off-screen
+						if (itemRect.top + newTop < 10) {
+							newTop = -itemRect.top + 10;
+							children.style.maxHeight = (viewportHeight - 20) + 'px';
+							children.style.overflowY = 'auto';
+						}
+
+						children.style.top = newTop + 'px';
+					}
+				});
+
+				item.addEventListener('mouseleave', function() {
+					const children = this.querySelector('.nav-children');
+					if (children) {
+						children.style.top = '';
+						children.style.maxHeight = '';
+						children.style.display = '';
+					}
+				});
+			});
 		});
 	</script>
 {% endblock %}

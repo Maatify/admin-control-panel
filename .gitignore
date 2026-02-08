@@ -10,3 +10,4 @@ storage/
 .idea/php.xml
 .idea/phpunit.xml
 .idea/vcs.xml
+.idea/git_toolbox_prj.xml
