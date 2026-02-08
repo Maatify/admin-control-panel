@@ -162,6 +162,7 @@ use Maatify\AdminKernel\Infrastructure\Repository\AdminRoleRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\AdminSessionRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\AdminTotpSecretRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\FailedNotificationRepository;
+use Maatify\AdminKernel\Infrastructure\Repository\I18n\Domains\PdoI18nDomainCreate;
 use Maatify\AdminKernel\Infrastructure\Repository\I18n\Domains\PdoI18nDomainsQueryReader;
 use Maatify\AdminKernel\Infrastructure\Repository\I18n\Languages\PdoLanguageQueryReader;
 use Maatify\AdminKernel\Infrastructure\Repository\I18n\PdoTranslationKeyQueryReader;
@@ -2488,6 +2489,12 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new PdoI18nDomainsQueryReader($pdo);
+            },
+
+            \Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainCreateInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new PdoI18nDomainCreate($pdo);
             }
 
 

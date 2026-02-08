@@ -392,6 +392,14 @@ class AdminRoutes
                                 ]
                             )
                                 ->setName('i18n.domains.list.api');
+
+                            $i18nDomains->post(
+                                '/create',
+                                [
+                                    \Maatify\AdminKernel\Http\Controllers\Api\I18n\Domains\I18nDomainCreateController::class,
+                                    '__invoke'
+                                ]
+                            )->setName('i18n.domains.create.api');
                         });
 
                         // ─────────────────────────────
