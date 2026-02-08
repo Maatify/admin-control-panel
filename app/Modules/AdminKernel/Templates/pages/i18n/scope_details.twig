@@ -1,0 +1,125 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}Scope: {{ scope.name }} | {{ ui.appName }}{% endblock %}
+
+{% block content %}
+
+    {# ===================================================================
+       Capabilities Injection
+       Computed server-side by AuthorizationService.
+       JavaScript reads window.scopeDetailsCapabilities — never infers.
+       =================================================================== #}
+    <script>
+        window.scopeDetailsCapabilities = {
+            can_assign:   {{ capabilities.can_assign   ?? false ? 'true' : 'false' }},
+            can_unassign: {{ capabilities.can_unassign ?? false ? 'true' : 'false' }}
+        };
+
+        window.scopeDetailsId = {{ scope.id }};
+        console.log('🌍 Scope Details Capabilities:', window.scopeDetailsCapabilities);
+        console.log('🎯 Scope ID:', window.scopeDetailsId);
+    </script>
+
+    {# ===================================================================
+       Page Header (breadcrumb + title)
+       =================================================================== #}
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div class="flex items-center gap-3">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                {{ scope.name }}
+            </h2>
+        </div>
+
+        <nav>
+            <ol class="flex items-center gap-1.5">
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                       href="{{ ui.adminUrl }}dashboard">
+                        Home
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                  stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                       href="{{ ui.adminUrl }}i18n/scopes">
+                        Scopes
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                  stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+
+                <li class="text-sm text-gray-800 dark:text-gray-200">
+                    {{ scope.name }}
+                </li>
+            </ol>
+        </nav>
+    </div>
+
+    {# ===================================================================
+       Overview Card
+       =================================================================== #}
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 mb-6 p-5">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Code</p>
+                <code class="text-sm font-mono bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-2 py-1 rounded text-gray-800 dark:text-gray-200">
+                    {{ scope.code }}
+                </code>
+            </div>
+
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Name</p>
+                <p class="text-sm text-gray-800 dark:text-gray-100">
+                    {{ scope.name }}
+                </p>
+            </div>
+
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Active</p>
+                <p class="text-sm text-gray-800 dark:text-gray-100">
+                    {{ scope.is_active ? 'Yes' : 'No' }}
+                </p>
+            </div>
+
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Sort Order</p>
+                <p class="text-sm text-gray-800 dark:text-gray-100">
+                    {{ scope.sort_order }}
+                </p>
+            </div>
+
+            <div class="md:col-span-4 border-t dark:border-gray-700 pt-4 mt-2">
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Description</p>
+                <p class="text-sm text-gray-600 dark:text-gray-300">
+                    {{ scope.description ?: '—' }}
+                </p>
+            </div>
+
+        </div>
+    </div>
+
+    {# ===================================================================
+       Domain Assignments
+       =================================================================== #}
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-4">
+        <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-4">
+            Domain Assignments
+        </h3>
+
+        <div id="domains-table-container"></div>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/data_table.js') }}"></script>
+
+    {# <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n_scopes_domains.js') }}"></script> #}
+{% endblock %}

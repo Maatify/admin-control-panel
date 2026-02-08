@@ -206,9 +206,6 @@ CREATE TABLE i18n_domain_scopes (
     -- Domain code (matches i18n_domains.code)
                                     domain_code VARCHAR(64) NOT NULL,
 
-    -- Whether this mapping is active
-                                    is_active TINYINT(1) NOT NULL DEFAULT 1,
-
                                     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     -- Prevent duplicate mappings

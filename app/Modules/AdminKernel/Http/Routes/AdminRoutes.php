@@ -234,6 +234,13 @@ class AdminRoutes
                         ->add(AuthorizationGuardMiddleware::class);
 
                     $protectedGroup->get(
+                        '/i18n/scopes/{scope_id:[0-9]+}',
+                        [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopeDetailsController::class, 'index']
+                    )
+                        ->setName('i18n.scopes.details.ui')
+                        ->add(AuthorizationGuardMiddleware::class);
+
+                    $protectedGroup->get(
                         '/i18n/domains',
                         [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\DomainsListUiController::class, '__invoke']
                     )
