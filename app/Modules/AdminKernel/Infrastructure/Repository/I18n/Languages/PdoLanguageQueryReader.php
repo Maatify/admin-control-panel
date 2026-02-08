@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Infrastructure\Reader\I18n;
+namespace Maatify\AdminKernel\Infrastructure\Repository\I18n\Languages;
 
 use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
 use Maatify\AdminKernel\Domain\DTO\LanguageList\LanguageListItemDTO;

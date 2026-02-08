@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Infrastructure\Writer\I18n;
+namespace Maatify\AdminKernel\Infrastructure\Repository\I18n\Scope;
 
 use Maatify\AdminKernel\Domain\I18n\Scope\Writer\I18nScopeUpdaterInterface;
 use PDO;

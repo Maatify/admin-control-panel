@@ -151,8 +151,6 @@ use Maatify\AdminKernel\Infrastructure\Database\PDOFactory;
 use Maatify\AdminKernel\Infrastructure\Notification\TelegramHandler;
 use Maatify\AdminKernel\Infrastructure\Query\ListFilterResolver;
 use Maatify\AdminKernel\Infrastructure\Reader\Admin\PdoAdminQueryReader;
-use Maatify\AdminKernel\Infrastructure\Reader\I18n\PdoLanguageQueryReader;
-use Maatify\AdminKernel\Infrastructure\Reader\I18n\PdoTranslationKeyQueryReader;
 use Maatify\AdminKernel\Infrastructure\Reader\PDOPermissionsReaderRepository;
 use Maatify\AdminKernel\Infrastructure\Reader\PDORolesReaderRepository;
 use Maatify\AdminKernel\Infrastructure\Reader\Session\PdoSessionListReader;
@@ -164,6 +162,8 @@ use Maatify\AdminKernel\Infrastructure\Repository\AdminRoleRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\AdminSessionRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\AdminTotpSecretRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\FailedNotificationRepository;
+use Maatify\AdminKernel\Infrastructure\Repository\I18n\Languages\PdoLanguageQueryReader;
+use Maatify\AdminKernel\Infrastructure\Repository\I18n\PdoTranslationKeyQueryReader;
 use Maatify\AdminKernel\Infrastructure\Repository\NotificationReadRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\PdoAdminDirectPermissionRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\PdoAdminNotificationHistoryReader;
@@ -2357,7 +2357,7 @@ class Container
                 $pdo = $c->get(\PDO::class);
                 \assert($pdo instanceof \PDO);
 
-                return new \Maatify\AdminKernel\Infrastructure\Reader\I18n\PdoTranslationValueQueryReader($pdo);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\PdoTranslationValueQueryReader($pdo);
             },
 
             \Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationValueUpsertController::class => function (\Psr\Container\ContainerInterface $c) {
@@ -2395,19 +2395,19 @@ class Container
             \Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopesQueryReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
-                return new \Maatify\AdminKernel\Infrastructure\Reader\I18n\PdoI18nScopesQueryReader($pdo);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Scope\PdoI18nScopesQueryReader($pdo);
             },
 
             \Maatify\AdminKernel\Domain\I18n\Scope\Writer\I18nScopeUpdaterInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
-                return new \Maatify\AdminKernel\Infrastructure\Writer\I18n\PdoI18nScopeUpdater($pdo);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Scope\PdoI18nScopeUpdater($pdo);
             },
 
             \Maatify\AdminKernel\Domain\I18n\Scope\Writer\I18nScopeCreateWriterInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
-                return new \Maatify\AdminKernel\Infrastructure\Writer\I18n\PdoI18nScopeCreateWriter($pdo);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Scope\PdoI18nScopeCreateWriter($pdo);
             },
 
             \Maatify\AdminKernel\Domain\AppSettings\Reader\AppSettingsQueryReaderInterface::class => function (ContainerInterface $c) {
