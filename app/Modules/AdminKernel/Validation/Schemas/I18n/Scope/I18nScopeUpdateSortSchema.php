@@ -2,26 +2,26 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Validation\Schemas\I18n;
+namespace Maatify\AdminKernel\Validation\Schemas\I18n\Scope;
 
-use Maatify\Validation\Schemas\AbstractSchema;
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
+use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
 
-final class LanguageUpdateCodeSchema extends AbstractSchema
+final class I18nScopeUpdateSortSchema extends AbstractSchema
 {
     protected function rules(): array
     {
         return [
-            'language_id' => [
+            'id' => [
                 v::intVal()->min(1),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
-
-            'code' => [
-                v::stringType()->length(1, 32),
+            'position' => [
+                v::intVal()->min(0),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
         ];
     }
 }
+

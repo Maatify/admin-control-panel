@@ -18,7 +18,7 @@ namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\Scope;
 use Maatify\AdminKernel\Domain\DTO\I18nScopes\I18nScopeCreateDTO;
 use Maatify\AdminKernel\Domain\Exception\EntityAlreadyExistsException;
 use Maatify\AdminKernel\Domain\I18n\Scope\Writer\I18nScopeCreateWriterInterface;
-use Maatify\AdminKernel\Validation\Schemas\I18n\I18nScopeCreateSchema;
+use Maatify\AdminKernel\Validation\Schemas\I18n\Scope\I18nScopeCreateSchema;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;

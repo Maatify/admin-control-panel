@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\I18n;
 
-use Maatify\AdminKernel\Validation\Schemas\I18n\TranslationKeyCreateSchema;
+use Maatify\AdminKernel\Validation\Schemas\I18n\TranslationKey\TranslationKeyCreateSchema;
 use Maatify\I18n\Service\TranslationWriteService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -53,6 +53,7 @@ final readonly class TranslationKeysCreateController
             $description = $body['description'];
         }
 
+        // TODO fix at the domain layer
         // 3) Execute service
         $this->translationWriteService->createKey(
             key: $keyName,

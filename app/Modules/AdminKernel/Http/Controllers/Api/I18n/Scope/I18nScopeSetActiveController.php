@@ -17,7 +17,7 @@ namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\Scope;
 
 use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\AdminKernel\Domain\I18n\Scope\Writer\I18nScopeUpdaterInterface;
-use Maatify\AdminKernel\Validation\Schemas\I18n\I18nScopeSetActiveSchema;
+use Maatify\AdminKernel\Validation\Schemas\I18n\Scope\I18nScopeSetActiveSchema;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;

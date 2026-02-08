@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages;
 
-use Maatify\AdminKernel\Validation\Schemas\I18n\LanguageUpdateSettingsSchema;
+use Maatify\AdminKernel\Validation\Schemas\I18n\Language\LanguageUpdateSettingsSchema;
 use Maatify\I18n\Enum\TextDirectionEnum;
 use Maatify\I18n\Service\LanguageManagementService;
 use Maatify\Validation\Guard\ValidationGuard;

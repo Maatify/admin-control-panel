@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\I18n;
 
-use Maatify\AdminKernel\Validation\Schemas\I18n\TranslationValueDeleteSchema;
+use Maatify\AdminKernel\Validation\Schemas\I18n\TranslationValue\TranslationValueDeleteSchema;
 use Maatify\I18n\Service\TranslationWriteService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;

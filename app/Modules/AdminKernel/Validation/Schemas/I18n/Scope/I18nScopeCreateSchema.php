@@ -2,29 +2,34 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Validation\Schemas\I18n;
+namespace Maatify\AdminKernel\Validation\Schemas\I18n\Scope;
 
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
 
-final class I18nScopeUpdateMetadataSchema extends AbstractSchema
+final class I18nScopeCreateSchema extends AbstractSchema
 {
     protected function rules(): array
     {
         return [
-            'id' => [
-                v::intVal()->min(1),
+            'code' => [
+                v::stringType()->length(1, 50),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
 
             'name' => [
-                v::optional(v::stringType()->length(1, 100)),
+                v::stringType()->length(1, 100),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
 
             'description' => [
                 v::optional(v::stringType()->length(0, 255)),
+                ValidationErrorCodeEnum::REQUIRED_FIELD
+            ],
+
+            'is_active' => [
+                v::optional(v::boolVal()),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
         ];

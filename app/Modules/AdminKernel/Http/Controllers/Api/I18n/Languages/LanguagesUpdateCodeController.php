@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages;
 
-use Maatify\AdminKernel\Validation\Schemas\I18n\LanguageUpdateCodeSchema;
+use Maatify\AdminKernel\Validation\Schemas\I18n\Language\LanguageUpdateCodeSchema;
 use Maatify\I18n\Service\LanguageManagementService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;

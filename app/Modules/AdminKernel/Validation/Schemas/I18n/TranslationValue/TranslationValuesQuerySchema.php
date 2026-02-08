@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Validation\Schemas\I18n;
+namespace Maatify\AdminKernel\Validation\Schemas\I18n\TranslationValue;
 
 use Maatify\Validation\Contracts\SchemaInterface;
 use Maatify\Validation\DTO\ValidationResultDTO;

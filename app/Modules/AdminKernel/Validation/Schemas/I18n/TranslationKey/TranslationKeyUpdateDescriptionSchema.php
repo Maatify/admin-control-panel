@@ -2,24 +2,24 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Validation\Schemas\I18n;
+namespace Maatify\AdminKernel\Validation\Schemas\I18n\TranslationKey;
 
-use Maatify\Validation\Schemas\AbstractSchema;
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
+use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
 
-final class I18nScopeChangeCodeSchema extends AbstractSchema
+final class TranslationKeyUpdateDescriptionSchema extends AbstractSchema
 {
     protected function rules(): array
     {
         return [
-            'id' => [
+            'key_id' => [
                 v::intVal()->min(1),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
 
-            'new_code' => [
-                v::stringType()->length(1, 50),
+            'description' => [
+                v::stringType()->length(0, 2000),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
         ];

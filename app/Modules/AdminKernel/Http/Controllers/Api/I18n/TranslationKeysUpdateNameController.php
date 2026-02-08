@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\I18n;
 
-use Maatify\AdminKernel\Validation\Schemas\I18n\TranslationKeyUpdateNameSchema;
+use Maatify\AdminKernel\Validation\Schemas\I18n\TranslationKey\TranslationKeyUpdateNameSchema;
 use Maatify\I18n\Service\TranslationWriteService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -46,6 +46,7 @@ final readonly class TranslationKeysUpdateNameController
             throw new RuntimeException('Invalid validated payload.');
         }
 
+        // TODO fix at the domain layer
         $this->translationWriteService->renameKey(
             keyId: $keyId,
             newKey: $keyName
