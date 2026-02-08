@@ -26,6 +26,13 @@
             .replace(/'/g, "&#039;");
     }
 
+    function idRenderer(value) {
+        if (capabilities.can_view_scope_details) {
+            return `<a href="/i18n/scopes/${value}" class="text-blue-600 hover:text-blue-800 hover:underline font-mono">${value}</a>`;
+        }
+        return `<span class="font-mono text-gray-500">${value}</span>`;
+    }
+
     function nameRenderer(value) {
         return `<span class="font-medium text-gray-900 dark:text-gray-100">${escapeHtml(value)}</span>`;
     }
@@ -151,6 +158,7 @@
             TableComponent(
                 items, headers, rowNames, paginationInfo, "", false, 'id', null,
                 {
+                    id: idRenderer,
                     name: nameRenderer,
                     code: codeRenderer,
                     is_active: statusRenderer,
