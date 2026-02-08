@@ -416,6 +416,14 @@ class AdminRoutes
                                     '__invoke'
                                 ]
                             )->setName('i18n.domains.set_active.api');
+
+                            $i18nDomains->post(
+                                '/update-sort',
+                                [
+                                    \Maatify\AdminKernel\Http\Controllers\Api\I18n\Domains\I18nScopeDomainSortController::class,
+                                    '__invoke'
+                                ]
+                            )->setName('i18n.domains.update_sort.api');
                         });
 
                         // ─────────────────────────────
