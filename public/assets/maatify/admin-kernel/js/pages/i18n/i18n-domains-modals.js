@@ -375,7 +375,7 @@
 
             const payload = {
                 id: parseInt(document.getElementById('code-domain-id').value),
-                code: document.getElementById('code-new-code').value.trim()
+                new_code: document.getElementById('code-new-code').value.trim()
             };
 
             const result = await ApiHandler.call('i18n/domains/change-code', payload, 'Change Code');
@@ -387,6 +387,8 @@
                 window.reloadDomainsTable?.();
             } else if (result.data && result.data.errors) {
                 ApiHandler.showFieldErrors(result.data.errors, 'change-code-form');
+            } else if (result.data && result.data.message) {
+                ApiHandler.showAlert('danger', result.data.message);
             }
         });
     }
