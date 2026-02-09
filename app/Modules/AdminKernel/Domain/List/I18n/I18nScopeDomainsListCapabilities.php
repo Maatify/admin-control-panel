@@ -23,6 +23,7 @@ final class I18nScopeDomainsListCapabilities
                 'code' => 'code',
                 'name' => 'name',
                 'is_active' => 'is_active',
+                'assigned' => 'assigned',
             ],
             supportsDateFilter: false,
             dateColumn: null

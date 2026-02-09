@@ -42,6 +42,8 @@ final readonly class PdoI18nScopeDomainsQueryReader implements I18nScopeDomainsQ
         $where  = [];
         $params = [];
 
+        $requiresScopeJoin = false;
+
         if ($filters->globalSearch !== null) {
             $g = trim($filters->globalSearch);
             if ($g !== '') {
@@ -70,9 +72,31 @@ final readonly class PdoI18nScopeDomainsQueryReader implements I18nScopeDomainsQ
                 $where[] = 'd.is_active = :is_active';
                 $params['is_active'] = (int) $value;
             }
+
+            // assigned is derived from LEFT JOIN table, so it requires the scope join
+            if ($alias === 'assigned') {
+                $requiresScopeJoin = true;
+                $assigned = (int) $value;
+
+                if ($assigned === 1) {
+                    $where[] = 'ds.domain_code IS NOT NULL';
+                } elseif ($assigned === 0) {
+                    $where[] = 'ds.domain_code IS NULL';
+                }
+            }
         }
 
         $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
+
+        // Shared FROM/JOIN block (only when needed)
+        $fromSql = 'FROM i18n_domains d';
+        if ($requiresScopeJoin) {
+            $fromSql .= '
+            LEFT JOIN i18n_domain_scopes ds
+                ON ds.domain_code = d.code
+               AND ds.scope_code  = :scope_code
+        ';
+        }
 
         // ─────────────────────────────
         // Total (no filters)
@@ -86,10 +110,21 @@ final readonly class PdoI18nScopeDomainsQueryReader implements I18nScopeDomainsQ
         // ─────────────────────────────
         // Filtered
         // ─────────────────────────────
-        $stmtFiltered = $this->pdo->prepare(
-            "SELECT COUNT(*) FROM i18n_domains d {$whereSql}"
-        );
-        $stmtFiltered->execute($params);
+        $stmtFiltered = $this->pdo->prepare("
+        SELECT COUNT(*)
+        {$fromSql}
+        {$whereSql}
+    ");
+
+        if ($requiresScopeJoin) {
+            $stmtFiltered->bindValue(':scope_code', $scopeCode);
+        }
+
+        foreach ($params as $k => $v) {
+            $stmtFiltered->bindValue(':' . $k, $v);
+        }
+
+        $stmtFiltered->execute();
         $filtered = (int) $stmtFiltered->fetchColumn();
 
         // ─────────────────────────────
@@ -98,36 +133,37 @@ final readonly class PdoI18nScopeDomainsQueryReader implements I18nScopeDomainsQ
         $limit  = $query->perPage;
         $offset = ($query->page - 1) * $limit;
 
+        // Always include join in DATA because we always return "assigned"
         $sql = "
-            SELECT
-                d.id,
-                d.code,
-                d.name,
-                d.description,
-                d.is_active,
-                d.sort_order,
-                CASE
-                    WHEN ds.domain_code IS NULL THEN 0
-                    ELSE 1
-                END AS assigned
-            FROM i18n_domains d
-            LEFT JOIN i18n_domain_scopes ds
-                ON ds.domain_code = d.code
-               AND ds.scope_code  = :scope_code
-            {$whereSql}
-            ORDER BY
-                d.sort_order ASC,
-                d.code ASC,
-                d.id ASC
-            LIMIT :limit OFFSET :offset
-        ";
+        SELECT
+            d.id,
+            d.code,
+            d.name,
+            d.description,
+            d.is_active,
+            d.sort_order,
+            CASE
+                WHEN ds.domain_code IS NULL THEN 0
+                ELSE 1
+            END AS assigned
+        FROM i18n_domains d
+        LEFT JOIN i18n_domain_scopes ds
+            ON ds.domain_code = d.code
+           AND ds.scope_code  = :scope_code
+        {$whereSql}
+        ORDER BY
+            d.sort_order ASC,
+            d.code ASC,
+            d.id ASC
+        LIMIT :limit OFFSET :offset
+    ";
 
         $stmt = $this->pdo->prepare($sql);
 
-        // Join param
+        // bind join param
         $stmt->bindValue(':scope_code', $scopeCode);
 
-        // Where params
+        // bind where params
         foreach ($params as $k => $v) {
             $stmt->bindValue(':' . $k, $v);
         }
