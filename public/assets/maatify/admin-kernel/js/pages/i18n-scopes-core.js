@@ -328,13 +328,30 @@
 
     /**
      * Custom pagination info formatter
+     * Returns format expected by data_table.js: { total, info }
+     * Shows filtered message when filters are active
      */
-    function getScopesPaginationInfo(pagination) {
+    function getScopesPaginationInfo(pagination, params) {
+        console.log('🎯 getScopesPaginationInfo called with:', pagination, params);
+
+        const { page = 1, per_page = 25, total = 0, filtered = total } = pagination;
+
+        // Use filtered count if available, otherwise use total
+        const displayCount = filtered || total;
+        const startItem = displayCount === 0 ? 0 : (page - 1) * per_page + 1;
+        const endItem = Math.min(page * per_page, displayCount);
+
+        // Build info text
+        let infoText = `<span>${startItem} to ${endItem}</span> of <span>${displayCount}</span>`;
+
+        // Show filtered message if filtered count is different from total
+        if (filtered && filtered !== total) {
+            infoText += ` <span class="text-gray-500 dark:text-gray-400">(filtered from ${total} total)</span>`;
+        }
+
         return {
-            start: (pagination.page - 1) * pagination.per_page + 1,
-            end: Math.min(pagination.page * pagination.per_page, pagination.total),
-            total: pagination.total,
-            filtered: pagination.filtered || pagination.total
+            total: displayCount,  // Use filtered count for pagination calculations
+            info: infoText        // HTML string for display
         };
     }
 
