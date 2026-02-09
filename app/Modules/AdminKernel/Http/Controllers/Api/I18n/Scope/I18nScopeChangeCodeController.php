@@ -19,6 +19,7 @@ use Maatify\AdminKernel\Domain\Exception\EntityAlreadyExistsException;
 use Maatify\AdminKernel\Domain\Exception\EntityInUseException;
 use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\AdminKernel\Domain\I18n\Scope\Writer\I18nScopeUpdaterInterface;
+use Maatify\AdminKernel\Domain\Service\I18nScopeUsageService;
 use Maatify\AdminKernel\Validation\Schemas\I18n\Scope\I18nScopeChangeCodeSchema;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -28,6 +29,7 @@ final readonly class I18nScopeChangeCodeController
 {
     public function __construct(
         private I18nScopeUpdaterInterface $writer,
+        private I18nScopeUsageService $usageService,
         private ValidationGuard $validationGuard
     )
     {
@@ -52,7 +54,7 @@ final readonly class I18nScopeChangeCodeController
         }
 
         $currentCode = $this->writer->getCurrentCode($id);
-        if ($this->writer->isCodeInUse($currentCode)) {
+        if ($this->usageService->isScopeCodeInUse($currentCode)) {
             throw new EntityInUseException(
                 'I18nScope',
                 $currentCode,

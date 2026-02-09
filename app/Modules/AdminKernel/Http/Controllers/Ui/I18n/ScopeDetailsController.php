@@ -72,6 +72,11 @@ final readonly class ScopeDetailsController
                 $adminId,
                 'i18n.scopes.domains.unassign'
             ),
+
+            'can_view_scopes' => $this->authorizationService->hasPermission(
+                $adminId,
+                'i18n.scopes.list'
+            ),
         ];
 
         return $this->view->render($response, 'pages/i18n/scope_details.twig', [

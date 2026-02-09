@@ -97,6 +97,86 @@ window.i18nScopesCapabilities = {
 
 ---
 
+### 2.3 Scope Details Navigation (UI Contract)
+
+This section defines **when and how** the UI is allowed to navigate to a scope details page.
+
+#### Capability Gate
+
+Navigation to scope details is **STRICTLY permission-gated**.
+
+**Required capability:**
+
+```text
+i18n.scopes.details
+```
+
+This capability is exposed to the UI as:
+
+```js
+can_view_scope_details
+```
+
+---
+
+#### UI Behavior Rules
+
+| Condition                          | Required UI Behavior                                  |
+|------------------------------------|-------------------------------------------------------|
+| `can_view_scope_details === true`  | Scope `id` is clickable                               |
+| `can_view_scope_details === false` | Scope `id` MUST be rendered as plain text (no action) |
+
+---
+
+#### Navigation Contract
+
+When `can_view_scope_details === true` and the user clicks a scope row (or its ID):
+
+```
+GET /i18n/scopes/{id}
+```
+
+* `{id}` MUST be the numeric scope ID returned by `/api/i18n/scopes/query`
+* This is a **UI page**, not an API
+* The request returns `text/html`
+* The page is rendered by `ScopeDetailsController`
+
+⚠️ **Hard Rules:**
+
+* UI MUST NOT attempt to derive scope code client-side
+* UI MUST NOT call any API to “check existence” before redirect
+* Authorization is enforced server-side; UI only reflects capability visibility
+
+---
+
+#### Error Handling (Implicit)
+
+* If the scope does not exist → server returns **404**
+* If the admin loses permission mid-session → server returns **403**
+* UI MUST NOT try to intercept or replace these responses
+
+---
+
+#### Explicit Non-Goals
+
+The following are **NOT supported** and MUST NOT be implemented:
+
+* ❌ Redirecting based on scope code
+* ❌ Opening details in modal
+* ❌ Fetching scope details via API before navigation
+* ❌ Client-side permission inference
+
+---
+
+## 🔍 Why this matters (Architectural Note)
+
+* Keeps **ID as the single navigation primitive**
+* Prevents UI ↔ domain coupling via `code`
+* Matches existing RBAC + Controller enforcement
+* Aligns with current `ScopeDetailsController` behavior
+
+---
+
 ## 3) List Scopes (table)
 
 **Endpoint:** `POST /api/i18n/scopes/query`

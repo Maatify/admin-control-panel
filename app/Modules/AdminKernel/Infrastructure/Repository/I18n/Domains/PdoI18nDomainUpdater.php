@@ -58,28 +58,6 @@ final readonly class PdoI18nDomainUpdater implements I18nDomainUpdaterInterface
         return $stmt->fetchColumn() !== false;
     }
 
-    public function isCodeInUse(string $code): bool
-    {
-        // 1) Check usage in i18n_keys
-        $stmt = $this->pdo->prepare(
-            'SELECT 1 FROM i18n_keys WHERE scope = :code LIMIT 1'
-        );
-        $stmt->execute(['code' => $code]);
-
-        if ($stmt->fetchColumn() !== false) {
-            return true;
-        }
-
-        // 2) Check usage in i18n_domain_scopes
-        $stmt = $this->pdo->prepare(
-            'SELECT 1 FROM i18n_domain_scopes WHERE scope_code = :code LIMIT 1'
-        );
-        $stmt->execute(['code' => $code]);
-
-        return $stmt->fetchColumn() !== false;
-    }
-
-
     public function getCurrentCode(int $id): string
     {
         $stmt = $this->pdo->prepare(

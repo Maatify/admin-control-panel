@@ -21,8 +21,6 @@ interface I18nScopeUpdaterInterface
 
     public function existsByCode(string $code): bool;
 
-    public function isCodeInUse(string $code): bool;
-
     public function getCurrentCode(int $id): string;
 
     public function changeCode(int $id, string $newCode): void;

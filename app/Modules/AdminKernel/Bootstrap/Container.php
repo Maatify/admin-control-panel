@@ -67,8 +67,10 @@ use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodeValida
 use Maatify\AdminKernel\Domain\DTO\AdminConfigDTO;
 use Maatify\AdminKernel\Domain\DTO\TotpEnrollmentConfig;
 use Maatify\AdminKernel\Domain\DTO\Ui\UiConfigDTO;
+use Maatify\AdminKernel\Domain\I18n\Keys\I18nKeyInterface;
 use Maatify\AdminKernel\Domain\I18n\Reader\LanguageQueryReaderInterface;
 use Maatify\AdminKernel\Domain\I18n\Reader\TranslationKeyQueryReaderInterface;
+use Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsInterface;
 use Maatify\AdminKernel\Domain\Ownership\SystemOwnershipRepositoryInterface;
 use Maatify\AdminKernel\Domain\Security\Crypto\AdminCryptoContextProvider;
 use Maatify\AdminKernel\Domain\Security\Crypto\CryptoKeyRingConfig;
@@ -164,8 +166,10 @@ use Maatify\AdminKernel\Infrastructure\Repository\AdminTotpSecretRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\FailedNotificationRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\I18n\Domains\PdoI18nDomainCreate;
 use Maatify\AdminKernel\Infrastructure\Repository\I18n\Domains\PdoI18nDomainsQueryReader;
+use Maatify\AdminKernel\Infrastructure\Repository\I18n\Keys\I18nKeyRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\I18n\Languages\PdoLanguageQueryReader;
 use Maatify\AdminKernel\Infrastructure\Repository\I18n\PdoTranslationKeyQueryReader;
+use Maatify\AdminKernel\Infrastructure\Repository\I18n\ScopeDomains\I18nScopeDomainsRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\NotificationReadRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\PdoAdminDirectPermissionRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\PdoAdminNotificationHistoryReader;
@@ -2507,8 +2511,32 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Scope\PdoI18nScopeDetailsReader($pdo);
-            }
+            },
 
+            I18nScopeDomainsInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new I18nScopeDomainsRepository($pdo);
+            },
+
+            I18nKeyInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new I18nKeyRepository($pdo);
+            },
+
+            \Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsQueryReaderInterface::class
+            => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\ScopeDomains\PdoI18nScopeDomainsQueryReader($pdo);
+            },
+
+            \Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsWriterInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\ScopeDomains\PdoI18nScopeDomainsWriter($pdo);
+            }
 
         ]);
 

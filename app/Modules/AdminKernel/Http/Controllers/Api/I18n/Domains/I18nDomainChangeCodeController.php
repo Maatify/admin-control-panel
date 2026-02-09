@@ -19,6 +19,7 @@ use Maatify\AdminKernel\Domain\Exception\EntityAlreadyExistsException;
 use Maatify\AdminKernel\Domain\Exception\EntityInUseException;
 use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainUpdaterInterface;
+use Maatify\AdminKernel\Domain\Service\I18nDomainUsageService;
 use Maatify\AdminKernel\Validation\Schemas\I18n\Domains\I18nDomainChangeCodeSchema;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -28,6 +29,7 @@ final readonly class I18nDomainChangeCodeController
 {
     public function __construct(
         private I18nDomainUpdaterInterface $writer,
+        private I18nDomainUsageService $usageService,
         private ValidationGuard $validationGuard
     )
     {
@@ -51,7 +53,7 @@ final readonly class I18nDomainChangeCodeController
         }
 
         $currentCode = $this->writer->getCurrentCode($id);
-        if ($this->writer->isCodeInUse($currentCode)) {
+        if ($this->usageService->isDomainCodeInUse($currentCode)) {
             throw new EntityInUseException(
                 'I18nDomain',
                 $currentCode,
