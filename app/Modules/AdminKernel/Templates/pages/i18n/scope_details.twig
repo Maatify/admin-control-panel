@@ -115,13 +115,108 @@
             Domain Assignments
         </h3>
 
+        {# ============================================================
+           🔍 Filters Section
+           ============================================================ #}
+        <div class="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg mb-4 border border-gray-200 dark:border-gray-700">
+            <form id="scope-domains-filter-form" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <!-- Column Filters -->
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Code</label>
+                        <input type="text" id="domain-filter-code"
+                               class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Filter by code">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Name</label>
+                        <input type="text" id="domain-filter-name"
+                               class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Filter by name">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Assignment Status</label>
+                        <select id="domain-filter-assigned"
+                                class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">All Domains</option>
+                            <option value="1">Assigned Only</option>
+                            <option value="0">Unassigned Only</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Active Status</label>
+                        <select id="domain-filter-active"
+                                class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">All</option>
+                            <option value="1">Active</option>
+                            <option value="0">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex items-end gap-2">
+                    <button type="submit" id="btn-filter-search" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Search
+                    </button>
+                    <button type="button" id="btn-reset-filters" class="px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-medium border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                        Reset
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        {# ============================================================
+           🌍 Global Search Bar
+           ============================================================ #}
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4">
+            <div class="flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                        type="text"
+                        id="domain-search-global"
+                        class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400"
+                        placeholder="🔍 Quick search by code, name, or description..."
+                />
+                <button
+                        type="button"
+                        id="btn-search-global"
+                        class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                    Search
+                </button>
+                <button
+                        type="button"
+                        id="btn-clear-search"
+                        class="px-6 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
+                >
+                    Clear
+                </button>
+            </div>
+        </div>
+
         <div id="domains-table-container"></div>
     </div>
 
 {% endblock %}
 
 {% block scripts %}
+    {# Shared infrastructure scripts #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/api_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/callback_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/Input_checker.js') }}"></script>
     <script src="{{ asset('assets/maatify/admin-kernel/js/data_table.js') }}"></script>
 
-    {# <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n_scopes_domains.js') }}"></script> #}
+    {# ✨ Select2 - Custom dropdown with search #}
+{#    <script src="{{ asset('assets/maatify/admin-kernel/js/select2.js') }}"></script>#}
+
+    {# ✨ Project-wide reusable UI components library #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
+
+    {# 🌐 Scope Domains modular scripts #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n_scopes_domains.js') }}"></script>
 {% endblock %}
