@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\DTO\AppSettingsMetadata;
+namespace Maatify\AdminKernel\Domain\AppSettings\DTO\AppSettingsMetadata;
 
 use JsonSerializable;
+use Maatify\AdminKernel\Domain\AppSettings\DTO\AppSettingsKeyMetadataDTO;
 
 /**
  * @phpstan-type AppSettingsGroupMetadataArray array{

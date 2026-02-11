@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\List;
+namespace Maatify\AdminKernel\Domain\AppSettings\List;
+
+use Maatify\AdminKernel\Domain\List\ListCapabilities;
 
 final class AppSettingsListCapabilities
 {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\AppSettings;
 
-use Maatify\AdminKernel\Validation\Schemas\AppSettings\AppSettingsSetActiveSchema;
+use Maatify\AdminKernel\Domain\AppSettings\Validation\AppSettingsSetActiveSchema;
 use Maatify\AppSettings\AppSettingsServiceInterface;
 use Maatify\AppSettings\DTO\AppSettingKeyDTO;
 use Maatify\Validation\Guard\ValidationGuard;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\DTO\AppSettingsMetadata;
+namespace Maatify\AdminKernel\Domain\AppSettings\DTO;
 
 use JsonSerializable;
 

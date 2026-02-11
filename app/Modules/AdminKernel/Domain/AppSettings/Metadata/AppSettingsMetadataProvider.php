@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\AppSettings\Metadata;
 
-use Maatify\AdminKernel\Domain\DTO\AppSettingsMetadata\AppSettingsGroupMetadataDTO;
-use Maatify\AdminKernel\Domain\DTO\AppSettingsMetadata\AppSettingsKeyMetadataDTO;
-use Maatify\AdminKernel\Domain\DTO\AppSettingsMetadata\AppSettingsMetadataResponseDTO;
-use Maatify\AppSettings\Policy\AppSettingsWhitelistPolicy;
+use Maatify\AdminKernel\Domain\AppSettings\DTO\AppSettingsKeyMetadataDTO;
+use Maatify\AdminKernel\Domain\AppSettings\DTO\AppSettingsMetadata\AppSettingsGroupMetadataDTO;
+use Maatify\AdminKernel\Domain\AppSettings\DTO\AppSettingsMetadata\AppSettingsMetadataResponseDTO;
 use Maatify\AppSettings\Policy\AppSettingsProtectionPolicy;
+use Maatify\AppSettings\Policy\AppSettingsWhitelistPolicy;
 use ReflectionClass;
 
 final class AppSettingsMetadataProvider

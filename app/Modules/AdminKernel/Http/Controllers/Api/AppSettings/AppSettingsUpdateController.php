@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\AppSettings;
 
-use Maatify\AdminKernel\Validation\Schemas\AppSettings\AppSettingsUpdateSchema;
+use Maatify\AdminKernel\Domain\AppSettings\Validation\AppSettingsUpdateSchema;
 use Maatify\AppSettings\AppSettingsServiceInterface;
 use Maatify\AppSettings\DTO\AppSettingUpdateDTO;
 use Maatify\Validation\Guard\ValidationGuard;

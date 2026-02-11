@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\DTO\AppSettingsList;
+namespace Maatify\AdminKernel\Domain\AppSettings\DTO;
 
 use JsonSerializable;
 use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;

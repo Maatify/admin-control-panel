@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Infrastructure\Reader\AppSettings;
 
+use Maatify\AdminKernel\Domain\AppSettings\DTO\AppSettingsListItemDTO;
+use Maatify\AdminKernel\Domain\AppSettings\DTO\AppSettingsListResponseDTO;
 use Maatify\AdminKernel\Domain\AppSettings\Reader\AppSettingsQueryReaderInterface;
-use Maatify\AdminKernel\Domain\DTO\AppSettingsList\AppSettingsListItemDTO;
-use Maatify\AdminKernel\Domain\DTO\AppSettingsList\AppSettingsListResponseDTO;
 use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
 use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
