@@ -8,6 +8,9 @@ use Maatify\AdminKernel\Http\Controllers\AdminNotificationPreferenceController;
 use Maatify\AdminKernel\Http\Controllers\Api\Admin\AdminController;
 use Maatify\AdminKernel\Http\Controllers\Api\Admin\AdminEmailVerificationController;
 use Maatify\AdminKernel\Http\Controllers\Api\Admin\AdminQueryController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\Keys\I18nScopeKeysCreateController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\Keys\I18nScopeKeysUpdateNameController;
+use Maatify\AdminKernel\Http\Controllers\Api\I18n\Keys\I18nScopeKeysUpdateDescriptionController;
 use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesClearFallbackController;
 use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesCreateController;
 use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesQueryController;
@@ -17,10 +20,6 @@ use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesUpdateCodeC
 use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesUpdateNameController;
 use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesUpdateSettingsController;
 use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesUpdateSortOrderController;
-use Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationKeysCreateController;
-use Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationKeysQueryController;
-use Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationKeysUpdateDescriptionController;
-use Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationKeysUpdateNameController;
 use Maatify\AdminKernel\Http\Controllers\AuthController;
 use Maatify\AdminKernel\Http\Controllers\NotificationQueryController;
 use Maatify\AdminKernel\Http\Controllers\Ui\I18n\TranslationKeysListController;
@@ -241,6 +240,13 @@ class AdminRoutes
                         ->add(AuthorizationGuardMiddleware::class);
 
                     $protectedGroup->get(
+                        '/i18n/scopes/{scope_id:[0-9]+}/keys',
+                        [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopeKeysController::class, 'index']
+                    )
+                        ->setName('i18n.scopes.keys.ui')
+                        ->add(AuthorizationGuardMiddleware::class);
+
+                    $protectedGroup->get(
                         '/i18n/domains',
                         [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\DomainsListUiController::class, '__invoke']
                     )
@@ -407,6 +413,28 @@ class AdminRoutes
                                 '/{scope_id:[0-9]+}/domains/unassign',
                                 \Maatify\AdminKernel\Http\Controllers\Api\I18n\ScopeDomains\I18nScopeDomainUnassignController::class
                             )->setName('i18n.scopes.domains.unassign.api');
+
+                            $i18nScopes->get(
+                                '/{scope_id:[0-9]+}/domains/dropdown',
+                                \Maatify\AdminKernel\Http\Controllers\Api\I18n\ScopeDomains\I18nScopeDomainsDropdownController::class
+                            )->setName('i18n.scopes.domains.dropdown.api');
+
+                            // ─────────────────────────────
+                            // i18n Keys Control
+                            // ─────────────────────────────
+                            $i18nScopes->post(
+                                '/{scope_id:[0-9]+}/keys/query',
+                                \Maatify\AdminKernel\Http\Controllers\Api\I18n\Keys\I18nScopeKeysQueryController::class
+                            )->setName('i18n.scopes.keys.query.api');
+
+                            $i18nScopes->post('/{scope_id:[0-9]+}/keys/update-name', [I18nScopeKeysUpdateNameController::class, '__invoke'])
+                                ->setName('i18n.scopes.keys.update_name.api');
+
+                            $i18nScopes->post('/{scope_id:[0-9]+}/keys/create', [I18nScopeKeysCreateController::class, '__invoke'])
+                                ->setName('i18n.scopes.keys.create.api');
+
+                            $i18nScopes->post('/{scope_id:[0-9]+}/keys/update_metadata', [I18nScopeKeysUpdateDescriptionController::class, '__invoke'])
+                                ->setName('i18n.scopes.keys.update_metadata.api');
                         });
 
                         // ─────────────────────────────
@@ -461,23 +489,6 @@ class AdminRoutes
                                     '__invoke'
                                 ]
                             )->setName('i18n.domains.update_metadata.api');
-                        });
-
-                        // ─────────────────────────────
-                        // i18n Keys Control
-                        // ─────────────────────────────
-                        $i18n->group('/keys', function (RouteCollectorProxyInterface $keys) {
-                            $keys->post('/query', [TranslationKeysQueryController::class, '__invoke'])
-                                ->setName('i18n.keys.list.api');
-
-                            $keys->post('/create', [TranslationKeysCreateController::class, '__invoke'])
-                                ->setName('i18n.keys.create.api');
-
-                            $keys->post('/update-name', [TranslationKeysUpdateNameController::class, '__invoke'])
-                                ->setName('i18n.keys.update.name.api');
-
-                            $keys->post('/update-description', [TranslationKeysUpdateDescriptionController::class, '__invoke'])
-                                ->setName('i18n.keys.update.description.api');
                         });
 
                         // ─────────────────────────────

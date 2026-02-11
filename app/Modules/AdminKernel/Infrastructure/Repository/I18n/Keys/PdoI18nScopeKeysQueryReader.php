@@ -1,33 +1,41 @@
 <?php
 
+/**
+ * @copyright   ©2026 Maatify.dev
+ * @Library     maatify/admin-control-panel
+ * @Project     maatify:admin-control-panel
+ * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
+ * @since       2026-02-11 02:27
+ * @see         https://www.maatify.dev Maatify.dev
+ * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
+ * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
+ */
+
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Infrastructure\Repository\I18n;
+namespace Maatify\AdminKernel\Infrastructure\Repository\I18n\Keys;
 
 use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
-use Maatify\AdminKernel\Domain\DTO\TranslationKeyList\TranslationKeyListItemDTO;
-use Maatify\AdminKernel\Domain\DTO\TranslationKeyList\TranslationKeyListResponseDTO;
-use Maatify\AdminKernel\Domain\I18n\Reader\TranslationKeyQueryReaderInterface;
+use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
+use Maatify\AdminKernel\Domain\I18n\Keys\DTO\I18nScopeKeyListItemDTO;
+use Maatify\AdminKernel\Domain\I18n\Keys\DTO\I18nScopeKeysListResponseDTO;
+use Maatify\AdminKernel\Domain\I18n\Keys\I18nScopeKeysQueryReaderInterface;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
 use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
 use PDO;
 use RuntimeException;
 
-final readonly class PdoTranslationKeyQueryReader implements TranslationKeyQueryReaderInterface
+final readonly class PdoI18nScopeKeysQueryReader
+    implements I18nScopeKeysQueryReaderInterface
 {
-    public function __construct(
-        private PDO $pdo
-    ) {
-    }
+    public function __construct(private PDO $pdo) {}
 
-    public function queryTranslationKeys(
+    public function queryScopeKeys(
+        int $scopeId,
         ListQueryDTO $query,
         ResolvedListFilters $filters
-    ): TranslationKeyListResponseDTO
-    {
-        $where  = [];
-        $params = [];
-
+    ): I18nScopeKeysListResponseDTO {
+        $scopeCode = $this->resolveScopeCode($scopeId);
         // ─────────────────────────────
         // Global search (free text: key_name OR description)
         // ─────────────────────────────
@@ -35,7 +43,7 @@ final readonly class PdoTranslationKeyQueryReader implements TranslationKeyQuery
             $g = trim($filters->globalSearch);
 
             if ($g !== '') {
-                $where[] = '(k.key_name LIKE :global_text OR k.description LIKE :global_text)';
+                $where[] = '(k.domain LIKE :global_text OR k.key_part LIKE :global_text)';
                 $params['global_text'] = '%' . $g . '%';
             }
         }
@@ -50,18 +58,22 @@ final readonly class PdoTranslationKeyQueryReader implements TranslationKeyQuery
                 $params['id'] = (int)$value;
             }
 
-            if ($alias === 'key_name') {
-                $where[] = 'k.key_name LIKE :key_name';
-                $params['key_name'] = '%' . trim((string)$value) . '%';
+            if ($alias === 'domain') {
+                $where[] = 'k.domain LIKE :domain';
+                $params['domain'] = '%' . trim((string)$value) . '%';
             }
 
-            if ($alias === 'description') {
-                $where[] = 'k.description LIKE :description';
-                $params['description'] = '%' . trim((string)$value) . '%';
+            if ($alias === 'key_part') {
+                $where[] = 'k.key_part LIKE :key_part';
+                $params['key_part'] = '%' . trim((string)$value) . '%';
             }
         }
 
-        $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
+        $where[] = 'k.scope = :scope';
+        $params['scope'] = $scopeCode;
+
+        $whereSql = 'WHERE ' . implode(' AND ', $where);
+
 
         // ─────────────────────────────
         // Total (no filters)
@@ -93,10 +105,11 @@ final readonly class PdoTranslationKeyQueryReader implements TranslationKeyQuery
         $sql = "
             SELECT
                 k.id,
-                k.key_name,
+                k.scope,
+                k.domain,
+                k.key_part,
                 k.description,
-                k.created_at,
-                k.updated_at
+                k.created_at
             FROM i18n_keys k
             {$whereSql}
             ORDER BY
@@ -119,17 +132,19 @@ final readonly class PdoTranslationKeyQueryReader implements TranslationKeyQuery
         $items = [];
 
         foreach ($rows as $row) {
-            $items[] = new TranslationKeyListItemDTO(
-                id: (int)$row['id'],
-                keyName: (string)$row['key_name'],
-                description: is_string($row['description'] ?? null) ? $row['description'] : null,
-                createdAt: (string)$row['created_at'],
-                updatedAt: is_string($row['updated_at'] ?? null) ? $row['updated_at'] : null
+            $items[] = new I18nScopeKeyListItemDTO(
+                (int)$row['id'],
+                $row['scope'],
+                $row['domain'],
+                $row['key_part'],
+                $row['description'],
+                $row['created_at']
             );
         }
 
-        return new TranslationKeyListResponseDTO(
-            data: $items,
+
+        return new I18nScopeKeysListResponseDTO(
+            $items,
             pagination: new PaginationDTO(
                 page: $query->page,
                 perPage: $query->perPage,
@@ -138,4 +153,20 @@ final readonly class PdoTranslationKeyQueryReader implements TranslationKeyQuery
             )
         );
     }
+
+    private function resolveScopeCode(int $scopeId): string
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT code FROM i18n_scopes WHERE id = :id'
+        );
+        $stmt->execute(['id' => $scopeId]);
+
+        $code = $stmt->fetchColumn();
+        if (!$code) {
+            throw new EntityNotFoundException('scope not found', 'scopeId');
+        }
+
+        return (string)$code;
+    }
 }
+

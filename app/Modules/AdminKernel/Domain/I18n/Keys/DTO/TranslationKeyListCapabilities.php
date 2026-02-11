@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\List;
+namespace Maatify\AdminKernel\Domain\I18n\Keys\DTO;
+
+use Maatify\AdminKernel\Domain\List\ListCapabilities;
 
 final class TranslationKeyListCapabilities
 {
@@ -12,16 +14,18 @@ final class TranslationKeyListCapabilities
         // 🔍 Global search (free text)
             supportsGlobalSearch : true,
             searchableColumns    : [
-                'key_name',
-                'description',
+                'domain',
+                'key_part',
+                'translation_key',
             ],
 
             // 🎯 Explicit column filters
             supportsColumnFilters: true,
             filterableColumns    : [
                 'id'            => 'id',
-                'key_name'      => 'key_name',
-                'description'   => 'description',
+                'domain'      => 'domain',
+                'key_part'   => 'key_part',
+                'translation_key'   => 'translation_key',
             ],
 
             supportsDateFilter   : false,

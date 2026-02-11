@@ -100,6 +100,16 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'i18n.domains.update_sort.api' => 'i18n.domains.update_sort',
         'i18n.domains.update_metadata.api' => 'i18n.domains.update_metadata',
 
+        // I18n Translations Keys Dropdown for create
+        'i18n.scopes.domains.dropdown.api' => 'i18n.scopes.keys.create',
+
+        // I18n Translations Keys Control
+        'i18n.scopes.keys.ui' => 'i18n.scopes.keys',
+        'i18n.scopes.keys.query.api' => 'i18n.scopes.keys',
+        'i18n.scopes.keys.update_name.api' => 'i18n.scopes.keys.update_name',
+        'i18n.scopes.keys.create.api' => 'i18n.scopes.keys.create',
+        'i18n.scopes.keys.update_metadata.api' => 'i18n.scopes.keys.update_metadata',
+
         // App Settings Control
         'app_settings.list.api' => 'app_settings.list',
         // App Settings UI

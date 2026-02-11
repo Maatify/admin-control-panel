@@ -2,21 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\DTO\TranslationKeyList;
+namespace Maatify\AdminKernel\Domain\I18n\Keys\DTO;
 
 use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
-use JsonSerializable;
 
 /**
- * @phpstan-type TranslationKeyListResponseArray array{
- *   data: TranslationKeyListItemDTO[],
+ * @phpstan-type I18nScopeKeysListResponseArray array{
+ *   data: I18nScopeKeyListItemDTO[],
  *   pagination: PaginationDTO
  * }
  */
-final readonly class TranslationKeyListResponseDTO implements JsonSerializable
+final readonly class I18nScopeKeysListResponseDTO implements \JsonSerializable
 {
     /**
-     * @param TranslationKeyListItemDTO[] $data
+     * @param I18nScopeKeyListItemDTO[] $data
      */
     public function __construct(
         public array $data,
@@ -24,13 +23,14 @@ final readonly class TranslationKeyListResponseDTO implements JsonSerializable
     ) {}
 
     /**
-     * @return TranslationKeyListResponseArray
+     * @return I18nScopeKeysListResponseArray
      */
     public function jsonSerialize(): array
     {
         return [
-            'data' => $this->data,
+            'data'       => $this->data,
             'pagination' => $this->pagination,
         ];
     }
 }
+
