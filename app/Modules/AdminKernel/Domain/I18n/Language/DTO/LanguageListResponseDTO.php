@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\DTO\LanguageList;
+namespace Maatify\AdminKernel\Domain\I18n\Language\DTO;
 
-use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
 use JsonSerializable;
+use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
 
 /**
  * @phpstan-type LanguageListResponseArray array{

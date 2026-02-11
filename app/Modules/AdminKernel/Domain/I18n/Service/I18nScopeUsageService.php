@@ -13,7 +13,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\Service;
+namespace Maatify\AdminKernel\Domain\I18n\Service;
 
 use Maatify\AdminKernel\Domain\I18n\Keys\I18nKeyInterface;
 use Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsInterface;

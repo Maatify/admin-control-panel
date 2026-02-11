@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Infrastructure\Repository\I18n\Languages;
 
 use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
-use Maatify\AdminKernel\Domain\DTO\LanguageList\LanguageListItemDTO;
-use Maatify\AdminKernel\Domain\DTO\LanguageList\LanguageListResponseDTO;
-use Maatify\AdminKernel\Domain\I18n\Reader\LanguageQueryReaderInterface;
+use Maatify\AdminKernel\Domain\I18n\Language\DTO\LanguageListItemDTO;
+use Maatify\AdminKernel\Domain\I18n\Language\DTO\LanguageListResponseDTO;
+use Maatify\AdminKernel\Domain\I18n\Language\LanguageQueryReaderInterface;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
 use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
 use Maatify\I18n\Enum\TextDirectionEnum;

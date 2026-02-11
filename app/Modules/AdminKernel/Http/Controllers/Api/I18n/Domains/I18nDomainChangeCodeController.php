@@ -19,7 +19,7 @@ use Maatify\AdminKernel\Domain\Exception\EntityAlreadyExistsException;
 use Maatify\AdminKernel\Domain\Exception\EntityInUseException;
 use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainUpdaterInterface;
-use Maatify\AdminKernel\Domain\Service\I18nDomainUsageService;
+use Maatify\AdminKernel\Domain\I18n\Service\I18nDomainUsageService;
 use Maatify\AdminKernel\Validation\Schemas\I18n\Domains\I18nDomainChangeCodeSchema;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;

@@ -2,31 +2,35 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\List\I18n;
+namespace Maatify\AdminKernel\Domain\I18n\Scope\List;
 
 use Maatify\AdminKernel\Domain\List\ListCapabilities;
 
-final class I18nScopeDomainsListCapabilities
+final class I18nScopesListCapabilities
 {
     public static function define(): ListCapabilities
     {
         return new ListCapabilities(
-            supportsGlobalSearch: true,
-            searchableColumns: [
+            // 🔍 Global search (free text)
+            supportsGlobalSearch : true,
+            searchableColumns    : [
                 'code',
                 'name',
                 'description',
             ],
+
+            // 🎯 Explicit column filters
             supportsColumnFilters: true,
-            filterableColumns: [
+            filterableColumns    : [
                 'id' => 'id',
                 'code' => 'code',
                 'name' => 'name',
                 'is_active' => 'is_active',
-                'assigned' => 'assigned',
             ],
-            supportsDateFilter: false,
-            dateColumn: null
+
+            supportsDateFilter   : false,
+            dateColumn           : null
         );
     }
 }
+

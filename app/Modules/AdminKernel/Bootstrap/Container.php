@@ -68,7 +68,7 @@ use Maatify\AdminKernel\Domain\DTO\AdminConfigDTO;
 use Maatify\AdminKernel\Domain\DTO\TotpEnrollmentConfig;
 use Maatify\AdminKernel\Domain\DTO\Ui\UiConfigDTO;
 use Maatify\AdminKernel\Domain\I18n\Keys\I18nKeyInterface;
-use Maatify\AdminKernel\Domain\I18n\Reader\LanguageQueryReaderInterface;
+use Maatify\AdminKernel\Domain\I18n\Language\LanguageQueryReaderInterface;
 use Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsInterface;
 use Maatify\AdminKernel\Domain\Ownership\SystemOwnershipRepositoryInterface;
 use Maatify\AdminKernel\Domain\Security\Crypto\AdminCryptoContextProvider;

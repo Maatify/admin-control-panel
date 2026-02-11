@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\List;
+namespace Maatify\AdminKernel\Domain\I18n\Language\List;
+
+use Maatify\AdminKernel\Domain\List\ListCapabilities;
 
 final class LanguageListCapabilities
 {

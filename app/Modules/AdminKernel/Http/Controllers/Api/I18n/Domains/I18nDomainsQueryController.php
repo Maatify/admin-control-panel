@@ -16,7 +16,7 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\Domains;
 
 use Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainsQueryReaderInterface;
-use Maatify\AdminKernel\Domain\List\I18n\I18nDomainsListCapabilities;
+use Maatify\AdminKernel\Domain\I18n\Domain\List\I18nDomainsListCapabilities;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
 use Maatify\AdminKernel\Infrastructure\Query\ListFilterResolver;
 use Maatify\Validation\Guard\ValidationGuard;

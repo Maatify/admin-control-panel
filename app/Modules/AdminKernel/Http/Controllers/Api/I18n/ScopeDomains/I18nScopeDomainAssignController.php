@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\ScopeDomains;
 
-use Maatify\AdminKernel\Domain\Service\I18nScopeDomainsService;
+use Maatify\AdminKernel\Domain\I18n\Service\I18nScopeDomainsService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Maatify\Validation\Schemas\SharedStringRequiredSchema;
 use Psr\Http\Message\ResponseInterface;

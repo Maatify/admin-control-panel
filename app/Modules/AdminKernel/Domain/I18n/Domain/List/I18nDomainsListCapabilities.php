@@ -2,14 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\List;
+namespace Maatify\AdminKernel\Domain\I18n\Domain\List;
 
-final class I18nScopesListCapabilities
+use Maatify\AdminKernel\Domain\List\ListCapabilities;
+
+class I18nDomainsListCapabilities
 {
     public static function define(): ListCapabilities
     {
         return new ListCapabilities(
-            // 🔍 Global search (free text)
+        // 🔍 Global search (free text)
             supportsGlobalSearch : true,
             searchableColumns    : [
                 'code',
@@ -31,4 +33,3 @@ final class I18nScopesListCapabilities
         );
     }
 }
-

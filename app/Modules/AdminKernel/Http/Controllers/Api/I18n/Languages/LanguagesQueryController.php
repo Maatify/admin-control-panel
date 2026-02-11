@@ -15,8 +15,8 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages;
 
-use Maatify\AdminKernel\Domain\I18n\Reader\LanguageQueryReaderInterface;
-use Maatify\AdminKernel\Domain\List\LanguageListCapabilities;
+use Maatify\AdminKernel\Domain\I18n\Language\LanguageQueryReaderInterface;
+use Maatify\AdminKernel\Domain\I18n\Language\List\LanguageListCapabilities;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
 use Maatify\AdminKernel\Infrastructure\Query\ListFilterResolver;
 use Maatify\Validation\Guard\ValidationGuard;

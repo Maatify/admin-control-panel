@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\DTO\LanguageList;
+namespace Maatify\AdminKernel\Domain\I18n\Language\DTO;
 
-use Maatify\I18n\Enum\TextDirectionEnum;
 use JsonSerializable;
+use Maatify\I18n\Enum\TextDirectionEnum;
 
 /**
  * @phpstan-type LanguageListItemArray array{
