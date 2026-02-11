@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\ScopeDomains;
 
+use Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopeDetailsRepositoryInterface;
 use Maatify\AdminKernel\Domain\Service\I18nScopeDomainsService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Maatify\Validation\Schemas\SharedStringRequiredSchema;
@@ -48,9 +49,12 @@ final readonly class I18nScopeDomainUnassignController
             $body
         );
 
+        /** @var array{domain_code: string} $body */
+        $raw = $body;
+
         $this->service->unassign(
             $scopeId,
-            trim($body['domain_code'])
+            trim($raw['domain_code'])
         );
 
         $response->getBody()->write(json_encode([

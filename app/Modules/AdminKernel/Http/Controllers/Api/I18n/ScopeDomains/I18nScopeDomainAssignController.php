@@ -48,9 +48,12 @@ final readonly class I18nScopeDomainAssignController
             $body
         );
 
+        /** @var array{domain_code: string} $body */
+        $raw = $body;
+
         $this->service->assign(
             $scopeId,
-            trim($body['domain_code'])
+            trim($raw['domain_code'])
         );
 
         $response->getBody()->write(json_encode([
