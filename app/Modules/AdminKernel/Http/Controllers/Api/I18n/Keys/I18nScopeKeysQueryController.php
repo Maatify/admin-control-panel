@@ -5,7 +5,7 @@
  * @Library     maatify/admin-control-panel
  * @Project     maatify:admin-control-panel
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
- * @since       2026-02-04 09:05
+ * @since       2026-02-11 02:18
  * @see         https://www.maatify.dev Maatify.dev
  * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
  * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
@@ -13,34 +13,41 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Controllers\Api\I18n;
+namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\Keys;
 
-use Maatify\AdminKernel\Domain\I18n\Reader\TranslationKeyQueryReaderInterface;
+use Maatify\AdminKernel\Domain\I18n\Keys\DTO\TranslationKeyListCapabilities;
+use Maatify\AdminKernel\Domain\I18n\Keys\I18nScopeKeysQueryReaderInterface;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
-use Maatify\AdminKernel\Domain\List\TranslationKeyListCapabilities;
+use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
 use Maatify\AdminKernel\Infrastructure\Query\ListFilterResolver;
 use Maatify\Validation\Guard\ValidationGuard;
 use Maatify\Validation\Schemas\SharedListQuerySchema;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-final readonly class TranslationKeysQueryController
+final readonly class I18nScopeKeysQueryController
 {
     public function __construct(
-        private TranslationKeyQueryReaderInterface $reader,
         private ValidationGuard $validationGuard,
-        private ListFilterResolver $filterResolver
+        private I18nScopeKeysQueryReaderInterface $reader,
+        private ListFilterResolver $filterResolver,
+        private JsonResponseFactory $json
     )
     {
     }
 
-    public function __invoke(Request $request, Response $response): Response
+    /**
+     * @param array{scope_id: string} $args
+     */
+    public function __invoke(Request $request, Response $response, array $args): Response
     {
         /** @var array<string,mixed> $body */
         $body = (array)$request->getParsedBody();
 
         // 1) Validate request shape
         $this->validationGuard->check(new SharedListQuerySchema(), $body);
+
+        $scopeId = (int)$args['scope_id'];
 
         /**
          * @var array{
@@ -68,13 +75,13 @@ final readonly class TranslationKeysQueryController
         $filters = $this->filterResolver->resolve($query, $capabilities);
 
         // 5) Execute reader
-        $result = $this->reader->queryTranslationKeys($query, $filters);
+        $result = $this->reader->queryScopeKeys(
+            $scopeId,
+            $query,
+            $filters
+        );
 
         // 6) Return JSON
-        $response->getBody()->write(json_encode($result, JSON_THROW_ON_ERROR));
-
-        return $response
-            ->withHeader('Content-Type', 'application/json')
-            ->withStatus(200);
+        return $this->json->data($response, $result, 200);
     }
 }

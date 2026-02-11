@@ -8,6 +8,7 @@ use Maatify\AdminKernel\Domain\Exception\EntityInUseException;
 use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\AdminKernel\Domain\Exception\InvalidOperationException;
 use Maatify\AdminKernel\Domain\Exception\PermissionDeniedException;
+use Maatify\I18n\Exception\DomainNotAllowedException;
 use Maatify\Validation\Exceptions\ValidationFailedException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -260,6 +261,21 @@ return function (App $app): void {
             throw $exception;
         }
     );
+
+    $errorMiddleware->setErrorHandler(
+        DomainNotAllowedException::class,
+        function (
+            ServerRequestInterface $request,
+            DomainNotAllowedException $exception
+        ) use ($httpJsonError) {
+            return $httpJsonError(
+                422,
+                'DOMAIN_NOT_ALLOWED',
+                $exception->getMessage()
+            );
+        }
+    );
+
 
 
 };

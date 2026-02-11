@@ -69,7 +69,6 @@ use Maatify\AdminKernel\Domain\DTO\TotpEnrollmentConfig;
 use Maatify\AdminKernel\Domain\DTO\Ui\UiConfigDTO;
 use Maatify\AdminKernel\Domain\I18n\Keys\I18nKeyInterface;
 use Maatify\AdminKernel\Domain\I18n\Reader\LanguageQueryReaderInterface;
-use Maatify\AdminKernel\Domain\I18n\Reader\TranslationKeyQueryReaderInterface;
 use Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsInterface;
 use Maatify\AdminKernel\Domain\Ownership\SystemOwnershipRepositoryInterface;
 use Maatify\AdminKernel\Domain\Security\Crypto\AdminCryptoContextProvider;
@@ -107,9 +106,6 @@ use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesUpdateCodeC
 use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesUpdateNameController;
 use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesUpdateSettingsController;
 use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesUpdateSortOrderController;
-use Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationKeysCreateController;
-use Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationKeysUpdateDescriptionController;
-use Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationKeysUpdateNameController;
 use Maatify\AdminKernel\Http\Controllers\Api\Permissions\PermissionMetadataUpdateController;
 use Maatify\AdminKernel\Http\Controllers\Api\Permissions\PermissionsController;
 use Maatify\AdminKernel\Http\Controllers\Api\Roles\RoleCreateController;
@@ -168,7 +164,6 @@ use Maatify\AdminKernel\Infrastructure\Repository\I18n\Domains\PdoI18nDomainCrea
 use Maatify\AdminKernel\Infrastructure\Repository\I18n\Domains\PdoI18nDomainsQueryReader;
 use Maatify\AdminKernel\Infrastructure\Repository\I18n\Keys\I18nKeyRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\I18n\Languages\PdoLanguageQueryReader;
-use Maatify\AdminKernel\Infrastructure\Repository\I18n\PdoTranslationKeyQueryReader;
 use Maatify\AdminKernel\Infrastructure\Repository\I18n\ScopeDomains\I18nScopeDomainsRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\NotificationReadRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\PdoAdminDirectPermissionRepository;
@@ -2285,13 +2280,6 @@ class Container
                 );
             },
 
-            TranslationKeyQueryReaderInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-
-                return new PdoTranslationKeyQueryReader($pdo);
-            },
-
             TranslationKeyRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
@@ -2314,40 +2302,6 @@ class Container
                 assert($translationRepository instanceof TranslationRepositoryInterface);
                 assert($governancePolicy instanceof \Maatify\I18n\Service\I18nGovernancePolicyService);
                 return new TranslationWriteService($languageRepository, $keyRepository, $translationRepository, $governancePolicy);
-            },
-
-            TranslationKeysUpdateNameController::class => function (ContainerInterface $c) {
-                $translationWriteService = $c->get(TranslationWriteService::class);
-                $validationGuard = $c->get(ValidationGuard::class);
-
-                assert($translationWriteService instanceof TranslationWriteService);
-                assert($validationGuard instanceof ValidationGuard);
-
-                return new TranslationKeysUpdateNameController(
-                    $translationWriteService,
-                    $validationGuard
-                );
-            },
-
-            TranslationKeysUpdateDescriptionController::class => function (ContainerInterface $c) {
-                $translationWriteService = $c->get(TranslationWriteService::class);
-                $validationGuard = $c->get(ValidationGuard::class);
-
-                assert($translationWriteService instanceof TranslationWriteService);
-                assert($validationGuard instanceof ValidationGuard);
-
-                return new TranslationKeysUpdateDescriptionController(
-                    $translationWriteService,
-                    $validationGuard
-                );
-            },
-
-            TranslationKeysCreateController::class => function (ContainerInterface $c) {
-                $translationWriteService = $c->get(TranslationWriteService::class);
-                $validationGuard = $c->get(ValidationGuard::class);
-                assert($translationWriteService instanceof TranslationWriteService);
-                assert($validationGuard instanceof ValidationGuard);
-                return new TranslationKeysCreateController($translationWriteService, $validationGuard);
             },
 
             TranslationKeysListController::class => function (ContainerInterface $c) {
@@ -2536,6 +2490,12 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\ScopeDomains\PdoI18nScopeDomainsWriter($pdo);
+            },
+
+            \Maatify\AdminKernel\Domain\I18n\Keys\I18nScopeKeysQueryReaderInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Keys\PdoI18nScopeKeysQueryReader($pdo);
             }
 
         ]);

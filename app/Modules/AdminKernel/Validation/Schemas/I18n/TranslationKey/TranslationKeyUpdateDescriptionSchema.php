@@ -19,7 +19,7 @@ final class TranslationKeyUpdateDescriptionSchema extends AbstractSchema
             ],
 
             'description' => [
-                v::stringType()->length(0, 2000),
+                v::stringType()->length(0, 255),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
         ];
