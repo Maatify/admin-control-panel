@@ -18,7 +18,7 @@ namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\Domains;
 use Maatify\AdminKernel\Domain\Exception\EntityAlreadyExistsException;
 use Maatify\AdminKernel\Domain\I18n\Domain\DTO\I18nDomainCreateDTO;
 use Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainCreateInterface;
-use Maatify\AdminKernel\Validation\Schemas\I18n\Domains\I18nDomainCreateSchema;
+use Maatify\AdminKernel\Domain\I18n\Domain\Validation\I18nDomainCreateSchema;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;

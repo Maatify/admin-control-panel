@@ -19,16 +19,15 @@ use Maatify\AdminKernel\Domain\Exception\EntityAlreadyExistsException;
 use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\AdminKernel\Domain\Exception\InvalidOperationException;
 use Maatify\AdminKernel\Domain\I18n\Keys\I18nScopeKeyCommandService;
+use Maatify\AdminKernel\Domain\I18n\Keys\Validation\TranslationKeyUpdateNameSchema;
 use Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopeDetailsRepositoryInterface;
 use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
-use Maatify\AdminKernel\Validation\Schemas\I18n\TranslationKey\TranslationKeyUpdateNameSchema;
 use Maatify\I18n\Exception\TranslationKeyAlreadyExistsException;
 use Maatify\I18n\Exception\TranslationKeyNotFoundException;
 use Maatify\I18n\Exception\TranslationUpdateFailedException;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use RuntimeException;
 
 final readonly class I18nScopeKeysUpdateNameController
 {

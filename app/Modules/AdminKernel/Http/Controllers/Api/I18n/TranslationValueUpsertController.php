@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\I18n;
 
-use Maatify\AdminKernel\Validation\Schemas\I18n\TranslationValue\TranslationValueUpsertSchema;
+use Maatify\AdminKernel\Domain\I18n\TranslationValue\Validation\TranslationValueUpsertSchema;
 use Maatify\I18n\Service\TranslationWriteService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;

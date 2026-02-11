@@ -2313,7 +2313,7 @@ class Container
             },
 
 
-            \Maatify\AdminKernel\Domain\I18n\Reader\TranslationValueQueryReaderInterface::class => function (\Psr\Container\ContainerInterface $c) {
+            \Maatify\AdminKernel\Domain\I18n\TranslationValue\TranslationValueQueryReaderInterface::class => function (\Psr\Container\ContainerInterface $c) {
                 $pdo = $c->get(\PDO::class);
                 \assert($pdo instanceof \PDO);
 

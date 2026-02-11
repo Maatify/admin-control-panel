@@ -15,11 +15,11 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\I18n;
 
-use Maatify\AdminKernel\Domain\I18n\Reader\TranslationValueQueryReaderInterface;
+use Maatify\AdminKernel\Domain\I18n\TranslationValue\List\TranslationValueListCapabilities;
+use Maatify\AdminKernel\Domain\I18n\TranslationValue\TranslationValueQueryReaderInterface;
+use Maatify\AdminKernel\Domain\I18n\TranslationValue\Validation\TranslationValuesQuerySchema;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
-use Maatify\AdminKernel\Domain\List\TranslationValueListCapabilities;
 use Maatify\AdminKernel\Infrastructure\Query\ListFilterResolver;
-use Maatify\AdminKernel\Validation\Schemas\I18n\TranslationValue\TranslationValuesQuerySchema;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;

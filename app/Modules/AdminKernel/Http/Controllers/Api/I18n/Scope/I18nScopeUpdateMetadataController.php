@@ -6,8 +6,8 @@ namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\Scope;
 
 use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\AdminKernel\Domain\Exception\InvalidOperationException;
+use Maatify\AdminKernel\Domain\I18n\Scope\Validation\I18nScopeUpdateMetadataSchema;
 use Maatify\AdminKernel\Domain\I18n\Scope\Writer\I18nScopeUpdaterInterface;
-use Maatify\AdminKernel\Validation\Schemas\I18n\Scope\I18nScopeUpdateMetadataSchema;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;

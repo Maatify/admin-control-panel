@@ -18,7 +18,7 @@ namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\Domains;
 use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\AdminKernel\Domain\Exception\InvalidOperationException;
 use Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainUpdaterInterface;
-use Maatify\AdminKernel\Validation\Schemas\I18n\Domains\I18nDomainUpdateMetadataSchema;
+use Maatify\AdminKernel\Domain\I18n\Domain\Validation\I18nDomainUpdateMetadataSchema;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;

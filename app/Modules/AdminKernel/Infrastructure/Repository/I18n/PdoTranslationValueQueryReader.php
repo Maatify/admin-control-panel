@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Infrastructure\Repository\I18n;
 
 use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
-use Maatify\AdminKernel\Domain\DTO\TranslationValueList\TranslationValueListItemDTO;
-use Maatify\AdminKernel\Domain\DTO\TranslationValueList\TranslationValueListResponseDTO;
-use Maatify\AdminKernel\Domain\I18n\Reader\TranslationValueQueryReaderInterface;
+use Maatify\AdminKernel\Domain\I18n\TranslationValue\DTO\TranslationValueListItemDTO;
+use Maatify\AdminKernel\Domain\I18n\TranslationValue\DTO\TranslationValueListResponseDTO;
+use Maatify\AdminKernel\Domain\I18n\TranslationValue\TranslationValueQueryReaderInterface;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
 use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
 use PDO;
