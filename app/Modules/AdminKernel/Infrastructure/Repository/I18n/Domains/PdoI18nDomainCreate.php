@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Infrastructure\Repository\I18n\Domains;
 
-use Maatify\AdminKernel\Domain\DTO\I18n\Domains\I18nDomainCreateDTO;
+use Maatify\AdminKernel\Domain\I18n\Domain\DTO\I18nDomainCreateDTO;
 use Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainCreateInterface;
 use PDO;
 use RuntimeException;

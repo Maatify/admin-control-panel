@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\DTO\I18nScopesList;
+namespace Maatify\AdminKernel\Domain\I18n\Scope\DTO;
 
 use JsonSerializable;
 use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;

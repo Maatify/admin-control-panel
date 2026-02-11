@@ -13,7 +13,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\DTO\I18n\Domains;
+namespace Maatify\AdminKernel\Domain\I18n\Domain\DTO;
 
 use JsonSerializable;
 use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;

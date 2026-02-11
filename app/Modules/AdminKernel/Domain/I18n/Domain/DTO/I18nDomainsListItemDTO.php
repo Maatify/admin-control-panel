@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\DTO\I18nScopesList;
+namespace Maatify\AdminKernel\Domain\I18n\Domain\DTO;
 
 use JsonSerializable;
 
 /**
- * @phpstan-type I18nScopesListItemArray array{
+ * @phpstan-type I18nDomainListItemArray array{
  *   id: int,
  *   code: string,
  *   name: string,
@@ -16,7 +16,7 @@ use JsonSerializable;
  *   sort_order: int
  * }
  */
-final readonly class I18nScopesListItemDTO implements JsonSerializable
+final readonly class I18nDomainsListItemDTO implements JsonSerializable
 {
     public function __construct(
         public int $id,
@@ -29,7 +29,7 @@ final readonly class I18nScopesListItemDTO implements JsonSerializable
     }
 
     /**
-     * @return I18nScopesListItemArray
+     * @return I18nDomainListItemArray
      */
     public function jsonSerialize(): array
     {
@@ -43,5 +43,3 @@ final readonly class I18nScopesListItemDTO implements JsonSerializable
         ];
     }
 }
-
-

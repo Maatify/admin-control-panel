@@ -15,8 +15,8 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\Domains;
 
-use Maatify\AdminKernel\Domain\DTO\I18n\Domains\I18nDomainCreateDTO;
 use Maatify\AdminKernel\Domain\Exception\EntityAlreadyExistsException;
+use Maatify\AdminKernel\Domain\I18n\Domain\DTO\I18nDomainCreateDTO;
 use Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainCreateInterface;
 use Maatify\AdminKernel\Validation\Schemas\I18n\Domains\I18nDomainCreateSchema;
 use Maatify\Validation\Guard\ValidationGuard;

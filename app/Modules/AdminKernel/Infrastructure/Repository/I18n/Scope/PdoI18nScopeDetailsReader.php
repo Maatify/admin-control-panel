@@ -15,8 +15,8 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Infrastructure\Repository\I18n\Scope;
 
-use Maatify\AdminKernel\Domain\DTO\I18nScopesList\I18nScopesListItemDTO;
 use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
+use Maatify\AdminKernel\Domain\I18n\Scope\DTO\I18nScopesListItemDTO;
 use Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopeDetailsRepositoryInterface;
 use PDO;
 

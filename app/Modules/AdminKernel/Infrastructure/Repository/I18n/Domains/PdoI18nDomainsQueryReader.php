@@ -16,8 +16,8 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Infrastructure\Repository\I18n\Domains;
 
 use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
-use Maatify\AdminKernel\Domain\DTO\I18n\Domains\I18nDomainsListItemDTO;
-use Maatify\AdminKernel\Domain\DTO\I18n\Domains\I18nDomainsListResponseDTO;
+use Maatify\AdminKernel\Domain\I18n\Domain\DTO\I18nDomainsListItemDTO;
+use Maatify\AdminKernel\Domain\I18n\Domain\DTO\I18nDomainsListResponseDTO;
 use Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainsQueryReaderInterface;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
 use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;

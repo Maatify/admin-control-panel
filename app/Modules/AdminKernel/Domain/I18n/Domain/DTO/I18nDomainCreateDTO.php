@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\DTO\I18nScopes;
+namespace Maatify\AdminKernel\Domain\I18n\Domain\DTO;
 
-final readonly class I18nScopeCreateDTO
+final readonly class I18nDomainCreateDTO
 {
     public function __construct(
         public string $code,
@@ -13,5 +13,3 @@ final readonly class I18nScopeCreateDTO
         public int $is_active,
     ) {}
 }
-
-

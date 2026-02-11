@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\DTO\I18n\ScopeDomains;
+namespace Maatify\AdminKernel\Domain\I18n\ScopeDomains\DTO;
 
 use JsonSerializable;
 
