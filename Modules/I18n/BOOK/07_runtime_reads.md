@@ -34,11 +34,15 @@ if ($value === null) {
 }
 ```
 
-**Performance:** Execute one query per call. Not recommended for bulk operations.
+**Performance:**
+*   Executes a query to resolve the key.
+*   Executes a query to fetch the translation.
+*   If missing, executes an additional query for the fallback language.
+*   **Recommendation:** Use sparingly.
 
 ## 3. Bulk Domain Read (`TranslationDomainReadService`)
 
-Fetches all translations for a specific `Scope` + `Domain`. Optimized for high performance (single query).
+Fetches all translations for a specific `Scope` + `Domain`.
 
 ```php
 $dto = $domainReadService->getDomainValues(
@@ -57,6 +61,9 @@ $translations = $dto->translations;
 *   Returns strictly typed `TranslationDomainValuesDTO`.
 *   Includes fallback values if primary language key is missing.
 *   Returns empty array `[]` if domain has no keys or is invalid.
+
+**Performance Note:**
+The current implementation iterates through keys and fetches translations individually (N+1 pattern). It is **strongly recommended** to wrap this service in a caching layer.
 
 ## 4. Caching Strategy
 

@@ -3,7 +3,9 @@
 [![Maatify I18N](https://img.shields.io/badge/Maatify-I18n-blue?style=for-the-badge)](README.md)
 [![Maatify Ecosystem](https://img.shields.io/badge/Maatify-Ecosystem-9C27B0?style=for-the-badge)](https://github.com/Maatify)
 
-This guide provides practical integration examples for the `Maatify/I18n` library. It covers mandatory setup steps, strict governance enforcement, and the definitive lifecycle for keys and translations.
+This guide provides practical integration examples for the `Maatify/I18n` library.
+
+**Note:** For Language creation and settings (Flags, Direction), refer to the [Maatify/LanguageCore Documentation](../LanguageCore/README.md).
 
 ---
 
@@ -14,14 +16,26 @@ The library requires `PDO` for database access. You **must** instantiate all rep
 ```php
 <?php
 
-use Maatify\I18n\Enum\I18nPolicyModeEnum;use Maatify\I18n\Infrastructure\Mysql\DomainRepository;use Maatify\I18n\Infrastructure\Mysql\DomainScopeRepository;use Maatify\I18n\Infrastructure\Mysql\LanguageRepository;use Maatify\I18n\Infrastructure\Mysql\LanguageSettingsRepository;use Maatify\I18n\Infrastructure\Mysql\ScopeRepository;use Maatify\I18n\Infrastructure\Mysql\TranslationKeyRepository;use Maatify\I18n\Infrastructure\Mysql\TranslationRepository;use Maatify\I18n\Service\I18nGovernancePolicyService;use Maatify\I18n\Service\TranslationDomainReadService;use Maatify\I18n\Service\TranslationReadService;use Maatify\I18n\Service\TranslationWriteService;use Maatify\LanguageCore\Service\LanguageManagementService;
+use Maatify\I18n\Enum\I18nPolicyModeEnum;
+use Maatify\I18n\Infrastructure\Mysql\DomainRepository;
+use Maatify\I18n\Infrastructure\Mysql\DomainScopeRepository;
+use Maatify\I18n\Infrastructure\Mysql\ScopeRepository;
+use Maatify\I18n\Infrastructure\Mysql\TranslationKeyRepository;
+use Maatify\I18n\Infrastructure\Mysql\TranslationRepository;
+use Maatify\I18n\Service\I18nGovernancePolicyService;
+use Maatify\I18n\Service\TranslationDomainReadService;
+use Maatify\I18n\Service\TranslationReadService;
+use Maatify\I18n\Service\TranslationWriteService;
+use Maatify\LanguageCore\Infrastructure\Mysql\LanguageRepository;
+use Maatify\LanguageCore\Infrastructure\Mysql\LanguageSettingsRepository;
+use Maatify\LanguageCore\Service\LanguageManagementService;
 
 // 1. Database Connection
 $pdo = new PDO('mysql:host=localhost;dbname=test', 'user', 'pass');
 
-// 2. Repositories
+// 2. Repositories (I18n & LanguageCore)
 $langRepo       = new LanguageRepository($pdo);
-$settingsRepo   = new LanguageSettingsRepository($pdo);
+$settingsRepo   = new LanguageSettingsRepository($pdo); // Required by LanguageCore
 $scopeRepo      = new ScopeRepository($pdo);
 $domainRepo     = new DomainRepository($pdo);
 $domainScopeRepo= new DomainScopeRepository($pdo);
@@ -38,7 +52,7 @@ $governanceService = new I18nGovernancePolicyService(
     I18nPolicyModeEnum::STRICT
 );
 
-// Language Management
+// Language Management (From maatify/language-core)
 $langService = new LanguageManagementService($langRepo, $settingsRepo);
 
 // Write Operations (Keys & Translations) - Fail-Hard
@@ -61,55 +75,7 @@ $domainReadService = new TranslationDomainReadService(
 
 ---
 
-## 2. Managing Languages
-
-Use `LanguageManagementService` for all language lifecycle operations.
-
-### Create a Language
-
-```php
-use Maatify\LanguageCore\Enum\TextDirectionEnum;
-
-$langId = $langService->createLanguage(
-    name: 'English (US)',
-    code: 'en-US',
-    direction: TextDirectionEnum::LTR,
-    icon: 'flags/us.png',
-    isActive: true,
-    fallbackLanguageId: null // No fallback for the base language
-);
-```
-
-### Configure Fallback
-Set a regional language to fall back to a base language (e.g., `en-GB` -> `en-US`).
-
-```php
-$gbId = $langService->createLanguage(
-    name: 'English (UK)',
-    code: 'en-GB',
-    direction: TextDirectionEnum::LTR,
-    icon: 'flags/gb.png'
-);
-
-// Set fallback: if a key is missing in en-GB, look in en-US
-$langService->setFallbackLanguage($gbId, $langId);
-```
-
-### Update Settings
-```php
-$langService->updateLanguageSettings(
-    languageId: $gbId,
-    direction: TextDirectionEnum::LTR,
-    icon: 'flags/gb-new.png'
-);
-
-// Reorder languages (affects UI lists)
-$langService->updateLanguageSortOrder($gbId, 1);
-```
-
----
-
-## 3. Governance & Policy
+## 2. Governance & Policy
 
 The `I18nGovernancePolicyService` enforces strict structural rules for all write operations.
 
@@ -125,19 +91,9 @@ The service throws strict exceptions. The operation is aborted.
 *   `DomainNotAllowedException`
 *   `DomainScopeViolationException`
 
-### Example
-```php
-// Fails if 'admin' scope or 'billing' domain are invalid/inactive/unlinked
-try {
-    $writeService->createKey('admin', 'billing', 'invoice.title');
-} catch (DomainScopeViolationException $e) {
-    // Handle violation
-}
-```
-
 ---
 
-## 4. Translation Keys Lifecycle
+## 3. Translation Keys Lifecycle
 
 Keys must follow the structured format: `scope.domain.key_part`.
 
@@ -164,12 +120,14 @@ $writeService->renameKey(
 
 ---
 
-## 5. Translations Lifecycle
+## 4. Translations Lifecycle
 
 Manage the text values for keys.
 
 ### Upsert (Insert or Update)
 ```php
+// Assuming $langId and $arId come from LanguageCore lookups
+
 // Set English value
 $writeService->upsertTranslation(
     languageId: $langId, // en-US
@@ -192,7 +150,7 @@ $writeService->deleteTranslation($langId, $keyId);
 
 ---
 
-## 6. Runtime Reads (Fail-Soft)
+## 5. Runtime Reads (Fail-Soft)
 
 Reading services implement a strictly fail-soft strategy. They return `null` or empty objects for missing data.
 
@@ -219,23 +177,19 @@ $dto = $domainReadService->getDomainValues('en-US', 'admin', 'dashboard');
 // Access as array
 $translations = $dto->translations;
 // ['welcome.message' => 'Welcome...', 'logout' => 'Log Out']
-
-// Non-existent keys or empty domains return an empty array, NOT an error.
 ```
 
 > **Exception:** `getDomainValues` **throws** `LanguageNotFoundException` if the requested language code is invalid.
 
 ---
 
-## 7. Error Handling
+## 6. Error Handling
 
 ### Write Exceptions (Fail-Hard)
 Write operations enforce data integrity and throw typed exceptions.
 
 | Exception Class                        | Reason                                 |
 |:---------------------------------------|:---------------------------------------|
-| `LanguageNotFoundException`            | Language ID does not exist.            |
-| `LanguageAlreadyExistsException`       | Language code already taken.           |
 | `TranslationKeyNotFoundException`      | Key ID does not exist.                 |
 | `TranslationKeyAlreadyExistsException` | Key `scope.domain.key` already exists. |
 | `ScopeNotAllowedException`             | Scope invalid or inactive.             |
@@ -249,13 +203,13 @@ Write operations enforce data integrity and throw typed exceptions.
 
 ---
 
-## 8. Troubleshooting
+## 7. Troubleshooting
 
 ### "Why is my translation returning null?"
-1.  **Check Language:** Is the language code correct and active?
+1.  **Check Language:** Is the language code correct and active? (See LanguageCore)
 2.  **Check Key:** Does the key `scope` + `domain` + `key_part` exist exactly?
 3.  **Check Translation:** Is there a row in `i18n_translations`?
-4.  **Check Fallback:** If the translation is missing, does the language have a `fallback_language_id`? Is that fallback translated?
+4.  **Check Fallback:** If the translation is missing, does the language have a `fallback_language_id`? (See LanguageCore)
 
 ### "Why can't I create a key?"
 1.  **Check Governance:** Ensure the `scope` and `domain` are defined in `i18n_scopes` and `i18n_domains`.
