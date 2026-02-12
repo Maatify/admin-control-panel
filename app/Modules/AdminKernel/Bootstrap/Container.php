@@ -2473,6 +2473,12 @@ class Container
                 return new \Maatify\I18n\Infrastructure\Mysql\MysqlDomainLanguageSummaryRepository($pdo);
             },
 
+            \Maatify\I18n\Contract\I18nTransactionManagerInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\I18n\Infrastructure\Mysql\PdoI18nTransactionManager($pdo);
+            }
+
         ]);
 
         // Extension Hook: Allow host projects to override/extend bindings
