@@ -17,13 +17,11 @@ namespace Maatify\I18n\Contract;
 
 use Maatify\I18n\DTO\TranslationCollectionDTO;
 use Maatify\I18n\DTO\TranslationDTO;
+use Maatify\I18n\DTO\TranslationUpsertResultDTO;
 
 interface TranslationRepositoryInterface
 {
-    /**
-     * Create or update translation for (language_id + key_id).
-     */
-    public function upsert(int $languageId, int $keyId, string $value): int;
+    public function upsert(int $languageId, int $keyId, string $value): TranslationUpsertResultDTO;
 
     public function getById(int $id): ?TranslationDTO;
 
@@ -33,5 +31,13 @@ interface TranslationRepositoryInterface
 
     public function listByKey(int $keyId): TranslationCollectionDTO;
 
-    public function deleteByLanguageAndKey(int $languageId, int $keyId): bool;
+    /**
+     * @return int affected rows (0 or 1)
+     */
+    public function deleteByLanguageAndKey(int $languageId, int $keyId): int;
+
+    /**
+     * @param array<int> $keyIds
+     */
+    public function countByLanguageAndKeyIds(int $languageId, array $keyIds): int;
 }

@@ -197,3 +197,65 @@ CREATE TABLE i18n_translations (
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci
     COMMENT='Translated values mapped by (language + key). Additive, cache-friendly, API-ready.';
+
+/* ==========================================================
+ * 6) DOMAIN LANGUAGE SUMMARY (DERIVED AGGREGATION LAYER)
+ * ----------------------------------------------------------
+ * Purpose:
+ * - Store per (scope + domain + language) translation completeness
+ * - Avoid heavy COUNT/JOIN queries in UI summary pages
+ * - Provide fast missing counters for Domain-first workflow
+ *
+ * Nature:
+ * - Derived data (NON-authoritative)
+ * - Can be fully rebuilt at any time
+ * - Maintained via event-driven updates
+ *
+ * Update Triggers:
+ * - Key create/delete
+ * - Translation upsert/delete
+ * - Language create/delete
+ *
+ * Notes:
+ * - No FK to scopes/domains tables (consistent with i18n_keys design)
+ * - Depends on languages.id via FK
+ * - Used only for read optimization (summary endpoints)
+ * ========================================================== */
+
+CREATE TABLE i18n_domain_language_summary (
+                                              id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+                                              scope VARCHAR(32) NOT NULL,
+                                              domain VARCHAR(64) NOT NULL,
+
+                                              language_id INT UNSIGNED NOT NULL,
+
+                                              total_keys INT UNSIGNED NOT NULL DEFAULT 0,
+                                              translated_count INT UNSIGNED NOT NULL DEFAULT 0,
+                                              missing_count INT UNSIGNED NOT NULL DEFAULT 0,
+
+                                              updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                                  ON UPDATE CURRENT_TIMESTAMP,
+
+                                              UNIQUE KEY uq_i18n_domain_language_summary_identity
+                                                  (scope, domain, language_id),
+
+                                              CONSTRAINT fk_i18n_domain_language_summary_language
+                                                  FOREIGN KEY (language_id)
+                                                      REFERENCES languages(id)
+                                                      ON DELETE CASCADE
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci
+    COMMENT='Derived aggregation table for i18n domain translation completeness. Non-authoritative.';
+
+/* ==========================================================
+ * REBUILD STRATEGY (DOCUMENTATION ONLY)
+ * ----------------------------------------------------------
+ * Full rebuild can be executed via:
+ * - CLI command
+ * - Migration script
+ * - Maintenance task
+ *
+ * This table MUST NOT be considered source of truth.
+ * ========================================================== */

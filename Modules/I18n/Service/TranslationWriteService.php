@@ -31,7 +31,8 @@ final readonly class TranslationWriteService
         private LanguageRepositoryInterface $languageRepository,
         private TranslationKeyRepositoryInterface $keyRepository,
         private TranslationRepositoryInterface $translationRepository,
-        private I18nGovernancePolicyService $governancePolicy
+        private I18nGovernancePolicyService $governancePolicy,
+        private MissingCounterService $missingCounter
     ) {
     }
 
@@ -67,6 +68,8 @@ final readonly class TranslationWriteService
                 $key
             );
         }
+
+        $this->missingCounter->onKeyCreated($id);
 
         return $id;
     }
@@ -138,20 +141,17 @@ final readonly class TranslationWriteService
             throw new TranslationKeyNotFoundException($keyId);
         }
 
-        $id = $this->translationRepository->upsert(
-            $languageId,
-            $keyId,
-            $value
-        );
+        $result = $this->translationRepository->upsert($languageId, $keyId, $value);
 
-        if ($id <= 0) {
-            throw new TranslationUpsertFailedException(
-                $languageId,
-                $keyId
-            );
+        if ($result->id <= 0) {
+            throw new TranslationUpsertFailedException($languageId, $keyId);
         }
 
-        return $id;
+        if ($result->created) {
+            $this->missingCounter->onTranslationCreated($languageId, $keyId);
+        }
+
+        return $result->id;
     }
 
     public function deleteTranslation(
@@ -167,9 +167,10 @@ final readonly class TranslationWriteService
             throw new TranslationKeyNotFoundException($keyId);
         }
 
-        $this->translationRepository->deleteByLanguageAndKey(
-            languageId: $languageId,
-            keyId: $keyId
-        );
+        $affected = $this->translationRepository->deleteByLanguageAndKey($languageId, $keyId);
+
+        if ($affected > 0) {
+            $this->missingCounter->onTranslationDeleted($languageId, $keyId);
+        }
     }
 }

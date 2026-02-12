@@ -221,7 +221,6 @@ use Maatify\I18n\Contract\TranslationKeyRepositoryInterface;
 use Maatify\I18n\Contract\TranslationRepositoryInterface;
 use Maatify\I18n\Infrastructure\Mysql\MysqlTranslationKeyRepository;
 use Maatify\I18n\Infrastructure\Mysql\MysqlTranslationRepository;
-use Maatify\I18n\Service\TranslationWriteService;
 use Maatify\InputNormalization\Contracts\InputNormalizerInterface;
 use Maatify\InputNormalization\Middleware\InputNormalizationMiddleware;
 use Maatify\InputNormalization\Normalizer\InputNormalizer;
@@ -2292,18 +2291,6 @@ class Container
                 return new MysqlTranslationRepository($pdo);
             },
 
-            TranslationWriteService::class => function (ContainerInterface $c) {
-                $languageRepository = $c->get(LanguageRepositoryInterface::class);
-                $keyRepository = $c->get(TranslationKeyRepositoryInterface::class);
-                $translationRepository = $c->get(TranslationRepositoryInterface::class);
-                $governancePolicy = $c->get(\Maatify\I18n\Service\I18nGovernancePolicyService::class);
-                assert($languageRepository instanceof LanguageRepositoryInterface);
-                assert($keyRepository instanceof TranslationKeyRepositoryInterface);
-                assert($translationRepository instanceof TranslationRepositoryInterface);
-                assert($governancePolicy instanceof \Maatify\I18n\Service\I18nGovernancePolicyService);
-                return new TranslationWriteService($languageRepository, $keyRepository, $translationRepository, $governancePolicy);
-            },
-
             TranslationKeysListController::class => function (ContainerInterface $c) {
                 $twig = $c->get(Twig::class);
                 $authorizationService = $c->get(AuthorizationService::class);
@@ -2478,7 +2465,13 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Languages\PdoLanguageLookup($pdo);
-            }
+            },
+
+            \Maatify\I18n\Contract\DomainLanguageSummaryRepositoryInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\I18n\Infrastructure\Mysql\MysqlDomainLanguageSummaryRepository($pdo);
+            },
 
         ]);
 
