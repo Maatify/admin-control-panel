@@ -15,15 +15,15 @@ declare(strict_types=1);
 
 namespace Maatify\I18n\Service;
 
-use Maatify\I18n\Contract\LanguageRepositoryInterface;
 use Maatify\I18n\Contract\TranslationKeyRepositoryInterface;
 use Maatify\I18n\Contract\TranslationRepositoryInterface;
-use Maatify\I18n\Exception\LanguageNotFoundException;
 use Maatify\I18n\Exception\TranslationKeyAlreadyExistsException;
 use Maatify\I18n\Exception\TranslationKeyCreateFailedException;
 use Maatify\I18n\Exception\TranslationKeyNotFoundException;
-use Maatify\I18n\Exception\TranslationUpsertFailedException;
 use Maatify\I18n\Exception\TranslationUpdateFailedException;
+use Maatify\I18n\Exception\TranslationUpsertFailedException;
+use Maatify\LanguageCore\Contract\LanguageRepositoryInterface;
+use Maatify\LanguageCore\Exception\LanguageNotFoundException;
 
 final readonly class TranslationWriteService
 {

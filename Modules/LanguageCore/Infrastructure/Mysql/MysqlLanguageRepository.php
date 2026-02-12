@@ -2,24 +2,24 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/i18n
- * @Project     maatify:i18n
+ * @Library     maatify/language-core
+ * @Project     maatify:language-core
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-02-04 01:19
  * @see         https://www.maatify.dev Maatify.dev
- * @link        https://github.com/Maatify/i18n view Project on GitHub
+ * @link        https://github.com/Maatify/language-core view Project on GitHub
  * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
  */
 
 declare(strict_types=1);
 
-namespace Maatify\I18n\Infrastructure\Mysql;
+namespace Maatify\LanguageCore\Infrastructure\Mysql;
 
+use Maatify\LanguageCore\Contract\LanguageRepositoryInterface;
+use Maatify\LanguageCore\DTO\LanguageCollectionDTO;
+use Maatify\LanguageCore\DTO\LanguageDTO;
 use PDO;
 use PDOStatement;
-use Maatify\I18n\Contract\LanguageRepositoryInterface;
-use Maatify\I18n\DTO\LanguageCollectionDTO;
-use Maatify\I18n\DTO\LanguageDTO;
 
 final readonly class MysqlLanguageRepository implements LanguageRepositoryInterface
 {

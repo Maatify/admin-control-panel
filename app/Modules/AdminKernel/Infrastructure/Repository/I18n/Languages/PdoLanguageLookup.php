@@ -15,9 +15,9 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Infrastructure\Repository\I18n\Languages;
 
-use Maatify\AdminKernel\Domain\I18n\Language\LanguageLookupInterface;
 use Maatify\AdminKernel\Domain\I18n\Language\DTO\LanguageListItemDTO;
-use Maatify\I18n\Enum\TextDirectionEnum;
+use Maatify\AdminKernel\Domain\I18n\Language\LanguageLookupInterface;
+use Maatify\LanguageCore\Enum\TextDirectionEnum;
 use PDO;
 use RuntimeException;
 

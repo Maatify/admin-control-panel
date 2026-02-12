@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Maatify\I18n\Exception;
+namespace Maatify\LanguageCore\Exception;
 
-final class LanguageUpdateFailedException extends I18nException
+final class LanguageUpdateFailedException extends LanguageCoreException
 {
     public function __construct(string $operation)
     {

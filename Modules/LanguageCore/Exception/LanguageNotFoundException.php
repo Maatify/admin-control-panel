@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Maatify\I18n\Exception;
+namespace Maatify\LanguageCore\Exception;
 
-final class LanguageNotFoundException extends I18nException
+final class LanguageNotFoundException extends LanguageCoreException
 {
     public function __construct(int|string $identifier)
     {

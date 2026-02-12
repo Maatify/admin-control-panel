@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Maatify\I18n\Exception;
 
-final class ScopeNotAllowedException extends \RuntimeException
+use Maatify\SharedCommon\Exception\MaatifyException;
+
+final class ScopeNotAllowedException extends MaatifyException
 {
     public function __construct(string $scope)
     {

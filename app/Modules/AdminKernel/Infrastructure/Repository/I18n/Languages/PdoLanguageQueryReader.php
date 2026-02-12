@@ -10,7 +10,7 @@ use Maatify\AdminKernel\Domain\I18n\Language\DTO\LanguageListResponseDTO;
 use Maatify\AdminKernel\Domain\I18n\Language\LanguageQueryReaderInterface;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
 use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
-use Maatify\I18n\Enum\TextDirectionEnum;
+use Maatify\LanguageCore\Enum\TextDirectionEnum;
 use PDO;
 use RuntimeException;
 

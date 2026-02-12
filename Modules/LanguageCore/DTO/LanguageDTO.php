@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\I18n\DTO;
+namespace Maatify\LanguageCore\DTO;
 
 final readonly class LanguageDTO
 {

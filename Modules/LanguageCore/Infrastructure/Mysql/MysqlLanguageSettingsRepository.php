@@ -2,24 +2,24 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/i18n
- * @Project     maatify:i18n
+ * @Library     maatify/language-core
+ * @Project     maatify:language-core
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-02-04 01:20
  * @see         https://www.maatify.dev Maatify.dev
- * @link        https://github.com/Maatify/i18n view Project on GitHub
+ * @link        https://github.com/Maatify/language-core view Project on GitHub
  * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
  */
 
 declare(strict_types=1);
 
-namespace Maatify\I18n\Infrastructure\Mysql;
+namespace Maatify\LanguageCore\Infrastructure\Mysql;
 
+use Maatify\LanguageCore\Contract\LanguageSettingsRepositoryInterface;
+use Maatify\LanguageCore\DTO\LanguageSettingsDTO;
+use Maatify\LanguageCore\Enum\TextDirectionEnum;
 use PDO;
 use PDOStatement;
-use Maatify\I18n\Contract\LanguageSettingsRepositoryInterface;
-use Maatify\I18n\DTO\LanguageSettingsDTO;
-use Maatify\I18n\Enum\TextDirectionEnum;
 
 final readonly class MysqlLanguageSettingsRepository implements LanguageSettingsRepositoryInterface
 {

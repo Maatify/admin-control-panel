@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Maatify\I18n\DTO;
+namespace Maatify\LanguageCore\DTO;
 
-use IteratorAggregate;
 use ArrayIterator;
+use IteratorAggregate;
 
 /**
  * @phpstan-type LanguageList list<LanguageDTO>

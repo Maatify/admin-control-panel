@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Domain\I18n\Language\DTO;
 
 use JsonSerializable;
-use Maatify\I18n\Enum\TextDirectionEnum;
+use Maatify\LanguageCore\Enum\TextDirectionEnum;
 
 /**
  * @phpstan-type LanguageListItemArray array{

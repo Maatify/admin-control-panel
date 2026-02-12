@@ -7,7 +7,7 @@ This chapter documents the lifecycle of languages managed by `LanguageManagement
 Language creation establishes an immutable identity and mutable settings.
 
 ```php
-use Maatify\I18n\Enum\TextDirectionEnum;
+use Maatify\LanguageCore\Enum\TextDirectionEnum;
 
 // Create "English (US)"
 $langId = $service->createLanguage(

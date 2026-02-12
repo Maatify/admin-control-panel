@@ -15,11 +15,11 @@ declare(strict_types=1);
 
 namespace Maatify\I18n\Service;
 
-use Maatify\I18n\Contract\LanguageRepositoryInterface;
 use Maatify\I18n\Contract\TranslationKeyRepositoryInterface;
 use Maatify\I18n\Contract\TranslationRepositoryInterface;
 use Maatify\I18n\DTO\TranslationDomainValuesDTO;
-use Maatify\I18n\Exception\LanguageNotFoundException;
+use Maatify\LanguageCore\Contract\LanguageRepositoryInterface;
+use Maatify\LanguageCore\Exception\LanguageNotFoundException;
 
 final readonly class TranslationDomainReadService
 {

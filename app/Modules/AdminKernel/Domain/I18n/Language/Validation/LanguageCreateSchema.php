@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\I18n\Language\Validation;
 
-use Maatify\I18n\Enum\TextDirectionEnum;
+use Maatify\LanguageCore\Enum\TextDirectionEnum;
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;

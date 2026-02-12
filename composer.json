@@ -45,7 +45,8 @@
       "Maatify\\RateLimiter\\": "Modules/RateLimiter",
       "Maatify\\AbuseProtection\\": "Modules/AbuseProtection",
       "Maatify\\I18n\\": "Modules/I18n",
-      "Maatify\\AppSettings\\": "Modules/AppSettings"
+      "Maatify\\AppSettings\\": "Modules/AppSettings",
+      "Maatify\\LanguageCore\\": "Modules/LanguageCore"
 
     }
   },

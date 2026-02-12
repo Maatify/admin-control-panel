@@ -14,19 +14,7 @@ The library requires `PDO` for database access. You **must** instantiate all rep
 ```php
 <?php
 
-use Maatify\I18n\Infrastructure\Mysql\LanguageRepository;
-use Maatify\I18n\Infrastructure\Mysql\LanguageSettingsRepository;
-use Maatify\I18n\Infrastructure\Mysql\ScopeRepository;
-use Maatify\I18n\Infrastructure\Mysql\DomainRepository;
-use Maatify\I18n\Infrastructure\Mysql\DomainScopeRepository;
-use Maatify\I18n\Infrastructure\Mysql\TranslationKeyRepository;
-use Maatify\I18n\Infrastructure\Mysql\TranslationRepository;
-use Maatify\I18n\Service\I18nGovernancePolicyService;
-use Maatify\I18n\Service\LanguageManagementService;
-use Maatify\I18n\Service\TranslationWriteService;
-use Maatify\I18n\Service\TranslationReadService;
-use Maatify\I18n\Service\TranslationDomainReadService;
-use Maatify\I18n\Enum\I18nPolicyModeEnum;
+use Maatify\I18n\Enum\I18nPolicyModeEnum;use Maatify\I18n\Infrastructure\Mysql\DomainRepository;use Maatify\I18n\Infrastructure\Mysql\DomainScopeRepository;use Maatify\I18n\Infrastructure\Mysql\LanguageRepository;use Maatify\I18n\Infrastructure\Mysql\LanguageSettingsRepository;use Maatify\I18n\Infrastructure\Mysql\ScopeRepository;use Maatify\I18n\Infrastructure\Mysql\TranslationKeyRepository;use Maatify\I18n\Infrastructure\Mysql\TranslationRepository;use Maatify\I18n\Service\I18nGovernancePolicyService;use Maatify\I18n\Service\TranslationDomainReadService;use Maatify\I18n\Service\TranslationReadService;use Maatify\I18n\Service\TranslationWriteService;use Maatify\LanguageCore\Service\LanguageManagementService;
 
 // 1. Database Connection
 $pdo = new PDO('mysql:host=localhost;dbname=test', 'user', 'pass');
@@ -78,8 +66,9 @@ $domainReadService = new TranslationDomainReadService(
 Use `LanguageManagementService` for all language lifecycle operations.
 
 ### Create a Language
+
 ```php
-use Maatify\I18n\Enum\TextDirectionEnum;
+use Maatify\LanguageCore\Enum\TextDirectionEnum;
 
 $langId = $langService->createLanguage(
     name: 'English (US)',

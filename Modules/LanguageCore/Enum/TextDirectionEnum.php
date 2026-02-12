@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\I18n\Enum;
+namespace Maatify\LanguageCore\Enum;
 
 /**
  * Text direction for language rendering (UI-level concern).
