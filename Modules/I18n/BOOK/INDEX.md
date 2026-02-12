@@ -62,6 +62,13 @@ For sequential reading, start with the introduction.
 
 ---
 
+## 🏗 Aggregation & Consistency
+
+- [10_aggregation_and_consistency.md](10_aggregation_and_consistency.md)
+  Derived aggregation layers, synchronous counters, rebuild strategies, and consistency models.
+
+---
+
 ## 🔗 External Dependencies
 
 - [**Maatify/LanguageCore**](../../LanguageCore/BOOK/01_overview.md)

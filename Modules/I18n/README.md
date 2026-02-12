@@ -38,6 +38,15 @@ This README serves as a high-level identity summary and architectural contract.
 
 ---
 
+## Open Source Positioning
+
+This module provides an **Enterprise-Ready** translation layer characterized by:
+*   **Strong Consistency:** Synchronous updates with zero reliance on background workers or eventual consistency.
+*   **Deterministic Behavior:** All derived data (aggregation summaries) is rebuildable and idempotent.
+*   **Extensible Core:** Strict contracts prevent vendor lock-in while ensuring reliability.
+
+---
+
 ## 1. Dependencies
 
 *   **[maatify/language-core](../LanguageCore/README.md):** Provides the `languages` identity table and `LanguageManagementService`.
@@ -73,13 +82,14 @@ For details, see [**ARCHITECTURE.md**](ARCHITECTURE.md).
 
 ## 4. Database Schema
 
-The system relies on 5 mandatory tables (plus 2 from LanguageCore):
+The system relies on 6 mandatory tables (plus 2 from LanguageCore):
 
 1.  **`i18n_scopes`**: Allowed scopes.
 2.  **`i18n_domains`**: Allowed domains.
 3.  **`i18n_domain_scopes`**: Many-to-Many policy mapping.
 4.  **`i18n_keys`**: Registry of valid keys.
 5.  **`i18n_translations`**: Text values (References `languages.id`).
+6.  **`i18n_domain_language_summary`**: Derived aggregation layer (Synchronous).
 
 ---
 
