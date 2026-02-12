@@ -226,7 +226,7 @@ use Maatify\InputNormalization\Middleware\InputNormalizationMiddleware;
 use Maatify\InputNormalization\Normalizer\InputNormalizer;
 use Maatify\LanguageCore\Contract\LanguageRepositoryInterface;
 use Maatify\LanguageCore\Contract\LanguageSettingsRepositoryInterface;
-use Maatify\LanguageCore\Http\Controllers\Api\LanguageSelectController;
+use Maatify\LanguageCore\Http\Controllers\Api\LanguageDropdownController;
 use Maatify\LanguageCore\Infrastructure\Mysql\MysqlLanguageRepository;
 use Maatify\LanguageCore\Infrastructure\Mysql\MysqlLanguageSettingsRepository;
 use Maatify\LanguageCore\Service\LanguageManagementService;
@@ -2307,12 +2307,12 @@ class Container
                 return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\PdoLanguageTranslationValueQueryReader($pdo);
             },
 
-            LanguageSelectController::class => function (\Psr\Container\ContainerInterface $c) {
+            LanguageDropdownController::class => function (\Psr\Container\ContainerInterface $c) {
                 $languageRepository = $c->get(LanguageRepositoryInterface::class);
                 $settingsRepository = $c->get(LanguageSettingsRepositoryInterface::class);
                 assert($languageRepository instanceof LanguageRepositoryInterface);
                 assert($settingsRepository instanceof LanguageSettingsRepositoryInterface);
-                return new LanguageSelectController($languageRepository, $settingsRepository);
+                return new LanguageDropdownController($languageRepository, $settingsRepository);
             },
 
             \Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopesQueryReaderInterface::class => function (ContainerInterface $c) {
@@ -2477,6 +2477,18 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new \Maatify\I18n\Infrastructure\Mysql\PdoI18nTransactionManager($pdo);
+            },
+
+            \Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsListReaderInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\ScopeDomains\PdoI18nScopeDomainsListReader($pdo);
+            },
+
+            \Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18NScopeDropdownReaderInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Scope\PdoI18nScopeDropdownReader($pdo);
             }
 
         ]);

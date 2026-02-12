@@ -80,6 +80,7 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'languages.translations.delete.api' => 'languages.translations.delete',
 
         // I18n Scopes Control
+        'i18n.scopes.dropdown.api' => 'i18n.scopes.dropdown',
         'i18n.scopes.list.ui' => 'i18n.scopes.list',
         'i18n.scopes.list.api' => 'i18n.scopes.list',
         'i18n.scopes.create.api' => 'i18n.scopes.create',
@@ -101,9 +102,6 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'i18n.domains.set_active.api' => 'i18n.domains.set_active',
         'i18n.domains.update_sort.api' => 'i18n.domains.update_sort',
         'i18n.domains.update_metadata.api' => 'i18n.domains.update_metadata',
-
-        // I18n Translations Keys Dropdown for create
-        'i18n.scopes.domains.dropdown.api' => 'i18n.scopes.keys.create',
 
         // I18n Translations Keys Control
         'i18n.scopes.keys.ui' => 'i18n.scopes.keys',
@@ -129,10 +127,19 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
          * - allowed from translations UI (upsert permission implies ability to select context)
          * - allowed from languages context
          */
-        'i18n.languages.select.api' => [
+        'i18n.languages.dropdown.api' => [
             'anyOf' => [
                 'i18n.translations.upsert',
-                'i18n.languages.select',
+                'i18n.languages.dropdown',
+            ],
+            'allOf' => [],
+        ],
+
+        // I18n Translations Keys Dropdown for create
+        'i18n.scopes.domains.dropdown.api' => [
+            'anyOf' => [
+                'i18n.scopes.keys.create',
+                'i18n.scopes.domains.dropdown',
             ],
             'allOf' => [],
         ],

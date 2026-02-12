@@ -108,7 +108,7 @@ the system exposes a shared **Language Selector API** used by other modules.
 
 ### Endpoint
 
-`POST /languages/select`
+`POST /languages/dropdown`
 
 ### Purpose
 
@@ -125,17 +125,17 @@ This endpoint exists to provide a **safe, ordered list of active languages** for
 
     * inactive languages
     * languages without settings (visible for management)
-* `/languages/select` returns **ONLY languages valid for UI context usage**
+* `/languages/dropdown` returns **ONLY languages valid for UI context usage**
 
-> ⚠️ Do NOT use `/languages/select` to populate the Languages table.
+> ⚠️ Do NOT use `/languages/dropdown` to populate the Languages table.
 > It is intentionally restrictive.
 
 ### Authorization
 
 Access is granted if the admin has **any of**:
 
-* `i18n.languages.select`
 * `i18n.translations.upsert`
+* `i18n.languages.dropdown`
 
 This is enforced centrally via `PermissionMapperV2`.
 

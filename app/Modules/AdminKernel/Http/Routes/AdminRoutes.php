@@ -32,7 +32,7 @@ use Maatify\AdminKernel\Http\Middleware\RequestContextMiddleware;
 use Maatify\AdminKernel\Http\Middleware\RequestIdMiddleware;
 use Maatify\AdminKernel\Http\Middleware\SessionGuardMiddleware;
 use Maatify\AdminKernel\Http\Middleware\WebGuestGuardMiddleware;
-use Maatify\LanguageCore\Http\Controllers\Api\LanguageSelectController;
+use Maatify\LanguageCore\Http\Controllers\Api\LanguageDropdownController;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Interfaces\RouteCollectorProxyInterface;
@@ -352,6 +352,15 @@ class AdminRoutes
                         // ─────────────────────────────
                         $i18n->group('/scopes', function (RouteCollectorProxyInterface $i18nScopes) {
                             $i18nScopes->post(
+                                '/dropdown',
+                                [
+                                    \Maatify\AdminKernel\Http\Controllers\Api\I18n\Scope\I18nScopesDropdownController::class,
+                                    '__invoke'
+                                ]
+                            )
+                                ->setName('i18n.scopes.dropdown.api');
+
+                            $i18nScopes->post(
                                 '/query',
                                 [
                                     \Maatify\AdminKernel\Http\Controllers\Api\I18n\Scope\I18nScopesQueryController::class,
@@ -547,10 +556,11 @@ class AdminRoutes
 
                         /**
                          * UI context selector (dropdown)
-                         * Permission: i18n.languages.select.api
+                         * Permission: i18n.languages.dropdown.api
+                         * (mapped via PermissionMapperV2 anyOf)
                          */
-                        $languages->post('/select', LanguageSelectController::class)
-                            ->setName('i18n.languages.select.api');
+                        $languages->post('/dropdown', LanguageDropdownController::class)
+                            ->setName('i18n.languages.dropdown.api');
 
                         $languages->post('/query', [LanguagesQueryController::class, '__invoke'])
                             ->setName('languages.list.api');

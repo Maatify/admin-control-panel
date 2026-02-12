@@ -20,7 +20,7 @@ use Maatify\LanguageCore\Contract\LanguageSettingsRepositoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-final readonly class LanguageSelectController
+final readonly class LanguageDropdownController
 {
     public function __construct(
         private LanguageRepositoryInterface $languageRepository,

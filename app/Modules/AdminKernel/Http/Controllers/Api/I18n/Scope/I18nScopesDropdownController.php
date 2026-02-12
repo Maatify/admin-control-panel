@@ -5,7 +5,7 @@
  * @Library     maatify/admin-control-panel
  * @Project     maatify:admin-control-panel
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
- * @since       2026-02-11 14:47
+ * @since       2026-02-12 23:51
  * @see         https://www.maatify.dev Maatify.dev
  * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
  * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
@@ -13,32 +13,28 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\ScopeDomains;
+namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\Scope;
 
-use Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsListReaderInterface;
+use Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18NScopeDropdownReaderInterface;
 use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-final readonly class I18nScopeDomainsDropdownController
+final readonly class I18nScopesDropdownController
 {
     public function __construct(
-        private I18nScopeDomainsListReaderInterface $reader,
+        private I18NScopeDropdownReaderInterface $reader,
         private JsonResponseFactory $json,
 
     ) {}
 
-    /**
-     * @param array{scope_id: string} $args
-     */
     public function __invoke(
         Request $request,
-        Response $response,
-        array $args
+        Response $response
     ): Response {
-        $scopeId = (int) ($args['scope_id']);
 
-        $items = $this->reader->listByScopeId($scopeId);
+        $items = $this->reader->getDropdownList();
+
         return $this->json->data($response, $items);
 
     }
