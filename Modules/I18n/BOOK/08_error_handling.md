@@ -9,8 +9,6 @@ All write operations (Admin APIs, Setup Scripts) **must** enforce strict rules a
 | Exception Class                        | Description                            | Typically Thrown By           |
 |:---------------------------------------|:---------------------------------------|:------------------------------|
 | `LanguageNotFoundException`            | Language ID or Code does not exist.    | All Services                  |
-| `LanguageAlreadyExistsException`       | Language code already taken.           | `LanguageManagementService`   |
-| `LanguageCreateFailedException`        | Database insertion failure.            | `LanguageManagementService`   |
 | `TranslationKeyNotFoundException`      | Key ID does not exist.                 | `TranslationWriteService`     |
 | `TranslationKeyAlreadyExistsException` | Key `scope.domain.key` already exists. | `TranslationWriteService`     |
 | `TranslationKeyCreateFailedException`  | Database insertion failure.            | `TranslationWriteService`     |

@@ -34,29 +34,34 @@ This chapter provides end-to-end usage examples for common requirements.
 
 ## Scenario 2: Regional Fallback
 
-**Requirement:** Add `es-MX` (Mexican Spanish) with fallback to `es-ES` (Spain Spanish).
+**Requirement:** Add translations for `es-MX` (Mexican Spanish) which falls back to `es-ES` (Spain Spanish).
+
+**Prerequisite:**
+Languages `es-MX` and `es-ES` must be created and linked via `maatify/language-core`. This module simply consumes their codes.
 
 **Steps:**
-1.  **Create Languages:**
+1.  **Add Translations:**
+    Assume `es-ES` has all base translations. We only override specific keys for Mexico.
+
     ```php
-    $enId = $langService->createLanguage('English', 'en-US', ...);
-    $esId = $langService->createLanguage('Spanish (Spain)', 'es-ES', ...);
-    $mxId = $langService->createLanguage('Spanish (Mexico)', 'es-MX', ...);
+    // Override the 'Welcome' message for Mexico
+    $writeService->upsertTranslation(
+        languageId: $mxId, // ID for es-MX
+        keyId: $welcomeKeyId,
+        value: '¡Bienvenido a México!'
+    );
+    // Other keys are left empty for es-MX
     ```
 
-2.  **Configure Fallback:**
-    *   Set `es-MX` -> `es-ES`.
-    *   **Note:** Only one level of fallback is supported.
-
-3.  **Runtime Logic:**
+2.  **Runtime Logic:**
+    When requesting a key for `es-MX`:
     ```php
     $text = $readService->getValue('es-MX', 'client', 'auth', 'login');
-
-    if ($text === null) {
-        // Explicit application-level fallback to English
-        $text = $readService->getValue('en-US', 'client', 'auth', 'login');
-    }
     ```
+    *   If `es-MX` has a value, it is returned.
+    *   If not, the service (via SQL join on `languages.fallback_language_id`) checks `es-ES`.
+    *   If `es-ES` has a value, it is returned.
+    *   If neither exists, `null` is returned.
 
 ## Scenario 3: Key Refactoring
 

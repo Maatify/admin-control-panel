@@ -16,7 +16,7 @@ For sequential reading, start with the introduction.
   Library identity, philosophy, architectural boundaries, and non-goals.
 
 - [02_core_concepts.md](02_core_concepts.md)  
-  Core terminology: Language, Scope, Domain, structured keys, and data models.
+  Core terminology: Scope, Domain, structured keys, and data models.
 
 ---
 
@@ -24,13 +24,6 @@ For sequential reading, start with the introduction.
 
 - [03_governance_model.md](03_governance_model.md)  
   Scope and domain governance, enforcement rules, policy modes, and write authority.
-
----
-
-## 🌐 Language Management
-
-- [04_language_lifecycle.md](04_language_lifecycle.md)  
-  Creating languages, activation, settings, and fallback chains.
 
 ---
 
@@ -66,6 +59,13 @@ For sequential reading, start with the introduction.
 
 - [09_real_world_scenarios.md](09_real_world_scenarios.md)  
   End-to-end scenarios: feature expansion, regional fallback, and key refactoring.
+
+---
+
+## 🔗 External Dependencies
+
+- [**Maatify/LanguageCore**](../../LanguageCore/BOOK/01_overview.md)
+  For Language Identity, Settings, Activation, and Lifecycle management.
 
 ---
 
