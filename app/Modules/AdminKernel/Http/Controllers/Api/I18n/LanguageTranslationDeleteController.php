@@ -15,51 +15,45 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\I18n;
 
-use Maatify\AdminKernel\Domain\I18n\TranslationValue\Validation\TranslationValueDeleteSchema;
+use Maatify\AdminKernel\Domain\I18n\LanguageTranslationValue\Validation\LanguageTranslationValueDeleteSchema;
+use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
 use Maatify\I18n\Service\TranslationWriteService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-final readonly class TranslationValueDeleteController
+final readonly class LanguageTranslationDeleteController
 {
     public function __construct(
         private TranslationWriteService $translationWriteService,
-        private ValidationGuard $validationGuard
+        private ValidationGuard $validationGuard,
+        private JsonResponseFactory $json,
     )
     {
     }
 
-    public function __invoke(Request $request, Response $response): Response
+    /**
+     * @param array{language_id: string} $args
+     */
+    public function __invoke(Request $request, Response $response, array $args): Response
     {
+        $languageId = (int) $args['language_id'];
+
         /** @var array<string,mixed> $body */
         $body = (array)$request->getParsedBody();
 
         // 1) Validate payload
-        $this->validationGuard->check(new TranslationValueDeleteSchema(), $body);
+        /** @var array{key_id: int} $body */
+        $this->validationGuard->check(new LanguageTranslationValueDeleteSchema(), $body);
 
-        // 2) Explicit type narrowing
-        $languageId = $body['language_id'] ?? null;
-        $keyId = $body['key_id'] ?? null;
-
-        if (! is_int($languageId) || ! is_int($keyId)) {
-            // Defensive guard – should never happen after validation
-            throw new \RuntimeException('Invalid validated payload.');
-        }
-
-        // 3) Call domain service only
+        // 2) Call domain service only
         $this->translationWriteService->deleteTranslation(
             languageId: $languageId,
-            keyId     : $keyId
+            keyId     : $body['key_id']
         );
 
-        // 4) Response
-        $response->getBody()->write(
-            json_encode(['status' => 'ok'], JSON_THROW_ON_ERROR)
-        );
+        // 3) Response
+        return $this->json->success($response);
 
-        return $response
-            ->withHeader('Content-Type', 'application/json')
-            ->withStatus(200);
     }
 }

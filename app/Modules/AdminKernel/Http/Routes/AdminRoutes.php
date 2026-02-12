@@ -225,6 +225,10 @@ class AdminRoutes
                         ->setName('languages.list.ui')
                         ->add(AuthorizationGuardMiddleware::class);
 
+                    $protectedGroup->get('/languages/{language_id:[0-9]+}/translations', [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\LanguageTranslationsListUiController::class, '__invoke'])
+                        ->setName('languages.translations.list.ui')
+                        ->add(AuthorizationGuardMiddleware::class);
+
                     $protectedGroup->get(
                         '/i18n/scopes',
                         [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopesListUiController::class, '__invoke']
@@ -256,9 +260,6 @@ class AdminRoutes
                     $protectedGroup->get('/i18n/keys', [TranslationKeysListController::class, '__invoke'])
                         ->setName('i18n.keys.list.ui')
                         ->add(AuthorizationGuardMiddleware::class);
-
-                    $protectedGroup->get('/i18n/translations', [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\TranslationsListUiController::class, '__invoke'])
-                        ->setName('i18n.translations.list.ui');
 
                     $protectedGroup->get(
                         '/app-settings',
@@ -490,20 +491,6 @@ class AdminRoutes
                                 ]
                             )->setName('i18n.domains.update_metadata.api');
                         });
-
-                        // ─────────────────────────────
-                        // i18n translations Control
-                        // ─────────────────────────────
-                        $i18n->group('/translations', function (\Slim\Interfaces\RouteCollectorProxyInterface $translations) {
-                            $translations->post('/query', [\Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationValuesQueryController::class, '__invoke'])
-                                ->setName('i18n.translations.list.api');
-
-                            $translations->post('/upsert', [\Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationValueUpsertController::class, '__invoke'])
-                                ->setName('i18n.translations.upsert.api');
-
-                            $translations->post('/delete', [\Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationValueDeleteController::class, '__invoke'])
-                                ->setName('i18n.translations.delete.api');
-                        });
                     });
 
                     // ─────────────────────────────
@@ -591,6 +578,22 @@ class AdminRoutes
 
                         $languages->post('/update-code', [LanguagesUpdateCodeController::class, '__invoke'])
                             ->setName('languages.update.code.api');
+
+
+
+                        // ─────────────────────────────
+                        // Languages translations Control
+                        // ─────────────────────────────
+                        $languages->group('/{language_id:[0-9]+}/translations', function (\Slim\Interfaces\RouteCollectorProxyInterface $languagesTranslations) {
+                            $languagesTranslations->post('/query', [\Maatify\AdminKernel\Http\Controllers\Api\I18n\LanguageTranslationsQueryController::class, '__invoke'])
+                                ->setName('languages.translations.list.api');
+
+                            $languagesTranslations->post('/upsert', [\Maatify\AdminKernel\Http\Controllers\Api\I18n\LanguageTranslationUpsertController::class, '__invoke'])
+                                ->setName('languages.translations.upsert.api');
+
+                            $languagesTranslations->post('/delete', [\Maatify\AdminKernel\Http\Controllers\Api\I18n\LanguageTranslationDeleteController::class, '__invoke'])
+                                ->setName('languages.translations.delete.api');
+                        });
 
                     });
 

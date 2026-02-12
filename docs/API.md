@@ -36,7 +36,7 @@ Documentation is split by logical domain.
 | **[I18N_SCOPES_UI.md](API/I18N_SCOPES_UI.md)**               | I18n Scopes management (UI + API).                      |
 | **[I18N_SCOPE_DOMAINS_UI.md](API/I18N_SCOPE_DOMAINS_UI.md)** | I18n Scope Domains management (UI + API).               |
 | **[I18N_DOMAINS_UI.md](API/I18N_DOMAINS_UI.md)**             | I18n Domains management (UI + API).                     |
-| **[I18N_TRANSLATIONS_UI.md](API/I18N_TRANSLATIONS_UI.md)**   | Translation Values management (UI + API).               |
+| **[I18N_TRANSLATIONS_UI.md](API/I18N_LANGUAGE_TRANSLATIONS_UI.md)**   | Translation Values management (UI + API).               |
 | **[I18N_SCOPE_KEYS_UI.md](API/I18N_SCOPE_KEYS_UI.md)**       | Scope-specific Translation Keys management (UI + API).  |
 ---
 

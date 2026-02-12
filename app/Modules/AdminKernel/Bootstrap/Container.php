@@ -2313,35 +2313,11 @@ class Container
             },
 
 
-            \Maatify\AdminKernel\Domain\I18n\TranslationValue\TranslationValueQueryReaderInterface::class => function (\Psr\Container\ContainerInterface $c) {
+            \Maatify\AdminKernel\Domain\I18n\LanguageTranslationValue\LanguageTranslationValueQueryReaderInterface::class => function (\Psr\Container\ContainerInterface $c) {
                 $pdo = $c->get(\PDO::class);
                 \assert($pdo instanceof \PDO);
 
-                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\PdoTranslationValueQueryReader($pdo);
-            },
-
-            \Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationValueUpsertController::class => function (\Psr\Container\ContainerInterface $c) {
-                $translationWriteService = $c->get(\Maatify\I18n\Service\TranslationWriteService::class);
-                $validationGuard = $c->get(\Maatify\Validation\Guard\ValidationGuard::class);
-                assert($translationWriteService instanceof \Maatify\I18n\Service\TranslationWriteService);
-                assert($validationGuard instanceof \Maatify\Validation\Guard\ValidationGuard);
-                return new \Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationValueUpsertController($translationWriteService, $validationGuard);
-            },
-
-            \Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationValueDeleteController::class => function (\Psr\Container\ContainerInterface $c) {
-                $translationWriteService = $c->get(\Maatify\I18n\Service\TranslationWriteService::class);
-                $validationGuard = $c->get(\Maatify\Validation\Guard\ValidationGuard::class);
-                assert($translationWriteService instanceof \Maatify\I18n\Service\TranslationWriteService);
-                assert($validationGuard instanceof \Maatify\Validation\Guard\ValidationGuard);
-                return new \Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationValueDeleteController($translationWriteService, $validationGuard);
-            },
-
-            \Maatify\AdminKernel\Http\Controllers\Ui\I18n\TranslationsListUiController::class => function (\Psr\Container\ContainerInterface $c) {
-                $twig = $c->get(Twig::class);
-                $authorizationService = $c->get(AuthorizationService::class);
-                assert($twig instanceof Twig);
-                assert($authorizationService instanceof AuthorizationService);
-                return new \Maatify\AdminKernel\Http\Controllers\Ui\I18n\TranslationsListUiController($twig, $authorizationService);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\PdoLanguageTranslationValueQueryReader($pdo);
             },
 
             LanguageSelectController::class => function (\Psr\Container\ContainerInterface $c) {
@@ -2496,6 +2472,12 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Keys\PdoI18nScopeKeysQueryReader($pdo);
+            },
+
+            \Maatify\AdminKernel\Domain\I18n\Language\LanguageLookupInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Languages\PdoLanguageLookup($pdo);
             }
 
         ]);

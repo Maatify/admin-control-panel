@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\I18n\TranslationValue\DTO;
+namespace Maatify\AdminKernel\Domain\I18n\LanguageTranslationValue\DTO;
 
 use JsonSerializable;
 use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
 
 /**
  * @phpstan-type TranslationValueListResponseArray array{
- *   data: TranslationValueListItemDTO[],
+ *   data: LanguageTranslationValueListItemDTO[],
  *   pagination: PaginationDTO
  * }
  */
-final readonly class TranslationValueListResponseDTO implements JsonSerializable
+final readonly class LanguageTranslationValueListResponseDTO implements JsonSerializable
 {
     /**
-     * @param TranslationValueListItemDTO[] $data
+     * @param LanguageTranslationValueListItemDTO[]  $data
      */
     public function __construct(
         public array $data,

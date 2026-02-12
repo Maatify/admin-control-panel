@@ -1,0 +1,324 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}
+    Translations | {{ ui.appName }}
+{% endblock %}
+
+{% block content %}
+    {# ===================================================================
+       Page Header (breadcrumb + title)
+       =================================================================== #}
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">
+            Translations
+        </h2>
+
+        <nav>
+            <ol class="flex items-center gap-1.5">
+
+                {# Dashboard #}
+                <li>
+                    <a
+                            class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                            href="{{ ui.adminUrl }}dashboard"
+                    >
+                        Home
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none"
+                             xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                  stroke=""
+                                  stroke-width="1.2"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+
+                {# Languages #}
+                <li>
+                    {% if capabilities.can_view_languages %}
+                        <a
+                                class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                                href="{{ ui.adminUrl }}languages"
+                        >
+                            Languages
+                            <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none"
+                                 xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                      stroke=""
+                                      stroke-width="1.2"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                    {% else %}
+                        <span class="text-sm text-gray-800 dark:text-gray-300">
+                        Languages
+                    </span>
+                    {% endif %}
+                </li>
+
+                {# Current Language #}
+                <li>
+                <span class="text-sm text-gray-800 dark:text-gray-300">
+                    {{ language.name }} ({{ language.code }})
+                </span>
+                </li>
+
+                {# Separator #}
+                <li>
+                    <svg class="stroke-current text-gray-400" width="17" height="16" viewBox="0 0 17 16" fill="none"
+                         xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                              stroke=""
+                              stroke-width="1.2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"/>
+                    </svg>
+                </li>
+
+                {# Translations #}
+                <li class="text-sm font-medium text-gray-800 dark:text-gray-300">
+                    Translations
+                </li>
+
+            </ol>
+        </nav>
+    </div>
+
+    {# ===================================================================
+   Language Overview Card
+   =================================================================== #}
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 mb-6 p-5">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+
+            {# Code #}
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">
+                    Code
+                </p>
+                <code class="text-sm font-mono bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-2 py-1 rounded text-gray-800 dark:text-gray-200">
+                    {{ language.code }}
+                </code>
+            </div>
+
+            {# Name #}
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">
+                    Name
+                </p>
+                <p class="text-sm text-gray-800 dark:text-gray-100">
+                    {{ language.name }}
+                </p>
+            </div>
+
+            {# Active Status #}
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">
+                    Active
+                </p>
+                <p class="text-sm">
+                    {% if language.is_active %}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400">
+                        Yes
+                    </span>
+                    {% else %}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                        No
+                    </span>
+                    {% endif %}
+                </p>
+            </div>
+
+            {# Direction #}
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">
+                    Direction
+                </p>
+                <p class="text-sm text-gray-800 dark:text-gray-100">
+                    {{ language.direction|upper }}
+                </p>
+            </div>
+
+            {# Fallback Language #}
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">
+                    Fallback
+                </p>
+                <p class="text-sm text-gray-800 dark:text-gray-100">
+                    {{ language.fallback_language_id ?: '—' }}
+                </p>
+            </div>
+
+            {# Icon (optional) #}
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">
+                    Icon
+                </p>
+                <p class="text-sm text-gray-800 dark:text-gray-100">
+                    {{ language.icon ?: '—' }}
+                </p>
+            </div>
+
+        </div>
+    </div>
+
+    {# ============================================================
+   🔍 Filters Section
+   ============================================================ #}
+    <div class="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg mb-4 border border-gray-200 dark:border-gray-700">
+        <form id="translations-filter-form" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+                {# ID Filter #}
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                        ID
+                    </label>
+                    <input type="text"
+                           id="translation-filter-id"
+                           class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Filter by ID">
+                </div>
+
+                {# Scope Filter #}
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                        Scope
+                    </label>
+                    <input type="text"
+                           id="translation-filter-scope"
+                           class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Filter by scope">
+                </div>
+
+                {# Domain Filter #}
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                        Domain
+                    </label>
+                    <input type="text"
+                           id="translation-filter-domain"
+                           class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Filter by domain">
+                </div>
+
+                {# Key Part Filter #}
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                        Key Segment
+                    </label>
+                    <input type="text"
+                           id="translation-filter-key-part"
+                           class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Filter by key segment">
+                </div>
+
+                {# Value Filter #}
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                        Value
+                    </label>
+                    <input type="text"
+                           id="translation-filter-value"
+                           class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Filter by value">
+                </div>
+
+            </div>
+
+            <div class="flex items-end gap-2">
+                <button type="submit"
+                        id="btn-filter-search"
+                        class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Search
+                </button>
+
+                <button type="button"
+                        id="btn-reset-filters"
+                        class="px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-medium border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                    Reset
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {# ============================================================
+   🌍 Global Search Bar
+   ============================================================ #}
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4">
+        <div class="flex items-center gap-3">
+
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 class="h-5 w-5 text-gray-400"
+                 fill="none"
+                 viewBox="0 0 24 24"
+                 stroke="currentColor">
+                <path stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+
+            <input type="text"
+                   id="translation-search-global"
+                   class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400"
+                   placeholder="🔍 Search by scope, domain, key segment, or value..." />
+
+            <button type="button"
+                    id="btn-search-global"
+                    class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                Search
+            </button>
+
+            <button type="button"
+                    id="btn-clear-search"
+                    class="px-6 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium">
+                Clear
+            </button>
+        </div>
+    </div>
+
+
+
+    {# ============================================================
+       🔐 Capabilities Injection (UI Contract)
+       ------------------------------------------------------------
+       - Capabilities are computed server-side
+       - Twig MUST NOT check permissions by name
+       - JS MUST NOT infer authorization
+
+       Available capabilities:
+       - can_upsert
+       - can_delete
+       ============================================================ #}
+
+    <script>
+        window.languageTranslationsCapabilities = {
+            can_upsert : {{ capabilities.can_upsert ?? false ? 'true' : 'false' }},
+            can_delete : {{ capabilities.can_delete ?? false ? 'true' : 'false' }}
+        };
+
+        console.log('🔐 Language Translations Capabilities:', window.languageTranslationsCapabilities);
+    </script>
+
+    <!-- Page Body (JS-driven placeholder) -->
+    <div class="px-0 py-2">
+        <div class="container lg:max-w-[100%] mt-6">
+            <div id="translations-table-container" class="w-full"></div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/api_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/callback_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/Input_checker.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/data_table.js') }}"></script>
+
+    {# ✨ Project-wide reusable UI components library #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
+
+    {# 🌐 Translations List modular scripts #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n_translations_list.js') }}"></script>
+{% endblock %}

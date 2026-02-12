@@ -74,8 +74,10 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'i18n.keys.list.api' => 'i18n.keys.list',
 
         // I18n Translations
-        'i18n.translations.list.ui'  => 'i18n.translations.list',
-        'i18n.translations.list.api' => 'i18n.translations.list',
+        'languages.translations.list.ui'  => 'i18n.translations.list',
+        'languages.translations.list.api' => 'languages.translations.list',
+        'languages.translations.upsert.api' => 'languages.translations.upsert',
+        'languages.translations.delete.api' => 'languages.translations.delete',
 
         // I18n Scopes Control
         'i18n.scopes.list.ui' => 'i18n.scopes.list',

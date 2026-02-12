@@ -2,19 +2,22 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\I18n\TranslationValue\List;
+namespace Maatify\AdminKernel\Domain\I18n\LanguageTranslationValue\List;
 
 use Maatify\AdminKernel\Domain\List\ListCapabilities;
 
-final class TranslationValueListCapabilities
+final class LanguageTranslationValueListCapabilities
 {
     public static function define(): ListCapabilities
     {
         return new ListCapabilities(
-            // 🔍 Global search (key_name OR value)
+
+        // 🔍 Global search (scope OR domain OR key_part OR value)
             supportsGlobalSearch : true,
             searchableColumns    : [
-                'key_name',
+                'scope',
+                'domain',
+                'key_part',
                 'value',
             ],
 
@@ -22,7 +25,9 @@ final class TranslationValueListCapabilities
             supportsColumnFilters: true,
             filterableColumns    : [
                 'id'        => 'id',
-                'key_name'  => 'key_name',
+                'scope'     => 'scope',
+                'domain'    => 'domain',
+                'key_part'  => 'key_part',
                 'value'     => 'value',
             ],
 
@@ -31,4 +36,3 @@ final class TranslationValueListCapabilities
         );
     }
 }
-

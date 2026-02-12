@@ -5,20 +5,18 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Infrastructure\Repository\I18n;
 
 use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
-use Maatify\AdminKernel\Domain\I18n\TranslationValue\DTO\TranslationValueListItemDTO;
-use Maatify\AdminKernel\Domain\I18n\TranslationValue\DTO\TranslationValueListResponseDTO;
-use Maatify\AdminKernel\Domain\I18n\TranslationValue\TranslationValueQueryReaderInterface;
+use Maatify\AdminKernel\Domain\I18n\LanguageTranslationValue\DTO\LanguageTranslationValueListItemDTO;
+use Maatify\AdminKernel\Domain\I18n\LanguageTranslationValue\DTO\LanguageTranslationValueListResponseDTO;
+use Maatify\AdminKernel\Domain\I18n\LanguageTranslationValue\LanguageTranslationValueQueryReaderInterface;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
 use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
 use PDO;
 use RuntimeException;
 
-use function array_key_exists;
-use function is_numeric;
 use function is_string;
 use function trim;
 
-final readonly class PdoTranslationValueQueryReader implements TranslationValueQueryReaderInterface
+final readonly class PdoLanguageTranslationValueQueryReader implements LanguageTranslationValueQueryReaderInterface
 {
     public function __construct(
         private PDO $pdo
@@ -29,7 +27,7 @@ final readonly class PdoTranslationValueQueryReader implements TranslationValueQ
         int $languageId,
         ListQueryDTO $query,
         ResolvedListFilters $filters
-    ): TranslationValueListResponseDTO
+    ): LanguageTranslationValueListResponseDTO
     {
         $where  = [];
         $params = [
@@ -37,27 +35,44 @@ final readonly class PdoTranslationValueQueryReader implements TranslationValueQ
         ];
 
         // ─────────────────────────────
-        // Global search (key_name OR value)
+        // Global search (scope OR domain OR key_part OR value)
         // ─────────────────────────────
         if ($filters->globalSearch !== null) {
             $g = trim($filters->globalSearch);
             if ($g !== '') {
-                $where[] = '(k.key_name LIKE :global_text OR t.value LIKE :global_text)';
+                $where[] = '(
+                    k.scope LIKE :global_text
+                    OR k.domain LIKE :global_text
+                    OR k.key_part LIKE :global_text
+                    OR t.value LIKE :global_text
+                )';
                 $params['global_text'] = '%' . $g . '%';
             }
         }
 
         // ─────────────────────────────
-        // Column filters (explicit only)
+        // Column filters
         // ─────────────────────────────
         foreach ($filters->columnFilters as $alias => $value) {
+
             if ($alias === 'id') {
-                $where[] = 'k.id LIKE :id';
+                $where[] = 'k.id = :id';
                 $params['id'] = (int)$value;
             }
-            if ($alias === 'key_name') {
-                $where[] = 'k.key_name LIKE :key_name';
-                $params['key_name'] = '%' . trim((string)$value) . '%';
+
+            if ($alias === 'scope') {
+                $where[] = 'k.scope LIKE :scope';
+                $params['scope'] = '%' . trim((string)$value) . '%';
+            }
+
+            if ($alias === 'domain') {
+                $where[] = 'k.domain LIKE :domain';
+                $params['domain'] = '%' . trim((string)$value) . '%';
+            }
+
+            if ($alias === 'key_part') {
+                $where[] = 'k.key_part LIKE :key_part';
+                $params['key_part'] = '%' . trim((string)$value) . '%';
             }
 
             if ($alias === 'value') {
@@ -66,10 +81,10 @@ final readonly class PdoTranslationValueQueryReader implements TranslationValueQ
             }
         }
 
-        $whereSql = $where ? 'WHERE ' . \implode(' AND ', $where) : '';
+        $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
         // ─────────────────────────────
-        // Total keys (independent of language)
+        // Total keys
         // ─────────────────────────────
         $stmtTotal = $this->pdo->query('SELECT COUNT(*) FROM i18n_keys');
         if ($stmtTotal === false) {
@@ -78,18 +93,15 @@ final readonly class PdoTranslationValueQueryReader implements TranslationValueQ
         $total = (int)$stmtTotal->fetchColumn();
 
         // ─────────────────────────────
-        // Filtered (based on search filters)
-        // (language_id is fixed in LEFT JOIN condition)
+        // Filtered
         // ─────────────────────────────
-        $stmtFiltered = $this->pdo->prepare(
-            "
-                SELECT COUNT(*)
-                FROM i18n_keys k
-                LEFT JOIN i18n_translations t
-                    ON t.key_id = k.id AND t.language_id = :language_id
-                {$whereSql}
-            "
-        );
+        $stmtFiltered = $this->pdo->prepare("
+            SELECT COUNT(*)
+            FROM i18n_keys k
+            LEFT JOIN i18n_translations t
+                ON t.key_id = k.id AND t.language_id = :language_id
+            {$whereSql}
+        ");
 
         $stmtFiltered->execute($params);
         $filtered = (int)$stmtFiltered->fetchColumn();
@@ -103,7 +115,9 @@ final readonly class PdoTranslationValueQueryReader implements TranslationValueQ
         $sql = "
             SELECT
                 k.id AS key_id,
-                k.key_name,
+                k.scope,
+                k.domain,
+                k.key_part,
                 t.id AS translation_id,
                 t.language_id,
                 t.value,
@@ -113,8 +127,7 @@ final readonly class PdoTranslationValueQueryReader implements TranslationValueQ
             LEFT JOIN i18n_translations t
                 ON t.key_id = k.id AND t.language_id = :language_id
             {$whereSql}
-            ORDER BY
-                k.id ASC
+            ORDER BY k.id ASC
             LIMIT :limit OFFSET :offset
         ";
 
@@ -132,41 +145,26 @@ final readonly class PdoTranslationValueQueryReader implements TranslationValueQ
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
 
-        /** @var array<int, array<string, mixed>> $rows */
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
         $items = [];
 
         foreach ($rows as $row) {
-            $keyIdRaw = $row['key_id'] ?? null;
-            $keyId = is_numeric($keyIdRaw) ? (int)$keyIdRaw : 0;
 
-            $translationId = null;
-            if (array_key_exists('translation_id', $row) && $row['translation_id'] !== null) {
-                $translationIdRaw = $row['translation_id'];
-                $translationId = is_numeric($translationIdRaw) ? (int)$translationIdRaw : null;
-            }
-
-            $langRaw = $row['language_id'] ?? null;
-            $langId = is_numeric($langRaw) ? (int)$langRaw : $languageId;
-
-            $value = null;
-            if (array_key_exists('value', $row) && is_string($row['value'])) {
-                $value = $row['value'];
-            }
-
-            $items[] = new TranslationValueListItemDTO(
-                keyId: $keyId,
-                keyName: is_string($row['key_name']) ? $row['key_name'] : '',
-                translationId: $translationId,
-                languageId: $langId,
-                value: $value,
+            $items[] = new LanguageTranslationValueListItemDTO(
+                keyId: (int)$row['key_id'],
+                scope: is_string($row['scope']) ? $row['scope'] : '',
+                domain: is_string($row['domain']) ? $row['domain'] : '',
+                keyPart: is_string($row['key_part']) ? $row['key_part'] : '',
+                translationId: isset($row['translation_id']) ? (int)$row['translation_id'] : null,
+                languageId: isset($row['language_id']) ? (int)$row['language_id'] : $languageId,
+                value: is_string($row['value'] ?? null) ? $row['value'] : null,
                 createdAt: is_string($row['created_at']) ? $row['created_at'] : '',
                 updatedAt: is_string($row['updated_at'] ?? null) ? $row['updated_at'] : null
             );
         }
 
-        return new TranslationValueListResponseDTO(
+        return new LanguageTranslationValueListResponseDTO(
             data: $items,
             pagination: new PaginationDTO(
                 page: $query->page,

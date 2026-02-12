@@ -15,53 +15,45 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\I18n;
 
-use Maatify\AdminKernel\Domain\I18n\TranslationValue\Validation\TranslationValueUpsertSchema;
+use Maatify\AdminKernel\Domain\I18n\LanguageTranslationValue\Validation\LanguageTranslationValueUpsertSchema;
+use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
 use Maatify\I18n\Service\TranslationWriteService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-final readonly class TranslationValueUpsertController
+final readonly class LanguageTranslationUpsertController
 {
     public function __construct(
         private TranslationWriteService $translationWriteService,
-        private ValidationGuard $validationGuard
+        private ValidationGuard $validationGuard,
+        private JsonResponseFactory $json,
     ) {
     }
 
-    public function __invoke(Request $request, Response $response): Response
+    /**
+     * @param array{language_id: string} $args
+     */
+    public function __invoke(Request $request, Response $response, array $args): Response
     {
-        /** @var array<string,mixed> $body */
+        $languageId = (int) $args['language_id'];
+
+        /** @var array{key_id: int, value:string} $body */
         $body = (array)$request->getParsedBody();
 
         // 1) Validate payload
-        $this->validationGuard->check(new TranslationValueUpsertSchema(), $body);
-
-        // 2) Explicit type narrowing (phpstan-safe)
-        $languageId = $body['language_id'] ?? null;
-        $keyId      = $body['key_id'] ?? null;
-        $value      = $body['value'] ?? null;
-
-        if (!\is_int($languageId) || !\is_int($keyId) || !\is_string($value)) {
-            // Defensive guard – should never happen after validation
-            throw new \RuntimeException('Invalid validated payload.');
-        }
+        $this->validationGuard->check(new LanguageTranslationValueUpsertSchema(), $body);
 
         // 3) Call domain service (no logic here)
         $this->translationWriteService->upsertTranslation(
             languageId: $languageId,
-            keyId: $keyId,
-            value: $value
+            keyId: $body['key_id'],
+            value: $body['value']
         );
 
         // 4) Response
-        $response->getBody()->write(
-            json_encode(['status' => 'ok'], JSON_THROW_ON_ERROR)
-        );
+        return $this->json->success($response);
 
-        return $response
-            ->withHeader('Content-Type', 'application/json')
-            ->withStatus(200);
     }
 }
 
