@@ -131,6 +131,18 @@
     const actionsRenderer = (value, row) => {
         const actions = [];
 
+        // View Keys Button
+        if (capabilities.can_view_scope_keys) {
+            actions.push(AdminUIComponents.buildActionButton({
+                cssClass: 'view-scope-keys-btn',
+                icon: AdminUIComponents.SVGIcons.link,
+                text: 'Keys',
+                color: 'purple',
+                entityId: row.id,
+                title: 'View scope keys'
+            }));
+        }
+
         // Change Code Button
         if (capabilities.can_change_code) {
             actions.push(AdminUIComponents.buildActionButton({
@@ -422,6 +434,12 @@
         console.log('🎬 Initializing I18n Scopes Core Module...');
 
         setupSearchAndFilters();
+        AdminUIComponents.setupButtonHandler(
+            '.view-scope-keys-btn',
+            async (scopeId) => {
+                window.location.assign(`/i18n/scopes/${scopeId}/keys`);
+            }
+        );
         loadScopes();
 
         console.log('✅ I18n Scopes Core Module initialized');
