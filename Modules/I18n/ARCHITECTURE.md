@@ -4,7 +4,7 @@ This document describes the architectural boundaries and components of the I18n 
 
 ## 1. Database Schema
 
-The module owns five tables that manage the translation layer.
+The module owns six tables that manage the translation layer.
 It depends on `languages` (from LanguageCore) via Foreign Keys.
 
 ### `i18n_scopes`
@@ -30,6 +30,11 @@ It depends on `languages` (from LanguageCore) via Foreign Keys.
 *   **Columns:** `id`, `language_id` (FK -> LanguageCore), `key_id` (FK -> i18n_keys), `translation_value`, `updated_at`.
 *   **Constraint:** Unique `(language_id, key_id)`.
 
+### `i18n_domain_language_summary`
+*   **Purpose:** Synchronous Aggregation (Derived).
+*   **Columns:** `id`, `scope`, `domain`, `language_id` (FK), `total_keys`, `translated_count`, `missing_count`.
+*   **Constraint:** Unique `(scope, domain, language_id)`.
+
 ## 2. Service Layer
 
 ### `I18nGovernancePolicyService`
@@ -54,7 +59,23 @@ It depends on `languages` (from LanguageCore) via Foreign Keys.
 *   **Responsibility:** Fetches entire domains for UI loading.
 *   **Behavior:** Fail-Soft (Returns empty DTO).
 
-## 3. Dependencies
+### `MissingCounterService`
+*   **Role:** The Aggregator.
+*   **Responsibility:** Synchronously updates `i18n_domain_language_summary` during writes.
+*   **Behavior:** Strong Consistency.
+
+### `MissingCounterRebuilder`
+*   **Role:** The Repairman.
+*   **Responsibility:** Truncates and rebuilds the summary table from scratch (Deterministic).
+*   **Usage:** Operational recovery only.
+
+## 3. Consistency Model
+
+The module utilizes a **Strong Consistency** model.
+*   Writes to `i18n_keys` or `i18n_translations` trigger synchronous updates to `i18n_domain_language_summary`.
+*   No background queues or eventual consistency.
+
+## 4. Dependencies
 
 *   **Internal:** `maatify/language-core` (for `languages` table and `LanguageRepository`).
 *   **External:** PDO (Database).
