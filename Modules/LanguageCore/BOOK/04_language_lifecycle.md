@@ -65,38 +65,9 @@ $service->setLanguageActive($langId, true);
 ```
 
 **Impact:**
-*   Inactive languages are excluded from `LanguageRepository::listActive()`.
-*   Runtime translation lookups for inactive languages return `null` (unless explicitly bypassed).
+*   Inactive languages are excluded from `LanguageManagementService::listActive()`.
+*   Modules consuming this service (like `I18n`) generally respect this flag.
 
-## 4. Fallback Chains
+## 4. Deletion
 
-The library supports a single-level fallback mechanism.
-
-### Setting a Fallback
-
-```php
-// 1. Create Base Language
-$usId = $service->createLanguage('English (US)', 'en-US', ...);
-
-// 2. Create Variant
-$gbId = $service->createLanguage('English (UK)', 'en-GB', ...);
-
-// 3. Link Them
-$service->setFallbackLanguage($gbId, $usId);
-```
-
-### Fallback Resolution
-When resolving a translation key:
-1.  The system checks the primary language (`en-GB`).
-2.  If the key exists but the *translation value* is missing, it checks the fallback language (`en-US`).
-3.  If found in fallback, that value is returned.
-
-**Rules:**
-*   **No Circular References:** `A -> B -> A` throws `LanguageInvalidFallbackException`.
-*   **One Level Deep:** The `TranslationReadService` implementation supports strictly one level of fallback.
-
-### Removing a Fallback
-
-```php
-$service->clearFallbackLanguage($gbId);
-```
+The system generally discourages hard deletion of languages to preserve referential integrity. However, if supported by the implementation, it would cascade delete settings but might be blocked by foreign keys in other modules (like `i18n_translations`).
