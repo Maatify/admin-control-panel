@@ -17,12 +17,13 @@ It depends on `languages` (from LanguageCore) via Foreign Keys.
 
 ### `i18n_domain_scopes`
 *   **Purpose:** Governance Mapping (Scope <-> Domain).
-*   **Columns:** `id`, `domain_id` (FK), `scope_id` (FK).
+*   **Columns:** `id`, `scope_code` (VARCHAR), `domain_code` (VARCHAR).
+*   **Constraint:** Unique `(scope_code, domain_code)`.
 
 ### `i18n_keys`
 *   **Purpose:** Registry of valid translation keys.
-*   **Columns:** `id`, `scope_id`, `domain_id`, `key_part`, `description`, `created_at`.
-*   **Constraint:** Unique `(scope_id, domain_id, key_part)`.
+*   **Columns:** `id`, `scope` (VARCHAR), `domain` (VARCHAR), `key_part`, `description`, `created_at`.
+*   **Constraint:** Unique `(scope, domain, key_part)`.
 
 ### `i18n_translations`
 *   **Purpose:** Text values.
