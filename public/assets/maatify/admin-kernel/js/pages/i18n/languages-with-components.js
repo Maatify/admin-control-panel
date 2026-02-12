@@ -35,6 +35,24 @@
     // ========================================================================
 
     /**
+     * 🔗 ID renderer (link to translations)
+     */
+    const idRenderer = (value, row) => {
+        const canView = window.languagesCapabilities?.can_view_language_translations ?? false;
+
+        if (!canView) {
+            return `<span class="text-gray-900 dark:text-gray-200">${value}</span>`;
+        }
+
+        return `
+        <a href="/languages/${value}/translations"
+           class="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+            ${value}
+        </a>
+    `;
+    };
+
+    /**
      * ✅ OPTIMIZED: Name renderer with icon
      * Before: 14 lines | After: 9 lines | Saved: 5 lines
      */
@@ -486,6 +504,7 @@
                     'id',
                     null,
                     {
+                        id: idRenderer,
                         name: nameRenderer,
                         code: codeRenderer,
                         direction: directionRenderer,
