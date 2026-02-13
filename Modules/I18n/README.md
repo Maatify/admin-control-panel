@@ -82,7 +82,7 @@ For details, see [**ARCHITECTURE.md**](ARCHITECTURE.md).
 
 ## 4. Database Schema
 
-The system relies on 6 mandatory tables (plus 2 from LanguageCore):
+The system relies on 7 mandatory tables (plus 2 from LanguageCore):
 
 1.  **`i18n_scopes`**: Allowed scopes.
 2.  **`i18n_domains`**: Allowed domains.
@@ -90,7 +90,8 @@ The system relies on 6 mandatory tables (plus 2 from LanguageCore):
 4.  **`i18n_keys`**: Registry of valid keys.
 5.  **`i18n_translations`**: Text values (References `languages.id`).
 6.  **`i18n_domain_language_summary`**: Derived aggregation layer (Synchronous).
-
+7.  **`i18n_key_stats`**: Derived aggregation (per-key translated counter for fast grid queries).
+>Derived Tables Rule: Tables marked as Derived are non-authoritative, fully rebuildable, and must be mutated inside the caller transaction.
 ---
 
 ## 5. Read vs. Write Semantics
@@ -101,6 +102,11 @@ The system relies on 6 mandatory tables (plus 2 from LanguageCore):
 | **Exceptions** | Throws typed exceptions.       | Returns `null` or empty DTOs. |
 | **Validation** | Strict governance enforcement. | Minimal validation for speed. |
 | **Output**     | Void or ID (int).              | Strictly typed DTOs.          |
+
+Derived Aggregation Semantics
+- i18n_domain_language_summary and i18n_key_stats are derived and never authoritative.
+- All mutations affecting derived tables must run inside the same TX as the authoritative write (key/translation create/delete/rename).
+- Repair is always performed via DB-driven rebuild (no N+1, no PHP loops).
 
 ---
 

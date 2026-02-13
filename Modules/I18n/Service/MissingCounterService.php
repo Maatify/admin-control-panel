@@ -16,6 +16,7 @@ declare(strict_types=1);
 namespace Maatify\I18n\Service;
 
 use Maatify\I18n\Contract\DomainLanguageSummaryRepositoryInterface;
+use Maatify\I18n\Contract\KeyStatsRepositoryInterface;
 use Maatify\I18n\Contract\TranslationKeyRepositoryInterface;
 use Maatify\I18n\Exception\TranslationKeyNotFoundException;
 
@@ -24,6 +25,7 @@ final readonly class MissingCounterService
     public function __construct(
         private DomainLanguageSummaryRepositoryInterface $summaryRepository,
         private TranslationKeyRepositoryInterface $keyRepository,
+        private KeyStatsRepositoryInterface $keyStatsRepository,
     ) {
     }
 
@@ -35,11 +37,14 @@ final readonly class MissingCounterService
             throw new TranslationKeyNotFoundException($keyId);
         }
 
-        // total_keys++ + missing++ لكل اللغات
+        // summary table
         $this->summaryRepository->incrementTotalKeys(
             $key->scope,
             $key->domain
         );
+
+        // key_stats table
+        $this->keyStatsRepository->createForKey($keyId);
     }
 
     public function onKeyDeleted(int $keyId): void
@@ -50,10 +55,14 @@ final readonly class MissingCounterService
             return; // fail-soft
         }
 
+        // summary table
         $this->summaryRepository->decrementTotalKeys(
             $key->scope,
             $key->domain
         );
+
+        // key_stats table
+        $this->keyStatsRepository->deleteForKey($keyId);
     }
 
     public function onTranslationCreated(
@@ -66,11 +75,15 @@ final readonly class MissingCounterService
             throw new TranslationKeyNotFoundException($keyId);
         }
 
+        // summary table
         $this->summaryRepository->incrementTranslated(
             $key->scope,
             $key->domain,
             $languageId
         );
+
+        // key_stats table
+        $this->keyStatsRepository->incrementTranslated($keyId);
     }
 
     public function onTranslationDeleted(
@@ -83,10 +96,25 @@ final readonly class MissingCounterService
             return; // fail-soft
         }
 
+        // summary table
         $this->summaryRepository->decrementTranslated(
             $key->scope,
             $key->domain,
             $languageId
         );
+
+        // key_stats table
+        $this->keyStatsRepository->decrementTranslated($keyId);
+    }
+
+    public function onKeyMoved(
+        string $oldScope,
+        string $oldDomain,
+        string $newScope,
+        string $newDomain
+    ): void
+    {
+        $this->summaryRepository->rebuildScopeDomain($oldScope, $oldDomain);
+        $this->summaryRepository->rebuildScopeDomain($newScope, $newDomain);
     }
 }

@@ -88,23 +88,31 @@ final readonly class TranslationWriteService
     ): void {
         $this->tx->run(function () use ($keyId, $scope, $domain, $key): void {
 
-            if ($this->keyRepository->getById($keyId) === null) {
+            $existingKey = $this->keyRepository->getById($keyId);
+
+            if ($existingKey === null) {
                 throw new TranslationKeyNotFoundException($keyId);
             }
 
             $this->governancePolicy
                 ->assertScopeAndDomainAllowed($scope, $domain);
 
-            $existing = $this->keyRepository
+            $duplicate = $this->keyRepository
                 ->getByStructuredKey($scope, $domain, $key);
 
-            if ($existing !== null && $existing->id !== $keyId) {
+            if ($duplicate !== null && $duplicate->id !== $keyId) {
                 throw new TranslationKeyAlreadyExistsException(
                     $scope,
                     $domain,
                     $key
                 );
             }
+
+            $oldScope  = $existingKey->scope;
+            $oldDomain = $existingKey->domain;
+
+            $changedScope  = $oldScope !== $scope;
+            $changedDomain = $oldDomain !== $domain;
 
             if (
                 !$this->keyRepository->rename(
@@ -115,6 +123,26 @@ final readonly class TranslationWriteService
                 )
             ) {
                 throw new TranslationUpdateFailedException('key.rename');
+            }
+
+            /*
+             * 🔥 IMPORTANT:
+             * If scope/domain changed → adjust derived summary layer.
+             *
+             * We must:
+             * - decrement total_keys from old scope/domain
+             * - increment total_keys to new scope/domain
+             *
+             * This must stay inside same TX.
+             */
+            if ($changedScope || $changedDomain) {
+
+                $this->missingCounter->onKeyMoved(
+                    $oldScope,
+                    $oldDomain,
+                    $scope,
+                    $domain
+                );
             }
         });
     }

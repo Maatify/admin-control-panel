@@ -65,7 +65,7 @@ For sequential reading, start with the introduction.
 ## 🏗 Aggregation & Consistency
 
 - [10_aggregation_and_consistency.md](10_aggregation_and_consistency.md)
-  Derived aggregation layers, synchronous counters, rebuild strategies, and consistency models.
+  Derived aggregation layers (**i18n_domain_language_summary + i18n_key_stats**), synchronous counters, rebuild strategies, and consistency models.
 
 ---
 

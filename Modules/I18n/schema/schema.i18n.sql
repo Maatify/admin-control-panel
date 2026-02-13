@@ -3,6 +3,8 @@ SET FOREIGN_KEY_CHECKS=0;
 /* ===========================
  * DROP TABLES (Leaf → Root)
  * =========================== */
+DROP TABLE IF EXISTS i18n_domain_language_summary;
+DROP TABLE IF EXISTS i18n_key_stats;
 DROP TABLE IF EXISTS i18n_translations;
 DROP TABLE IF EXISTS i18n_keys;
 DROP TABLE IF EXISTS i18n_domain_scopes;
@@ -57,7 +59,10 @@ CREATE TABLE i18n_scopes (
 
                              created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-                             UNIQUE KEY uq_i18n_scopes_code (code)
+                             UNIQUE KEY uq_i18n_scopes_code (code),
+
+                             KEY idx_i18n_scopes_is_active (is_active),
+                             KEY idx_i18n_scopes_sort_order (sort_order)
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci
@@ -95,7 +100,10 @@ CREATE TABLE i18n_domains (
 
                               created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-                              UNIQUE KEY uq_i18n_domains_code (code)
+                              UNIQUE KEY uq_i18n_domains_code (code),
+
+                              KEY idx_i18n_domains_is_active (is_active),
+                              KEY idx_i18n_domains_sort_order (sort_order)
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci
@@ -122,7 +130,10 @@ CREATE TABLE i18n_domain_scopes (
 
                                     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-                                    UNIQUE KEY uq_i18n_domain_scopes (scope_code, domain_code)
+                                    UNIQUE KEY uq_i18n_domain_scopes (scope_code, domain_code),
+
+                                    KEY idx_i18n_domain_scopes_scope (scope_code),
+                                    KEY idx_i18n_domain_scopes_domain (domain_code)
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci
@@ -152,7 +163,11 @@ CREATE TABLE i18n_keys (
 
                            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-                           UNIQUE KEY uq_i18n_keys_identity (scope, domain, key_part)
+                           UNIQUE KEY uq_i18n_keys_identity (scope, domain, key_part),
+
+                           KEY idx_i18n_keys_scope_domain (scope, domain),
+                           KEY idx_i18n_keys_domain_scope (domain, scope),
+                           KEY idx_i18n_keys_key_part (key_part)
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci
@@ -184,15 +199,20 @@ CREATE TABLE i18n_translations (
 
                                    UNIQUE KEY uq_i18n_translation_unique (key_id, language_id),
 
+                                   KEY idx_i18n_translations_language_id (language_id),
+                                   KEY idx_i18n_translations_key_id (key_id),
+
                                    CONSTRAINT fk_i18n_translation_key
                                        FOREIGN KEY (key_id)
                                            REFERENCES i18n_keys(id)
-                                           ON DELETE CASCADE,
+                                           ON DELETE CASCADE
+                                           ON UPDATE CASCADE,
 
                                    CONSTRAINT fk_i18n_translation_language
                                        FOREIGN KEY (language_id)
                                            REFERENCES languages(id)
                                            ON DELETE CASCADE
+                                           ON UPDATE CASCADE
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci
@@ -240,14 +260,69 @@ CREATE TABLE i18n_domain_language_summary (
                                               UNIQUE KEY uq_i18n_domain_language_summary_identity
                                                   (scope, domain, language_id),
 
+                                              KEY idx_i18n_domain_language_summary_scope_domain (scope, domain),
+                                              KEY idx_i18n_domain_language_summary_language (language_id),
+
                                               CONSTRAINT fk_i18n_domain_language_summary_language
                                                   FOREIGN KEY (language_id)
                                                       REFERENCES languages(id)
                                                       ON DELETE CASCADE
+                                                      ON UPDATE CASCADE
+
+    /* MySQL 8+ only (optional)
+    ,
+    CONSTRAINT chk_i18n_domain_language_summary_integrity
+        CHECK (
+            translated_count <= total_keys
+            AND missing_count <= total_keys
+            AND (translated_count + missing_count) <= total_keys
+        )
+    */
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci
     COMMENT='Derived aggregation table for i18n domain translation completeness. Non-authoritative.';
+
+/* ==========================================================
+ * 7) I18N KEY STATS (DERIVED AGGREGATION LAYER)
+ * ----------------------------------------------------------
+ * Purpose:
+ * - Store per-key translation counters
+ * - Avoid heavy JOIN/COUNT operations in list endpoints
+ * - Provide fast per-key completeness metrics
+ *
+ * Nature:
+ * - Derived data (NON-authoritative)
+ * - Fully rebuildable at any time
+ * - Maintained by i18n module only
+ *
+ * Update Triggers:
+ * - Translation insert/delete
+ * - Key create/delete
+ *
+ * Notes:
+ * - Does NOT depend on language-core events
+ * - No knowledge of total languages
+ * - Pure per-key counter
+ * ========================================================== */
+
+CREATE TABLE i18n_key_stats (
+                                key_id BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+
+                                translated_count INT UNSIGNED NOT NULL DEFAULT 0,
+
+                                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                    ON UPDATE CURRENT_TIMESTAMP,
+
+                                CONSTRAINT fk_i18n_key_stats_key
+                                    FOREIGN KEY (key_id)
+                                        REFERENCES i18n_keys(id)
+                                        ON DELETE CASCADE
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci
+    COMMENT='Derived per-key translation counters. Non-authoritative.';
+
 
 /* ==========================================================
  * REBUILD STRATEGY (DOCUMENTATION ONLY)

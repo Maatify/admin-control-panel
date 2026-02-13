@@ -18,7 +18,7 @@ namespace Maatify\I18n\Infrastructure\Mysql;
 use Maatify\I18n\Contract\I18nTransactionManagerInterface;
 use PDO;
 
-final readonly class PdoI18nTransactionManager implements I18nTransactionManagerInterface
+final readonly class Mysql18nTransactionManager implements I18nTransactionManagerInterface
 {
     public function __construct(private PDO $connection) {}
 
