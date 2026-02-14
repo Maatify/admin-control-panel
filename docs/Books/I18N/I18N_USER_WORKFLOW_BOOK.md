@@ -1,276 +1,272 @@
-# 🌍 I18n User Workflow Book
+# I18N OPERATIONAL HANDBOOK
 
-> **The Single Source of Truth for I18n Users**
->
-> This manual describes the exact workflows, screens, and navigation paths available in the Admin Control Panel for managing internationalization (I18n). It is strictly based on the current system implementation.
+**Version:** 1.0
+**Target Audience:** Translators, Content Managers, Project Leads, QA
+**Objective:** The Single Source of Truth for operating the Internationalization System.
 
 ---
 
-## 1. What is this System?
+## 1️⃣ System Purpose
 
-The I18n (Internationalization) system allows you to manage languages and translations for your application. It uses a structured approach to organize text so that it can be easily translated and maintained.
+This system is designed to solve a specific problem: **How do we manage text in multiple languages efficiently, without losing context?**
 
-### Core Concepts (Mental Model)
+In traditional systems, text is often buried in code or scattered across spreadsheets. This leads to broken translations, missing context, and duplicate work.
 
-Imagine a library:
+Our system organizes text into a strict hierarchy:
+1.  **Scopes:** Define *where* the text appears (e.g., "Checkout Page").
+2.  **Domains:** Define *what* kind of text it is (e.g., "Error Messages").
+3.  **Keys:** Identify the specific phrase (e.g., `invalid_email`).
+4.  **Translations:** Provide the actual words in each language.
 
-1.  **Scope**: A "Section" of the library (e.g., "User Profile", "Checkout", "Admin Panel").
-2.  **Domain**: A "Topic" or "Category" of books (e.g., "Buttons", "Error Messages", "Labels").
-    *   *Note:* A Domain exists globally but must be **Assigned** to a Scope to be used there.
-3.  **Key**: A specific "Book Title" (e.g., `btn_save`, `err_invalid_email`).
-    *   A Key is unique within a Scope + Domain combination.
-4.  **Translation**: The "Content" of the book in a specific Language (e.g., "Save", "Invalid Email").
-5.  **Language**: The language the content is written in (e.g., English, Arabic).
+**Why this matters:**
+*   **Context:** Translators know *exactly* where text appears (Scope).
+*   **Consistency:** The same error message (Domain) can be reused across different parts of the app.
+*   **Coverage:** The system tracks completion percentages, so you never launch with missing translations.
+
+---
+
+## 2️⃣ Mental Model (Visual & Simple)
+
+Think of the system as a **Digital Library**.
+
+*   **The Building (The App):** The entire application.
+*   **The Floors (Languages):** Each floor is a different language version (English Floor, Arabic Floor, etc.).
+*   **The Sections (Scopes):** Each floor has sections like "Fiction" (User Profile), "Science" (Checkout), "History" (Admin Panel).
+*   **The Books (Domains):** Inside each section, books are categorized by topic (Buttons, Errors, Labels).
+    *   *Crucial Rule:* A book (Domain) exists in the library catalog, but it only appears on the shelf if you **Assign** it to that Section (Scope).
+*   **The Pages (Keys):** Inside the book are pages with specific titles (Keys).
+*   **The Text (Translations):** The actual words written on the page.
 
 **Visual Hierarchy:**
 
 ```
-[ APP ]
- ├── [ Language: English ]
- ├── [ Language: Arabic ]
+[ LIBRARY: Your App ]
  │
- └── [ SCOPE: User Profile ]
+ ├── [ FLOOR: English ]
+ │    │
+ │    └── [ SECTION: User Profile ]
+ │         │
+ │         ├── [ BOOK: Buttons ] (Assigned)
+ │         │    ├── Page: "Save"
+ │         │    └── Page: "Cancel"
+ │         │
+ │         └── [ BOOK: Error Messages ] (Assigned)
+ │              ├── Page: "Invalid Email"
+ │              └── Page: "Required Field"
+ │
+ └── [ FLOOR: Arabic ]
       │
-      ├── [ DOMAIN: Buttons ] (Assigned)
-      │    ├── Key: save   -> "Save"
-      │    └── Key: cancel -> "Cancel"
-      │
-      └── [ DOMAIN: Errors ] (Assigned)
-           ├── Key: invalid_email -> "Invalid Email"
-           └── Key: required      -> "Field Required"
+      └── [ SECTION: User Profile ]
+           │
+           ├── [ BOOK: Buttons ] (Assigned)
+           │    ├── Page: "حفظ" (Save)
+           │    └── Page: "إلغاء" (Cancel)
+           ...
 ```
 
 ---
 
-## 2. Navigation Tree
+## 3️⃣ Complete Navigation Map (User-Level)
 
-This map shows every clickable path in the system starting from the Sidebar.
+This map shows exactly where to click to navigate the system.
 
-*   **Dashboard** (Home)
-*   **Languages** (`/languages`)
-    *   `[ID]` (Clickable Link) -> **Language Translations** (`/languages/{id}/translations`)
-*   **Settings**
-    *   **Translations**
-        *   **Scopes** (`/i18n/scopes`)
-            *   `[ID]` (Clickable Link) -> **Scope Details** (`/i18n/scopes/{id}`)
-                *   **Keys** (Button) -> **Scope Keys** (`/i18n/scopes/{id}/keys`)
-                *   **View Domains** (Link on Coverage Row) -> **Language Coverage Breakdown** (`/i18n/scopes/{id}/coverage/languages/{lang_id}`)
-                    *   **Go** (Link on Domain Row) -> **Scope Domain Translations** (Filtered) (`/i18n/scopes/{id}/domains/{domain_id}/translations?language_id={lang_id}`)
-                *   **Translations** (Button on Domain Row) -> **Scope Domain Translations** (`/i18n/scopes/{id}/domains/{domain_id}/translations`)
-                *   **Keys** (Button on Domain Row) -> **Scope Domain Keys** (`/i18n/scopes/{id}/domains/{domain_id}/keys`)
-        *   **Domains** (`/i18n/domains`)
+**1. Dashboard (Home)**
+*   Your starting point.
+
+**2. Sidebar -> Languages**
+*   **Screen:** List of all languages.
+*   **Click:** The Blue ID Number of a language.
+*   **Goes to:** **Language Translations List**.
+    *   *Action:* Translate any key for that specific language.
+
+**3. Sidebar -> Settings -> Translations -> Scopes**
+*   **Screen:** List of all application sections (Scopes).
+*   **Click:** The Blue ID Number of a scope.
+*   **Goes to:** **Scope Details**.
+    *   *View:* Language Coverage Charts (Pie charts).
+    *   *View:* Domain Assignments (List of books in this section).
+    *   **Click:** "Keys" button (Purple).
+        *   **Goes to:** **Scope Keys Management**.
+            *   *Action:* Create new keys.
+    *   **Click:** "Translations" button (Blue Eye) on a Domain row.
+        *   **Goes to:** **Domain Translations List**.
+            *   *Action:* Translate keys for this specific domain.
+    *   **Click:** "View Domains" link on a Language Coverage row.
+        *   **Goes to:** **Coverage Breakdown**.
+            *   *Action:* See which domains are missing translations for that language.
+
+**4. Sidebar -> Settings -> Translations -> Domains**
+*   **Screen:** Global catalog of Domains (Books).
+*   **Action:** Create new Categories.
+*   **Note:** You cannot add keys here. You must go to a Scope first.
 
 ---
 
-## 3. Entry Points & Workflows
+## 4️⃣ All Operational Workflows
 
-There are three main ways to use the system depending on your goal.
+### A. Translator Workflow
+*Goal: I need to translate the "User Profile" section into Arabic.*
 
-### Workflow A: "Language-First" (Translating Content)
-*Best for: Translators or Content Managers focusing on one language.*
+1.  Go to **Sidebar -> Scopes**.
+2.  Click the **ID** for "User Profile".
+3.  Scroll to **Language Coverage**.
+4.  Find "Arabic" and look at the pie chart.
+5.  Click **View Domains** next to Arabic.
+6.  You see a list of Domains (e.g., Buttons, Errors).
+7.  Click **Go ->** next to a Domain with < 100% completion.
+8.  You are now in the Translation Editor.
+9.  Click the **Edit (Pencil)** button next to empty values.
+10. Enter the Arabic text and click **Save**.
+11. Repeat until Coverage is 100%.
 
-1.  Click **Languages** in the sidebar.
-2.  Find the language you want to translate (e.g., "Arabic").
-3.  Click the **ID** (blue number) of that language.
-4.  You are now on the **Translations List** page.
-5.  Use filters to find specific keys (by Scope, Domain, or Value).
-6.  Click **Edit** (blue pencil button) to add or change a translation.
+### B. Project Setup Workflow
+*Goal: I am launching a new "Checkout" feature.*
 
-### Workflow B: "Scope-First" (Developer/Admin Setup)
-*Best for: Setting up new features, assigning domains, or auditing coverage.*
-
-1.  Click **Settings** -> **Translations** -> **Scopes**.
-2.  Click the **ID** of the Scope you are working on (e.g., "User Profile").
-3.  **To Assign a Domain:**
+1.  **Define Categories:**
+    *   Go to **Domains**. Do we have a "Checkout" domain? If not, **Create Domain**.
+2.  **Define Section:**
+    *   Go to **Scopes**. **Create Scope** called "Checkout".
+3.  **Assign Categories:**
+    *   Click the **ID** of the new "Checkout" scope.
     *   Scroll to "Domain Assignments".
-    *   Find the Domain (use search if needed).
-    *   Click **Assign** (green button).
-4.  **To Add Keys:**
-    *   Click **Keys** (purple button) at the top of the Scope Details page.
+    *   Search for "Checkout" domain (and others like "Buttons", "Errors").
+    *   Click **Assign** (Green +) for each.
+4.  **Create Content:**
+    *   Click the **Keys** button (Purple) at the top.
     *   Click **Create Key**.
-    *   Select the Domain and enter the Key Name.
-5.  **To Translate Specific Domain:**
-    *   In "Domain Assignments", find the assigned domain.
-    *   Click **Translations** (blue eye button).
+    *   Select Domain ("Checkout") -> Enter Key Name (`page_title`).
+    *   Repeat for all text in the design.
+5.  **Translate:**
+    *   Go to **Sidebar -> Languages**.
+    *   Click the **ID** for "English".
+    *   Filter by Scope "Checkout".
+    *   Translate all keys.
 
-### Workflow C: "Global Domain Management"
-*Best for: Creating new categories of text.*
+### C. Coverage Recovery Workflow
+*Goal: We launched, but users report missing text in French.*
 
-1.  Click **Settings** -> **Translations** -> **Domains**.
-2.  Click **Create Domain** (green button).
-3.  Enter Code (e.g., `buttons`) and Name (e.g., "Buttons").
-4.  *Note:* After creating a domain, you must go to **Scope-First Workflow** to assign it to a Scope.
+1.  Go to **Sidebar -> Scopes**.
+2.  Click the **ID** of the reported scope.
+3.  Check the **Language Coverage** chart for French.
+4.  If it's not 100%, click **View Domains**.
+5.  Identify which Domain is incomplete (e.g., "Errors" is at 50%).
+6.  Click **Go ->**.
+7.  Filter for "Empty/Missing" values.
+8.  Translate immediately.
 
----
+### D. Quality Control Workflow
+*Goal: Ensure all translations are contextually correct.*
 
-## 4. Screen Reference
-
-### 🌍 Languages List (`/languages`)
-*   **Purpose:** Overview of all supported languages.
-*   **Actions:**
-    *   **Create Language:** Add a new language to the system.
-    *   **Edit Settings:** Change text direction (LTR/RTL) or Icon.
-    *   **Edit Name/Code:** Rename the language.
-    *   **Sort:** Change the display order.
-    *   **Set/Clear Fallback:** Define which language to show if a translation is missing.
-    *   **Toggle Status:** Activate or Deactivate a language.
-    *   **Link (ID):** Go to translations for this language.
-
-### 📝 Language Translations (`/languages/{id}/translations`)
-*   **Purpose:** Translate all keys for a single language.
-*   **Filters:** ID, Scope, Domain, Key Segment, Value.
-*   **Actions:**
-    *   **Edit:** Open a modal to enter/change the text.
-    *   **Clear:** Remove the translation (reverts to fallback).
-    *   **Global Search:** Search across all scopes/domains for this language.
-
-### 🌐 I18n Scopes (`/i18n/scopes`)
-*   **Purpose:** Manage the "Sections" of your application.
-*   **Actions:**
-    *   **Create Scope:** Add a new section.
-    *   **Link (ID):** Go to Scope Details.
-    *   **Keys (Button):** Jump directly to all keys in this scope.
-    *   **Edit Code/Meta/Sort:** Manage scope properties.
-
-### 🔍 Scope Details (`/i18n/scopes/{id}`)
-*   **Purpose:** The central hub for a specific Scope.
-*   **Sections:**
-    *   **Overview:** Basic info.
-    *   **Language Coverage:** Pie charts showing translation progress per language.
-    *   **Domain Assignments:** List of all available domains.
-*   **Actions:**
-    *   **Assign:** specific Domain to this Scope.
-    *   **Unassign:** Remove a Domain from this Scope.
-    *   **Translations (Button):** View translations for a specific assigned domain.
-    *   **Keys (Button):** View keys for a specific assigned domain.
-    *   **View Domains (Link):** Drill down to see which domains are missing translations for a specific language.
-
-### 📊 Language Coverage Breakdown (`/i18n/scopes/{id}/coverage/languages/{lang_id}`)
-*   **Purpose:** See exactly which domains are missing translations for a selected language within a scope.
-*   **Actions:**
-    *   **Go (Link):** Jump to the translations page for a specific domain, pre-filtered for this language.
-
-### 🗝️ Scope Keys (`/i18n/scopes/{id}/keys`)
-*   **Purpose:** Manage the Keys (identifiers) within a Scope.
-*   **Actions:**
-    *   **Create Key:** Define a new key (must select an assigned Domain).
-    *   **Rename:** Change the key identifier.
-    *   **Update Description:** Add context for translators.
-
-### 📚 Domains List (`/i18n/domains`)
-*   **Purpose:** Create and manage the global list of Domains (categories).
-*   **Note:** You cannot "enter" a domain here. Domains are used inside Scopes.
-*   **Actions:** Create, Edit Code, Edit Meta, Sort.
+1.  Go to **Sidebar -> Languages**.
+2.  Click the **ID** for the target language.
+3.  Use the **Global Search** to find specific terms (e.g., "Submit").
+4.  Verify that "Submit" is translated consistently across all Scopes.
+5.  If a translation is wrong for a specific context (Scope), Click **Edit** and correct it.
 
 ---
 
-## 5. Differences & Comparisons
+## 5️⃣ Role-Based Usage Guide
 
-To avoid confusion, here is how different concepts and screens compare:
+### 👨‍💻 Developer
+*   **Responsibility:** creating the structure.
+*   **Primary Screens:** Scopes, Domains, Scope Keys.
+*   **Task:** Create Scopes, Create Domains, Assign Domains, Create Keys.
+*   **Never:** Guess translations. Leave them empty or set a fallback.
 
-### **Scope Page vs. Domain Page**
-*   **Scope Page:** Where you assemble your project. You spend most of your time here assigning domains and creating keys.
-*   **Domain Page:** Where you define categories. You rarely visit this page once your categories (Buttons, Errors, etc.) are set up.
+### 👩‍💼 Product Manager / Content Lead
+*   **Responsibility:** Defining the text.
+*   **Primary Screens:** Scope Keys, Language Translations (Base Language).
+*   **Task:** Review Key names for clarity. Enter the initial "English" (or base) text.
 
-### **Keys Page vs. Translation Page**
-*   **Keys Page:** For **Developers**. You define *identifiers* (e.g., `btn_save`). You do not enter text here.
-*   **Translation Page:** For **Translators**. You enter *text* (e.g., "Save"). You cannot change identifiers here.
+### 🌎 Translator
+*   **Responsibility:** Localizing content.
+*   **Primary Screens:** Language Translations, Coverage Breakdown.
+*   **Task:** Monitor Coverage % and fill in blanks.
+*   **Never:** Create Keys or Domains.
 
-### **Language-First vs. Scope-First Workflow**
-*   **Language-First:** "I am a translator. I want to translate everything into Spanish." -> Use this to see a long list of all keys in Spanish.
-*   **Scope-First:** "I am a developer. I am building the Checkout page." -> Use this to manage keys and domains specifically for the Checkout scope.
-
-### **Coverage vs. Translation Editor**
-*   **Coverage:** A read-only report telling you *what* is missing (e.g., "Spanish is 50% complete").
-*   **Translation Editor:** The tool to *fix* what is missing (e.g., Type in the missing words).
-
----
-
-## 6. Troubleshooting & FAQ
-
-**Q: Why is the "Translations" list empty?**
-A: Check your filters. Also, ensure that the Language is active and that Keys have been created in a Scope.
-
-**Q: Why can't I find a Domain in the "Create Key" dropdown?**
-A: The Domain must be **Assigned** to the Scope first. Go to **Scope Details** and assign the domain.
-
-**Q: Why is coverage 0%?**
-A: You may have keys but no translations entered for that language. Use the **Language-First Workflow** to add translations.
-
-**Q: I created a Domain, but I can't use it.**
-A: Domains are global but must be **Assigned** to a Scope. Go to **Scopes** -> Select Scope -> **Assign** the domain.
-
-**Q: How do I delete a Key?**
-A: Keys cannot be deleted directly to prevent breaking the application. You can deactivate the Scope or Domain if needed.
+### 🕵️ QA Specialist
+*   **Responsibility:** Verifying completeness.
+*   **Primary Screens:** Scope Details (Coverage Charts).
+*   **Task:** Check that all Scopes are 100% covered for supported languages before release.
 
 ---
 
-## 7. Quick Reference Cheat Sheet
+## 6️⃣ Screen Roles & Boundaries
 
-| I want to... | Go to... | Click... |
-| :--- | :--- | :--- |
-| **Translate text** | Sidebar -> Languages | `[ID]` of the language |
-| **Add a new Key** | Sidebar -> Scopes -> `[ID]` | `[Keys]` -> `[Create Key]` |
-| **Create a new category** | Sidebar -> Settings -> Domains | `[Create Domain]` |
-| **Use a category in a section** | Sidebar -> Scopes -> `[ID]` | Find Domain -> `[Assign]` |
-| **See what's missing** | Sidebar -> Scopes -> `[ID]` | Look at "Language Coverage" |
-| **Fix missing translations** | Coverage Table | `[View Domains]` -> `[Go]` |
+**Scope Page vs. Domain Page**
+*   **Scope Page:** The "Workbench". This is where you connect things. You spend 90% of your setup time here.
+*   **Domain Page:** The "Catalog". You only go here to add a new *type* of content. You rarely visit this.
 
----
+**Keys Page vs. Translation Page**
+*   **Keys Page:** Defines *identifiers* (`btn_submit`). No text exists here, only the *concept* of the text.
+*   **Translation Page:** Defines *content* ("Submit"). No identifiers are created here, only the *words* for a specific language.
 
-## 8. Visual Flow Maps
-
-**Adding a New Translation:**
-`[Languages]` -> Click `[ID]` -> Search Key -> Click `[Edit]` -> Save.
-
-**Adding a New Key:**
-`[Scopes]` -> Click `[ID]` -> Click `[Keys]` -> `[Create Key]` -> Select Domain -> Enter Name -> Save.
-
-**Enabling a New Feature Section:**
-1. `[Domains]` -> Create Domain (if new category).
-2. `[Scopes]` -> Create Scope (if new section).
-3. `[Scopes]` -> Click `[ID]` -> Find Domain -> `[Assign]`.
-4. `[Keys]` -> Create Keys.
-5. `[Languages]` -> Click `[ID]` -> Translate Keys.
+**Language-First vs. Scope-First**
+*   **Language-First:** "I am a translator." -> I want to see *everything* in Spanish, regardless of where it appears.
+*   **Scope-First:** "I am a feature owner." -> I want to see *everything* about the Checkout page, regardless of language.
 
 ---
 
-## CODE VERIFICATION SUMMARY
+## 7️⃣ Common Mistakes & How to Avoid Them
 
-*   **UI Routes Confirmed:**
-    *   `/languages` (LanguagesListController)
-    *   `/languages/{id}/translations` (LanguageTranslationsListUiController)
-    *   `/i18n/scopes` (ScopesListUiController)
-    *   `/i18n/scopes/{id}` (ScopeDetailsController)
-    *   `/i18n/scopes/{id}/keys` (ScopeKeysController)
-    *   `/i18n/scopes/{id}/domains/{domain_id}/translations` (ScopeDomainTranslationsUiController)
-    *   `/i18n/domains` (DomainsListUiController)
-    *   `/i18n/scopes/{id}/coverage/languages/{lang_id}` (I18nScopeLanguageCoverageUiController)
+### ❌ Mistake 1: Creating a Domain but forgetting to Assign it.
+*   **Symptom:** You go to create a Key, but the dropdown is empty.
+*   **Fix:** Go to **Scope Details**, find the Domain in the list, and click **Assign**.
 
-*   **Twig Templates Verified:**
-    *   `languages_list.twig`
-    *   `language_translations.list.twig`
-    *   `scopes.list.twig`
-    *   `scope_details.twig`
-    *   `scope_keys.twig`
-    *   `domains.list.twig`
-    *   `scope_domain_translations.twig`
-    *   `scope_language_coverage.twig`
+### ❌ Mistake 2: Translating in the wrong place.
+*   **Symptom:** You edit a translation, but it changes everywhere.
+*   **Reality:** Translations are tied to a Key + Domain. If you share the "Buttons" domain across scopes, changing "Save" changes it globally.
+*   **Fix:** If a scope needs a *different* translation for "Save", create a specific key (e.g., `checkout_save`) in a specific domain.
 
-*   **JS Files Verified:**
-    *   `languages-with-components.js`
-    *   `i18n_translations_list.js`
-    *   `i18n-scopes-core.js`
-    *   `i18n_scopes_domains.js`
-    *   `i18n_scope_keys.js`
-    *   `i18n-domains-core.js`
-    *   `i18n_scope_domain_translations.js`
-    *   `i18n-scope-language-coverage.js`
+### ❌ Mistake 3: Ignoring Coverage Charts.
+*   **Symptom:** Users see fallback text (English) instead of their language.
+*   **Fix:** QA must check **Scope Details** coverage charts before every release.
 
-*   **Buttons & Links Confirmed:**
-    *   Sidebar links (NavigationProvider)
-    *   Table ID links (JS renderers)
-    *   Action buttons (Create, Edit, Assign, Translate)
-    *   Coverage drill-down links (JS renderers)
+---
 
-*   **No Invented Flows:** All documented workflows correspond 1:1 with the verified code paths.
+## 8️⃣ Strategic Usage Patterns
+
+### The "Shared vs. Specific" Strategy
+*   Use a **Shared Domain** (e.g., "Global Buttons") for generic terms like "OK", "Cancel", "Back".
+*   Use a **Specific Domain** (e.g., "Checkout Labels") for unique terms like "Place Order", "Billing Address".
+*   *Why?* This keeps your translation memory clean while allowing flexibility.
+
+### The "Weekly Audit" Pattern
+1.  Every Friday, Project Lead checks **Scope List**.
+2.  Sort scopes by "Newest".
+3.  Check Coverage % for all target languages.
+4.  Assign missing work to translators immediately.
+
+---
+
+## 9️⃣ Practical Quick Guides
+
+### "I want to translate everything into Arabic."
+1.  Sidebar -> Languages.
+2.  Click Arabic ID.
+3.  Filter by "Empty Values".
+4.  Start typing.
+
+### "I want to add a new feature section."
+1.  Sidebar -> Settings -> Translations -> Scopes.
+2.  Create Scope.
+3.  Click ID.
+4.  Assign Domains (Buttons, Errors, etc.).
+5.  Click Keys -> Create Keys.
+
+### "I want to fix one word."
+1.  Sidebar -> Languages.
+2.  Click Language ID.
+3.  Use Global Search (top of screen).
+4.  Type the word.
+5.  Edit and Save.
+
+### "I want to see what’s missing."
+1.  Sidebar -> Scopes.
+2.  Click Scope ID.
+3.  Look at the colored pie charts.
+4.  Red/Yellow = Work needed.
+
+---
+
+**End of Handbook**
