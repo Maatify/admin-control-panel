@@ -37,8 +37,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }))
         ];
 
+        // Parse query string for preselection
+        const urlParams = new URLSearchParams(window.location.search);
+        const preselectedLanguageId = urlParams.get('language_id') || '';
+
         languageSelect = Select2('#translation-filter-language-id', languageOptions, {
-            defaultValue: ''
+            defaultValue: preselectedLanguageId
         });
     }
 

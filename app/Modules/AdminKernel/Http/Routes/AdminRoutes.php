@@ -448,6 +448,16 @@ class AdminRoutes
                                 \Maatify\AdminKernel\Http\Controllers\Api\I18n\ScopeDomains\ScopeDomainTranslationsQueryController::class
                             )->setName('i18n.scopes.domains.translations.query.api');
 
+                            $i18nScopes->get(
+                                '/{scope_id:[0-9]+}/coverage',
+                                \Maatify\AdminKernel\Http\Controllers\Api\I18n\Coverage\I18nScopeCoverageByLanguageController::class
+                            )->setName('i18n.scopes.coverage.language.api');
+
+                            $i18nScopes->get(
+                                '/{scope_id:[0-9]+}/coverage/languages/{language_id:[0-9]+}',
+                                \Maatify\AdminKernel\Http\Controllers\Api\I18n\Coverage\I18nScopeCoverageByDomainController::class
+                            )->setName('i18n.scopes.coverage.domain.api');
+
                             // ─────────────────────────────
                             // i18n Keys Control
                             // ─────────────────────────────

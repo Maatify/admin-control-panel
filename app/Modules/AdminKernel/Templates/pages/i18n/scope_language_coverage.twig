@@ -1,0 +1,132 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}Coverage: {{ language.name }} in {{ scope.name }} | {{ ui.appName }}{% endblock %}
+
+{% block content %}
+
+    <script>
+        window.scopeLanguageContext = {
+            scope_id: {{ scope.id }},
+            scope_code: "{{ scope.code }}",
+            language_id: {{ language.id }},
+            language_code: "{{ language.code }}"
+        };
+    </script>
+
+    {# ===================================================================
+       Page Header
+       =================================================================== #}
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div class="flex items-center gap-3">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                Coverage Breakdown
+            </h2>
+        </div>
+
+        <nav>
+            <ol class="flex items-center gap-1.5">
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                       href="{{ ui.adminUrl }}dashboard">
+                        Home
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                  stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                       href="{{ ui.adminUrl }}i18n/scopes">
+                        Scopes
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                  stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                       href="{{ ui.adminUrl }}i18n/scopes/{{ scope.id }}">
+                        {{ scope.name }}
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                  stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+                <li class="text-sm text-gray-800 dark:text-gray-200">
+                    {{ language.name }}
+                </li>
+            </ol>
+        </nav>
+    </div>
+
+    {# ===================================================================
+       Context Cards
+       =================================================================== #}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <!-- Scope Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-5">
+            <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3 border-b dark:border-gray-700 pb-2">
+                Scope
+            </h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Name</p>
+                    <p class="text-sm text-gray-800 dark:text-gray-100">{{ scope.name }}</p>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Code</p>
+                    <code class="text-sm font-mono bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-2 py-1 rounded text-gray-800 dark:text-gray-200">
+                        {{ scope.code }}
+                    </code>
+                </div>
+            </div>
+        </div>
+
+        <!-- Language Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-5">
+            <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3 border-b dark:border-gray-700 pb-2">
+                Language
+            </h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Name</p>
+                    <p class="text-sm text-gray-800 dark:text-gray-100">{{ language.name }}</p>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Code</p>
+                    <code class="text-sm font-mono bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-2 py-1 rounded text-gray-800 dark:text-gray-200">
+                        {{ language.code }}
+                    </code>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ===================================================================
+       Domains Table
+       =================================================================== #}
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-4">
+        <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-4">
+            Domain Breakdown
+        </h3>
+
+        <div id="domain-coverage-container">
+            <div class="flex justify-center p-4">
+                <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+    {# Shared infrastructure scripts #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/api_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n-scope-language-coverage.js') }}"></script>
+{% endblock %}

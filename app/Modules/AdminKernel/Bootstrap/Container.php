@@ -2504,6 +2504,47 @@ class Container
             $pdo = $c->get(PDO::class);
             assert($pdo instanceof PDO);
             return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Translations\PdoI18nScopeDomainTranslationsQueryReader($pdo);
+            },
+
+            \Maatify\AdminKernel\Domain\I18n\Coverage\I18nScopeCoverageReaderInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Coverage\PdoI18nScopeCoverageReader($pdo);
+            },
+
+            \Maatify\AdminKernel\Http\Controllers\Api\I18n\Coverage\I18nScopeCoverageByLanguageController::class => function (ContainerInterface $c) {
+                $reader = $c->get(\Maatify\AdminKernel\Domain\I18n\Coverage\I18nScopeCoverageReaderInterface::class);
+                $json = $c->get(\Maatify\AdminKernel\Http\Response\JsonResponseFactory::class);
+                assert($reader instanceof \Maatify\AdminKernel\Domain\I18n\Coverage\I18nScopeCoverageReaderInterface);
+                assert($json instanceof \Maatify\AdminKernel\Http\Response\JsonResponseFactory);
+                return new \Maatify\AdminKernel\Http\Controllers\Api\I18n\Coverage\I18nScopeCoverageByLanguageController($reader, $json);
+            },
+
+            \Maatify\AdminKernel\Http\Controllers\Api\I18n\Coverage\I18nScopeCoverageByDomainController::class => function (ContainerInterface $c) {
+                $reader = $c->get(\Maatify\AdminKernel\Domain\I18n\Coverage\I18nScopeCoverageReaderInterface::class);
+                $json = $c->get(\Maatify\AdminKernel\Http\Response\JsonResponseFactory::class);
+                assert($reader instanceof \Maatify\AdminKernel\Domain\I18n\Coverage\I18nScopeCoverageReaderInterface);
+                assert($json instanceof \Maatify\AdminKernel\Http\Response\JsonResponseFactory);
+                return new \Maatify\AdminKernel\Http\Controllers\Api\I18n\Coverage\I18nScopeCoverageByDomainController($reader, $json);
+            },
+
+            \Maatify\AdminKernel\Http\Controllers\Ui\I18n\I18nScopeLanguageCoverageUiController::class => function (ContainerInterface $c) {
+                $twig = $c->get(Twig::class);
+                $auth = $c->get(AuthorizationService::class);
+                $scopeReader = $c->get(\Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopeDetailsRepositoryInterface::class);
+                $langRepo = $c->get(LanguageRepositoryInterface::class);
+
+                assert($twig instanceof Twig);
+                assert($auth instanceof AuthorizationService);
+                assert($scopeReader instanceof \Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopeDetailsRepositoryInterface);
+                assert($langRepo instanceof LanguageRepositoryInterface);
+
+                return new \Maatify\AdminKernel\Http\Controllers\Ui\I18n\I18nScopeLanguageCoverageUiController(
+                    $twig,
+                    $auth,
+                    $scopeReader,
+                    $langRepo
+                );
             }
 
         ]);
