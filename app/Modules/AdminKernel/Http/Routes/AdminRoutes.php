@@ -22,7 +22,6 @@ use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesUpdateSetti
 use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesUpdateSortOrderController;
 use Maatify\AdminKernel\Http\Controllers\AuthController;
 use Maatify\AdminKernel\Http\Controllers\NotificationQueryController;
-use Maatify\AdminKernel\Http\Controllers\Ui\I18n\TranslationKeysListController;
 use Maatify\AdminKernel\Http\Controllers\Ui\LanguagesListController;
 use Maatify\AdminKernel\Http\DTO\AdminMiddlewareOptionsDTO;
 use Maatify\AdminKernel\Http\Middleware\ApiGuestGuardMiddleware;
@@ -269,10 +268,6 @@ class AdminRoutes
                         [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\DomainsListUiController::class, '__invoke']
                     )
                         ->setName('i18n.domains.list.ui')
-                        ->add(AuthorizationGuardMiddleware::class);
-
-                    $protectedGroup->get('/i18n/keys', [TranslationKeysListController::class, '__invoke'])
-                        ->setName('i18n.keys.list.ui')
                         ->add(AuthorizationGuardMiddleware::class);
 
                     $protectedGroup->get(

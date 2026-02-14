@@ -85,20 +85,6 @@ class DefaultNavigationProvider implements NavigationProviderInterface
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3h16.5v16.5H3.75z" />
             </svg>'
                             ),
-                            new NavigationItemDTO(
-                                'Keys',
-                                '/i18n/keys',
-                                '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25l3 3-3 3M9.75 5.25h8.25M4.5 18.75l3-3-3-3M7.5 15.75h8.25" />
-            </svg>'
-                            ),
-                            new NavigationItemDTO(
-                                'Values',
-                                '/i18n/values',
-                                '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6" />
-            </svg>'
-                            ),
                         ]
                     ),
                 ]

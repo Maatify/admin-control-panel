@@ -120,7 +120,6 @@ use Maatify\AdminKernel\Http\Controllers\AuthController;
 use Maatify\AdminKernel\Http\Controllers\NotificationQueryController;
 use Maatify\AdminKernel\Http\Controllers\TelegramWebhookController;
 use Maatify\AdminKernel\Http\Controllers\Ui\Admin\UiAdminsController;
-use Maatify\AdminKernel\Http\Controllers\Ui\I18n\TranslationKeysListController;
 use Maatify\AdminKernel\Http\Controllers\Ui\LanguagesListController;
 use Maatify\AdminKernel\Http\Controllers\Ui\Permissions\UiPermissionsController;
 use Maatify\AdminKernel\Http\Controllers\Ui\Roles\UiRolesController;
@@ -2289,14 +2288,6 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new MysqlTranslationRepository($pdo);
-            },
-
-            TranslationKeysListController::class => function (ContainerInterface $c) {
-                $twig = $c->get(Twig::class);
-                $authorizationService = $c->get(AuthorizationService::class);
-                assert($twig instanceof Twig);
-                assert($authorizationService instanceof AuthorizationService);
-                return new TranslationKeysListController($twig, $authorizationService);
             },
 
 
