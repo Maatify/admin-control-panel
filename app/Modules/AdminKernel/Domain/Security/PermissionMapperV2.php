@@ -82,6 +82,11 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'i18n.scopes.domains.keys.query.api' => 'i18n.scopes.domains.keys',
         'i18n.scopes.domains.keys.ui' => 'i18n.scopes.domains.keys',
 
+        'i18n.scopes.coverage.language.api' => 'i18n.scopes.details',
+
+        'i18n.scopes.coverage.domain.ui' => 'i18n.scopes.coverage.domain',
+        'i18n.scopes.coverage.domain.api' => 'i18n.scopes.coverage.domain',
+
         'i18n.scopes.domains.translations.query.api' => 'i18n.scopes.domains.translations',
         'i18n.scopes.domains.translations.ui' => 'i18n.scopes.domains.translations',
 

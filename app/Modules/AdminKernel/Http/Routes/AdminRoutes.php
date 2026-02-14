@@ -266,7 +266,7 @@ class AdminRoutes
                     $protectedGroup->get(
                         '/i18n/scopes/{scope_id:[0-9]+}/coverage/languages/{language_id:[0-9]+}',
                         \Maatify\AdminKernel\Http\Controllers\Ui\I18n\I18nScopeLanguageCoverageUiController::class
-                    )->setName('i18n.scopes.coverage.domain.api');
+                    )->setName('i18n.scopes.coverage.domain.ui');
 
                     $protectedGroup->get(
                         '/i18n/domains',
