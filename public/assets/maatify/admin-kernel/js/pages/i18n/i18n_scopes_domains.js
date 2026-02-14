@@ -126,6 +126,22 @@
         const actions = [];
 
         if (isAssigned) {
+            // Translations Link
+            actions.push(`<a href="/i18n/scopes/${scopeId}/domains/${row.id}/translations" 
+                class="inline-flex items-center gap-1 px-2 py-1 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-200 dark:hover:border-blue-800 rounded transition-colors text-xs font-medium border border-transparent" 
+                title="View Translations">
+                ${AdminUIComponents.SVGIcons?.view || '👁️'}
+                Translations
+            </a>`);
+
+            // Keys Link
+            actions.push(`<a href="/i18n/scopes/${scopeId}/domains/${row.id}/keys" 
+                class="inline-flex items-center gap-1 px-2 py-1 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:border-indigo-200 dark:hover:border-indigo-800 rounded transition-colors text-xs font-medium border border-transparent" 
+                title="View Keys">
+                ${AdminUIComponents.SVGIcons?.tag || '🏷️'}
+                Keys
+            </a>`);
+
             if (capabilities.can_unassign) {
                 actions.push(AdminUIComponents.buildActionButton({
                     cssClass: 'unassign-domain-btn',

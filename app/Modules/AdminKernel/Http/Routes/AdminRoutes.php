@@ -264,6 +264,11 @@ class AdminRoutes
                         ->add(AuthorizationGuardMiddleware::class);
 
                     $protectedGroup->get(
+                        '/i18n/scopes/{scope_id:[0-9]+}/coverage/languages/{language_id:[0-9]+}',
+                        \Maatify\AdminKernel\Http\Controllers\Ui\I18n\I18nScopeLanguageCoverageUiController::class
+                    )->setName('i18n.scopes.coverage.domain.api');
+
+                    $protectedGroup->get(
                         '/i18n/domains',
                         [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\DomainsListUiController::class, '__invoke']
                     )
@@ -447,6 +452,16 @@ class AdminRoutes
                                 '/{scope_id:[0-9]+}/domains/{domain_id:[0-9]+}/translations/query',
                                 \Maatify\AdminKernel\Http\Controllers\Api\I18n\ScopeDomains\ScopeDomainTranslationsQueryController::class
                             )->setName('i18n.scopes.domains.translations.query.api');
+
+                            $i18nScopes->get(
+                                '/{scope_id:[0-9]+}/coverage',
+                                \Maatify\AdminKernel\Http\Controllers\Api\I18n\Coverage\I18nScopeCoverageByLanguageController::class
+                            )->setName('i18n.scopes.coverage.language.api');
+
+                            $i18nScopes->get(
+                                '/{scope_id:[0-9]+}/coverage/languages/{language_id:[0-9]+}',
+                                \Maatify\AdminKernel\Http\Controllers\Api\I18n\Coverage\I18nScopeCoverageByDomainController::class
+                            )->setName('i18n.scopes.coverage.domain.api');
 
                             // ─────────────────────────────
                             // i18n Keys Control

@@ -108,6 +108,23 @@
     </div>
 
     {# ===================================================================
+       Language Coverage Summary
+       =================================================================== #}
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-4 mb-6">
+        <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-4 border-b dark:border-gray-700 pb-2">
+            Language Coverage
+        </h3>
+        <div id="scope-coverage-container">
+            <div class="flex justify-center p-4">
+                <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    {# ===================================================================
        Domain Assignments
        =================================================================== #}
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-4">
@@ -219,4 +236,5 @@
 
     {# 🌐 Scope Domains modular scripts #}
     <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n_scopes_domains.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n-scope-coverage.js') }}"></script>
 {% endblock %}
