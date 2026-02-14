@@ -1334,17 +1334,20 @@ class Container
             RememberMeService::class                                  => function (ContainerInterface $c) {
                 $rememberMeRepo = $c->get(RememberMeRepositoryInterface::class);
                 $sessionRepo = $c->get(AdminSessionRepositoryInterface::class);
+                $adminRepository = $c->get(AdminRepository::class);
                 $pdo = $c->get(PDO::class);
                 $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
 
                 assert($rememberMeRepo instanceof RememberMeRepositoryInterface);
                 assert($sessionRepo instanceof AdminSessionRepositoryInterface);
+                assert($adminRepository instanceof AdminRepository);
                 assert($pdo instanceof PDO);
                 assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
 
                 return new RememberMeService(
                     $rememberMeRepo,
                     $sessionRepo,
+                    $adminRepository,
                     $pdo,
                     $clock
                 );

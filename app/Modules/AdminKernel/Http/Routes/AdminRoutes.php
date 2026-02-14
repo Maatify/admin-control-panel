@@ -316,8 +316,8 @@ class AdminRoutes
                 ->add(\Maatify\AdminKernel\Http\Middleware\ScopeGuardMiddleware::class)
                 ->add(\Maatify\AdminKernel\Http\Middleware\SessionStateGuardMiddleware::class)
                 ->add(\Maatify\AdminKernel\Http\Middleware\AdminContextMiddleware::class)
-                ->add(SessionGuardMiddleware::class)
-                ->add(\Maatify\AdminKernel\Http\Middleware\RememberMeMiddleware::class);
+                ->add(SessionGuardMiddleware::class);
+//                ->add(\Maatify\AdminKernel\Http\Middleware\RememberMeMiddleware::class);
 
             })->add(\Maatify\AdminKernel\Http\Middleware\UiRedirectNormalizationMiddleware::class);
 

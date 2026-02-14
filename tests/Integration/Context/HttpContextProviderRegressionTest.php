@@ -25,7 +25,15 @@ final class HttpContextProviderRegressionTest extends TestCase
         $sessionValidationService = $this->createMock(SessionValidationService::class);
         $sessionValidationService->method('validate')->willReturn(123);
 
-        $sessionGuard = new SessionGuardMiddleware($sessionValidationService);
+        $rememberMeService = $this->createMock(\Maatify\AdminKernel\Domain\Service\RememberMeService::class);
+        $cookieFactory = $this->createMock(\Maatify\AdminKernel\Http\Cookie\CookieFactoryService::class);
+
+        $sessionGuard = new SessionGuardMiddleware(
+            $sessionValidationService,
+            $rememberMeService,
+            $cookieFactory
+        );
+
         $sessionRepo = $this->createMock(AdminSessionRepositoryInterface::class);
         $adminContextMw = new AdminContextMiddleware($sessionRepo);
 
