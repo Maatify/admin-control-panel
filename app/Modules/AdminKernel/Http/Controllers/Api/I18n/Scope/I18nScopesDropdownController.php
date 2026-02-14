@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\Scope;
 
-use Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18NScopeDropdownReaderInterface;
+use Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopeDropdownReaderInterface;
 use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -23,7 +23,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 final readonly class I18nScopesDropdownController
 {
     public function __construct(
-        private I18NScopeDropdownReaderInterface $reader,
+        private I18nScopeDropdownReaderInterface $reader,
         private JsonResponseFactory $json,
 
     ) {}

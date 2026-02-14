@@ -47,7 +47,7 @@ final readonly class LanguageTranslationUpsertController
         // 3) Call domain service (no logic here)
         $this->translationWriteService->upsertTranslation(
             languageId: $languageId,
-            keyId: $body['key_id'],
+            keyId: (int)$body['key_id'],
             value: $body['value']
         );
 

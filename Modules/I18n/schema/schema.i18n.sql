@@ -167,7 +167,8 @@ CREATE TABLE i18n_keys (
 
                            KEY idx_i18n_keys_scope_domain (scope, domain),
                            KEY idx_i18n_keys_domain_scope (domain, scope),
-                           KEY idx_i18n_keys_key_part (key_part)
+                           KEY idx_i18n_keys_key_part (key_part),
+                           KEY idx_i18n_keys_scope_domain_key (scope, domain, key_part)
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci

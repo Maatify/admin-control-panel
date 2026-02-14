@@ -17,11 +17,11 @@ namespace Maatify\AdminKernel\Infrastructure\Repository\I18n\Scope;
 
 use Maatify\AdminKernel\Domain\I18n\Scope\DTO\I18nScopeDropdownItemDTO;
 use Maatify\AdminKernel\Domain\I18n\Scope\DTO\I18nScopeDropdownResponseDTO;
-use Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18NScopeDropdownReaderInterface;
+use Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopeDropdownReaderInterface;
 use PDO;
 use RuntimeException;
 
-final readonly class PdoI18nScopeDropdownReader implements I18NScopeDropdownReaderInterface
+final readonly class PdoI18nScopeDropdownReader implements I18nScopeDropdownReaderInterface
 {
     public function __construct(
         private PDO $pdo

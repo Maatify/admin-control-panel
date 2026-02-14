@@ -251,6 +251,20 @@ class AdminRoutes
                         ->add(AuthorizationGuardMiddleware::class);
 
                     $protectedGroup->get(
+                        '/i18n/scopes/{scope_id:[0-9]+}/domains/{domain_id:[0-9]+}/keys',
+                        [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopeDomainKeysSummaryController::class, 'index']
+                    )
+                        ->setName('i18n.scopes.domains.keys.ui')
+                        ->add(AuthorizationGuardMiddleware::class);
+
+                    $protectedGroup->get(
+                        '/i18n/scopes/{scope_id:[0-9]+}/domains/{domain_id:[0-9]+}/translations',
+                        [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopeDomainTranslationsUiController::class, 'index']
+                    )
+                        ->setName('i18n.scopes.domains.translations.ui')
+                        ->add(AuthorizationGuardMiddleware::class);
+
+                    $protectedGroup->get(
                         '/i18n/domains',
                         [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\DomainsListUiController::class, '__invoke']
                     )
@@ -428,6 +442,16 @@ class AdminRoutes
                                 '/{scope_id:[0-9]+}/domains/dropdown',
                                 \Maatify\AdminKernel\Http\Controllers\Api\I18n\ScopeDomains\I18nScopeDomainsDropdownController::class
                             )->setName('i18n.scopes.domains.dropdown.api');
+
+                            $i18nScopes->post(
+                                '/{scope_id:[0-9]+}/domains/{domain_id:[0-9]+}/keys/query',
+                                \Maatify\AdminKernel\Http\Controllers\Api\I18n\ScopeDomains\I18nScopeDomainKeysSummaryQueryController::class
+                            )->setName('i18n.scopes.domains.keys.query.api');
+
+                            $i18nScopes->post(
+                                '/{scope_id:[0-9]+}/domains/{domain_id:[0-9]+}/translations/query',
+                                \Maatify\AdminKernel\Http\Controllers\Api\I18n\ScopeDomains\ScopeDomainTranslationsQueryController::class
+                            )->setName('i18n.scopes.domains.translations.query.api');
 
                             // ─────────────────────────────
                             // i18n Keys Control

@@ -49,7 +49,7 @@ final readonly class LanguageTranslationDeleteController
         // 2) Call domain service only
         $this->translationWriteService->deleteTranslation(
             languageId: $languageId,
-            keyId     : $body['key_id']
+            keyId     : (int)$body['key_id']
         );
 
         // 3) Response
