@@ -44,14 +44,15 @@ use Maatify\AppSettings\Exception\InvalidAppSettingException;
 final class AppSettingsService implements AppSettingsServiceInterface
 {
     public function __construct(
-        private readonly AppSettingsRepositoryInterface $repository
-    )
-    {
+        private readonly AppSettingsRepositoryInterface $repository,
+        private readonly AppSettingsWhitelistPolicy $whitelistPolicy,
+        private readonly AppSettingsProtectionPolicy $protectionPolicy,
+    ) {
     }
 
     public function get(string $group, string $key): string
     {
-        AppSettingsWhitelistPolicy::assertAllowed($group, $key);
+        $this->whitelistPolicy->assertAllowed($group, $key);
 
         $row = $this->repository->findOne($group, $key, true);
 
@@ -63,31 +64,25 @@ final class AppSettingsService implements AppSettingsServiceInterface
 
         $value = $row['setting_value'] ?? null;
 
-        if (!is_string($value)) {
+        if (! is_string($value)) {
             throw new \UnexpectedValueException(
-                sprintf(
-                    'Invalid value type for setting "%s.%s"',
-                    $group,
-                    $key
-                )
+                sprintf('Invalid value type for setting "%s.%s"', $group, $key)
             );
         }
 
         return $value;
-
     }
 
     public function has(string $group, string $key): bool
     {
-        AppSettingsWhitelistPolicy::assertAllowed($group, $key);
+        $this->whitelistPolicy->assertAllowed($group, $key);
 
         return $this->repository->exists($group, $key, true);
     }
 
     public function getGroup(string $group): array
     {
-        // group-level whitelist validation
-        AppSettingsWhitelistPolicy::assertAllowed($group, '*');
+        $this->whitelistPolicy->assertAllowed($group, '*');
 
         $query = new AppSettingsQueryDTO(
             page    : 1,
@@ -105,12 +100,11 @@ final class AppSettingsService implements AppSettingsServiceInterface
             $keyName = $row['setting_key'] ?? null;
             $value   = $row['setting_value'] ?? null;
 
-            if (!is_string($keyName) || !is_string($value)) {
-                continue; // skip corrupted row safely
+            if (! is_string($keyName) || ! is_string($value)) {
+                continue;
             }
 
             $result[$keyName] = $value;
-
         }
 
         return $result;
@@ -118,7 +112,7 @@ final class AppSettingsService implements AppSettingsServiceInterface
 
     public function create(AppSettingDTO $dto): void
     {
-        AppSettingsWhitelistPolicy::assertAllowed($dto->group, $dto->key);
+        $this->whitelistPolicy->assertAllowed($dto->group, $dto->key);
 
         if ($this->repository->exists($dto->group, $dto->key, false)) {
             throw new InvalidAppSettingException(
@@ -131,10 +125,11 @@ final class AppSettingsService implements AppSettingsServiceInterface
 
     public function update(AppSettingUpdateDTO $dto): void
     {
-        AppSettingsWhitelistPolicy::assertAllowed($dto->group, $dto->key);
+        $this->whitelistPolicy->assertAllowed($dto->group, $dto->key);
 
         $key = new AppSettingKeyDTO($dto->group, $dto->key);
-        AppSettingsProtectionPolicy::assertNotProtected($key);
+
+        $this->protectionPolicy->assertNotProtected($key);
 
         if (! $this->repository->exists($dto->group, $dto->key, false)) {
             throw new AppSettingNotFoundException(
@@ -147,9 +142,9 @@ final class AppSettingsService implements AppSettingsServiceInterface
 
     public function setActive(AppSettingKeyDTO $key, bool $isActive): void
     {
-        AppSettingsWhitelistPolicy::assertAllowed($key->group, $key->key);
+        $this->whitelistPolicy->assertAllowed($key->group, $key->key);
 
-        AppSettingsProtectionPolicy::assertNotProtected($key);
+        $this->protectionPolicy->assertNotProtected($key);
 
         if (! $this->repository->exists($key->group, $key->key, false)) {
             throw new AppSettingNotFoundException(
@@ -160,9 +155,34 @@ final class AppSettingsService implements AppSettingsServiceInterface
         $this->repository->setActiveStatus($key, $isActive);
     }
 
+    /**
+     * Admin query with metadata enrichment.
+     *
+     * Adds:
+     * - is_protected
+     * - is_editable
+     */
     public function query(AppSettingsQueryDTO $query): array
     {
-        // Admin-only usage; whitelist applied per-row if needed later
-        return $this->repository->query($query);
+        $rows = $this->repository->query($query);
+
+        foreach ($rows as &$row) {
+            $group = $row['setting_group'] ?? null;
+            $key   = $row['setting_key'] ?? null;
+
+            if (! is_string($group) || ! is_string($key)) {
+                // Skip corrupted row safely
+                $row['is_protected'] = false;
+                $row['is_editable']  = false;
+                continue;
+            }
+
+            $isProtected = $this->protectionPolicy->isProtected($group, $key);
+
+            $row['is_protected'] = $isProtected;
+            $row['is_editable']  = ! $isProtected;
+        }
+
+        return $rows;
     }
 }

@@ -8,11 +8,13 @@ use JsonSerializable;
 
 /**
  * @phpstan-type AppSettingsListItemArray array{
- *   id: int,
- *   setting_group: string,
- *   setting_key: string,
- *   setting_value: string,
- *   is_active: int
+ *     id: int,
+ *     setting_group: string,
+ *     setting_key: string,
+ *     setting_value: string,
+ *     is_active: int,
+ *     is_protected: bool,
+ *     is_editable: bool
  * }
  */
 final readonly class AppSettingsListItemDTO implements JsonSerializable
@@ -22,7 +24,9 @@ final readonly class AppSettingsListItemDTO implements JsonSerializable
         public string $setting_group,
         public string $setting_key,
         public string $setting_value,
-        public int $is_active
+        public int $is_active,
+        public bool $is_protected,
+        public bool $is_editable,
     ) {
     }
 
@@ -37,6 +41,8 @@ final readonly class AppSettingsListItemDTO implements JsonSerializable
             'setting_key' => $this->setting_key,
             'setting_value' => $this->setting_value,
             'is_active' => $this->is_active,
+            'is_protected' => $this->is_protected,
+            'is_editable' => $this->is_editable,
         ];
     }
 }

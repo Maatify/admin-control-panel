@@ -10,13 +10,15 @@ use Maatify\AdminKernel\Domain\AppSettings\Reader\AppSettingsQueryReaderInterfac
 use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
 use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
+use Maatify\AppSettings\Policy\AppSettingsProtectionPolicy;
 use PDO;
 use RuntimeException;
 
 final readonly class PdoAppSettingsQueryReader implements AppSettingsQueryReaderInterface
 {
     public function __construct(
-        private PDO $pdo
+        private PDO $pdo,
+        private AppSettingsProtectionPolicy $protectionPolicy,
     ) {
     }
 
@@ -28,7 +30,7 @@ final readonly class PdoAppSettingsQueryReader implements AppSettingsQueryReader
         $params = [];
 
         // ─────────────────────────────
-        // Global search (free text)
+        // Global search
         // ─────────────────────────────
         if ($filters->globalSearch !== null) {
             $g = trim($filters->globalSearch);
@@ -39,40 +41,40 @@ final readonly class PdoAppSettingsQueryReader implements AppSettingsQueryReader
         }
 
         // ─────────────────────────────
-        // Column filters (explicit only)
+        // Column filters
         // ─────────────────────────────
         foreach ($filters->columnFilters as $alias => $value) {
             if ($alias === 'id') {
                 $where[] = 's.id = :id';
-                $params['id'] = (int)$value;
+                $params['id'] = (int) $value;
             }
 
             if ($alias === 'setting_group') {
                 $where[] = 's.setting_group = :setting_group';
-                $params['setting_group'] = trim((string)$value);
+                $params['setting_group'] = trim((string) $value);
             }
 
             if ($alias === 'setting_key') {
                 $where[] = 's.setting_key LIKE :setting_key';
-                $params['setting_key'] = '%' . trim((string)$value) . '%';
+                $params['setting_key'] = '%' . trim((string) $value) . '%';
             }
 
             if ($alias === 'is_active') {
                 $where[] = 's.is_active = :is_active';
-                $params['is_active'] = (int)$value;
+                $params['is_active'] = (int) $value;
             }
         }
 
         $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
         // ─────────────────────────────
-        // Total (no filters)
+        // Total
         // ─────────────────────────────
         $stmtTotal = $this->pdo->query('SELECT COUNT(*) FROM app_settings');
         if ($stmtTotal === false) {
             throw new RuntimeException('Failed to execute total app_settings count query');
         }
-        $total = (int)$stmtTotal->fetchColumn();
+        $total = (int) $stmtTotal->fetchColumn();
 
         // ─────────────────────────────
         // Filtered
@@ -81,7 +83,7 @@ final readonly class PdoAppSettingsQueryReader implements AppSettingsQueryReader
             "SELECT COUNT(*) FROM app_settings s {$whereSql}"
         );
         $stmtFiltered->execute($params);
-        $filtered = (int)$stmtFiltered->fetchColumn();
+        $filtered = (int) $stmtFiltered->fetchColumn();
 
         // ─────────────────────────────
         // Data
@@ -119,24 +121,36 @@ final readonly class PdoAppSettingsQueryReader implements AppSettingsQueryReader
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $items = [];
+
         foreach ($rows as $row) {
-            $id = $row['id'] ?? null;
+            $id       = $row['id'] ?? null;
+            $group    = $row['setting_group'] ?? null;
+            $key      = $row['setting_key'] ?? null;
+            $value    = $row['setting_value'] ?? null;
             $isActive = $row['is_active'] ?? null;
 
-            if (!is_int($id) && !is_string($id)) {
-                continue; // corrupted row
+            if (! is_int($id) && ! is_string($id)) {
+                continue;
             }
 
-            if (!is_int($isActive) && !is_string($isActive)) {
-                continue; // corrupted row
+            if (! is_string($group) || ! is_string($key) || ! is_string($value)) {
+                continue;
             }
+
+            if (! is_int($isActive) && ! is_string($isActive)) {
+                continue;
+            }
+
+            $isProtected = $this->protectionPolicy->isProtected($group, $key);
 
             $items[] = new AppSettingsListItemDTO(
-                id: (int)$id,
-                setting_group: is_string($row['setting_group'] ?? null) ? $row['setting_group'] : '',
-                setting_key: is_string($row['setting_key'] ?? null) ? $row['setting_key'] : '',
-                setting_value: is_string($row['setting_value'] ?? null) ? $row['setting_value'] : '',
-                is_active: (int)$isActive
+                id: (int) $id,
+                setting_group: $group,
+                setting_key: $key,
+                setting_value: $value,
+                is_active: (int) $isActive,
+                is_protected: $isProtected,
+                is_editable: ! $isProtected,
             );
         }
 
@@ -153,4 +167,3 @@ final readonly class PdoAppSettingsQueryReader implements AppSettingsQueryReader
         );
     }
 }
-

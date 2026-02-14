@@ -23,22 +23,20 @@ use Maatify\AppSettings\Exception\InvalidAppSettingException;
  * Defines which setting groups and keys are allowed
  * to exist inside the AppSettings module.
  *
- * IMPORTANT:
- * - Any group/key not explicitly allowed is rejected
- * - This prevents chaos, typos, and silent config drift
+ * Design Notes:
+ * - Injectable (DI-friendly)
+ * - Has secure default allowed map
+ * - Host project may override via container definition
+ * - Prevents config drift & typos
  */
 final class AppSettingsWhitelistPolicy
 {
     /**
-     * Allowed groups and their allowed keys.
-     *
-     * NOTE:
-     * - Keys list may contain '*' to allow any key under the group
-     * - Be explicit unless there is a strong reason not to
+     * Secure default whitelist.
      *
      * @var array<string, array<int, string>>
      */
-    private const ALLOWED = [
+    private const DEFAULT_ALLOWED = [
         'social' => [
             'email',
             'facebook',
@@ -64,16 +62,14 @@ final class AppSettingsWhitelistPolicy
             'returns_refunds_policy',
         ],
 
-        'meta'          => [
+        'meta' => [
             'dev_name',
             'dev_url',
         ],
 
-        // Feature flags are intentionally flexible
         'feature_flags' => ['*'],
 
-        // System-level settings (VERY sensitive)
-        'system'        => [
+        'system' => [
             'base_url',
             'environment',
             'timezone',
@@ -81,22 +77,39 @@ final class AppSettingsWhitelistPolicy
     ];
 
     /**
+     * Normalized allowed map.
+     *
+     * @var array<string, array<int, string>>
+     */
+    private array $allowed;
+
+    /**
+     * @param array<string, array<int, string>>|null $allowed
+     */
+    public function __construct(?array $allowed = null)
+    {
+        $allowed ??= self::DEFAULT_ALLOWED;
+
+        $this->allowed = $this->normalizeAllowed($allowed);
+    }
+
+    /**
      * Validate that a group and key are allowed.
      *
      * @throws InvalidAppSettingException
      */
-    public static function assertAllowed(string $group, string $key): void
+    public function assertAllowed(string $group, string $key): void
     {
         $group = self::normalize($group);
         $key = self::normalize($key);
 
-        if (! isset(self::ALLOWED[$group])) {
+        if (! isset($this->allowed[$group])) {
             throw new InvalidAppSettingException(
                 sprintf('Setting group "%s" is not allowed', $group)
             );
         }
 
-        $allowedKeys = self::ALLOWED[$group];
+        $allowedKeys = $this->allowed[$group];
 
         if (in_array('*', $allowedKeys, true)) {
             return;
@@ -110,14 +123,53 @@ final class AppSettingsWhitelistPolicy
     }
 
     /**
-     * Normalize input to a canonical format.
+     * Check if group/key is allowed.
+     */
+    public function isAllowed(string $group, string $key): bool
+    {
+        try {
+            $this->assertAllowed($group, $key);
+            return true;
+        } catch (InvalidAppSettingException) {
+            return false;
+        }
+    }
+
+    /**
+     * Normalize allowed structure.
      *
-     * Rules:
-     * - lowercase
-     * - trim spaces
+     * @param array<string, array<int, string>> $allowed
+     * @return array<string, array<int, string>>
+     */
+    private function normalizeAllowed(array $allowed): array
+    {
+        $normalized = [];
+
+        foreach ($allowed as $group => $keys) {
+            $group = self::normalize($group);
+
+            $normalized[$group] = array_map(
+                fn(string $key) => self::normalize($key),
+                $keys
+            );
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * Normalize string.
      */
     private static function normalize(string $value): string
     {
         return strtolower(trim($value));
+    }
+
+    /**
+     * @return array<string, array<int,string>>
+     */
+    public function getAllowed(): array
+    {
+        return $this->allowed;
     }
 }

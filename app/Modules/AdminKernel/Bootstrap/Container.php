@@ -197,6 +197,9 @@ use Maatify\AdminKernel\Infrastructure\Updater\PDOPermissionsMetadataRepository;
 use Maatify\AdminKernel\Kernel\Adapter\CryptoKeyRingEnvAdapter;
 use Maatify\AdminKernel\Kernel\Adapter\PasswordPepperEnvAdapter;
 use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
+use Maatify\AppSettings\Policy\AppSettingsProtectionPolicy;
+use Maatify\AppSettings\Policy\AppSettingsWhitelistPolicy;
+use Maatify\AppSettings\Repository\AppSettingsRepositoryInterface;
 use Maatify\Crypto\Contract\CryptoContextProviderInterface;
 use Maatify\Crypto\DX\CryptoContextFactory;
 use Maatify\Crypto\DX\CryptoDirectFactory;
@@ -2330,11 +2333,23 @@ class Container
             \Maatify\AdminKernel\Domain\AppSettings\Reader\AppSettingsQueryReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
-                return new \Maatify\AdminKernel\Infrastructure\Reader\AppSettings\PdoAppSettingsQueryReader($pdo);
+                $protectionPolicy = $c->get(AppSettingsProtectionPolicy::class);
+                assert($protectionPolicy instanceof AppSettingsProtectionPolicy);
+                return new \Maatify\AdminKernel\Infrastructure\Reader\AppSettings\PdoAppSettingsQueryReader($pdo, $protectionPolicy);
             },
 
             \Maatify\AdminKernel\Domain\AppSettings\Metadata\AppSettingsMetadataProvider::class => function (ContainerInterface $c) {
-                return new \Maatify\AdminKernel\Domain\AppSettings\Metadata\AppSettingsMetadataProvider();
+                $whitelistPolicy = $c->get(AppSettingsWhitelistPolicy::class);
+                assert($whitelistPolicy instanceof AppSettingsWhitelistPolicy);
+                $protectionPolicy = $c->get(AppSettingsProtectionPolicy::class);
+                assert($protectionPolicy instanceof AppSettingsProtectionPolicy);
+                $repository = $c->get(\Maatify\AppSettings\Repository\AppSettingsRepositoryInterface::class);
+                assert($repository instanceof \Maatify\AppSettings\Repository\AppSettingsRepositoryInterface);
+                return new \Maatify\AdminKernel\Domain\AppSettings\Metadata\AppSettingsMetadataProvider(
+                    $whitelistPolicy,
+                    $protectionPolicy,
+                    $repository
+                );
             },
 
             \Maatify\AdminKernel\Http\Controllers\Ui\AppSettings\AppSettingsListUiController::class => function (ContainerInterface $c) {
@@ -2548,7 +2563,23 @@ class Container
                     $scopeReader,
                     $langRepo
                 );
-            }
+            },
+
+            \Maatify\AppSettings\Repository\AppSettingsRepositoryInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\AppSettings\Repository\PdoAppSettingsRepository($pdo);
+            },
+
+            \Maatify\AppSettings\AppSettingsServiceInterface::class => function (ContainerInterface $c) {
+                $repository = $c->get(\Maatify\AppSettings\Repository\AppSettingsRepositoryInterface::class);
+                assert($repository instanceof \Maatify\AppSettings\Repository\AppSettingsRepositoryInterface);
+                $whitelistPolicy = $c->get(\Maatify\AppSettings\Policy\AppSettingsWhitelistPolicy::class);
+                assert($whitelistPolicy instanceof \Maatify\AppSettings\Policy\AppSettingsWhitelistPolicy);
+                $protectionPolicy = $c->get(\Maatify\AppSettings\Policy\AppSettingsProtectionPolicy::class);
+                assert($protectionPolicy instanceof \Maatify\AppSettings\Policy\AppSettingsProtectionPolicy);
+                return new \Maatify\AppSettings\AppSettingsService($repository, $whitelistPolicy, $protectionPolicy);
+            },
 
         ]);
 

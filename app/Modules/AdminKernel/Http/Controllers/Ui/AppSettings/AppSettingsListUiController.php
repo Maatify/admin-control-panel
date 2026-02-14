@@ -42,7 +42,7 @@ final readonly class AppSettingsListUiController
             'can_set_active' => $this->authorization->hasPermission($adminId, 'app_settings.update'),
         ];
 
-        return $this->twig->render($response, 'pages/sessions.twig', [
+        return $this->twig->render($response, 'pages/app-settings/app_settings.list.twig', [
             'capabilities' => $capabilities,
         ]);
     }
