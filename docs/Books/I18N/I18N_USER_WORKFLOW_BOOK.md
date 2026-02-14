@@ -1,248 +1,276 @@
-# I18N User Workflow Book
+# 🌍 I18n User Workflow Book
 
-This book is the definitive guide to navigating and using the Internationalization (I18n) system in the Admin Panel. It explains concepts, workflows, and screens based on the actual system implementation.
-
----
-
-## A) What this system is
-
-*   **Scope:** A high-level project or area (e.g., "Client App", "Admin Panel").
-*   **Domain:** A functional group of texts within a Scope (e.g., "Auth", "Checkout", "Errors").
-*   **Key:** The unique ID for a piece of text (e.g., `login.submit_button`). Keys belong to a Domain.
-*   **Language:** A target locale (e.g., English, French).
-*   **Translation:** The text value for a Key in a Language.
-*   **Coverage:** A percentage showing how much of the content is translated.
+> **The Single Source of Truth for I18n Users**
+>
+> This manual describes the exact workflows, screens, and navigation paths available in the Admin Control Panel for managing internationalization (I18n). It is strictly based on the current system implementation.
 
 ---
 
-## B) Navigation Tree (Full)
+## 1. What is this System?
 
-This tree shows every screen you can reach in the I18n system.
+The I18n (Internationalization) system allows you to manage languages and translations for your application. It uses a structured approach to organize text so that it can be easily translated and maintained.
 
-```text
-├── Languages (Top Level)
-│   └── Translations List (All translations for this language)
-│
-└── Settings
-    └── Translations
-        ├── Scopes (Main Dashboard)
-        │   └── Scope Details
-        │       ├── Scope Keys List
-        │       ├── Coverage Breakdown (by Language)
-        │       │   └── Domain Translations (Pre-filtered)
-        │       └── Domain Assignments
-        │           ├── Domain Keys List
-        │           └── Domain Translations Editor
-        │
-        └── Domains (Global Management)
+### Core Concepts (Mental Model)
+
+Imagine a library:
+
+1.  **Scope**: A "Section" of the library (e.g., "User Profile", "Checkout", "Admin Panel").
+2.  **Domain**: A "Topic" or "Category" of books (e.g., "Buttons", "Error Messages", "Labels").
+    *   *Note:* A Domain exists globally but must be **Assigned** to a Scope to be used there.
+3.  **Key**: A specific "Book Title" (e.g., `btn_save`, `err_invalid_email`).
+    *   A Key is unique within a Scope + Domain combination.
+4.  **Translation**: The "Content" of the book in a specific Language (e.g., "Save", "Invalid Email").
+5.  **Language**: The language the content is written in (e.g., English, Arabic).
+
+**Visual Hierarchy:**
+
+```
+[ APP ]
+ ├── [ Language: English ]
+ ├── [ Language: Arabic ]
+ │
+ └── [ SCOPE: User Profile ]
+      │
+      ├── [ DOMAIN: Buttons ] (Assigned)
+      │    ├── Key: save   -> "Save"
+      │    └── Key: cancel -> "Cancel"
+      │
+      └── [ DOMAIN: Errors ] (Assigned)
+           ├── Key: invalid_email -> "Invalid Email"
+           └── Key: required      -> "Field Required"
 ```
 
 ---
 
-## C) Entry Points
+## 2. Navigation Tree
 
-You can start working from three places in the sidebar:
+This map shows every clickable path in the system starting from the Sidebar.
 
-1.  **Settings > Translations > Scopes**
-    *   *Best for:* Managers, Project Leads.
-    *   *Use when:* You want to check progress or manage a specific project.
-2.  **Settings > Translations > Domains**
-    *   *Best for:* Developers, Architects.
-    *   *Use when:* You need to create new functional areas globally.
-3.  **Languages**
-    *   *Best for:* Translators.
-    *   *Use when:* You want to just "translate everything into French" without worrying about structure.
-
----
-
-## D) All Flows (With Branches)
-
-### Flow 1: Scope-First (The Project Manager Path)
-*Use when: You are managing a specific project (e.g. "Client App") and want to see its parts.*
-
-1.  **Click** `Settings > Translations > Scopes`.
-2.  **Click** the `ID` (blue link) of the Scope you want.
-3.  **Result:** Opens **Scope Details**.
-4.  **Scroll** to "Domain Assignments".
-5.  **Click** the `Translations` (list icon) button on a Domain row.
-6.  **Result:** Opens **Domain Translations**.
-7.  **Action:** Edit values in the table.
-
-### Flow 2: Coverage-First (The "Fix Missing" Path)
-*Use when: You want to target incomplete areas efficiently.*
-
-1.  **Click** `Settings > Translations > Scopes`.
-2.  **Click** the `ID` of the Scope.
-3.  **Look** at the "Language Coverage" table.
-4.  **Find** the language (e.g. French) with low completion.
-5.  **Click** `View Domains`.
-6.  **Result:** Opens **Coverage Breakdown**.
-    *   *Shows:* List of domains sorted by "Missing Count" (worst first).
-7.  **Click** `Go` next to a Domain.
-8.  **Result:** Opens **Domain Translations** with "French" **automatically selected**.
-9.  **Action:** Fill in the empty rows.
-
-### Flow 3: Language-First (The Translator Path)
-*Use when: You are a translator focused on one language.*
-
-1.  **Click** `Languages` in the main sidebar.
-2.  **Find** your language (e.g. Spanish).
-3.  **Click** the `Translations` (list icon) button.
-4.  **Result:** Opens **Language Translations List**.
-    *   *Shows:* Every translation key in the entire system for Spanish.
-5.  **Action:** Use filters (Scope/Domain) to narrow down, or just edit row-by-row.
-
-### Flow 4: Key Management (The Developer Path)
-*Use when: You need to add new text keys.*
-
-1.  **Click** `Settings > Translations > Scopes`.
-2.  **Find** the Scope.
-3.  **Click** the `Keys` (link icon) button in the Actions column.
-4.  **Result:** Opens **Scope Keys List**.
-5.  **Click** `Create Key`.
-6.  **Action:** Enter Domain and Key Part. Save.
-
-### Flow 5: Domain Management (The Architect Path)
-*Use when: You are adding a new feature area.*
-
-1.  **Click** `Settings > Translations > Domains`.
-2.  **Click** `Create Domain`.
-3.  **Action:** Enter Code and Name. Save.
-4.  **Next Step:** You MUST go to a Scope and **Assign** this new domain before it can be used.
+*   **Dashboard** (Home)
+*   **Languages** (`/languages`)
+    *   `[ID]` (Clickable Link) -> **Language Translations** (`/languages/{id}/translations`)
+*   **Settings**
+    *   **Translations**
+        *   **Scopes** (`/i18n/scopes`)
+            *   `[ID]` (Clickable Link) -> **Scope Details** (`/i18n/scopes/{id}`)
+                *   **Keys** (Button) -> **Scope Keys** (`/i18n/scopes/{id}/keys`)
+                *   **View Domains** (Link on Coverage Row) -> **Language Coverage Breakdown** (`/i18n/scopes/{id}/coverage/languages/{lang_id}`)
+                    *   **Go** (Link on Domain Row) -> **Scope Domain Translations** (Filtered) (`/i18n/scopes/{id}/domains/{domain_id}/translations?language_id={lang_id}`)
+                *   **Translations** (Button on Domain Row) -> **Scope Domain Translations** (`/i18n/scopes/{id}/domains/{domain_id}/translations`)
+                *   **Keys** (Button on Domain Row) -> **Scope Domain Keys** (`/i18n/scopes/{id}/domains/{domain_id}/keys`)
+        *   **Domains** (`/i18n/domains`)
 
 ---
 
-## E) Mental Model Diagram
+## 3. Entry Points & Workflows
 
-**1. Structure & Assignment**
-```text
-[Scope: Client App] <==== (Assignment Policy) ====> [Domain: Auth]
-       |                                                 |
-       |                                         [Key: login.title]
-       |                                                 |
-       +-------------------------------------------------+
-```
+There are three main ways to use the system depending on your goal.
 
-**2. Translation Data**
-```text
-[Key: login.title] + [Language: French] = [Translation: "Connexion"]
-```
+### Workflow A: "Language-First" (Translating Content)
+*Best for: Translators or Content Managers focusing on one language.*
 
-**3. Coverage Logic**
-```text
-Total Keys (in Assigned Domains)
-       MINUS
-Count of Translations (for that Language)
-       EQUALS
-Missing Count
-```
+1.  Click **Languages** in the sidebar.
+2.  Find the language you want to translate (e.g., "Arabic").
+3.  Click the **ID** (blue number) of that language.
+4.  You are now on the **Translations List** page.
+5.  Use filters to find specific keys (by Scope, Domain, or Value).
+6.  Click **Edit** (blue pencil button) to add or change a translation.
+
+### Workflow B: "Scope-First" (Developer/Admin Setup)
+*Best for: Setting up new features, assigning domains, or auditing coverage.*
+
+1.  Click **Settings** -> **Translations** -> **Scopes**.
+2.  Click the **ID** of the Scope you are working on (e.g., "User Profile").
+3.  **To Assign a Domain:**
+    *   Scroll to "Domain Assignments".
+    *   Find the Domain (use search if needed).
+    *   Click **Assign** (green button).
+4.  **To Add Keys:**
+    *   Click **Keys** (purple button) at the top of the Scope Details page.
+    *   Click **Create Key**.
+    *   Select the Domain and enter the Key Name.
+5.  **To Translate Specific Domain:**
+    *   In "Domain Assignments", find the assigned domain.
+    *   Click **Translations** (blue eye button).
+
+### Workflow C: "Global Domain Management"
+*Best for: Creating new categories of text.*
+
+1.  Click **Settings** -> **Translations** -> **Domains**.
+2.  Click **Create Domain** (green button).
+3.  Enter Code (e.g., `buttons`) and Name (e.g., "Buttons").
+4.  *Note:* After creating a domain, you must go to **Scope-First Workflow** to assign it to a Scope.
 
 ---
 
-## F) Screen-by-Screen Roles
+## 4. Screen Reference
 
-### 1. Scopes List
-*   **Purpose:** Entry point for projects.
-*   **Outputs:** List of Scopes (Code, Name, Status).
+### 🌍 Languages List (`/languages`)
+*   **Purpose:** Overview of all supported languages.
 *   **Actions:**
-    *   `ID Link`: Opens Scope Details.
-    *   `Keys`: Opens Scope Keys List.
-    *   `Create Scope`: Opens creation modal.
+    *   **Create Language:** Add a new language to the system.
+    *   **Edit Settings:** Change text direction (LTR/RTL) or Icon.
+    *   **Edit Name/Code:** Rename the language.
+    *   **Sort:** Change the display order.
+    *   **Set/Clear Fallback:** Define which language to show if a translation is missing.
+    *   **Toggle Status:** Activate or Deactivate a language.
+    *   **Link (ID):** Go to translations for this language.
 
-### 2. Scope Details (Dashboard)
-*   **Purpose:** Health check and navigation hub.
-*   **Outputs:**
-    *   **Language Coverage:** Table showing % complete per language.
-    *   **Domain Assignments:** Table showing which domains are linked.
+### 📝 Language Translations (`/languages/{id}/translations`)
+*   **Purpose:** Translate all keys for a single language.
+*   **Filters:** ID, Scope, Domain, Key Segment, Value.
 *   **Actions:**
-    *   `View Domains`: Drills down into coverage.
-    *   `Assign/Unassign`: Controls domain linkage.
-    *   `View Translations`: Opens editor for a domain.
+    *   **Edit:** Open a modal to enter/change the text.
+    *   **Clear:** Remove the translation (reverts to fallback).
+    *   **Global Search:** Search across all scopes/domains for this language.
 
-### 3. Coverage Breakdown
-*   **Purpose:** Prioritized "To Do" list for a language.
-*   **Outputs:** Domains list sorted by **Missing Count**.
+### 🌐 I18n Scopes (`/i18n/scopes`)
+*   **Purpose:** Manage the "Sections" of your application.
 *   **Actions:**
-    *   `Go`: Jumps to editor with pre-filters applied.
+    *   **Create Scope:** Add a new section.
+    *   **Link (ID):** Go to Scope Details.
+    *   **Keys (Button):** Jump directly to all keys in this scope.
+    *   **Edit Code/Meta/Sort:** Manage scope properties.
 
-### 4. Domain Translations Editor
-*   **Purpose:** Editing text for a specific feature.
-*   **Inputs:** Language Filter (Dropdown), Search (Text).
-*   **Outputs:** Table of Keys and Values.
+### 🔍 Scope Details (`/i18n/scopes/{id}`)
+*   **Purpose:** The central hub for a specific Scope.
+*   **Sections:**
+    *   **Overview:** Basic info.
+    *   **Language Coverage:** Pie charts showing translation progress per language.
+    *   **Domain Assignments:** List of all available domains.
 *   **Actions:**
-    *   `Edit`: Opens modal to type text.
-    *   `Clear`: Deletes the translation.
+    *   **Assign:** specific Domain to this Scope.
+    *   **Unassign:** Remove a Domain from this Scope.
+    *   **Translations (Button):** View translations for a specific assigned domain.
+    *   **Keys (Button):** View keys for a specific assigned domain.
+    *   **View Domains (Link):** Drill down to see which domains are missing translations for a specific language.
 
-### 5. Language Translations List
-*   **Purpose:** Bulk editing for a single language.
-*   **Inputs:** Scope/Domain filters.
-*   **Outputs:** Flat list of ALL translations.
-*   **Actions:** Same as Domain Editor (Edit/Clear).
+### 📊 Language Coverage Breakdown (`/i18n/scopes/{id}/coverage/languages/{lang_id}`)
+*   **Purpose:** See exactly which domains are missing translations for a selected language within a scope.
+*   **Actions:**
+    *   **Go (Link):** Jump to the translations page for a specific domain, pre-filtered for this language.
 
----
+### 🗝️ Scope Keys (`/i18n/scopes/{id}/keys`)
+*   **Purpose:** Manage the Keys (identifiers) within a Scope.
+*   **Actions:**
+    *   **Create Key:** Define a new key (must select an assigned Domain).
+    *   **Rename:** Change the key identifier.
+    *   **Update Description:** Add context for translators.
 
-## G) Differences (Comparisons)
-
-### 1. "Keys Page" vs "Translations Page"
-*   **Keys Page:** Manages **Identity**. Used by Developers. Adds new rows like `login.title`.
-*   **Translations Page:** Manages **Content**. Used by Translators. Fills in the value "Login" for `login.title`.
-
-### 2. "Domains Page" vs "Scopes Page"
-*   **Domains:** Global list of features (e.g. "Auth"). Exists once.
-*   **Scopes:** Projects (e.g. "App").
-*   **Relationship:** You **Assign** a Domain to a Scope to use it there.
-
-### 3. "Language-First" vs "Scope-First"
-*   **Scope-First:** "I am working on the Client App." (Focus: Context)
-*   **Language-First:** "I am the French translator." (Focus: Completeness)
+### 📚 Domains List (`/i18n/domains`)
+*   **Purpose:** Create and manage the global list of Domains (categories).
+*   **Note:** You cannot "enter" a domain here. Domains are used inside Scopes.
+*   **Actions:** Create, Edit Code, Edit Meta, Sort.
 
 ---
 
-## H) Troubleshooting
+## 5. Differences & Comparisons
 
-*   **"Why is the list empty?"**
-    *   **Domains:** You might not have assigned any domains to the scope. Go to Scope Details > Domain Assignments > Assign.
-    *   **Translations:** You might be filtering for a key that doesn't exist. Clear filters.
-*   **"Coverage shows 0% but I added text?"**
-    *   Ensure you added text for the *assigned* domains. If you translated "Auth" but "Auth" isn't assigned to this scope, it won't count.
-*   **"I can't see the language I want."**
-    *   Go to the main **Languages** screen and ensure the language is **Active**.
+To avoid confusion, here is how different concepts and screens compare:
 
----
+### **Scope Page vs. Domain Page**
+*   **Scope Page:** Where you assemble your project. You spend most of your time here assigning domains and creating keys.
+*   **Domain Page:** Where you define categories. You rarely visit this page once your categories (Buttons, Errors, etc.) are set up.
 
-## I) Cheat Sheets
+### **Keys Page vs. Translation Page**
+*   **Keys Page:** For **Developers**. You define *identifiers* (e.g., `btn_save`). You do not enter text here.
+*   **Translation Page:** For **Translators**. You enter *text* (e.g., "Save"). You cannot change identifiers here.
 
-**I want to translate a full domain:**
-1.  Scope Details > Domain Assignments.
-2.  Click `Translations` icon on the domain.
-3.  Filter Language to "All" or your target.
-4.  Edit rows.
+### **Language-First vs. Scope-First Workflow**
+*   **Language-First:** "I am a translator. I want to translate everything into Spanish." -> Use this to see a long list of all keys in Spanish.
+*   **Scope-First:** "I am a developer. I am building the Checkout page." -> Use this to manage keys and domains specifically for the Checkout scope.
 
-**I want to translate a full language:**
-1.  Sidebar > Languages.
-2.  Click `Translations` icon on your language.
-3.  Edit rows.
-
-**I want to add a domain to a scope:**
-1.  Scope Details > Domain Assignments.
-2.  Click `Assign` (Green button).
-
-**I want to fix a single typo:**
-1.  Sidebar > Languages > Your Language > Translations.
-2.  Type the typo word in `Value` filter.
-3.  Search.
-4.  Edit.
+### **Coverage vs. Translation Editor**
+*   **Coverage:** A read-only report telling you *what* is missing (e.g., "Spanish is 50% complete").
+*   **Translation Editor:** The tool to *fix* what is missing (e.g., Type in the missing words).
 
 ---
 
-## Appendix: Evidence Map (Technical Verification)
+## 6. Troubleshooting & FAQ
 
-| Page               | UI Route                                    | Controller                              | Template                          | JS File                             | API Endpoint                                               |
-|:-------------------|:--------------------------------------------|:----------------------------------------|:----------------------------------|:------------------------------------|:-----------------------------------------------------------|
-| **Scopes List**    | `/i18n/scopes`                              | `ScopesListUiController`                | `scopes.list.twig`                | `i18n-scopes-core.js`               | `POST /api/i18n/scopes/query`                              |
-| **Scope Details**  | `/i18n/scopes/{id}`                         | `ScopeDetailsController`                | `scope_details.twig`              | `i18n_scopes_domains.js`            | `POST /api/i18n/scopes/{id}/domains/query`                 |
-| **Scope Coverage** | (Section in Details)                        | (Above)                                 | (Above)                           | `i18n-scope-coverage.js`            | `GET /api/i18n/scopes/{id}/coverage`                       |
-| **Breakdown**      | `/i18n/scopes/{s}/coverage/languages/{l}`   | `I18nScopeLanguageCoverageUiController` | `scope_language_coverage.twig`    | `i18n-scope-language-coverage.js`   | `GET /api/i18n/scopes/{s}/coverage/languages/{l}`          |
-| **Domain Trans.**  | `/i18n/scopes/{s}/domains/{d}/translations` | `ScopeDomainTranslationsUiController`   | `scope_domain_translations.twig`  | `i18n_scope_domain_translations.js` | `POST /api/i18n/scopes/{s}/domains/{d}/translations/query` |
-| **Lang. List**     | `/languages`                                | `LanguagesListController`               | `languages_list.twig`             | `languages-with-components.js`      | `POST /api/languages/query`                                |
-| **Lang. Trans.**   | `/languages/{id}/translations`              | `LanguageTranslationsListUiController`  | `language_translations.list.twig` | `i18n_translations_list.js`         | `POST /api/languages/{id}/translations/query`              |
+**Q: Why is the "Translations" list empty?**
+A: Check your filters. Also, ensure that the Language is active and that Keys have been created in a Scope.
+
+**Q: Why can't I find a Domain in the "Create Key" dropdown?**
+A: The Domain must be **Assigned** to the Scope first. Go to **Scope Details** and assign the domain.
+
+**Q: Why is coverage 0%?**
+A: You may have keys but no translations entered for that language. Use the **Language-First Workflow** to add translations.
+
+**Q: I created a Domain, but I can't use it.**
+A: Domains are global but must be **Assigned** to a Scope. Go to **Scopes** -> Select Scope -> **Assign** the domain.
+
+**Q: How do I delete a Key?**
+A: Keys cannot be deleted directly to prevent breaking the application. You can deactivate the Scope or Domain if needed.
+
+---
+
+## 7. Quick Reference Cheat Sheet
+
+| I want to... | Go to... | Click... |
+| :--- | :--- | :--- |
+| **Translate text** | Sidebar -> Languages | `[ID]` of the language |
+| **Add a new Key** | Sidebar -> Scopes -> `[ID]` | `[Keys]` -> `[Create Key]` |
+| **Create a new category** | Sidebar -> Settings -> Domains | `[Create Domain]` |
+| **Use a category in a section** | Sidebar -> Scopes -> `[ID]` | Find Domain -> `[Assign]` |
+| **See what's missing** | Sidebar -> Scopes -> `[ID]` | Look at "Language Coverage" |
+| **Fix missing translations** | Coverage Table | `[View Domains]` -> `[Go]` |
+
+---
+
+## 8. Visual Flow Maps
+
+**Adding a New Translation:**
+`[Languages]` -> Click `[ID]` -> Search Key -> Click `[Edit]` -> Save.
+
+**Adding a New Key:**
+`[Scopes]` -> Click `[ID]` -> Click `[Keys]` -> `[Create Key]` -> Select Domain -> Enter Name -> Save.
+
+**Enabling a New Feature Section:**
+1. `[Domains]` -> Create Domain (if new category).
+2. `[Scopes]` -> Create Scope (if new section).
+3. `[Scopes]` -> Click `[ID]` -> Find Domain -> `[Assign]`.
+4. `[Keys]` -> Create Keys.
+5. `[Languages]` -> Click `[ID]` -> Translate Keys.
+
+---
+
+## CODE VERIFICATION SUMMARY
+
+*   **UI Routes Confirmed:**
+    *   `/languages` (LanguagesListController)
+    *   `/languages/{id}/translations` (LanguageTranslationsListUiController)
+    *   `/i18n/scopes` (ScopesListUiController)
+    *   `/i18n/scopes/{id}` (ScopeDetailsController)
+    *   `/i18n/scopes/{id}/keys` (ScopeKeysController)
+    *   `/i18n/scopes/{id}/domains/{domain_id}/translations` (ScopeDomainTranslationsUiController)
+    *   `/i18n/domains` (DomainsListUiController)
+    *   `/i18n/scopes/{id}/coverage/languages/{lang_id}` (I18nScopeLanguageCoverageUiController)
+
+*   **Twig Templates Verified:**
+    *   `languages_list.twig`
+    *   `language_translations.list.twig`
+    *   `scopes.list.twig`
+    *   `scope_details.twig`
+    *   `scope_keys.twig`
+    *   `domains.list.twig`
+    *   `scope_domain_translations.twig`
+    *   `scope_language_coverage.twig`
+
+*   **JS Files Verified:**
+    *   `languages-with-components.js`
+    *   `i18n_translations_list.js`
+    *   `i18n-scopes-core.js`
+    *   `i18n_scopes_domains.js`
+    *   `i18n_scope_keys.js`
+    *   `i18n-domains-core.js`
+    *   `i18n_scope_domain_translations.js`
+    *   `i18n-scope-language-coverage.js`
+
+*   **Buttons & Links Confirmed:**
+    *   Sidebar links (NavigationProvider)
+    *   Table ID links (JS renderers)
+    *   Action buttons (Create, Edit, Assign, Translate)
+    *   Coverage drill-down links (JS renderers)
+
+*   **No Invented Flows:** All documented workflows correspond 1:1 with the verified code paths.
