@@ -1,0 +1,41 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Maatify\ContentDocuments\Domain\Contract\Repository;
+
+use Maatify\ContentDocuments\Domain\Entity\Document;
+use Maatify\ContentDocuments\Domain\ValueObject\DocumentTypeKey;
+use Maatify\ContentDocuments\Domain\ValueObject\DocumentVersion;
+
+interface DocumentRepositoryInterface
+{
+    public function create(
+        int $documentTypeId,
+        DocumentTypeKey $typeKey,
+        DocumentVersion $version,
+        bool $requiresAcceptance
+    ): int;
+
+    public function findById(int $id): ?Document;
+
+    public function findByTypeAndVersion(
+        DocumentTypeKey $typeKey,
+        DocumentVersion $version
+    ): ?Document;
+
+    public function findActiveByType(DocumentTypeKey $typeKey): ?Document;
+
+    /**
+     * @return list<Document>
+     */
+    public function findVersionsByType(DocumentTypeKey $typeKey): array;
+
+    public function publish(int $documentId, \DateTimeImmutable $publishedAt): void;
+
+    public function activate(int $documentId): void;
+
+    public function deactivate(int $documentId): void;
+
+    public function deactivateAllByTypeId(int $documentTypeId): void;
+}

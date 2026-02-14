@@ -2581,6 +2581,104 @@ class Container
                 return new \Maatify\AppSettings\AppSettingsService($repository, $whitelistPolicy, $protectionPolicy);
             },
 
+            \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentAcceptanceRepositoryInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\ContentDocuments\Infrastructure\Persistence\MySQL\PdoDocumentAcceptanceRepository($pdo);
+            },
+
+            \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\ContentDocuments\Infrastructure\Persistence\MySQL\PdoDocumentRepository($pdo);
+            },
+
+            \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTranslationRepositoryInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\ContentDocuments\Infrastructure\Persistence\MySQL\PdoDocumentTranslationRepository($pdo);
+            },
+
+            \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTypeRepositoryInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\ContentDocuments\Infrastructure\Persistence\MySQL\PdoDocumentTypeRepository($pdo);
+            },
+
+            \Maatify\ContentDocuments\Domain\Contract\Transaction\TransactionManagerInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\ContentDocuments\Infrastructure\Persistence\MySQL\PdoTransactionManager($pdo);
+            },
+
+            \Maatify\ContentDocuments\Domain\Contract\Service\DocumentQueryServiceInterface::class => function (ContainerInterface $c) {
+                $documentRepository = $c->get(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface::class);
+                assert($documentRepository instanceof \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface);
+                $translationRepository = $c->get(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTranslationRepositoryInterface::class);
+                assert($translationRepository instanceof \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTranslationRepositoryInterface);
+                return new \Maatify\ContentDocuments\Application\Service\DocumentQueryService($documentRepository, $translationRepository);
+            },
+
+            \Maatify\ContentDocuments\Domain\Contract\Service\DocumentLifecycleServiceInterface::class => function (ContainerInterface $c) {
+                $documentRepository = $c->get(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface::class);
+                assert($documentRepository instanceof \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface);
+                $documentTypeRepository = $c->get(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTypeRepositoryInterface::class);
+                assert($documentTypeRepository instanceof \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTypeRepositoryInterface);
+                $transactionManager = $c->get(\Maatify\ContentDocuments\Domain\Contract\Transaction\TransactionManagerInterface::class);
+                assert($transactionManager instanceof \Maatify\ContentDocuments\Domain\Contract\Transaction\TransactionManagerInterface);
+                return new \Maatify\ContentDocuments\Application\Service\DocumentLifecycleService($documentRepository, $documentTypeRepository, $transactionManager);
+            },
+
+            \Maatify\ContentDocuments\Domain\Contract\Service\DocumentEnforcementServiceInterface::class => function (ContainerInterface $c) {
+                $documentRepository = $c->get(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface::class);
+                assert($documentRepository instanceof \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface);
+                $documentAcceptanceRepository = $c->get(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentAcceptanceRepositoryInterface::class);
+                assert($documentAcceptanceRepository instanceof \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentAcceptanceRepositoryInterface);
+                $documentTypeRepository = $c->get(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTypeRepositoryInterface::class);
+                assert($documentTypeRepository instanceof \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTypeRepositoryInterface);
+                return new \Maatify\ContentDocuments\Application\Service\DocumentEnforcementService($documentRepository, $documentAcceptanceRepository, $documentTypeRepository);
+            },
+
+            \Maatify\ContentDocuments\Domain\Contract\Service\DocumentAcceptanceServiceInterface::class => function (ContainerInterface $c) {
+                $documentRepository = $c->get(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface::class);
+                assert($documentRepository instanceof \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface);
+                $documentAcceptanceRepository = $c->get(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentAcceptanceRepositoryInterface::class);
+                assert($documentAcceptanceRepository instanceof \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentAcceptanceRepositoryInterface);
+                $transactionManager = $c->get(\Maatify\ContentDocuments\Domain\Contract\Transaction\TransactionManagerInterface::class);
+                assert($transactionManager instanceof \Maatify\ContentDocuments\Domain\Contract\Transaction\TransactionManagerInterface);
+                $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
+                assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
+
+                return new \Maatify\ContentDocuments\Application\Service\DocumentAcceptanceService(
+                    $documentRepository,
+                    $documentAcceptanceRepository,
+                    $transactionManager,
+                    $clock);
+            },
+
+            \Maatify\ContentDocuments\Domain\Contract\Service\ContentDocumentsFacadeInterface::class => function (ContainerInterface $c) {
+                $documentRepository = $c->get(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface::class);
+                assert($documentRepository instanceof \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface);
+                $translationRepository = $c->get(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTranslationRepositoryInterface::class);
+                assert($translationRepository instanceof \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTranslationRepositoryInterface);
+                $acceptanceRepository = $c->get(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentAcceptanceRepositoryInterface::class);
+                assert($acceptanceRepository instanceof \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentAcceptanceRepositoryInterface);
+                $lifecycleService = $c->get(\Maatify\ContentDocuments\Domain\Contract\Service\DocumentLifecycleServiceInterface::class);
+                assert($lifecycleService instanceof \Maatify\ContentDocuments\Domain\Contract\Service\DocumentLifecycleServiceInterface);
+                $enforcementService = $c->get(\Maatify\ContentDocuments\Domain\Contract\Service\DocumentEnforcementServiceInterface::class);
+                assert($enforcementService instanceof \Maatify\ContentDocuments\Domain\Contract\Service\DocumentEnforcementServiceInterface);
+                $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
+                assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
+                return new \Maatify\ContentDocuments\Application\Service\ContentDocumentsFacade(
+                    $documentRepository,
+                    $translationRepository,
+                    $acceptanceRepository,
+                    $lifecycleService,
+                    $enforcementService,
+                    $clock
+                );
+            },
+
         ]);
 
         // Extension Hook: Allow host projects to override/extend bindings

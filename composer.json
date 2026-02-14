@@ -46,7 +46,8 @@
       "Maatify\\AbuseProtection\\": "Modules/AbuseProtection",
       "Maatify\\I18n\\": "Modules/I18n",
       "Maatify\\AppSettings\\": "Modules/AppSettings",
-      "Maatify\\LanguageCore\\": "Modules/LanguageCore"
+      "Maatify\\LanguageCore\\": "Modules/LanguageCore",
+      "Maatify\\ContentDocuments\\": "Modules/ContentDocuments"
 
     }
   },
