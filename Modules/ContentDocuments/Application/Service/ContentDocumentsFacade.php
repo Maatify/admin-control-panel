@@ -48,18 +48,7 @@ final readonly class ContentDocumentsFacade implements ContentDocumentsFacadeInt
         $translation = null;
 
         if ($languageId !== null) {
-            $t = $this->translationRepository->findByDocumentAndLanguage($doc->id, $languageId);
-
-            if ($t !== null) {
-                $translation = new DocumentTranslationDTO(
-                    documentId: $t->documentId,
-                    languageId: $t->languageId,
-                    title: $t->title,
-                    metaTitle: $t->metaTitle,
-                    metaDescription: $t->metaDescription,
-                    content: $t->content
-                );
-            }
+            $translation = $this->queryService->getTranslationByDocumentId($doc->id, $languageId);
         }
 
         return new DocumentViewDTO(
