@@ -54,7 +54,7 @@ final class ContentDocumentsFacadeTypesTest extends TestCase
             clock: $clock
         );
 
-        $out = $facade->listTypes();
+        $out = $facade->listDocumentTypes();
         self::assertCount(1, $out);
         self::assertSame('terms', $out[0]->key);
     }
@@ -90,10 +90,10 @@ final class ContentDocumentsFacadeTypesTest extends TestCase
             clock: $clock
         );
 
-        $id = $facade->createType(new DocumentTypeKey('terms'), true, true);
+        $id = $facade->createDocumentType(new DocumentTypeKey('terms'), true, true);
         self::assertSame(99, $id);
 
-        $facade->updateType(99, false, true);
+        $facade->updateDocumentType(99, false, true);
         self::assertTrue(true);
     }
 }

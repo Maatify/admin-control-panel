@@ -36,7 +36,7 @@ interface ContentDocumentsFacadeInterface
         bool $requiresAcceptance
     ): int;
 
-    public function publish(int $documentId, \DateTimeImmutable $publishedAt): void;
+    public function publish(int $documentId, DateTimeImmutable $publishedAt): void;
 
     public function activate(int $documentId): void;
 
@@ -58,24 +58,24 @@ interface ContentDocumentsFacadeInterface
 
     public function enforcementResult(ActorIdentity $actor): EnforcementResultDTO;
 
-    public function archive(int $documentId, \DateTimeImmutable $archivedAt): void;
+    public function archive(int $documentId, DateTimeImmutable $archivedAt): void;
 
     /**
      * @return list<DocumentTypeDTO>
      */
-    public function listTypes(): array;
+    public function listDocumentTypes(): array;
 
-    public function getTypeById(int $typeId): ?DocumentTypeDTO;
+    public function getDocumentTypeById(int $typeId): ?DocumentTypeDTO;
 
-    public function getTypeByKey(DocumentTypeKey $key): ?DocumentTypeDTO;
+    public function getDocumentTypeByKey(DocumentTypeKey $key): ?DocumentTypeDTO;
 
-    public function createType(
+    public function createDocumentType(
         DocumentTypeKey $key,
         bool $requiresAcceptanceDefault,
         bool $isSystem
     ): int;
 
-    public function updateType(
+    public function updateDocumentType(
         int $typeId,
         bool $requiresAcceptanceDefault,
         bool $isSystem

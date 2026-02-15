@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Maatify\ContentDocuments\Domain\DTO;
 
+use DateTimeImmutable;
+
 final readonly class AcceptanceDTO
 {
     public function __construct(
@@ -11,7 +13,7 @@ final readonly class AcceptanceDTO
         public int $actorId,
         public int $documentId,
         public string $version,
-        public \DateTimeImmutable $acceptedAt,
+        public DateTimeImmutable $acceptedAt,
         public ?string $ipAddress,
         public ?string $userAgent,
     ) {

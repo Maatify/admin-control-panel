@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Maatify\ContentDocuments\Domain\DTO;
 
+use DateTimeImmutable;
+
 final readonly class DocumentVersionItemDTO
 {
     public function __construct(
@@ -11,7 +13,7 @@ final readonly class DocumentVersionItemDTO
         public string $version,
         public bool $isActive,
         public bool $requiresAcceptance,
-        public ?\DateTimeImmutable $publishedAt,
-        public \DateTimeImmutable $createdAt,
+        public ?DateTimeImmutable $publishedAt,
+        public DateTimeImmutable $createdAt,
     ) {}
 }

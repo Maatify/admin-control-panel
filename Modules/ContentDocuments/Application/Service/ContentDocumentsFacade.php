@@ -88,7 +88,7 @@ final readonly class ContentDocumentsFacade implements ContentDocumentsFacadeInt
         return $this->lifecycleService->createVersion($typeKey, $version, $requiresAcceptance);
     }
 
-    public function publish(int $documentId, \DateTimeImmutable $publishedAt): void
+    public function publish(int $documentId, DateTimeImmutable $publishedAt): void
     {
         $this->lifecycleService->publish($documentId, $publishedAt);
     }
@@ -170,7 +170,7 @@ final readonly class ContentDocumentsFacade implements ContentDocumentsFacadeInt
         return $this->enforcementService->enforcementResult($actor);
     }
 
-    public function archive(int $documentId, \DateTimeImmutable $archivedAt): void
+    public function archive(int $documentId, DateTimeImmutable $archivedAt): void
     {
         $this->lifecycleService->archive($documentId, $archivedAt);
     }
@@ -178,22 +178,22 @@ final readonly class ContentDocumentsFacade implements ContentDocumentsFacadeInt
     /**
      * @return list<DocumentTypeDTO>
      */
-    public function listTypes(): array
+    public function listDocumentTypes(): array
     {
         return $this->documentTypeService->list();
     }
 
-    public function getTypeById(int $typeId): ?DocumentTypeDTO
+    public function getDocumentTypeById(int $typeId): ?DocumentTypeDTO
     {
         return $this->documentTypeService->getById($typeId);
     }
 
-    public function getTypeByKey(DocumentTypeKey $key): ?DocumentTypeDTO
+    public function getDocumentTypeByKey(DocumentTypeKey $key): ?DocumentTypeDTO
     {
         return $this->documentTypeService->getByKey($key);
     }
 
-    public function createType(
+    public function createDocumentType(
         DocumentTypeKey $key,
         bool $requiresAcceptanceDefault,
         bool $isSystem
@@ -201,7 +201,7 @@ final readonly class ContentDocumentsFacade implements ContentDocumentsFacadeInt
         return $this->documentTypeService->create($key, $requiresAcceptanceDefault, $isSystem);
     }
 
-    public function updateType(
+    public function updateDocumentType(
         int $typeId,
         bool $requiresAcceptanceDefault,
         bool $isSystem

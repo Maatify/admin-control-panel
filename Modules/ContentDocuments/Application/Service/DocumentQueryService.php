@@ -14,11 +14,11 @@ use Maatify\ContentDocuments\Domain\DTO\DocumentVersionWithTranslationDTO;
 use Maatify\ContentDocuments\Domain\Entity\Document;
 use Maatify\ContentDocuments\Domain\ValueObject\DocumentTypeKey;
 
-final class DocumentQueryService implements DocumentQueryServiceInterface
+final readonly class DocumentQueryService implements DocumentQueryServiceInterface
 {
     public function __construct(
-        private readonly DocumentRepositoryInterface $documentRepository,
-        private readonly DocumentTranslationRepositoryInterface $translationRepository,
+        private DocumentRepositoryInterface $documentRepository,
+        private DocumentTranslationRepositoryInterface $translationRepository,
     ) {
     }
 

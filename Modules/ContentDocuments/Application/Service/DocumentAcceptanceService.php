@@ -15,6 +15,7 @@ use Maatify\ContentDocuments\Domain\Exception\DocumentNotFoundException;
 use Maatify\ContentDocuments\Domain\Exception\InvalidDocumentStateException;
 use Maatify\ContentDocuments\Domain\ValueObject\ActorIdentity;
 use Maatify\SharedCommon\Contracts\ClockInterface;
+use Throwable;
 
 final readonly class DocumentAcceptanceService implements DocumentAcceptanceServiceInterface
 {
@@ -26,6 +27,9 @@ final readonly class DocumentAcceptanceService implements DocumentAcceptanceServ
     ) {
     }
 
+    /**
+     * @throws Throwable
+     */
     public function accept(
         ActorIdentity $actor,
         int $documentId,
@@ -100,7 +104,7 @@ final readonly class DocumentAcceptanceService implements DocumentAcceptanceServ
 
             return $acceptedAt;
 
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             if ($owned) {
                 $this->transactionManager->rollback();
             }

@@ -42,7 +42,7 @@ final readonly class DocumentLifecycleService implements DocumentLifecycleServic
         );
     }
 
-    public function publish(int $documentId, \DateTimeImmutable $publishedAt): void
+    public function publish(int $documentId, DateTimeImmutable $publishedAt): void
     {
         $document = $this->documentRepository->findByIdNonArchived($documentId);
 
