@@ -229,8 +229,6 @@ use Maatify\InputNormalization\Normalizer\InputNormalizer;
 use Maatify\LanguageCore\Contract\LanguageRepositoryInterface;
 use Maatify\LanguageCore\Contract\LanguageSettingsRepositoryInterface;
 use Maatify\LanguageCore\Http\Controllers\Api\LanguageDropdownController;
-use Maatify\LanguageCore\Infrastructure\Mysql\MysqlLanguageRepository;
-use Maatify\LanguageCore\Infrastructure\Mysql\MysqlLanguageSettingsRepository;
 use Maatify\LanguageCore\Service\LanguageManagementService;
 use Maatify\PsrLogger\LoggerFactory;
 use Maatify\SharedCommon\Contracts\ClockInterface;
@@ -2157,18 +2155,6 @@ class Container
                 return new AdminQueryController($reader, $validationGuard, $filterResolver);
             },
 
-            LanguageRepositoryInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new MysqlLanguageRepository($pdo);
-            },
-
-            LanguageSettingsRepositoryInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new MysqlLanguageSettingsRepository($pdo);
-            },
-
             LanguageManagementService::class => function (ContainerInterface $c) {
                 $languageRepository = $c->get(LanguageRepositoryInterface::class);
                 $settingsRepository = $c->get(LanguageSettingsRepositoryInterface::class);
@@ -2585,6 +2571,9 @@ class Container
 
         // Register internal modules
         \Maatify\ContentDocuments\Bootstrap\ContentDocumentsBindings::register($containerBuilder);
+
+        // Register LanguageCore modules
+        \Maatify\LanguageCore\Bootstrap\LanguageCoreBindings::register($containerBuilder);
 
         // Extension Hook: Allow host projects to override/extend bindings
         if ($builderHook !== null) {
