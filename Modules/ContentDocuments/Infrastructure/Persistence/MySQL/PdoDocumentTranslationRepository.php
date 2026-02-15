@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTranslationRepositoryInterface;
 use Maatify\ContentDocuments\Domain\Entity\DocumentTranslation;
 use PDO;
+use PDOException;
 
 final readonly class PdoDocumentTranslationRepository implements DocumentTranslationRepositoryInterface
 {
@@ -71,27 +72,79 @@ final readonly class PdoDocumentTranslationRepository implements DocumentTransla
 
     public function save(DocumentTranslation $translation): void
     {
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO document_translations
-                (document_id, language_id, title, meta_title, meta_description, content)
-             VALUES
-                (:document_id, :language_id, :title, :meta_title, :meta_description, :content)
-             ON DUPLICATE KEY UPDATE
-                title = VALUES(title),
-                meta_title = VALUES(meta_title),
-                meta_description = VALUES(meta_description),
-                content = VALUES(content),
-                updated_at = CURRENT_TIMESTAMP'
-        );
+        // IMPORTANT:
+        // - Do not rely on ON DUPLICATE KEY UPDATE (hidden coupling).
+        // - If entity id is provided, we must respect it (update-by-id).
 
-        $stmt->execute([
-            'document_id'      => $translation->documentId,
-            'language_id'      => $translation->languageId,
-            'title'            => $translation->title,
-            'meta_title'       => $translation->metaTitle,
-            'meta_description' => $translation->metaDescription,
-            'content'          => $translation->content,
-        ]);
+        if ($translation->id > 0) {
+            $stmt = $this->pdo->prepare(
+                'UPDATE document_translations
+                 SET title = :title,
+                     meta_title = :meta_title,
+                     meta_description = :meta_description,
+                     content = :content,
+                     updated_at = CURRENT_TIMESTAMP
+                 WHERE id = :id
+                   AND document_id = :document_id
+                   AND language_id = :language_id'
+            );
+
+            $stmt->execute([
+                'id'              => $translation->id,
+                'document_id'     => $translation->documentId,
+                'language_id'     => $translation->languageId,
+                'title'           => $translation->title,
+                'meta_title'      => $translation->metaTitle,
+                'meta_description'=> $translation->metaDescription,
+                'content'         => $translation->content,
+            ]);
+
+            return;
+        }
+
+        // id == 0 => attempt insert, fallback to update-by-natural-key on duplicate
+        try {
+            $stmt = $this->pdo->prepare(
+                'INSERT INTO document_translations
+                    (document_id, language_id, title, meta_title, meta_description, content)
+                 VALUES
+                    (:document_id, :language_id, :title, :meta_title, :meta_description, :content)'
+            );
+
+            $stmt->execute([
+                'document_id'      => $translation->documentId,
+                'language_id'      => $translation->languageId,
+                'title'            => $translation->title,
+                'meta_title'       => $translation->metaTitle,
+                'meta_description' => $translation->metaDescription,
+                'content'          => $translation->content,
+            ]);
+        } catch (PDOException $e) {
+            // Duplicate key => update existing row by (document_id, language_id)
+            if ($e->getCode() !== '23000') {
+                throw $e;
+            }
+
+            $stmt = $this->pdo->prepare(
+                'UPDATE document_translations
+                 SET title = :title,
+                     meta_title = :meta_title,
+                     meta_description = :meta_description,
+                     content = :content,
+                     updated_at = CURRENT_TIMESTAMP
+                 WHERE document_id = :document_id
+                   AND language_id = :language_id'
+            );
+
+            $stmt->execute([
+                'document_id'      => $translation->documentId,
+                'language_id'      => $translation->languageId,
+                'title'            => $translation->title,
+                'meta_title'       => $translation->metaTitle,
+                'meta_description' => $translation->metaDescription,
+                'content'          => $translation->content,
+            ]);
+        }
     }
 
     /**

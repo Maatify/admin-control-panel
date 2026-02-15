@@ -66,10 +66,11 @@ final class PdoDocumentTranslationRepositoryTest extends TestCase
         $found = $trRepo->findByDocumentAndLanguage($docId, 1);
         self::assertNotNull($found);
         self::assertSame('Terms', $found->title);
+        self::assertGreaterThan(0, $found->id);
 
-        // Update same translation (duplicate key)
+        // Update using entity id (update-by-id path)
         $trRepo->save(new DocumentTranslation(
-            id: 0,
+            id: $found->id,
             documentId: $docId,
             languageId: 1,
             title: 'Terms Updated',
@@ -83,6 +84,25 @@ final class PdoDocumentTranslationRepositoryTest extends TestCase
         $found2 = $trRepo->findByDocumentAndLanguage($docId, 1);
         self::assertNotNull($found2);
         self::assertSame('Terms Updated', $found2->title);
+        self::assertSame($found->id, $found2->id);
+
+        // Update same translation using duplicate-key fallback (id:0)
+        $trRepo->save(new DocumentTranslation(
+            id: 0,
+            documentId: $docId,
+            languageId: 1,
+            title: 'Terms Updated Again',
+            metaTitle: 'Meta',
+            metaDescription: 'Desc',
+            content: '<p>Updated Again</p>',
+            createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
+            updatedAt: null,
+        ));
+
+        $found3 = $trRepo->findByDocumentAndLanguage($docId, 1);
+        self::assertNotNull($found3);
+        self::assertSame('Terms Updated Again', $found3->title);
+        self::assertSame($found->id, $found3->id);
 
         $list = $trRepo->findByDocument($docId);
         self::assertNotEmpty($list);

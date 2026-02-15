@@ -107,6 +107,12 @@ CREATE TABLE documents (
     -- Whether this version is currently active
                            is_active TINYINT(1) NOT NULL DEFAULT 0,
 
+    -- 🔥 NEW: unique enforcement marker (MySQL-safe partial unique)
+    -- If is_active=1 => active_guard=1, else NULL.
+    -- UNIQUE allows unlimited NULLs, so multiple inactive rows are allowed.
+                           active_guard TINYINT(1)
+                               GENERATED ALWAYS AS (IF(is_active = 1, 1, NULL)) STORED,
+
     -- Whether acceptance is required for this document version
                            requires_acceptance TINYINT(1) NOT NULL DEFAULT 0,
 
@@ -119,8 +125,14 @@ CREATE TABLE documents (
     -- Prevent duplicate version per type
                            UNIQUE KEY uq_documents_type_version (document_type_id, version),
 
+    -- ✅ Correct: one active doc per type (enforced only when active)
+                           UNIQUE KEY uq_documents_one_active_per_type (document_type_id, active_guard),
+
                            INDEX idx_documents_type (document_type_id),
+
+    -- Keep as non-unique for filtering/sorting (optional but useful)
                            INDEX idx_documents_type_active (document_type_id, is_active),
+
                            INDEX idx_documents_type_key (type_key),
 
     /* 🔥 NEW: Enforcement fast scan */
