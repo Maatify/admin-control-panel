@@ -72,6 +72,10 @@ final readonly class PdoDocumentTranslationRepository implements DocumentTransla
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $out  = [];
 
+        if (!is_array($rows)) {
+            return [];
+        }
+
         foreach ($rows as $row) {
             if (!is_array($row)) {
                 continue;
@@ -101,6 +105,10 @@ final readonly class PdoDocumentTranslationRepository implements DocumentTransla
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $result = [];
+
+        if (!is_array($rows)) {
+            return [];
+        }
 
         foreach ($rows as $row) {
             if (!is_array($row)) {
