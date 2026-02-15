@@ -149,6 +149,7 @@ $capabilities = [
       "setting_group": "system",
       "setting_key": "version",
       "setting_value": "1.0.0",
+      "setting_type": "string",
       "is_active": 1,
       "is_protected": true,
       "is_editable": false
@@ -165,6 +166,7 @@ $capabilities = [
 
 **Row Meanings (additional fields):**
 
+* `setting_type`: `string`, `int`, `bool`, or `json`.
 * `is_protected`: this setting is protected by policy and cannot be modified/deactivated.
 * `is_editable`: UI must use this to enable/disable edit + toggle actions.
 
@@ -257,6 +259,7 @@ $capabilities = [
 | `setting_group` | string | **Yes**  | 1-64 characters. Must match a valid group from Metadata.                                |
 | `setting_key`   | string | **Yes**  | 1-64 characters. Must match a valid key from Metadata (or any key if wildcard allowed). |
 | `setting_value` | string | **Yes**  | The value to store. At least 1 character.                                               |
+| `setting_type`  | string | No       | One of: `string`, `int`, `bool`, `json`. Defaults to `string`.                          |
 | `is_active`     | bool   | No       | Defaults to `true` if omitted.                                                          |
 
 ### Example Request
@@ -266,6 +269,7 @@ $capabilities = [
   "setting_group": "system",
   "setting_key": "maintenance_mode",
   "setting_value": "off",
+  "setting_type": "string",
   "is_active": true
 }
 ```
@@ -307,6 +311,7 @@ $capabilities = [
 | `setting_group` | string | **Yes**  | 1-64 characters. |
 | `setting_key`   | string | **Yes**  | 1-64 characters. |
 | `setting_value` | string | **Yes**  | The new value.   |
+| `setting_type`  | string | No       | Optional type override. One of: `string`, `int`, `bool`, `json`. |
 
 ### Example Request
 
@@ -314,7 +319,8 @@ $capabilities = [
 {
   "setting_group": "system",
   "setting_key": "maintenance_mode",
-  "setting_value": "on"
+  "setting_value": "on",
+  "setting_type": "string"
 }
 ```
 

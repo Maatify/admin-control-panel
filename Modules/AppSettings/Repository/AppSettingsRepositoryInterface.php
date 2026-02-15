@@ -45,14 +45,24 @@ interface AppSettingsRepositoryInterface
      * @param bool $onlyActive Whether to restrict lookup to active settings only
      *
      * @return array<string, mixed>|null
-     *         Expected keys (implementation-dependent but documented):
+     *         Expected keys:
      *         - id (int)
      *         - setting_group (string)
      *         - setting_key (string)
      *         - setting_value (string)
+     *         - setting_type (string)
      *         - is_active (bool|int)
      */
     public function findOne(string $group, string $key, bool $onlyActive = true): ?array;
+
+    /**
+     * Retrieve all active settings for a group.
+     *
+     * @param string $group
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function findAllByGroup(string $group): array;
 
     /**
      * Check if a setting exists.

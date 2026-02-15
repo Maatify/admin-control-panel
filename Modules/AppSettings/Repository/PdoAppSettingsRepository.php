@@ -26,17 +26,6 @@ use Maatify\AppSettings\DTO\AppSettingsQueryDTO;
  * Class: PdoAppSettingsRepository
  *
  * PDO-based MySQL implementation for AppSettingsRepositoryInterface.
- *
- * Responsibilities:
- * - Execute SQL queries only
- * - Respect is_active semantics
- * - Return raw data (no casting, no validation)
- *
- * Forbidden:
- * - Business logic
- * - Validation
- * - Whitelist rules
- * - Caching
  */
 final readonly class PdoAppSettingsRepository implements AppSettingsRepositoryInterface
 {
@@ -49,7 +38,7 @@ final readonly class PdoAppSettingsRepository implements AppSettingsRepositoryIn
     public function findOne(string $group, string $key, bool $onlyActive = true): ?array
     {
         $sql = '
-        SELECT id, setting_group, setting_key, setting_value, is_active
+        SELECT id, setting_group, setting_key, setting_value, setting_type, is_active
         FROM app_settings
         WHERE setting_group = :group
           AND setting_key = :key
@@ -65,13 +54,30 @@ final readonly class PdoAppSettingsRepository implements AppSettingsRepositoryIn
         ]);
 
         /** @var array<string, mixed>|false $row */
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($row === false) {
             return null;
         }
 
         return $row;
+    }
+
+    public function findAllByGroup(string $group): array
+    {
+        $sql = '
+            SELECT id, setting_group, setting_key, setting_value, setting_type, is_active
+            FROM app_settings
+            WHERE setting_group = :group
+              AND is_active = 1
+            ORDER BY setting_key ASC
+        ';
+
+        $stmt = $this->prepareAndExecute($sql, [
+            'group' => $group,
+        ]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function exists(string $group, string $key, bool $onlyActive = false): bool
@@ -102,11 +108,13 @@ final readonly class PdoAppSettingsRepository implements AppSettingsRepositoryIn
                 setting_group,
                 setting_key,
                 setting_value,
+                setting_type,
                 is_active
             ) VALUES (
                 :group,
                 :key,
                 :value,
+                :type,
                 :is_active
             )
         ';
@@ -115,6 +123,7 @@ final readonly class PdoAppSettingsRepository implements AppSettingsRepositoryIn
             'group'     => $dto->group,
             'key'       => $dto->key,
             'value'     => $dto->value,
+            'type'      => $dto->valueType->value,
             'is_active' => $dto->isActive ? 1 : 0,
         ]);
 
@@ -126,15 +135,25 @@ final readonly class PdoAppSettingsRepository implements AppSettingsRepositoryIn
         $sql = '
             UPDATE app_settings
             SET setting_value = :value
+        ';
+
+        $params = [
+            'group' => $dto->group,
+            'key'   => $dto->key,
+            'value' => $dto->value,
+        ];
+
+        if ($dto->valueType !== null) {
+            $sql .= ', setting_type = :type';
+            $params['type'] = $dto->valueType->value;
+        }
+
+        $sql .= '
             WHERE setting_group = :group
               AND setting_key = :key
         ';
 
-        $this->prepareAndExecute($sql, [
-            'group' => $dto->group,
-            'key'   => $dto->key,
-            'value' => $dto->value,
-        ]);
+        $this->prepareAndExecute($sql, $params);
     }
 
     public function setActiveStatus(AppSettingKeyDTO $key, bool $isActive): void
@@ -174,7 +193,7 @@ final readonly class PdoAppSettingsRepository implements AppSettingsRepositoryIn
         }
 
         $sql = '
-            SELECT id, setting_group, setting_key, setting_value, is_active
+            SELECT id, setting_group, setting_key, setting_value, setting_type, is_active
             FROM app_settings
         ';
 
@@ -201,17 +220,6 @@ final readonly class PdoAppSettingsRepository implements AppSettingsRepositoryIn
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Prepare and execute a PDO statement with parameters.
-     *
-     * This helper is intentionally private to avoid leaking
-     * abstraction details outside the repository.
-     *
-     * @param   string                $sql
-     * @param   array<string, mixed>  $params
-     *
-     * @return PDOStatement
-     */
     private function prepareAndExecute(string $sql, array $params): PDOStatement
     {
         $stmt = $this->pdo->prepare($sql);

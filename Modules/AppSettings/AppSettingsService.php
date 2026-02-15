@@ -29,17 +29,6 @@ use Maatify\AppSettings\Exception\InvalidAppSettingException;
  * Class: AppSettingsService
  *
  * Canonical implementation of AppSettingsServiceInterface.
- *
- * Responsibilities:
- * - Enforce whitelist rules
- * - Enforce protection rules
- * - Respect is_active semantics
- * - Delegate persistence to repository
- *
- * Forbidden:
- * - SQL
- * - HTTP concerns
- * - Silent failures
  */
 final class AppSettingsService implements AppSettingsServiceInterface
 {
@@ -82,20 +71,12 @@ final class AppSettingsService implements AppSettingsServiceInterface
 
     public function getGroup(string $group): array
     {
-        $this->whitelistPolicy->assertAllowed($group, '*');
-
-        $query = new AppSettingsQueryDTO(
-            page    : 1,
-            perPage : 10_000,
-            search  : null,
-            group   : $group,
-            isActive: true
-        );
-
-        $rows = $this->repository->query($query);
+        // 1. Fetch all active settings for the group (no limit)
+        $rows = $this->repository->findAllByGroup($group);
 
         $result = [];
 
+        // 2. Iterate and filter securely
         foreach ($rows as $row) {
             $keyName = $row['setting_key'] ?? null;
             $value   = $row['setting_value'] ?? null;
@@ -104,7 +85,10 @@ final class AppSettingsService implements AppSettingsServiceInterface
                 continue;
             }
 
-            $result[$keyName] = $value;
+            // 3. Check whitelist for each key individually
+            if ($this->whitelistPolicy->isAllowed($group, $keyName)) {
+                $result[$keyName] = $value;
+            }
         }
 
         return $result;
@@ -120,6 +104,7 @@ final class AppSettingsService implements AppSettingsServiceInterface
             );
         }
 
+        // Repository now handles setting_type from DTO
         $this->repository->insert($dto);
     }
 
@@ -137,6 +122,7 @@ final class AppSettingsService implements AppSettingsServiceInterface
             );
         }
 
+        // Repository now handles setting_type if present in DTO
         $this->repository->updateValue($dto);
     }
 
@@ -157,10 +143,6 @@ final class AppSettingsService implements AppSettingsServiceInterface
 
     /**
      * Admin query with metadata enrichment.
-     *
-     * Adds:
-     * - is_protected
-     * - is_editable
      */
     public function query(AppSettingsQueryDTO $query): array
     {

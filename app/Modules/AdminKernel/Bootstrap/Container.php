@@ -2581,6 +2581,46 @@ class Container
                 return new \Maatify\AppSettings\AppSettingsService($repository, $whitelistPolicy, $protectionPolicy);
             },
 
+            \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsCreateController::class => function (ContainerInterface $c) {
+                $service = $c->get(\Maatify\AppSettings\AppSettingsServiceInterface::class);
+                $guard = $c->get(ValidationGuard::class);
+                assert($service instanceof \Maatify\AppSettings\AppSettingsServiceInterface);
+                assert($guard instanceof ValidationGuard);
+                return new \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsCreateController($service, $guard);
+            },
+
+            \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsUpdateController::class => function (ContainerInterface $c) {
+                $service = $c->get(\Maatify\AppSettings\AppSettingsServiceInterface::class);
+                $guard = $c->get(ValidationGuard::class);
+                assert($service instanceof \Maatify\AppSettings\AppSettingsServiceInterface);
+                assert($guard instanceof ValidationGuard);
+                return new \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsUpdateController($service, $guard);
+            },
+
+            \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsSetActiveController::class => function (ContainerInterface $c) {
+                $service = $c->get(\Maatify\AppSettings\AppSettingsServiceInterface::class);
+                $guard = $c->get(ValidationGuard::class);
+                assert($service instanceof \Maatify\AppSettings\AppSettingsServiceInterface);
+                assert($guard instanceof ValidationGuard);
+                return new \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsSetActiveController($service, $guard);
+            },
+
+            \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsQueryController::class => function (ContainerInterface $c) {
+                $reader = $c->get(\Maatify\AdminKernel\Domain\AppSettings\Reader\AppSettingsQueryReaderInterface::class);
+                $guard = $c->get(ValidationGuard::class);
+                $resolver = $c->get(ListFilterResolver::class);
+                assert($reader instanceof \Maatify\AdminKernel\Domain\AppSettings\Reader\AppSettingsQueryReaderInterface);
+                assert($guard instanceof ValidationGuard);
+                assert($resolver instanceof ListFilterResolver);
+                return new \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsQueryController($reader, $guard, $resolver);
+            },
+
+            \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsMetadataController::class => function (ContainerInterface $c) {
+                $provider = $c->get(\Maatify\AdminKernel\Domain\AppSettings\Metadata\AppSettingsMetadataProvider::class);
+                assert($provider instanceof \Maatify\AdminKernel\Domain\AppSettings\Metadata\AppSettingsMetadataProvider);
+                return new \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsMetadataController($provider);
+            },
+
             \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentAcceptanceRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
