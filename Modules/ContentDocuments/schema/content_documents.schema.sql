@@ -123,6 +123,13 @@ CREATE TABLE documents (
                            INDEX idx_documents_type_active (document_type_id, is_active),
                            INDEX idx_documents_type_key (type_key),
 
+    /* 🔥 NEW: Enforcement fast scan */
+                           INDEX idx_documents_enforcement (
+                                                            is_active,
+                                                            requires_acceptance,
+                                                            published_at
+                               ),
+
                            CONSTRAINT fk_documents_document_type
                                FOREIGN KEY (document_type_id)
                                    REFERENCES document_types(id)
@@ -229,10 +236,17 @@ CREATE TABLE document_acceptance (
                                      INDEX idx_actor_lookup (actor_type, actor_id),
                                      INDEX idx_document_lookup (document_id),
 
+    /* 🔥 NEW: Fast accepted document lookup */
+                                     INDEX idx_acceptance_actor_doc (
+                                                                     actor_type,
+                                                                     actor_id,
+                                                                     document_id
+                                         ),
+
                                      CONSTRAINT fk_document_acceptance_document
                                          FOREIGN KEY (document_id)
                                              REFERENCES documents(id)
-                                             ON DELETE CASCADE
+                                             ON DELETE RESTRICT
 
     -- NOTE:
     -- No FK to actor tables intentionally

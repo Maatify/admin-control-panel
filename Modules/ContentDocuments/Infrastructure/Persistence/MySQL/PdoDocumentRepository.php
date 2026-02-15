@@ -8,9 +8,11 @@ use DateTimeImmutable;
 use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface;
 use Maatify\ContentDocuments\Domain\Entity\Document;
 use Maatify\ContentDocuments\Domain\Exception\DocumentNotFoundException;
+use Maatify\ContentDocuments\Domain\Exception\DocumentVersionAlreadyExistsException;
 use Maatify\ContentDocuments\Domain\ValueObject\DocumentTypeKey;
 use Maatify\ContentDocuments\Domain\ValueObject\DocumentVersion;
 use PDO;
+use PDOException;
 
 final readonly class PdoDocumentRepository implements DocumentRepositoryInterface
 {
@@ -118,21 +120,30 @@ final readonly class PdoDocumentRepository implements DocumentRepositoryInterfac
         DocumentVersion $version,
         bool $requiresAcceptance
     ): int {
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO documents
+        try {
+            $stmt = $this->pdo->prepare(
+                'INSERT INTO documents
                 (document_type_id, type_key, version, requires_acceptance)
              VALUES
                 (:document_type_id, :type_key, :version, :requires_acceptance)'
-        );
+            );
 
-        $stmt->execute([
-            'document_type_id'    => $documentTypeId,
-            'type_key'            => (string) $typeKey,
-            'version'             => (string) $version,
-            'requires_acceptance' => $requiresAcceptance ? 1 : 0,
-        ]);
+            $stmt->execute([
+                'document_type_id'    => $documentTypeId,
+                'type_key'            => (string) $typeKey,
+                'version'             => (string) $version,
+                'requires_acceptance' => $requiresAcceptance ? 1 : 0,
+            ]);
 
-        return (int) $this->pdo->lastInsertId();
+            return (int) $this->pdo->lastInsertId();
+
+        } catch (PDOException $e) {
+            if ((string)$e->getCode() === '23000') {
+                throw new DocumentVersionAlreadyExistsException();
+            }
+
+            throw $e;
+        }
     }
 
     public function publish(int $documentId, DateTimeImmutable $publishedAt): void
@@ -188,6 +199,38 @@ final readonly class PdoDocumentRepository implements DocumentRepositoryInterfac
         );
 
         $stmt->execute(['document_type_id' => $documentTypeId]);
+    }
+
+    /**
+     * @return list<Document>
+     */
+    public function findActivePublishedRequiringAcceptance(): array
+    {
+        $stmt = $this->pdo->query(
+            'SELECT *
+         FROM documents
+         WHERE is_active = 1
+           AND published_at IS NOT NULL
+           AND requires_acceptance = 1'
+        );
+
+        if (!$stmt instanceof \PDOStatement) {
+            return [];
+        }
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $result = [];
+
+        foreach ($rows as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $result[] = $this->hydrate($row);
+        }
+
+        return $result;
     }
 
     /**

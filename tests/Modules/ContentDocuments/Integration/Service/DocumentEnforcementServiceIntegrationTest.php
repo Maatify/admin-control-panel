@@ -57,7 +57,7 @@ final class DocumentEnforcementServiceIntegrationTest extends TestCase
         $docRepo->publish($docId, new \DateTimeImmutable('2024-01-01 10:00:00'));
         $docRepo->activate($docId);
 
-        $svc = new DocumentEnforcementService($docRepo, $accRepo, $typeRepo);
+        $svc = new DocumentEnforcementService($docRepo, $accRepo);
 
         $actor = new ActorIdentity('user', 100);
 

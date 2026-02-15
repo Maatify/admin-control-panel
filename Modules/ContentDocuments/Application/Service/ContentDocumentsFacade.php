@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Maatify\ContentDocuments\Application\Service;
 
-use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentAcceptanceRepositoryInterface;
 use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface;
 use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTranslationRepositoryInterface;
 use Maatify\ContentDocuments\Domain\Contract\Service\ContentDocumentsFacadeInterface;
+use Maatify\ContentDocuments\Domain\Contract\Service\DocumentAcceptanceServiceInterface;
 use Maatify\ContentDocuments\Domain\Contract\Service\DocumentEnforcementServiceInterface;
 use Maatify\ContentDocuments\Domain\Contract\Service\DocumentLifecycleServiceInterface;
 use Maatify\ContentDocuments\Domain\DTO\AcceptanceReceiptDTO;
@@ -28,7 +28,7 @@ final readonly class ContentDocumentsFacade implements ContentDocumentsFacadeInt
     public function __construct(
         private DocumentRepositoryInterface $documentRepository,
         private DocumentTranslationRepositoryInterface $translationRepository,
-        private DocumentAcceptanceRepositoryInterface $acceptanceRepository,
+        private DocumentAcceptanceServiceInterface $acceptanceService,
         private DocumentLifecycleServiceInterface $lifecycleService,
         private DocumentEnforcementServiceInterface $enforcementService,
         private ClockInterface $clock,
@@ -184,27 +184,19 @@ final readonly class ContentDocumentsFacade implements ContentDocumentsFacadeInt
         ?string $ipAddress,
         ?string $userAgent
     ): AcceptanceReceiptDTO {
+
         $doc = $this->documentRepository->findActiveByType($typeKey);
 
-        if ($doc === null) {
+        if ($doc === null || ! $doc->isPublished()) {
             throw new DocumentNotFoundException();
         }
 
-        if (! $doc->isPublished()) {
-            throw new DocumentNotFoundException();
-        }
-
-        $acceptedAt = $this->clock->now();
-
-        $this->acceptanceRepository->save(new DocumentAcceptance(
-            id: 0,
-            actor: $actor,
-            documentId: $doc->id,
-            version: $doc->version,
-            acceptedAt: $acceptedAt,
-            ipAddress: $ipAddress,
-            userAgent: $userAgent
-        ));
+        $acceptedAt = $this->acceptanceService->accept(
+            $actor,
+            $doc->id,
+            $ipAddress,
+            $userAgent
+        );
 
         return new AcceptanceReceiptDTO(
             documentId: $doc->id,

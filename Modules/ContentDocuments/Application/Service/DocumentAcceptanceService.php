@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Maatify\ContentDocuments\Application\Service;
 
+use DateTimeImmutable;
 use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentAcceptanceRepositoryInterface;
 use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface;
 use Maatify\ContentDocuments\Domain\Contract\Service\DocumentAcceptanceServiceInterface;
@@ -30,7 +31,8 @@ final readonly class DocumentAcceptanceService implements DocumentAcceptanceServ
         int $documentId,
         ?string $ipAddress,
         ?string $userAgent
-    ): void {
+    ): DateTimeImmutable
+    {
         $document = $this->documentRepository->findById($documentId);
 
         if ($document === null) {
@@ -57,12 +59,14 @@ final readonly class DocumentAcceptanceService implements DocumentAcceptanceServ
         }
 
         try {
+            $acceptedAt = $this->clock->now();
+
             $acceptance = new DocumentAcceptance(
                 id: 0,
                 actor: $actor,
                 documentId: $documentId,
                 version: $document->version,
-                acceptedAt: $this->clock->now(),
+                acceptedAt: $acceptedAt,
                 ipAddress: $ipAddress,
                 userAgent: $userAgent,
             );
@@ -70,12 +74,28 @@ final readonly class DocumentAcceptanceService implements DocumentAcceptanceServ
             try {
                 $this->acceptanceRepository->save($acceptance);
             } catch (DocumentAlreadyAcceptedException) {
-                // Idempotent: already accepted → treat as success
+
+                $existing = $this->acceptanceRepository->findOne(
+                    $actor,
+                    $documentId,
+                    $document->version
+                );
+
+                if ($existing !== null) {
+                    if ($owned) {
+                        $this->transactionManager->commit();
+                    }
+
+                    return $existing->acceptedAt;
+                }
             }
 
             if ($owned) {
                 $this->transactionManager->commit();
             }
+
+            return $acceptedAt;
+
         } catch (\Throwable $e) {
             if ($owned) {
                 $this->transactionManager->rollback();

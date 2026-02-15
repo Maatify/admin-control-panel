@@ -66,7 +66,7 @@ final readonly class PdoDocumentAcceptanceRepository implements DocumentAcceptan
 
         } catch (PDOException $e) {
             if (
-                $e->getCode() === '23000'
+                (string)$e->getCode() === '23000'
                 && isset($e->errorInfo[2])
                 && str_contains($e->errorInfo[2], 'uq_actor_document_version')
             ) {
@@ -140,4 +140,108 @@ final readonly class PdoDocumentAcceptanceRepository implements DocumentAcceptan
 
         return $result;
     }
+
+    public function findOne(
+        ActorIdentity $actor,
+        int $documentId,
+        DocumentVersion $version
+    ): ?DocumentAcceptance {
+        $stmt = $this->pdo->prepare(
+            'SELECT *
+             FROM document_acceptance
+             WHERE actor_type = :actor_type
+               AND actor_id = :actor_id
+               AND document_id = :document_id
+               AND version = :version
+             LIMIT 1'
+        );
+
+        $stmt->execute([
+            'actor_type'  => $actor->actorType,
+            'actor_id'    => $actor->actorId,
+            'document_id' => $documentId,
+            'version'     => (string) $version,
+        ]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!is_array($row)) {
+            return null;
+        }
+
+        $id         = $row['id'] ?? null;
+        $actorType  = $row['actor_type'] ?? null;
+        $actorId    = $row['actor_id'] ?? null;
+        $docId      = $row['document_id'] ?? null;
+        $ver        = $row['version'] ?? null;
+        $acceptedAt = $row['accepted_at'] ?? null;
+
+        if (
+            !is_numeric($id) ||
+            !is_string($actorType) ||
+            !is_numeric($actorId) ||
+            !is_numeric($docId) ||
+            !is_string($ver) ||
+            !is_string($acceptedAt)
+        ) {
+            return null;
+        }
+
+        return new DocumentAcceptance(
+            id: (int) $id,
+            actor: new ActorIdentity(
+                $actorType,
+                (int) $actorId
+            ),
+            documentId: (int) $docId,
+            version: new DocumentVersion($ver),
+            acceptedAt: new DateTimeImmutable($acceptedAt),
+            ipAddress: is_string($row['ip_address'] ?? null) ? $row['ip_address'] : null,
+            userAgent: is_string($row['user_agent'] ?? null) ? $row['user_agent'] : null,
+        );
+    }
+
+    /**
+     * @return list<array{document_id:int, version:string}>
+     */
+    public function findAcceptedDocumentVersions(ActorIdentity $actor): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT document_id, version
+         FROM document_acceptance
+         WHERE actor_type = :actor_type
+           AND actor_id = :actor_id'
+        );
+
+        $stmt->execute([
+            'actor_type' => $actor->actorType,
+            'actor_id'   => $actor->actorId,
+        ]);
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $out = [];
+
+        foreach ($rows as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $documentId = $row['document_id'] ?? null;
+            $version    = $row['version'] ?? null;
+
+            if (!is_numeric($documentId) || !is_string($version)) {
+                continue;
+            }
+
+            $out[] = [
+                'document_id' => (int) $documentId,
+                'version'     => $version,
+            ];
+        }
+
+        return $out;
+    }
+
+
 }

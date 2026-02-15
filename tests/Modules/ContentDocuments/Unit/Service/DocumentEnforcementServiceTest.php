@@ -19,11 +19,10 @@ final class DocumentEnforcementServiceTest extends TestCase
     {
         $docRepo = $this->createMock(DocumentRepositoryInterface::class);
         $accRepo = $this->createMock(DocumentAcceptanceRepositoryInterface::class);
-        $typeRepo = $this->createMock(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTypeRepositoryInterface::class);
 
         $docRepo->method('findActiveByType')->willReturn(null);
 
-        $svc = new DocumentEnforcementService($docRepo, $accRepo, $typeRepo);
+        $svc = new DocumentEnforcementService($docRepo, $accRepo);
 
         self::assertFalse(
             $svc->requiresAcceptance(new ActorIdentity('user', 1), new DocumentTypeKey('terms'))
@@ -34,7 +33,6 @@ final class DocumentEnforcementServiceTest extends TestCase
     {
         $docRepo = $this->createMock(DocumentRepositoryInterface::class);
         $accRepo = $this->createMock(DocumentAcceptanceRepositoryInterface::class);
-        $typeRepo = $this->createMock(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTypeRepositoryInterface::class);
 
         $docRepo->method('findActiveByType')->willReturn(
             new Document(
@@ -50,7 +48,7 @@ final class DocumentEnforcementServiceTest extends TestCase
             )
         );
 
-        $svc = new DocumentEnforcementService($docRepo, $accRepo, $typeRepo);
+        $svc = new DocumentEnforcementService($docRepo, $accRepo);
 
         self::assertFalse(
             $svc->requiresAcceptance(new ActorIdentity('user', 1), new DocumentTypeKey('terms'))
@@ -61,7 +59,6 @@ final class DocumentEnforcementServiceTest extends TestCase
     {
         $docRepo = $this->createMock(DocumentRepositoryInterface::class);
         $accRepo = $this->createMock(DocumentAcceptanceRepositoryInterface::class);
-        $typeRepo = $this->createMock(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTypeRepositoryInterface::class);
 
         $docRepo->method('findActiveByType')->willReturn(
             new Document(
@@ -77,7 +74,7 @@ final class DocumentEnforcementServiceTest extends TestCase
             )
         );
 
-        $svc = new DocumentEnforcementService($docRepo, $accRepo, $typeRepo);
+        $svc = new DocumentEnforcementService($docRepo, $accRepo);
 
         self::assertFalse(
             $svc->requiresAcceptance(new ActorIdentity('user', 1), new DocumentTypeKey('terms'))
@@ -88,7 +85,6 @@ final class DocumentEnforcementServiceTest extends TestCase
     {
         $docRepo = $this->createMock(DocumentRepositoryInterface::class);
         $accRepo = $this->createMock(DocumentAcceptanceRepositoryInterface::class);
-        $typeRepo = $this->createMock(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTypeRepositoryInterface::class);
 
         $doc = new Document(
             id: 10,
@@ -113,7 +109,7 @@ final class DocumentEnforcementServiceTest extends TestCase
             )
             ->willReturn(true);
 
-        $svc = new DocumentEnforcementService($docRepo, $accRepo, $typeRepo);
+        $svc = new DocumentEnforcementService($docRepo, $accRepo);
 
         self::assertFalse(
             $svc->requiresAcceptance(new ActorIdentity('user', 1), new DocumentTypeKey('terms'))
@@ -124,7 +120,6 @@ final class DocumentEnforcementServiceTest extends TestCase
     {
         $docRepo = $this->createMock(DocumentRepositoryInterface::class);
         $accRepo = $this->createMock(DocumentAcceptanceRepositoryInterface::class);
-        $typeRepo = $this->createMock(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTypeRepositoryInterface::class);
 
         $doc = new Document(
             id: 10,
@@ -142,7 +137,7 @@ final class DocumentEnforcementServiceTest extends TestCase
 
         $accRepo->method('hasAccepted')->willReturn(false);
 
-        $svc = new DocumentEnforcementService($docRepo, $accRepo, $typeRepo);
+        $svc = new DocumentEnforcementService($docRepo, $accRepo);
 
         self::assertTrue(
             $svc->requiresAcceptance(new ActorIdentity('user', 1), new DocumentTypeKey('terms'))

@@ -18,7 +18,6 @@ final readonly class DocumentEnforcementService implements DocumentEnforcementSe
     public function __construct(
         private DocumentRepositoryInterface $documentRepository,
         private DocumentAcceptanceRepositoryInterface $acceptanceRepository,
-        private DocumentTypeRepositoryInterface $documentTypeRepository,
     ) {
     }
 
@@ -49,34 +48,36 @@ final readonly class DocumentEnforcementService implements DocumentEnforcementSe
 
     public function enforcementResult(ActorIdentity $actor): EnforcementResultDTO
     {
-        $types = $this->documentTypeRepository->findAll();
+        // 1️⃣ Get all active + published + requires_acceptance documents
+        $documents = $this->documentRepository->findActivePublishedRequiringAcceptance();
+
+        if ($documents === []) {
+            return new EnforcementResultDTO(
+                requiresAcceptance: false,
+                requiredDocuments: []
+            );
+        }
+
+        // 2️⃣ Get all accepted document (id + version) pairs for actor
+        $accepted = $this->acceptanceRepository
+            ->findAcceptedDocumentVersions($actor);
+
+        // Build O(1) lookup: document_id|version
+        $acceptedLookup = [];
+
+        foreach ($accepted as $row) {
+            $key = $row['document_id'] . '|' . $row['version'];
+            $acceptedLookup[$key] = true;
+        }
 
         $required = [];
 
-        foreach ($types as $type) {
-            $typeKey = $type->key;
+        foreach ($documents as $doc) {
 
-            $doc = $this->documentRepository->findActiveByType($typeKey);
+            $key = $doc->id . '|' . (string) $doc->version;
 
-            if ($doc === null) {
-                continue;
-            }
-
-            if (! $doc->isPublished()) {
-                continue;
-            }
-
-            if (! $doc->requiresAcceptance) {
-                continue;
-            }
-
-            $accepted = $this->acceptanceRepository->hasAccepted(
-                $actor,
-                $doc->id,
-                $doc->version
-            );
-
-            if ($accepted) {
+            // If this exact version was accepted → skip
+            if (isset($acceptedLookup[$key])) {
                 continue;
             }
 
@@ -92,4 +93,5 @@ final readonly class DocumentEnforcementService implements DocumentEnforcementSe
             requiredDocuments: $required
         );
     }
+
 }

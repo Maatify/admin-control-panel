@@ -13,7 +13,7 @@ interface DocumentAcceptanceServiceInterface
         int $documentId,
         ?string $ipAddress,
         ?string $userAgent
-    ): void;
+    ): \DateTimeImmutable;
 
     public function hasAccepted(
         ActorIdentity $actor,

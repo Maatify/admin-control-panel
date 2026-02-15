@@ -7,9 +7,11 @@ namespace Maatify\ContentDocuments\Infrastructure\Persistence\MySQL;
 use DateTimeImmutable;
 use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTypeRepositoryInterface;
 use Maatify\ContentDocuments\Domain\Entity\DocumentType;
+use Maatify\ContentDocuments\Domain\Exception\DocumentTypeAlreadyExistsException;
 use Maatify\ContentDocuments\Domain\Exception\DocumentTypeNotFoundException;
 use Maatify\ContentDocuments\Domain\ValueObject\DocumentTypeKey;
 use PDO;
+use PDOException;
 
 final readonly class PdoDocumentTypeRepository implements DocumentTypeRepositoryInterface
 {
@@ -79,21 +81,31 @@ final readonly class PdoDocumentTypeRepository implements DocumentTypeRepository
 
     public function create(DocumentType $documentType): int
     {
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO document_types
+        try {
+            $stmt = $this->pdo->prepare(
+                'INSERT INTO document_types
                 (`key`, requires_acceptance_default, is_system)
              VALUES
                 (:key, :requires_acceptance_default, :is_system)'
-        );
+            );
 
-        $stmt->execute([
-            'key'                         => (string) $documentType->key,
-            'requires_acceptance_default' => $documentType->requiresAcceptanceDefault ? 1 : 0,
-            'is_system'                   => $documentType->isSystem ? 1 : 0,
-        ]);
+            $stmt->execute([
+                'key'                         => (string) $documentType->key,
+                'requires_acceptance_default' => $documentType->requiresAcceptanceDefault ? 1 : 0,
+                'is_system'                   => $documentType->isSystem ? 1 : 0,
+            ]);
 
-        return (int) $this->pdo->lastInsertId();
+            return (int) $this->pdo->lastInsertId();
+
+        } catch (PDOException $e) {
+            if ((string)$e->getCode() === '23000') {
+                throw new DocumentTypeAlreadyExistsException();
+            }
+
+            throw $e;
+        }
     }
+
 
     public function update(DocumentType $documentType): void
     {

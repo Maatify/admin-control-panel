@@ -38,4 +38,10 @@ interface DocumentRepositoryInterface
     public function deactivate(int $documentId): void;
 
     public function deactivateAllByTypeId(int $documentTypeId): void;
+
+    /**
+     * @return list<Document>
+     */
+    public function findActivePublishedRequiringAcceptance(): array;
+
 }

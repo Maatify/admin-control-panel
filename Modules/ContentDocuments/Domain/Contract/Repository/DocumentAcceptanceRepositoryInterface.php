@@ -22,4 +22,16 @@ interface DocumentAcceptanceRepositoryInterface
      * @return list<DocumentAcceptance>
      */
     public function findByActor(ActorIdentity $actor): array;
+
+    public function findOne(
+        ActorIdentity $actor,
+        int $documentId,
+        DocumentVersion $version
+    ): ?DocumentAcceptance;
+
+    /**
+     * @return list<array{document_id:int, version:string}>
+     */
+    public function findAcceptedDocumentVersions(ActorIdentity $actor): array;
+
 }

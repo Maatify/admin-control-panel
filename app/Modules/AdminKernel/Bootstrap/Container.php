@@ -2634,9 +2634,7 @@ class Container
                 assert($documentRepository instanceof \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface);
                 $documentAcceptanceRepository = $c->get(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentAcceptanceRepositoryInterface::class);
                 assert($documentAcceptanceRepository instanceof \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentAcceptanceRepositoryInterface);
-                $documentTypeRepository = $c->get(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTypeRepositoryInterface::class);
-                assert($documentTypeRepository instanceof \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTypeRepositoryInterface);
-                return new \Maatify\ContentDocuments\Application\Service\DocumentEnforcementService($documentRepository, $documentAcceptanceRepository, $documentTypeRepository);
+                return new \Maatify\ContentDocuments\Application\Service\DocumentEnforcementService($documentRepository, $documentAcceptanceRepository);
             },
 
             \Maatify\ContentDocuments\Domain\Contract\Service\DocumentAcceptanceServiceInterface::class => function (ContainerInterface $c) {
@@ -2661,8 +2659,8 @@ class Container
                 assert($documentRepository instanceof \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface);
                 $translationRepository = $c->get(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTranslationRepositoryInterface::class);
                 assert($translationRepository instanceof \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTranslationRepositoryInterface);
-                $acceptanceRepository = $c->get(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentAcceptanceRepositoryInterface::class);
-                assert($acceptanceRepository instanceof \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentAcceptanceRepositoryInterface);
+                $acceptanceService = $c->get(\Maatify\ContentDocuments\Domain\Contract\Service\DocumentAcceptanceServiceInterface::class);
+                assert($acceptanceService instanceof \Maatify\ContentDocuments\Domain\Contract\Service\DocumentAcceptanceServiceInterface);
                 $lifecycleService = $c->get(\Maatify\ContentDocuments\Domain\Contract\Service\DocumentLifecycleServiceInterface::class);
                 assert($lifecycleService instanceof \Maatify\ContentDocuments\Domain\Contract\Service\DocumentLifecycleServiceInterface);
                 $enforcementService = $c->get(\Maatify\ContentDocuments\Domain\Contract\Service\DocumentEnforcementServiceInterface::class);
@@ -2672,7 +2670,7 @@ class Container
                 return new \Maatify\ContentDocuments\Application\Service\ContentDocumentsFacade(
                     $documentRepository,
                     $translationRepository,
-                    $acceptanceRepository,
+                    $acceptanceService,
                     $lifecycleService,
                     $enforcementService,
                     $clock
