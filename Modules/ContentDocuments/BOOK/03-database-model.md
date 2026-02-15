@@ -16,6 +16,9 @@ Stores the logical document definitions.
 **Unique Constraints:**
 - `uq_document_types_key`: (`key`)
 
+**Indexes:**
+- `idx_document_types_key`: (`key`)
+
 ### 2. `documents`
 Stores versioned instances of a document type.
 
@@ -34,12 +37,23 @@ Stores versioned instances of a document type.
 - `uq_documents_type_version`: (`document_type_id`, `version`) - Prevents duplicate versions per type.
 - `uq_documents_one_active_per_type`: (`document_type_id`, `active_guard`) - Ensures **only one active document** exists per type at any given time (relies on NULL handling in unique index).
 
+**Indexes:**
+- `idx_documents_type`: (`document_type_id`)
+- `idx_documents_type_active`: (`document_type_id`, `is_active`)
+- `idx_documents_type_key`: (`type_key`)
+- `idx_documents_archived_at`: (`archived_at`)
+- `idx_documents_type_archived`: (`document_type_id`, `archived_at`)
+- `idx_documents_enforcement`: (`is_active`, `requires_acceptance`, `published_at`)
+
+**Foreign Keys:**
+- `fk_documents_document_type`: (`document_type_id`) → `document_types`(`id`)
+
 ### 3. `document_translations`
 Stores localized content.
 
 - `id`: INT (PK)
-- `document_id`: INT (FK to `documents.id` CASCADE DELETE)
-- `language_id`: INT (FK to `languages.id` CASCADE DELETE)
+- `document_id`: INT (FK to `documents.id`)
+- `language_id`: INT (FK to `languages.id`)
 - `title`: VARCHAR(255)
 - `meta_title`: VARCHAR(255)
 - `meta_description`: TEXT
@@ -48,6 +62,14 @@ Stores localized content.
 
 **Unique Constraints:**
 - `uq_document_language`: (`document_id`, `language_id`) - One translation per language per version.
+
+**Indexes:**
+- `idx_document_translations_document`: (`document_id`)
+- `idx_document_translations_language`: (`language_id`)
+
+**Foreign Keys:**
+- `fk_document_translations_document`: (`document_id`) → `documents`(`id`)
+- `fk_document_translations_language`: (`language_id`) → `languages`(`id`)
 
 ### 4. `document_acceptance`
 Stores immutable audit logs of acceptance.
@@ -65,4 +87,9 @@ Stores immutable audit logs of acceptance.
 - `uq_actor_document_version`: (`actor_type`, `actor_id`, `document_id`, `version`) - Prevents duplicate acceptance records for the same version.
 
 **Indexes:**
-- `idx_acceptance_actor_doc`: (`actor_type`, `actor_id`, `document_id`) - Fast lookup for enforcement checks.
+- `idx_actor_lookup`: (`actor_type`, `actor_id`)
+- `idx_document_lookup`: (`document_id`)
+- `idx_acceptance_actor_doc`: (`actor_type`, `actor_id`, `document_id`)
+
+**Foreign Keys:**
+- `fk_document_acceptance_document`: (`document_id`) → `documents`(`id`)
