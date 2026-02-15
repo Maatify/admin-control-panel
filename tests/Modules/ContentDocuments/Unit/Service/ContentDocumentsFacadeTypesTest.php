@@ -6,15 +6,14 @@ namespace Tests\Modules\ContentDocuments\Unit\Service;
 
 use Maatify\ContentDocuments\Application\Service\ContentDocumentsFacade;
 use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface;
-use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTranslationRepositoryInterface;
 use Maatify\ContentDocuments\Domain\Contract\Service\DocumentAcceptanceServiceInterface;
 use Maatify\ContentDocuments\Domain\Contract\Service\DocumentEnforcementServiceInterface;
 use Maatify\ContentDocuments\Domain\Contract\Service\DocumentLifecycleServiceInterface;
 use Maatify\ContentDocuments\Domain\Contract\Service\DocumentQueryServiceInterface;
+use Maatify\ContentDocuments\Domain\Contract\Service\DocumentTranslationServiceInterface;
 use Maatify\ContentDocuments\Domain\Contract\Service\DocumentTypeServiceInterface;
 use Maatify\ContentDocuments\Domain\DTO\DocumentTypeDTO;
 use Maatify\ContentDocuments\Domain\ValueObject\DocumentTypeKey;
-use Maatify\SharedCommon\Contracts\ClockInterface;
 use PHPUnit\Framework\TestCase;
 
 final class ContentDocumentsFacadeTypesTest extends TestCase
@@ -22,13 +21,12 @@ final class ContentDocumentsFacadeTypesTest extends TestCase
     public function testListTypesDelegatesToTypeService(): void
     {
         $docRepo  = $this->createMock(DocumentRepositoryInterface::class);
-        $trRepo   = $this->createMock(DocumentTranslationRepositoryInterface::class);
         $query    = $this->createMock(DocumentQueryServiceInterface::class);
         $accept   = $this->createMock(DocumentAcceptanceServiceInterface::class);
         $life     = $this->createMock(DocumentLifecycleServiceInterface::class);
         $enf      = $this->createMock(DocumentEnforcementServiceInterface::class);
         $typeSvc  = $this->createMock(DocumentTypeServiceInterface::class);
-        $clock    = $this->createMock(ClockInterface::class);
+        $transSvc = $this->createMock(DocumentTranslationServiceInterface::class);
 
         $typeSvc->expects($this->once())
             ->method('list')
@@ -45,13 +43,12 @@ final class ContentDocumentsFacadeTypesTest extends TestCase
 
         $facade = new ContentDocumentsFacade(
             documentRepository: $docRepo,
-            translationRepository: $trRepo,
             queryService: $query,
             acceptanceService: $accept,
             lifecycleService: $life,
             enforcementService: $enf,
             documentTypeService: $typeSvc,
-            clock: $clock
+            translationService: $transSvc
         );
 
         $out = $facade->listDocumentTypes();
@@ -62,13 +59,12 @@ final class ContentDocumentsFacadeTypesTest extends TestCase
     public function testCreateAndUpdateTypeDelegate(): void
     {
         $docRepo  = $this->createMock(DocumentRepositoryInterface::class);
-        $trRepo   = $this->createMock(DocumentTranslationRepositoryInterface::class);
         $query    = $this->createMock(DocumentQueryServiceInterface::class);
         $accept   = $this->createMock(DocumentAcceptanceServiceInterface::class);
         $life     = $this->createMock(DocumentLifecycleServiceInterface::class);
         $enf      = $this->createMock(DocumentEnforcementServiceInterface::class);
         $typeSvc  = $this->createMock(DocumentTypeServiceInterface::class);
-        $clock    = $this->createMock(ClockInterface::class);
+        $transSvc = $this->createMock(DocumentTranslationServiceInterface::class);
 
         $typeSvc->expects($this->once())
             ->method('create')
@@ -81,13 +77,12 @@ final class ContentDocumentsFacadeTypesTest extends TestCase
 
         $facade = new ContentDocumentsFacade(
             documentRepository: $docRepo,
-            translationRepository: $trRepo,
             queryService: $query,
             acceptanceService: $accept,
             lifecycleService: $life,
             enforcementService: $enf,
             documentTypeService: $typeSvc,
-            clock: $clock
+            translationService: $transSvc
         );
 
         $id = $facade->createDocumentType(new DocumentTypeKey('terms'), true, true);

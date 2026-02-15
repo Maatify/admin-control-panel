@@ -2657,8 +2657,6 @@ class Container
             \Maatify\ContentDocuments\Domain\Contract\Service\ContentDocumentsFacadeInterface::class => function (ContainerInterface $c) {
                 $documentRepository = $c->get(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface::class);
                 assert($documentRepository instanceof \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface);
-                $translationRepository = $c->get(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTranslationRepositoryInterface::class);
-                assert($translationRepository instanceof \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTranslationRepositoryInterface);
                 $queryService = $c->get(\Maatify\ContentDocuments\Domain\Contract\Service\DocumentQueryServiceInterface::class);
                 assert($queryService instanceof \Maatify\ContentDocuments\Domain\Contract\Service\DocumentQueryServiceInterface);
                 $acceptanceService = $c->get(\Maatify\ContentDocuments\Domain\Contract\Service\DocumentAcceptanceServiceInterface::class);
@@ -2669,17 +2667,16 @@ class Container
                 assert($enforcementService instanceof \Maatify\ContentDocuments\Domain\Contract\Service\DocumentEnforcementServiceInterface);
                 $documentTypeService = $c->get(\Maatify\ContentDocuments\Domain\Contract\Service\DocumentTypeServiceInterface::class);
                 assert($documentTypeService instanceof \Maatify\ContentDocuments\Domain\Contract\Service\DocumentTypeServiceInterface);
-                $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
-                assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
+                $translationService = $c->get(\Maatify\ContentDocuments\Domain\Contract\Service\DocumentTranslationServiceInterface::class);
+                assert($translationService instanceof \Maatify\ContentDocuments\Domain\Contract\Service\DocumentTranslationServiceInterface);
                 return new \Maatify\ContentDocuments\Application\Service\ContentDocumentsFacade(
                     $documentRepository,
-                    $translationRepository,
                     $queryService,
                     $acceptanceService,
                     $lifecycleService,
                     $enforcementService,
                     $documentTypeService,
-                    $clock
+                    $translationService
                 );
             },
 
