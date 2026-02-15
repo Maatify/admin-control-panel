@@ -29,7 +29,7 @@ final class PdoDocumentTranslationRepositoryTest extends TestCase
         $this->pdo->exec("INSERT IGNORE INTO languages (id, code, name, is_active) VALUES (1, 'en', 'English', 1)");
     }
 
-    public function testSaveInsertThenUpdateAndFind(): void
+    public function testCreateThenUpdateAndFind(): void
     {
         $typeRepo = new PdoDocumentTypeRepository($this->pdo);
         $docRepo  = new PdoDocumentRepository($this->pdo);
@@ -51,7 +51,8 @@ final class PdoDocumentTranslationRepositoryTest extends TestCase
             true
         );
 
-        $trRepo->save(new DocumentTranslation(
+        // CREATE
+        $trId = $trRepo->create(new DocumentTranslation(
             id: 0,
             documentId: $docId,
             languageId: 1,
@@ -63,13 +64,15 @@ final class PdoDocumentTranslationRepositoryTest extends TestCase
             updatedAt: null,
         ));
 
+        self::assertGreaterThan(0, $trId);
+
         $found = $trRepo->findByDocumentAndLanguage($docId, 1);
         self::assertNotNull($found);
         self::assertSame('Terms', $found->title);
-        self::assertGreaterThan(0, $found->id);
+        self::assertSame($trId, $found->id);
 
-        // Update using entity id (update-by-id path)
-        $trRepo->save(new DocumentTranslation(
+        // UPDATE (explicit)
+        $trRepo->update(new DocumentTranslation(
             id: $found->id,
             documentId: $docId,
             languageId: 1,
@@ -77,8 +80,8 @@ final class PdoDocumentTranslationRepositoryTest extends TestCase
             metaTitle: null,
             metaDescription: null,
             content: '<p>Updated</p>',
-            createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
-            updatedAt: null,
+            createdAt: $found->createdAt,
+            updatedAt: new \DateTimeImmutable('2024-01-02 00:00:00'),
         ));
 
         $found2 = $trRepo->findByDocumentAndLanguage($docId, 1);
@@ -86,25 +89,8 @@ final class PdoDocumentTranslationRepositoryTest extends TestCase
         self::assertSame('Terms Updated', $found2->title);
         self::assertSame($found->id, $found2->id);
 
-        // Update same translation using duplicate-key fallback (id:0)
-        $trRepo->save(new DocumentTranslation(
-            id: 0,
-            documentId: $docId,
-            languageId: 1,
-            title: 'Terms Updated Again',
-            metaTitle: 'Meta',
-            metaDescription: 'Desc',
-            content: '<p>Updated Again</p>',
-            createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
-            updatedAt: null,
-        ));
-
-        $found3 = $trRepo->findByDocumentAndLanguage($docId, 1);
-        self::assertNotNull($found3);
-        self::assertSame('Terms Updated Again', $found3->title);
-        self::assertSame($found->id, $found3->id);
-
         $list = $trRepo->findByDocument($docId);
         self::assertNotEmpty($list);
     }
+
 }

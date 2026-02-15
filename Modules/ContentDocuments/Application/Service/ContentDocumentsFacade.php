@@ -112,9 +112,6 @@ final readonly class ContentDocumentsFacade implements ContentDocumentsFacadeInt
 
     public function saveTranslation(DocumentTranslationDTO $translation): void
     {
-        // assumes DocumentTranslation entity exists and repo->save() handles upsert
-        // NOTE: This method must not rely on hidden coupling (id:0) to update existing translations.
-
         $existing = $this->translationRepository->findByDocumentAndLanguage(
             $translation->documentId,
             $translation->languageId
@@ -122,17 +119,37 @@ final readonly class ContentDocumentsFacade implements ContentDocumentsFacadeInt
 
         $now = $this->clock->now();
 
-        $this->translationRepository->save(
+        if ($existing === null) {
+            // CREATE (no hidden coupling)
+            $this->translationRepository->create(
+                new \Maatify\ContentDocuments\Domain\Entity\DocumentTranslation(
+                    id: 0, // ignored by create(), DB assigns id
+                    documentId: $translation->documentId,
+                    languageId: $translation->languageId,
+                    title: $translation->title,
+                    metaTitle: $translation->metaTitle,
+                    metaDescription: $translation->metaDescription,
+                    content: $translation->content,
+                    createdAt: $now,
+                    updatedAt: null
+                )
+            );
+
+            return;
+        }
+
+        // UPDATE (explicit)
+        $this->translationRepository->update(
             new \Maatify\ContentDocuments\Domain\Entity\DocumentTranslation(
-                id: $existing !== null ? $existing->id : 0,
-                documentId: $translation->documentId,
-                languageId: $translation->languageId,
+                id: $existing->id,
+                documentId: $existing->documentId,
+                languageId: $existing->languageId,
                 title: $translation->title,
                 metaTitle: $translation->metaTitle,
                 metaDescription: $translation->metaDescription,
                 content: $translation->content,
-                createdAt: $existing !== null ? $existing->createdAt : $now,
-                updatedAt: $existing !== null ? $now : null
+                createdAt: $existing->createdAt,
+                updatedAt: $now
             )
         );
     }

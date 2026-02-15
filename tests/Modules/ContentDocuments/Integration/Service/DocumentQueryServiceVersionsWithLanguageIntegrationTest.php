@@ -57,7 +57,7 @@ final class DocumentQueryServiceVersionsWithLanguageIntegrationTest extends Test
         );
 
         // Only v2 has translation
-        $trRepo->save(new \Maatify\ContentDocuments\Domain\Entity\DocumentTranslation(
+        $trRepo->create(new \Maatify\ContentDocuments\Domain\Entity\DocumentTranslation(
             id: 0,
             documentId: $docIdV2,
             languageId: 1,

@@ -17,8 +17,8 @@ interface DocumentTranslationRepositoryInterface
      * @return list<DocumentTranslation>
      */
     public function findByDocument(int $documentId): array;
-
-    public function save(DocumentTranslation $translation): void;
+    public function create(DocumentTranslation $translation): int;
+    public function update(DocumentTranslation $translation): void;
 
     /**
      * Bulk load translations for many documents in one query.

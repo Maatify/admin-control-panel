@@ -7,6 +7,8 @@ namespace Maatify\ContentDocuments\Infrastructure\Persistence\MySQL;
 use DateTimeImmutable;
 use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTranslationRepositoryInterface;
 use Maatify\ContentDocuments\Domain\Entity\DocumentTranslation;
+use Maatify\ContentDocuments\Domain\Exception\DocumentTranslationAlreadyExistsException;
+use Maatify\ContentDocuments\Domain\Exception\DocumentTranslationNotFoundException;
 use PDO;
 use PDOException;
 
@@ -110,39 +112,8 @@ final readonly class PdoDocumentTranslationRepository implements DocumentTransla
         return $result;
     }
 
-    public function save(DocumentTranslation $translation): void
+    public function create(DocumentTranslation $translation): int
     {
-        // IMPORTANT:
-        // - Do not rely on ON DUPLICATE KEY UPDATE (hidden coupling).
-        // - If entity id is provided, we must respect it (update-by-id).
-
-        if ($translation->id > 0) {
-            $stmt = $this->pdo->prepare(
-                'UPDATE document_translations
-                 SET title = :title,
-                     meta_title = :meta_title,
-                     meta_description = :meta_description,
-                     content = :content,
-                     updated_at = CURRENT_TIMESTAMP
-                 WHERE id = :id
-                   AND document_id = :document_id
-                   AND language_id = :language_id'
-            );
-
-            $stmt->execute([
-                'id'              => $translation->id,
-                'document_id'     => $translation->documentId,
-                'language_id'     => $translation->languageId,
-                'title'           => $translation->title,
-                'meta_title'      => $translation->metaTitle,
-                'meta_description'=> $translation->metaDescription,
-                'content'         => $translation->content,
-            ]);
-
-            return;
-        }
-
-        // id == 0 => attempt insert, fallback to update-by-natural-key on duplicate
         try {
             $stmt = $this->pdo->prepare(
                 'INSERT INTO document_translations
@@ -159,31 +130,45 @@ final readonly class PdoDocumentTranslationRepository implements DocumentTransla
                 'meta_description' => $translation->metaDescription,
                 'content'          => $translation->content,
             ]);
+
+            return (int) $this->pdo->lastInsertId();
+
         } catch (PDOException $e) {
-            // Duplicate key => update existing row by (document_id, language_id)
-            if ($e->getCode() !== '23000') {
-                throw $e;
+            // Duplicate key on (document_id, language_id)
+            if ((string) $e->getCode() === '23000') {
+                throw new DocumentTranslationAlreadyExistsException();
             }
 
-            $stmt = $this->pdo->prepare(
-                'UPDATE document_translations
-                 SET title = :title,
-                     meta_title = :meta_title,
-                     meta_description = :meta_description,
-                     content = :content,
-                     updated_at = CURRENT_TIMESTAMP
-                 WHERE document_id = :document_id
-                   AND language_id = :language_id'
-            );
+            throw $e;
+        }
+    }
 
-            $stmt->execute([
-                'document_id'      => $translation->documentId,
-                'language_id'      => $translation->languageId,
-                'title'            => $translation->title,
-                'meta_title'       => $translation->metaTitle,
-                'meta_description' => $translation->metaDescription,
-                'content'          => $translation->content,
-            ]);
+    public function update(DocumentTranslation $translation): void
+    {
+        $stmt = $this->pdo->prepare(
+            'UPDATE document_translations
+             SET title = :title,
+                 meta_title = :meta_title,
+                 meta_description = :meta_description,
+                 content = :content,
+                 updated_at = CURRENT_TIMESTAMP
+             WHERE id = :id
+               AND document_id = :document_id
+               AND language_id = :language_id'
+        );
+
+        $stmt->execute([
+            'id'               => $translation->id,
+            'document_id'      => $translation->documentId,
+            'language_id'      => $translation->languageId,
+            'title'            => $translation->title,
+            'meta_title'       => $translation->metaTitle,
+            'meta_description' => $translation->metaDescription,
+            'content'          => $translation->content,
+        ]);
+
+        if ($stmt->rowCount() === 0) {
+            throw new DocumentTranslationNotFoundException();
         }
     }
 
