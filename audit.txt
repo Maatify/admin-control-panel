@@ -1,0 +1,25 @@
+🔍 Audit Report — ContentDocuments
+
+✅ Confirmed Solid Areas
+- Domain Integrity: Value Objects and Entities are strictly immutable.
+- Repository Layer (Write): Correct handling of duplicate entries and lastInsertId.
+- Enforcement Logic: Efficient set-based logic avoiding N+1 queries.
+- Lifecycle Management: Correct transaction management for activation.
+- Schema Design: Clean separation of types, versions, and content.
+
+⚠️ Weaknesses / Risk Areas
+- N+1 Query Pattern (Read): DocumentQueryService iterates and fetches translations individually.
+- Hidden Coupling in Facade: Save relies on Repository ignoring ID 0.
+- App-Level Constraint Reliance: No unique index for active document per type.
+
+❌ Critical Issues
+- Data Corruption / Hydration Bug: PdoDocumentRepository::findVersionsWithTranslationsByTypeAndLanguage
+  - SELECT * (LEFT JOIN) causes ID collision.
+  - Hydrates Document entity with Translation ID or throws RuntimeException.
+  - File: Modules/ContentDocuments/Infrastructure/Persistence/MySQL/PdoDocumentRepository.php
+
+🧠 Architectural Completeness Score
+- 85%
+
+📌 Extraction Safety Verdict
+- CONDITIONAL
