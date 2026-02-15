@@ -7,12 +7,12 @@ The Content Documents module follows a Domain-Driven Design (DDD) layered archit
 ### Domain Layer (`Modules/ContentDocuments/Domain`)
 - **Entities**: Pure PHP objects representing the core business concepts (`Document`, `DocumentTranslation`, `DocumentAcceptance`).
 - **Value Objects**: Immutable objects encapsulating domain primitives (`DocumentTypeKey`, `DocumentVersion`, `ActorIdentity`).
+- **DTOs**: Data Transfer Objects used to pass data in and out of the module boundaries (`DocumentDTO`, `DocumentViewDTO`).
 - **Contracts**: Interface definitions for Repositories and Services, decoupling the domain from implementation details.
 - **Exceptions**: Domain-specific exceptions (`DocumentVersionImmutableException`, `DocumentNotFoundException`).
 
 ### Application Layer (`Modules/ContentDocuments/Application`)
 - **Services**: Orchestrate domain logic and business rules (`DocumentLifecycleService`, `DocumentTranslationService`, `DocumentAcceptanceService`).
-- **DTOs**: Data Transfer Objects used to pass data in and out of the module boundaries (`DocumentDTO`, `DocumentViewDTO`).
 - **Facade**: The primary entry point for consumers (`ContentDocumentsFacade`), simplifying interaction with the internal services.
 
 ### Infrastructure Layer (`Modules/ContentDocuments/Infrastructure`)
