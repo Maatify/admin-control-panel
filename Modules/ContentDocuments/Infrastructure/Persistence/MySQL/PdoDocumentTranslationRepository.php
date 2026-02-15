@@ -42,6 +42,46 @@ final readonly class PdoDocumentTranslationRepository implements DocumentTransla
     }
 
     /**
+     * @param list<int> $documentIds
+     * @return array<int, DocumentTranslation>
+     */
+    public function findByDocumentIdsAndLanguage(array $documentIds, int $languageId): array
+    {
+        if ($documentIds === []) {
+            return [];
+        }
+
+        // Build placeholders safely
+        $placeholders = implode(',', array_fill(0, count($documentIds), '?'));
+
+        $sql = "SELECT * FROM document_translations
+                WHERE language_id = ?
+                  AND document_id IN ($placeholders)";
+
+        $stmt = $this->pdo->prepare($sql);
+
+        $params = array_merge([$languageId], array_values($documentIds));
+        $stmt->execute($params);
+
+        if (!$stmt instanceof \PDOStatement) {
+            return [];
+        }
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $out  = [];
+
+        foreach ($rows as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $tr = $this->hydrate($row);
+            $out[$tr->documentId] = $tr;
+        }
+
+        return $out;
+    }
+
+    /**
      * @return list<DocumentTranslation>
      */
     public function findByDocument(int $documentId): array

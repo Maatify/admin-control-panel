@@ -19,4 +19,12 @@ interface DocumentTranslationRepositoryInterface
     public function findByDocument(int $documentId): array;
 
     public function save(DocumentTranslation $translation): void;
+
+    /**
+     * Bulk load translations for many documents in one query.
+     *
+     * @param list<int> $documentIds
+     * @return array<int, DocumentTranslation> Map keyed by document_id
+     */
+    public function findByDocumentIdsAndLanguage(array $documentIds, int $languageId): array;
 }
