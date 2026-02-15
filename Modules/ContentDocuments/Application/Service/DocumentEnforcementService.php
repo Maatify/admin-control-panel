@@ -6,7 +6,6 @@ namespace Maatify\ContentDocuments\Application\Service;
 
 use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentAcceptanceRepositoryInterface;
 use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface;
-use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTypeRepositoryInterface;
 use Maatify\ContentDocuments\Domain\Contract\Service\DocumentEnforcementServiceInterface;
 use Maatify\ContentDocuments\Domain\DTO\EnforcementResultDTO;
 use Maatify\ContentDocuments\Domain\DTO\RequiredAcceptanceDTO;
@@ -62,22 +61,28 @@ final readonly class DocumentEnforcementService implements DocumentEnforcementSe
         $accepted = $this->acceptanceRepository
             ->findAcceptedDocumentVersions($actor);
 
-        // Build O(1) lookup: document_id|version
+        /**
+         * Build O(1) lookup: [document_id][version] = true
+         *
+         * @var array<int, array<string, true>> $acceptedLookup
+         */
         $acceptedLookup = [];
 
         foreach ($accepted as $row) {
-            $key = $row['document_id'] . '|' . $row['version'];
-            $acceptedLookup[$key] = true;
+            $documentId = (int) $row['document_id'];
+            $version    = (string) $row['version'];
+
+            $acceptedLookup[$documentId][$version] = true;
         }
 
         $required = [];
 
         foreach ($documents as $doc) {
-
-            $key = $doc->id . '|' . (string) $doc->version;
+            $documentId = $doc->id;
+            $version    = (string) $doc->version;
 
             // If this exact version was accepted → skip
-            if (isset($acceptedLookup[$key])) {
+            if (isset($acceptedLookup[$documentId][$version])) {
                 continue;
             }
 
@@ -93,5 +98,6 @@ final readonly class DocumentEnforcementService implements DocumentEnforcementSe
             requiredDocuments: $required
         );
     }
+
 
 }
