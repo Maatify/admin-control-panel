@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Maatify\ContentDocuments\Domain\Contract\Service;
 
+use DateTimeImmutable;
 use Maatify\ContentDocuments\Domain\ValueObject\DocumentTypeKey;
 use Maatify\ContentDocuments\Domain\ValueObject\DocumentVersion;
 

@@ -64,6 +64,26 @@ final readonly class PdoDocumentRepository implements DocumentRepositoryInterfac
         return $this->hydrate($row);
     }
 
+    public function findByIdNonArchived(int $id): ?Document
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT *
+             FROM documents
+             WHERE id = :id
+               AND archived_at IS NULL
+             LIMIT 1'
+        );
+
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!is_array($row)) {
+            return null;
+        }
+
+        return $this->hydrate($row);
+    }
+
     public function findActiveByType(DocumentTypeKey $typeKey): ?Document
     {
         $stmt = $this->pdo->prepare(
@@ -145,6 +165,26 @@ final readonly class PdoDocumentRepository implements DocumentRepositoryInterfac
 
             throw $e;
         }
+    }
+
+    public function archive(int $documentId, DateTimeImmutable $archivedAt): void
+    {
+        // Always force deactivation on archive (DB-level truth).
+        $stmt = $this->pdo->prepare(
+            'UPDATE documents
+             SET is_active = 0,
+                 archived_at = :archived_at
+             WHERE id = :id
+               AND archived_at IS NULL'
+        );
+
+        $stmt->execute([
+            'archived_at' => $archivedAt->format('Y-m-d H:i:s'),
+            'id'          => $documentId,
+        ]);
+
+        // rowCount === 0 => not found OR already archived
+        // We leave the service to decide whether "already archived" is a no-op.
     }
 
     public function publish(int $documentId, DateTimeImmutable $publishedAt): void
@@ -303,6 +343,7 @@ final readonly class PdoDocumentRepository implements DocumentRepositoryInterfac
                ON documents.id = document_translations.document_id
               AND document_translations.language_id = :language_id
         WHERE documents.type_key = :type_key
+          AND documents.archived_at IS NULL
         ORDER BY documents.created_at DESC
         ";
 

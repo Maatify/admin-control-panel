@@ -119,6 +119,9 @@ CREATE TABLE documents (
     -- Publish timestamp (NULL = draft)
                            published_at DATETIME NULL,
 
+    -- 🧊 NEW: archive marker (NULL = visible/active candidate, NOT NULL = archived/hidden)
+                           archived_at DATETIME NULL,
+
                            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                            updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
 
@@ -134,6 +137,10 @@ CREATE TABLE documents (
                            INDEX idx_documents_type_active (document_type_id, is_active),
 
                            INDEX idx_documents_type_key (type_key),
+
+    -- 🧊 Archive filters
+                           INDEX idx_documents_archived_at (archived_at),
+                           INDEX idx_documents_type_archived (document_type_id, archived_at),
 
     /* 🔥 NEW: Enforcement fast scan */
                            INDEX idx_documents_enforcement (

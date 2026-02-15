@@ -67,6 +67,7 @@ final class DocumentLifecycleServiceTest extends TestCase
         $typeRepo = $this->createMock(DocumentTypeRepositoryInterface::class);
         $tx = $this->createMock(TransactionManagerInterface::class);
 
+        $docRepo->method('findByIdNonArchived')->willReturn(null);
         $docRepo->method('findById')->willReturn(null);
 
         $svc = new DocumentLifecycleService($docRepo, $typeRepo, $tx);
@@ -81,19 +82,20 @@ final class DocumentLifecycleServiceTest extends TestCase
         $typeRepo = $this->createMock(DocumentTypeRepositoryInterface::class);
         $tx = $this->createMock(TransactionManagerInterface::class);
 
-        $docRepo->method('findById')->willReturn(
-            new Document(
-                id: 10,
-                documentTypeId: 1,
-                typeKey: new DocumentTypeKey('terms'),
-                version: new DocumentVersion('v1'),
-                isActive: false,
-                requiresAcceptance: true,
-                publishedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
-                createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
-                updatedAt: null,
-            )
+        $doc = new Document(
+            id: 10,
+            documentTypeId: 1,
+            typeKey: new DocumentTypeKey('terms'),
+            version: new DocumentVersion('v1'),
+            isActive: false,
+            requiresAcceptance: true,
+            publishedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
+            createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
+            updatedAt: null,
         );
+
+        $docRepo->method('findByIdNonArchived')->willReturn($doc);
+        $docRepo->method('findById')->willReturn($doc);
 
         $docRepo->expects($this->never())->method('publish');
 
@@ -109,19 +111,20 @@ final class DocumentLifecycleServiceTest extends TestCase
         $typeRepo = $this->createMock(DocumentTypeRepositoryInterface::class);
         $tx = $this->createMock(TransactionManagerInterface::class);
 
-        $docRepo->method('findById')->willReturn(
-            new Document(
-                id: 10,
-                documentTypeId: 1,
-                typeKey: new DocumentTypeKey('terms'),
-                version: new DocumentVersion('v1'),
-                isActive: false,
-                requiresAcceptance: true,
-                publishedAt: null,
-                createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
-                updatedAt: null,
-            )
+        $doc = new Document(
+            id: 10,
+            documentTypeId: 1,
+            typeKey: new DocumentTypeKey('terms'),
+            version: new DocumentVersion('v1'),
+            isActive: false,
+            requiresAcceptance: true,
+            publishedAt: null,
+            createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
+            updatedAt: null,
         );
+
+        $docRepo->method('findByIdNonArchived')->willReturn($doc);
+        $docRepo->method('findById')->willReturn($doc);
 
         $docRepo->expects($this->once())->method('publish');
 
@@ -136,6 +139,7 @@ final class DocumentLifecycleServiceTest extends TestCase
         $typeRepo = $this->createMock(DocumentTypeRepositoryInterface::class);
         $tx = $this->createMock(TransactionManagerInterface::class);
 
+        $docRepo->method('findByIdNonArchived')->willReturn(null);
         $docRepo->method('findById')->willReturn(null);
 
         $svc = new DocumentLifecycleService($docRepo, $typeRepo, $tx);
@@ -150,19 +154,20 @@ final class DocumentLifecycleServiceTest extends TestCase
         $typeRepo = $this->createMock(DocumentTypeRepositoryInterface::class);
         $tx = $this->createMock(TransactionManagerInterface::class);
 
-        $docRepo->method('findById')->willReturn(
-            new Document(
-                id: 10,
-                documentTypeId: 1,
-                typeKey: new DocumentTypeKey('terms'),
-                version: new DocumentVersion('v1'),
-                isActive: false,
-                requiresAcceptance: true,
-                publishedAt: null,
-                createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
-                updatedAt: null,
-            )
+        $doc = new Document(
+            id: 10,
+            documentTypeId: 1,
+            typeKey: new DocumentTypeKey('terms'),
+            version: new DocumentVersion('v1'),
+            isActive: false,
+            requiresAcceptance: true,
+            publishedAt: null,
+            createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
+            updatedAt: null,
         );
+
+        $docRepo->method('findByIdNonArchived')->willReturn($doc);
+        $docRepo->method('findById')->willReturn($doc);
 
         $svc = new DocumentLifecycleService($docRepo, $typeRepo, $tx);
 
@@ -176,19 +181,20 @@ final class DocumentLifecycleServiceTest extends TestCase
         $typeRepo = $this->createMock(DocumentTypeRepositoryInterface::class);
         $tx = $this->createMock(TransactionManagerInterface::class);
 
-        $docRepo->method('findById')->willReturn(
-            new Document(
-                id: 10,
-                documentTypeId: 55,
-                typeKey: new DocumentTypeKey('terms'),
-                version: new DocumentVersion('v1'),
-                isActive: false,
-                requiresAcceptance: true,
-                publishedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
-                createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
-                updatedAt: null,
-            )
+        $doc = new Document(
+            id: 10,
+            documentTypeId: 55,
+            typeKey: new DocumentTypeKey('terms'),
+            version: new DocumentVersion('v1'),
+            isActive: false,
+            requiresAcceptance: true,
+            publishedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
+            createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
+            updatedAt: null,
         );
+
+        $docRepo->method('findByIdNonArchived')->willReturn($doc);
+        $docRepo->method('findById')->willReturn($doc);
 
         $tx->method('inTransaction')->willReturn(false);
         $tx->expects($this->once())->method('begin');
@@ -209,19 +215,20 @@ final class DocumentLifecycleServiceTest extends TestCase
         $typeRepo = $this->createMock(DocumentTypeRepositoryInterface::class);
         $tx = $this->createMock(TransactionManagerInterface::class);
 
-        $docRepo->method('findById')->willReturn(
-            new Document(
-                id: 10,
-                documentTypeId: 55,
-                typeKey: new DocumentTypeKey('terms'),
-                version: new DocumentVersion('v1'),
-                isActive: false,
-                requiresAcceptance: true,
-                publishedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
-                createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
-                updatedAt: null,
-            )
+        $doc = new Document(
+            id: 10,
+            documentTypeId: 55,
+            typeKey: new DocumentTypeKey('terms'),
+            version: new DocumentVersion('v1'),
+            isActive: false,
+            requiresAcceptance: true,
+            publishedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
+            createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
+            updatedAt: null,
         );
+
+        $docRepo->method('findByIdNonArchived')->willReturn($doc);
+        $docRepo->method('findById')->willReturn($doc);
 
         $tx->method('inTransaction')->willReturn(false);
         $tx->expects($this->once())->method('begin');

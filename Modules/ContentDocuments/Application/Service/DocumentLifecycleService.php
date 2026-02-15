@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Maatify\ContentDocuments\Application\Service;
 
+use DateTimeImmutable;
 use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface;
 use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTypeRepositoryInterface;
 use Maatify\ContentDocuments\Domain\Contract\Service\DocumentLifecycleServiceInterface;
@@ -43,9 +44,14 @@ final readonly class DocumentLifecycleService implements DocumentLifecycleServic
 
     public function publish(int $documentId, \DateTimeImmutable $publishedAt): void
     {
-        $document = $this->documentRepository->findById($documentId);
+        $document = $this->documentRepository->findByIdNonArchived($documentId);
 
         if ($document === null) {
+            // Distinguish: missing vs archived (archived must fail explicitly)
+            $maybeArchived = $this->documentRepository->findById($documentId);
+            if ($maybeArchived !== null) {
+                throw new InvalidDocumentStateException('Cannot publish archived document.');
+            }
             throw new DocumentNotFoundException();
         }
 
@@ -97,5 +103,44 @@ final readonly class DocumentLifecycleService implements DocumentLifecycleServic
     public function deactivate(int $documentId): void
     {
         $this->documentRepository->deactivate($documentId);
+    }
+
+    public function archive(int $documentId, DateTimeImmutable $archivedAt): void
+    {
+        // Archive is a *lifecycle* action, not delete:
+        // - preserves data for logs/audit
+        // - removes it from all operational reads (queries filter archived_at)
+
+        $document = $this->documentRepository->findById($documentId);
+
+        if ($document === null) {
+            throw new DocumentNotFoundException();
+        }
+
+        $owned = false;
+
+        if (!$this->transactionManager->inTransaction()) {
+            $this->transactionManager->begin();
+            $owned = true;
+        }
+
+        try {
+            // Ensure it can't remain active, even if called directly.
+            if ($document->isActive) {
+                $this->documentRepository->deactivate($documentId);
+            }
+
+            // Repository is idempotent: WHERE archived_at IS NULL
+            $this->documentRepository->archive($documentId, $archivedAt);
+
+            if ($owned) {
+                $this->transactionManager->commit();
+            }
+        } catch (\Throwable $e) {
+            if ($owned) {
+                $this->transactionManager->rollback();
+            }
+            throw $e;
+        }
     }
 }
