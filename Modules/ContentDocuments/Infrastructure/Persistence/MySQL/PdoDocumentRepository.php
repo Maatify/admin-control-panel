@@ -7,6 +7,7 @@ namespace Maatify\ContentDocuments\Infrastructure\Persistence\MySQL;
 use DateTimeImmutable;
 use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface;
 use Maatify\ContentDocuments\Domain\Entity\Document;
+use Maatify\ContentDocuments\Domain\Exception\DocumentActivationConflictException;
 use Maatify\ContentDocuments\Domain\Exception\DocumentNotFoundException;
 use Maatify\ContentDocuments\Domain\Exception\DocumentVersionAlreadyExistsException;
 use Maatify\ContentDocuments\Domain\ValueObject\DocumentTypeKey;
@@ -170,12 +171,22 @@ final readonly class PdoDocumentRepository implements DocumentRepositoryInterfac
             'UPDATE documents SET is_active = 1 WHERE id = :id'
         );
 
-        $stmt->execute(['id' => $documentId]);
+        try {
+            $stmt->execute(['id' => $documentId]);
+        } catch (\PDOException $e) {
+            // MySQL integrity constraint violation (e.g. UNIQUE on active_guard)
+            if ((string)$e->getCode() === '23000') {
+                throw new DocumentActivationConflictException(previous: $e);
+            }
+
+            throw $e;
+        }
 
         if ($stmt->rowCount() === 0) {
             throw new DocumentNotFoundException();
         }
     }
+
 
     public function deactivate(int $documentId): void
     {
