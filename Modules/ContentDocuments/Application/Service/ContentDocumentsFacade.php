@@ -9,12 +9,14 @@ use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterf
 use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTranslationRepositoryInterface;
 use Maatify\ContentDocuments\Domain\Contract\Service\ContentDocumentsFacadeInterface;
 use Maatify\ContentDocuments\Domain\Contract\Service\DocumentAcceptanceServiceInterface;
+use Maatify\ContentDocuments\Domain\Contract\Service\DocumentTypeServiceInterface;
 use Maatify\ContentDocuments\Domain\Contract\Service\DocumentEnforcementServiceInterface;
 use Maatify\ContentDocuments\Domain\Contract\Service\DocumentLifecycleServiceInterface;
 use Maatify\ContentDocuments\Domain\Contract\Service\DocumentQueryServiceInterface;
 use Maatify\ContentDocuments\Domain\DTO\AcceptanceReceiptDTO;
 use Maatify\ContentDocuments\Domain\DTO\DocumentDTO;
 use Maatify\ContentDocuments\Domain\DTO\DocumentTranslationDTO;
+use Maatify\ContentDocuments\Domain\DTO\DocumentTypeDTO;
 use Maatify\ContentDocuments\Domain\DTO\DocumentViewDTO;
 use Maatify\ContentDocuments\Domain\DTO\DocumentVersionItemDTO;
 use Maatify\ContentDocuments\Domain\DTO\EnforcementResultDTO;
@@ -33,6 +35,7 @@ final readonly class ContentDocumentsFacade implements ContentDocumentsFacadeInt
         private DocumentAcceptanceServiceInterface $acceptanceService,
         private DocumentLifecycleServiceInterface $lifecycleService,
         private DocumentEnforcementServiceInterface $enforcementService,
+        private DocumentTypeServiceInterface $documentTypeService,
         private ClockInterface $clock,
     ) {}
 
@@ -170,5 +173,39 @@ final readonly class ContentDocumentsFacade implements ContentDocumentsFacadeInt
     public function archive(int $documentId, \DateTimeImmutable $archivedAt): void
     {
         $this->lifecycleService->archive($documentId, $archivedAt);
+    }
+
+    /**
+     * @return list<DocumentTypeDTO>
+     */
+    public function listTypes(): array
+    {
+        return $this->documentTypeService->list();
+    }
+
+    public function getTypeById(int $typeId): ?DocumentTypeDTO
+    {
+        return $this->documentTypeService->getById($typeId);
+    }
+
+    public function getTypeByKey(DocumentTypeKey $key): ?DocumentTypeDTO
+    {
+        return $this->documentTypeService->getByKey($key);
+    }
+
+    public function createType(
+        DocumentTypeKey $key,
+        bool $requiresAcceptanceDefault,
+        bool $isSystem
+    ): int {
+        return $this->documentTypeService->create($key, $requiresAcceptanceDefault, $isSystem);
+    }
+
+    public function updateType(
+        int $typeId,
+        bool $requiresAcceptanceDefault,
+        bool $isSystem
+    ): void {
+        $this->documentTypeService->update($typeId, $requiresAcceptanceDefault, $isSystem);
     }
 }

@@ -2667,6 +2667,8 @@ class Container
                 assert($lifecycleService instanceof \Maatify\ContentDocuments\Domain\Contract\Service\DocumentLifecycleServiceInterface);
                 $enforcementService = $c->get(\Maatify\ContentDocuments\Domain\Contract\Service\DocumentEnforcementServiceInterface::class);
                 assert($enforcementService instanceof \Maatify\ContentDocuments\Domain\Contract\Service\DocumentEnforcementServiceInterface);
+                $documentTypeService = $c->get(\Maatify\ContentDocuments\Domain\Contract\Service\DocumentTypeServiceInterface::class);
+                assert($documentTypeService instanceof \Maatify\ContentDocuments\Domain\Contract\Service\DocumentTypeServiceInterface);
                 $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
                 assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
                 return new \Maatify\ContentDocuments\Application\Service\ContentDocumentsFacade(
@@ -2676,9 +2678,16 @@ class Container
                     $acceptanceService,
                     $lifecycleService,
                     $enforcementService,
+                    $documentTypeService,
                     $clock
                 );
             },
+
+            \Maatify\ContentDocuments\Domain\Contract\Service\DocumentTypeServiceInterface::class => function (ContainerInterface $c) {
+                $documentTypeRepository = $c->get(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTypeRepositoryInterface::class);
+                assert($documentTypeRepository instanceof \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTypeRepositoryInterface);
+                return new \Maatify\ContentDocuments\Application\Service\DocumentTypeService($documentTypeRepository);
+            }
 
         ]);
 

@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Maatify\ContentDocuments\Domain\DTO\AcceptanceReceiptDTO;
 use Maatify\ContentDocuments\Domain\DTO\DocumentDTO;
 use Maatify\ContentDocuments\Domain\DTO\DocumentTranslationDTO;
+use Maatify\ContentDocuments\Domain\DTO\DocumentTypeDTO;
 use Maatify\ContentDocuments\Domain\DTO\DocumentViewDTO;
 use Maatify\ContentDocuments\Domain\DTO\DocumentVersionItemDTO;
 use Maatify\ContentDocuments\Domain\DTO\EnforcementResultDTO;
@@ -58,5 +59,26 @@ interface ContentDocumentsFacadeInterface
     public function enforcementResult(ActorIdentity $actor): EnforcementResultDTO;
 
     public function archive(int $documentId, \DateTimeImmutable $archivedAt): void;
+
+    /**
+     * @return list<DocumentTypeDTO>
+     */
+    public function listTypes(): array;
+
+    public function getTypeById(int $typeId): ?DocumentTypeDTO;
+
+    public function getTypeByKey(DocumentTypeKey $key): ?DocumentTypeDTO;
+
+    public function createType(
+        DocumentTypeKey $key,
+        bool $requiresAcceptanceDefault,
+        bool $isSystem
+    ): int;
+
+    public function updateType(
+        int $typeId,
+        bool $requiresAcceptanceDefault,
+        bool $isSystem
+    ): void;
 
 }
