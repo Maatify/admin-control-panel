@@ -282,17 +282,23 @@ final readonly class PdoDocumentRepository implements DocumentRepositoryInterfac
      */
     public function findVersionsWithTranslationsByTypeAndLanguage(DocumentTypeKey $typeKey, int $languageId): array
     {
+        // IMPORTANT:
+        // Do NOT select document_translations.* because it collides with documents columns (e.g. id),
+        // which corrupts Document hydration. We only hydrate Document entities here.
         $sql = "
-        SELECT documents.*, document_translations.*
+        SELECT documents.*
         FROM documents
-        LEFT JOIN document_translations ON documents.id = document_translations.document_id AND document_translations.language_id = :language_id
+        LEFT JOIN document_translations
+               ON documents.id = document_translations.document_id
+              AND document_translations.language_id = :language_id
         WHERE documents.type_key = :type_key
-    ";
+        ORDER BY documents.created_at DESC
+        ";
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
             'type_key' => (string) $typeKey,
-            'language_id' => $languageId
+            'language_id' => $languageId,
         ]);
 
         if (!$stmt instanceof \PDOStatement) {
