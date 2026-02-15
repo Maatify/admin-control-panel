@@ -11,9 +11,12 @@ final class ActorIdentity
     private const ACTOR_TYPE_MAX_LENGTH = 64;
     private const ACTOR_TYPE_PATTERN = '/^[a-z0-9\-]+$/';
 
+    private string $actorType;
+    private int $actorId;
+
     public function __construct(
-        public string $actorType,
-        public int $actorId,
+        string $actorType,
+        int $actorId,
     ) {
         $actorType = trim($actorType);
 
@@ -50,5 +53,15 @@ final class ActorIdentity
     public function __toString(): string
     {
         return $this->actorType . ':' . (string)$this->actorId;
+    }
+
+    public function actorType(): string
+    {
+        return $this->actorType;
+    }
+
+    public function actorId(): int
+    {
+        return $this->actorId;
     }
 }

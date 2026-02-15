@@ -162,20 +162,21 @@ final readonly class ContentDocumentsFacade implements ContentDocumentsFacadeInt
 
     public function saveTranslation(DocumentTranslationDTO $translation): void
     {
-        // assumes DocumentTranslation entity exists and repo->save() handles upsert
-        $this->translationRepository->save(
-            new \Maatify\ContentDocuments\Domain\Entity\DocumentTranslation(
-                id: 0,
-                documentId: $translation->documentId,
-                languageId: $translation->languageId,
-                title: $translation->title,
-                metaTitle: $translation->metaTitle,
-                metaDescription: $translation->metaDescription,
-                content: $translation->content,
-                createdAt: $this->clock->now(),
-                updatedAt: null
-            )
+        // إنشاء كائن DocumentTranslation بشكل صحيح
+        $documentTranslation = new \Maatify\ContentDocuments\Domain\Entity\DocumentTranslation(
+            id: 0, // id: 0 فقط إذا كانت جديدة
+            documentId: $translation->documentId,
+            languageId: $translation->languageId,
+            title: $translation->title,
+            metaTitle: $translation->metaTitle,
+            metaDescription: $translation->metaDescription,
+            content: $translation->content,
+            createdAt: $this->clock->now(),
+            updatedAt: null // سيتم تحديثه لاحقاً إذا كانت موجودة
         );
+
+        // استخدام الـ repository بشكل صحيح لحفظ الـ entity
+        $this->translationRepository->save($documentTranslation);
     }
 
     public function acceptActive(

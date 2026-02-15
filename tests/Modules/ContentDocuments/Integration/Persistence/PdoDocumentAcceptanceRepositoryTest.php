@@ -116,7 +116,7 @@ final class PdoDocumentAcceptanceRepositoryTest extends TestCase
 
         $list = $accRepo->findByActor($actor);
         self::assertNotEmpty($list);
-        self::assertSame('user', $list[0]->actor->actorType);
-        self::assertSame(20, $list[0]->actor->actorId);
+        self::assertSame('user', $list[0]->actor->actorType());
+        self::assertSame(20, $list[0]->actor->actorId());
     }
 }

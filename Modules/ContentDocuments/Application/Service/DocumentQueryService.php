@@ -95,12 +95,12 @@ final class DocumentQueryService implements DocumentQueryServiceInterface
         DocumentTypeKey $typeKey,
         int $languageId
     ): array {
-        $versions = $this->documentRepository->findVersionsByType($typeKey);
+        $versions = $this->documentRepository->findVersionsWithTranslationsByTypeAndLanguage($typeKey, $languageId);
 
         $out = [];
 
         foreach ($versions as $document) {
-            $docDto = $this->mapDocument($document);
+            $docDto = $this->mapDocument($document);  // هنا نقوم بتمرير كائن Document بدلاً من مصفوفة
             $translation = $this->getTranslationByDocumentId($document->id, $languageId);
 
             $out[] = new DocumentVersionWithTranslationDTO(

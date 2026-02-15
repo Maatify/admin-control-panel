@@ -44,4 +44,9 @@ interface DocumentRepositoryInterface
      */
     public function findActivePublishedRequiringAcceptance(): array;
 
+    /**
+     * @return list<Document>
+     */
+    public function findVersionsWithTranslationsByTypeAndLanguage(DocumentTypeKey $typeKey, int $languageId): array;
+
 }

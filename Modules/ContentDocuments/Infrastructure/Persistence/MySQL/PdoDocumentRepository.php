@@ -276,4 +276,42 @@ final readonly class PdoDocumentRepository implements DocumentRepositoryInterfac
                 : null,
         );
     }
+
+    /**
+     * @return list<Document>
+     */
+    public function findVersionsWithTranslationsByTypeAndLanguage(DocumentTypeKey $typeKey, int $languageId): array
+    {
+        $sql = "
+        SELECT documents.*, document_translations.*
+        FROM documents
+        LEFT JOIN document_translations ON documents.id = document_translations.document_id AND document_translations.language_id = :language_id
+        WHERE documents.type_key = :type_key
+    ";
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            'type_key' => (string) $typeKey,
+            'language_id' => $languageId
+        ]);
+
+        if (!$stmt instanceof \PDOStatement) {
+            return [];
+        }
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $result = [];
+
+        foreach ($rows as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $result[] = $this->hydrate($row);
+        }
+
+        return $result;
+
+    }
 }

@@ -13,8 +13,8 @@ final class ActorIdentityTest extends TestCase
     public function testValidActorIdentity(): void
     {
         $a = new ActorIdentity('user', 123);
-        self::assertSame('user', $a->actorType);
-        self::assertSame(123, $a->actorId);
+        self::assertSame('user', $a->actorType());
+        self::assertSame(123, $a->actorId());
         self::assertSame('user:123', (string)$a);
     }
 

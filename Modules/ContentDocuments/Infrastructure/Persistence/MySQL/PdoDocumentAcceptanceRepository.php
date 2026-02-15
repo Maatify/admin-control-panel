@@ -35,8 +35,8 @@ final readonly class PdoDocumentAcceptanceRepository implements DocumentAcceptan
         );
 
         $stmt->execute([
-            'actor_type'  => $actor->actorType,
-            'actor_id'    => $actor->actorId,
+            'actor_type'  => $actor->actorType(),
+            'actor_id'    => $actor->actorId(),
             'document_id' => $documentId,
             'version'     => (string) $version,
         ]);
@@ -55,8 +55,8 @@ final readonly class PdoDocumentAcceptanceRepository implements DocumentAcceptan
             );
 
             $stmt->execute([
-                'actor_type'  => $acceptance->actor->actorType,
-                'actor_id'    => $acceptance->actor->actorId,
+                'actor_type'  => $acceptance->actor->actorType(),
+                'actor_id'    => $acceptance->actor->actorId(),
                 'document_id' => $acceptance->documentId,
                 'version'     => (string) $acceptance->version,
                 'accepted_at' => $acceptance->acceptedAt->format('Y-m-d H:i:s'),
@@ -91,8 +91,8 @@ final readonly class PdoDocumentAcceptanceRepository implements DocumentAcceptan
         );
 
         $stmt->execute([
-            'actor_type' => $actor->actorType,
-            'actor_id'   => $actor->actorId,
+            'actor_type' => $actor->actorType(),
+            'actor_id'   => $actor->actorId(),
         ]);
 
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -157,8 +157,8 @@ final readonly class PdoDocumentAcceptanceRepository implements DocumentAcceptan
         );
 
         $stmt->execute([
-            'actor_type'  => $actor->actorType,
-            'actor_id'    => $actor->actorId,
+            'actor_type'  => $actor->actorType(),
+            'actor_id'    => $actor->actorId(),
             'document_id' => $documentId,
             'version'     => (string) $version,
         ]);
@@ -214,8 +214,8 @@ final readonly class PdoDocumentAcceptanceRepository implements DocumentAcceptan
         );
 
         $stmt->execute([
-            'actor_type' => $actor->actorType,
-            'actor_id'   => $actor->actorId,
+            'actor_type' => $actor->actorType(),
+            'actor_id'   => $actor->actorId(),
         ]);
 
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
