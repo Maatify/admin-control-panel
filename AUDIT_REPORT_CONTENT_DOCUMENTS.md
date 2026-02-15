@@ -13,19 +13,15 @@
 ⚠️ Weaknesses / Risk Areas
 
 *   **Data Redundancy**: The `documents` table stores both `document_type_id` (FK) and `type_key` (string). While this optimizes reads, it creates a denormalization risk if `document_types.key` is ever updated (data inconsistency).
-*   **Facade Logic Leakage**: `ContentDocumentsFacade::saveTranslation` contains upsert logic (check existence -> create vs update) that belongs in a Domain Service (e.g., `DocumentTranslationService`).
 *   **Entity Redundancy**: `Document` entity constructor accepts both `documentTypeId` and `typeKey`, which mirrors the database redundancy and relies on the repository to keep them in sync.
 
 ❌ Critical Issues
 
-*   **Violation of Version Immutability (Legal Risk)**
-    *   **File:** `Modules/ContentDocuments/Application/Service/ContentDocumentsFacade.php` (method `saveTranslation`)
-    *   **Description:** The `saveTranslation` method allows updating translation content (`title`, `content`) for *any* document, regardless of its state (`isActive`, `publishedAt`, `archivedAt`).
-    *   **Impact:** A legally accepted document version can have its content silently altered without changing the version string, invalidating user acceptance and legal audit trails.
+None identified after recent fixes. The previous critical issue regarding translation immutability has been resolved by the introduction of `DocumentTranslationService` and `DocumentVersionImmutableException`.
 
 🧠 Architectural Completeness Score
-92%
+98%
 
 📌 Extraction Safety Verdict
 SAFE
-(The module is fully decoupled and actor-agnostic. The critical issue is a logic bug, not a structural dependency problem.)
+(The module is fully decoupled and actor-agnostic.)
