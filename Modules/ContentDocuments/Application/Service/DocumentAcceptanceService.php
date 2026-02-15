@@ -33,9 +33,13 @@ final readonly class DocumentAcceptanceService implements DocumentAcceptanceServ
         ?string $userAgent
     ): DateTimeImmutable
     {
-        $document = $this->documentRepository->findById($documentId);
+        $document = $this->documentRepository->findByIdNonArchived($documentId);
 
         if ($document === null) {
+            $maybeArchived = $this->documentRepository->findById($documentId);
+            if ($maybeArchived !== null) {
+                throw new InvalidDocumentStateException('Cannot access archived document.');
+            }
             throw new DocumentNotFoundException();
         }
 
@@ -108,9 +112,13 @@ final readonly class DocumentAcceptanceService implements DocumentAcceptanceServ
         ActorIdentity $actor,
         int $documentId
     ): bool {
-        $document = $this->documentRepository->findById($documentId);
+        $document = $this->documentRepository->findByIdNonArchived($documentId);
 
         if ($document === null) {
+            $maybeArchived = $this->documentRepository->findById($documentId);
+            if ($maybeArchived !== null) {
+                throw new InvalidDocumentStateException('Cannot access archived document.');
+            }
             throw new DocumentNotFoundException();
         }
 

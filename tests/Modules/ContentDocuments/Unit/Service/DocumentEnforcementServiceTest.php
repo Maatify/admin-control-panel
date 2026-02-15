@@ -43,6 +43,7 @@ final class DocumentEnforcementServiceTest extends TestCase
                 isActive: true,
                 requiresAcceptance: true,
                 publishedAt: null, // draft
+                archivedAt        : null,
                 createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
                 updatedAt: null,
             )
@@ -69,6 +70,7 @@ final class DocumentEnforcementServiceTest extends TestCase
                 isActive: true,
                 requiresAcceptance: false,
                 publishedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
+                archivedAt        : null,
                 createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
                 updatedAt: null,
             )
@@ -94,6 +96,7 @@ final class DocumentEnforcementServiceTest extends TestCase
             isActive: true,
             requiresAcceptance: true,
             publishedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
+            archivedAt        : null,
             createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
             updatedAt: null,
         );
@@ -129,6 +132,7 @@ final class DocumentEnforcementServiceTest extends TestCase
             isActive: true,
             requiresAcceptance: true,
             publishedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
+            archivedAt        : null,
             createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
             updatedAt: null,
         );

@@ -83,7 +83,7 @@ final class DocumentQueryService implements DocumentQueryServiceInterface
 
     public function getById(int $documentId): ?DocumentDTO
     {
-        $document = $this->documentRepository->findById($documentId);
+        $document = $this->documentRepository->findByIdNonArchived($documentId);
 
         if ($document === null) {
             return null;

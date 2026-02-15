@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Maatify\ContentDocuments\Application\Service;
 
+use DateTimeImmutable;
 use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface;
 use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTranslationRepositoryInterface;
 use Maatify\ContentDocuments\Domain\Contract\Service\ContentDocumentsFacadeInterface;
@@ -164,5 +165,10 @@ final readonly class ContentDocumentsFacade implements ContentDocumentsFacadeInt
     public function enforcementResult(ActorIdentity $actor): EnforcementResultDTO
     {
         return $this->enforcementService->enforcementResult($actor);
+    }
+
+    public function archive(int $documentId, \DateTimeImmutable $archivedAt): void
+    {
+        $this->lifecycleService->archive($documentId, $archivedAt);
     }
 }

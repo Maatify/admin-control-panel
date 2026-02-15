@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Maatify\ContentDocuments\Domain\Contract\Service;
 
+use DateTimeImmutable;
 use Maatify\ContentDocuments\Domain\DTO\AcceptanceReceiptDTO;
 use Maatify\ContentDocuments\Domain\DTO\DocumentDTO;
 use Maatify\ContentDocuments\Domain\DTO\DocumentTranslationDTO;
@@ -55,4 +56,7 @@ interface ContentDocumentsFacadeInterface
     ): AcceptanceReceiptDTO;
 
     public function enforcementResult(ActorIdentity $actor): EnforcementResultDTO;
+
+    public function archive(int $documentId, \DateTimeImmutable $archivedAt): void;
+
 }

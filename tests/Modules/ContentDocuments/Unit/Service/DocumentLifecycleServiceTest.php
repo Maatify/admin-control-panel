@@ -21,9 +21,9 @@ final class DocumentLifecycleServiceTest extends TestCase
 {
     public function testCreateVersionThrowsWhenTypeNotFound(): void
     {
-        $docRepo = $this->createMock(DocumentRepositoryInterface::class);
+        $docRepo  = $this->createMock(DocumentRepositoryInterface::class);
         $typeRepo = $this->createMock(DocumentTypeRepositoryInterface::class);
-        $tx = $this->createMock(TransactionManagerInterface::class);
+        $tx       = $this->createMock(TransactionManagerInterface::class);
 
         $typeRepo->method('findByKey')->willReturn(null);
 
@@ -35,9 +35,9 @@ final class DocumentLifecycleServiceTest extends TestCase
 
     public function testCreateVersionCallsRepositoryCreate(): void
     {
-        $docRepo = $this->createMock(DocumentRepositoryInterface::class);
+        $docRepo  = $this->createMock(DocumentRepositoryInterface::class);
         $typeRepo = $this->createMock(DocumentTypeRepositoryInterface::class);
-        $tx = $this->createMock(TransactionManagerInterface::class);
+        $tx       = $this->createMock(TransactionManagerInterface::class);
 
         $typeRepo->method('findByKey')->willReturn(
             new DocumentType(
@@ -52,7 +52,12 @@ final class DocumentLifecycleServiceTest extends TestCase
 
         $docRepo->expects($this->once())
             ->method('create')
-            ->with(7, $this->isInstanceOf(DocumentTypeKey::class), $this->isInstanceOf(DocumentVersion::class), true)
+            ->with(
+                7,
+                $this->isInstanceOf(DocumentTypeKey::class),
+                $this->isInstanceOf(DocumentVersion::class),
+                true
+            )
             ->willReturn(123);
 
         $svc = new DocumentLifecycleService($docRepo, $typeRepo, $tx);
@@ -63,9 +68,9 @@ final class DocumentLifecycleServiceTest extends TestCase
 
     public function testPublishThrowsWhenDocumentNotFound(): void
     {
-        $docRepo = $this->createMock(DocumentRepositoryInterface::class);
+        $docRepo  = $this->createMock(DocumentRepositoryInterface::class);
         $typeRepo = $this->createMock(DocumentTypeRepositoryInterface::class);
-        $tx = $this->createMock(TransactionManagerInterface::class);
+        $tx       = $this->createMock(TransactionManagerInterface::class);
 
         $docRepo->method('findByIdNonArchived')->willReturn(null);
         $docRepo->method('findById')->willReturn(null);
@@ -78,9 +83,9 @@ final class DocumentLifecycleServiceTest extends TestCase
 
     public function testPublishNoOpWhenAlreadyPublished(): void
     {
-        $docRepo = $this->createMock(DocumentRepositoryInterface::class);
+        $docRepo  = $this->createMock(DocumentRepositoryInterface::class);
         $typeRepo = $this->createMock(DocumentTypeRepositoryInterface::class);
-        $tx = $this->createMock(TransactionManagerInterface::class);
+        $tx       = $this->createMock(TransactionManagerInterface::class);
 
         $doc = new Document(
             id: 10,
@@ -90,6 +95,7 @@ final class DocumentLifecycleServiceTest extends TestCase
             isActive: false,
             requiresAcceptance: true,
             publishedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
+            archivedAt: null,
             createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
             updatedAt: null,
         );
@@ -107,9 +113,9 @@ final class DocumentLifecycleServiceTest extends TestCase
 
     public function testPublishCallsRepositoryWhenDraft(): void
     {
-        $docRepo = $this->createMock(DocumentRepositoryInterface::class);
+        $docRepo  = $this->createMock(DocumentRepositoryInterface::class);
         $typeRepo = $this->createMock(DocumentTypeRepositoryInterface::class);
-        $tx = $this->createMock(TransactionManagerInterface::class);
+        $tx       = $this->createMock(TransactionManagerInterface::class);
 
         $doc = new Document(
             id: 10,
@@ -119,6 +125,7 @@ final class DocumentLifecycleServiceTest extends TestCase
             isActive: false,
             requiresAcceptance: true,
             publishedAt: null,
+            archivedAt: null,
             createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
             updatedAt: null,
         );
@@ -135,9 +142,9 @@ final class DocumentLifecycleServiceTest extends TestCase
 
     public function testActivateThrowsWhenDocumentNotFound(): void
     {
-        $docRepo = $this->createMock(DocumentRepositoryInterface::class);
+        $docRepo  = $this->createMock(DocumentRepositoryInterface::class);
         $typeRepo = $this->createMock(DocumentTypeRepositoryInterface::class);
-        $tx = $this->createMock(TransactionManagerInterface::class);
+        $tx       = $this->createMock(TransactionManagerInterface::class);
 
         $docRepo->method('findByIdNonArchived')->willReturn(null);
         $docRepo->method('findById')->willReturn(null);
@@ -150,9 +157,9 @@ final class DocumentLifecycleServiceTest extends TestCase
 
     public function testActivateThrowsWhenUnpublished(): void
     {
-        $docRepo = $this->createMock(DocumentRepositoryInterface::class);
+        $docRepo  = $this->createMock(DocumentRepositoryInterface::class);
         $typeRepo = $this->createMock(DocumentTypeRepositoryInterface::class);
-        $tx = $this->createMock(TransactionManagerInterface::class);
+        $tx       = $this->createMock(TransactionManagerInterface::class);
 
         $doc = new Document(
             id: 10,
@@ -162,6 +169,7 @@ final class DocumentLifecycleServiceTest extends TestCase
             isActive: false,
             requiresAcceptance: true,
             publishedAt: null,
+            archivedAt: null,
             createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
             updatedAt: null,
         );
@@ -177,9 +185,9 @@ final class DocumentLifecycleServiceTest extends TestCase
 
     public function testActivateOwnedTransactionBeginCommitAndDeactivateActivateOrder(): void
     {
-        $docRepo = $this->createMock(DocumentRepositoryInterface::class);
+        $docRepo  = $this->createMock(DocumentRepositoryInterface::class);
         $typeRepo = $this->createMock(DocumentTypeRepositoryInterface::class);
-        $tx = $this->createMock(TransactionManagerInterface::class);
+        $tx       = $this->createMock(TransactionManagerInterface::class);
 
         $doc = new Document(
             id: 10,
@@ -189,6 +197,7 @@ final class DocumentLifecycleServiceTest extends TestCase
             isActive: false,
             requiresAcceptance: true,
             publishedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
+            archivedAt: null,
             createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
             updatedAt: null,
         );
@@ -211,9 +220,9 @@ final class DocumentLifecycleServiceTest extends TestCase
 
     public function testActivateOwnedTransactionRollsBackOnFailure(): void
     {
-        $docRepo = $this->createMock(DocumentRepositoryInterface::class);
+        $docRepo  = $this->createMock(DocumentRepositoryInterface::class);
         $typeRepo = $this->createMock(DocumentTypeRepositoryInterface::class);
-        $tx = $this->createMock(TransactionManagerInterface::class);
+        $tx       = $this->createMock(TransactionManagerInterface::class);
 
         $doc = new Document(
             id: 10,
@@ -223,6 +232,7 @@ final class DocumentLifecycleServiceTest extends TestCase
             isActive: false,
             requiresAcceptance: true,
             publishedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
+            archivedAt: null,
             createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
             updatedAt: null,
         );
@@ -236,11 +246,144 @@ final class DocumentLifecycleServiceTest extends TestCase
         $tx->expects($this->once())->method('rollback');
 
         $docRepo->expects($this->once())->method('deactivateAllByTypeId')->with(55);
-        $docRepo->expects($this->once())->method('activate')->with(10)->willThrowException(new \RuntimeException('fail'));
+        $docRepo->expects($this->once())
+            ->method('activate')
+            ->with(10)
+            ->willThrowException(new \RuntimeException('fail'));
 
         $svc = new DocumentLifecycleService($docRepo, $typeRepo, $tx);
 
         $this->expectException(\RuntimeException::class);
         $svc->activate(10);
+    }
+
+    public function testArchiveThrowsWhenDocumentNotFound(): void
+    {
+        $docRepo  = $this->createMock(DocumentRepositoryInterface::class);
+        $typeRepo = $this->createMock(DocumentTypeRepositoryInterface::class);
+        $tx       = $this->createMock(TransactionManagerInterface::class);
+
+        $docRepo->method('findByIdNonArchived')->willReturn(null);
+        $docRepo->method('findById')->willReturn(null);
+
+        $svc = new DocumentLifecycleService($docRepo, $typeRepo, $tx);
+
+        $this->expectException(DocumentNotFoundException::class);
+        $svc->archive(10, new \DateTimeImmutable('2024-01-03 10:00:00'));
+    }
+
+    public function testArchiveOwnedTransactionBeginCommitDeactivatesWhenActive(): void
+    {
+        $docRepo  = $this->createMock(DocumentRepositoryInterface::class);
+        $typeRepo = $this->createMock(DocumentTypeRepositoryInterface::class);
+        $tx       = $this->createMock(TransactionManagerInterface::class);
+
+        $doc = new Document(
+            id: 10,
+            documentTypeId: 55,
+            typeKey: new DocumentTypeKey('terms'),
+            version: new DocumentVersion('v1'),
+            isActive: true,
+            requiresAcceptance: true,
+            publishedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
+            archivedAt: null,
+            createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
+            updatedAt: null,
+        );
+
+        $docRepo->method('findByIdNonArchived')->willReturn($doc);
+        $docRepo->method('findById')->willReturn($doc);
+
+        $tx->method('inTransaction')->willReturn(false);
+        $tx->expects($this->once())->method('begin');
+        $tx->expects($this->once())->method('commit');
+        $tx->expects($this->never())->method('rollback');
+
+        $docRepo->expects($this->once())->method('deactivate')->with(10);
+        $docRepo->expects($this->once())->method('archive')->with(
+            10,
+            $this->isInstanceOf(\DateTimeImmutable::class)
+        );
+
+        $svc = new DocumentLifecycleService($docRepo, $typeRepo, $tx);
+        $svc->archive(10, new \DateTimeImmutable('2024-01-03 10:00:00'));
+        self::assertTrue(true);
+    }
+
+    public function testArchiveOwnedTransactionBeginCommitDoesNotDeactivateWhenNotActive(): void
+    {
+        $docRepo  = $this->createMock(DocumentRepositoryInterface::class);
+        $typeRepo = $this->createMock(DocumentTypeRepositoryInterface::class);
+        $tx       = $this->createMock(TransactionManagerInterface::class);
+
+        $doc = new Document(
+            id: 10,
+            documentTypeId: 55,
+            typeKey: new DocumentTypeKey('terms'),
+            version: new DocumentVersion('v1'),
+            isActive: false,
+            requiresAcceptance: true,
+            publishedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
+            archivedAt: null,
+            createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
+            updatedAt: null,
+        );
+
+        $docRepo->method('findByIdNonArchived')->willReturn($doc);
+        $docRepo->method('findById')->willReturn($doc);
+
+        $tx->method('inTransaction')->willReturn(false);
+        $tx->expects($this->once())->method('begin');
+        $tx->expects($this->once())->method('commit');
+        $tx->expects($this->never())->method('rollback');
+
+        $docRepo->expects($this->never())->method('deactivate');
+        $docRepo->expects($this->once())->method('archive')->with(
+            10,
+            $this->isInstanceOf(\DateTimeImmutable::class)
+        );
+
+        $svc = new DocumentLifecycleService($docRepo, $typeRepo, $tx);
+        $svc->archive(10, new \DateTimeImmutable('2024-01-03 10:00:00'));
+        self::assertTrue(true);
+    }
+
+    public function testArchiveOwnedTransactionRollsBackOnFailure(): void
+    {
+        $docRepo  = $this->createMock(DocumentRepositoryInterface::class);
+        $typeRepo = $this->createMock(DocumentTypeRepositoryInterface::class);
+        $tx       = $this->createMock(TransactionManagerInterface::class);
+
+        $doc = new Document(
+            id: 10,
+            documentTypeId: 55,
+            typeKey: new DocumentTypeKey('terms'),
+            version: new DocumentVersion('v1'),
+            isActive: true,
+            requiresAcceptance: true,
+            publishedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
+            archivedAt: null,
+            createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
+            updatedAt: null,
+        );
+
+        $docRepo->method('findByIdNonArchived')->willReturn($doc);
+        $docRepo->method('findById')->willReturn($doc);
+
+        $tx->method('inTransaction')->willReturn(false);
+        $tx->expects($this->once())->method('begin');
+        $tx->expects($this->never())->method('commit');
+        $tx->expects($this->once())->method('rollback');
+
+        $docRepo->expects($this->once())->method('deactivate')->with(10);
+        $docRepo->expects($this->once())
+            ->method('archive')
+            ->with(10, $this->isInstanceOf(\DateTimeImmutable::class))
+            ->willThrowException(new \RuntimeException('fail'));
+
+        $svc = new DocumentLifecycleService($docRepo, $typeRepo, $tx);
+
+        $this->expectException(\RuntimeException::class);
+        $svc->archive(10, new \DateTimeImmutable('2024-01-03 10:00:00'));
     }
 }

@@ -21,4 +21,6 @@ interface DocumentLifecycleServiceInterface
         DocumentVersion $version,
         bool $requiresAcceptance
     ): int; // returns new document id
+
+    public function archive(int $documentId, DateTimeImmutable $archivedAt): void;
 }

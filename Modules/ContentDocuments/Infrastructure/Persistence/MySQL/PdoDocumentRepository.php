@@ -43,11 +43,12 @@ final readonly class PdoDocumentRepository implements DocumentRepositoryInterfac
     ): ?Document {
         $stmt = $this->pdo->prepare(
             'SELECT d.*
-             FROM documents d
-             JOIN document_types dt ON dt.id = d.document_type_id
-             WHERE dt.`key` = :type_key
-               AND d.version = :version
-             LIMIT 1'
+         FROM documents d
+         JOIN document_types dt ON dt.id = d.document_type_id
+         WHERE dt.`key` = :type_key
+           AND d.version = :version
+           AND d.archived_at IS NULL
+         LIMIT 1'
         );
 
         $stmt->execute([
@@ -91,7 +92,8 @@ final readonly class PdoDocumentRepository implements DocumentRepositoryInterfac
              FROM documents d
              JOIN document_types dt ON dt.id = d.document_type_id
              WHERE dt.`key` = :type_key
-               AND d.is_active = 1
+                AND d.is_active = 1
+                AND d.archived_at IS NULL
              LIMIT 1'
         );
 
@@ -113,10 +115,11 @@ final readonly class PdoDocumentRepository implements DocumentRepositoryInterfac
     {
         $stmt = $this->pdo->prepare(
             'SELECT d.*
-             FROM documents d
-             JOIN document_types dt ON dt.id = d.document_type_id
-             WHERE dt.`key` = :type_key
-             ORDER BY d.created_at DESC'
+         FROM documents d
+         JOIN document_types dt ON dt.id = d.document_type_id
+         WHERE dt.`key` = :type_key
+           AND d.archived_at IS NULL
+         ORDER BY d.created_at DESC'
         );
 
         $stmt->execute(['type_key' => (string) $typeKey]);
@@ -134,6 +137,7 @@ final readonly class PdoDocumentRepository implements DocumentRepositoryInterfac
 
         return $result;
     }
+
 
     public function create(
         int $documentTypeId,
@@ -192,7 +196,8 @@ final readonly class PdoDocumentRepository implements DocumentRepositoryInterfac
         $stmt = $this->pdo->prepare(
             'UPDATE documents
              SET published_at = :published_at
-             WHERE id = :id'
+             WHERE id = :id
+               AND archived_at IS NULL'
         );
 
         $stmt->execute([
@@ -262,7 +267,8 @@ final readonly class PdoDocumentRepository implements DocumentRepositoryInterfac
          FROM documents
          WHERE is_active = 1
            AND published_at IS NOT NULL
-           AND requires_acceptance = 1'
+           AND requires_acceptance = 1
+           AND archived_at IS NULL'
         );
 
         if (!$stmt instanceof \PDOStatement) {
@@ -287,6 +293,9 @@ final readonly class PdoDocumentRepository implements DocumentRepositoryInterfac
     /**
      * @param array<string, mixed> $row
      */
+    /**
+     * @param array<string, mixed> $row
+     */
     private function hydrate(array $row): Document
     {
         $id                 = $row['id'] ?? null;
@@ -296,6 +305,7 @@ final readonly class PdoDocumentRepository implements DocumentRepositoryInterfac
         $isActive           = $row['is_active'] ?? null;
         $requiresAcceptance = $row['requires_acceptance'] ?? null;
         $publishedAt        = $row['published_at'] ?? null;
+        $archivedAt         = $row['archived_at'] ?? null;
         $createdAt          = $row['created_at'] ?? null;
         $updatedAt          = $row['updated_at'] ?? null;
 
@@ -318,13 +328,10 @@ final readonly class PdoDocumentRepository implements DocumentRepositoryInterfac
             version: new DocumentVersion($version),
             isActive: (bool) $isActive,
             requiresAcceptance: (bool) $requiresAcceptance,
-            publishedAt: is_string($publishedAt)
-                ? new DateTimeImmutable($publishedAt)
-                : null,
+            publishedAt: is_string($publishedAt) ? new DateTimeImmutable($publishedAt) : null,
+            archivedAt: is_string($archivedAt) ? new DateTimeImmutable($archivedAt) : null,
             createdAt: new DateTimeImmutable($createdAt),
-            updatedAt: is_string($updatedAt)
-                ? new DateTimeImmutable($updatedAt)
-                : null,
+            updatedAt: is_string($updatedAt) ? new DateTimeImmutable($updatedAt) : null,
         );
     }
 

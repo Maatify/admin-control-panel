@@ -47,7 +47,6 @@ final readonly class DocumentLifecycleService implements DocumentLifecycleServic
         $document = $this->documentRepository->findByIdNonArchived($documentId);
 
         if ($document === null) {
-            // Distinguish: missing vs archived (archived must fail explicitly)
             $maybeArchived = $this->documentRepository->findById($documentId);
             if ($maybeArchived !== null) {
                 throw new InvalidDocumentStateException('Cannot publish archived document.');
@@ -64,9 +63,13 @@ final readonly class DocumentLifecycleService implements DocumentLifecycleServic
 
     public function activate(int $documentId): void
     {
-        $document = $this->documentRepository->findById($documentId);
+        $document = $this->documentRepository->findByIdNonArchived($documentId);
 
         if ($document === null) {
+            $maybeArchived = $this->documentRepository->findById($documentId);
+            if ($maybeArchived !== null) {
+                throw new InvalidDocumentStateException('Cannot activate archived document.');
+            }
             throw new DocumentNotFoundException();
         }
 
@@ -102,18 +105,31 @@ final readonly class DocumentLifecycleService implements DocumentLifecycleServic
 
     public function deactivate(int $documentId): void
     {
+        $document = $this->documentRepository->findByIdNonArchived($documentId);
+
+        if ($document === null) {
+            $maybeArchived = $this->documentRepository->findById($documentId);
+            if ($maybeArchived !== null) {
+                throw new InvalidDocumentStateException('Cannot deactivate archived document.');
+            }
+            throw new DocumentNotFoundException();
+        }
+
         $this->documentRepository->deactivate($documentId);
     }
 
     public function archive(int $documentId, DateTimeImmutable $archivedAt): void
     {
-        // Archive is a *lifecycle* action, not delete:
-        // - preserves data for logs/audit
-        // - removes it from all operational reads (queries filter archived_at)
-
-        $document = $this->documentRepository->findById($documentId);
+        // Idempotent archive:
+        // - if already archived => no-op
+        // - if missing => NotFound
+        $document = $this->documentRepository->findByIdNonArchived($documentId);
 
         if ($document === null) {
+            $maybeArchived = $this->documentRepository->findById($documentId);
+            if ($maybeArchived !== null) {
+                return; // already archived => no-op
+            }
             throw new DocumentNotFoundException();
         }
 
@@ -125,12 +141,11 @@ final readonly class DocumentLifecycleService implements DocumentLifecycleServic
         }
 
         try {
-            // Ensure it can't remain active, even if called directly.
+            // Safety: ensure it can’t remain active (even if repo already enforces it)
             if ($document->isActive) {
                 $this->documentRepository->deactivate($documentId);
             }
 
-            // Repository is idempotent: WHERE archived_at IS NULL
             $this->documentRepository->archive($documentId, $archivedAt);
 
             if ($owned) {

@@ -17,6 +17,7 @@ final readonly class Document
         public bool $isActive,
         public bool $requiresAcceptance,
         public ?\DateTimeImmutable $publishedAt,
+        public ?\DateTimeImmutable $archivedAt,
         public \DateTimeImmutable $createdAt,
         public ?\DateTimeImmutable $updatedAt,
     ) {
@@ -25,5 +26,10 @@ final readonly class Document
     public function isPublished(): bool
     {
         return $this->publishedAt !== null;
+    }
+
+    public function isArchived(): bool
+    {
+        return $this->archivedAt !== null;
     }
 }
