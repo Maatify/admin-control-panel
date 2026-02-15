@@ -13,6 +13,9 @@ Stores the logical document definitions.
 - `is_system`: TINYINT(1) - System vs user-defined.
 - `created_at`, `updated_at`: DATETIME
 
+**Unique Constraints:**
+- `uq_document_types_key`: (`key`)
+
 ### 2. `documents`
 Stores versioned instances of a document type.
 

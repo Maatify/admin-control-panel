@@ -59,33 +59,37 @@ Value objects encapsulate domain primitives and enforce validity.
 
 DTOs are used to pass data across service boundaries.
 
+- **AcceptDocumentDTO**: Command DTO for acceptance operations.
+- **AcceptanceDTO**: Generic acceptance data structure.
+- **AcceptanceReceiptDTO**: Returns the result of an acceptance action.
+- **ActivateDocumentDTO**: Command DTO for activation operations.
+- **CreateDocumentVersionDTO**: Command DTO for version creation.
 - **DocumentDTO**: Full representation of a `Document` entity.
-- **DocumentViewDTO**: Combined representation for UI/API responses, including `translation`.
 - **DocumentTranslationDTO**: Represents translation data (title, content, etc.).
 - **DocumentTypeDTO**: Represents a `DocumentType`.
 - **DocumentVersionItemDTO**: Lightweight summary for listing versions.
 - **DocumentVersionWithTranslationDTO**: `DocumentDTO` + `DocumentTranslationDTO`.
-- **AcceptanceReceiptDTO**: Returns the result of an acceptance action.
+- **DocumentViewDTO**: Combined representation for UI/API responses, including `translation`.
 - **EnforcementResultDTO**: Result of checking if an actor has pending acceptances.
-- **AcceptanceDTO**: Generic acceptance data structure.
-- **RequiredAcceptanceDTO**: Data structure for required acceptance checks.
-- **AcceptDocumentDTO**: Command DTO for acceptance operations.
-- **ActivateDocumentDTO**: Command DTO for activation operations.
-- **CreateDocumentVersionDTO**: Command DTO for version creation.
 - **PublishDocumentDTO**: Command DTO for publishing operations.
+- **RequiredAcceptanceDTO**: Data structure for required acceptance checks.
 
 ## 4. Exceptions
 
 Specific exceptions are thrown for domain rule violations.
 
-- **DocumentVersionImmutableException**: Thrown when attempting to modify a published/active/archived document.
-- **DocumentNotFoundException**: Thrown when a requested document does not exist.
-- **DocumentTypeNotFoundException**: Thrown when a document type key is invalid.
-- **DocumentTranslationNotFoundException**: Thrown when a translation is missing.
-- **DocumentTranslationAlreadyExistsException**: Thrown on duplicate translation creation.
-- **DocumentAlreadyAcceptedException**: Thrown if an actor tries to accept the same version twice.
+- **ContentDocumentsException**: Base exception for the module.
+- **ContentDocumentsInvalidArgumentException**: Thrown for invalid arguments.
 - **DocumentActivationConflictException**: Thrown if multiple documents try to be active simultaneously (race condition).
-- **InvalidDocumentStateException**: Thrown for invalid lifecycle transitions (e.g., activating an unpublished doc).
+- **DocumentAlreadyAcceptedException**: Thrown if an actor tries to accept the same version twice.
+- **DocumentNotFoundException**: Thrown when a requested document does not exist.
+- **DocumentTranslationAlreadyExistsException**: Thrown on duplicate translation creation.
+- **DocumentTranslationNotFoundException**: Thrown when a translation is missing.
+- **DocumentTypeAlreadyExistsException**: Thrown when trying to create a duplicate document type.
+- **DocumentTypeNotFoundException**: Thrown when a document type key is invalid.
+- **DocumentVersionAlreadyExistsException**: Thrown when trying to create a duplicate version.
+- **DocumentVersionImmutableException**: Thrown when attempting to modify a published/active/archived document.
 - **InvalidActorIdentityException**: Thrown for malformed actor identity strings.
+- **InvalidDocumentStateException**: Thrown for invalid lifecycle transitions (e.g., activating an unpublished doc).
 - **InvalidDocumentTypeKeyException**: Thrown for invalid type key format.
 - **InvalidDocumentVersionException**: Thrown for invalid version string format.
