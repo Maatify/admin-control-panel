@@ -326,12 +326,12 @@ class Container
 
         // Currently bound to login flow only.
         // Extendable when AbusePolicy supports multi-context challenges.
-        $hCaptchaConfigDTO = new HCaptchaConfigDto(
+        $hCaptchaConfigDTO = new HCaptchaConfigDTO(
             siteKey: $runtime->hCaptchaSiteKey,
             secretKey: $runtime->hCaptchaSecretKey
         );
 
-        $recaptchaV2ConfigDTO = new RecaptchaV2ConfigDto(
+        $recaptchaV2ConfigDTO = new RecaptchaV2ConfigDTO(
             siteKey: $runtime->recaptchaV2SiteKey,
             secretKey: $runtime->recaptchaV2SecretKey
         );
@@ -366,10 +366,10 @@ class Container
             TurnstileConfigDTO::class => function () use ($turnstileConfigDTO) {
                 return $turnstileConfigDTO;
             },
-            HCaptchaConfigDto::class => function () use ($hCaptchaConfigDTO) {
+            HCaptchaConfigDTO::class => function () use ($hCaptchaConfigDTO) {
                 return $hCaptchaConfigDTO;
             },
-            RecaptchaV2ConfigDto::class => function () use ($recaptchaV2ConfigDTO) {
+            RecaptchaV2ConfigDTO::class => function () use ($recaptchaV2ConfigDTO) {
                 return $recaptchaV2ConfigDTO;
             },
             ValidatorInterface::class => function (ContainerInterface $c) {
@@ -2659,6 +2659,8 @@ class Container
                 assert($documentRepository instanceof \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface);
                 $translationRepository = $c->get(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTranslationRepositoryInterface::class);
                 assert($translationRepository instanceof \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTranslationRepositoryInterface);
+                $queryService = $c->get(\Maatify\ContentDocuments\Domain\Contract\Service\DocumentQueryServiceInterface::class);
+                assert($queryService instanceof \Maatify\ContentDocuments\Domain\Contract\Service\DocumentQueryServiceInterface);
                 $acceptanceService = $c->get(\Maatify\ContentDocuments\Domain\Contract\Service\DocumentAcceptanceServiceInterface::class);
                 assert($acceptanceService instanceof \Maatify\ContentDocuments\Domain\Contract\Service\DocumentAcceptanceServiceInterface);
                 $lifecycleService = $c->get(\Maatify\ContentDocuments\Domain\Contract\Service\DocumentLifecycleServiceInterface::class);
@@ -2670,6 +2672,7 @@ class Container
                 return new \Maatify\ContentDocuments\Application\Service\ContentDocumentsFacade(
                     $documentRepository,
                     $translationRepository,
+                    $queryService,
                     $acceptanceService,
                     $lifecycleService,
                     $enforcementService,

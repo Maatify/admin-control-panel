@@ -10,13 +10,13 @@ use Maatify\ContentDocuments\Domain\Contract\Service\ContentDocumentsFacadeInter
 use Maatify\ContentDocuments\Domain\Contract\Service\DocumentAcceptanceServiceInterface;
 use Maatify\ContentDocuments\Domain\Contract\Service\DocumentEnforcementServiceInterface;
 use Maatify\ContentDocuments\Domain\Contract\Service\DocumentLifecycleServiceInterface;
+use Maatify\ContentDocuments\Domain\Contract\Service\DocumentQueryServiceInterface;
 use Maatify\ContentDocuments\Domain\DTO\AcceptanceReceiptDTO;
 use Maatify\ContentDocuments\Domain\DTO\DocumentDTO;
 use Maatify\ContentDocuments\Domain\DTO\DocumentTranslationDTO;
 use Maatify\ContentDocuments\Domain\DTO\DocumentViewDTO;
 use Maatify\ContentDocuments\Domain\DTO\DocumentVersionItemDTO;
 use Maatify\ContentDocuments\Domain\DTO\EnforcementResultDTO;
-use Maatify\ContentDocuments\Domain\Entity\DocumentAcceptance;
 use Maatify\ContentDocuments\Domain\Exception\DocumentNotFoundException;
 use Maatify\ContentDocuments\Domain\ValueObject\ActorIdentity;
 use Maatify\ContentDocuments\Domain\ValueObject\DocumentTypeKey;
@@ -28,6 +28,7 @@ final readonly class ContentDocumentsFacade implements ContentDocumentsFacadeInt
     public function __construct(
         private DocumentRepositoryInterface $documentRepository,
         private DocumentTranslationRepositoryInterface $translationRepository,
+        private DocumentQueryServiceInterface $queryService,
         private DocumentAcceptanceServiceInterface $acceptanceService,
         private DocumentLifecycleServiceInterface $lifecycleService,
         private DocumentEnforcementServiceInterface $enforcementService,
@@ -98,23 +99,7 @@ final readonly class ContentDocumentsFacade implements ContentDocumentsFacadeInt
 
     public function getDocumentById(int $documentId): ?DocumentDTO
     {
-        $doc = $this->documentRepository->findById($documentId);
-
-        if ($doc === null) {
-            return null;
-        }
-
-        return new DocumentDTO(
-            id: $doc->id,
-            documentTypeId: $doc->documentTypeId,
-            typeKey: (string) $doc->typeKey,
-            version: (string) $doc->version,
-            isActive: $doc->isActive,
-            requiresAcceptance: $doc->requiresAcceptance,
-            publishedAt: $doc->publishedAt,
-            createdAt: $doc->createdAt,
-            updatedAt: $doc->updatedAt
-        );
+        return $this->queryService->getById($documentId);
     }
 
     public function createVersion(
@@ -144,20 +129,7 @@ final readonly class ContentDocumentsFacade implements ContentDocumentsFacadeInt
         int $documentId,
         int $languageId
     ): ?DocumentTranslationDTO {
-        $t = $this->translationRepository->findByDocumentAndLanguage($documentId, $languageId);
-
-        if ($t === null) {
-            return null;
-        }
-
-        return new DocumentTranslationDTO(
-            documentId: $t->documentId,
-            languageId: $t->languageId,
-            title: $t->title,
-            metaTitle: $t->metaTitle,
-            metaDescription: $t->metaDescription,
-            content: $t->content
-        );
+        return $this->queryService->getTranslationByDocumentId($documentId, $languageId);
     }
 
     public function saveTranslation(DocumentTranslationDTO $translation): void
