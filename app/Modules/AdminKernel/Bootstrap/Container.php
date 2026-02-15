@@ -221,8 +221,6 @@ use Maatify\EmailDelivery\Transport\EmailTransportInterface;
 use Maatify\EmailDelivery\Transport\SmtpEmailTransport;
 use Maatify\I18n\Contract\TranslationKeyRepositoryInterface;
 use Maatify\I18n\Contract\TranslationRepositoryInterface;
-use Maatify\I18n\Infrastructure\Mysql\MysqlTranslationKeyRepository;
-use Maatify\I18n\Infrastructure\Mysql\MysqlTranslationRepository;
 use Maatify\InputNormalization\Contracts\InputNormalizerInterface;
 use Maatify\InputNormalization\Middleware\InputNormalizationMiddleware;
 use Maatify\InputNormalization\Normalizer\InputNormalizer;
@@ -2270,19 +2268,6 @@ class Container
                 );
             },
 
-            TranslationKeyRepositoryInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new MysqlTranslationKeyRepository($pdo);
-            },
-
-            TranslationRepositoryInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new MysqlTranslationRepository($pdo);
-            },
-
-
             \Maatify\AdminKernel\Domain\I18n\LanguageTranslationValue\LanguageTranslationValueQueryReaderInterface::class => function (\Psr\Container\ContainerInterface $c) {
                 $pdo = $c->get(\PDO::class);
                 \assert($pdo instanceof \PDO);
@@ -2369,24 +2354,6 @@ class Container
                 );
             },
 
-            \Maatify\I18n\Contract\ScopeRepositoryInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new \Maatify\I18n\Infrastructure\Mysql\MysqlScopeRepository($pdo);
-            },
-
-            \Maatify\I18n\Contract\DomainScopeRepositoryInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new \Maatify\I18n\Infrastructure\Mysql\MysqlDomainScopeRepository($pdo);
-            },
-
-            \Maatify\I18n\Contract\DomainRepositoryInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new \Maatify\I18n\Infrastructure\Mysql\MysqlDomainRepository($pdo);
-            },
-
             \Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopesListUiController::class
             => function (ContainerInterface $c) {
                 $twig = $c->get(Twig::class);
@@ -2462,17 +2429,6 @@ class Container
                 return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Languages\PdoLanguageLookup($pdo);
             },
 
-            \Maatify\I18n\Contract\DomainLanguageSummaryRepositoryInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new \Maatify\I18n\Infrastructure\Mysql\MysqlDomainLanguageSummaryRepository($pdo);
-            },
-
-            \Maatify\I18n\Contract\I18nTransactionManagerInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new \Maatify\I18n\Infrastructure\Mysql\MysqlI18nTransactionManager($pdo);
-            },
 
             \Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsListReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
@@ -2496,12 +2452,6 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Translations\PdoI18nScopeDomainKeysSummaryQueryReader($pdo);
-            },
-
-            \Maatify\I18n\Contract\KeyStatsRepositoryInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new \Maatify\I18n\Infrastructure\Mysql\MysqlKeyStatsRepository($pdo);
             },
 
             \Maatify\AdminKernel\Domain\I18n\Translations\I18nScopeDomainTranslationsQueryReaderInterface::class => function (ContainerInterface $c) {
@@ -2569,11 +2519,16 @@ class Container
 
         ]);
 
-        // Register internal modules
-        \Maatify\ContentDocuments\Bootstrap\ContentDocumentsBindings::register($containerBuilder);
+        // ------- Register internal modules -------
 
         // Register LanguageCore modules
         \Maatify\LanguageCore\Bootstrap\LanguageCoreBindings::register($containerBuilder);
+
+        // Register I18n modules
+        \Maatify\I18n\Bootstrap\I18nBindings::register($containerBuilder);
+
+        // Register ContentDocuments modules
+        \Maatify\ContentDocuments\Bootstrap\ContentDocumentsBindings::register($containerBuilder);
 
         // Extension Hook: Allow host projects to override/extend bindings
         if ($builderHook !== null) {
