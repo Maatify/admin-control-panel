@@ -6,6 +6,7 @@ namespace Maatify\ContentDocuments\Domain\Contract\Service;
 
 use Maatify\ContentDocuments\Domain\DTO\DocumentDTO;
 use Maatify\ContentDocuments\Domain\DTO\DocumentTranslationDTO;
+use Maatify\ContentDocuments\Domain\DTO\DocumentVersionItemDTO;
 use Maatify\ContentDocuments\Domain\DTO\DocumentVersionWithTranslationDTO;
 use Maatify\ContentDocuments\Domain\ValueObject\DocumentTypeKey;
 
@@ -37,4 +38,9 @@ interface DocumentQueryServiceInterface
         DocumentTypeKey $typeKey,
         int $languageId
     ): array;
+
+    /**
+     * @return list<DocumentVersionItemDTO>
+     */
+    public function getVersionItems(DocumentTypeKey $typeKey): array;
 }

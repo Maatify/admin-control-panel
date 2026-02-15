@@ -68,22 +68,7 @@ final readonly class ContentDocumentsFacade implements ContentDocumentsFacadeInt
      */
     public function listVersions(DocumentTypeKey $typeKey): array
     {
-        $versions = $this->documentRepository->findVersionsByType($typeKey);
-
-        $out = [];
-
-        foreach ($versions as $doc) {
-            $out[] = new DocumentVersionItemDTO(
-                documentId: $doc->id,
-                version: (string) $doc->version,
-                isActive: $doc->isActive,
-                requiresAcceptance: $doc->requiresAcceptance,
-                publishedAt: $doc->publishedAt,
-                createdAt: $doc->createdAt
-            );
-        }
-
-        return $out;
+        return $this->queryService->getVersionItems($typeKey);
     }
 
     public function getDocumentById(int $documentId): ?DocumentDTO

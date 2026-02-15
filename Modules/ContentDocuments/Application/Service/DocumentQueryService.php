@@ -9,6 +9,7 @@ use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTranslationRepos
 use Maatify\ContentDocuments\Domain\Contract\Service\DocumentQueryServiceInterface;
 use Maatify\ContentDocuments\Domain\DTO\DocumentDTO;
 use Maatify\ContentDocuments\Domain\DTO\DocumentTranslationDTO;
+use Maatify\ContentDocuments\Domain\DTO\DocumentVersionItemDTO;
 use Maatify\ContentDocuments\Domain\DTO\DocumentVersionWithTranslationDTO;
 use Maatify\ContentDocuments\Domain\Entity\Document;
 use Maatify\ContentDocuments\Domain\ValueObject\DocumentTypeKey;
@@ -55,6 +56,30 @@ final class DocumentQueryService implements DocumentQueryServiceInterface
             $this->documentRepository->findVersionsByType($typeKey)
         );
     }
+
+    /**
+     * @return list<DocumentVersionItemDTO>
+     */
+    public function getVersionItems(DocumentTypeKey $typeKey): array
+    {
+        $versions = $this->documentRepository->findVersionsByType($typeKey);
+
+        $out = [];
+
+        foreach ($versions as $doc) {
+            $out[] = new DocumentVersionItemDTO(
+                documentId: $doc->id,
+                version: (string) $doc->version,
+                isActive: $doc->isActive,
+                requiresAcceptance: $doc->requiresAcceptance,
+                publishedAt: $doc->publishedAt,
+                createdAt: $doc->createdAt
+            );
+        }
+
+        return $out;
+    }
+
 
     public function getById(int $documentId): ?DocumentDTO
     {
