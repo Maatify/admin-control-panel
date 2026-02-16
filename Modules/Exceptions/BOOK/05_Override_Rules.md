@@ -22,6 +22,8 @@ If you provide an `$errorCodeOverride` in the constructor:
 *   `ValidationMaatifyException` allows `INVALID_ARGUMENT`.
 *   It forbids `DATABASE_CONNECTION_FAILED`.
 
+*(Note: Since `ValidationMaatifyException` is abstract, these rules apply to any concrete class extending it.)*
+
 ## 3. HTTP Status Class Guard
 
 If you provide an `$httpStatusOverride`:

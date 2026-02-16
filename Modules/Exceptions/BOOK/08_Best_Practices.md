@@ -10,8 +10,9 @@ Prefer throwing a specific exception (e.g., `InvalidArgumentMaatifyException`) o
 // Good
 throw new InvalidArgumentMaatifyException('Email is invalid');
 
-// Bad
-throw new ValidationMaatifyException('Email is invalid', 0, null, ErrorCodeEnum::INVALID_ARGUMENT);
+// Bad (Do not instantiate generic families directly)
+class MyValidationException extends ValidationMaatifyException {}
+throw new MyValidationException('Email is invalid', 0, null, ErrorCodeEnum::INVALID_ARGUMENT);
 ```
 
 ## 2. Wrap Low-Level Exceptions
