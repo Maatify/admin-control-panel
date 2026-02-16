@@ -19,10 +19,8 @@ namespace Maatify\AppSettings\Enum;
  * Enum: AppSettingValueTypeEnum
  *
  * Represents the logical type of an application setting value.
- * This enum is used at the application layer only.
  *
  * NOTE:
- * - Database always stores values as TEXT
  * - Casting / parsing decisions are handled by the service layer
  */
 enum AppSettingValueTypeEnum: string

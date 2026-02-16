@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\AppSettings\Validation;
 
+use Maatify\AppSettings\Enum\AppSettingValueTypeEnum;
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
@@ -26,6 +27,16 @@ final class AppSettingsCreateSchema extends AbstractSchema
             'setting_value' => [
                 v::stringType()->length(1, null),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
+            ],
+
+            'setting_type' => [
+                v::optional(v::in([
+                    AppSettingValueTypeEnum::STRING->value,
+                    AppSettingValueTypeEnum::INT->value,
+                    AppSettingValueTypeEnum::BOOL->value,
+                    AppSettingValueTypeEnum::JSON->value
+                ])),
+                ValidationErrorCodeEnum::INVALID_VALUE
             ],
 
             'is_active' => [
