@@ -10,7 +10,8 @@ A common pattern in PHP is to wrap exceptions:
 try {
     $db->connect(); // Throws 503 System Error
 } catch (Exception $e) {
-    throw new BusinessRuleException("Cannot process request", 0, $e); // Throws 422 Business Rule
+    // Attempting to wrap in a business rule exception
+    throw new class("Cannot process request", 0, $e) extends BusinessRuleMaatifyException {};
 }
 ```
 

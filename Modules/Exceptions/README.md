@@ -55,7 +55,8 @@ try {
     throw new DatabaseConnectionMaatifyException('Connection timeout');
 } catch (DatabaseConnectionMaatifyException $e) {
     // Attempting to wrap it in a "softer" business exception
-    throw new BusinessRuleMaatifyException('Unable to process order', 0, $e);
+    // Note: BusinessRuleMaatifyException is abstract, so we use an anonymous class for this example
+    throw new class('Unable to process order', 0, $e) extends BusinessRuleMaatifyException {};
 }
 
 // RESULT:

@@ -32,8 +32,11 @@ Business rule exceptions represent domain-specific violations (e.g., trying to a
 ```php
 use Maatify\Exceptions\Exception\BusinessRule\BusinessRuleMaatifyException;
 
+// Note: BusinessRuleMaatifyException is abstract. You must extend it.
+class RefundException extends BusinessRuleMaatifyException {}
+
 // Throws a 422 Unprocessable Entity (BUSINESS_RULE)
-throw new BusinessRuleMaatifyException('Cannot refund order #1234');
+throw new RefundException('Cannot refund order #1234');
 ```
 
 ---
@@ -50,13 +53,16 @@ You can change the specific HTTP status code, but it **must remain within the sa
 use Maatify\Exceptions\Exception\Validation\ValidationMaatifyException;
 use Maatify\Exceptions\Enum\ErrorCodeEnum;
 
-// Allowed: 400 (Bad Request) -> 409 (Conflict) - Both are Client Errors
-throw new ValidationMaatifyException(
-    'Conflict detected',
+// Allowed: 400 (Bad Request) -> 422 (Unprocessable Entity) - Both are Client Errors
+// Note: ValidationMaatifyException is abstract, so we extend it
+class DetailedValidationException extends ValidationMaatifyException {}
+
+throw new DetailedValidationException(
+    'Invalid input',
     0,
     null,
     ErrorCodeEnum::INVALID_ARGUMENT,
-    409
+    422
 );
 
 // Forbidden: 400 (Client Error) -> 500 (Server Error)

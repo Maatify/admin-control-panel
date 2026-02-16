@@ -10,9 +10,13 @@ When writing unit tests (e.g., PHPUnit), assert that the expected `MaatifyExcept
 public function test_invalid_email_throws_exception()
 {
     $this->expectException(InvalidArgumentMaatifyException::class);
-    $this->expectExceptionCode(ErrorCodeEnum::INVALID_ARGUMENT->value);
 
-    $service->createUser('invalid-email');
+    try {
+        $service->createUser('invalid-email');
+    } catch (InvalidArgumentMaatifyException $e) {
+        $this->assertSame(ErrorCodeEnum::INVALID_ARGUMENT, $e->getErrorCode());
+        throw $e;
+    }
 }
 ```
 
@@ -24,9 +28,13 @@ If you are wrapping exceptions, verify that the final exception has the expected
 public function test_escalation_system_to_business()
 {
     $systemError = new DatabaseConnectionMaatifyException('DB Error');
-    $wrapper = new BusinessRuleMaatifyException('Business Error', 0, $systemError);
+    // Using anonymous class because BusinessRuleMaatifyException is abstract
+    $wrapper = new class('Business Error', 0, $systemError) extends BusinessRuleMaatifyException {};
 
+    // Category escalated from BUSINESS_RULE (40) to SYSTEM (90)
     $this->assertSame(ErrorCategoryEnum::SYSTEM, $wrapper->getCategory());
+
+    // Status escalated from 422 to 503
     $this->assertSame(503, $wrapper->getHttpStatus());
 }
 ```
@@ -40,12 +48,13 @@ public function test_custom_exception_constraints()
 {
     $this->expectException(LogicException::class);
 
-    // Attempting to override with an invalid code
-    new ValidationMaatifyException(
+    // ValidationMaatifyException is abstract
+    // Attempting to override with an invalid code via anonymous class
+    new class(
         'Error',
         0,
         null,
         ErrorCodeEnum::DATABASE_CONNECTION_FAILED
-    );
+    ) extends ValidationMaatifyException {};
 }
 ```
