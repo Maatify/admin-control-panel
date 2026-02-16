@@ -25,57 +25,12 @@ use Maatify\AppSettings\Exception\InvalidAppSettingException;
  *
  * Design Notes:
  * - Injectable (DI-friendly)
- * - Has secure default allowed map
- * - Host project may override via container definition
+ * - Pure configuration (no hardcoded defaults)
+ * - Host project MUST provide whitelist via container definition
  * - Prevents config drift & typos
  */
 final class AppSettingsWhitelistPolicy
 {
-    /**
-     * Secure default whitelist.
-     *
-     * @var array<string, array<int, string>>
-     */
-    private const DEFAULT_ALLOWED = [
-        'social' => [
-            'email',
-            'facebook',
-            'twitter',
-            'instagram',
-            'linkedin',
-            'youtube',
-            'whatsapp',
-        ],
-
-        'apps' => [
-            'android',
-            'ios',
-            'huawei',
-            'android_agent',
-            'ios_agent',
-            'huawei_agent',
-        ],
-
-        'legal' => [
-            'about_us',
-            'privacy_policy',
-            'returns_refunds_policy',
-        ],
-
-        'meta' => [
-            'dev_name',
-            'dev_url',
-        ],
-
-        'feature_flags' => ['*'],
-
-        'system' => [
-            'base_url',
-            'environment',
-            'timezone',
-        ],
-    ];
-
     /**
      * Normalized allowed map.
      *
@@ -84,12 +39,10 @@ final class AppSettingsWhitelistPolicy
     private array $allowed;
 
     /**
-     * @param array<string, array<int, string>>|null $allowed
+     * @param array<string, array<int, string>> $allowed
      */
-    public function __construct(?array $allowed = null)
+    public function __construct(array $allowed = [])
     {
-        $allowed ??= self::DEFAULT_ALLOWED;
-
         $this->allowed = $this->normalizeAllowed($allowed);
     }
 
