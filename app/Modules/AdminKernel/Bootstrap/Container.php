@@ -199,7 +199,6 @@ use Maatify\AdminKernel\Kernel\Adapter\PasswordPepperEnvAdapter;
 use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
 use Maatify\AppSettings\Policy\AppSettingsProtectionPolicy;
 use Maatify\AppSettings\Policy\AppSettingsWhitelistPolicy;
-use Maatify\AppSettings\Repository\AppSettingsRepositoryInterface;
 use Maatify\Crypto\Contract\CryptoContextProviderInterface;
 use Maatify\Crypto\DX\CryptoContextFactory;
 use Maatify\Crypto\DX\CryptoDirectFactory;
@@ -230,9 +229,7 @@ use Maatify\LanguageCore\Http\Controllers\Api\LanguageDropdownController;
 use Maatify\LanguageCore\Service\LanguageManagementService;
 use Maatify\PsrLogger\LoggerFactory;
 use Maatify\SharedCommon\Contracts\ClockInterface;
-use Maatify\Validation\Contracts\ValidatorInterface;
 use Maatify\Validation\Guard\ValidationGuard;
-use Maatify\Validation\Validator\RespectValidator;
 use PDO;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
@@ -368,14 +365,7 @@ class Container
             RecaptchaV2ConfigDTO::class => function () use ($recaptchaV2ConfigDTO) {
                 return $recaptchaV2ConfigDTO;
             },
-            ValidatorInterface::class => function (ContainerInterface $c) {
-                return new RespectValidator();
-            },
-            ValidationGuard::class => function (ContainerInterface $c) {
-                $validator = $c->get(ValidatorInterface::class);
-                assert($validator instanceof ValidatorInterface);
-                return new ValidationGuard($validator);
-            },
+
             InputNormalizerInterface::class => function (ContainerInterface $c) {
                 return new InputNormalizer();
             },
@@ -2521,14 +2511,17 @@ class Container
 
         // ------- Register internal modules -------
 
-        // Register LanguageCore modules
+        // Register Maatify\LanguageCore modules
         \Maatify\LanguageCore\Bootstrap\LanguageCoreBindings::register($containerBuilder);
 
-        // Register I18n modules
+        // Register Maatify\I18n modules
         \Maatify\I18n\Bootstrap\I18nBindings::register($containerBuilder);
 
-        // Register ContentDocuments modules
+        // Register Maatify\ContentDocuments modules
         \Maatify\ContentDocuments\Bootstrap\ContentDocumentsBindings::register($containerBuilder);
+
+        // Register Maatify\Validation modules
+        \Maatify\Validation\Bootstrap\ValidationBindings::register($containerBuilder);
 
         // Extension Hook: Allow host projects to override/extend bindings
         if ($builderHook !== null) {
