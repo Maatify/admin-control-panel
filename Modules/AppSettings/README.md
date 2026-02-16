@@ -123,7 +123,7 @@ The module enforces strict typing for configuration values:
 - **STRING**: Always valid.
 - **INT**: Must be numeric and castable to an integer.
 - **BOOL**: Accepts only `true`, `false`, `1`, `0` (case-insensitive).
-- **JSON**: Must be valid JSON string; returns associative array.
+- **JSON**: Must be valid JSON string array or object; returns associative array. Scalars are rejected.
 
 **Validation:**
 `create()` and `update()` throw `InvalidAppSettingException` if the value violates the type rules.
@@ -176,7 +176,15 @@ $appSettings->setActive(
 ### Whitelist Policy
 
 * Only predefined groups and keys are allowed
-* Any unknown group/key throws an exception
+* Any unknown group/key throws an exception (unless deactivating an existing orphan)
+
+### Orphaned Settings Logic
+
+Settings that exist in the database but are removed from the whitelist are considered **orphaned**.
+- They appear in query lists with `is_whitelisted = false`.
+- They are **Read-Only** (cannot update value).
+- They can be **Deactivated** (to allow cleanup).
+- They **Cannot be Activated**.
 
 ### Protection Policy
 

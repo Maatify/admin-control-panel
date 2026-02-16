@@ -152,6 +152,7 @@ $capabilities = [
       "setting_type": "string",
       "is_active": 1,
       "is_protected": true,
+      "is_whitelisted": true,
       "is_editable": false
     }
   ],
@@ -168,6 +169,7 @@ $capabilities = [
 
 * `setting_type`: `string`, `int`, `bool`, or `json`.
 * `is_protected`: this setting is protected by policy and cannot be modified/deactivated.
+* `is_whitelisted`: `true` if this key is allowed by the current whitelist; `false` if orphaned.
 * `is_editable`: UI must use this to enable/disable edit + toggle actions.
 
 **Pagination Meanings:**
