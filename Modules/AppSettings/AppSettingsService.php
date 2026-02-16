@@ -15,6 +15,9 @@ declare(strict_types=1);
 
 namespace Maatify\AppSettings;
 
+use PDOException;
+use Maatify\AppSettings\Enum\AppSettingValueTypeEnum;
+use Maatify\AppSettings\Exception\DuplicateAppSettingException;
 use Maatify\AppSettings\Repository\AppSettingsRepositoryInterface;
 use Maatify\AppSettings\DTO\AppSettingDTO;
 use Maatify\AppSettings\DTO\AppSettingKeyDTO;
@@ -24,6 +27,7 @@ use Maatify\AppSettings\Policy\AppSettingsWhitelistPolicy;
 use Maatify\AppSettings\Policy\AppSettingsProtectionPolicy;
 use Maatify\AppSettings\Exception\AppSettingNotFoundException;
 use Maatify\AppSettings\Exception\InvalidAppSettingException;
+use UnexpectedValueException;
 
 /**
  * Class: AppSettingsService
@@ -54,12 +58,36 @@ final class AppSettingsService implements AppSettingsServiceInterface
         $value = $row['setting_value'] ?? null;
 
         if (! is_string($value)) {
-            throw new \UnexpectedValueException(
+            throw new UnexpectedValueException(
                 sprintf('Invalid value type for setting "%s.%s"', $group, $key)
             );
         }
 
         return $value;
+    }
+
+    public function getTyped(string $group, string $key): mixed
+    {
+        $this->whitelistPolicy->assertAllowed($group, $key);
+
+        $row = $this->repository->findOne($group, $key, true);
+
+        if ($row === null) {
+            throw new AppSettingNotFoundException(
+                sprintf('Setting "%s.%s" not found or inactive', $group, $key)
+            );
+        }
+
+        $value = $row['setting_value'];
+        $typeStr = $row['setting_type'] ?? 'string';
+        $type = AppSettingValueTypeEnum::tryFrom($typeStr) ?? AppSettingValueTypeEnum::STRING;
+
+        return match ($type) {
+            AppSettingValueTypeEnum::INT => (int)$value,
+            AppSettingValueTypeEnum::BOOL => in_array(strtolower($value), ['true', '1'], true),
+            AppSettingValueTypeEnum::JSON => json_decode($value, true) ?? [],
+            default => (string)$value,
+        };
     }
 
     public function has(string $group, string $key): bool
@@ -98,14 +126,19 @@ final class AppSettingsService implements AppSettingsServiceInterface
     {
         $this->whitelistPolicy->assertAllowed($dto->group, $dto->key);
 
-        if ($this->repository->exists($dto->group, $dto->key, false)) {
-            throw new InvalidAppSettingException(
-                sprintf('Setting "%s.%s" already exists', $dto->group, $dto->key)
-            );
-        }
+        $this->validateValue($dto->value, $dto->valueType);
 
-        // Repository now handles setting_type from DTO
-        $this->repository->insert($dto);
+        try {
+            $this->repository->insert($dto);
+        } catch (PDOException $e) {
+            if ($e->getCode() == 23000 || $e->getCode() == 1062) {
+                throw new DuplicateAppSettingException(
+                    sprintf('Setting "%s.%s" already exists', $dto->group, $dto->key),
+                    previous: $e
+                );
+            }
+            throw $e;
+        }
     }
 
     public function update(AppSettingUpdateDTO $dto): void
@@ -116,11 +149,20 @@ final class AppSettingsService implements AppSettingsServiceInterface
 
         $this->protectionPolicy->assertNotProtected($key);
 
-        if (! $this->repository->exists($dto->group, $dto->key, false)) {
+        // Fetch existing to get current type if not provided, and ensure exists
+        $row = $this->repository->findOne($dto->group, $dto->key, false);
+
+        if ($row === null) {
             throw new AppSettingNotFoundException(
                 sprintf('Setting "%s.%s" does not exist', $dto->group, $dto->key)
             );
         }
+
+        $currentTypeStr = $row['setting_type'] ?? 'string';
+        $currentType = AppSettingValueTypeEnum::tryFrom($currentTypeStr) ?? AppSettingValueTypeEnum::STRING;
+        $targetType = $dto->valueType ?? $currentType;
+
+        $this->validateValue($dto->value, $targetType);
 
         // Repository now handles setting_type if present in DTO
         $this->repository->updateValue($dto);
@@ -166,5 +208,39 @@ final class AppSettingsService implements AppSettingsServiceInterface
         }
 
         return $rows;
+    }
+
+    private function validateValue(string $value, AppSettingValueTypeEnum $type): void
+    {
+        switch ($type) {
+            case AppSettingValueTypeEnum::INT:
+                if (filter_var($value, FILTER_VALIDATE_INT) === false) {
+                    throw new InvalidAppSettingException(
+                        sprintf('Value "%s" is not a valid integer', $value)
+                    );
+                }
+                break;
+
+            case AppSettingValueTypeEnum::BOOL:
+                if (! in_array(strtolower($value), ['true', 'false', '1', '0'], true)) {
+                    throw new InvalidAppSettingException(
+                        sprintf('Value "%s" is not a valid boolean', $value)
+                    );
+                }
+                break;
+
+            case AppSettingValueTypeEnum::JSON:
+                json_decode($value);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    throw new InvalidAppSettingException(
+                        'Value is not valid JSON: ' . json_last_error_msg()
+                    );
+                }
+                break;
+
+            case AppSettingValueTypeEnum::STRING:
+            default:
+                break;
+        }
     }
 }

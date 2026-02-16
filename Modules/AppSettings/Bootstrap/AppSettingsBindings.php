@@ -60,12 +60,56 @@ use Psr\Container\ContainerInterface;
  */
 final class AppSettingsBindings
 {
+    private const DEFAULT_WHITELIST = [
+        'social' => [
+            'email',
+            'facebook',
+            'twitter',
+            'instagram',
+            'linkedin',
+            'youtube',
+            'whatsapp',
+        ],
+
+        'apps' => [
+            'android',
+            'ios',
+            'huawei',
+            'android_agent',
+            'ios_agent',
+            'huawei_agent',
+        ],
+
+        'legal' => [
+            'about_us',
+            'privacy_policy',
+            'returns_refunds_policy',
+        ],
+
+        'meta' => [
+            'dev_name',
+            'dev_url',
+        ],
+
+        'feature_flags' => ['*'],
+
+        'system' => [
+            'base_url',
+            'environment',
+            'timezone',
+        ],
+    ];
+
     /**
      * @param ContainerBuilder<Container> $builder
      */
     public static function register(ContainerBuilder $builder): void
     {
         $builder->addDefinitions([
+
+            \Maatify\AppSettings\Policy\AppSettingsWhitelistPolicy::class => function (ContainerInterface $c) {
+                return new \Maatify\AppSettings\Policy\AppSettingsWhitelistPolicy(self::DEFAULT_WHITELIST);
+            },
 
             \Maatify\AppSettings\Repository\AppSettingsRepositoryInterface::class => function (ContainerInterface $c) {
                 /** @var PDO $pdo */

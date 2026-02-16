@@ -108,6 +108,29 @@ if ($appSettings->has('apps', 'android')) {
 $apps = $appSettings->getGroup('apps');
 ```
 
+### Get a typed setting value
+
+```php
+$timeout = $appSettings->getTyped('system', 'timeout'); // Returns int, bool, array, or string
+```
+
+---
+
+## 🛡️ Typed Configuration Behavior
+
+The module enforces strict typing for configuration values:
+
+- **STRING**: Always valid.
+- **INT**: Must be numeric and castable to an integer.
+- **BOOL**: Accepts only `true`, `false`, `1`, `0` (case-insensitive).
+- **JSON**: Must be valid JSON string; returns associative array.
+
+**Validation:**
+`create()` and `update()` throw `InvalidAppSettingException` if the value violates the type rules.
+
+**Concurrency:**
+`create()` throws `DuplicateAppSettingException` if a race condition occurs.
+
 ---
 
 ## ✏️ Write Operations (Admin/System Only)
