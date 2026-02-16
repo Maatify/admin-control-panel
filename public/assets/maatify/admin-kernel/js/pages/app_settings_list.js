@@ -23,8 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============================================================
     
     // Define Table Columns
-    const headers = ['ID', 'Group', 'Key', 'Value', 'Status', 'Actions'];
-    const rowKeys = ['id', 'setting_group', 'setting_key', 'setting_value', 'is_active', 'actions'];
+    const headers = ['ID', 'Group', 'Key', 'Value', 'Type', 'Status', 'Actions'];
+    const rowKeys = ['id', 'setting_group', 'setting_key', 'setting_value', 'setting_type', 'is_active', 'actions'];
 
     // Custom Renderers
     const customRenderers = {
@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return html;
         },
         setting_value: (value) => `<span class="font-mono text-sm text-gray-800 dark:text-gray-200 truncate max-w-xs block" title="${value}">${value}</span>`,
+        setting_type: (value) => `<span class="text-xs font-mono text-gray-500 dark:text-gray-400 uppercase">${value || 'string'}</span>`,
         is_active: (value, row) => {
             // If not editable or no capability, show read-only badge
             if (!window.appSettingsCapabilities.can_set_active || row.is_editable === false) {
@@ -68,7 +69,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 dataAttributes: {
                     group: row.setting_group,
                     key: row.setting_key,
-                    value: encodeURIComponent(row.setting_value)
+                    value: encodeURIComponent(row.setting_value),
+                    type: row.setting_type || 'string'
                 },
                 cssClass: 'btn-edit-setting'
             });
@@ -308,6 +310,15 @@ document.addEventListener('DOMContentLoaded', () => {
                             <p id="key-help" class="text-xs text-gray-500 mt-1"></p>
                         </div>
                         <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
+                            <select id="create-type" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                                <option value="string">String</option>
+                                <option value="int">Integer</option>
+                                <option value="bool">Boolean</option>
+                                <option value="json">JSON</option>
+                            </select>
+                        </div>
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Value</label>
                             <textarea id="create-value" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400" rows="3" required></textarea>
                         </div>
@@ -427,20 +438,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const valueInput = document.getElementById('create-value');
                 const value = valueInput.value;
+                const type = document.getElementById('create-type').value;
                 const isActive = document.getElementById('create-active').checked;
 
                 // --- VALIDATION START ---
                 // Use Input_checker.js functions
                 
                 // 1. Validate Group (Select2)
-                // Since Select2 structure is complex, we validate the hidden input or the container logic
-                // But Input_checker expects specific structure. Let's do manual check + UI feedback
                 let isValid = true;
 
                 if (!group) {
-                    // Show error on group container
                     const groupContainer = document.getElementById('create-group-container');
-                    // Manually add error style since Input_checker might not handle custom Select2 perfectly
                     groupContainer.querySelector('.js-select-box').classList.add('border-red-500');
                     isValid = false;
                 } else {
@@ -470,7 +478,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 if (!isValid) {
-                    // ApiHandler.showAlert('warning', 'Please fill all required fields correctly');
                     return;
                 }
                 // --- VALIDATION END ---
@@ -480,6 +487,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         setting_group: group,
                         setting_key: key,
                         setting_value: value,
+                        setting_type: type,
                         is_active: isActive
                     });
                     if (result.success) {
@@ -510,11 +518,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const group = editBtn.dataset.group;
             const key = editBtn.dataset.key;
             const value = decodeURIComponent(editBtn.dataset.value);
-            openEditModal(group, key, value);
+            const type = editBtn.dataset.type || 'string';
+            openEditModal(group, key, value, type);
         }
     });
 
-    window.openEditModal = (group, key, value) => {
+    window.openEditModal = (group, key, value, type) => {
         const modalContent = `
             <div class="p-6">
                 <form id="edit-setting-form" class="space-y-4">
@@ -527,6 +536,15 @@ document.addEventListener('DOMContentLoaded', () => {
                             <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Key</label>
                             <input type="text" value="${key}" class="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 cursor-not-allowed" disabled>
                         </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
+                        <select id="edit-type" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                            <option value="string" ${type === 'string' ? 'selected' : ''}>String</option>
+                            <option value="int" ${type === 'int' ? 'selected' : ''}>Integer</option>
+                            <option value="bool" ${type === 'bool' ? 'selected' : ''}>Boolean</option>
+                            <option value="json" ${type === 'json' ? 'selected' : ''}>JSON</option>
+                        </select>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Value</label>
@@ -557,6 +575,7 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.addEventListener('click', async () => {
             const valueInput = document.getElementById('edit-value');
             const newValue = valueInput.value;
+            const newType = document.getElementById('edit-type').value;
             
             // --- VALIDATION START ---
             if (!checkRegCodeAndEmpty([valueInput])) {
@@ -568,7 +587,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const result = await ApiHandler.call(window.appSettingsApi.update, {
                     setting_group: group,
                     setting_key: key,
-                    setting_value: newValue
+                    setting_value: newValue,
+                    setting_type: newType
                 });
                 if (result.success) {
                     ApiHandler.showAlert('success', 'Setting updated successfully');
