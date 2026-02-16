@@ -1,28 +1,17 @@
 <?php
 
-/**
- * @copyright   ©2026 Maatify.dev
- * @Library     maatify/admin-control-panel
- * @Project     maatify:admin-control-panel
- * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
- * @since       2026-02-11 09:45
- * @see         https://www.maatify.dev Maatify.dev
- * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
- * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
- */
-
 declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Response;
 
-use JsonException;
 use JsonSerializable;
+use Maatify\Exceptions\Contracts\ApiAwareExceptionInterface;
 use Psr\Http\Message\ResponseInterface;
 
 final class JsonResponseFactory
 {
     /**
-     * @param array<string,mixed> $data
+     * @param array<string,mixed>|JsonSerializable $data
      */
     public function data(
         ResponseInterface $response,
@@ -50,6 +39,8 @@ final class JsonResponseFactory
     }
 
     /**
+     * Legacy manual error (ما نكسرش القديم)
+     *
      * @param array<string, mixed> $meta
      */
     public function error(
@@ -61,6 +52,7 @@ final class JsonResponseFactory
     ): ResponseInterface {
 
         $payload = [
+            'success' => false,
             'error' => [
                 'code' => $code,
                 'message' => $message,
@@ -68,14 +60,34 @@ final class JsonResponseFactory
             ],
         ];
 
-        $response->getBody()->write(
-            json_encode($payload, JSON_THROW_ON_ERROR)
-        );
-
-        return $response
-            ->withHeader('Content-Type', 'application/json')
-            ->withStatus($status);
+        return $this->data($response, $payload, $status);
     }
 
-}
+    /**
+     * NEW: Exception-aware error
+     */
+    public function fromException(
+        ResponseInterface $response,
+        ApiAwareExceptionInterface $exception
+    ): ResponseInterface {
 
+        $payload = [
+            'success' => false,
+            'error' => [
+                'code'     => $exception->getErrorCode()->value,
+                'category' => $exception->getCategory()->value,
+                'message'  => $exception->isSafe()
+                    ? $exception->getMessage()
+                    : 'Internal Server Error',
+                'meta'     => $exception->getMeta(),
+                'retryable'=> $exception->isRetryable(),
+            ],
+        ];
+
+        return $this->data(
+            $response,
+            $payload,
+            $exception->getHttpStatus()
+        );
+    }
+}

@@ -8,6 +8,7 @@ use Maatify\AdminKernel\Domain\Exception\EntityInUseException;
 use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\AdminKernel\Domain\Exception\InvalidOperationException;
 use Maatify\AdminKernel\Domain\Exception\PermissionDeniedException;
+use Maatify\Exceptions\Exception\MaatifyException;
 use Maatify\I18n\Exception\DomainNotAllowedException;
 use Maatify\Validation\Exceptions\ValidationFailedException;
 use Psr\Http\Message\ResponseInterface;
@@ -230,6 +231,53 @@ return function (App $app): void {
         }
     );
 
+    $errorMiddleware->setErrorHandler(
+        DomainNotAllowedException::class,
+        function (
+            ServerRequestInterface $request,
+            DomainNotAllowedException $exception
+        ) use ($httpJsonError) {
+            return $httpJsonError(
+                422,
+                'DOMAIN_NOT_ALLOWED',
+                $exception->getMessage()
+            );
+        }
+    );
+
+    // 🆕 Unified Maatify Exception Handler
+    $errorMiddleware->setErrorHandler(
+        MaatifyException::class,
+        function (
+            ServerRequestInterface $request,
+            MaatifyException $exception
+        ) use ($app): ResponseInterface {
+
+            $payload = [
+                'success' => false,
+                'error' => [
+                    'code'      => $exception->getErrorCode()->value,
+                    'category'  => $exception->getCategory()->value,
+                    'message'   => $exception->isSafe()
+                        ? $exception->getMessage()
+                        : 'Internal Server Error',
+                    'meta'      => $exception->getMeta(),
+                    'retryable' => $exception->isRetryable(),
+                ],
+            ];
+
+            $response = $app->getResponseFactory()
+                ->createResponse($exception->getHttpStatus());
+
+            $response->getBody()->write(
+                json_encode($payload, JSON_THROW_ON_ERROR)
+            );
+
+            return $response->withHeader('Content-Type', 'application/json');
+        },
+        true // 🔥 VERY IMPORTANT — handle subclasses
+    );
+
     // 6️⃣ ❗ LAST — catch-all
     $errorMiddleware->setErrorHandler(
         Throwable::class,
@@ -261,21 +309,5 @@ return function (App $app): void {
             throw $exception;
         }
     );
-
-    $errorMiddleware->setErrorHandler(
-        DomainNotAllowedException::class,
-        function (
-            ServerRequestInterface $request,
-            DomainNotAllowedException $exception
-        ) use ($httpJsonError) {
-            return $httpJsonError(
-                422,
-                'DOMAIN_NOT_ALLOWED',
-                $exception->getMessage()
-            );
-        }
-    );
-
-
 
 };
