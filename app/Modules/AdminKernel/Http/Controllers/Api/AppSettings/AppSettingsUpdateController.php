@@ -18,6 +18,7 @@ namespace Maatify\AdminKernel\Http\Controllers\Api\AppSettings;
 use Maatify\AdminKernel\Domain\AppSettings\Validation\AppSettingsUpdateSchema;
 use Maatify\AppSettings\AppSettingsServiceInterface;
 use Maatify\AppSettings\DTO\AppSettingUpdateDTO;
+use Maatify\AppSettings\Enum\AppSettingValueTypeEnum;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -46,15 +47,22 @@ final readonly class AppSettingsUpdateController
          * @var array{
          *   setting_group: string,
          *   setting_key: string,
-         *   setting_value: string
+         *   setting_value: string,
+         *   setting_type?: string
          * } $body
          */
+
+        $valueType = null;
+        if (!empty($body['setting_type'])) {
+            $valueType = AppSettingValueTypeEnum::tryFrom($body['setting_type']);
+        }
 
         // 2) DTO
         $dto = new AppSettingUpdateDTO(
             group: $body['setting_group'],
             key  : $body['setting_key'],
-            value: $body['setting_value']
+            value: $body['setting_value'],
+            valueType: $valueType
         );
 
         // 3) Execute domain service

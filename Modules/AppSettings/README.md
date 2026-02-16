@@ -44,12 +44,13 @@ with a **grouped key-value store** backed by strict policies.
 
 Table: `app_settings`
 
-| Column | Description |
-|------|------------|
+| Column          | Description                                          |
+|-----------------|------------------------------------------------------|
 | `setting_group` | Logical grouping (social, apps, legal, system, etc.) |
-| `setting_key` | Unique key inside the group |
-| `setting_value` | Stored value (TEXT) |
-| `is_active` | Soft activation flag (1 = active, 0 = inactive) |
+| `setting_key`   | Unique key inside the group                          |
+| `setting_value` | Stored value (TEXT)                                  |
+| `setting_type`  | Type metadata (string, int, bool, json)              |
+| `is_active`     | Soft activation flag (1 = active, 0 = inactive)      |
 
 > ⚠️ Physical DELETE is forbidden.
 
@@ -118,7 +119,8 @@ $appSettings->create(
     new AppSettingDTO(
         group: 'social',
         key: 'instagram',
-        value: 'https://instagram.com/ep4n'
+        value: 'https://instagram.com/ep4n',
+        valueType: AppSettingValueTypeEnum::STRING
     )
 );
 ```

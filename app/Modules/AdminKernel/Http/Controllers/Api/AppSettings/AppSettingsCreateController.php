@@ -18,6 +18,7 @@ namespace Maatify\AdminKernel\Http\Controllers\Api\AppSettings;
 use Maatify\AdminKernel\Domain\AppSettings\Validation\AppSettingsCreateSchema;
 use Maatify\AppSettings\AppSettingsServiceInterface;
 use Maatify\AppSettings\DTO\AppSettingDTO;
+use Maatify\AppSettings\Enum\AppSettingValueTypeEnum;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -44,15 +45,22 @@ final readonly class AppSettingsCreateController
          *   setting_group: string,
          *   setting_key: string,
          *   setting_value: string,
+         *   setting_type?: string,
          *   is_active?: bool
          * } $body
          */
+
+        $valueType = AppSettingValueTypeEnum::STRING;
+        if (!empty($body['setting_type'])) {
+            $valueType = AppSettingValueTypeEnum::tryFrom($body['setting_type']) ?? AppSettingValueTypeEnum::STRING;
+        }
 
         // 2) Build DTO (existing DTO)
         $dto = new AppSettingDTO(
             group   : $body['setting_group'],
             key     : $body['setting_key'],
             value   : $body['setting_value'],
+            valueType: $valueType,
             isActive: $body['is_active'] ?? true
         );
 
