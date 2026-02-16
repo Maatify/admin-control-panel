@@ -35,13 +35,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if (row.is_protected) {
                 html += ` <span title="Protected Setting" class="text-gray-400 ml-1 cursor-help">🔒</span>`;
             }
+            // Check strictly for false, as older API versions might omit it (though we just added it)
+            if (row.is_whitelisted === false) {
+                html += ` <span title="Orphaned Setting (Not in whitelist)" class="text-red-400 ml-1 cursor-help">⚠️</span>`;
+            }
             return html;
         },
         setting_value: (value) => `<span class="font-mono text-sm text-gray-800 dark:text-gray-200 truncate max-w-xs block" title="${value}">${value}</span>`,
         setting_type: (value) => `<span class="text-xs font-mono text-gray-500 dark:text-gray-400 uppercase">${value || 'string'}</span>`,
         is_active: (value, row) => {
+            // Allow if (editable) OR (orphaned AND active) -> because we can only deactivate orphans
+            const isOrphanCleanup = (row.is_whitelisted === false && value === 1);
+            const canToggle = window.appSettingsCapabilities.can_set_active && (row.is_editable !== false || isOrphanCleanup);
+
             // If not editable or no capability, show read-only badge
-            if (!window.appSettingsCapabilities.can_set_active || row.is_editable === false) {
+            if (!canToggle) {
                 return window.AdminUIComponents.renderStatusBadge(value);
             }
             

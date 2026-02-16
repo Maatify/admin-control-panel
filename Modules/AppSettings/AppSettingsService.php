@@ -192,7 +192,20 @@ final class AppSettingsService implements AppSettingsServiceInterface
 
     public function setActive(AppSettingKeyDTO $key, bool $isActive): void
     {
-        $this->whitelistPolicy->assertAllowed($key->group, $key->key);
+        // 1. Logic: Allow deactivating orphaned settings (cleanup), but enforce whitelist for activation.
+        if ($isActive) {
+            $this->whitelistPolicy->assertAllowed($key->group, $key->key);
+        } else {
+            // If deactivating, we only enforce whitelist if the setting DOES NOT exist.
+            // This allows us to deactivate existing "orphaned" settings.
+            if (! $this->whitelistPolicy->isAllowed($key->group, $key->key)) {
+                if (! $this->repository->exists($key->group, $key->key, false)) {
+                    // It doesn't exist, so we treat it as a standard whitelist violation
+                    $this->whitelistPolicy->assertAllowed($key->group, $key->key);
+                }
+                // If it exists but is not whitelisted, we proceed (Cleanup Mode)
+            }
+        }
 
         $this->protectionPolicy->assertNotProtected($key);
 
@@ -218,15 +231,19 @@ final class AppSettingsService implements AppSettingsServiceInterface
 
             if (! is_string($group) || ! is_string($key)) {
                 // Skip corrupted row safely
-                $row['is_protected'] = false;
-                $row['is_editable']  = false;
+                $row['is_protected']   = false;
+                $row['is_editable']    = false;
+                $row['is_whitelisted'] = false;
                 continue;
             }
 
-            $isProtected = $this->protectionPolicy->isProtected($group, $key);
+            $isProtected   = $this->protectionPolicy->isProtected($group, $key);
+            $isWhitelisted = $this->whitelistPolicy->isAllowed($group, $key);
 
-            $row['is_protected'] = $isProtected;
-            $row['is_editable']  = ! $isProtected;
+            $row['is_protected']   = $isProtected;
+            $row['is_whitelisted'] = $isWhitelisted;
+            // Editable only if not protected AND is whitelisted
+            $row['is_editable']    = (! $isProtected) && $isWhitelisted;
         }
 
         return $rows;
@@ -252,10 +269,16 @@ final class AppSettingsService implements AppSettingsServiceInterface
                 break;
 
             case AppSettingValueTypeEnum::JSON:
-                json_decode($value);
+                $decoded = json_decode($value, true);
                 if (json_last_error() !== JSON_ERROR_NONE) {
                     throw new InvalidAppSettingException(
                         'Value is not valid JSON: ' . json_last_error_msg()
+                    );
+                }
+                // STRICT: Must be array/object to match getTyped() behavior
+                if (! is_array($decoded)) {
+                    throw new InvalidAppSettingException(
+                        'Value must be a valid JSON array or object'
                     );
                 }
                 break;
