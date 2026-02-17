@@ -1,0 +1,93 @@
+STATUS OK DETECTION REPORT
+
+1. AGGREGATED SUMMARY
+   - Total Occurrences: 16
+   - Locations:
+     - Controllers: 15
+     - Routes (Closure): 1
+     - Services: 0
+     - Response Factories: 0
+   - Duplicates: The pattern `['status' => 'ok']` is repeated literally in all 16 locations.
+   - Centralization: None. Each controller manually constructs the array or JSON string.
+
+2. DETAILED FINDINGS
+
+FILE: ./app/Modules/AdminKernel/Http/Controllers/Api/I18n/Scope/I18nScopeSetActiveController.php
+LINE NUMBER: 57
+SNIPPET:             'status' => 'ok',
+CLASSIFICATION: BUSINESS ACTION RESPONSE
+
+FILE: ./app/Modules/AdminKernel/Http/Controllers/Api/I18n/Scope/I18nScopeUpdateSortController.php
+LINE NUMBER: 46
+SNIPPET:             'status' => 'ok',
+CLASSIFICATION: BUSINESS ACTION RESPONSE
+
+FILE: ./app/Modules/AdminKernel/Http/Controllers/Api/I18n/Scope/I18nScopeChangeCodeController.php
+LINE NUMBER: 76
+SNIPPET:             'status' => 'ok'
+CLASSIFICATION: BUSINESS ACTION RESPONSE
+
+FILE: ./app/Modules/AdminKernel/Http/Controllers/Api/I18n/Scope/I18nScopeUpdateMetadataController.php
+LINE NUMBER: 63
+SNIPPET:             'status' => 'ok',
+CLASSIFICATION: BUSINESS ACTION RESPONSE
+
+FILE: ./app/Modules/AdminKernel/Http/Controllers/Api/I18n/Domains/I18nScopeDomainSortController.php
+LINE NUMBER: 57
+SNIPPET:             'status' => 'ok',
+CLASSIFICATION: BUSINESS ACTION RESPONSE
+
+FILE: ./app/Modules/AdminKernel/Http/Controllers/Api/I18n/Domains/I18nDomainChangeCodeController.php
+LINE NUMBER: 75
+SNIPPET:             'status' => 'ok'
+CLASSIFICATION: BUSINESS ACTION RESPONSE
+
+FILE: ./app/Modules/AdminKernel/Http/Controllers/Api/I18n/Domains/I18nDomainSetActiveController.php
+LINE NUMBER: 57
+SNIPPET:             'status' => 'ok',
+CLASSIFICATION: BUSINESS ACTION RESPONSE
+
+FILE: ./app/Modules/AdminKernel/Http/Controllers/Api/I18n/Domains/I18nDomainUpdateMetadataController.php
+LINE NUMBER: 74
+SNIPPET:             'status' => 'ok',
+CLASSIFICATION: BUSINESS ACTION RESPONSE
+
+FILE: ./app/Modules/AdminKernel/Http/Controllers/Api/I18n/ScopeDomains/I18nScopeDomainUnassignController.php
+LINE NUMBER: 60
+SNIPPET:             'status' => 'ok',
+CLASSIFICATION: BUSINESS ACTION RESPONSE
+
+FILE: ./app/Modules/AdminKernel/Http/Controllers/Api/I18n/ScopeDomains/I18nScopeDomainAssignController.php
+LINE NUMBER: 60
+SNIPPET:             'status' => 'ok',
+CLASSIFICATION: BUSINESS ACTION RESPONSE
+
+FILE: ./app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionBulkRevokeController.php
+LINE NUMBER: 65
+SNIPPET:             $response->getBody()->write(json_encode(['status' => 'ok'], JSON_THROW_ON_ERROR));
+CLASSIFICATION: BUSINESS ACTION RESPONSE
+
+FILE: ./app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionRevokeController.php
+LINE NUMBER: 73
+SNIPPET:             $response->getBody()->write(json_encode(['status' => 'ok'], JSON_THROW_ON_ERROR));
+CLASSIFICATION: BUSINESS ACTION RESPONSE
+
+FILE: ./app/Modules/AdminKernel/Http/Controllers/Api/AppSettings/AppSettingsCreateController.php
+LINE NUMBER: 72
+SNIPPET:             json_encode(['status' => 'ok'], JSON_THROW_ON_ERROR)
+CLASSIFICATION: BUSINESS ACTION RESPONSE
+
+FILE: ./app/Modules/AdminKernel/Http/Controllers/Api/AppSettings/AppSettingsSetActiveController.php
+LINE NUMBER: 55
+SNIPPET:             json_encode(['status' => 'ok'], JSON_THROW_ON_ERROR)
+CLASSIFICATION: BUSINESS ACTION RESPONSE
+
+FILE: ./app/Modules/AdminKernel/Http/Controllers/Api/AppSettings/AppSettingsUpdateController.php
+LINE NUMBER: 73
+SNIPPET:             json_encode(['status' => 'ok'], JSON_THROW_ON_ERROR)
+CLASSIFICATION: BUSINESS ACTION RESPONSE
+
+FILE: ./app/Modules/AdminKernel/Http/Routes/AdminRoutes.php
+LINE NUMBER: 52
+SNIPPET:                 $payload = json_encode(['status' => 'ok']);
+CLASSIFICATION: BUSINESS ACTION RESPONSE
