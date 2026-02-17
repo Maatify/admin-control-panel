@@ -18,12 +18,15 @@ final class JsonResponseFactory
         array|JsonSerializable $data,
         int $status = 200
     ): ResponseInterface {
+        $response->getBody()->rewind();
+
         $response->getBody()->write(
-            json_encode($data, JSON_THROW_ON_ERROR)
+            json_encode($data, JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE)
         );
 
         return $response
             ->withHeader('Content-Type', 'application/json')
+            ->withHeader('Cache-Control', 'no-store, no-cache, must-revalidate')
             ->withStatus($status);
     }
 
@@ -33,7 +36,9 @@ final class JsonResponseFactory
     ): ResponseInterface {
         return $this->data(
             $response,
-            ['status' => 'ok'],
+            [
+                'success' => true,
+            ],
             $status
         );
     }
