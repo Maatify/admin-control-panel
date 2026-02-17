@@ -159,6 +159,14 @@ final readonly class ContentDocumentsFacade implements ContentDocumentsFacadeInt
         return $this->documentTypeService->list();
     }
 
+    /**
+     * @return list<DocumentTypeKey>
+     */
+    public function listRegisteredDocumentTypeKeys(): array
+    {
+        return $this->documentTypeService->listRegisteredKeys();
+    }
+
     public function getDocumentTypeById(int $typeId): ?DocumentTypeDTO
     {
         return $this->documentTypeService->getById($typeId);

@@ -92,6 +92,15 @@ final readonly class DocumentTypeService implements DocumentTypeServiceInterface
         );
     }
 
+    /**
+     * @return list<DocumentTypeKey>
+     */
+    public function listRegisteredKeys(): array
+    {
+        return $this->documentTypeRepository->findAllKeys();
+    }
+
+
     private function map(DocumentType $type): DocumentTypeDTO
     {
         return new DocumentTypeDTO(

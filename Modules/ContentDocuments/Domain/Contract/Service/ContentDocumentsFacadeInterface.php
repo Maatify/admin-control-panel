@@ -65,6 +65,11 @@ interface ContentDocumentsFacadeInterface
      */
     public function listDocumentTypes(): array;
 
+    /**
+     * @return list<DocumentTypeKey>
+     */
+    public function listRegisteredDocumentTypeKeys(): array;
+
     public function getDocumentTypeById(int $typeId): ?DocumentTypeDTO;
 
     public function getDocumentTypeByKey(DocumentTypeKey $key): ?DocumentTypeDTO;

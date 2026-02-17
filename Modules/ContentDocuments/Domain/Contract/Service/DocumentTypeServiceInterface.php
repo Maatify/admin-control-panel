@@ -29,4 +29,9 @@ interface DocumentTypeServiceInterface
         bool $requiresAcceptanceDefault,
         bool $isSystem
     ): void;
+
+    /**
+     * @return list<DocumentTypeKey>
+     */
+    public function listRegisteredKeys(): array;
 }

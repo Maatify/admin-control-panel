@@ -18,6 +18,11 @@ interface DocumentTypeRepositoryInterface
      */
     public function findAll(): array;
 
+    /**
+     * @return list<DocumentTypeKey>
+     */
+    public function findAllKeys(): array;
+
     public function create(DocumentType $documentType): int;
 
     public function update(DocumentType $documentType): void;

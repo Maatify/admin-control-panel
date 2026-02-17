@@ -161,4 +161,37 @@ final readonly class PdoDocumentTypeRepository implements DocumentTypeRepository
                 : null,
         );
     }
+
+    /**
+     * @return list<DocumentTypeKey>
+     */
+    public function findAllKeys(): array
+    {
+        $stmt = $this->pdo->query('SELECT `key` FROM document_types');
+
+        if (!$stmt instanceof \PDOStatement) {
+            return [];
+        }
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $result = [];
+
+        foreach ($rows as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $key = $row['key'] ?? null;
+
+            if (!is_string($key)) {
+                continue;
+            }
+
+            $result[] = new DocumentTypeKey($key);
+        }
+
+        return $result;
+    }
+
 }
