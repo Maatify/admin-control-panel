@@ -8,6 +8,7 @@ use DomainException;
 use Maatify\AdminKernel\Context\RequestContext;
 use Maatify\AdminKernel\Domain\Service\AuthorizationService;
 use Maatify\AdminKernel\Domain\Service\SessionRevocationService;
+use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
 use Maatify\AdminKernel\Validation\Schemas\Session\SessionBulkRevokeSchema;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -19,6 +20,7 @@ readonly class SessionBulkRevokeController
         private SessionRevocationService $revocationService,
         private AuthorizationService $authorizationService,
         private ValidationGuard $validationGuard,
+        private JsonResponseFactory $json,
     ) {
     }
 
@@ -62,8 +64,7 @@ readonly class SessionBulkRevokeController
                 $context
             );
 
-            $response->getBody()->write(json_encode(['status' => 'ok'], JSON_THROW_ON_ERROR));
-            return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
+            return $this->json->data($response, ['status' => 'ok']);
 
         } catch (DomainException $e) {
 

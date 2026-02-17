@@ -18,6 +18,7 @@ namespace Maatify\AdminKernel\Http\Controllers\Api\AppSettings;
 use Maatify\AdminKernel\Domain\AppSettings\Validation\AppSettingsCreateSchema;
 use Maatify\AppSettings\AppSettingsServiceInterface;
 use Maatify\AppSettings\DTO\AppSettingDTO;
+use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
 use Maatify\AppSettings\Enum\AppSettingValueTypeEnum;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -27,7 +28,8 @@ final readonly class AppSettingsCreateController
 {
     public function __construct(
         private AppSettingsServiceInterface $service,
-        private ValidationGuard $validationGuard
+        private ValidationGuard $validationGuard,
+        private JsonResponseFactory $json,
     )
     {
     }
@@ -68,12 +70,6 @@ final readonly class AppSettingsCreateController
         $this->service->create($dto);
 
         // 4) Response
-        $response->getBody()->write(
-            json_encode(['status' => 'ok'], JSON_THROW_ON_ERROR)
-        );
-
-        return $response
-            ->withHeader('Content-Type', 'application/json')
-            ->withStatus(200);
+        return $this->json->data($response, ['status' => 'ok']);
     }
 }

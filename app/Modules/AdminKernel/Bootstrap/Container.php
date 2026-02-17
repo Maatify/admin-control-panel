@@ -1142,10 +1142,14 @@ class Container
                 assert($auth instanceof AuthorizationService);
                 assert($validationGuard instanceof ValidationGuard);
 
+                $json = $c->get(\Maatify\AdminKernel\Http\Response\JsonResponseFactory::class);
+                assert($json instanceof \Maatify\AdminKernel\Http\Response\JsonResponseFactory);
+
                 return new SessionRevokeController(
                     $service,
                     $auth,
-                    $validationGuard
+                    $validationGuard,
+                    $json
                 );
             },
             SessionBulkRevokeController::class => function (ContainerInterface $c) {
@@ -1157,10 +1161,14 @@ class Container
                 assert($auth instanceof AuthorizationService);
                 assert($validationGuard instanceof ValidationGuard);
 
+                $json = $c->get(\Maatify\AdminKernel\Http\Response\JsonResponseFactory::class);
+                assert($json instanceof \Maatify\AdminKernel\Http\Response\JsonResponseFactory);
+
                 return new SessionBulkRevokeController(
                     $service,
                     $auth,
                     $validationGuard,
+                    $json,
                 );
             },
 
@@ -2498,7 +2506,15 @@ class Container
                 $guard = $c->get(ValidationGuard::class);
                 assert($service instanceof \Maatify\AppSettings\AppSettingsServiceInterface);
                 assert($guard instanceof ValidationGuard);
-                return new \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsCreateController($service, $guard);
+
+                $json = $c->get(\Maatify\AdminKernel\Http\Response\JsonResponseFactory::class);
+                assert($json instanceof \Maatify\AdminKernel\Http\Response\JsonResponseFactory);
+
+                return new \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsCreateController(
+                    $service,
+                    $guard,
+                    $json,
+                );
             },
 
             \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsUpdateController::class => function (ContainerInterface $c) {
@@ -2506,7 +2522,9 @@ class Container
                 $guard = $c->get(ValidationGuard::class);
                 assert($service instanceof \Maatify\AppSettings\AppSettingsServiceInterface);
                 assert($guard instanceof ValidationGuard);
-                return new \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsUpdateController($service, $guard);
+                $json = $c->get(\Maatify\AdminKernel\Http\Response\JsonResponseFactory::class);
+                assert($json instanceof \Maatify\AdminKernel\Http\Response\JsonResponseFactory);
+                return new \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsUpdateController($service, $guard, $json);
             },
 
             \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsSetActiveController::class => function (ContainerInterface $c) {
@@ -2514,7 +2532,9 @@ class Container
                 $guard = $c->get(ValidationGuard::class);
                 assert($service instanceof \Maatify\AppSettings\AppSettingsServiceInterface);
                 assert($guard instanceof ValidationGuard);
-                return new \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsSetActiveController($service, $guard);
+                $json = $c->get(\Maatify\AdminKernel\Http\Response\JsonResponseFactory::class);
+                assert($json instanceof \Maatify\AdminKernel\Http\Response\JsonResponseFactory);
+                return new \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsSetActiveController($service, $guard, $json);
             },
 
             \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsQueryController::class => function (ContainerInterface $c) {
