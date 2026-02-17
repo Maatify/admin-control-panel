@@ -113,6 +113,38 @@ class AdminRoutes
                     )
                         ->setName('2fa.enable');
 
+                    // ─────────────────────────────
+                    // Content Documents Control
+                    // ─────────────────────────────
+
+                    $protectedGroup->get(
+                        '/content-document-types',
+                        [\Maatify\AdminKernel\Http\Controllers\Ui\ContentDocuments\UiDocumentTypesController::class, 'index']
+                    )
+                        ->setName('content_documents.types.query.ui')
+                        ->add(AuthorizationGuardMiddleware::class);
+
+                    $protectedGroup->get(
+                        '/content-document-types/{type_id:[0-9]+}/documents',
+                        [\Maatify\AdminKernel\Http\Controllers\Ui\ContentDocuments\UiDocumentVersionsController::class, 'index']
+                    )
+                        ->setName('content_documents.versions.query.ui')
+                        ->add(AuthorizationGuardMiddleware::class);
+
+                    $protectedGroup->get(
+                        '/content-document-types/{type_id:[0-9]+}/documents/{document_id:[0-9]+}/translations',
+                        [\Maatify\AdminKernel\Http\Controllers\Ui\ContentDocuments\UiDocumentTranslationsController::class, 'index']
+                    )
+                        ->setName('content_documents.translations.query.ui')
+                        ->add(AuthorizationGuardMiddleware::class);
+
+                    $protectedGroup->get(
+                        '/content-document-types/{type_id:[0-9]+}/documents/{document_id:[0-9]+}/acceptance',
+                        [\Maatify\AdminKernel\Http\Controllers\Ui\ContentDocuments\UiDocumentAcceptanceController::class, 'index']
+                    )
+                        ->setName('content_documents.acceptance.query.ui')
+                        ->add(AuthorizationGuardMiddleware::class);
+
 
                     $protectedGroup->get(
                         '/admins',
@@ -354,6 +386,95 @@ class AdminRoutes
 
                         $sessions->post('/revoke-bulk', [\Maatify\AdminKernel\Http\Controllers\Api\Sessions\SessionBulkRevokeController::class, '__invoke'])
                             ->setName('sessions.revoke.bulk');
+                    });
+
+                    // ─────────────────────────────
+                    // Content Documents Control
+                    // ─────────────────────────────
+                    $group->group('/content-document-types', function (RouteCollectorProxyInterface $documents) {
+                        // Dropdown (available enum keys)
+                        $documents->get(
+                            '/dropdown',
+                            \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\ContentDocumentsKeysDropdownController::class
+                        )->setName('content_documents.types.dropdown.api');
+
+                        // Query
+                        $documents->post(
+                            '/query',
+                            \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\DocumentTypesQueryController::class
+                        )->setName('content_documents.types.query.api');
+
+                        // Create
+                        $documents->post(
+                            '/create',
+                            \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\DocumentTypeCreateController::class
+                        )->setName('content_documents.types.create.api');
+
+                        // Update
+                        $documents->post(
+                            '/{type_id:[0-9]+}/update',
+                            \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\DocumentTypeUpdateController::class
+                        )->setName('content_documents.types.update.api');
+
+                        $documents->group(
+                            '/{type_id:[0-9]+}/documents',
+                            function (RouteCollectorProxyInterface $versions) {
+
+                                $versions->post(
+                                    '/query',
+                                    \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\DocumentVersionsQueryController::class
+                                )->setName('content_documents.versions.query.api');
+
+                                $versions->post(
+                                    '/create',
+                                    \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\DocumentVersionCreateController::class
+                                )->setName('content_documents.versions.create.api');
+
+                                $versions->group(
+                                    '/{document_id:[0-9]+}',
+                                    function (RouteCollectorProxyInterface $document) {
+
+                                        $document->post(
+                                            '/activate',
+                                            \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\DocumentActivateController::class
+                                        )->setName('content_documents.versions.activate.api');
+
+                                        $document->post(
+                                            '/archive',
+                                            \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\DocumentArchiveController::class
+                                        )->setName('content_documents.versions.archive.api');
+
+                                        $document->group(
+                                            '/translations',
+                                            function (RouteCollectorProxyInterface $translations) {
+
+                                                $translations->post(
+                                                    '/query',
+                                                    \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\DocumentTranslationsQueryController::class
+                                                )->setName('content_documents.translations.query.api');
+
+                                                $translations->post(
+                                                    '/upsert',
+                                                    \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\DocumentTranslationUpsertController::class
+                                                )->setName('content_documents.translations.upsert.api');
+                                            }
+                                        );
+
+                                        $document->group(
+                                            '/acceptance',
+                                            function (RouteCollectorProxyInterface $acceptance) {
+
+                                                $acceptance->post(
+                                                    '/query',
+                                                    \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\DocumentAcceptanceQueryController::class
+                                                )->setName('content_documents.acceptance.query.api');
+                                            }
+                                        );
+                                    }
+                                );
+
+                            }
+                        );
                     });
 
                     // ─────────────────────────────

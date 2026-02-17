@@ -133,6 +133,25 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
 
         'app_settings.set_active.api' => 'app_settings.set_active',
 
+//        Content Documents Control
+        'content_documents.types.query.ui' => 'content_documents.types.query',
+        'content_documents.types.query.api' => 'content_documents.types.query',
+        'content_documents.types.create.api' => 'content_documents.types.create',
+        'content_documents.types.update.api' => 'content_documents.types.update',
+
+        'content_documents.versions.query.ui' => 'content_documents.versions.query',
+        'content_documents.versions.query.api' => 'content_documents.versions.query',
+        'content_documents.versions.create.api' => 'content_documents.versions.create',
+        'content_documents.versions.activate.api' => 'content_documents.versions.activate',
+        'content_documents.versions.archive.api' => 'content_documents.versions.archive',
+
+        'content_documents.translations.query.ui' => 'content_documents.translations.query',
+        'content_documents.translations.query.api' => 'content_documents.translations.query',
+
+        'content_documents.translations.upsert.api' => 'content_documents.translations.upsert',
+
+        'content_documents.acceptance.query.api' => 'content_documents.acceptance.query',
+
         /**
          * Shared selector:
          * - allowed from translations UI (upsert permission implies ability to select context)
@@ -142,6 +161,13 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
             'anyOf' => [
                 'i18n.translations.upsert',
                 'i18n.languages.dropdown',
+            ],
+            'allOf' => [],
+        ],
+        'content_documents.types.dropdown.api' => [
+            'anyOf' => [
+                'content_documents.types.dropdown',
+                'content_documents.types.query',
             ],
             'allOf' => [],
         ],
