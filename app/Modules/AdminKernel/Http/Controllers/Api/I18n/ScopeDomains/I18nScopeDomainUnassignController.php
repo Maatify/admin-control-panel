@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\ScopeDomains;
 
+use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
 use Maatify\AdminKernel\Domain\I18n\Service\I18nScopeDomainsService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Maatify\Validation\Schemas\SharedStringRequiredSchema;
@@ -25,7 +26,8 @@ final readonly class I18nScopeDomainUnassignController
 {
     public function __construct(
         private I18nScopeDomainsService $service,
-        private ValidationGuard $validationGuard
+        private ValidationGuard $validationGuard,
+        private JsonResponseFactory $json,
     ) {
     }
 
@@ -56,12 +58,6 @@ final readonly class I18nScopeDomainUnassignController
             trim($raw['domain_code'])
         );
 
-        $response->getBody()->write(json_encode([
-            'status' => 'ok',
-        ], JSON_THROW_ON_ERROR));
-
-        return $response
-            ->withHeader('Content-Type', 'application/json')
-            ->withStatus(200);
+        return $this->json->data($response, ['status' => 'ok']);
     }
 }

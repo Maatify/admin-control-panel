@@ -17,6 +17,7 @@ namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\Domains;
 
 use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainUpdaterInterface;
+use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
 use Maatify\AdminKernel\Domain\I18n\Domain\Validation\I18nDomainUpdateSortSchema;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -26,7 +27,8 @@ final readonly class I18nScopeDomainSortController
 {
     public function __construct(
         private I18nDomainUpdaterInterface $writer,
-        private ValidationGuard $validationGuard
+        private ValidationGuard $validationGuard,
+        private JsonResponseFactory $json,
     ) {}
 
     public function __invoke(Request $request, Response $response): Response
@@ -53,12 +55,6 @@ final readonly class I18nScopeDomainSortController
 
         $this->writer->repositionSortOrder($id, $position);
 
-        $response->getBody()->write(json_encode([
-            'status' => 'ok',
-        ], JSON_THROW_ON_ERROR));
-
-        return $response
-            ->withHeader('Content-Type', 'application/json')
-            ->withStatus(200);
+        return $this->json->data($response, ['status' => 'ok']);
     }
 }
