@@ -18,10 +18,11 @@ final class JsonResponseFactory
         array|JsonSerializable $data,
         int $status = 200
     ): ResponseInterface {
+
         $response->getBody()->rewind();
 
         $response->getBody()->write(
-            json_encode($data, JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE)
+            json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)
         );
 
         return $response
@@ -30,10 +31,24 @@ final class JsonResponseFactory
             ->withStatus($status);
     }
 
+    /**
+     * For Action endpoints (Canonical rule: 204 No Content)
+     */
+    public function noContent(ResponseInterface $response): ResponseInterface
+    {
+        return $response
+            ->withHeader('Cache-Control', 'no-store, no-cache, must-revalidate')
+            ->withStatus(204);
+    }
+
+    /**
+     * Optional success payload (legacy support)
+     */
     public function success(
         ResponseInterface $response,
         int $status = 200
     ): ResponseInterface {
+
         return $this->data(
             $response,
             [
@@ -44,7 +59,7 @@ final class JsonResponseFactory
     }
 
     /**
-     * Legacy manual error (ما نكسرش القديم)
+     * Legacy manual error (Backward compatibility)
      *
      * @param array<string, mixed> $meta
      */
@@ -59,9 +74,9 @@ final class JsonResponseFactory
         $payload = [
             'success' => false,
             'error' => [
-                'code' => $code,
+                'code'    => $code,
                 'message' => $message,
-                'meta' => $meta,
+                'meta'    => $meta,
             ],
         ];
 
@@ -69,23 +84,25 @@ final class JsonResponseFactory
     }
 
     /**
-     * NEW: Exception-aware error
+     * Canonical Exception-aware error
      */
     public function fromException(
         ResponseInterface $response,
         ApiAwareExceptionInterface $exception
     ): ResponseInterface {
 
+        $message = $exception->isSafe()
+            ? $exception->getMessage()
+            : 'Internal Server Error';
+
         $payload = [
             'success' => false,
             'error' => [
-                'code'     => $exception->getErrorCode()->value,
-                'category' => $exception->getCategory()->value,
-                'message'  => $exception->isSafe()
-                    ? $exception->getMessage()
-                    : 'Internal Server Error',
-                'meta'     => $exception->getMeta(),
-                'retryable'=> $exception->isRetryable(),
+                'code'      => $exception->getErrorCode()->value,
+                'category'  => $exception->getCategory()->value,
+                'message'   => $message,
+                'meta'      => $exception->getMeta(),
+                'retryable' => $exception->isRetryable(),
             ],
         ];
 
