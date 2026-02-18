@@ -129,9 +129,14 @@ final class DefaultErrorPolicy implements ErrorPolicyInterface
     {
         return [
             'VALIDATION' => ['INVALID_ARGUMENT'],
-            'AUTHENTICATION' => ['UNAUTHORIZED', 'SESSION_EXPIRED'],
+            'AUTHENTICATION' => [
+                'UNAUTHORIZED',
+                'SESSION_EXPIRED',
+                'AUTH_STATE_VIOLATION',
+                'RECOVERY_LOCKED',
+            ],
             'AUTHORIZATION' => ['FORBIDDEN'],
-            'CONFLICT' => ['CONFLICT'],
+            'CONFLICT' => ['CONFLICT', 'ENTITY_IN_USE'],
             'NOT_FOUND' => ['RESOURCE_NOT_FOUND'],
             'BUSINESS_RULE' => ['BUSINESS_RULE_VIOLATION'],
             'UNSUPPORTED' => ['UNSUPPORTED_OPERATION'],
