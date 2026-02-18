@@ -33,4 +33,7 @@ interface ApiAwareExceptionInterface extends Throwable
 }
 ```
 
+*   **`isSafe()`**: Indicates if the exception message can be safely exposed to the client (e.g., Validation Errors).
+*   **`isRetryable()`**: Indicates if the request can be retried immediately (e.g., Rate Limiting).
+
 This interface guarantees that any conforming exception can be processed by a generic error handler (e.g., converting to JSON response).

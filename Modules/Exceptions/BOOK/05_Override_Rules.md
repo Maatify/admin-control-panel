@@ -34,3 +34,25 @@ If you provide an `$httpStatusOverride`:
 4.  **Cross-class overrides are forbidden.** (e.g., 400 -> 500).
 
 This ensures that a client-side error (Validation) never accidentally reports a server-side failure (System) to monitoring tools.
+
+## 4. Policy Customization
+
+You can inject a custom `ErrorPolicyInterface` to override default rules (e.g., allow extra codes).
+
+```php
+// Create a policy with custom rules
+$customPolicy = DefaultErrorPolicy::withOverrides(
+    allowedOverrides: ['VALIDATION' => ['MY_CUSTOM_CODE']]
+);
+
+// Inject globally (PROCESS-WIDE)
+MaatifyException::setGlobalPolicy($customPolicy);
+```
+
+### ⚠️ Warning: Long-Running Processes
+
+In persistent environments (e.g., **Swoole**, **RoadRunner**), static global state persists across requests.
+
+*   **Risk:** Setting a global policy in one request may affect subsequent requests.
+*   **Best Practice:** Set global policies only during application bootstrap, before handling any requests.
+*   **Cleanup:** Use `MaatifyException::resetGlobalPolicies()` if dynamic reconfiguration is absolutely necessary (not recommended).

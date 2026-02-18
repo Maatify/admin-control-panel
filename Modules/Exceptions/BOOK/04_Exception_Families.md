@@ -13,6 +13,7 @@ Exceptions are categorized into 9 main families, each backed by an abstract base
 
 *   **Category:** `RATE_LIMIT`
 *   **Default Status:** 429
+*   **Default `isRetryable()`:** `true`
 *   **Usage:** When a client exceeds the allowed request rate.
 *   **Concrete:** `TooManyRequestsMaatifyException`
 
