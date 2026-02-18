@@ -6,10 +6,10 @@ namespace Maatify\ContentDocuments\Domain\Exception;
 
 use Maatify\ContentDocuments\Domain\Policy\ContentDocumentsErrorPolicy;
 use Maatify\Exceptions\Contracts\ErrorCodeInterface;
-use Maatify\Exceptions\Exception\BusinessRule\BusinessRuleMaatifyException;
+use Maatify\Exceptions\Exception\NotFound\ResourceNotFoundMaatifyException;
 use Throwable;
 
-abstract class ContentDocumentsException extends BusinessRuleMaatifyException
+abstract class ContentDocumentsNotFoundException extends ResourceNotFoundMaatifyException
 {
     /**
      * @param array<string, mixed> $meta

@@ -6,10 +6,10 @@ namespace Maatify\ContentDocuments\Domain\Exception;
 
 use Maatify\ContentDocuments\Domain\Policy\ContentDocumentsErrorPolicy;
 use Maatify\Exceptions\Contracts\ErrorCodeInterface;
-use Maatify\Exceptions\Exception\BusinessRule\BusinessRuleMaatifyException;
+use Maatify\Exceptions\Exception\Validation\InvalidArgumentMaatifyException;
 use Throwable;
 
-abstract class ContentDocumentsException extends BusinessRuleMaatifyException
+abstract class ContentDocumentsValidationException extends InvalidArgumentMaatifyException
 {
     /**
      * @param array<string, mixed> $meta
