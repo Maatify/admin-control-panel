@@ -9,6 +9,9 @@ namespace Maatify\AppSettings\Exception;
  *
  * Thrown when trying to create a setting that already exists.
  */
-final class DuplicateAppSettingException extends AppSettingException
+use Maatify\Exceptions\Exception\Conflict\GenericConflictMaatifyException;
+
+final class DuplicateAppSettingException
+    extends GenericConflictMaatifyException
 {
 }
