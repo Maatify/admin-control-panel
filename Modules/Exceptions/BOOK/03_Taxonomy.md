@@ -29,8 +29,11 @@ The `ErrorCodeEnum` provides distinct error codes for specific scenarios.
 | `BUSINESS_RULE_VIOLATION` | Generic business logic error. |
 | `RESOURCE_NOT_FOUND` | Resource not found. |
 | `CONFLICT` | Resource conflict. |
+| `ENTITY_IN_USE` | Cannot delete entity because it is in use. |
 | `UNAUTHORIZED` | Authentication required. |
 | `SESSION_EXPIRED` | Session expired. |
+| `AUTH_STATE_VIOLATION` | Account state prevents action (e.g., locked, password expired). |
+| `RECOVERY_LOCKED` | Recovery mechanism locked due to excessive attempts. |
 | `FORBIDDEN` | Access denied. |
 | `UNSUPPORTED_OPERATION` | Operation not supported. |
 | `DATABASE_CONNECTION_FAILED` | Database connection error. |
