@@ -98,8 +98,8 @@ final class JsonResponseFactory
         $payload = [
             'success' => false,
             'error' => [
-                'code'      => $exception->getErrorCode()->value,
-                'category'  => $exception->getCategory()->value,
+                'code'      => $exception->getErrorCode()->getValue(),
+                'category'  => $exception->getCategory()->getValue(),
                 'message'   => $message,
                 'meta'      => $exception->getMeta(),
                 'retryable' => $exception->isRetryable(),

@@ -256,8 +256,8 @@ return function (App $app): void {
             $payload = [
                 'success' => false,
                 'error' => [
-                    'code'      => $exception->getErrorCode()->value,
-                    'category'  => $exception->getCategory()->value,
+                    'code'      => $exception->getErrorCode()->getValue(),
+                    'category'  => $exception->getCategory()->getValue(),
                     'message'   => $exception->isSafe()
                         ? $exception->getMessage()
                         : 'Internal Server Error',
