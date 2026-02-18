@@ -25,6 +25,12 @@ When wrapping an exception using `MaatifyException`:
 2.  **HTTP Status Check:** The library compares the HTTP status codes.
 3.  **Result:** The final exception adopts the **higher severity** category and status.
 
+### Escalation Logic
+
+*   **Category:** If `previous_severity > current_severity`, the category is escalated.
+*   **HTTP Status:** Uses `max(current, previous)` to ensure the highest error class is preserved (e.g., 500 overrides 400).
+*   **Unknown Categories:** `severity()` returns **0** for unknown categories, treating them as lowest priority.
+
 ### Severity Ranking (High to Low)
 
 1.  `SYSTEM` (90)
