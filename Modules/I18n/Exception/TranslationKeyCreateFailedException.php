@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Maatify\I18n\Exception;
 
-final class TranslationKeyCreateFailedException extends \RuntimeException
+use Maatify\Exceptions\Contracts\ErrorCodeInterface;
+use Maatify\I18n\Domain\Enum\I18nErrorCodeEnum;
+
+final class TranslationKeyCreateFailedException extends I18nSystemException
 {
-    public function __construct(
-        string $scope,
-        string $domain,
-        string $key
-    ) {
+    public function __construct(string $scope, string $domain, string $key)
+    {
         parent::__construct(
             sprintf(
                 'Failed to create translation key [%s.%s.%s].',
@@ -19,5 +19,10 @@ final class TranslationKeyCreateFailedException extends \RuntimeException
                 $key
             )
         );
+    }
+
+    protected function defaultErrorCode(): ErrorCodeInterface
+    {
+        return I18nErrorCodeEnum::TRANSLATION_KEY_CREATE_FAILED;
     }
 }
