@@ -26,7 +26,7 @@ abstract class MaatifyException extends RuntimeException implements ApiAwareExce
     ];
 
     private const ALLOWED_ERROR_CODES = [
-        ErrorCategoryEnum::VALIDATION->value => [ErrorCodeEnum::INVALID_ARGUMENT],
+        ErrorCategoryEnum::VALIDATION->value => [ErrorCodeEnum::INVALID_ARGUMENT, ErrorCodeEnum::VALIDATION_FAILED],
         ErrorCategoryEnum::AUTHENTICATION->value => [ErrorCodeEnum::UNAUTHORIZED, ErrorCodeEnum::SESSION_EXPIRED],
         ErrorCategoryEnum::AUTHORIZATION->value => [ErrorCodeEnum::FORBIDDEN],
         ErrorCategoryEnum::CONFLICT->value => [ErrorCodeEnum::CONFLICT],

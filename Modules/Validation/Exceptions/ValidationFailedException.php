@@ -15,16 +15,21 @@ declare(strict_types=1);
 
 namespace Maatify\Validation\Exceptions;
 
+use Maatify\Exceptions\Enum\ErrorCategoryEnum;
+use Maatify\Exceptions\Enum\ErrorCodeEnum;
+use Maatify\Exceptions\Exception\MaatifyException;
 use Maatify\Validation\DTO\ValidationResultDTO;
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
-use RuntimeException;
 
-final class ValidationFailedException extends RuntimeException
+final class ValidationFailedException extends MaatifyException
 {
     public function __construct(
         private readonly ValidationResultDTO $result
     ) {
-        parent::__construct('Validation failed.');
+        parent::__construct(
+            message: 'Validation failed.',
+            meta: ['errors' => $result->getErrors()]
+        );
     }
 
     /**
@@ -34,5 +39,29 @@ final class ValidationFailedException extends RuntimeException
     {
         return $this->result->getErrors();
     }
-}
 
+    protected function defaultErrorCode(): ErrorCodeEnum
+    {
+        return ErrorCodeEnum::VALIDATION_FAILED;
+    }
+
+    protected function defaultCategory(): ErrorCategoryEnum
+    {
+        return ErrorCategoryEnum::VALIDATION;
+    }
+
+    protected function defaultHttpStatus(): int
+    {
+        return 422;
+    }
+
+    protected function defaultIsSafe(): bool
+    {
+        return true;
+    }
+
+    protected function defaultIsRetryable(): bool
+    {
+        return false;
+    }
+}
