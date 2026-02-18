@@ -22,12 +22,12 @@ final class DefaultErrorPolicy implements ErrorPolicyInterface
     /** @var array<string,int> */
     private array $severityRanking;
 
-    /** @var array<string,array<string>> */
+    /** @var array<string, list<string>> */
     private array $allowedErrorCodes;
 
     /**
      * @param array<string,int> $severityRanking
-     * @param array<string,array<string>> $allowedErrorCodes
+     * @param   array<string,list<string>>  $allowedErrorCodes
      */
     public function __construct(
         array $severityRanking,
@@ -119,11 +119,12 @@ final class DefaultErrorPolicy implements ErrorPolicyInterface
             'CONFLICT' => 30,
             'NOT_FOUND' => 20,
             'UNSUPPORTED' => 10,
+            'SECURITY' => 85
         ];
     }
 
     /**
-     * @return array<string,array<string>>
+     * @return array<string,list<string>>
      */
     private static function defaultAllowedCodes(): array
     {
@@ -142,6 +143,7 @@ final class DefaultErrorPolicy implements ErrorPolicyInterface
             'UNSUPPORTED' => ['UNSUPPORTED_OPERATION'],
             'SYSTEM' => ['MAATIFY_ERROR', 'DATABASE_CONNECTION_FAILED'],
             'RATE_LIMIT' => ['TOO_MANY_REQUESTS'],
+            'SECURITY' => []
         ];
     }
 }

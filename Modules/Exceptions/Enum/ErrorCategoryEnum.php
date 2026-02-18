@@ -18,6 +18,8 @@ enum ErrorCategoryEnum: string implements ErrorCategoryInterface
     case SYSTEM = 'SYSTEM';
     case RATE_LIMIT = 'RATE_LIMIT';
 
+    case SECURITY = 'SECURITY';
+
     public function getValue(): string
     {
         return $this->value;
