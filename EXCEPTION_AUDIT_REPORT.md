@@ -1,0 +1,1482 @@
+# EXCEPTION UNIFICATION AUDIT REPORT
+
+## 1️⃣ Executive Summary
+
+- **Overall Compliance:** **20%**
+  - The system has `Maatify\Exceptions` installed and some custom exceptions defined, but the vast majority of the codebase ignores the unified model.
+  - Core architectural layers (Controllers, Repositories) frequently bypass the model, throwing raw PHP exceptions or framework-specific exceptions.
+  - The Global Exception Handler is partially implemented but inconsistent, leaking implementation details and failing to enforce the unified JSON envelope for all error types.
+
+- **Risk Level:** **CRITICAL**
+  - **Data Leakage:** Raw `PDOException` messages can leak database credentials or schema details.
+  - **API Fragmentation:** Clients receive different error formats depending on whether the error is "handled" or "unhandled", breaking contract guarantees.
+  - **Observability Gap:** Exceptions are not consistently categorized, making it impossible to filter alerts by severity (e.g., distinguishing a 500 System Error from a 422 Validation Error).
+
+- **System Status:** **Fragmented**
+  - Two competing error models exist:
+    1. The legacy/framework model (throwing `RuntimeException`, `HttpBadRequestException`).
+    2. The target `Maatify\Exceptions` model (used sporadically in some domains).
+
+---
+
+## 2️⃣ Layer-by-Layer Findings
+
+### Controllers
+- **app/Modules/AdminKernel/Http/Controllers/StepUpController.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/AdminNotificationPreferenceController.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/AdminNotificationReadController.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/AuthController.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/AdminNotificationHistoryController.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Ui/Admin/UiAdminsController.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Ui/Admin/UiAdminsController.php**
+  - Violation: Direct throw/catch of `HttpNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Ui/I18n/ScopeDomainKeysSummaryController.php**
+  - Violation: Direct throw/catch of `DomainScopeViolationException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Ui/I18n/LanguageTranslationsListUiController.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Ui/I18n/ScopeDomainTranslationsUiController.php**
+  - Violation: Direct throw/catch of `DomainScopeViolationException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Ui/Auth/UiTwoFactorSetupController.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Web/LoginController.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Web/TwoFactorController.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Web/LogoutController.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Web/TelegramConnectController.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Web/EmailVerificationController.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Web/ChangePasswordController.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php**
+  - Violation: Direct throw/catch of `HttpBadRequestException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php**
+  - Violation: Direct throw/catch of `HttpNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminEmailVerificationController.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminEmailVerificationController.php**
+  - Violation: Direct throw/catch of `HttpNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Scope/I18nScopeSetActiveController.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Scope/I18nScopeCreateController.php**
+  - Violation: Direct throw/catch of `EntityAlreadyExistsException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Scope/I18nScopeUpdateSortController.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Scope/I18nScopeChangeCodeController.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Scope/I18nScopeChangeCodeController.php**
+  - Violation: Direct throw/catch of `EntityInUseException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Scope/I18nScopeChangeCodeController.php**
+  - Violation: Direct throw/catch of `EntityAlreadyExistsException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Scope/I18nScopeUpdateMetadataController.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Scope/I18nScopeUpdateMetadataController.php**
+  - Violation: Direct throw/catch of `InvalidOperationException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysUpdateDescriptionController.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysUpdateDescriptionController.php**
+  - Violation: Direct throw/catch of `InvalidOperationException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysUpdateNameController.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysUpdateNameController.php**
+  - Violation: Direct throw/catch of `EntityAlreadyExistsException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysUpdateNameController.php**
+  - Violation: Direct throw/catch of `InvalidOperationException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysCreateController.php**
+  - Violation: Direct throw/catch of `InvalidOperationException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysCreateController.php**
+  - Violation: Direct throw/catch of `EntityAlreadyExistsException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysCreateController.php**
+  - Violation: Direct throw/catch of `InvalidOperationException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Domains/I18nScopeDomainSortController.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Domains/I18nDomainChangeCodeController.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Domains/I18nDomainChangeCodeController.php**
+  - Violation: Direct throw/catch of `EntityInUseException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Domains/I18nDomainChangeCodeController.php**
+  - Violation: Direct throw/catch of `EntityAlreadyExistsException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Domains/I18nDomainSetActiveController.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Domains/I18nDomainCreateController.php**
+  - Violation: Direct throw/catch of `EntityAlreadyExistsException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Domains/I18nDomainUpdateMetadataController.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Domains/I18nDomainUpdateMetadataController.php**
+  - Violation: Direct throw/catch of `InvalidOperationException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesUpdateSortOrderController.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesUpdateCodeController.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesSetFallbackController.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesCreateController.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesUpdateNameController.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesSetActiveController.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesClearFallbackController.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesUpdateSettingsController.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/ScopeDomains/ScopeDomainTranslationsQueryController.php**
+  - Violation: Direct throw/catch of `DomainScopeViolationException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/ScopeDomains/I18nScopeDomainKeysSummaryQueryController.php**
+  - Violation: Direct throw/catch of `DomainScopeViolationException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionBulkRevokeController.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionQueryController.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionRevokeController.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/StepUpController.php**
+  - Violation: Direct throw/catch of `\Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/AuthController.php**
+  - Violation: Direct throw/catch of `InvalidCredentialsException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/AuthController.php**
+  - Violation: Direct throw/catch of `AuthStateException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/NotificationQueryController.php**
+  - Violation: Direct throw/catch of `\Exception`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Ui/Auth/UiTwoFactorSetupController.php**
+  - Violation: Direct throw/catch of `TwoFactorAlreadyEnrolledException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Web/LoginController.php**
+  - Violation: Direct throw/catch of `MustChangePasswordException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Web/LoginController.php**
+  - Violation: Direct throw/catch of `AuthStateException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Web/LoginController.php**
+  - Violation: Direct throw/catch of `InvalidCredentialsException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Web/TwoFactorController.php**
+  - Violation: Direct throw/catch of `\ValueError`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php**
+  - Violation: Direct throw/catch of `InvalidIdentifierFormatException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php**
+  - Violation: Direct throw/catch of `\Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminEmailVerificationController.php**
+  - Violation: Direct throw/catch of `IdentifierNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysUpdateDescriptionController.php**
+  - Violation: Direct throw/catch of `TranslationKeyNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysUpdateDescriptionController.php**
+  - Violation: Direct throw/catch of `TranslationUpdateFailedException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysUpdateNameController.php**
+  - Violation: Direct throw/catch of `TranslationKeyNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysUpdateNameController.php**
+  - Violation: Direct throw/catch of `TranslationKeyAlreadyExistsException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysUpdateNameController.php**
+  - Violation: Direct throw/catch of `TranslationUpdateFailedException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysCreateController.php**
+  - Violation: Direct throw/catch of `TranslationKeyAlreadyExistsException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysCreateController.php**
+  - Violation: Direct throw/catch of `TranslationKeyCreateFailedException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionBulkRevokeController.php**
+  - Violation: Direct throw/catch of `DomainException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionQueryController.php**
+  - Violation: Direct throw/catch of `\Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionRevokeController.php**
+  - Violation: Direct throw/catch of `DomainException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionRevokeController.php**
+  - Violation: Direct throw/catch of `IdentifierNotFoundException`
+  - Status: **Violation**
+
+### Middleware
+- **app/Modules/AdminKernel/Http/Middleware/SessionStateGuardMiddleware.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Middleware/RememberMeMiddleware.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Middleware/GuestGuardMiddleware.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Middleware/RequestContextMiddleware.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Middleware/AuthorizationGuardMiddleware.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Middleware/AuthorizationGuardMiddleware.php**
+  - Violation: Direct throw/catch of `UnauthorizedException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Middleware/SessionGuardMiddleware.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Middleware/ScopeGuardMiddleware.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Middleware/RecoveryStateMiddleware.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Middleware/RememberMeMiddleware.php**
+  - Violation: Direct throw/catch of `InvalidCredentialsException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Middleware/RequestIdMiddleware.php**
+  - Violation: Direct throw/catch of `InvalidUuidStringException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Middleware/GuestGuardMiddleware.php**
+  - Violation: Direct throw/catch of `InvalidSessionException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Middleware/HttpRequestTelemetryMiddleware.php**
+  - Violation: Direct throw/catch of `Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Middleware/SessionGuardMiddleware.php**
+  - Violation: Direct throw/catch of `InvalidSessionException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Http/Middleware/SessionGuardMiddleware.php**
+  - Violation: Direct throw/catch of `InvalidCredentialsException`
+  - Status: **Violation**
+
+### Domain Services
+- **Modules/LanguageCore/Service/LanguageManagementService.php**
+  - Violation: Direct throw/catch of `LanguageAlreadyExistsException`
+  - Status: **Violation**
+- **Modules/LanguageCore/Service/LanguageManagementService.php**
+  - Violation: Direct throw/catch of `LanguageNotFoundException`
+  - Status: **Violation**
+- **Modules/LanguageCore/Service/LanguageManagementService.php**
+  - Violation: Direct throw/catch of `LanguageCreateFailedException`
+  - Status: **Violation**
+- **Modules/LanguageCore/Service/LanguageManagementService.php**
+  - Violation: Direct throw/catch of `LanguageUpdateFailedException`
+  - Status: **Violation**
+- **Modules/LanguageCore/Service/LanguageManagementService.php**
+  - Violation: Direct throw/catch of `LanguageInvalidFallbackException`
+  - Status: **Violation**
+- **Modules/I18n/Service/I18nGovernancePolicyService.php**
+  - Violation: Direct throw/catch of `ScopeNotAllowedException`
+  - Status: **Violation**
+- **Modules/I18n/Service/I18nGovernancePolicyService.php**
+  - Violation: Direct throw/catch of `DomainNotAllowedException`
+  - Status: **Violation**
+- **Modules/I18n/Service/I18nGovernancePolicyService.php**
+  - Violation: Direct throw/catch of `DomainScopeViolationException`
+  - Status: **Violation**
+- **Modules/I18n/Service/MissingCounterService.php**
+  - Violation: Direct throw/catch of `TranslationKeyNotFoundException`
+  - Status: **Violation**
+- **Modules/I18n/Service/TranslationWriteService.php**
+  - Violation: Direct throw/catch of `TranslationKeyAlreadyExistsException`
+  - Status: **Violation**
+- **Modules/I18n/Service/TranslationWriteService.php**
+  - Violation: Direct throw/catch of `TranslationKeyCreateFailedException`
+  - Status: **Violation**
+- **Modules/I18n/Service/TranslationWriteService.php**
+  - Violation: Direct throw/catch of `TranslationKeyNotFoundException`
+  - Status: **Violation**
+- **Modules/I18n/Service/TranslationWriteService.php**
+  - Violation: Direct throw/catch of `TranslationUpdateFailedException`
+  - Status: **Violation**
+- **Modules/I18n/Service/TranslationWriteService.php**
+  - Violation: Direct throw/catch of `LanguageNotFoundException`
+  - Status: **Violation**
+- **Modules/I18n/Service/TranslationWriteService.php**
+  - Violation: Direct throw/catch of `TranslationUpsertFailedException`
+  - Status: **Violation**
+- **Modules/I18n/Service/TranslationDomainReadService.php**
+  - Violation: Direct throw/catch of `LanguageNotFoundException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Application/Service/DocumentAcceptanceService.php**
+  - Violation: Direct throw/catch of `InvalidDocumentStateException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Application/Service/DocumentAcceptanceService.php**
+  - Violation: Direct throw/catch of `DocumentNotFoundException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Application/Service/DocumentAcceptanceService.php**
+  - Violation: Direct throw/catch of `DocumentAlreadyAcceptedException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Application/Service/DocumentAcceptanceService.php**
+  - Violation: Direct throw/catch of `Throwable`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Application/Service/DocumentTranslationService.php**
+  - Violation: Direct throw/catch of `DocumentNotFoundException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Application/Service/DocumentTranslationService.php**
+  - Violation: Direct throw/catch of `DocumentVersionImmutableException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Application/Service/DocumentLifecycleService.php**
+  - Violation: Direct throw/catch of `DocumentTypeNotFoundException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Application/Service/DocumentLifecycleService.php**
+  - Violation: Direct throw/catch of `InvalidDocumentStateException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Application/Service/DocumentLifecycleService.php**
+  - Violation: Direct throw/catch of `DocumentNotFoundException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Application/Service/DocumentLifecycleService.php**
+  - Violation: Direct throw/catch of `\Throwable`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Application/Service/ContentDocumentsFacade.php**
+  - Violation: Direct throw/catch of `DocumentNotFoundException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Application/Service/DocumentTypeService.php**
+  - Violation: Direct throw/catch of `DocumentTypeNotFoundException`
+  - Status: **Violation**
+- **Modules/AppSettings/AppSettingsService.php**
+  - Violation: Direct throw/catch of `AppSettingNotFoundException`
+  - Status: **Violation**
+- **Modules/AppSettings/AppSettingsService.php**
+  - Violation: Direct throw/catch of `UnexpectedValueException`
+  - Status: **Violation**
+- **Modules/AppSettings/AppSettingsService.php**
+  - Violation: Direct throw/catch of `DuplicateAppSettingException`
+  - Status: **Violation**
+- **Modules/AppSettings/AppSettingsService.php**
+  - Violation: Direct throw/catch of `InvalidAppSettingException`
+  - Status: **Violation**
+- **Modules/AppSettings/AppSettingsService.php**
+  - Violation: Direct throw/catch of `PDOException`
+  - Status: **Violation**
+- **Modules/Crypto/Reversible/ReversibleCryptoService.php**
+  - Violation: Direct throw/catch of `CryptoKeyNotFoundException`
+  - Status: **Violation**
+- **Modules/Crypto/Reversible/ReversibleCryptoService.php**
+  - Violation: Direct throw/catch of `CryptoDecryptionFailedException`
+  - Status: **Violation**
+- **Modules/Crypto/Reversible/ReversibleCryptoService.php**
+  - Violation: Direct throw/catch of `CryptoAlgorithmNotSupportedException`
+  - Status: **Violation**
+- **Modules/Crypto/Reversible/ReversibleCryptoService.php**
+  - Violation: Direct throw/catch of `Throwable`
+  - Status: **Violation**
+- **Modules/Crypto/KeyRotation/KeyRotationService.php**
+  - Violation: Direct throw/catch of `KeyRotationException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Application/Admin/AdminProfileUpdateService.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Application/Admin/AdminProfileUpdateService.php**
+  - Violation: Direct throw/catch of `\Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Application/Auth/AdminLoginService.php**
+  - Violation: Direct throw/catch of `InvalidCredentialsException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Application/Auth/ResendEmailVerificationService.php**
+  - Violation: Direct throw/catch of `Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Application/Auth/VerifyEmailService.php**
+  - Violation: Direct throw/catch of `Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Application/Auth/AdminLogoutService.php**
+  - Violation: Direct throw/catch of `Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Application/Auth/ChangePasswordService.php**
+  - Violation: Direct throw/catch of `Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Application/Auth/TwoFactorVerificationService.php**
+  - Violation: Direct throw/catch of `Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Application/Auth/TwoFactorEnrollmentService.php**
+  - Violation: Direct throw/catch of `Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Application/Services/SecuritySignalsService.php**
+  - Violation: Direct throw/catch of `Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Application/Services/BehaviorTraceService.php**
+  - Violation: Direct throw/catch of `Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Application/Services/DeliveryOperationsService.php**
+  - Violation: Direct throw/catch of `Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Application/Services/DiagnosticsTelemetryService.php**
+  - Violation: Direct throw/catch of `Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Application/Services/AuditTrailService.php**
+  - Violation: Direct throw/catch of `Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Crypto/NotificationCryptoService.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Crypto/AdminIdentifierCryptoService.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/RoleHierarchyComparator.php**
+  - Violation: Direct throw/catch of `LogicException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/VerificationCodeGenerator.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/VerificationCodeGenerator.php**
+  - Violation: Direct throw/catch of `Exception`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/RememberMeService.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/RememberMeService.php**
+  - Violation: Direct throw/catch of `InvalidCredentialsException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/RememberMeService.php**
+  - Violation: Direct throw/catch of `RandomException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/RememberMeService.php**
+  - Violation: Direct throw/catch of `\Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/AdminEmailVerificationService.php**
+  - Violation: Direct throw/catch of `InvalidIdentifierStateException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/AdminEmailVerificationService.php**
+  - Violation: Direct throw/catch of `\Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/AdminAuthenticationService.php**
+  - Violation: Direct throw/catch of `InvalidCredentialsException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/AdminAuthenticationService.php**
+  - Violation: Direct throw/catch of `AuthStateException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/AdminAuthenticationService.php**
+  - Violation: Direct throw/catch of `MustChangePasswordException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/AdminAuthenticationService.php**
+  - Violation: Direct throw/catch of `\Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/SessionValidationService.php**
+  - Violation: Direct throw/catch of `InvalidSessionException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/SessionValidationService.php**
+  - Violation: Direct throw/catch of `RevokedSessionException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/SessionValidationService.php**
+  - Violation: Direct throw/catch of `ExpiredSessionException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/RoleAssignmentService.php**
+  - Violation: Direct throw/catch of `PermissionDeniedException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/RoleAssignmentService.php**
+  - Violation: Direct throw/catch of `\Exception`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/RoleAssignmentService.php**
+  - Violation: Direct throw/catch of `LogicException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/RoleAssignmentService.php**
+  - Violation: Direct throw/catch of `\Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/SessionRevocationService.php**
+  - Violation: Direct throw/catch of `DomainException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/SessionRevocationService.php**
+  - Violation: Direct throw/catch of `IdentifierNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/SessionRevocationService.php**
+  - Violation: Direct throw/catch of `\Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/AuthorizationService.php**
+  - Violation: Direct throw/catch of `PermissionDeniedException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/AuthorizationService.php**
+  - Violation: Direct throw/catch of `UnauthorizedException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/RecoveryStateService.php**
+  - Violation: Direct throw/catch of `RecoveryLockException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/RecoveryStateService.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/RecoveryStateService.php**
+  - Violation: Direct throw/catch of `\Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/TwoFactorEnrollmentService.php**
+  - Violation: Direct throw/catch of `TwoFactorAlreadyEnrolledException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/TwoFactorEnrollmentService.php**
+  - Violation: Direct throw/catch of `TwoFactorEnrollmentFailedException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/TwoFactorEnrollmentService.php**
+  - Violation: Direct throw/catch of `\Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/I18n/Service/I18nScopeDomainsService.php**
+  - Violation: Direct throw/catch of `InvalidOperationException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/I18n/Service/I18nScopeDomainsService.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/I18n/Keys/I18nScopeKeyCommandService.php**
+  - Violation: Direct throw/catch of `TranslationKeyNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/StepUpService.php**
+  - Violation: Direct throw/catch of `\Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Service/PasswordService.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+
+### Repositories
+- **Modules/SecuritySignals/Infrastructure/Mysql/SecuritySignalsLoggerMysqlRepository.php**
+  - Violation: Direct throw/catch of `SecuritySignalsStorageException`
+  - Status: **Violation**
+- **Modules/I18n/Infrastructure/Mysql/MysqlKeyStatsRepository.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **Modules/I18n/Infrastructure/Mysql/MysqlDomainLanguageSummaryRepository.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **Modules/AuthoritativeAudit/Infrastructure/Mysql/AuthoritativeAuditOutboxWriterMysqlRepository.php**
+  - Violation: Direct throw/catch of `AuthoritativeAuditStorageException`
+  - Status: **Violation**
+- **Modules/AuthoritativeAudit/Infrastructure/Mysql/AuthoritativeAuditOutboxWriterMysqlRepository.php**
+  - Violation: Direct throw/catch of `PDOException`
+  - Status: **Violation**
+- **Modules/AuthoritativeAudit/Infrastructure/Mysql/AuthoritativeAuditOutboxWriterMysqlRepository.php**
+  - Violation: Direct throw/catch of `JsonException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Infrastructure/Persistence/MySQL/PdoDocumentTranslationRepository.php**
+  - Violation: Direct throw/catch of `DocumentTranslationAlreadyExistsException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Infrastructure/Persistence/MySQL/PdoDocumentTranslationRepository.php**
+  - Violation: Direct throw/catch of `DocumentTranslationNotFoundException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Infrastructure/Persistence/MySQL/PdoDocumentTranslationRepository.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Infrastructure/Persistence/MySQL/PdoDocumentTranslationRepository.php**
+  - Violation: Direct throw/catch of `PDOException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Infrastructure/Persistence/MySQL/PdoDocumentTypeRepository.php**
+  - Violation: Direct throw/catch of `DocumentTypeAlreadyExistsException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Infrastructure/Persistence/MySQL/PdoDocumentTypeRepository.php**
+  - Violation: Direct throw/catch of `DocumentTypeNotFoundException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Infrastructure/Persistence/MySQL/PdoDocumentTypeRepository.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Infrastructure/Persistence/MySQL/PdoDocumentTypeRepository.php**
+  - Violation: Direct throw/catch of `PDOException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Infrastructure/Persistence/MySQL/PdoDocumentRepository.php**
+  - Violation: Direct throw/catch of `DocumentVersionAlreadyExistsException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Infrastructure/Persistence/MySQL/PdoDocumentRepository.php**
+  - Violation: Direct throw/catch of `DocumentNotFoundException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Infrastructure/Persistence/MySQL/PdoDocumentRepository.php**
+  - Violation: Direct throw/catch of `DocumentActivationConflictException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Infrastructure/Persistence/MySQL/PdoDocumentRepository.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Infrastructure/Persistence/MySQL/PdoDocumentRepository.php**
+  - Violation: Direct throw/catch of `PDOException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Infrastructure/Persistence/MySQL/PdoDocumentRepository.php**
+  - Violation: Direct throw/catch of `\PDOException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Infrastructure/Persistence/MySQL/PdoDocumentAcceptanceRepository.php**
+  - Violation: Direct throw/catch of `DocumentAlreadyAcceptedException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Infrastructure/Persistence/MySQL/PdoDocumentAcceptanceRepository.php**
+  - Violation: Direct throw/catch of `PDOException`
+  - Status: **Violation**
+- **Modules/AuditTrail/Infrastructure/Mysql/AuditTrailLoggerMysqlRepository.php**
+  - Violation: Direct throw/catch of `AuditTrailStorageException`
+  - Status: **Violation**
+- **Modules/AuditTrail/Infrastructure/Mysql/AuditTrailLoggerMysqlRepository.php**
+  - Violation: Direct throw/catch of `PDOException`
+  - Status: **Violation**
+- **Modules/AuditTrail/Infrastructure/Mysql/AuditTrailQueryMysqlRepository.php**
+  - Violation: Direct throw/catch of `AuditTrailStorageException`
+  - Status: **Violation**
+- **Modules/AuditTrail/Infrastructure/Mysql/AuditTrailQueryMysqlRepository.php**
+  - Violation: Direct throw/catch of `PDOException`
+  - Status: **Violation**
+- **Modules/AuditTrail/Infrastructure/Mysql/AuditTrailQueryMysqlRepository.php**
+  - Violation: Direct throw/catch of `Exception`
+  - Status: **Violation**
+- **Modules/BehaviorTrace/Infrastructure/Mysql/BehaviorTraceQueryMysqlRepository.php**
+  - Violation: Direct throw/catch of `BehaviorTraceStorageException`
+  - Status: **Violation**
+- **Modules/BehaviorTrace/Infrastructure/Mysql/BehaviorTraceQueryMysqlRepository.php**
+  - Violation: Direct throw/catch of `PDOException`
+  - Status: **Violation**
+- **Modules/BehaviorTrace/Infrastructure/Mysql/BehaviorTraceQueryMysqlRepository.php**
+  - Violation: Direct throw/catch of `Exception`
+  - Status: **Violation**
+- **Modules/BehaviorTrace/Infrastructure/Mysql/BehaviorTraceQueryMysqlRepository.php**
+  - Violation: Direct throw/catch of `JsonException`
+  - Status: **Violation**
+- **Modules/BehaviorTrace/Infrastructure/Mysql/BehaviorTraceWriterMysqlRepository.php**
+  - Violation: Direct throw/catch of `BehaviorTraceStorageException`
+  - Status: **Violation**
+- **Modules/BehaviorTrace/Infrastructure/Mysql/BehaviorTraceWriterMysqlRepository.php**
+  - Violation: Direct throw/catch of `PDOException`
+  - Status: **Violation**
+- **Modules/BehaviorTrace/Infrastructure/Mysql/BehaviorTraceWriterMysqlRepository.php**
+  - Violation: Direct throw/catch of `JsonException`
+  - Status: **Violation**
+- **Modules/DiagnosticsTelemetry/Infrastructure/Mysql/DiagnosticsTelemetryLoggerMysqlRepository.php**
+  - Violation: Direct throw/catch of `DiagnosticsTelemetryStorageException`
+  - Status: **Violation**
+- **Modules/DiagnosticsTelemetry/Infrastructure/Mysql/DiagnosticsTelemetryLoggerMysqlRepository.php**
+  - Violation: Direct throw/catch of `PDOException`
+  - Status: **Violation**
+- **Modules/DiagnosticsTelemetry/Infrastructure/Mysql/DiagnosticsTelemetryLoggerMysqlRepository.php**
+  - Violation: Direct throw/catch of `JsonException`
+  - Status: **Violation**
+- **Modules/DiagnosticsTelemetry/Infrastructure/Mysql/DiagnosticsTelemetryQueryMysqlRepository.php**
+  - Violation: Direct throw/catch of `DiagnosticsTelemetryStorageException`
+  - Status: **Violation**
+- **Modules/DiagnosticsTelemetry/Infrastructure/Mysql/DiagnosticsTelemetryQueryMysqlRepository.php**
+  - Violation: Direct throw/catch of `PDOException`
+  - Status: **Violation**
+- **Modules/DiagnosticsTelemetry/Infrastructure/Mysql/DiagnosticsTelemetryQueryMysqlRepository.php**
+  - Violation: Direct throw/catch of `Exception`
+  - Status: **Violation**
+- **Modules/DiagnosticsTelemetry/Infrastructure/Mysql/DiagnosticsTelemetryQueryMysqlRepository.php**
+  - Violation: Direct throw/catch of `JsonException`
+  - Status: **Violation**
+- **Modules/EmailDelivery/Queue/PdoEmailQueueWriter.php**
+  - Violation: Direct throw/catch of `EmailQueueWriteException`
+  - Status: **Violation**
+- **Modules/EmailDelivery/Queue/PdoEmailQueueWriter.php**
+  - Violation: Direct throw/catch of `Throwable`
+  - Status: **Violation**
+- **Modules/DeliveryOperations/Infrastructure/Mysql/DeliveryOperationsLoggerMysqlRepository.php**
+  - Violation: Direct throw/catch of `DeliveryOperationsStorageException`
+  - Status: **Violation**
+- **Modules/DeliveryOperations/Infrastructure/Mysql/DeliveryOperationsLoggerMysqlRepository.php**
+  - Violation: Direct throw/catch of `PDOException`
+  - Status: **Violation**
+- **Modules/DeliveryOperations/Infrastructure/Mysql/DeliveryOperationsLoggerMysqlRepository.php**
+  - Violation: Direct throw/catch of `JsonException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Admin/Reader/PdoAdminProfileReader.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Updater/PDOPermissionsMetadataRepository.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Reader/PDOPermissionsReaderRepository.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Reader/PDORolesReaderRepository.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Reader/Admin/PdoAdminQueryReader.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Reader/Session/PdoSessionListReader.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Reader/AppSettings/PdoAppSettingsQueryReader.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/PdoAdminNotificationPreferenceRepository.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/AdminNotificationChannelRepository.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/PdoSystemOwnershipRepository.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/AdminRepository.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/AdminEmailRepository.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/AdminEmailRepository.php**
+  - Violation: Direct throw/catch of `IdentifierNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/AdminTotpSecretRepository.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/AdminTotpSecretRepository.php**
+  - Violation: Direct throw/catch of `PDOException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/RedisStepUpGrantRepository.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/RedisStepUpGrantRepository.php**
+  - Violation: Direct throw/catch of `RedisException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/RedisStepUpGrantRepository.php**
+  - Violation: Direct throw/catch of `\Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoDirectPermissionsWriterRepository.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoDirectPermissionsWriterRepository.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoPermissionAdminsQueryRepository.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoPermissionAdminsQueryRepository.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoEffectivePermissionsRepository.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoEffectivePermissionsRepository.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoDirectPermissionsAssignableRepository.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoDirectPermissionsAssignableRepository.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoPermissionRolesQueryRepository.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoPermissionRolesQueryRepository.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoPermissionDetailsRepository.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoDirectPermissionsRepository.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoDirectPermissionsRepository.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleCreateRepository.php**
+  - Violation: Direct throw/catch of `EntityAlreadyExistsException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleCreateRepository.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoAdminRolesRepository.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoAdminRolesRepository.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleAdminsRepository.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleAdminsRepository.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRolePermissionsRepository.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRolePermissionsRepository.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleRepository.php**
+  - Violation: Direct throw/catch of `InvalidOperationException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleRepository.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleRepository.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleRepository.php**
+  - Violation: Direct throw/catch of `EntityAlreadyExistsException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/I18n/PdoLanguageTranslationValueQueryReader.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopeCreateWriter.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopeDetailsReader.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopeUpdater.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopeUpdater.php**
+  - Violation: Direct throw/catch of `\Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopesQueryReader.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopeDropdownReader.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/I18n/Translations/PdoI18nScopeDomainKeysSummaryQueryReader.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/I18n/Keys/PdoI18nScopeKeysQueryReader.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/I18n/Keys/PdoI18nScopeKeysQueryReader.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/I18n/Domains/PdoI18nDomainCreate.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/I18n/Domains/PdoI18nDomainDetailsReader.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/I18n/Domains/PdoI18nDomainDetailsReader.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/I18n/Domains/PdoI18nDomainUpdater.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/I18n/Domains/PdoI18nDomainUpdater.php**
+  - Violation: Direct throw/catch of `\Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/I18n/Domains/PdoI18nDomainsQueryReader.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/I18n/Languages/PdoLanguageLookup.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/I18n/Languages/PdoLanguageQueryReader.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/I18n/ScopeDomains/PdoI18nScopeDomainsQueryReader.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/I18n/ScopeDomains/PdoI18nScopeDomainsWriter.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/I18n/ScopeDomains/PdoI18nScopeDomainsListReader.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/I18n/ScopeDomains/PdoI18nScopeDomainsListReader.php**
+  - Violation: Direct throw/catch of `EntityNotFoundException`
+  - Status: **Violation**
+- **Modules/LanguageCore/Infrastructure/Mysql/MysqlLanguageSettingsRepository.php**
+  - Violation: Direct throw/catch of `\ValueError`
+  - Status: **Violation**
+- **Modules/LanguageCore/Infrastructure/Mysql/MysqlLanguageSettingsRepository.php**
+  - Violation: Direct throw/catch of `\Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Repository/NotificationReadRepository.php**
+  - Violation: Direct throw/catch of `\Exception`
+  - Status: **Violation**
+
+### Logging
+- **Modules/AuthoritativeAudit/Recorder/AuthoritativeAuditRecorder.php**
+  - Violation: Direct throw/catch of `InvalidArgumentException`
+  - Status: **Violation**
+- **Modules/SecuritySignals/Recorder/SecuritySignalsRecorder.php**
+  - Violation: Direct throw/catch of `JsonException`
+  - Status: **Violation**
+- **Modules/SecuritySignals/Recorder/SecuritySignalsRecorder.php**
+  - Violation: Direct throw/catch of `Throwable`
+  - Status: **Violation**
+- **Modules/AuditTrail/Recorder/AuditTrailRecorder.php**
+  - Violation: Direct throw/catch of `JsonException`
+  - Status: **Violation**
+- **Modules/AuditTrail/Recorder/AuditTrailRecorder.php**
+  - Violation: Direct throw/catch of `Throwable`
+  - Status: **Violation**
+- **Modules/BehaviorTrace/Recorder/BehaviorTraceRecorder.php**
+  - Violation: Direct throw/catch of `JsonException`
+  - Status: **Violation**
+- **Modules/BehaviorTrace/Recorder/BehaviorTraceRecorder.php**
+  - Violation: Direct throw/catch of `Throwable`
+  - Status: **Violation**
+- **Modules/DiagnosticsTelemetry/Recorder/DiagnosticsTelemetryRecorder.php**
+  - Violation: Direct throw/catch of `JsonException`
+  - Status: **Violation**
+- **Modules/DiagnosticsTelemetry/Recorder/DiagnosticsTelemetryRecorder.php**
+  - Violation: Direct throw/catch of `Throwable`
+  - Status: **Violation**
+- **Modules/DeliveryOperations/Recorder/DeliveryOperationsRecorder.php**
+  - Violation: Direct throw/catch of `JsonException`
+  - Status: **Violation**
+- **Modules/DeliveryOperations/Recorder/DeliveryOperationsRecorder.php**
+  - Violation: Direct throw/catch of `Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Logging/AuditTrailMaatifyAdapter.php**
+  - Violation: Direct throw/catch of `InvalidArgumentException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Logging/AuthoritativeAuditMaatifyAdapter.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+
+### Validation
+- **Modules/Validation/Exceptions/ValidationFailedException.php**
+  - Violation: Inheritance violation: `Class ValidationFailedException extends RuntimeException`
+  - Status: **Violation**
+- **Modules/Validation/Exceptions/SchemaNotFoundException.php**
+  - Violation: Inheritance violation: `Class SchemaNotFoundException extends RuntimeException`
+  - Status: **Violation**
+- **Modules/Validation/Guard/ValidationGuard.php**
+  - Violation: Direct throw/catch of `ValidationFailedException`
+  - Status: **Violation**
+- **Modules/Validation/Schemas/SharedListQuerySchema.php**
+  - Violation: Direct throw/catch of `NestedValidationException`
+  - Status: **Violation**
+- **Modules/Validation/Schemas/AbstractSchema.php**
+  - Violation: Direct throw/catch of `NestedValidationException`
+  - Status: **Violation**
+- **Modules/Validation/Schemas/AbstractSchema.php**
+  - Violation: Direct throw/catch of `ValidationException`
+  - Status: **Violation**
+
+### Security
+- **Modules/SecuritySignals/Exception/SecuritySignalsStorageException.php**
+  - Violation: Inheritance violation: `Class SecuritySignalsStorageException extends RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Security/Password/PasswordPepperRing.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Security/Password/PasswordPepperRingConfig.php**
+  - Violation: Direct throw/catch of `Exception`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Security/Password/PasswordPepperRingConfig.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Security/Crypto/CryptoKeyRingConfig.php**
+  - Violation: Direct throw/catch of `\Exception`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Crypto/AbuseProtectionCryptoSignatureProvider.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+
+### Global
+- **app/Modules/AdminKernel/Bootstrap/Container.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Bootstrap/Container.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Bootstrap/Container.php**
+  - Violation: Direct throw/catch of `\Exception`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Bootstrap/http.php**
+  - Violation: Direct throw/catch of `Throwable`
+  - Status: **Violation**
+
+### Others
+- **Modules/RateLimiter/Exception/RateLimiterException.php**
+  - Violation: Inheritance violation: `Class RateLimiterException extends RuntimeException`
+  - Status: **Violation**
+- **Modules/Exceptions/Exception/MaatifyException.php**
+  - Violation: Inheritance violation: `Class MaatifyException extends RuntimeException`
+  - Status: **Violation**
+- **Modules/LanguageCore/Exception/LanguageCoreException.php**
+  - Violation: Inheritance violation: `Class LanguageCoreException extends LanguageCoreBusinessRuleException`
+  - Status: **Violation**
+- **Modules/LanguageCore/Exception/LanguageAlreadyExistsException.php**
+  - Violation: Inheritance violation: `Class LanguageAlreadyExistsException extends LanguageCoreConflictException`
+  - Status: **Violation**
+- **Modules/LanguageCore/Exception/LanguageUpdateFailedException.php**
+  - Violation: Inheritance violation: `Class LanguageUpdateFailedException extends LanguageCoreSystemException`
+  - Status: **Violation**
+- **Modules/LanguageCore/Exception/LanguageNotFoundException.php**
+  - Violation: Inheritance violation: `Class LanguageNotFoundException extends LanguageCoreNotFoundException`
+  - Status: **Violation**
+- **Modules/LanguageCore/Exception/LanguageInvalidFallbackException.php**
+  - Violation: Inheritance violation: `Class LanguageInvalidFallbackException extends LanguageCoreException`
+  - Status: **Violation**
+- **Modules/LanguageCore/Exception/LanguageCreateFailedException.php**
+  - Violation: Inheritance violation: `Class LanguageCreateFailedException extends LanguageCoreSystemException`
+  - Status: **Violation**
+- **Modules/I18n/Exception/TranslationUpdateFailedException.php**
+  - Violation: Inheritance violation: `Class TranslationUpdateFailedException extends I18nSystemException`
+  - Status: **Violation**
+- **Modules/I18n/Exception/DomainScopeViolationException.php**
+  - Violation: Inheritance violation: `Class DomainScopeViolationException extends I18nBusinessRuleException`
+  - Status: **Violation**
+- **Modules/I18n/Exception/ScopeNotAllowedException.php**
+  - Violation: Inheritance violation: `Class ScopeNotAllowedException extends I18nBusinessRuleException`
+  - Status: **Violation**
+- **Modules/I18n/Exception/TranslationKeyCreateFailedException.php**
+  - Violation: Inheritance violation: `Class TranslationKeyCreateFailedException extends I18nSystemException`
+  - Status: **Violation**
+- **Modules/I18n/Exception/DomainNotAllowedException.php**
+  - Violation: Inheritance violation: `Class DomainNotAllowedException extends I18nBusinessRuleException`
+  - Status: **Violation**
+- **Modules/I18n/Exception/TranslationUpsertFailedException.php**
+  - Violation: Inheritance violation: `Class TranslationUpsertFailedException extends I18nSystemException`
+  - Status: **Violation**
+- **Modules/I18n/Exception/TranslationKeyNotFoundException.php**
+  - Violation: Inheritance violation: `Class TranslationKeyNotFoundException extends I18nNotFoundException`
+  - Status: **Violation**
+- **Modules/I18n/Exception/TranslationWriteFailedException.php**
+  - Violation: Inheritance violation: `Class TranslationWriteFailedException extends I18nSystemException`
+  - Status: **Violation**
+- **Modules/I18n/Exception/TranslationKeyAlreadyExistsException.php**
+  - Violation: Inheritance violation: `Class TranslationKeyAlreadyExistsException extends I18nConflictException`
+  - Status: **Violation**
+- **Modules/AuthoritativeAudit/Exception/AuthoritativeAuditStorageException.php**
+  - Violation: Inheritance violation: `Class AuthoritativeAuditStorageException extends RuntimeException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Domain/Exception/ContentDocumentsInvalidArgumentException.php**
+  - Violation: Inheritance violation: `Class ContentDocumentsInvalidArgumentException extends ContentDocumentsValidationException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Domain/Exception/DocumentTranslationNotFoundException.php**
+  - Violation: Inheritance violation: `Class DocumentTranslationNotFoundException extends ContentDocumentsNotFoundException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Domain/Exception/InvalidDocumentVersionException.php**
+  - Violation: Inheritance violation: `Class InvalidDocumentVersionException extends ContentDocumentsInvalidArgumentException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Domain/Exception/DocumentVersionAlreadyExistsException.php**
+  - Violation: Inheritance violation: `Class DocumentVersionAlreadyExistsException extends ContentDocumentsConflictException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Domain/Exception/DocumentTypeNotFoundException.php**
+  - Violation: Inheritance violation: `Class DocumentTypeNotFoundException extends ContentDocumentsNotFoundException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Domain/Exception/InvalidDocumentStateException.php**
+  - Violation: Inheritance violation: `Class InvalidDocumentStateException extends ContentDocumentsException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Domain/Exception/DocumentTranslationAlreadyExistsException.php**
+  - Violation: Inheritance violation: `Class DocumentTranslationAlreadyExistsException extends ContentDocumentsConflictException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Domain/Exception/DocumentTypeAlreadyExistsException.php**
+  - Violation: Inheritance violation: `Class DocumentTypeAlreadyExistsException extends ContentDocumentsConflictException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Domain/Exception/DocumentVersionImmutableException.php**
+  - Violation: Inheritance violation: `Class DocumentVersionImmutableException extends ContentDocumentsException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Domain/Exception/DocumentAlreadyAcceptedException.php**
+  - Violation: Inheritance violation: `Class DocumentAlreadyAcceptedException extends ContentDocumentsConflictException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Domain/Exception/DocumentActivationConflictException.php**
+  - Violation: Inheritance violation: `Class DocumentActivationConflictException extends ContentDocumentsConflictException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Domain/Exception/DocumentNotFoundException.php**
+  - Violation: Inheritance violation: `Class DocumentNotFoundException extends ContentDocumentsNotFoundException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Domain/Exception/InvalidDocumentTypeKeyException.php**
+  - Violation: Inheritance violation: `Class InvalidDocumentTypeKeyException extends ContentDocumentsInvalidArgumentException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Domain/Exception/InvalidActorIdentityException.php**
+  - Violation: Inheritance violation: `Class InvalidActorIdentityException extends ContentDocumentsInvalidArgumentException`
+  - Status: **Violation**
+- **Modules/AuditTrail/Exception/AuditTrailStorageException.php**
+  - Violation: Inheritance violation: `Class AuditTrailStorageException extends RuntimeException`
+  - Status: **Violation**
+- **Modules/BehaviorTrace/Exception/BehaviorTraceStorageException.php**
+  - Violation: Inheritance violation: `Class BehaviorTraceStorageException extends RuntimeException`
+  - Status: **Violation**
+- **Modules/DiagnosticsTelemetry/Exception/DiagnosticsTelemetryStorageException.php**
+  - Violation: Inheritance violation: `Class DiagnosticsTelemetryStorageException extends RuntimeException`
+  - Status: **Violation**
+- **Modules/AppSettings/Exception/AppSettingNotFoundException.php**
+  - Violation: Inheritance violation: `Class AppSettingNotFoundException extends AppSettingsNotFoundException`
+  - Status: **Violation**
+- **Modules/AppSettings/Exception/AppSettingProtectedException.php**
+  - Violation: Inheritance violation: `Class AppSettingProtectedException extends AppSettingException`
+  - Status: **Violation**
+- **Modules/AppSettings/Exception/AppSettingException.php**
+  - Violation: Inheritance violation: `Class AppSettingException extends AppSettingsBusinessRuleException`
+  - Status: **Violation**
+- **Modules/AppSettings/Exception/InvalidAppSettingException.php**
+  - Violation: Inheritance violation: `Class InvalidAppSettingException extends AppSettingInvalidArgumentException`
+  - Status: **Violation**
+- **Modules/AppSettings/Exception/AppSettingInvalidArgumentException.php**
+  - Violation: Inheritance violation: `Class AppSettingInvalidArgumentException extends AppSettingsValidationException`
+  - Status: **Violation**
+- **Modules/AppSettings/Exception/DuplicateAppSettingException.php**
+  - Violation: Inheritance violation: `Class DuplicateAppSettingException extends AppSettingsConflictException`
+  - Status: **Violation**
+- **Modules/EmailDelivery/Exception/EmailQueueWriteException.php**
+  - Violation: Inheritance violation: `Class EmailQueueWriteException extends RuntimeException`
+  - Status: **Violation**
+- **Modules/EmailDelivery/Exception/EmailTransportException.php**
+  - Violation: Inheritance violation: `Class EmailTransportException extends RuntimeException`
+  - Status: **Violation**
+- **Modules/EmailDelivery/Exception/EmailRenderException.php**
+  - Violation: Inheritance violation: `Class EmailRenderException extends RuntimeException`
+  - Status: **Violation**
+- **Modules/DeliveryOperations/Exception/DeliveryOperationsStorageException.php**
+  - Violation: Inheritance violation: `Class DeliveryOperationsStorageException extends RuntimeException`
+  - Status: **Violation**
+- **Modules/Crypto/Reversible/Exceptions/CryptoAlgorithmNotSupportedException.php**
+  - Violation: Inheritance violation: `Class CryptoAlgorithmNotSupportedException extends RuntimeException`
+  - Status: **Violation**
+- **Modules/Crypto/Reversible/Exceptions/CryptoDecryptionFailedException.php**
+  - Violation: Inheritance violation: `Class CryptoDecryptionFailedException extends RuntimeException`
+  - Status: **Violation**
+- **Modules/Crypto/Reversible/Exceptions/CryptoKeyNotFoundException.php**
+  - Violation: Inheritance violation: `Class CryptoKeyNotFoundException extends RuntimeException`
+  - Status: **Violation**
+- **Modules/Crypto/Password/Exception/PasswordCryptoException.php**
+  - Violation: Inheritance violation: `Class PasswordCryptoException extends RuntimeException`
+  - Status: **Violation**
+- **Modules/Crypto/Password/Exception/InvalidArgonPolicyException.php**
+  - Violation: Inheritance violation: `Class InvalidArgonPolicyException extends PasswordCryptoException`
+  - Status: **Violation**
+- **Modules/Crypto/Password/Exception/HashingFailedException.php**
+  - Violation: Inheritance violation: `Class HashingFailedException extends PasswordCryptoException`
+  - Status: **Violation**
+- **Modules/Crypto/Password/Exception/PepperUnavailableException.php**
+  - Violation: Inheritance violation: `Class PepperUnavailableException extends PasswordCryptoException`
+  - Status: **Violation**
+- **Modules/Crypto/HKDF/Exceptions/InvalidOutputLengthException.php**
+  - Violation: Inheritance violation: `Class InvalidOutputLengthException extends HKDFException`
+  - Status: **Violation**
+- **Modules/Crypto/HKDF/Exceptions/InvalidRootKeyException.php**
+  - Violation: Inheritance violation: `Class InvalidRootKeyException extends HKDFException`
+  - Status: **Violation**
+- **Modules/Crypto/HKDF/Exceptions/InvalidContextException.php**
+  - Violation: Inheritance violation: `Class InvalidContextException extends HKDFException`
+  - Status: **Violation**
+- **Modules/Crypto/HKDF/Exceptions/HKDFException.php**
+  - Violation: Inheritance violation: `Class HKDFException extends RuntimeException`
+  - Status: **Violation**
+- **Modules/Crypto/KeyRotation/Exceptions/KeyRotationException.php**
+  - Violation: Inheritance violation: `Class KeyRotationException extends RuntimeException`
+  - Status: **Violation**
+- **Modules/Crypto/KeyRotation/Exceptions/MultipleActiveKeysException.php**
+  - Violation: Inheritance violation: `Class MultipleActiveKeysException extends KeyRotationException`
+  - Status: **Violation**
+- **Modules/Crypto/KeyRotation/Exceptions/DecryptionKeyNotAllowedException.php**
+  - Violation: Inheritance violation: `Class DecryptionKeyNotAllowedException extends KeyRotationException`
+  - Status: **Violation**
+- **Modules/Crypto/KeyRotation/Exceptions/NoActiveKeyException.php**
+  - Violation: Inheritance violation: `Class NoActiveKeyException extends KeyRotationException`
+  - Status: **Violation**
+- **Modules/Crypto/KeyRotation/Exceptions/KeyNotFoundException.php**
+  - Violation: Inheritance violation: `Class KeyNotFoundException extends KeyRotationException`
+  - Status: **Violation**
+- **Modules/AbuseProtection/Exception/ChallengeRequiredException.php**
+  - Violation: Inheritance violation: `Class ChallengeRequiredException extends AbuseProtectionSecurityException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Exception/InvalidSessionException.php**
+  - Violation: Inheritance violation: `Class InvalidSessionException extends Exception`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php**
+  - Violation: Inheritance violation: `Class EntityNotFoundException extends RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Exception/AuthStateException.php**
+  - Violation: Inheritance violation: `Class AuthStateException extends DomainException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Exception/TwoFactorEnrollmentFailedException.php**
+  - Violation: Inheritance violation: `Class TwoFactorEnrollmentFailedException extends RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Exception/UnsupportedNotificationChannelException.php**
+  - Violation: Inheritance violation: `Class UnsupportedNotificationChannelException extends DomainException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Exception/IdentifierNotFoundException.php**
+  - Violation: Inheritance violation: `Class IdentifierNotFoundException extends LogicException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Exception/ExpiredSessionException.php**
+  - Violation: Inheritance violation: `Class ExpiredSessionException extends Exception`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Exception/UnauthorizedException.php**
+  - Violation: Inheritance violation: `Class UnauthorizedException extends DomainException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Exception/InvalidCredentialsException.php**
+  - Violation: Inheritance violation: `Class InvalidCredentialsException extends DomainException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php**
+  - Violation: Inheritance violation: `Class EntityAlreadyExistsException extends RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierFormatException.php**
+  - Violation: Inheritance violation: `Class InvalidIdentifierFormatException extends LogicException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Exception/PermissionDeniedException.php**
+  - Violation: Inheritance violation: `Class PermissionDeniedException extends DomainException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierStateException.php**
+  - Violation: Inheritance violation: `Class InvalidIdentifierStateException extends LogicException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php**
+  - Violation: Inheritance violation: `Class InvalidOperationException extends RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Exception/MustChangePasswordException.php**
+  - Violation: Inheritance violation: `Class MustChangePasswordException extends DomainException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Exception/RecoveryLockException.php**
+  - Violation: Inheritance violation: `Class RecoveryLockException extends RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php**
+  - Violation: Inheritance violation: `Class EntityInUseException extends RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Exception/RevokedSessionException.php**
+  - Violation: Inheritance violation: `Class RevokedSessionException extends Exception`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Exception/TwoFactorAlreadyEnrolledException.php**
+  - Violation: Inheritance violation: `Class TwoFactorAlreadyEnrolledException extends RuntimeException`
+  - Status: **Violation**
+- **Modules/RateLimiter/Engine/RateLimiterEngine.php**
+  - Violation: Direct throw/catch of `RateLimiterException`
+  - Status: **Violation**
+- **Modules/Exceptions/Policy/DefaultErrorPolicy.php**
+  - Violation: Direct throw/catch of `LogicException`
+  - Status: **Violation**
+- **Modules/Exceptions/Exception/MaatifyException.php**
+  - Violation: Direct throw/catch of `LogicException`
+  - Status: **Violation**
+- **Modules/LanguageCore/Domain/Policy/LanguageCoreErrorPolicy.php**
+  - Violation: Direct throw/catch of `LogicException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Domain/ValueObject/DocumentVersion.php**
+  - Violation: Direct throw/catch of `InvalidDocumentVersionException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Domain/ValueObject/ActorIdentity.php**
+  - Violation: Direct throw/catch of `InvalidActorIdentityException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Domain/ValueObject/DocumentTypeKey.php**
+  - Violation: Direct throw/catch of `InvalidDocumentTypeKeyException`
+  - Status: **Violation**
+- **Modules/ContentDocuments/Domain/Policy/ContentDocumentsErrorPolicy.php**
+  - Violation: Direct throw/catch of `LogicException`
+  - Status: **Violation**
+- **Modules/AppSettings/Policy/AppSettingsProtectionPolicy.php**
+  - Violation: Direct throw/catch of `AppSettingProtectedException`
+  - Status: **Violation**
+- **Modules/AppSettings/Policy/AppSettingsWhitelistPolicy.php**
+  - Violation: Direct throw/catch of `InvalidAppSettingException`
+  - Status: **Violation**
+- **Modules/AppSettings/Domain/Policy/AppSettingsErrorPolicy.php**
+  - Violation: Direct throw/catch of `LogicException`
+  - Status: **Violation**
+- **Modules/EmailDelivery/Transport/SmtpEmailTransport.php**
+  - Violation: Direct throw/catch of `EmailTransportException`
+  - Status: **Violation**
+- **Modules/EmailDelivery/Renderer/TwigEmailRenderer.php**
+  - Violation: Direct throw/catch of `EmailRenderException`
+  - Status: **Violation**
+- **Modules/EmailDelivery/Worker/EmailQueueWorker.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **Modules/Crypto/Reversible/Registry/ReversibleCryptoAlgorithmRegistry.php**
+  - Violation: Direct throw/catch of `CryptoAlgorithmNotSupportedException`
+  - Status: **Violation**
+- **Modules/Crypto/Reversible/Algorithms/Aes256GcmAlgorithm.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **Modules/Crypto/Reversible/Algorithms/Aes256GcmAlgorithm.php**
+  - Violation: Direct throw/catch of `CryptoDecryptionFailedException`
+  - Status: **Violation**
+- **Modules/Crypto/Password/PasswordHasher.php**
+  - Violation: Direct throw/catch of `PepperUnavailableException`
+  - Status: **Violation**
+- **Modules/Crypto/Password/PasswordHasher.php**
+  - Violation: Direct throw/catch of `HashingFailedException`
+  - Status: **Violation**
+- **Modules/Crypto/Password/DTO/ArgonPolicyDTO.php**
+  - Violation: Direct throw/catch of `InvalidArgonPolicyException`
+  - Status: **Violation**
+- **Modules/Crypto/HKDF/HKDFPolicy.php**
+  - Violation: Direct throw/catch of `InvalidRootKeyException`
+  - Status: **Violation**
+- **Modules/Crypto/HKDF/HKDFPolicy.php**
+  - Violation: Direct throw/catch of `InvalidOutputLengthException`
+  - Status: **Violation**
+- **Modules/Crypto/HKDF/HKDFContext.php**
+  - Violation: Direct throw/catch of `InvalidContextException`
+  - Status: **Violation**
+- **Modules/Crypto/KeyRotation/Policy/StrictSingleActiveKeyPolicy.php**
+  - Violation: Direct throw/catch of `NoActiveKeyException`
+  - Status: **Violation**
+- **Modules/Crypto/KeyRotation/Policy/StrictSingleActiveKeyPolicy.php**
+  - Violation: Direct throw/catch of `MultipleActiveKeysException`
+  - Status: **Violation**
+- **Modules/Crypto/KeyRotation/Policy/StrictSingleActiveKeyPolicy.php**
+  - Violation: Direct throw/catch of `KeyNotFoundException`
+  - Status: **Violation**
+- **Modules/Crypto/KeyRotation/Policy/StrictSingleActiveKeyPolicy.php**
+  - Violation: Direct throw/catch of `DecryptionKeyNotAllowedException`
+  - Status: **Violation**
+- **Modules/Crypto/KeyRotation/Providers/InMemoryKeyProvider.php**
+  - Violation: Direct throw/catch of `MultipleActiveKeysException`
+  - Status: **Violation**
+- **Modules/Crypto/KeyRotation/Providers/InMemoryKeyProvider.php**
+  - Violation: Direct throw/catch of `NoActiveKeyException`
+  - Status: **Violation**
+- **Modules/Crypto/KeyRotation/Providers/InMemoryKeyProvider.php**
+  - Violation: Direct throw/catch of `KeyNotFoundException`
+  - Status: **Violation**
+- **Modules/AbuseProtection/Domain/Policy/AbuseProtectionErrorPolicy.php**
+  - Violation: Direct throw/catch of `LogicException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Database/PDOFactory.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Logging/AuditTrailMaatifyAdapter.php**
+  - Violation: Direct throw/catch of `InvalidArgumentException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Logging/AuthoritativeAuditMaatifyAdapter.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Crypto/AbuseProtectionCryptoSignatureProvider.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Kernel/AdminKernel.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Kernel/DTO/AdminRuntimeConfigDTO.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Context/ActorContext.php**
+  - Violation: Direct throw/catch of `\RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/Actor/Actor.php**
+  - Violation: Direct throw/catch of `InvalidArgumentException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/DTO/TotpEnrollmentConfig.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/DTO/Request/VerifyAdminEmailRequestDTO.php**
+  - Violation: Direct throw/catch of `InvalidIdentifierFormatException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Domain/DTO/Request/CreateAdminEmailRequestDTO.php**
+  - Violation: Direct throw/catch of `InvalidIdentifierFormatException`
+  - Status: **Violation**
+- **Modules/I18n/Infrastructure/Mysql/MysqlI18nTransactionManager.php**
+  - Violation: Direct throw/catch of `\Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Application/Verification/VerificationNotificationDispatcher.php**
+  - Violation: Direct throw/catch of `Throwable`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Database/PDOFactory.php**
+  - Violation: Direct throw/catch of `\PDOException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Notification/TelegramHandler.php**
+  - Violation: Direct throw/catch of `RuntimeException`
+  - Status: **Violation**
+- **app/Modules/AdminKernel/Infrastructure/Notification/TelegramHandler.php**
+  - Violation: Direct throw/catch of `\Exception`
+  - Status: **Violation**
+
+
+---
+
+## 3️⃣ Violation Classification Matrix
+
+| Layer | File | Problem | Severity | Required Fix |
+| :--- | :--- | :--- | :--- | :--- |
+| **Validation** | `ValidationFailedException.php` | Extends `RuntimeException` | **CRITICAL** | Extend `Maatify\Exceptions\Exception\Validation\ValidationMaatifyException` |
+| **Global** | `http.php` | Rethrows `Throwable` | **CRITICAL** | Catch `Throwable`, wrap in `SystemMaatifyException`, return unified JSON |
+| **Global** | `http.php` | Inconsistent JSON formats | **CRITICAL** | Remove manual handlers; rely on `MaatifyException` unified formatting |
+| **Repo** | `MysqlKeyStatsRepository.php` | Leaks `PDOException` | **CRITICAL** | Wrap `execute()` in `try/catch` -> throw `I18nSystemException` |
+| **Repo** | `PdoDocumentRepository.php` | Rethrows `PDOException` | **HIGH** | Catch and wrap in `ContentDocumentsSystemException` |
+| **Controller** | `AdminController.php` | Throws `HttpBadRequestException` | **HIGH** | Throw `ValidationMaatifyException` or `BusinessRuleMaatifyException` |
+| **Controller** | `AdminController.php` | Throws `RuntimeException` | **HIGH** | Throw `SystemMaatifyException` |
+| **Domain** | `InvalidSessionException.php` | Extends `Exception` | **MEDIUM** | Extend `AuthenticationMaatifyException` |
+| **Logging** | `SecuritySignalsStorageException.php` | Extends `RuntimeException` | **MEDIUM** | Extend `SystemMaatifyException` |
+
+---
+
+## 4️⃣ Architectural Risk Analysis
+
+- **API Contract Instability:**
+  - Clients consuming the API currently have to handle two different error formats. Strictly enforcing the model will break clients expecting the "legacy" format (Slim's default or the manual handlers).
+  - **Mitigation:** The "Unified" format is `{"success": false, "error": ...}`. The legacy format is `{"message": ...}`. This is a breaking change for frontend clients.
+
+- **Deadlock Risks:**
+  - **Location:** `Modules/I18n/Infrastructure/Mysql/MysqlKeyStatsRepository.php`
+  - **Risk:** The repository uses `INSERT ... ON DUPLICATE KEY UPDATE` which locks rows. If `rebuildAll()` (which does a massive `INSERT ... SELECT`) runs concurrently with `incrementTranslated()`, deadlocks are highly likely on the `i18n_key_stats` table.
+  - **Fix:** Ensure `rebuildAll` runs in a transaction with proper isolation or locking, and consider using explicit transactions for all mutations.
+
+- **Observability Black Hole:**
+  - Because most exceptions are `RuntimeException` or `PDOException`, monitoring tools (Sentry, Datadog) cannot distinguish between a "User Error" (Validation) and a "System Error" (DB Down). Everything looks like a crash or is swallowed.
+
+---
+
+## 5️⃣ Migration Complexity Estimate
+
+**Estimate:** **Large (Multi-Phase Refactor)**
+- **Duration:** 2-3 Weeks
+
+**Reasoning:**
+1.  **Phase 1 (Foundation):** Fix the Base Exceptions (`ValidationFailedException`, `MaatifyException` hierarchy). This is quick (1 day).
+2.  **Phase 2 (Global Handler):** Rewrite `http.php` to use the Unified Model exclusively. This immediately changes the API response format, requiring frontend coordination (2-3 days).
+3.  **Phase 3 (Repositories):** Audit every repository (50+ files) to add `try/catch(PDOException)` blocks. This is tedious and high-volume (1 week).
+4.  **Phase 4 (Controllers):** Replace `HttpBadRequestException` with Domain Exceptions. This requires understanding the business logic in each controller (1 week).
+
+---
+
+## 6️⃣ Final Verdict
+
+- **Can system be fully unified?**
+  - **Yes**, the `Maatify\Exceptions` library is capable and well-structured. The issue is purely adoption.
+
+- **Is a phased migration required?**
+  - **YES.** You cannot flip the switch without breaking the frontend clients (due to JSON format change).
+  - **Recommended Strategy:**
+    1.  Update `http.php` to support *both* formats temporarily (or agree on a flag day).
+    2.  Systematically refactor Repositories to stop leaking `PDOException`.
+    3.  Refactor Controllers to throw correct Domain Exceptions.
+
+- **Is Kernel Contract Impacted?**
+  - **Yes.** `AdminKernel` relies heavily on legacy exception types. Changing `InvalidSessionException` to extend `MaatifyException` will change how it is serialized and handled.
+
+**CONCLUSION:** The system is in a precarious state with high technical debt regarding error handling. Immediate action is required to fix the Global Exception Handler and Repository leakage to prevent security risks and data exposure.
