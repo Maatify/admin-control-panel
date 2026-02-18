@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Maatify\Exceptions\Enum;
 
-enum ErrorCategoryEnum: string
+use Maatify\Exceptions\Contracts\ErrorCategoryInterface;
+
+enum ErrorCategoryEnum: string implements ErrorCategoryInterface
 {
     case VALIDATION = 'VALIDATION';
     case AUTHENTICATION = 'AUTHENTICATION';
@@ -15,4 +17,9 @@ enum ErrorCategoryEnum: string
     case UNSUPPORTED = 'UNSUPPORTED';
     case SYSTEM = 'SYSTEM';
     case RATE_LIMIT = 'RATE_LIMIT';
+
+    public function getValue(): string
+    {
+        return $this->value;
+    }
 }

@@ -4,17 +4,15 @@ declare(strict_types=1);
 
 namespace Maatify\Exceptions\Contracts;
 
-use Maatify\Exceptions\Enum\ErrorCategoryEnum;
-use Maatify\Exceptions\Enum\ErrorCodeEnum;
 use Throwable;
 
 interface ApiAwareExceptionInterface extends Throwable
 {
     public function getHttpStatus(): int;
 
-    public function getErrorCode(): ErrorCodeEnum;
+    public function getErrorCode(): ErrorCodeInterface;
 
-    public function getCategory(): ErrorCategoryEnum;
+    public function getCategory(): ErrorCategoryInterface;
 
     public function isSafe(): bool;
 

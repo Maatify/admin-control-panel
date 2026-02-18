@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Maatify\Exceptions\Enum;
 
-enum ErrorCodeEnum: string
+use Maatify\Exceptions\Contracts\ErrorCodeInterface;
+
+enum ErrorCodeEnum: string implements ErrorCodeInterface
 {
     case MAATIFY_ERROR = 'MAATIFY_ERROR';
 
@@ -23,4 +25,9 @@ enum ErrorCodeEnum: string
 
     case TOO_MANY_REQUESTS = 'TOO_MANY_REQUESTS';
     case SESSION_EXPIRED = 'SESSION_EXPIRED';
+
+    public function getValue(): string
+    {
+        return $this->value;
+    }
 }

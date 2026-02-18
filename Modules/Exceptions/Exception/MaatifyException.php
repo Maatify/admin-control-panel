@@ -6,62 +6,103 @@ namespace Maatify\Exceptions\Exception;
 
 use LogicException;
 use Maatify\Exceptions\Contracts\ApiAwareExceptionInterface;
-use Maatify\Exceptions\Enum\ErrorCategoryEnum;
-use Maatify\Exceptions\Enum\ErrorCodeEnum;
+use Maatify\Exceptions\Contracts\ErrorCategoryInterface;
+use Maatify\Exceptions\Contracts\ErrorCodeInterface;
+use Maatify\Exceptions\Contracts\ErrorPolicyInterface;
+use Maatify\Exceptions\Contracts\EscalationPolicyInterface;
+use Maatify\Exceptions\Policy\DefaultErrorPolicy;
+use Maatify\Exceptions\Policy\DefaultEscalationPolicy;
 use RuntimeException;
 use Throwable;
 
+/**
+ * Base exception for all Maatify exceptions.
+ *
+ * - Policy-driven validation
+ * - Escalation fully injectable
+ * - No enum coupling
+ * - Extensible & reusable
+ * - Supports global default policy overrides
+ */
 abstract class MaatifyException extends RuntimeException implements ApiAwareExceptionInterface
 {
-    private const SEVERITY_RANKING = [
-        ErrorCategoryEnum::SYSTEM->value => 90,
-        ErrorCategoryEnum::RATE_LIMIT->value => 80,
-        ErrorCategoryEnum::AUTHENTICATION->value => 70,
-        ErrorCategoryEnum::AUTHORIZATION->value => 60,
-        ErrorCategoryEnum::VALIDATION->value => 50,
-        ErrorCategoryEnum::BUSINESS_RULE->value => 40,
-        ErrorCategoryEnum::CONFLICT->value => 30,
-        ErrorCategoryEnum::NOT_FOUND->value => 20,
-        ErrorCategoryEnum::UNSUPPORTED->value => 10,
-    ];
-
-    private const ALLOWED_ERROR_CODES = [
-        ErrorCategoryEnum::VALIDATION->value => [ErrorCodeEnum::INVALID_ARGUMENT],
-        ErrorCategoryEnum::AUTHENTICATION->value => [ErrorCodeEnum::UNAUTHORIZED, ErrorCodeEnum::SESSION_EXPIRED],
-        ErrorCategoryEnum::AUTHORIZATION->value => [ErrorCodeEnum::FORBIDDEN],
-        ErrorCategoryEnum::CONFLICT->value => [ErrorCodeEnum::CONFLICT],
-        ErrorCategoryEnum::NOT_FOUND->value => [ErrorCodeEnum::RESOURCE_NOT_FOUND],
-        ErrorCategoryEnum::BUSINESS_RULE->value => [ErrorCodeEnum::BUSINESS_RULE_VIOLATION],
-        ErrorCategoryEnum::UNSUPPORTED->value => [ErrorCodeEnum::UNSUPPORTED_OPERATION],
-        ErrorCategoryEnum::SYSTEM->value => [ErrorCodeEnum::MAATIFY_ERROR, ErrorCodeEnum::DATABASE_CONNECTION_FAILED],
-        ErrorCategoryEnum::RATE_LIMIT->value => [ErrorCodeEnum::TOO_MANY_REQUESTS],
-    ];
-
     /** @var array<string, mixed> */
     private array $meta = [];
 
-    private ?ErrorCodeEnum $errorCodeOverride = null;
+    private ErrorPolicyInterface $policy;
+    private EscalationPolicyInterface $escalationPolicy;
+
+    private ?ErrorCodeInterface $errorCodeOverride = null;
     private ?int $httpStatusOverride = null;
     private ?bool $isSafeOverride = null;
     private ?bool $isRetryableOverride = null;
 
-    private ?ErrorCategoryEnum $escalatedCategory = null;
+    private ?ErrorCategoryInterface $escalatedCategory = null;
     private ?int $escalatedHttpStatus = null;
+
+    // ---------------------------------------------------------------------
+    // Global Policy Overrides (Optional)
+    // ---------------------------------------------------------------------
+
+    private static ?ErrorPolicyInterface $globalPolicy = null;
+    private static ?EscalationPolicyInterface $globalEscalationPolicy = null;
+
+    /**
+     * Override default policy globally for all new exceptions.
+     */
+    public static function setGlobalPolicy(
+        ErrorPolicyInterface $policy
+    ): void {
+        self::$globalPolicy = $policy;
+    }
+
+    /**
+     * Override default escalation policy globally.
+     */
+    public static function setGlobalEscalationPolicy(
+        EscalationPolicyInterface $policy
+    ): void {
+        self::$globalEscalationPolicy = $policy;
+    }
+
+    /**
+     * Reset global policies to defaults.
+     */
+    public static function resetGlobalPolicies(): void
+    {
+        self::$globalPolicy = null;
+        self::$globalEscalationPolicy = null;
+    }
 
     /**
      * @param array<string, mixed> $meta
+     *
+     * WARNING:
+     * Global policies are process-wide.
+     * In long-running environments (Swoole, RoadRunner),
+     * ensure policies are set during bootstrap only.
      */
     public function __construct(
         string $message = '',
         int $code = 0,
         ?Throwable $previous = null,
-        ?ErrorCodeEnum $errorCodeOverride = null,
+        ?ErrorCodeInterface $errorCodeOverride = null,
         ?int $httpStatusOverride = null,
         ?bool $isSafeOverride = null,
         ?bool $isRetryableOverride = null,
         array $meta = [],
+        ?ErrorPolicyInterface $policy = null,
+        ?EscalationPolicyInterface $escalationPolicy = null,
     ) {
         parent::__construct($message, $code, $previous);
+
+        $this->policy = $policy
+                        ?? self::$globalPolicy
+                           ?? DefaultErrorPolicy::default();
+
+        $this->escalationPolicy = $escalationPolicy
+                                  ?? self::$globalEscalationPolicy
+                                     ?? DefaultEscalationPolicy::default();
 
         $this->errorCodeOverride = $errorCodeOverride;
         $this->httpStatusOverride = $httpStatusOverride;
@@ -74,21 +115,20 @@ abstract class MaatifyException extends RuntimeException implements ApiAwareExce
         $this->calculateEscalation($previous);
     }
 
+    // ---------------------------------------------------------------------
+    // Validation
+    // ---------------------------------------------------------------------
+
     private function validateErrorCodeOverride(): void
     {
         if ($this->errorCodeOverride === null) {
             return;
         }
 
-        $allowed = self::ALLOWED_ERROR_CODES[$this->defaultCategory()->value];
-
-        if (!in_array($this->errorCodeOverride, $allowed, true)) {
-            throw new LogicException(sprintf(
-                'ErrorCode %s is not allowed for category %s',
-                $this->errorCodeOverride->value,
-                $this->defaultCategory()->value
-            ));
-        }
+        $this->policy->validate(
+            $this->errorCodeOverride,
+            $this->defaultCategory()
+        );
     }
 
     private function validateHttpStatusOverride(): void
@@ -101,12 +141,16 @@ abstract class MaatifyException extends RuntimeException implements ApiAwareExce
 
         if (intdiv($this->httpStatusOverride, 100) !== intdiv($default, 100)) {
             throw new LogicException(sprintf(
-                'HttpStatus override %d must belong to the same class family as default %d',
+                'HttpStatus override %d must belong to same class family as default %d',
                 $this->httpStatusOverride,
                 $default
             ));
         }
     }
+
+    // ---------------------------------------------------------------------
+    // Escalation
+    // ---------------------------------------------------------------------
 
     private function calculateEscalation(?Throwable $previous): void
     {
@@ -114,42 +158,35 @@ abstract class MaatifyException extends RuntimeException implements ApiAwareExce
             return;
         }
 
-        // Category Escalation
         $currentCategory = $this->defaultCategory();
         $previousCategory = $previous->getCategory();
 
-        $currentSeverity = self::SEVERITY_RANKING[$currentCategory->value];
-        $previousSeverity = self::SEVERITY_RANKING[$previousCategory->value];
+        $this->escalatedCategory =
+            $this->escalationPolicy->escalateCategory(
+                $currentCategory,
+                $previousCategory,
+                $this->policy
+            );
 
-        if ($previousSeverity > $currentSeverity) {
-            $this->escalatedCategory = $previousCategory;
-        }
-
-        // HttpStatus Escalation
         $currentStatus = $this->httpStatusOverride ?? $this->defaultHttpStatus();
         $previousStatus = $previous->getHttpStatus();
 
-        if ($previousStatus > $currentStatus) {
-            $this->escalatedHttpStatus = $previousStatus;
-        }
+        $this->escalatedHttpStatus =
+            $this->escalationPolicy->escalateHttpStatus(
+                $currentStatus,
+                $previousStatus
+            );
     }
 
-    // ---- Defaults (Families override these) ----
+    // ---------------------------------------------------------------------
+    // Default behavior (subclasses MUST define core identity)
+    // ---------------------------------------------------------------------
 
-    protected function defaultErrorCode(): ErrorCodeEnum
-    {
-        return ErrorCodeEnum::MAATIFY_ERROR;
-    }
+    abstract protected function defaultErrorCode(): ErrorCodeInterface;
 
-    protected function defaultCategory(): ErrorCategoryEnum
-    {
-        return ErrorCategoryEnum::SYSTEM;
-    }
+    abstract protected function defaultCategory(): ErrorCategoryInterface;
 
-    protected function defaultHttpStatus(): int
-    {
-        return 500;
-    }
+    abstract protected function defaultHttpStatus(): int;
 
     protected function defaultIsSafe(): bool
     {
@@ -161,21 +198,25 @@ abstract class MaatifyException extends RuntimeException implements ApiAwareExce
         return false;
     }
 
-    // ---- Final getters (contract) ----
+    // ---------------------------------------------------------------------
+    // Final API Contract Methods
+    // ---------------------------------------------------------------------
 
-    final public function getErrorCode(): ErrorCodeEnum
+    final public function getErrorCode(): ErrorCodeInterface
     {
         return $this->errorCodeOverride ?? $this->defaultErrorCode();
     }
 
-    final public function getCategory(): ErrorCategoryEnum
+    final public function getCategory(): ErrorCategoryInterface
     {
         return $this->escalatedCategory ?? $this->defaultCategory();
     }
 
     final public function getHttpStatus(): int
     {
-        return $this->escalatedHttpStatus ?? $this->httpStatusOverride ?? $this->defaultHttpStatus();
+        return $this->escalatedHttpStatus
+               ?? $this->httpStatusOverride
+                  ?? $this->defaultHttpStatus();
     }
 
     final public function isSafe(): bool
@@ -188,6 +229,9 @@ abstract class MaatifyException extends RuntimeException implements ApiAwareExce
         return $this->isRetryableOverride ?? $this->defaultIsRetryable();
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     final public function getMeta(): array
     {
         return $this->meta;
