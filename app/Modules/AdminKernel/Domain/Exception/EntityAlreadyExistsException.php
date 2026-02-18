@@ -15,9 +15,11 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Exception;
 
-use RuntimeException;
+use Maatify\Exceptions\Enum\ErrorCategoryEnum;
+use Maatify\Exceptions\Enum\ErrorCodeEnum;
+use Maatify\Exceptions\Exception\MaatifyException;
 
-class EntityAlreadyExistsException extends RuntimeException
+class EntityAlreadyExistsException extends MaatifyException
 {
     public function __construct(
         string $entity,
@@ -25,7 +27,37 @@ class EntityAlreadyExistsException extends RuntimeException
         string $value
     ) {
         parent::__construct(
-            sprintf('%s with %s "%s" already exists.', $entity, $field, $value)
+            message: sprintf('%s with %s "%s" already exists.', $entity, $field, $value),
+            meta: [
+                'entity' => $entity,
+                'field'  => $field,
+                'value'  => $value,
+            ]
         );
+    }
+
+    protected function defaultErrorCode(): ErrorCodeEnum
+    {
+        return ErrorCodeEnum::ENTITY_ALREADY_EXISTS;
+    }
+
+    protected function defaultCategory(): ErrorCategoryEnum
+    {
+        return ErrorCategoryEnum::CONFLICT;
+    }
+
+    protected function defaultHttpStatus(): int
+    {
+        return 409;
+    }
+
+    protected function defaultIsSafe(): bool
+    {
+        return true;
+    }
+
+    protected function defaultIsRetryable(): bool
+    {
+        return false;
     }
 }

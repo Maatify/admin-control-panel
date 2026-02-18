@@ -4,8 +4,34 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Exception;
 
-use Exception;
+use Maatify\Exceptions\Enum\ErrorCategoryEnum;
+use Maatify\Exceptions\Enum\ErrorCodeEnum;
+use Maatify\Exceptions\Exception\MaatifyException;
 
-class ExpiredSessionException extends Exception
+class ExpiredSessionException extends MaatifyException
 {
+    protected function defaultErrorCode(): ErrorCodeEnum
+    {
+        return ErrorCodeEnum::SESSION_EXPIRED;
+    }
+
+    protected function defaultCategory(): ErrorCategoryEnum
+    {
+        return ErrorCategoryEnum::AUTHENTICATION;
+    }
+
+    protected function defaultHttpStatus(): int
+    {
+        return 401;
+    }
+
+    protected function defaultIsSafe(): bool
+    {
+        return true;
+    }
+
+    protected function defaultIsRetryable(): bool
+    {
+        return false;
+    }
 }

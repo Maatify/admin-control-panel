@@ -15,9 +15,34 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Exception;
 
-use DomainException;
+use Maatify\Exceptions\Enum\ErrorCategoryEnum;
+use Maatify\Exceptions\Enum\ErrorCodeEnum;
+use Maatify\Exceptions\Exception\MaatifyException;
 
-class MustChangePasswordException extends DomainException
+class MustChangePasswordException extends MaatifyException
 {
+    protected function defaultErrorCode(): ErrorCodeEnum
+    {
+        return ErrorCodeEnum::PASSWORD_CHANGE_REQUIRED;
+    }
 
+    protected function defaultCategory(): ErrorCategoryEnum
+    {
+        return ErrorCategoryEnum::AUTHENTICATION;
+    }
+
+    protected function defaultHttpStatus(): int
+    {
+        return 403;
+    }
+
+    protected function defaultIsSafe(): bool
+    {
+        return true;
+    }
+
+    protected function defaultIsRetryable(): bool
+    {
+        return false;
+    }
 }

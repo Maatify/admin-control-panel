@@ -15,9 +15,11 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Exception;
 
-use RuntimeException;
+use Maatify\Exceptions\Enum\ErrorCategoryEnum;
+use Maatify\Exceptions\Enum\ErrorCodeEnum;
+use Maatify\Exceptions\Exception\MaatifyException;
 
-class EntityInUseException extends RuntimeException
+class EntityInUseException extends MaatifyException
 {
     public function __construct(
         string $entity,
@@ -26,12 +28,42 @@ class EntityInUseException extends RuntimeException
     )
     {
         parent::__construct(
-            sprintf(
+            message: sprintf(
                 '%s code "%s" cannot be changed because it is already used in %s.',
                 $entity,
                 $code,
                 $usageContext
-            )
+            ),
+            meta: [
+                'entity'       => $entity,
+                'code'         => $code,
+                'usageContext' => $usageContext,
+            ]
         );
+    }
+
+    protected function defaultErrorCode(): ErrorCodeEnum
+    {
+        return ErrorCodeEnum::ENTITY_IN_USE;
+    }
+
+    protected function defaultCategory(): ErrorCategoryEnum
+    {
+        return ErrorCategoryEnum::CONFLICT;
+    }
+
+    protected function defaultHttpStatus(): int
+    {
+        return 409;
+    }
+
+    protected function defaultIsSafe(): bool
+    {
+        return true;
+    }
+
+    protected function defaultIsRetryable(): bool
+    {
+        return false;
     }
 }

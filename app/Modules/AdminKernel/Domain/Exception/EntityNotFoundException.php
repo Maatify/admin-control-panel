@@ -15,16 +15,47 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Exception;
 
-use RuntimeException;
+use Maatify\Exceptions\Enum\ErrorCategoryEnum;
+use Maatify\Exceptions\Enum\ErrorCodeEnum;
+use Maatify\Exceptions\Exception\MaatifyException;
 
-class EntityNotFoundException extends RuntimeException
+class EntityNotFoundException extends MaatifyException
 {
     public function __construct(
         string $entity,
         string|int $identifier
     ) {
         parent::__construct(
-            sprintf('%s "%s" was not found.', $entity, (string)$identifier)
+            message: sprintf('%s "%s" was not found.', $entity, (string)$identifier),
+            meta: [
+                'entity'     => $entity,
+                'identifier' => $identifier,
+            ]
         );
+    }
+
+    protected function defaultErrorCode(): ErrorCodeEnum
+    {
+        return ErrorCodeEnum::RESOURCE_NOT_FOUND;
+    }
+
+    protected function defaultCategory(): ErrorCategoryEnum
+    {
+        return ErrorCategoryEnum::NOT_FOUND;
+    }
+
+    protected function defaultHttpStatus(): int
+    {
+        return 404;
+    }
+
+    protected function defaultIsSafe(): bool
+    {
+        return true;
+    }
+
+    protected function defaultIsRetryable(): bool
+    {
+        return false;
     }
 }

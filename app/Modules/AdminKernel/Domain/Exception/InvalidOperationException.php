@@ -15,9 +15,11 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Exception;
 
-use RuntimeException;
+use Maatify\Exceptions\Enum\ErrorCategoryEnum;
+use Maatify\Exceptions\Enum\ErrorCodeEnum;
+use Maatify\Exceptions\Exception\MaatifyException;
 
-class InvalidOperationException extends RuntimeException
+class InvalidOperationException extends MaatifyException
 {
     public function __construct(
         string $entity,
@@ -26,18 +28,48 @@ class InvalidOperationException extends RuntimeException
     )
     {
         parent::__construct(
-            $reason !== null
+            message: $reason !== null
                 ? sprintf(
-                'Invalid operation "%s" on %s: %s.',
-                $operation,
-                $entity,
-                $reason
-            )
+                    'Invalid operation "%s" on %s: %s.',
+                    $operation,
+                    $entity,
+                    $reason
+                )
                 : sprintf(
-                'Invalid operation "%s" on %s.',
-                $operation,
-                $entity
-            )
+                    'Invalid operation "%s" on %s.',
+                    $operation,
+                    $entity
+                ),
+            meta: [
+                'entity'    => $entity,
+                'operation' => $operation,
+                'reason'    => $reason,
+            ]
         );
+    }
+
+    protected function defaultErrorCode(): ErrorCodeEnum
+    {
+        return ErrorCodeEnum::INVALID_OPERATION;
+    }
+
+    protected function defaultCategory(): ErrorCategoryEnum
+    {
+        return ErrorCategoryEnum::BUSINESS_RULE;
+    }
+
+    protected function defaultHttpStatus(): int
+    {
+        return 409;
+    }
+
+    protected function defaultIsSafe(): bool
+    {
+        return true;
+    }
+
+    protected function defaultIsRetryable(): bool
+    {
+        return false;
     }
 }

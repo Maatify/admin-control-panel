@@ -27,11 +27,19 @@ abstract class MaatifyException extends RuntimeException implements ApiAwareExce
 
     private const ALLOWED_ERROR_CODES = [
         ErrorCategoryEnum::VALIDATION->value => [ErrorCodeEnum::INVALID_ARGUMENT, ErrorCodeEnum::VALIDATION_FAILED],
-        ErrorCategoryEnum::AUTHENTICATION->value => [ErrorCodeEnum::UNAUTHORIZED, ErrorCodeEnum::SESSION_EXPIRED],
-        ErrorCategoryEnum::AUTHORIZATION->value => [ErrorCodeEnum::FORBIDDEN],
-        ErrorCategoryEnum::CONFLICT->value => [ErrorCodeEnum::CONFLICT],
+        ErrorCategoryEnum::AUTHENTICATION->value => [
+            ErrorCodeEnum::UNAUTHORIZED,
+            ErrorCodeEnum::SESSION_EXPIRED,
+            ErrorCodeEnum::INVALID_CREDENTIALS,
+            ErrorCodeEnum::INVALID_SESSION,
+            ErrorCodeEnum::PASSWORD_CHANGE_REQUIRED,
+            ErrorCodeEnum::SESSION_REVOKED,
+            ErrorCodeEnum::AUTH_STATE_VIOLATION
+        ],
+        ErrorCategoryEnum::AUTHORIZATION->value => [ErrorCodeEnum::FORBIDDEN, ErrorCodeEnum::PERMISSION_DENIED, ErrorCodeEnum::RECOVERY_LOCKED],
+        ErrorCategoryEnum::CONFLICT->value => [ErrorCodeEnum::CONFLICT, ErrorCodeEnum::ENTITY_ALREADY_EXISTS, ErrorCodeEnum::ENTITY_IN_USE, ErrorCodeEnum::ALREADY_ENROLLED],
         ErrorCategoryEnum::NOT_FOUND->value => [ErrorCodeEnum::RESOURCE_NOT_FOUND],
-        ErrorCategoryEnum::BUSINESS_RULE->value => [ErrorCodeEnum::BUSINESS_RULE_VIOLATION],
+        ErrorCategoryEnum::BUSINESS_RULE->value => [ErrorCodeEnum::BUSINESS_RULE_VIOLATION, ErrorCodeEnum::ENROLLMENT_FAILED, ErrorCodeEnum::INVALID_OPERATION],
         ErrorCategoryEnum::UNSUPPORTED->value => [ErrorCodeEnum::UNSUPPORTED_OPERATION],
         ErrorCategoryEnum::SYSTEM->value => [ErrorCodeEnum::MAATIFY_ERROR, ErrorCodeEnum::DATABASE_CONNECTION_FAILED],
         ErrorCategoryEnum::RATE_LIMIT->value => [ErrorCodeEnum::TOO_MANY_REQUESTS],
