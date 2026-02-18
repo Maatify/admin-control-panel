@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace Maatify\AppSettings\Exception;
 
+use Maatify\AppSettings\Domain\Enum\AppSettingsErrorCodeEnum;
+use Maatify\Exceptions\Contracts\ErrorCodeInterface;
+
 /**
- * Class: DuplicateAppSettingException
- *
  * Thrown when trying to create a setting that already exists.
  */
-use Maatify\Exceptions\Exception\Conflict\GenericConflictMaatifyException;
-
-final class DuplicateAppSettingException
-    extends GenericConflictMaatifyException
+final class DuplicateAppSettingException extends AppSettingsConflictException
 {
+    protected function defaultErrorCode(): ErrorCodeInterface
+    {
+        return AppSettingsErrorCodeEnum::DUPLICATE_APP_SETTING;
+    }
 }
