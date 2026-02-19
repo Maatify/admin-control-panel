@@ -6,10 +6,14 @@ namespace Maatify\AdminKernel\Http\Routes\Ui;
 
 use Maatify\AdminKernel\Http\Middleware\SessionGuardMiddleware;
 use Maatify\AdminKernel\Http\Middleware\WebGuestGuardMiddleware;
+use Psr\Container\ContainerInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 
 final class UiRoutes
 {
+    /**
+     * @param RouteCollectorProxyInterface<ContainerInterface> $app
+     */
     public static function register(RouteCollectorProxyInterface $app): void
     {
         // User-facing UI Routes (Clean URLs)

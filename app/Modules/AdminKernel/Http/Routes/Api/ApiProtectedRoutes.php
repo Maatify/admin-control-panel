@@ -24,10 +24,14 @@ use Maatify\AdminKernel\Http\Controllers\NotificationQueryController;
 use Maatify\AdminKernel\Http\Middleware\AuthorizationGuardMiddleware;
 use Maatify\AdminKernel\Http\Middleware\SessionGuardMiddleware;
 use Maatify\LanguageCore\Http\Controllers\Api\LanguageDropdownController;
+use Psr\Container\ContainerInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 
 final class ApiProtectedRoutes
 {
+    /**
+     * @param RouteCollectorProxyInterface<ContainerInterface> $api
+     */
     public static function register(RouteCollectorProxyInterface $api): void
     {
         $api->group('', function (RouteCollectorProxyInterface $group) {

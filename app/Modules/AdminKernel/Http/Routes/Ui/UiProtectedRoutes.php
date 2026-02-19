@@ -19,10 +19,14 @@ use Maatify\AdminKernel\Http\Routes\Ui\Features\SettingsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\TelemetryUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\TwoFactorUiRoutes;
 use Maatify\AdminKernel\Http\Middleware\SessionGuardMiddleware;
+use Psr\Container\ContainerInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 
 final class UiProtectedRoutes
 {
+    /**
+     * @param RouteCollectorProxyInterface<ContainerInterface> $group
+     */
     public static function register(RouteCollectorProxyInterface $group): void
     {
         $group->group('', function (RouteCollectorProxyInterface $protectedGroup) {

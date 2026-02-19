@@ -6,10 +6,14 @@ namespace Maatify\AdminKernel\Http\Routes\Ui\Features;
 
 use Maatify\AdminKernel\Http\Controllers\Ui\LanguagesListController;
 use Maatify\AdminKernel\Http\Middleware\AuthorizationGuardMiddleware;
+use Psr\Container\ContainerInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 
 final class LanguagesUiRoutes
 {
+    /**
+     * @param RouteCollectorProxyInterface<ContainerInterface> $group
+     */
     public static function register(RouteCollectorProxyInterface $group): void
     {
         $group->group('/languages', function (RouteCollectorProxyInterface $languagesGroup) {
