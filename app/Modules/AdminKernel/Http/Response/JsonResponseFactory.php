@@ -59,7 +59,7 @@ final class JsonResponseFactory
     }
 
     /**
-     * Legacy manual error (Backward compatibility)
+     * Legacy manual error (Updated to unified envelope)
      *
      * @param array<string, mixed> $meta
      */
@@ -68,15 +68,19 @@ final class JsonResponseFactory
         string $message,
         int $status = 400,
         string $code = 'error',
-        array $meta = []
+        array $meta = [],
+        string $category = 'SYSTEM',
+        bool $retryable = false
     ): ResponseInterface {
 
         $payload = [
             'success' => false,
             'error' => [
-                'code'    => $code,
-                'message' => $message,
-                'meta'    => $meta,
+                'code'      => $code,
+                'category'  => $category,
+                'message'   => $message,
+                'meta'      => $meta,
+                'retryable' => $retryable,
             ],
         ];
 

@@ -8,6 +8,7 @@ use Maatify\AdminKernel\Domain\Exception\EntityInUseException;
 use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\AdminKernel\Domain\Exception\InvalidOperationException;
 use Maatify\AdminKernel\Domain\Exception\PermissionDeniedException;
+use Maatify\Exceptions\Contracts\ApiAwareExceptionInterface;
 use Maatify\Exceptions\Exception\MaatifyException;
 use Maatify\I18n\Exception\DomainNotAllowedException;
 use Maatify\Validation\Exceptions\ValidationFailedException;
@@ -16,25 +17,35 @@ use Psr\Http\Message\ServerRequestInterface;
 use Slim\App;
 use Slim\Exception\HttpBadRequestException;
 use Slim\Exception\HttpForbiddenException;
+use Slim\Exception\HttpMethodNotAllowedException;
 use Slim\Exception\HttpNotFoundException;
 use Slim\Exception\HttpUnauthorizedException;
 
 return function (App $app): void {
-    $httpJsonError = function (
+    // Helper to format consistent unified JSON response
+    $unifiedJsonError = function (
         int $status,
         string $code,
-        string $message
+        string $category,
+        string $message,
+        array $meta = [],
+        bool $retryable = false
     ) use ($app): ResponseInterface {
-        $payload = json_encode(
-            [
-                'message' => $message,
-                'code'    => $code,
+        $payload = [
+            'success' => false,
+            'error' => [
+                'code'      => $code,
+                'category'  => $category,
+                'message'   => $message,
+                'meta'      => $meta,
+                'retryable' => $retryable,
             ],
-            JSON_THROW_ON_ERROR
-        );
+        ];
 
         $response = $app->getResponseFactory()->createResponse($status);
-        $response->getBody()->write($payload);
+        $response->getBody()->write(
+            json_encode($payload, JSON_THROW_ON_ERROR)
+        );
 
         return $response->withHeader('Content-Type', 'application/json');
     };
@@ -51,7 +62,7 @@ return function (App $app): void {
         false   // logErrorDetails
     );
 
-    // 1️⃣ Validation (422)
+    // 1️⃣ Validation (422) - UNIFIED
     $errorMiddleware->setErrorHandler(
         ValidationFailedException::class,
         function (
@@ -60,7 +71,7 @@ return function (App $app): void {
             bool $displayErrorDetails,
             bool $logErrors,
             bool $logErrorDetails
-        ) use ($app): ResponseInterface {
+        ) use ($app, $unifiedJsonError): ResponseInterface {
 
             // ✅ Telemetry (best-effort, never breaks error handler)
             try {
@@ -69,48 +80,31 @@ return function (App $app): void {
                     // Telemetry Logic commented out in source, preserved here as comments
                 }
             } catch (Throwable $e) {
-                try {
-                    $container = $app->getContainer();
-                    if ($container !== null) {
-                        $logger = $container->get(\Psr\Log\LoggerInterface::class);
-                        if ($logger instanceof \Psr\Log\LoggerInterface) {
-                            $logger->warning('Telemetry failure in ValidationFailedException handler', [
-                                'exception_class' => get_class($e),
-                                'message' => $e->getMessage(),
-                            ]);
-                        }
-                    }
-                } catch (Throwable) {
-                    // swallow
-                }
+                // swallow
             }
 
             /** @var ValidationFailedException $exception */
-            $payload = json_encode(
-                [
-                    'error' => 'Invalid request payload',
-                    'errors' => $exception->getErrors()
-                ],
-                JSON_THROW_ON_ERROR
+            return $unifiedJsonError(
+                422,
+                'INVALID_ARGUMENT',
+                'VALIDATION',
+                'Invalid request payload',
+                ['validation_errors' => $exception->getErrors()]
             );
-
-            $response = $app->getResponseFactory()->createResponse(422);
-            $response->getBody()->write($payload);
-
-            return $response->withHeader('Content-Type', 'application/json');
         }
     );
 
-    // 2️⃣ 400
+    // 2️⃣ 400 - UNIFIED
     $errorMiddleware->setErrorHandler(
         HttpBadRequestException::class,
         function (
             ServerRequestInterface $request,
             HttpBadRequestException $exception
-        ) use ($httpJsonError) {
-            return $httpJsonError(
+        ) use ($unifiedJsonError) {
+            return $unifiedJsonError(
                 400,
                 'BAD_REQUEST',
+                'VALIDATION',
                 $exception->getMessage()
             );
         }
@@ -121,54 +115,58 @@ return function (App $app): void {
         function (
             ServerRequestInterface $request,
             PermissionDeniedException $exception
-        ) use ($httpJsonError) {
-            return $httpJsonError(
+        ) use ($unifiedJsonError) {
+            return $unifiedJsonError(
                 403,
                 'PERMISSION_DENIED',
+                'AUTHORIZATION',
                 $exception->getMessage()
             );
         }
     );
 
-    // 3️⃣ 401
+    // 3️⃣ 401 - UNIFIED
     $errorMiddleware->setErrorHandler(
         HttpUnauthorizedException::class,
         function (
             ServerRequestInterface $request,
             HttpUnauthorizedException $exception
-        ) use ($httpJsonError) {
-            return $httpJsonError(
+        ) use ($unifiedJsonError) {
+            return $unifiedJsonError(
                 401,
                 'UNAUTHORIZED',
+                'AUTHENTICATION',
                 $exception->getMessage() ?: 'Authentication required.'
             );
         }
     );
 
-    // 4️⃣ 403
+    // 4️⃣ 403 - UNIFIED
     $errorMiddleware->setErrorHandler(
         HttpForbiddenException::class,
         function (
             ServerRequestInterface $request,
             HttpForbiddenException $exception
-        ) use ($httpJsonError) {
-            return $httpJsonError(
+        ) use ($unifiedJsonError) {
+            return $unifiedJsonError(
                 403,
                 'FORBIDDEN',
+                'AUTHORIZATION',
                 $exception->getMessage() ?: 'Access denied.'
             );
         }
     );
 
-    // 5️⃣ 404
+    // 5️⃣ 404 - UNIFIED
     $errorMiddleware->setErrorHandler(
         HttpNotFoundException::class,
         function (
             ServerRequestInterface $request,
             HttpNotFoundException $exception
-        ) use ($httpJsonError) {
-            return $httpJsonError(
+        ) use ($unifiedJsonError) {
+            return $unifiedJsonError(
                 404,
+                'RESOURCE_NOT_FOUND',
                 'NOT_FOUND',
                 $exception->getMessage() ?: 'Resource not found.'
             );
@@ -180,10 +178,11 @@ return function (App $app): void {
         function (
             ServerRequestInterface $request,
             Throwable $exception
-        ) use ($httpJsonError) {
-            return $httpJsonError(
+        ) use ($unifiedJsonError) {
+            return $unifiedJsonError(
                 409,
                 'ENTITY_ALREADY_EXISTS',
+                'CONFLICT',
                 $exception->getMessage()
             );
         }
@@ -194,10 +193,11 @@ return function (App $app): void {
         function (
             ServerRequestInterface $request,
             Throwable $exception
-        ) use ($httpJsonError) {
-            return $httpJsonError(
+        ) use ($unifiedJsonError) {
+            return $unifiedJsonError(
                 409,
                 'ENTITY_IN_USE',
+                'CONFLICT',
                 $exception->getMessage()
             );
         }
@@ -208,9 +208,10 @@ return function (App $app): void {
         function (
             ServerRequestInterface $request,
             Throwable $exception
-        ) use ($httpJsonError) {
-            return $httpJsonError(
+        ) use ($unifiedJsonError) {
+            return $unifiedJsonError(
                 404,
+                'NOT_FOUND',
                 'NOT_FOUND',
                 $exception->getMessage()
             );
@@ -222,10 +223,11 @@ return function (App $app): void {
         function (
             ServerRequestInterface $request,
             InvalidOperationException $exception
-        ) use ($httpJsonError) {
-            return $httpJsonError(
+        ) use ($unifiedJsonError) {
+            return $unifiedJsonError(
                 409,
                 'INVALID_OPERATION',
+                'UNSUPPORTED',
                 $exception->getMessage()
             );
         }
@@ -236,10 +238,11 @@ return function (App $app): void {
         function (
             ServerRequestInterface $request,
             DomainNotAllowedException $exception
-        ) use ($httpJsonError) {
-            return $httpJsonError(
+        ) use ($unifiedJsonError) {
+            return $unifiedJsonError(
                 422,
                 'DOMAIN_NOT_ALLOWED',
+                'BUSINESS_RULE',
                 $exception->getMessage()
             );
         }
@@ -251,62 +254,81 @@ return function (App $app): void {
         function (
             ServerRequestInterface $request,
             MaatifyException $exception
-        ) use ($app): ResponseInterface {
-
-            $payload = [
-                'success' => false,
-                'error' => [
-                    'code'      => $exception->getErrorCode()->value,
-                    'category'  => $exception->getCategory()->value,
-                    'message'   => $exception->isSafe()
-                        ? $exception->getMessage()
-                        : 'Internal Server Error',
-                    'meta'      => $exception->getMeta(),
-                    'retryable' => $exception->isRetryable(),
-                ],
-            ];
-
-            $response = $app->getResponseFactory()
-                ->createResponse($exception->getHttpStatus());
-
-            $response->getBody()->write(
-                json_encode($payload, JSON_THROW_ON_ERROR)
+        ) use ($unifiedJsonError): ResponseInterface {
+            return $unifiedJsonError(
+                $exception->getHttpStatus(),
+                $exception->getErrorCode()->value,
+                $exception->getCategory()->value,
+                $exception->isSafe() ? $exception->getMessage() : 'Internal Server Error',
+                $exception->getMeta(),
+                $exception->isRetryable()
             );
-
-            return $response->withHeader('Content-Type', 'application/json');
         },
         true // 🔥 VERY IMPORTANT — handle subclasses
     );
 
-    // 6️⃣ ❗ LAST — catch-all
+    // 6️⃣ ❗ LAST — catch-all - UNIFIED & FIXED (No Rethrow)
     $errorMiddleware->setErrorHandler(
         Throwable::class,
         function (
             ServerRequestInterface $request,
             Throwable $exception,
             bool $displayErrorDetails
-        ) use ($app) {
+        ) use ($unifiedJsonError): ResponseInterface {
+
             try {
                 /** @var RequestContext|null $context */
                 $context = $request->getAttribute(RequestContext::class);
-                // Telemetry logic commented out in source
-            } catch (Throwable $telemetryFailure) {
-                try {
-                    $container = $app->getContainer();
-                    if ($container !== null) {
-                        /** @var \Psr\Log\LoggerInterface $logger */
-                        $logger = $container->get(\Psr\Log\LoggerInterface::class);
-                        $logger->warning('Telemetry failure while handling Throwable', [
-                            'exception_class' => $telemetryFailure::class,
-                            'message' => $telemetryFailure->getMessage(),
-                        ]);
-                    }
-                } catch (Throwable) {
-                    // swallow
-                }
+                // Telemetry logic placeholder
+            } catch (Throwable) {
+                // swallow
             }
 
-            throw $exception;
+            // A) ApiAware (Unified Model)
+            if ($exception instanceof ApiAwareExceptionInterface) {
+                return $unifiedJsonError(
+                    $exception->getHttpStatus(),
+                    $exception->getErrorCode()->value,
+                    $exception->getCategory()->value,
+                    $exception->isSafe() ? $exception->getMessage() : 'Internal Server Error',
+                    $exception->getMeta(),
+                    $exception->isRetryable()
+                );
+            }
+
+            // B) Slim Http Exceptions (Map to Unified Model)
+            if ($exception instanceof HttpBadRequestException) {
+                return $unifiedJsonError(400, 'BAD_REQUEST', 'VALIDATION', $exception->getMessage());
+            }
+            if ($exception instanceof HttpUnauthorizedException) {
+                return $unifiedJsonError(401, 'UNAUTHORIZED', 'AUTHENTICATION', $exception->getMessage());
+            }
+            if ($exception instanceof HttpForbiddenException) {
+                return $unifiedJsonError(403, 'FORBIDDEN', 'AUTHORIZATION', $exception->getMessage());
+            }
+            if ($exception instanceof HttpNotFoundException) {
+                return $unifiedJsonError(404, 'RESOURCE_NOT_FOUND', 'NOT_FOUND', $exception->getMessage());
+            }
+            if ($exception instanceof HttpMethodNotAllowedException) {
+                return $unifiedJsonError(405, 'METHOD_NOT_ALLOWED', 'UNSUPPORTED', $exception->getMessage());
+            }
+
+            // C) Fallback System Error (Catch-All)
+            $meta = [];
+            if ($displayErrorDetails) {
+                $meta['exception_class'] = get_class($exception);
+                $meta['file'] = $exception->getFile();
+                $meta['line'] = $exception->getLine();
+                $meta['trace'] = $exception->getTraceAsString();
+            }
+
+            return $unifiedJsonError(
+                500,
+                'INTERNAL_ERROR',
+                'SYSTEM',
+                'Internal Server Error',
+                $meta
+            );
         }
     );
 
