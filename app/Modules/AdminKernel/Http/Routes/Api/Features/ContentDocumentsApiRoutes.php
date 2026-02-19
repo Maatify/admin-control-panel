@@ -39,7 +39,7 @@ class ContentDocumentsApiRoutes
             // Update
             $documents->post(
                 '/{type_id:[0-9]+}/update',
-                \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\DocumentTypeUpdateController::class
+                \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\ContentDocumentTypesUpdateController::class
             )->setName('content_documents.types.update.api');
 
             $documents->group(
