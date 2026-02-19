@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Session\Reader;
 
-use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
 use Maatify\AdminKernel\Domain\DTO\Session\SessionListResponseDTO;
+use Maatify\AdminKernel\Domain\List\Filters\ResolvedListFilters;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
-use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
 
 interface SessionListReaderInterface
 {

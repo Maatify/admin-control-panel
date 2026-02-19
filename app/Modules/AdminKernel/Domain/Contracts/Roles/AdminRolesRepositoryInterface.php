@@ -16,8 +16,8 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Domain\Contracts\Roles;
 
 use Maatify\AdminKernel\Domain\DTO\Roles\AdminRolesQueryResponseDTO;
+use Maatify\AdminKernel\Domain\List\Filters\ResolvedListFilters;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
-use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
 
 interface AdminRolesRepositoryInterface
 {

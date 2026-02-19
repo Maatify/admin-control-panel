@@ -9,9 +9,9 @@ use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
 use Maatify\AdminKernel\Domain\DTO\Crypto\EncryptedPayloadDTO;
 use Maatify\AdminKernel\Domain\DTO\Session\SessionListItemDTO;
 use Maatify\AdminKernel\Domain\DTO\Session\SessionListResponseDTO;
+use Maatify\AdminKernel\Domain\List\Filters\ResolvedListFilters;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
 use Maatify\AdminKernel\Domain\Session\Reader\SessionListReaderInterface;
-use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
 use PDO;
 use RuntimeException;
 

@@ -16,8 +16,8 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Domain\Admin\Reader;
 
 use Maatify\AdminKernel\Domain\DTO\AdminList\AdminListResponseDTO;
+use Maatify\AdminKernel\Domain\List\Filters\ResolvedListFilters;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
-use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
 
 interface AdminQueryReaderInterface
 {

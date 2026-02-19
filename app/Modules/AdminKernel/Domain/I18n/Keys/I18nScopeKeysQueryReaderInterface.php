@@ -16,8 +16,8 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Domain\I18n\Keys;
 
 use Maatify\AdminKernel\Domain\I18n\Keys\DTO\I18nScopeKeysListResponseDTO;
+use Maatify\AdminKernel\Domain\List\Filters\ResolvedListFilters;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
-use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
 
 interface I18nScopeKeysQueryReaderInterface
 {

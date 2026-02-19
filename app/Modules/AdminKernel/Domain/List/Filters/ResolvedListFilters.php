@@ -13,7 +13,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Infrastructure\Query;
+namespace Maatify\AdminKernel\Domain\List\Filters;
 
 use DateTimeImmutable;
 

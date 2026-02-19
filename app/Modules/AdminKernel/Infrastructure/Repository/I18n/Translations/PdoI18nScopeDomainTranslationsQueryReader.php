@@ -19,8 +19,8 @@ use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
 use Maatify\AdminKernel\Domain\I18n\Translations\DTO\I18nScopeDomainTranslationsListItemDTO;
 use Maatify\AdminKernel\Domain\I18n\Translations\DTO\I18nScopeDomainTranslationsListResponseDTO;
 use Maatify\AdminKernel\Domain\I18n\Translations\I18nScopeDomainTranslationsQueryReaderInterface;
+use Maatify\AdminKernel\Domain\List\Filters\ResolvedListFilters;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
-use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
 use PDO;
 
 use function trim;

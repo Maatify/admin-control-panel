@@ -8,8 +8,8 @@ use Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionAdminsQueryReposi
 use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
 use Maatify\AdminKernel\Domain\DTO\Permissions\PermissionAdminOverrideListItemDTO;
 use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
+use Maatify\AdminKernel\Domain\List\Filters\ResolvedListFilters;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
-use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
 use PDO;
 use RuntimeException;
 

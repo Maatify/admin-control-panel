@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Infrastructure\Query;
 
+use Maatify\AdminKernel\Domain\List\Filters\ResolvedListFilters;
 use Maatify\AdminKernel\Domain\List\ListCapabilities;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
 

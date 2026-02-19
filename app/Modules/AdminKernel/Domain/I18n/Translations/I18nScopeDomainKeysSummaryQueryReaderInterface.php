@@ -15,8 +15,8 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Domain\I18n\Translations;
 
 use Maatify\AdminKernel\Domain\I18n\Translations\DTO\I18nScopeDomainKeysSummaryListResponseDTO;
+use Maatify\AdminKernel\Domain\List\Filters\ResolvedListFilters;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
-use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
 
 interface I18nScopeDomainKeysSummaryQueryReaderInterface
 {

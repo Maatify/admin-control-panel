@@ -6,8 +6,8 @@ namespace Maatify\AdminKernel\Domain\Contracts\Permissions;
 
 use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
 use Maatify\AdminKernel\Domain\DTO\Permissions\PermissionRoleListItemDTO;
+use Maatify\AdminKernel\Domain\List\Filters\ResolvedListFilters;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
-use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
 
 interface PermissionRolesQueryRepositoryInterface
 {

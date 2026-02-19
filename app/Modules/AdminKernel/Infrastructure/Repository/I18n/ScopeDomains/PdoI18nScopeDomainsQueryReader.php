@@ -19,8 +19,8 @@ use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
 use Maatify\AdminKernel\Domain\I18n\ScopeDomains\DTO\I18nScopeDomainsListItemDTO;
 use Maatify\AdminKernel\Domain\I18n\ScopeDomains\DTO\I18nScopeDomainsListResponseDTO;
 use Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsQueryReaderInterface;
+use Maatify\AdminKernel\Domain\List\Filters\ResolvedListFilters;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
-use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
 use PDO;
 use RuntimeException;
 
