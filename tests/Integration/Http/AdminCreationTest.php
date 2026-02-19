@@ -111,7 +111,10 @@ class AdminCreationTest extends UnifiedEndpointBase
 
         $json = json_decode($body, true);
         $this->assertIsArray($json);
-        $this->assertEquals('PERMISSION_DENIED', $json['code'] ?? null);
+        $this->assertFalse($json['success']);
+        $this->assertArrayHasKey('error', $json);
+        $this->assertEquals('PERMISSION_DENIED', $json['error']['code']);
+        $this->assertEquals('AUTHORIZATION', $json['error']['category']);
 
         // Assert No New Admin Created
         $stmt = $pdo->query("SELECT COUNT(*) FROM admins");
