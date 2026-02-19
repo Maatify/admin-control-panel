@@ -171,15 +171,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Handle Step-Up required (2FA verification)
-            if (response.status === 403 && data && data.code === 'STEP_UP_REQUIRED') {
-                console.log('🔐 Step-Up 2FA Required:', {
-                    scope: data.scope,
-                    return_to: window.location.pathname
-                });
-                const scope = encodeURIComponent(data.scope || 'admin.email.add');
-                const returnTo = encodeURIComponent(window.location.pathname);
-                window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
-                return;
+            if (response.status === 403) {
+                // ✅ Use ErrorNormalizer Bridge
+                const stepUp = window.ErrorNormalizer.getLegacyStepUpView(data);
+                if (stepUp) {
+                    console.log('🔐 Step-Up 2FA Required:', {
+                        scope: stepUp.scope,
+                        return_to: window.location.pathname
+                    });
+                    const scope = encodeURIComponent(stepUp.scope || 'admin.email.add');
+                    const returnTo = encodeURIComponent(window.location.pathname);
+                    window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
+                    return;
+                }
             }
 
             if (!response.ok) {
@@ -304,16 +308,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Handle Step-Up required
-            if (response.status === 403 && data && data.code === 'STEP_UP_REQUIRED') {
-                console.log('🔐 Step-Up 2FA Required:', {
-                    action: action,
-                    scope: data.scope,
-                    return_to: window.location.pathname
-                });
-                const scope = encodeURIComponent(data.scope || `admin.email.${action}`);
-                const returnTo = encodeURIComponent(window.location.pathname);
-                window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
-                return;
+            if (response.status === 403) {
+                // ✅ Use ErrorNormalizer Bridge
+                const stepUp = window.ErrorNormalizer.getLegacyStepUpView(data);
+                if (stepUp) {
+                    console.log('🔐 Step-Up 2FA Required:', {
+                        action: action,
+                        scope: stepUp.scope,
+                        return_to: window.location.pathname
+                    });
+                    const scope = encodeURIComponent(stepUp.scope || `admin.email.${action}`);
+                    const returnTo = encodeURIComponent(window.location.pathname);
+                    window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
+                    return;
+                }
             }
 
             if (!response.ok) {

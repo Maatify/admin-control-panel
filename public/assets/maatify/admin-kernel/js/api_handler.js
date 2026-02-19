@@ -214,6 +214,30 @@ if (typeof window !== 'undefined') {
          * - { error: "...", errors: {...} }
          */
         function extractErrorMessage(data) {
+            // ✅ Use ErrorNormalizer if available
+            if (window.ErrorNormalizer) {
+                const normalized = window.ErrorNormalizer.normalize(data);
+
+                // If validation errors exist in meta (Unified)
+                if (normalized.meta && normalized.meta.errors) {
+                    const fieldErrors = Object.entries(normalized.meta.errors)
+                        .map(([field, msg]) => `${field}: ${msg}`)
+                        .join(', ');
+                    return `${normalized.message} (${fieldErrors})`;
+                }
+
+                // If legacy field errors exist
+                if (data && data.error && data.error.fields) {
+                    const fieldErrors = Object.entries(data.error.fields)
+                        .map(([field, msg]) => `${field}: ${msg}`)
+                        .join(', ');
+                    return `${normalized.message} (${fieldErrors})`;
+                }
+
+                return normalized.message;
+            }
+
+            // ⚠️ Fallback to legacy logic if ErrorNormalizer is missing
             if (!data) return 'An error occurred';
 
             // Format 1: { error: { message: "...", fields: {...} } }

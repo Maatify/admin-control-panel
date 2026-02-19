@@ -95,11 +95,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json().catch(() => null);
 
             // Handle Step-Up required (2FA verification)
-            if (response.status === 403 && data && data.code === 'STEP_UP_REQUIRED') {
-                const scope = encodeURIComponent(data.scope || 'admin.create');
-                const returnTo = encodeURIComponent(window.location.pathname);
-                window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
-                return;
+            if (response.status === 403) {
+                // ✅ Use ErrorNormalizer Bridge
+                const stepUp = window.ErrorNormalizer.getLegacyStepUpView(data);
+                if (stepUp) {
+                    const scope = encodeURIComponent(stepUp.scope || 'admins.create');
+                    const returnTo = encodeURIComponent(window.location.pathname);
+                    window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
+                    return;
+                }
             }
 
             // Handle error response
