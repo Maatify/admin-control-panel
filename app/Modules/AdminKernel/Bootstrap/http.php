@@ -315,8 +315,10 @@ return function (App $app): void {
 
             // C) Fallback System Error (Catch-All)
             $meta = [];
+            // Requirement: "exception_class" (even in production)
+            $meta['exception_class'] = get_class($exception);
+
             if ($displayErrorDetails) {
-                $meta['exception_class'] = get_class($exception);
                 $meta['file'] = $exception->getFile();
                 $meta['line'] = $exception->getLine();
                 $meta['trace'] = $exception->getTraceAsString();
