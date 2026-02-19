@@ -8,6 +8,7 @@ use Maatify\AdminKernel\Domain\Exception\EntityInUseException;
 use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\AdminKernel\Domain\Exception\InvalidOperationException;
 use Maatify\AdminKernel\Domain\Exception\PermissionDeniedException;
+use Maatify\AdminKernel\Domain\Exception\StepUpRequiredException;
 use Maatify\Exceptions\Contracts\ApiAwareExceptionInterface;
 use Maatify\Exceptions\Exception\MaatifyException;
 use Maatify\I18n\Exception\DomainNotAllowedException;
@@ -244,6 +245,24 @@ return function (App $app): void {
                 'DOMAIN_NOT_ALLOWED',
                 'BUSINESS_RULE',
                 $exception->getMessage()
+            );
+        }
+    );
+
+    // Specific handler for StepUpRequiredException to enforce code string
+    $errorMiddleware->setErrorHandler(
+        StepUpRequiredException::class,
+        function (
+            ServerRequestInterface $request,
+            StepUpRequiredException $exception
+        ) use ($unifiedJsonError): ResponseInterface {
+            return $unifiedJsonError(
+                $exception->getHttpStatus(),
+                $exception->getStepUpCode(), // Use explicit string code
+                $exception->getCategory()->getValue(),
+                $exception->getMessage(),
+                $exception->getMeta(),
+                $exception->isRetryable()
             );
         }
     );

@@ -8,12 +8,14 @@ use Maatify\AdminKernel\Context\RequestContext;
 use Maatify\AdminKernel\Domain\Contracts\Admin\AdminTotpSecretStoreInterface;
 use Maatify\AdminKernel\Domain\Enum\Scope;
 use Maatify\AdminKernel\Domain\Enum\SessionState;
+use Maatify\AdminKernel\Domain\Exception\StepUpRequiredException;
 use Maatify\AdminKernel\Domain\Service\StepUpService;
 use Maatify\AdminKernel\Http\Auth\AuthSurface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Exception\HttpUnauthorizedException;
 
 // Phase 13.7 LOCK: Auth surface detection MUST use AuthSurface::isApi()
 class SessionStateGuardMiddleware implements MiddlewareInterface
@@ -28,13 +30,8 @@ class SessionStateGuardMiddleware implements MiddlewareInterface
     {
         $adminContext = $request->getAttribute(\Maatify\AdminKernel\Context\AdminContext::class);
         if (!$adminContext instanceof \Maatify\AdminKernel\Context\AdminContext) {
-            $response = new \Slim\Psr7\Response();
-            $response->getBody()->write(
-                (string) json_encode(['error' => 'Authentication required'], JSON_THROW_ON_ERROR)
-            );
-            return $response
-                ->withStatus(401)
-                ->withHeader('Content-Type', 'application/json');
+            // Throw Exception to trigger Global Handler
+            throw new HttpUnauthorizedException($request, 'Authentication required');
         }
 
         $adminId = $adminContext->adminId;
@@ -44,15 +41,7 @@ class SessionStateGuardMiddleware implements MiddlewareInterface
 
         $sessionId = $this->getSessionIdFromRequest($request);
         if ($sessionId === null) {
-            // Inconsistent state: admin_id present but no token found by this guard?
-            // Should only happen if SessionGuard extraction differs or context lost.
-            $response = new \Slim\Psr7\Response();
-            $response->getBody()->write(
-                (string) json_encode(['error' => 'Session required'], JSON_THROW_ON_ERROR)
-            );
-            return $response
-                ->withStatus(401)
-                ->withHeader('Content-Type', 'application/json');
+            throw new HttpUnauthorizedException($request, 'Session required');
         }
 
         // Skip check for Step-Up Verification route to allow promotion
@@ -86,18 +75,8 @@ class SessionStateGuardMiddleware implements MiddlewareInterface
                     $context
                 );
 
-                $response = new \Slim\Psr7\Response();
-                $payload = [
-                    'code'  => 'STEP_UP_REQUIRED',
-                    'scope' => 'login',
-                ];
-                $response->getBody()->write(
-                    (string) json_encode($payload, JSON_THROW_ON_ERROR)
-                );
-
-                return $response
-                    ->withStatus(403)
-                    ->withHeader('Content-Type', 'application/json');
+                // Throw custom Exception for Unified Envelope
+                throw new StepUpRequiredException('login', 'Step-up authentication required.');
             }
 
             // Web: Redirect to 2FA Setup or Verify

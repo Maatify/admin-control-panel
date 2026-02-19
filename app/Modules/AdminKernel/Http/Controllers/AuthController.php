@@ -10,6 +10,8 @@ use Maatify\AdminKernel\Domain\DTO\LoginRequestDTO;
 use Maatify\AdminKernel\Domain\DTO\LoginResponseDTO;
 use Maatify\AdminKernel\Domain\Exception\AuthStateException;
 use Maatify\AdminKernel\Domain\Exception\InvalidCredentialsException;
+use Maatify\AdminKernel\Domain\Exception\LoginFailedException;
+use Maatify\AdminKernel\Domain\Exception\PermissionDeniedException;
 use Maatify\AdminKernel\Domain\Service\AdminAuthenticationService;
 use Maatify\AdminKernel\Validation\Schemas\Auth\AuthLoginSchema;
 use Maatify\Validation\Guard\ValidationGuard;
@@ -52,14 +54,10 @@ readonly class AuthController
 
             return $response->withHeader('Content-Type', 'application/json');
         } catch (InvalidCredentialsException $e) {
-
             // ❌ No admin context here (unknown identity)
-            $response->getBody()->write((string) json_encode(['error' => 'Invalid credentials']));
-            return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
+            throw new LoginFailedException();
         } catch (AuthStateException $e) {
-
-            $response->getBody()->write((string) json_encode(['error' => $e->getMessage()]));
-            return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
+            throw new PermissionDeniedException($e->getMessage());
         }
     }
 }

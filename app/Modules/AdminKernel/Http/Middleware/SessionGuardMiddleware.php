@@ -17,6 +17,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Exception\HttpUnauthorizedException;
 
 
 // Phase 13.7 LOCK: Auth surface detection MUST use AuthSurface::isApi()
@@ -44,7 +45,7 @@ readonly class SessionGuardMiddleware implements MiddlewareInterface
         $token   = $cookies['auth_token'] ?? null;
 
         if ($token === null) {
-            return $this->handleFailure($isApi, 'No session token provided.');
+            return $this->handleFailure($request, $isApi, 'No session token provided.');
         }
 
         $context = $request->getAttribute(RequestContext::class);
@@ -58,7 +59,7 @@ readonly class SessionGuardMiddleware implements MiddlewareInterface
         catch (InvalidSessionException | ExpiredSessionException | RevokedSessionException $e) {
 
             if (!isset($cookies['remember_me'])) {
-                return $this->handleFailure($isApi, $e->getMessage());
+                return $this->handleFailure($request, $isApi, $e->getMessage());
             }
 
             return $this->attemptRememberFallback(
@@ -184,12 +185,8 @@ readonly class SessionGuardMiddleware implements MiddlewareInterface
         $clearCookie = $this->cookieFactory->clearRememberMeCookie($isSecure);
 
         if ($isApi) {
-            $response = new \Slim\Psr7\Response();
-            $response->getBody()->write(json_encode(['error' => 'Invalid session'], JSON_THROW_ON_ERROR));
-            return $response
-                ->withHeader('Set-Cookie', $clearCookie)
-                ->withStatus(401)
-                ->withHeader('Content-Type', 'application/json');
+            // Throw Exception to trigger Global Handler
+            throw new HttpUnauthorizedException($request, 'Invalid session');
         }
 
         return (new \Slim\Psr7\Response())
@@ -201,14 +198,11 @@ readonly class SessionGuardMiddleware implements MiddlewareInterface
     /**
      * Canonical failure handler.
      */
-    private function handleFailure(bool $isApi, string $message): ResponseInterface
+    private function handleFailure(ServerRequestInterface $request, bool $isApi, string $message): ResponseInterface
     {
         if ($isApi) {
-            $response = new \Slim\Psr7\Response();
-            $response->getBody()->write(json_encode(['error' => $message], JSON_THROW_ON_ERROR));
-            return $response
-                ->withStatus(401)
-                ->withHeader('Content-Type', 'application/json');
+            // Throw Exception to trigger Global Handler
+            throw new HttpUnauthorizedException($request, $message);
         }
 
         return (new \Slim\Psr7\Response())

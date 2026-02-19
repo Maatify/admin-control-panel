@@ -51,10 +51,7 @@ readonly class SessionBulkRevokeController
         $currentSessionHash = $token !== '' ? hash('sha256', $token) : '';
 
         if ($currentSessionHash === '') {
-            $response->getBody()->write(
-                json_encode(['error' => 'Current session not found'], JSON_THROW_ON_ERROR)
-            );
-            return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
+            throw new \Slim\Exception\HttpUnauthorizedException($request, 'Current session not found');
         }
 
         try {
@@ -67,11 +64,7 @@ readonly class SessionBulkRevokeController
             return $this->json->data($response, ['status' => 'ok']);
 
         } catch (DomainException $e) {
-
-            $response->getBody()->write(
-                json_encode(['error' => $e->getMessage()], JSON_THROW_ON_ERROR)
-            );
-            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            throw new \Slim\Exception\HttpBadRequestException($request, $e->getMessage());
         }
     }
 }

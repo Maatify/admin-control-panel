@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Http\Middleware;
 
 use Maatify\AdminKernel\Domain\Enum\Scope;
+use Maatify\AdminKernel\Domain\Exception\StepUpRequiredException;
 use Maatify\AdminKernel\Domain\Security\ScopeRegistry;
 use Maatify\AdminKernel\Context\RequestContext;
 use Maatify\AdminKernel\Domain\Service\StepUpService;
@@ -13,6 +14,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Exception\HttpUnauthorizedException;
 use Slim\Routing\RouteContext;
 
 // Phase 13.7 LOCK: Auth surface detection MUST use AuthSurface::isApi()
@@ -27,18 +29,14 @@ class ScopeGuardMiddleware implements MiddlewareInterface
     {
         $adminContext = $request->getAttribute(\Maatify\AdminKernel\Context\AdminContext::class);
         if (!$adminContext instanceof \Maatify\AdminKernel\Context\AdminContext) {
-            $response = new \Slim\Psr7\Response();
-            $response->getBody()->write((string)json_encode(['error' => 'Authentication required'], JSON_THROW_ON_ERROR));
-            return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
+            throw new HttpUnauthorizedException($request, 'Authentication required');
         }
         $adminId = $adminContext->adminId;
 
         $sessionId = $this->getSessionIdFromRequest($request);
         if ($sessionId === null) {
              // Should not happen if SessionGuard works
-             $response = new \Slim\Psr7\Response();
-             $response->getBody()->write((string)json_encode(['error' => 'Session required'], JSON_THROW_ON_ERROR));
-             return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
+             throw new HttpUnauthorizedException($request, 'Session required');
         }
 
         $context = $request->getAttribute(RequestContext::class);
@@ -52,14 +50,7 @@ class ScopeGuardMiddleware implements MiddlewareInterface
         if ($state !== \Maatify\AdminKernel\Domain\Enum\SessionState::ACTIVE) {
 //             // Fallback handling if SessionStateGuard was bypassed or failed.
 //             $this->stepUpService->logDenial($adminId, $sessionId, Scope::LOGIN, $context);
-//
-//             $response = new \Slim\Psr7\Response();
-//             $payload = [
-//                 'code' => 'STEP_UP_REQUIRED',
-//                 'scope' => 'login'
-//             ];
-//             $response->getBody()->write((string)json_encode($payload, JSON_THROW_ON_ERROR));
-//             return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
+//             throw new StepUpRequiredException('login');
 
             // IMPORTANT:
             // Let SessionStateGuardMiddleware handle setup vs verify
@@ -98,13 +89,7 @@ class ScopeGuardMiddleware implements MiddlewareInterface
             }
             // ADDITIVE END
 
-             $response = new \Slim\Psr7\Response();
-             $payload = [
-                 'code' => 'STEP_UP_REQUIRED',
-                 'scope' => $requiredScope->value
-             ];
-             $response->getBody()->write((string)json_encode($payload, JSON_THROW_ON_ERROR));
-             return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
+             throw new StepUpRequiredException($requiredScope->value, 'Step-up authentication required.');
         }
 
         return $handler->handle($request);

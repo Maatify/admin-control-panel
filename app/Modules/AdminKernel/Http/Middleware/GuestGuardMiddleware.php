@@ -6,6 +6,7 @@ namespace Maatify\AdminKernel\Http\Middleware;
 
 use Maatify\AdminKernel\Domain\Exception\ExpiredSessionException;
 use Maatify\AdminKernel\Domain\Exception\InvalidSessionException;
+use Maatify\AdminKernel\Domain\Exception\PermissionDeniedException;
 use Maatify\AdminKernel\Domain\Exception\RevokedSessionException;
 use Maatify\AdminKernel\Context\RequestContext;
 use Maatify\AdminKernel\Domain\Service\SessionValidationService;
@@ -54,11 +55,7 @@ class GuestGuardMiddleware implements MiddlewareInterface
 
             // Session is valid. Block access.
             if ($isApi) {
-                $response = new Response();
-                $response->getBody()->write(json_encode(['error' => 'Already authenticated.'], JSON_THROW_ON_ERROR));
-                return $response
-                    ->withHeader('Content-Type', 'application/json')
-                    ->withStatus(403);
+                throw new PermissionDeniedException('Already authenticated.');
             } else {
                 $response = new Response();
                 return $response
