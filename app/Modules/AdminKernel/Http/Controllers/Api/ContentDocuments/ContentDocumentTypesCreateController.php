@@ -15,8 +15,8 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments;
 
+use Maatify\AdminKernel\Domain\ContentDocuments\Validation\ContentDocumentTypesCreateSchema;
 use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
-use Maatify\AdminKernel\Validation\Schemas\ContentDocuments\ContentDocumentTypesCreateSchema;
 use Maatify\ContentDocuments\Domain\Contract\Service\ContentDocumentsFacadeInterface;
 use Maatify\ContentDocuments\Domain\ValueObject\DocumentTypeKey;
 use Maatify\Validation\Guard\ValidationGuard;
