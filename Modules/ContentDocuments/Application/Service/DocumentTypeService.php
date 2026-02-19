@@ -9,6 +9,7 @@ use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTypeRepositoryIn
 use Maatify\ContentDocuments\Domain\Contract\Service\DocumentTypeServiceInterface;
 use Maatify\ContentDocuments\Domain\DTO\DocumentTypeDTO;
 use Maatify\ContentDocuments\Domain\Entity\DocumentType;
+use Maatify\ContentDocuments\Domain\Exception\DocumentTypeAlreadyExistsException;
 use Maatify\ContentDocuments\Domain\Exception\DocumentTypeNotFoundException;
 use Maatify\ContentDocuments\Domain\ValueObject\DocumentTypeKey;
 
@@ -53,6 +54,9 @@ final readonly class DocumentTypeService implements DocumentTypeServiceInterface
         bool $requiresAcceptanceDefault,
         bool $isSystem
     ): int {
+        if ($this->documentTypeRepository->existsByKey($key) !== null) {
+            throw new DocumentTypeAlreadyExistsException();
+        }
         // createdAt/updatedAt are DB-truth; entity is immutable, so we pass a placeholder timestamp.
         $now = new DateTimeImmutable('now');
 

@@ -13,6 +13,8 @@ interface DocumentTypeRepositoryInterface
 
     public function findByKey(DocumentTypeKey $key): ?DocumentType;
 
+    public function existsByKey(DocumentTypeKey $key): bool;
+
     /**
      * @return list<DocumentType>
      */
