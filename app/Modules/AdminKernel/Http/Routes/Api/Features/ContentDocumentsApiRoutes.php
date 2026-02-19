@@ -33,7 +33,7 @@ class ContentDocumentsApiRoutes
             // Create
             $documents->post(
                 '/create',
-                \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\DocumentTypeCreateController::class
+                \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\ContentDocumentTypesCreateController::class
             )->setName('content_documents.types.create.api');
 
             // Update
