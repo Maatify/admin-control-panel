@@ -182,44 +182,99 @@ class AdminRoutes
 
 
                     // ===============================
-                    // Admin Profile (UPDATE)
+                    // Admin by ID
                     // ===============================
-                    $protectedGroup->post(
-                        '/admins/{id:[0-9]+}/profile/edit',
-                        [\Maatify\AdminKernel\Http\Controllers\Ui\Admin\UiAdminsController::class, 'updateProfile']
-                    )
-                        ->setName('admins.profile.edit')
+                    $protectedGroup->group('/admins', function (RouteCollectorProxyInterface $adminsGroup) {
+                        // ===============================
+                        // Admin Profile (UPDATE)
+                        // ===============================
+                        $adminsGroup->post(
+                            '/{id:[0-9]+}/profile/edit',
+                            [\Maatify\AdminKernel\Http\Controllers\Ui\Admin\UiAdminsController::class, 'updateProfile']
+                        )
+                            ->setName('admins.profile.edit');
+
+                        // ─────────────────────────────
+                        // Admin Email Control
+                        // ─────────────────────────────
+                        $adminsGroup->get(
+                            '/{id:[0-9]+}/emails',
+                            [\Maatify\AdminKernel\Http\Controllers\Ui\Admin\UiAdminsController::class, 'emails']
+                        )
+                            ->setName('admin.email.list.ui');
+
+                        // ─────────────────────────────
+                        // Admin Session Control
+                        // ─────────────────────────────
+                        $adminsGroup->get(
+                            '/{id:[0-9]+}/sessions',
+                            [\Maatify\AdminKernel\Http\Controllers\Ui\Admin\UiAdminsController::class, 'sessions']
+                        )
+                            ->setName('admins.session.list');
+
+                        // ─────────────────────────────
+                        // Admin Permissions Control
+                        // ─────────────────────────────
+                        $adminsGroup->get(
+                            '/{id:[0-9]+}/permissions',
+                            [\Maatify\AdminKernel\Http\Controllers\Ui\Admin\UiAdminsController::class, 'permissions']
+                        )
+                            ->setName('admins.permissions');
+                    })
                         ->add(AuthorizationGuardMiddleware::class);
 
-                    // ─────────────────────────────
-                    // Admin Email Control
-                    // ─────────────────────────────
-                    $protectedGroup->get(
-                        '/admins/{id:[0-9]+}/emails',
-                        [\Maatify\AdminKernel\Http\Controllers\Ui\Admin\UiAdminsController::class, 'emails']
-                    )
-                        ->setName('admin.email.list.ui')
+                    // ===============================
+                    // i18n
+                    // ===============================
+                    $protectedGroup->group('/i18n', function (RouteCollectorProxyInterface $i18nGroup) {
+
+                        $i18nGroup->group('/scopes', function (RouteCollectorProxyInterface $i18nScopesGroup) {
+                            $i18nScopesGroup->get(
+                                '',
+                                [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopesListUiController::class, '__invoke']
+                            )
+                                ->setName('i18n.scopes.list.ui');
+
+                            $i18nScopesGroup->get(
+                                '/{scope_id:[0-9]+}',
+                                [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopeDetailsController::class, 'index']
+                            )
+                                ->setName('i18n.scopes.details.ui');
+
+                            $i18nScopesGroup->get(
+                                '/{scope_id:[0-9]+}/keys',
+                                [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopeKeysController::class, 'index']
+                            )
+                                ->setName('i18n.scopes.keys.ui');
+
+                            $i18nScopesGroup->get(
+                                '/{scope_id:[0-9]+}/domains/{domain_id:[0-9]+}/keys',
+                                [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopeDomainKeysSummaryController::class, 'index']
+                            )
+                                ->setName('i18n.scopes.domains.keys.ui');
+
+                            $i18nScopesGroup->get(
+                                '/{scope_id:[0-9]+}/domains/{domain_id:[0-9]+}/translations',
+                                [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopeDomainTranslationsUiController::class, 'index']
+                            )
+                                ->setName('i18n.scopes.domains.translations.ui');
+
+                            $i18nScopesGroup->get(
+                                '/{scope_id:[0-9]+}/coverage/languages/{language_id:[0-9]+}',
+                                \Maatify\AdminKernel\Http\Controllers\Ui\I18n\I18nScopeLanguageCoverageUiController::class
+                            )
+                                ->setName('i18n.scopes.coverage.domain.ui');
+                        });
+
+                        $i18nGroup->get(
+                            '/domains',
+                            [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\DomainsListUiController::class, '__invoke']
+                        )
+                            ->setName('i18n.domains.list.ui');
+
+                    })
                         ->add(AuthorizationGuardMiddleware::class);
 
-                    // ─────────────────────────────
-                    // Admin Session Control
-                    // ─────────────────────────────
-                    $protectedGroup->get(
-                        '/admins/{id:[0-9]+}/sessions',
-                        [\Maatify\AdminKernel\Http\Controllers\Ui\Admin\UiAdminsController::class, 'sessions']
-                    )
-                        ->setName('admins.session.list')
-                        ->add(AuthorizationGuardMiddleware::class);
-
-                    // ─────────────────────────────
-                    // Admin Permissions Control
-                    // ─────────────────────────────
-                    $protectedGroup->get(
-                        '/admins/{id:[0-9]+}/permissions',
-                        [\Maatify\AdminKernel\Http\Controllers\Ui\Admin\UiAdminsController::class, 'permissions']
-                    )
-                        ->setName('admins.permissions')
-                        ->add(AuthorizationGuardMiddleware::class);
 
                     // ─────────────────────────────
                     // Permission By ID Control
@@ -252,59 +307,17 @@ class AdminRoutes
                         ->setName('permissions.query.ui')
                         ->add(AuthorizationGuardMiddleware::class);
 
-                    $protectedGroup->get('/languages', [LanguagesListController::class, '__invoke'])
-                        ->setName('languages.list.ui')
-                        ->add(AuthorizationGuardMiddleware::class);
+                    // ===============================
+                    // languages
+                    // ===============================
+                    $protectedGroup->group('/languages', function (RouteCollectorProxyInterface $languagesGroup) {
+                        $languagesGroup->get('', [LanguagesListController::class, '__invoke'])
+                            ->setName('languages.list.ui');
 
-                    $protectedGroup->get('/languages/{language_id:[0-9]+}/translations', [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\LanguageTranslationsListUiController::class, '__invoke'])
-                        ->setName('languages.translations.list.ui')
-                        ->add(AuthorizationGuardMiddleware::class);
-
-                    $protectedGroup->get(
-                        '/i18n/scopes',
-                        [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopesListUiController::class, '__invoke']
-                    )
-                        ->setName('i18n.scopes.list.ui')
-                        ->add(AuthorizationGuardMiddleware::class);
-
-                    $protectedGroup->get(
-                        '/i18n/scopes/{scope_id:[0-9]+}',
-                        [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopeDetailsController::class, 'index']
-                    )
-                        ->setName('i18n.scopes.details.ui')
-                        ->add(AuthorizationGuardMiddleware::class);
-
-                    $protectedGroup->get(
-                        '/i18n/scopes/{scope_id:[0-9]+}/keys',
-                        [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopeKeysController::class, 'index']
-                    )
-                        ->setName('i18n.scopes.keys.ui')
-                        ->add(AuthorizationGuardMiddleware::class);
-
-                    $protectedGroup->get(
-                        '/i18n/scopes/{scope_id:[0-9]+}/domains/{domain_id:[0-9]+}/keys',
-                        [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopeDomainKeysSummaryController::class, 'index']
-                    )
-                        ->setName('i18n.scopes.domains.keys.ui')
-                        ->add(AuthorizationGuardMiddleware::class);
-
-                    $protectedGroup->get(
-                        '/i18n/scopes/{scope_id:[0-9]+}/domains/{domain_id:[0-9]+}/translations',
-                        [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopeDomainTranslationsUiController::class, 'index']
-                    )
-                        ->setName('i18n.scopes.domains.translations.ui')
-                        ->add(AuthorizationGuardMiddleware::class);
-
-                    $protectedGroup->get(
-                        '/i18n/scopes/{scope_id:[0-9]+}/coverage/languages/{language_id:[0-9]+}',
-                        \Maatify\AdminKernel\Http\Controllers\Ui\I18n\I18nScopeLanguageCoverageUiController::class
-                    )->setName('i18n.scopes.coverage.domain.ui');
-
-                    $protectedGroup->get(
-                        '/i18n/domains',
-                        [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\DomainsListUiController::class, '__invoke']
-                    )
-                        ->setName('i18n.domains.list.ui')
+                        $languagesGroup->get('/{language_id:[0-9]+}/translations',
+                            [\Maatify\AdminKernel\Http\Controllers\Ui\I18n\LanguageTranslationsListUiController::class, '__invoke'])
+                            ->setName('languages.translations.list.ui');
+                    })
                         ->add(AuthorizationGuardMiddleware::class);
 
                     $protectedGroup->get(
