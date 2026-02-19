@@ -13,7 +13,7 @@ use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
  *   pagination: PaginationDTO
  * }
  */
-class ContentDocumentListResponseDTO implements JsonSerializable
+final class ContentDocumentListResponseDTO implements JsonSerializable
 {
 
     /** @param ContentDocumentListItemDTO[] $data */

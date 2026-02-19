@@ -16,7 +16,7 @@ use JsonSerializable;
  *     updated_at: string
  * }
  */
-class ContentDocumentListItemDTO implements JsonSerializable
+final class ContentDocumentListItemDTO implements JsonSerializable
 {
     public function __construct(
         public int $id,
