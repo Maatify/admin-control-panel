@@ -315,20 +315,28 @@ return function (App $app): void {
 
             // C) Fallback System Error (Catch-All)
             $meta = [];
-            // Requirement: "exception_class" (even in production)
+
+            // Meta: Always include "exception_class"
             $meta['exception_class'] = get_class($exception);
 
             if ($displayErrorDetails) {
+                // Meta: Development only fields
                 $meta['file'] = $exception->getFile();
                 $meta['line'] = $exception->getLine();
                 $meta['trace'] = $exception->getTraceAsString();
+
+                // Message: Development -> real message
+                $message = $exception->getMessage();
+            } else {
+                // Message: Production -> safe message
+                $message = 'Internal Server Error';
             }
 
             return $unifiedJsonError(
                 500,
                 'INTERNAL_ERROR',
                 'SYSTEM',
-                'Internal Server Error',
+                $message,
                 $meta
             );
         }
