@@ -27,7 +27,7 @@ class ContentDocumentsApiRoutes
             // Query
             $documents->post(
                 '/query',
-                \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\DocumentTypesQueryController::class
+                \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\ContentDocumentTypesQueryController::class
             )->setName('content_documents.types.query.api');
 
             // Create

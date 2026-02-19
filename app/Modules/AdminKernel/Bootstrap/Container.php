@@ -2555,6 +2555,12 @@ class Container
 
         ]);
 
+        // ------- Register Infrastructure modules -------
+
+        // Register ContentDocuments Infrastructure
+        \Maatify\AdminKernel\Infrastructure\ContentDocuments\Bootstrap\ContentDocumentBinding::register($containerBuilder);
+
+
         // ------- Register internal modules -------
 
         // Register Maatify\LanguageCore modules
