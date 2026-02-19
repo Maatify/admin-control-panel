@@ -249,24 +249,6 @@ return function (App $app): void {
         }
     );
 
-    // Specific handler for StepUpRequiredException to enforce code string
-    $errorMiddleware->setErrorHandler(
-        StepUpRequiredException::class,
-        function (
-            ServerRequestInterface $request,
-            StepUpRequiredException $exception
-        ) use ($unifiedJsonError): ResponseInterface {
-            return $unifiedJsonError(
-                $exception->getHttpStatus(),
-                $exception->getStepUpCode(), // Use explicit string code
-                $exception->getCategory()->getValue(),
-                $exception->getMessage(),
-                $exception->getMeta(),
-                $exception->isRetryable()
-            );
-        }
-    );
-
     // 🆕 Unified Maatify Exception Handler
     $errorMiddleware->setErrorHandler(
         MaatifyException::class,
