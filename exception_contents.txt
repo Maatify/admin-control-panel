@@ -1,0 +1,396 @@
+app/Modules/AdminKernel/Domain/Exception/InvalidSessionException.php:<?php
+app/Modules/AdminKernel/Domain/Exception/InvalidSessionException.php:
+app/Modules/AdminKernel/Domain/Exception/InvalidSessionException.php:declare(strict_types=1);
+app/Modules/AdminKernel/Domain/Exception/InvalidSessionException.php:
+app/Modules/AdminKernel/Domain/Exception/InvalidSessionException.php:namespace Maatify\AdminKernel\Domain\Exception;
+app/Modules/AdminKernel/Domain/Exception/InvalidSessionException.php:
+app/Modules/AdminKernel/Domain/Exception/InvalidSessionException.php:use Exception;
+app/Modules/AdminKernel/Domain/Exception/InvalidSessionException.php:
+app/Modules/AdminKernel/Domain/Exception/InvalidSessionException.php:class InvalidSessionException extends Exception
+app/Modules/AdminKernel/Domain/Exception/InvalidSessionException.php:{
+app/Modules/AdminKernel/Domain/Exception/InvalidSessionException.php:}
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php:<?php
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php:
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php:/**
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php: * @copyright   ©2026 Maatify.dev
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php: * @Library     maatify/admin-control-panel
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php: * @Project     maatify:admin-control-panel
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php: * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php: * @since       2026-01-27 01:52
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php: * @see         https://www.maatify.dev Maatify.dev
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php: * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php: * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php: */
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php:
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php:declare(strict_types=1);
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php:
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php:namespace Maatify\AdminKernel\Domain\Exception;
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php:
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php:use RuntimeException;
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php:
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php:class EntityNotFoundException extends RuntimeException
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php:{
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php:    public function __construct(
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php:        string $entity,
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php:        string|int $identifier
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php:    ) {
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php:        parent::__construct(
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php:            sprintf('%s "%s" was not found.', $entity, (string)$identifier)
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php:        );
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php:    }
+app/Modules/AdminKernel/Domain/Exception/EntityNotFoundException.php:}
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:<?php
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:declare(strict_types=1);
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:namespace Maatify\AdminKernel\Domain\Exception;
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:use DomainException;
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:class AuthStateException extends DomainException
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:{
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:    public const REASON_NOT_VERIFIED = 'not_verified';
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:    public const REASON_SUSPENDED = 'suspended';
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:    public const REASON_DISABLED = 'disabled';
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:    public function __construct(
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:        private readonly string $reason,
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:        string $message
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:    ) {
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:        parent::__construct($message);
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:    }
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:    public function reason(): string
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:    {
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:        return $this->reason;
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:    }
+app/Modules/AdminKernel/Domain/Exception/AuthStateException.php:}
+app/Modules/AdminKernel/Domain/Exception/TwoFactorEnrollmentFailedException.php:<?php
+app/Modules/AdminKernel/Domain/Exception/TwoFactorEnrollmentFailedException.php:
+app/Modules/AdminKernel/Domain/Exception/TwoFactorEnrollmentFailedException.php:/**
+app/Modules/AdminKernel/Domain/Exception/TwoFactorEnrollmentFailedException.php: * @copyright   ©2026 Maatify.dev
+app/Modules/AdminKernel/Domain/Exception/TwoFactorEnrollmentFailedException.php: * @Library     maatify/admin-control-panel
+app/Modules/AdminKernel/Domain/Exception/TwoFactorEnrollmentFailedException.php: * @Project     maatify:admin-control-panel
+app/Modules/AdminKernel/Domain/Exception/TwoFactorEnrollmentFailedException.php: * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
+app/Modules/AdminKernel/Domain/Exception/TwoFactorEnrollmentFailedException.php: * @since       2026-01-19 17:53
+app/Modules/AdminKernel/Domain/Exception/TwoFactorEnrollmentFailedException.php: * @see         https://www.maatify.dev Maatify.dev
+app/Modules/AdminKernel/Domain/Exception/TwoFactorEnrollmentFailedException.php: * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
+app/Modules/AdminKernel/Domain/Exception/TwoFactorEnrollmentFailedException.php: * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
+app/Modules/AdminKernel/Domain/Exception/TwoFactorEnrollmentFailedException.php: */
+app/Modules/AdminKernel/Domain/Exception/TwoFactorEnrollmentFailedException.php:
+app/Modules/AdminKernel/Domain/Exception/TwoFactorEnrollmentFailedException.php:declare(strict_types=1);
+app/Modules/AdminKernel/Domain/Exception/TwoFactorEnrollmentFailedException.php:
+app/Modules/AdminKernel/Domain/Exception/TwoFactorEnrollmentFailedException.php:namespace Maatify\AdminKernel\Domain\Exception;
+app/Modules/AdminKernel/Domain/Exception/TwoFactorEnrollmentFailedException.php:
+app/Modules/AdminKernel/Domain/Exception/TwoFactorEnrollmentFailedException.php:use RuntimeException;
+app/Modules/AdminKernel/Domain/Exception/TwoFactorEnrollmentFailedException.php:
+app/Modules/AdminKernel/Domain/Exception/TwoFactorEnrollmentFailedException.php:class TwoFactorEnrollmentFailedException extends RuntimeException
+app/Modules/AdminKernel/Domain/Exception/TwoFactorEnrollmentFailedException.php:{
+app/Modules/AdminKernel/Domain/Exception/TwoFactorEnrollmentFailedException.php:}
+app/Modules/AdminKernel/Domain/Exception/UnsupportedNotificationChannelException.php:<?php
+app/Modules/AdminKernel/Domain/Exception/UnsupportedNotificationChannelException.php:
+app/Modules/AdminKernel/Domain/Exception/UnsupportedNotificationChannelException.php:declare(strict_types=1);
+app/Modules/AdminKernel/Domain/Exception/UnsupportedNotificationChannelException.php:
+app/Modules/AdminKernel/Domain/Exception/UnsupportedNotificationChannelException.php:namespace Maatify\AdminKernel\Domain\Exception;
+app/Modules/AdminKernel/Domain/Exception/UnsupportedNotificationChannelException.php:
+app/Modules/AdminKernel/Domain/Exception/UnsupportedNotificationChannelException.php:use DomainException;
+app/Modules/AdminKernel/Domain/Exception/UnsupportedNotificationChannelException.php:
+app/Modules/AdminKernel/Domain/Exception/UnsupportedNotificationChannelException.php:class UnsupportedNotificationChannelException extends DomainException
+app/Modules/AdminKernel/Domain/Exception/UnsupportedNotificationChannelException.php:{
+app/Modules/AdminKernel/Domain/Exception/UnsupportedNotificationChannelException.php:    public function __construct(string $channel)
+app/Modules/AdminKernel/Domain/Exception/UnsupportedNotificationChannelException.php:    {
+app/Modules/AdminKernel/Domain/Exception/UnsupportedNotificationChannelException.php:        parent::__construct(sprintf('No sender supports the channel: %s', $channel));
+app/Modules/AdminKernel/Domain/Exception/UnsupportedNotificationChannelException.php:    }
+app/Modules/AdminKernel/Domain/Exception/UnsupportedNotificationChannelException.php:}
+app/Modules/AdminKernel/Domain/Exception/IdentifierNotFoundException.php:<?php
+app/Modules/AdminKernel/Domain/Exception/IdentifierNotFoundException.php:
+app/Modules/AdminKernel/Domain/Exception/IdentifierNotFoundException.php:declare(strict_types=1);
+app/Modules/AdminKernel/Domain/Exception/IdentifierNotFoundException.php:
+app/Modules/AdminKernel/Domain/Exception/IdentifierNotFoundException.php:namespace Maatify\AdminKernel\Domain\Exception;
+app/Modules/AdminKernel/Domain/Exception/IdentifierNotFoundException.php:
+app/Modules/AdminKernel/Domain/Exception/IdentifierNotFoundException.php:use LogicException;
+app/Modules/AdminKernel/Domain/Exception/IdentifierNotFoundException.php:
+app/Modules/AdminKernel/Domain/Exception/IdentifierNotFoundException.php:class IdentifierNotFoundException extends LogicException
+app/Modules/AdminKernel/Domain/Exception/IdentifierNotFoundException.php:{
+app/Modules/AdminKernel/Domain/Exception/IdentifierNotFoundException.php:}
+app/Modules/AdminKernel/Domain/Exception/ExpiredSessionException.php:<?php
+app/Modules/AdminKernel/Domain/Exception/ExpiredSessionException.php:
+app/Modules/AdminKernel/Domain/Exception/ExpiredSessionException.php:declare(strict_types=1);
+app/Modules/AdminKernel/Domain/Exception/ExpiredSessionException.php:
+app/Modules/AdminKernel/Domain/Exception/ExpiredSessionException.php:namespace Maatify\AdminKernel\Domain\Exception;
+app/Modules/AdminKernel/Domain/Exception/ExpiredSessionException.php:
+app/Modules/AdminKernel/Domain/Exception/ExpiredSessionException.php:use Exception;
+app/Modules/AdminKernel/Domain/Exception/ExpiredSessionException.php:
+app/Modules/AdminKernel/Domain/Exception/ExpiredSessionException.php:class ExpiredSessionException extends Exception
+app/Modules/AdminKernel/Domain/Exception/ExpiredSessionException.php:{
+app/Modules/AdminKernel/Domain/Exception/ExpiredSessionException.php:}
+app/Modules/AdminKernel/Domain/Exception/UnauthorizedException.php:<?php
+app/Modules/AdminKernel/Domain/Exception/UnauthorizedException.php:
+app/Modules/AdminKernel/Domain/Exception/UnauthorizedException.php:declare(strict_types=1);
+app/Modules/AdminKernel/Domain/Exception/UnauthorizedException.php:
+app/Modules/AdminKernel/Domain/Exception/UnauthorizedException.php:namespace Maatify\AdminKernel\Domain\Exception;
+app/Modules/AdminKernel/Domain/Exception/UnauthorizedException.php:
+app/Modules/AdminKernel/Domain/Exception/UnauthorizedException.php:use DomainException;
+app/Modules/AdminKernel/Domain/Exception/UnauthorizedException.php:
+app/Modules/AdminKernel/Domain/Exception/UnauthorizedException.php:class UnauthorizedException extends DomainException
+app/Modules/AdminKernel/Domain/Exception/UnauthorizedException.php:{
+app/Modules/AdminKernel/Domain/Exception/UnauthorizedException.php:}
+app/Modules/AdminKernel/Domain/Exception/InvalidCredentialsException.php:<?php
+app/Modules/AdminKernel/Domain/Exception/InvalidCredentialsException.php:
+app/Modules/AdminKernel/Domain/Exception/InvalidCredentialsException.php:declare(strict_types=1);
+app/Modules/AdminKernel/Domain/Exception/InvalidCredentialsException.php:
+app/Modules/AdminKernel/Domain/Exception/InvalidCredentialsException.php:namespace Maatify\AdminKernel\Domain\Exception;
+app/Modules/AdminKernel/Domain/Exception/InvalidCredentialsException.php:
+app/Modules/AdminKernel/Domain/Exception/InvalidCredentialsException.php:use DomainException;
+app/Modules/AdminKernel/Domain/Exception/InvalidCredentialsException.php:
+app/Modules/AdminKernel/Domain/Exception/InvalidCredentialsException.php:class InvalidCredentialsException extends DomainException
+app/Modules/AdminKernel/Domain/Exception/InvalidCredentialsException.php:{
+app/Modules/AdminKernel/Domain/Exception/InvalidCredentialsException.php:}
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php:<?php
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php:
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php:/**
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php: * @copyright   ©2026 Maatify.dev
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php: * @Library     maatify/admin-control-panel
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php: * @Project     maatify:admin-control-panel
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php: * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php: * @since       2026-01-27 01:32
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php: * @see         https://www.maatify.dev Maatify.dev
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php: * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php: * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php: */
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php:
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php:declare(strict_types=1);
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php:
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php:namespace Maatify\AdminKernel\Domain\Exception;
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php:
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php:use RuntimeException;
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php:
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php:class EntityAlreadyExistsException extends RuntimeException
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php:{
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php:    public function __construct(
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php:        string $entity,
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php:        string $field,
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php:        string $value
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php:    ) {
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php:        parent::__construct(
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php:            sprintf('%s with %s "%s" already exists.', $entity, $field, $value)
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php:        );
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php:    }
+app/Modules/AdminKernel/Domain/Exception/EntityAlreadyExistsException.php:}
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierFormatException.php:<?php
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierFormatException.php:
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierFormatException.php:declare(strict_types=1);
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierFormatException.php:
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierFormatException.php:namespace Maatify\AdminKernel\Domain\Exception;
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierFormatException.php:
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierFormatException.php:use LogicException;
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierFormatException.php:
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierFormatException.php:class InvalidIdentifierFormatException extends LogicException
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierFormatException.php:{
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierFormatException.php:    public function __construct(string $message = "")
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierFormatException.php:    {
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierFormatException.php:        parent::__construct($message);
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierFormatException.php:    }
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierFormatException.php:}
+app/Modules/AdminKernel/Domain/Exception/PermissionDeniedException.php:<?php
+app/Modules/AdminKernel/Domain/Exception/PermissionDeniedException.php:
+app/Modules/AdminKernel/Domain/Exception/PermissionDeniedException.php:declare(strict_types=1);
+app/Modules/AdminKernel/Domain/Exception/PermissionDeniedException.php:
+app/Modules/AdminKernel/Domain/Exception/PermissionDeniedException.php:namespace Maatify\AdminKernel\Domain\Exception;
+app/Modules/AdminKernel/Domain/Exception/PermissionDeniedException.php:
+app/Modules/AdminKernel/Domain/Exception/PermissionDeniedException.php:use DomainException;
+app/Modules/AdminKernel/Domain/Exception/PermissionDeniedException.php:
+app/Modules/AdminKernel/Domain/Exception/PermissionDeniedException.php:class PermissionDeniedException extends DomainException
+app/Modules/AdminKernel/Domain/Exception/PermissionDeniedException.php:{
+app/Modules/AdminKernel/Domain/Exception/PermissionDeniedException.php:}
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierStateException.php:<?php
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierStateException.php:
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierStateException.php:declare(strict_types=1);
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierStateException.php:
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierStateException.php:namespace Maatify\AdminKernel\Domain\Exception;
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierStateException.php:
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierStateException.php:use LogicException;
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierStateException.php:
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierStateException.php:class InvalidIdentifierStateException extends LogicException
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierStateException.php:{
+app/Modules/AdminKernel/Domain/Exception/InvalidIdentifierStateException.php:}
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:<?php
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:/**
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php: * @copyright   ©2026 Maatify.dev
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php: * @Library     maatify/admin-control-panel
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php: * @Project     maatify:admin-control-panel
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php: * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php: * @since       2026-01-27 01:59
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php: * @see         https://www.maatify.dev Maatify.dev
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php: * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php: * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php: */
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:declare(strict_types=1);
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:namespace Maatify\AdminKernel\Domain\Exception;
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:use RuntimeException;
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:class InvalidOperationException extends RuntimeException
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:{
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:    public function __construct(
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:        string $entity,
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:        string $operation,
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:        ?string $reason = null
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:    )
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:    {
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:        parent::__construct(
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:            $reason !== null
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:                ? sprintf(
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:                'Invalid operation "%s" on %s: %s.',
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:                $operation,
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:                $entity,
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:                $reason
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:            )
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:                : sprintf(
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:                'Invalid operation "%s" on %s.',
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:                $operation,
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:                $entity
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:            )
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:        );
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:    }
+app/Modules/AdminKernel/Domain/Exception/InvalidOperationException.php:}
+app/Modules/AdminKernel/Domain/Exception/MustChangePasswordException.php:<?php
+app/Modules/AdminKernel/Domain/Exception/MustChangePasswordException.php:
+app/Modules/AdminKernel/Domain/Exception/MustChangePasswordException.php:/**
+app/Modules/AdminKernel/Domain/Exception/MustChangePasswordException.php: * @copyright   ©2026 Maatify.dev
+app/Modules/AdminKernel/Domain/Exception/MustChangePasswordException.php: * @Library     maatify/admin-control-panel
+app/Modules/AdminKernel/Domain/Exception/MustChangePasswordException.php: * @Project     maatify:admin-control-panel
+app/Modules/AdminKernel/Domain/Exception/MustChangePasswordException.php: * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
+app/Modules/AdminKernel/Domain/Exception/MustChangePasswordException.php: * @since       2026-01-19 09:06
+app/Modules/AdminKernel/Domain/Exception/MustChangePasswordException.php: * @see         https://www.maatify.dev Maatify.dev
+app/Modules/AdminKernel/Domain/Exception/MustChangePasswordException.php: * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
+app/Modules/AdminKernel/Domain/Exception/MustChangePasswordException.php: * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
+app/Modules/AdminKernel/Domain/Exception/MustChangePasswordException.php: */
+app/Modules/AdminKernel/Domain/Exception/MustChangePasswordException.php:
+app/Modules/AdminKernel/Domain/Exception/MustChangePasswordException.php:declare(strict_types=1);
+app/Modules/AdminKernel/Domain/Exception/MustChangePasswordException.php:
+app/Modules/AdminKernel/Domain/Exception/MustChangePasswordException.php:namespace Maatify\AdminKernel\Domain\Exception;
+app/Modules/AdminKernel/Domain/Exception/MustChangePasswordException.php:
+app/Modules/AdminKernel/Domain/Exception/MustChangePasswordException.php:use DomainException;
+app/Modules/AdminKernel/Domain/Exception/MustChangePasswordException.php:
+app/Modules/AdminKernel/Domain/Exception/MustChangePasswordException.php:class MustChangePasswordException extends DomainException
+app/Modules/AdminKernel/Domain/Exception/MustChangePasswordException.php:{
+app/Modules/AdminKernel/Domain/Exception/MustChangePasswordException.php:
+app/Modules/AdminKernel/Domain/Exception/MustChangePasswordException.php:}
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:<?php
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:declare(strict_types=1);
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:namespace Maatify\AdminKernel\Domain\Exception;
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:use Maatify\AdminKernel\Domain\Policy\AdminKernelErrorPolicy;
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:use Maatify\Exceptions\Contracts\ErrorCodeInterface;
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:use Maatify\Exceptions\Exception\MaatifyException;
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:use Throwable;
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:abstract class AdminKernelException extends MaatifyException
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:{
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:    /**
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:     * @param array<string, mixed> $meta
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:     */
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:    public function __construct(
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:        string $message = '',
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:        int $code = 0,
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:        ?Throwable $previous = null,
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:        ?ErrorCodeInterface $errorCodeOverride = null,
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:        array $meta = []
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:    ) {
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:        parent::__construct(
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:            message: $message,
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:            code: $code,
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:            previous: $previous,
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:            errorCodeOverride: $errorCodeOverride,
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:            meta: $meta,
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:            policy: AdminKernelErrorPolicy::instance()
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:        );
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:    }
+app/Modules/AdminKernel/Domain/Exception/AdminKernelException.php:}
+app/Modules/AdminKernel/Domain/Exception/RecoveryLockException.php:<?php
+app/Modules/AdminKernel/Domain/Exception/RecoveryLockException.php:
+app/Modules/AdminKernel/Domain/Exception/RecoveryLockException.php:declare(strict_types=1);
+app/Modules/AdminKernel/Domain/Exception/RecoveryLockException.php:
+app/Modules/AdminKernel/Domain/Exception/RecoveryLockException.php:namespace Maatify\AdminKernel\Domain\Exception;
+app/Modules/AdminKernel/Domain/Exception/RecoveryLockException.php:
+app/Modules/AdminKernel/Domain/Exception/RecoveryLockException.php:use RuntimeException;
+app/Modules/AdminKernel/Domain/Exception/RecoveryLockException.php:
+app/Modules/AdminKernel/Domain/Exception/RecoveryLockException.php:class RecoveryLockException extends RuntimeException
+app/Modules/AdminKernel/Domain/Exception/RecoveryLockException.php:{
+app/Modules/AdminKernel/Domain/Exception/RecoveryLockException.php:}
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:<?php
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:/**
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php: * @copyright   ©2026 Maatify.dev
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php: * @Library     maatify/admin-control-panel
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php: * @Project     maatify:admin-control-panel
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php: * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php: * @since       2026-02-07 14:03
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php: * @see         https://www.maatify.dev Maatify.dev
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php: * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php: * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php: */
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:declare(strict_types=1);
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:namespace Maatify\AdminKernel\Domain\Exception;
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:use RuntimeException;
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:class EntityInUseException extends RuntimeException
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:{
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:    public function __construct(
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:        string $entity,
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:        string $code,
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:        string $usageContext
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:    )
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:    {
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:        parent::__construct(
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:            sprintf(
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:                '%s code "%s" cannot be changed because it is already used in %s.',
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:                $entity,
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:                $code,
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:                $usageContext
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:            )
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:        );
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:    }
+app/Modules/AdminKernel/Domain/Exception/EntityInUseException.php:}
+app/Modules/AdminKernel/Domain/Exception/RevokedSessionException.php:<?php
+app/Modules/AdminKernel/Domain/Exception/RevokedSessionException.php:
+app/Modules/AdminKernel/Domain/Exception/RevokedSessionException.php:declare(strict_types=1);
+app/Modules/AdminKernel/Domain/Exception/RevokedSessionException.php:
+app/Modules/AdminKernel/Domain/Exception/RevokedSessionException.php:namespace Maatify\AdminKernel\Domain\Exception;
+app/Modules/AdminKernel/Domain/Exception/RevokedSessionException.php:
+app/Modules/AdminKernel/Domain/Exception/RevokedSessionException.php:use Exception;
+app/Modules/AdminKernel/Domain/Exception/RevokedSessionException.php:
+app/Modules/AdminKernel/Domain/Exception/RevokedSessionException.php:class RevokedSessionException extends Exception
+app/Modules/AdminKernel/Domain/Exception/RevokedSessionException.php:{
+app/Modules/AdminKernel/Domain/Exception/RevokedSessionException.php:}
+app/Modules/AdminKernel/Domain/Exception/TwoFactorAlreadyEnrolledException.php:<?php
+app/Modules/AdminKernel/Domain/Exception/TwoFactorAlreadyEnrolledException.php:
+app/Modules/AdminKernel/Domain/Exception/TwoFactorAlreadyEnrolledException.php:/**
+app/Modules/AdminKernel/Domain/Exception/TwoFactorAlreadyEnrolledException.php: * @copyright   ©2026 Maatify.dev
+app/Modules/AdminKernel/Domain/Exception/TwoFactorAlreadyEnrolledException.php: * @Library     maatify/admin-control-panel
+app/Modules/AdminKernel/Domain/Exception/TwoFactorAlreadyEnrolledException.php: * @Project     maatify:admin-control-panel
+app/Modules/AdminKernel/Domain/Exception/TwoFactorAlreadyEnrolledException.php: * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
+app/Modules/AdminKernel/Domain/Exception/TwoFactorAlreadyEnrolledException.php: * @since       2026-01-19 17:29
+app/Modules/AdminKernel/Domain/Exception/TwoFactorAlreadyEnrolledException.php: * @see         https://www.maatify.dev Maatify.dev
+app/Modules/AdminKernel/Domain/Exception/TwoFactorAlreadyEnrolledException.php: * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
+app/Modules/AdminKernel/Domain/Exception/TwoFactorAlreadyEnrolledException.php: * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
+app/Modules/AdminKernel/Domain/Exception/TwoFactorAlreadyEnrolledException.php: */
+app/Modules/AdminKernel/Domain/Exception/TwoFactorAlreadyEnrolledException.php:
+app/Modules/AdminKernel/Domain/Exception/TwoFactorAlreadyEnrolledException.php:declare(strict_types=1);
+app/Modules/AdminKernel/Domain/Exception/TwoFactorAlreadyEnrolledException.php:
+app/Modules/AdminKernel/Domain/Exception/TwoFactorAlreadyEnrolledException.php:namespace Maatify\AdminKernel\Domain\Exception;
+app/Modules/AdminKernel/Domain/Exception/TwoFactorAlreadyEnrolledException.php:
+app/Modules/AdminKernel/Domain/Exception/TwoFactorAlreadyEnrolledException.php:use RuntimeException;
+app/Modules/AdminKernel/Domain/Exception/TwoFactorAlreadyEnrolledException.php:
+app/Modules/AdminKernel/Domain/Exception/TwoFactorAlreadyEnrolledException.php:final class TwoFactorAlreadyEnrolledException extends RuntimeException
+app/Modules/AdminKernel/Domain/Exception/TwoFactorAlreadyEnrolledException.php:{
+app/Modules/AdminKernel/Domain/Exception/TwoFactorAlreadyEnrolledException.php:}
