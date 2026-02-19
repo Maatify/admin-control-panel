@@ -53,6 +53,19 @@ final readonly class PdoDocumentTypeRepository implements DocumentTypeRepository
         return $this->hydrate($row);
     }
 
+    public function existsByKey(DocumentTypeKey $key): bool
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT 1 FROM document_types WHERE `key` = :key LIMIT 1'
+        );
+
+        $stmt->execute([
+            'key' => (string) $key,
+        ]);
+
+        return $stmt->fetchColumn() !== false;
+    }
+
     /**
      * @return list<DocumentType>
      */
