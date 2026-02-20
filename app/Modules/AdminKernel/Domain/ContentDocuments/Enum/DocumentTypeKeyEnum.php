@@ -8,22 +8,22 @@ enum DocumentTypeKeyEnum: string
 {
     case TERMS = 'terms';
     case PRIVACY = 'privacy';
-    case COOKIE_POLICY = 'cookie_policy';
-    case REFUND_POLICY = 'refund_policy';
-    case CANCELLATION_POLICY = 'cancellation_policy';
-    case SHIPPING_POLICY = 'shipping_policy';
-    case PAYMENT_POLICY = 'payment_policy';
-    case SUBSCRIPTION_POLICY = 'subscription_policy';
-    case PRICING_POLICY = 'pricing_policy';
+    case COOKIE_POLICY = 'cookie-policy';
+    case REFUND_POLICY = 'refund-policy';
+    case CANCELLATION_POLICY = 'cancellation-policy';
+    case SHIPPING_POLICY = 'shipping-policy';
+    case PAYMENT_POLICY = 'payment-policy';
+    case SUBSCRIPTION_POLICY = 'subscription-policy';
+    case PRICING_POLICY = 'pricing-policy';
     case DISCLAIMER = 'disclaimer';
-    case GDPR_NOTICE = 'gdpr_notice';
-    case DATA_PROCESSING_AGREEMENT = 'data_processing_agreement';
-    case ACCEPTABLE_USE_POLICY = 'acceptable_use_policy';
-    case ABOUT_US = 'about_us';
-    case CONTACT_US = 'contact_us';
-    case VENDOR_TERMS = 'vendor_terms';
-    case AFFILIATE_TERMS = 'affiliate_terms';
-    case COMMUNITY_GUIDELINES = 'community_guidelines';
+    case GDPR_NOTICE = 'gdpr-notice';
+    case DATA_PROCESSING_AGREEMENT = 'data-processing-agreement';
+    case ACCEPTABLE_USE_POLICY = 'acceptable-use-policy';
+    case ABOUT_US = 'about-us';
+    case CONTACT_US = 'contact-us';
+    case VENDOR_TERMS = 'vendor-terms';
+    case AFFILIATE_TERMS = 'affiliate-terms';
+    case COMMUNITY_GUIDELINES = 'community-guidelines';
 
     /**
      * @return list<string>

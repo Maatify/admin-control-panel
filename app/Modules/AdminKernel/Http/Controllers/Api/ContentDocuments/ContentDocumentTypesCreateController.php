@@ -33,10 +33,8 @@ final readonly class ContentDocumentTypesCreateController
     {
     }
 
-    /**
-     * @param array<string,string> $args
-     */
-    public function __invoke(Request $request, Response $response, array $args): Response
+
+    public function __invoke(Request $request, Response $response): Response
     {
         /** @var array<string,mixed> $body */
         $body = (array) $request->getParsedBody();

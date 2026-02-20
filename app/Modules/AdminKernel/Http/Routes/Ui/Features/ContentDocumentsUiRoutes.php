@@ -17,7 +17,7 @@ final class ContentDocumentsUiRoutes
     {
         $group->get(
             '/content-document-types',
-            [\Maatify\AdminKernel\Http\Controllers\Ui\ContentDocuments\UiDocumentTypesController::class, 'index']
+            [\Maatify\AdminKernel\Http\Controllers\Ui\ContentDocuments\UiContentDocumentTypesController::class, 'index']
         )
             ->setName('content_documents.types.query.ui')
             ->add(AuthorizationGuardMiddleware::class);

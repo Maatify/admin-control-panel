@@ -13,7 +13,7 @@ use JsonSerializable;
  *     requires_acceptance_default: int,
  *     is_system: int,
  *     created_at: string,
- *     updated_at: string
+ *     updated_at: string|null
  * }
  */
 final class ContentDocumentListItemDTO implements JsonSerializable
@@ -24,7 +24,7 @@ final class ContentDocumentListItemDTO implements JsonSerializable
         public int $requires_acceptance_default,
         public int $is_system,
         public string $created_at,
-        public string $updated_at
+        public ?string $updated_at
     )
     {
     }

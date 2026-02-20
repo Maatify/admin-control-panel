@@ -81,11 +81,11 @@ final readonly class PDOContentDocumentQueryReaderRepository implements ContentD
         // Total (no filters)
         // ─────────────────────────────
         $stmtTotal = $this->pdo->query(
-            'SELECT COUNT(*) FROM content_documents d'
+            'SELECT COUNT(*) FROM document_types d'
         );
 
         if ($stmtTotal === false) {
-            throw new RuntimeException('Failed to execute total content_documents count query');
+            throw new RuntimeException('Failed to execute total document_types count query');
         }
 
         $total = (int) $stmtTotal->fetchColumn();
@@ -94,7 +94,7 @@ final readonly class PDOContentDocumentQueryReaderRepository implements ContentD
         // Filtered Count
         // ─────────────────────────────
         $stmtFiltered = $this->pdo->prepare(
-            "SELECT COUNT(*) FROM content_documents d {$whereSql}"
+            "SELECT COUNT(*) FROM document_types d {$whereSql}"
         );
 
         $stmtFiltered->execute($params);
@@ -114,7 +114,7 @@ final readonly class PDOContentDocumentQueryReaderRepository implements ContentD
                 d.is_system,
                 d.created_at,
                 d.updated_at
-            FROM content_documents d
+            FROM document_types d
             {$whereSql}
             ORDER BY
                 d.id DESC
@@ -144,7 +144,7 @@ final readonly class PDOContentDocumentQueryReaderRepository implements ContentD
             $req  = $row['requires_acceptance_default'] ?? null;
             $sys  = $row['is_system'] ?? null;
             $cAt  = $row['created_at'] ?? null;
-            $uAt  = $row['updated_at'] ?? null;
+            $uAt = is_string($row['updated_at']) ? (string)$row['updated_at'] : null;
 
             if (!is_numeric($id)) {
                 continue;
@@ -158,7 +158,7 @@ final readonly class PDOContentDocumentQueryReaderRepository implements ContentD
                 continue;
             }
 
-            if (!is_string($cAt) || !is_string($uAt)) {
+            if (!is_string($cAt)) {
                 continue;
             }
 

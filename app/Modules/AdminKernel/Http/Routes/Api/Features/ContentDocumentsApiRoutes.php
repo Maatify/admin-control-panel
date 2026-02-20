@@ -19,7 +19,7 @@ class ContentDocumentsApiRoutes
         // ─────────────────────────────
         $group->group('/content-document-types', function (RouteCollectorProxyInterface $documents) {
             // Dropdown (available enum keys)
-            $documents->get(
+            $documents->post(
                 '/dropdown',
                 \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\ContentDocumentsKeysDropdownController::class
             )->setName('content_documents.types.dropdown.api');

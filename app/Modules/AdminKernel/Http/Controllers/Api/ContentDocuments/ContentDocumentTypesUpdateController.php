@@ -37,7 +37,7 @@ final readonly class ContentDocumentTypesUpdateController
      */
     public function __invoke(Request $request, Response $response, array $args): Response
     {
-        $id = (int) ($args['id'] ?? 0);
+        $id = (int) ($args['type_id'] ?? 0);
 
         /** @var array<string,mixed> $body */
         $body = (array) $request->getParsedBody();
