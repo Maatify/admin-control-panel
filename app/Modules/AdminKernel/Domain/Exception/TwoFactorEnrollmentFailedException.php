@@ -15,8 +15,8 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Exception;
 
-use RuntimeException;
+use Maatify\AdminKernel\Domain\Exception\Base\AdminKernelValidationExceptionBase;
 
-class TwoFactorEnrollmentFailedException extends RuntimeException
+class TwoFactorEnrollmentFailedException extends AdminKernelValidationExceptionBase
 {
 }

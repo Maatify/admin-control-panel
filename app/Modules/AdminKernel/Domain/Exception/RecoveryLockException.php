@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Exception;
 
-use RuntimeException;
+use Maatify\AdminKernel\Domain\Exception\Base\AdminKernelAuthorizationExceptionBase;
 
-class RecoveryLockException extends RuntimeException
+class RecoveryLockException extends AdminKernelAuthorizationExceptionBase
 {
 }
