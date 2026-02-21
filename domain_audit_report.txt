@@ -1,0 +1,130 @@
+DOMAIN EXCEPTION SURFACE AUDIT REPORT
+====================================
+
+SCOPE: app/Modules/AdminKernel/Domain/**
+MODE: STRICT READ-ONLY
+
+1) THROW SWEEP & CLASSIFICATION
+-------------------------------
+
+[A] = AdminKernel/Maatify Hierarchy (OK)
+[B] = Intentional System/Invariant (OK)
+[C] = PROBLEM (Business Logic using SPL)
+
+app/Modules/AdminKernel/Domain/Service/RememberMeService.php
+  41: \RuntimeException (Random bytes failure) -> [B]
+ 101: InvalidCredentialsException -> [A]
+ 108: InvalidCredentialsException -> [A]
+ 119: \RuntimeException (Random failure) -> [B]
+
+app/Modules/AdminKernel/Domain/Service/AdminEmailVerificationService.php
+  45: InvalidIdentifierStateException -> [A]
+  49: InvalidIdentifierStateException -> [A]
+  53: InvalidIdentifierStateException -> [A]
+  77: InvalidIdentifierStateException -> [A]
+ 102: InvalidIdentifierStateException -> [A]
+ 131: InvalidIdentifierStateException -> [A]
+ 160: InvalidIdentifierStateException -> [A]
+
+app/Modules/AdminKernel/Domain/Service/AdminAuthenticationService.php
+  41: InvalidCredentialsException -> [A]
+  48: InvalidCredentialsException -> [A]
+  55: AuthStateException -> [A]
+  82: AuthStateException -> [A]
+  90: MustChangePasswordException -> [A]
+
+app/Modules/AdminKernel/Domain/Service/SessionValidationService.php
+  38: InvalidSessionException -> [A]
+  42: RevokedSessionException -> [A]
+  47: ExpiredSessionException -> [A]
+
+app/Modules/AdminKernel/Domain/Service/RoleAssignmentService.php
+  46: PermissionDeniedException -> [A]
+  52: PermissionDeniedException -> [A]
+  61: PermissionDeniedException -> [A]
+  67: PermissionDeniedException -> [A]
+
+app/Modules/AdminKernel/Domain/Service/SessionRevocationService.php
+  50: SessionRevocationFailedException -> [A]
+  85: SessionRevocationFailedException -> [A]
+  97: IdentifierNotFoundException -> [A]
+
+app/Modules/AdminKernel/Domain/Service/AuthorizationService.php
+  60: PermissionDeniedException -> [A]
+ 121: UnauthorizedException -> [A]
+ 129: PermissionDeniedException -> [A]
+ 144: PermissionDeniedException -> [A]
+
+app/Modules/AdminKernel/Domain/Service/RecoveryStateService.php
+  82: RecoveryLockException -> [A]
+ 124: RuntimeException (Env config enforces lock) -> [B]
+ 162: RuntimeException (DB persistence failure) -> [B]
+
+app/Modules/AdminKernel/Domain/Service/TwoFactorEnrollmentService.php
+  67: TwoFactorAlreadyEnrolledException -> [A]
+ 157: TwoFactorEnrollmentFailedException -> [A]
+ 166: TwoFactorEnrollmentFailedException -> [A]
+
+app/Modules/AdminKernel/Domain/Actor/Actor.php
+  55: InvalidArgumentException (Internal state assertion) -> [B]
+  64: InvalidArgumentException (Internal state assertion) -> [B]
+  73: InvalidArgumentException (Internal state assertion) -> [B]
+
+app/Modules/AdminKernel/Domain/DTO/TotpEnrollmentConfig.php
+  28: RuntimeException (Invalid config) -> [B]
+
+app/Modules/AdminKernel/Domain/DTO/Request/VerifyAdminEmailRequestDTO.php
+  18: InvalidIdentifierFormatException -> [A]
+
+app/Modules/AdminKernel/Domain/DTO/Request/CreateAdminEmailRequestDTO.php
+  18: InvalidIdentifierFormatException -> [A]
+
+app/Modules/AdminKernel/Domain/I18n/Service/I18nScopeDomainsService.php
+  52: InvalidOperationException -> [A]
+  74: InvalidOperationException -> [A]
+  92: EntityNotFoundException -> [A]
+ 106: EntityNotFoundException -> [A]
+
+app/Modules/AdminKernel/Domain/I18n/Keys/I18nScopeKeyCommandService.php
+  36: TranslationKeyNotFoundException -> [A]
+  56: TranslationKeyNotFoundException -> [A]
+
+app/Modules/AdminKernel/Domain/Security/Password/PasswordPepperRing.php
+  20: RuntimeException (Config) -> [B]
+  23: RuntimeException (Config) -> [B]
+  27: RuntimeException (Config) -> [B]
+  45: RuntimeException (Config) -> [B]
+
+app/Modules/AdminKernel/Domain/Security/Password/PasswordPepperRingConfig.php
+  31: Exception (Env Config) -> [B]
+  36: Exception (Env Config) -> [B]
+  43: Exception (Env Config) -> [B]
+  49: Exception (Env Config) -> [B]
+  52: Exception (Env Config) -> [B]
+  60: Exception (Env Config) -> [B]
+  64: Exception (Env Config) -> [B]
+  72: Exception (Env Config) -> [B]
+
+app/Modules/AdminKernel/Domain/Security/Crypto/CryptoKeyRingConfig.php
+  27: \Exception (Env Config) -> [B]
+  32: \Exception (Env Config) -> [B]
+  39: \Exception (Env Config) -> [B]
+  46: \Exception (Env Config) -> [B]
+  49: \Exception (Env Config) -> [B]
+  56: \Exception (Env Config) -> [B]
+  60: \Exception (Env Config) -> [B]
+
+
+2) EXPLICIT CONFIRMATIONS
+-------------------------
+
+- DomainException present? NO
+- LogicException present? NO
+- RuntimeException used for business logic? NO (Only Infrastructure/Config)
+- InvalidArgumentException used for domain validation? NO (Only Internal State/Assertion)
+
+
+3) FINAL DETERMINATION
+----------------------
+
+Domain Exception Surface: CLEAN
