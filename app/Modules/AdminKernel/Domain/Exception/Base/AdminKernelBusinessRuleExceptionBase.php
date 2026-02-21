@@ -28,13 +28,13 @@ abstract class AdminKernelBusinessRuleExceptionBase extends BusinessRuleMaatifyE
         }
 
         parent::__construct(
-            message: $message,
-            code: $code,
-            previous: $previous,
-            errorCodeOverride: $errorCodeOverride,
-            meta: $meta,
-            policy: AdminKernelErrorPolicy::instance(),
-            httpStatusOverride: $httpStatusOverride
+            message           : $message,
+            code              : $code,
+            previous          : $previous,
+            errorCodeOverride : $errorCodeOverride,
+            httpStatusOverride: $httpStatusOverride,
+            meta              : $meta,
+            policy            : AdminKernelErrorPolicy::instance()
         );
     }
 

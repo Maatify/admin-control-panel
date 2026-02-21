@@ -27,14 +27,19 @@ abstract class AdminKernelValidationExceptionBase extends ValidationMaatifyExcep
             $errorCodeOverride = AdminKernelErrorCodeEnum::INVALID_ARGUMENT;
         }
 
+        // Force 422 for all AdminKernel Validation Exceptions
+        if ($httpStatusOverride === null) {
+            $httpStatusOverride = 422;
+        }
+
         parent::__construct(
-            message: $message,
-            code: $code,
-            previous: $previous,
-            errorCodeOverride: $errorCodeOverride,
-            meta: $meta,
-            policy: AdminKernelErrorPolicy::instance(),
-            httpStatusOverride: $httpStatusOverride
+            message           : $message,
+            code              : $code,
+            previous          : $previous,
+            errorCodeOverride : $errorCodeOverride,
+            httpStatusOverride: $httpStatusOverride,
+            meta              : $meta,
+            policy            : AdminKernelErrorPolicy::instance()
         );
     }
 

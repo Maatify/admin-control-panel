@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Exception;
 
-use LogicException;
+use Maatify\AdminKernel\Domain\Exception\Base\AdminKernelNotFoundExceptionBase;
 
-class IdentifierNotFoundException extends LogicException
+class IdentifierNotFoundException extends AdminKernelNotFoundExceptionBase
 {
 }

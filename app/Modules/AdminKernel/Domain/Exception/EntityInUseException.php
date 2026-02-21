@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Exception;
 
+use Maatify\AdminKernel\Domain\Enum\AdminKernelErrorCodeEnum;
 use Maatify\AdminKernel\Domain\Exception\Base\AdminKernelConflictExceptionBase;
 
 class EntityInUseException extends AdminKernelConflictExceptionBase
@@ -26,12 +27,13 @@ class EntityInUseException extends AdminKernelConflictExceptionBase
     )
     {
         parent::__construct(
-            sprintf(
+            message: sprintf(
                 '%s code "%s" cannot be changed because it is already used in %s.',
                 $entity,
                 $code,
                 $usageContext
-            )
+            ),
+            errorCodeOverride: AdminKernelErrorCodeEnum::ENTITY_IN_USE
         );
     }
 }
