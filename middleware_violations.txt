@@ -1,0 +1,19 @@
+app/Modules/AdminKernel/Http/Middleware/SessionStateGuardMiddleware.php:74:            throw new \RuntimeException('Request context missing');
+app/Modules/AdminKernel/Http/Middleware/RememberMeMiddleware.php:35:                    throw new \RuntimeException("Request context missing");
+app/Modules/AdminKernel/Http/Middleware/RememberMeMiddleware.php:81:            } catch (InvalidCredentialsException $e) {
+app/Modules/AdminKernel/Http/Middleware/RequestIdMiddleware.php:47:            } catch (InvalidUuidStringException) {
+app/Modules/AdminKernel/Http/Middleware/GuestGuardMiddleware.php:51:                 throw new \RuntimeException("Request context missing");
+app/Modules/AdminKernel/Http/Middleware/GuestGuardMiddleware.php:68:        } catch (InvalidSessionException | ExpiredSessionException | RevokedSessionException $e) {
+app/Modules/AdminKernel/Http/Middleware/RequestContextMiddleware.php:20:            throw new \RuntimeException(
+app/Modules/AdminKernel/Http/Middleware/HttpRequestTelemetryMiddleware.php:72:            } catch (Throwable) {
+app/Modules/AdminKernel/Http/Middleware/TrailingSlashMiddleware.php:27:            return (new Response())
+app/Modules/AdminKernel/Http/Middleware/AuthorizationGuardMiddleware.php:27:            throw new \RuntimeException('AdminContext missing');
+app/Modules/AdminKernel/Http/Middleware/AuthorizationGuardMiddleware.php:34:            throw new UnauthorizedException("Route not found.");
+app/Modules/AdminKernel/Http/Middleware/AuthorizationGuardMiddleware.php:42:            throw new \RuntimeException("Request context missing");
+app/Modules/AdminKernel/Http/Middleware/SessionGuardMiddleware.php:52:            throw new \RuntimeException("Request context missing");
+app/Modules/AdminKernel/Http/Middleware/SessionGuardMiddleware.php:58:        catch (InvalidSessionException | ExpiredSessionException | RevokedSessionException $e) {
+app/Modules/AdminKernel/Http/Middleware/SessionGuardMiddleware.php:141:        } catch (InvalidCredentialsException) {
+app/Modules/AdminKernel/Http/Middleware/SessionGuardMiddleware.php:195:        return (new \Slim\Psr7\Response())
+app/Modules/AdminKernel/Http/Middleware/SessionGuardMiddleware.php:214:        return (new \Slim\Psr7\Response())
+app/Modules/AdminKernel/Http/Middleware/ScopeGuardMiddleware.php:46:            throw new \RuntimeException("Request context missing");
+app/Modules/AdminKernel/Http/Middleware/RecoveryStateMiddleware.php:28:            throw new \RuntimeException("Request context missing");

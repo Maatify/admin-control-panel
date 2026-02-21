@@ -1,0 +1,168 @@
+app/Modules/AdminKernel/Infrastructure/Repository/RolePermissionRepository.php:12:    private PDO $pdo;
+app/Modules/AdminKernel/Infrastructure/Repository/RolePermissionRepository.php:14:    public function __construct(PDO $pdo)
+app/Modules/AdminKernel/Infrastructure/Repository/AdminRoleRepository.php:12:    private PDO $pdo;
+app/Modules/AdminKernel/Infrastructure/Repository/AdminRoleRepository.php:14:    public function __construct(PDO $pdo)
+app/Modules/AdminKernel/Infrastructure/Repository/AdminRoleRepository.php:31:        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+app/Modules/AdminKernel/Infrastructure/Repository/PdoAdminNotificationPreferenceRepository.php:24:    private PDO $connection;
+app/Modules/AdminKernel/Infrastructure/Repository/PdoAdminNotificationPreferenceRepository.php:26:    public function __construct(PDO $connection)
+app/Modules/AdminKernel/Infrastructure/Repository/PdoAdminNotificationPreferenceRepository.php:37:        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/PdoAdminNotificationPreferenceRepository.php:55:        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/PdoAdminNotificationPreferenceRepository.php:93:        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/AdminNotificationChannelRepository.php:16:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/AdminNotificationChannelRepository.php:28:        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoDirectPermissionsWriterRepository.php:15:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoPermissionAdminsQueryRepository.php:19:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoPermissionAdminsQueryRepository.php:130:        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoPermissionAdminsQueryRepository.php:131:        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoPermissionAdminsQueryRepository.php:145:        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoEffectivePermissionsRepository.php:20:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoEffectivePermissionsRepository.php:191:        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoEffectivePermissionsRepository.php:192:        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoEffectivePermissionsRepository.php:209:        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoDirectPermissionsAssignableRepository.php:20:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoDirectPermissionsAssignableRepository.php:141:        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoDirectPermissionsAssignableRepository.php:142:        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoDirectPermissionsAssignableRepository.php:157:        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoPermissionRolesQueryRepository.php:19:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoPermissionRolesQueryRepository.php:140:        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoPermissionRolesQueryRepository.php:141:        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoPermissionRolesQueryRepository.php:149:        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoPermissionDetailsRepository.php:17:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoPermissionDetailsRepository.php:36:        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoDirectPermissionsRepository.php:20:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoDirectPermissionsRepository.php:144:        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoDirectPermissionsRepository.php:145:        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoDirectPermissionsRepository.php:153:        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+app/Modules/AdminKernel/Infrastructure/Repository/NotificationReadRepository.php:15:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/NotificationReadRepository.php:55:        while (($row = $stmt->fetch(PDO::FETCH_ASSOC)) !== false) {
+app/Modules/AdminKernel/Infrastructure/Repository/NotificationReadRepository.php:86:        while (($row = $stmt->fetch(PDO::FETCH_ASSOC)) !== false) {
+app/Modules/AdminKernel/Infrastructure/Repository/NotificationReadRepository.php:123:        while (($row = $stmt->fetch(PDO::FETCH_ASSOC)) !== false) {
+app/Modules/AdminKernel/Infrastructure/Repository/AdminSessionRepository.php:15:    private PDO $pdo;
+app/Modules/AdminKernel/Infrastructure/Repository/AdminSessionRepository.php:18:    public function __construct(PDO $pdo, ClockInterface $clock)
+app/Modules/AdminKernel/Infrastructure/Repository/AdminSessionRepository.php:86:        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/AdminSessionRepository.php:128:        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/AdminSessionRepository.php:281:        return $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+app/Modules/AdminKernel/Infrastructure/Repository/AdminSessionRepository.php:302:        $rows = $stmt->fetchAll(PDO::FETCH_COLUMN);
+app/Modules/AdminKernel/Infrastructure/Repository/AdminSessionRepository.php:348:        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/FailedNotificationRepository.php:14:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/AdminPasswordRepository.php:13:    private PDO $pdo;
+app/Modules/AdminKernel/Infrastructure/Repository/AdminPasswordRepository.php:15:    public function __construct(PDO $pdo)
+app/Modules/AdminKernel/Infrastructure/Repository/AdminPasswordRepository.php:53:        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleCreateRepository.php:25:    public function __construct(private PDO $pdo)
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoAdminRolesRepository.php:20:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoAdminRolesRepository.php:138:        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoAdminRolesRepository.php:139:        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoAdminRolesRepository.php:145:        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleAdminsRepository.php:20:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleAdminsRepository.php:194:        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleAdminsRepository.php:195:        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleAdminsRepository.php:199:        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRolePermissionsRepository.php:20:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRolePermissionsRepository.php:182:        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRolePermissionsRepository.php:183:        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRolePermissionsRepository.php:186:        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleRepository.php:23:    private PDO $pdo;
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleRepository.php:25:    public function __construct(PDO $pdo)
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleRepository.php:195:        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/PdoLanguageTranslationValueQueryReader.php:22:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/PdoLanguageTranslationValueQueryReader.php:138:                $stmt->bindValue(':' . $k, (int)$v, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/PdoLanguageTranslationValueQueryReader.php:144:        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/PdoLanguageTranslationValueQueryReader.php:145:        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/PdoLanguageTranslationValueQueryReader.php:148:        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopeCreateWriter.php:15:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopeDetailsReader.php:26:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopeDetailsReader.php:45:        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopeUpdater.php:14:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopeUpdater.php:140:                if ($stmt instanceof \PDOStatement) {
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopeUpdater.php:157:                if ($stmt instanceof \PDOStatement) {
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopeUpdater.php:174:            if ($stmt instanceof \PDOStatement) {
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopeUpdater.php:226:        if ($stmt instanceof \PDOStatement) {
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopesQueryReader.php:19:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopesQueryReader.php:115:        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopesQueryReader.php:116:        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopesQueryReader.php:120:        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopeDropdownReader.php:27:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopeDropdownReader.php:50:        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Translations/PdoI18nScopeDomainTranslationsQueryReader.php:32:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Translations/PdoI18nScopeDomainTranslationsQueryReader.php:171:        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Translations/PdoI18nScopeDomainTranslationsQueryReader.php:172:        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Translations/PdoI18nScopeDomainTranslationsQueryReader.php:176:        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ? : [];
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Translations/PdoI18nScopeDomainKeysSummaryQueryReader.php:31:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Translations/PdoI18nScopeDomainKeysSummaryQueryReader.php:180:            $stmtFiltered->bindValue(':' . $k, $v, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Translations/PdoI18nScopeDomainKeysSummaryQueryReader.php:207:            $stmt->bindValue(':' . $k, $v, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Translations/PdoI18nScopeDomainKeysSummaryQueryReader.php:210:        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Translations/PdoI18nScopeDomainKeysSummaryQueryReader.php:211:        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Translations/PdoI18nScopeDomainKeysSummaryQueryReader.php:216:        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Keys/PdoI18nScopeKeysQueryReader.php:31:    public function __construct(private PDO $pdo) {}
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Keys/PdoI18nScopeKeysQueryReader.php:126:        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Keys/PdoI18nScopeKeysQueryReader.php:127:        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Keys/PdoI18nScopeKeysQueryReader.php:130:        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Keys/I18nKeyRepository.php:23:    public function __construct(private PDO $pdo)
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Domains/PdoI18nDomainCreate.php:25:    public function __construct(private PDO $pdo)
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Domains/PdoI18nDomainDetailsReader.php:27:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Domains/PdoI18nDomainDetailsReader.php:53:        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Domains/PdoI18nDomainUpdater.php:25:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Domains/PdoI18nDomainUpdater.php:151:                if ($stmt instanceof \PDOStatement) {
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Domains/PdoI18nDomainUpdater.php:168:                if ($stmt instanceof \PDOStatement) {
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Domains/PdoI18nDomainUpdater.php:185:            if ($stmt instanceof \PDOStatement) {
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Domains/PdoI18nDomainUpdater.php:237:        if ($stmt instanceof \PDOStatement) {
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Domains/PdoI18nDomainsQueryReader.php:30:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Domains/PdoI18nDomainsQueryReader.php:124:        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Domains/PdoI18nDomainsQueryReader.php:125:        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Domains/PdoI18nDomainsQueryReader.php:129:        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Coverage/PdoI18nScopeCoverageReader.php:15:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Coverage/PdoI18nScopeCoverageReader.php:61:        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Coverage/PdoI18nScopeCoverageReader.php:123:        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Languages/PdoLanguageLookup.php:27:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Languages/PdoLanguageLookup.php:57:        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Languages/PdoLanguageLookup.php:60:        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Languages/PdoLanguageQueryReader.php:20:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Languages/PdoLanguageQueryReader.php:134:        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Languages/PdoLanguageQueryReader.php:135:        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Languages/PdoLanguageQueryReader.php:138:        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/ScopeDomains/I18nScopeDomainsRepository.php:23:    public function __construct(private PDO $pdo)
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/ScopeDomains/PdoI18nScopeDomainsQueryReader.php:30:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/ScopeDomains/PdoI18nScopeDomainsQueryReader.php:171:        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/ScopeDomains/PdoI18nScopeDomainsQueryReader.php:172:        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/ScopeDomains/PdoI18nScopeDomainsQueryReader.php:177:        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/ScopeDomains/PdoI18nScopeDomainsWriter.php:25:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/ScopeDomains/PdoI18nScopeDomainsListReader.php:27:    public function __construct(private PDO $pdo) {}
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/ScopeDomains/PdoI18nScopeDomainsListReader.php:53:        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+app/Modules/AdminKernel/Infrastructure/Repository/PdoStepUpGrantRepository.php:16:    private PDO $pdo;
+app/Modules/AdminKernel/Infrastructure/Repository/PdoStepUpGrantRepository.php:19:    public function __construct(PDO $pdo, ClockInterface $clock)
+app/Modules/AdminKernel/Infrastructure/Repository/PdoStepUpGrantRepository.php:66:        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/PdoSystemOwnershipRepository.php:14:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/AdminRepository.php:13:    private PDO $pdo;
+app/Modules/AdminKernel/Infrastructure/Repository/AdminRepository.php:15:    public function __construct(PDO $pdo)
+app/Modules/AdminKernel/Infrastructure/Repository/AdminRepository.php:82:        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/PdoVerificationCodeRepository.php:19:        private PDO $pdo,
+app/Modules/AdminKernel/Infrastructure/Repository/PdoVerificationCodeRepository.php:67:        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/PdoVerificationCodeRepository.php:86:        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/AdminEmailRepository.php:18:    private PDO $pdo;
+app/Modules/AdminKernel/Infrastructure/Repository/AdminEmailRepository.php:20:    public function __construct(PDO $pdo)
+app/Modules/AdminKernel/Infrastructure/Repository/AdminEmailRepository.php:63:        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/AdminEmailRepository.php:86:        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/AdminEmailRepository.php:153:        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/PdoAdminNotificationPersistenceRepository.php:15:        private readonly PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/PdoAdminNotificationPersistenceRepository.php:39:        $stmt->bindValue(':admin_id', $dto->adminId, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/PdoAdminNotificationPersistenceRepository.php:40:        $stmt->bindValue(':notification_type', $dto->notificationType, PDO::PARAM_STR);
+app/Modules/AdminKernel/Infrastructure/Repository/PdoAdminNotificationPersistenceRepository.php:41:        $stmt->bindValue(':channel_type', $dto->channelType->value, PDO::PARAM_STR);
+app/Modules/AdminKernel/Infrastructure/Repository/PdoAdminNotificationPersistenceRepository.php:42:        $stmt->bindValue(':intent_id', $dto->intentId, $dto->intentId === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+app/Modules/AdminKernel/Infrastructure/Repository/PdoAdminNotificationPersistenceRepository.php:43:        $stmt->bindValue(':created_at', $createdAt->format('Y-m-d H:i:s'), PDO::PARAM_STR);
+app/Modules/AdminKernel/Infrastructure/Repository/PdoAdminNotificationPersistenceRepository.php:58:        $stmt->bindValue(':read_at', $dto->readAt->format('Y-m-d H:i:s'), PDO::PARAM_STR);
+app/Modules/AdminKernel/Infrastructure/Repository/PdoAdminNotificationPersistenceRepository.php:59:        $stmt->bindValue(':id', $dto->notificationId, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/PdoAdminDirectPermissionRepository.php:12:    private PDO $pdo;
+app/Modules/AdminKernel/Infrastructure/Repository/PdoAdminDirectPermissionRepository.php:14:    public function __construct(PDO $pdo)
+app/Modules/AdminKernel/Infrastructure/Repository/PdoAdminDirectPermissionRepository.php:29:        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/AdminTotpSecretRepository.php:27:        private PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/AdminTotpSecretRepository.php:66:        } catch (PDOException $e) {
+app/Modules/AdminKernel/Infrastructure/Repository/AdminTotpSecretRepository.php:90:        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/PdoAdminNotificationReadMarker.php:14:        private readonly PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/PdoAdminNotificationReadMarker.php:28:        $stmt->bindValue(':id', $dto->notificationId, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/PdoAdminNotificationReadMarker.php:29:        $stmt->bindValue(':admin_id', $dto->adminId, PDO::PARAM_INT);
+app/Modules/AdminKernel/Infrastructure/Repository/PdoRememberMeRepository.php:15:    private PDO $pdo;
+app/Modules/AdminKernel/Infrastructure/Repository/PdoRememberMeRepository.php:18:    public function __construct(PDO $pdo, ClockInterface $clock)
+app/Modules/AdminKernel/Infrastructure/Repository/PdoRememberMeRepository.php:49:        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+app/Modules/AdminKernel/Infrastructure/Repository/PdoAdminNotificationHistoryReader.php:15:        private readonly PDO $pdo
+app/Modules/AdminKernel/Infrastructure/Repository/PdoAdminNotificationHistoryReader.php:61:            $type = is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
+app/Modules/AdminKernel/Infrastructure/Repository/PdoAdminNotificationHistoryReader.php:68:        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
