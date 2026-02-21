@@ -3,14 +3,8 @@
 declare(strict_types=1);
 
 use Maatify\AdminKernel\Context\RequestContext;
-use Maatify\AdminKernel\Domain\Exception\EntityAlreadyExistsException;
-use Maatify\AdminKernel\Domain\Exception\EntityInUseException;
-use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
-use Maatify\AdminKernel\Domain\Exception\InvalidOperationException;
-use Maatify\AdminKernel\Domain\Exception\PermissionDeniedException;
 use Maatify\Exceptions\Contracts\ApiAwareExceptionInterface;
 use Maatify\Exceptions\Exception\MaatifyException;
-use Maatify\I18n\Exception\DomainNotAllowedException;
 use Maatify\Validation\Exceptions\ValidationFailedException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -110,21 +104,6 @@ return function (App $app): void {
         }
     );
 
-    $errorMiddleware->setErrorHandler(
-        PermissionDeniedException::class,
-        function (
-            ServerRequestInterface $request,
-            PermissionDeniedException $exception
-        ) use ($unifiedJsonError) {
-            return $unifiedJsonError(
-                403,
-                'PERMISSION_DENIED',
-                'AUTHORIZATION',
-                $exception->getMessage()
-            );
-        }
-    );
-
     // 3️⃣ 401 - UNIFIED
     $errorMiddleware->setErrorHandler(
         HttpUnauthorizedException::class,
@@ -169,81 +148,6 @@ return function (App $app): void {
                 'RESOURCE_NOT_FOUND',
                 'NOT_FOUND',
                 $exception->getMessage() ?: 'Resource not found.'
-            );
-        }
-    );
-
-    $errorMiddleware->setErrorHandler(
-        EntityAlreadyExistsException::class,
-        function (
-            ServerRequestInterface $request,
-            Throwable $exception
-        ) use ($unifiedJsonError) {
-            return $unifiedJsonError(
-                409,
-                'ENTITY_ALREADY_EXISTS',
-                'CONFLICT',
-                $exception->getMessage()
-            );
-        }
-    );
-
-    $errorMiddleware->setErrorHandler(
-        EntityInUseException::class,
-        function (
-            ServerRequestInterface $request,
-            Throwable $exception
-        ) use ($unifiedJsonError) {
-            return $unifiedJsonError(
-                409,
-                'ENTITY_IN_USE',
-                'CONFLICT',
-                $exception->getMessage()
-            );
-        }
-    );
-
-    $errorMiddleware->setErrorHandler(
-        EntityNotFoundException::class,
-        function (
-            ServerRequestInterface $request,
-            Throwable $exception
-        ) use ($unifiedJsonError) {
-            return $unifiedJsonError(
-                404,
-                'NOT_FOUND',
-                'NOT_FOUND',
-                $exception->getMessage()
-            );
-        }
-    );
-
-    $errorMiddleware->setErrorHandler(
-        InvalidOperationException::class,
-        function (
-            ServerRequestInterface $request,
-            InvalidOperationException $exception
-        ) use ($unifiedJsonError) {
-            return $unifiedJsonError(
-                409,
-                'INVALID_OPERATION',
-                'UNSUPPORTED',
-                $exception->getMessage()
-            );
-        }
-    );
-
-    $errorMiddleware->setErrorHandler(
-        DomainNotAllowedException::class,
-        function (
-            ServerRequestInterface $request,
-            DomainNotAllowedException $exception
-        ) use ($unifiedJsonError) {
-            return $unifiedJsonError(
-                422,
-                'DOMAIN_NOT_ALLOWED',
-                'BUSINESS_RULE',
-                $exception->getMessage()
             );
         }
     );

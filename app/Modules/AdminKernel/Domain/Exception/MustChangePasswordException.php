@@ -15,9 +15,9 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Exception;
 
-use DomainException;
+use Maatify\AdminKernel\Domain\Exception\Base\AdminKernelAuthorizationExceptionBase;
 
-class MustChangePasswordException extends DomainException
+class MustChangePasswordException extends AdminKernelAuthorizationExceptionBase
 {
 
 }
