@@ -20,7 +20,7 @@ use Maatify\LanguageCore\Service\LanguageManagementService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use RuntimeException;
+use Slim\Exception\HttpBadRequestException;
 
 final readonly class LanguagesSetActiveController
 {

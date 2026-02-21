@@ -9,7 +9,7 @@ use Maatify\LanguageCore\Service\LanguageManagementService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use RuntimeException;
+use Slim\Exception\HttpBadRequestException;
 
 final readonly class LanguagesUpdateNameController
 {
@@ -32,7 +32,7 @@ final readonly class LanguagesUpdateNameController
         $name = $body['name'];
 
         if (! is_int($languageId) || ! is_string($name)) {
-            throw new RuntimeException('Invalid validated payload.');
+            throw new HttpBadRequestException($request, 'Invalid validated payload.');
         }
 
         $this->languageService->updateLanguageName(
