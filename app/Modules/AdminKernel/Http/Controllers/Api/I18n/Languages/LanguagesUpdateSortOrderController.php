@@ -46,7 +46,7 @@ final readonly class LanguagesUpdateSortOrderController
 
         // Defensive guard (should never happen after validation)
         if (! is_int($languageId) || ! is_int($newSortOrder)) {
-            throw new \RuntimeException('Invalid validated payload.');
+            throw new AdminKernelValidationException('Invalid validated payload.');
         }
 
         $this->languageService->updateLanguageSortOrder(

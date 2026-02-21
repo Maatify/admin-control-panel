@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\Sessions;
 
-use DomainException;
 use Maatify\AdminKernel\Context\RequestContext;
 use Maatify\AdminKernel\Domain\Exception\InvalidSessionException;
 use Maatify\AdminKernel\Domain\Service\AuthorizationService;
