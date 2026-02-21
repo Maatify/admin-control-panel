@@ -15,9 +15,9 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Exception;
 
-use RuntimeException;
+use Maatify\AdminKernel\Domain\Exception\Base\AdminKernelNotFoundExceptionBase;
 
-class EntityNotFoundException extends RuntimeException
+class EntityNotFoundException extends AdminKernelNotFoundExceptionBase
 {
     public function __construct(
         string $entity,

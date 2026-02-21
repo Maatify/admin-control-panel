@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Exception;
 
-use DomainException;
+use Maatify\AdminKernel\Domain\Exception\Base\AdminKernelAuthenticationExceptionBase;
 
-class InvalidCredentialsException extends DomainException
+class InvalidCredentialsException extends AdminKernelAuthenticationExceptionBase
 {
 }

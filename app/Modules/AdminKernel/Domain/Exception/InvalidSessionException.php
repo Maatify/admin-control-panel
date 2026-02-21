@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Exception;
 
-use Exception;
+use Maatify\AdminKernel\Domain\Exception\Base\AdminKernelAuthenticationExceptionBase;
 
-class InvalidSessionException extends Exception
+class InvalidSessionException extends AdminKernelAuthenticationExceptionBase
 {
 }

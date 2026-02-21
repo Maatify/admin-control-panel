@@ -15,9 +15,9 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Exception;
 
-use RuntimeException;
+use Maatify\AdminKernel\Domain\Exception\Base\AdminKernelConflictExceptionBase;
 
-class EntityInUseException extends RuntimeException
+class EntityInUseException extends AdminKernelConflictExceptionBase
 {
     public function __construct(
         string $entity,
