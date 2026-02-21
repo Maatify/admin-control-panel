@@ -17,10 +17,10 @@ namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages;
 
 use Maatify\AdminKernel\Domain\I18n\Language\Validation\LanguageUpdateCodeSchema;
 use Maatify\LanguageCore\Service\LanguageManagementService;
+use Maatify\AdminKernel\Domain\Exception\AdminKernelValidationException;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use Slim\Exception\HttpBadRequestException;
 
 final readonly class LanguagesUpdateCodeController
 {
@@ -45,7 +45,7 @@ final readonly class LanguagesUpdateCodeController
         $code = $body['code'];
 
         if (! is_int($languageId) || ! is_string($code)) {
-            throw new HttpBadRequestException($request, 'Invalid validated payload.');
+            throw new AdminKernelValidationException('Invalid validated payload.');
         }
 
         $this->languageService->updateLanguageCode(

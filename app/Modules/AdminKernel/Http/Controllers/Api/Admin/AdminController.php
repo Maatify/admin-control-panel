@@ -16,6 +16,9 @@ use Maatify\AdminKernel\Domain\DTO\Response\ActionResultResponseDTO;
 use Maatify\AdminKernel\Domain\DTO\Response\AdminCreateResponseDTO;
 use Maatify\AdminKernel\Domain\Enum\IdentifierType;
 use Maatify\AdminKernel\Domain\Enum\VerificationStatus;
+use Maatify\AdminKernel\Domain\Exception\AdminKernelValidationException;
+use Maatify\AdminKernel\Domain\Exception\EntityAlreadyExistsException;
+use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\AdminKernel\Domain\Exception\InvalidIdentifierFormatException;
 use Maatify\AdminKernel\Domain\Service\PasswordService;
 use Maatify\AdminKernel\Domain\Support\CorrelationId;
@@ -29,8 +32,6 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Random\RandomException;
 use RuntimeException;
-use Slim\Exception\HttpBadRequestException;
-use Slim\Exception\HttpNotFoundException;
 
 readonly class AdminController
 {
@@ -75,7 +76,7 @@ readonly class AdminController
         try {
             $emailDto = new CreateAdminEmailRequestDTO($emailInput);
         } catch (InvalidIdentifierFormatException) {
-            throw new HttpBadRequestException($request, 'Invalid email format.');
+            throw new AdminKernelValidationException('Invalid email format.');
         }
 
         $email = $emailDto->email;
@@ -86,7 +87,7 @@ readonly class AdminController
         // 3️⃣ Uniqueness check (FAIL-FAST)
         $existingAdminEmailIdentifierDTO = $this->adminEmailRepository->findByBlindIndex($blindIndex);
         if ($existingAdminEmailIdentifierDTO !== null) {
-            throw new HttpBadRequestException($request, 'Email already registered.');
+            throw new EntityAlreadyExistsException('Admin', 'email', $email);
         }
 
         $correlationId = CorrelationId::generate();
@@ -99,7 +100,7 @@ readonly class AdminController
             $displayName = trim((string) ($data['display_name'] ?? ''));
 
             if ($displayName === '') {
-                throw new HttpBadRequestException($request, 'Display name is required.');
+                throw new AdminKernelValidationException('Display name is required.');
             }
 
             $adminId = $this->adminRepository->create($displayName);
@@ -155,7 +156,6 @@ readonly class AdminController
     /**
      * @param array<string, string> $args
      * @throws RandomException
-     * @throws HttpBadRequestException
      */
     public function addEmail(Request $request, Response $response, array $args): Response
     {
@@ -174,7 +174,7 @@ readonly class AdminController
         } catch (InvalidIdentifierFormatException $e) {
             // Should be caught by validation guard technically, but if schema checks v::email(), it is good.
             // But we keep this just in case.
-            throw new HttpBadRequestException($request, 'Invalid email format.');
+            throw new AdminKernelValidationException('Invalid email format.');
         }
         $email = $requestDto->email;
 
@@ -188,15 +188,15 @@ readonly class AdminController
             $emailId = $existing->emailId;
 
             if($existing->adminId !== $adminId){
-                throw new HttpBadRequestException($request, 'Email is already used by another admin.');
+                throw new EntityAlreadyExistsException('Email', 'email', $email);
             }
             switch ($existing->verificationStatus){
                 case VerificationStatus::VERIFIED:
-                    throw new HttpBadRequestException($request, 'Email already verified.');
+                    throw new AdminKernelValidationException('Email already verified.');
                 case VerificationStatus::FAILED:
-                    throw new HttpBadRequestException($request, 'Email already failed.');
+                    throw new AdminKernelValidationException('Email already failed.');
                 case VerificationStatus::PENDING:
-                    throw new HttpBadRequestException($request, 'Email already pending.');
+                    throw new AdminKernelValidationException('Email already pending.');
                 case VerificationStatus::REPLACED:
                     $this->adminEmailRepository->markPending($existing->emailId);
                 break;
@@ -255,7 +255,7 @@ readonly class AdminController
         $displayName = $this->basicInfoReader->getDisplayName($adminId);
 
         if ($displayName === null) {
-            throw new HttpNotFoundException($request, 'Admin not found');
+            throw new EntityNotFoundException('Admin', $adminId);
         }
 
         $emails = $this->emailReader->listByAdminId($adminId);
@@ -275,70 +275,4 @@ readonly class AdminController
             ->withHeader('Content-Type', 'application/json')
             ->withStatus(200);
     }
-
-//    /**
-//     * @throws HttpBadRequestException
-//     */
-//    public function lookupEmail(Request $request, Response $response): Response
-//    {
-//        $data = (array)$request->getParsedBody();
-//
-//        $this->validationGuard->check(new AdminLookupEmailSchema(), $data);
-//
-//        $emailInput = $data[IdentifierType::EMAIL->value] ?? null;
-//
-//        try {
-//            $requestDto = new VerifyAdminEmailRequestDTO($emailInput);
-//        } catch (InvalidIdentifierFormatException $e) {
-//             // Redundant with validation but safe
-//            throw new HttpBadRequestException($request, 'Invalid email format.');
-//        }
-//        $email = $requestDto->email;
-//
-//        $blindIndex = $this->cryptoService->deriveEmailBlindIndex($email);
-//
-//        $adminEmailIdentifierDTO = $this->adminEmailRepository->findByBlindIndex($blindIndex);
-//
-//        if ($adminEmailIdentifierDTO !== null) {
-//            $responseDto = new ActionResultResponseDTO(
-//                adminId: $adminEmailIdentifierDTO->adminId,
-//                exists: true,
-//            );
-//        } else {
-//            $responseDto = new ActionResultResponseDTO(
-//                exists: false,
-//            );
-//        }
-//
-//        $json = json_encode($responseDto->jsonSerialize(), JSON_THROW_ON_ERROR);
-//        $response->getBody()->write($json);
-//        return $response
-//            ->withHeader('Content-Type', 'application/json')
-//            ->withStatus(200);
-//    }
-
-//    /**
-//     * @param array<string, string> $args
-//     */
-//    public function getEmail(Request $request, Response $response, array $args): Response
-//    {
-//        $this->validationGuard->check(new AdminGetEmailSchema(), $args);
-//
-//        $adminId = (int)$args['id'];
-//
-//        $encryptedEmailDto = $this->adminEmailRepository->getEncryptedEmail($adminId);
-//
-//        $email = null;
-//        if ($encryptedEmailDto !== null) {
-//            $email = $this->cryptoService->decryptEmail($encryptedEmailDto);
-//        }
-//
-//        $responseDto = new AdminEmailResponseDTO($adminId, $email);
-//
-//        $json = json_encode($responseDto->jsonSerialize(), JSON_THROW_ON_ERROR);
-//        $response->getBody()->write($json);
-//        return $response
-//            ->withHeader('Content-Type', 'application/json')
-//            ->withStatus(200);
-//    }
 }

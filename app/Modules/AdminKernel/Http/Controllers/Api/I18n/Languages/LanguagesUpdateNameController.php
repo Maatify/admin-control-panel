@@ -6,10 +6,10 @@ namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages;
 
 use Maatify\AdminKernel\Domain\I18n\Language\Validation\LanguageUpdateNameSchema;
 use Maatify\LanguageCore\Service\LanguageManagementService;
+use Maatify\AdminKernel\Domain\Exception\AdminKernelValidationException;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use Slim\Exception\HttpBadRequestException;
 
 final readonly class LanguagesUpdateNameController
 {
@@ -32,7 +32,7 @@ final readonly class LanguagesUpdateNameController
         $name = $body['name'];
 
         if (! is_int($languageId) || ! is_string($name)) {
-            throw new HttpBadRequestException($request, 'Invalid validated payload.');
+            throw new AdminKernelValidationException('Invalid validated payload.');
         }
 
         $this->languageService->updateLanguageName(

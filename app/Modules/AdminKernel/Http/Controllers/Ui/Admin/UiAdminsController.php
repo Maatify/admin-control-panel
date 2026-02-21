@@ -9,11 +9,12 @@ use Maatify\AdminKernel\Context\AdminContext;
 use Maatify\AdminKernel\Domain\Admin\Reader\AdminBasicInfoReaderInterface;
 use Maatify\AdminKernel\Domain\Admin\Reader\AdminEmailReaderInterface;
 use Maatify\AdminKernel\Domain\Admin\Reader\AdminProfileReaderInterface;
+use Maatify\AdminKernel\Domain\Exception\AdminKernelValidationException;
+use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\AdminKernel\Domain\Service\AuthorizationService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use RuntimeException;
-use Slim\Exception\HttpNotFoundException;
 use Slim\Views\Twig;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -152,7 +153,7 @@ readonly class UiAdminsController
         $parsedBody = $request->getParsedBody();
 
         if (! is_array($parsedBody)) {
-            throw new RuntimeException('Invalid request body');
+            throw new AdminKernelValidationException('Invalid request body');
         }
 
         /**
@@ -169,7 +170,7 @@ readonly class UiAdminsController
 
         if (array_key_exists('status', $parsedBody)) {
             if (! is_string($parsedBody['status'])) {
-                throw new RuntimeException('Invalid status value');
+                throw new AdminKernelValidationException('Invalid status value');
             }
 
             $input['status'] = $parsedBody['status'];
@@ -222,7 +223,7 @@ readonly class UiAdminsController
         $displayName = $this->basicInfoReader->getDisplayName($targetAdminId);
 
         if ($displayName === null) {
-            throw new HttpNotFoundException($request, 'Admin not found');
+            throw new EntityNotFoundException('Admin', $targetAdminId);
         }
 
         $emails = $this->emailReader->listByAdminId($targetAdminId);
@@ -277,7 +278,7 @@ readonly class UiAdminsController
         $displayName = $this->basicInfoReader->getDisplayName($adminId);
 
         if ($displayName === null) {
-            throw new HttpNotFoundException($request, 'Admin not found');
+            throw new EntityNotFoundException('Admin', $adminId);
         }
 
         return $this->view->render(
@@ -314,7 +315,7 @@ readonly class UiAdminsController
         $displayName = $this->basicInfoReader->getDisplayName($targetAdminId);
 
         if ($displayName === null) {
-            throw new HttpNotFoundException($request, 'Admin not found');
+            throw new EntityNotFoundException('Admin', $targetAdminId);
         }
 
         /** @var AdminContext $context */
@@ -360,7 +361,7 @@ readonly class UiAdminsController
     private function extractAdminId(array $args): int
     {
         if (! isset($args['id']) || ! ctype_digit((string)$args['id'])) {
-            throw new RuntimeException('Invalid admin id');
+            throw new AdminKernelValidationException('Invalid admin id');
         }
 
         return (int)$args['id'];

@@ -7,6 +7,8 @@ namespace Maatify\AdminKernel\Http\Controllers\Api\Sessions;
 use DomainException;
 use Maatify\AdminKernel\Context\RequestContext;
 use Maatify\AdminKernel\Domain\Exception\IdentifierNotFoundException;
+use Maatify\AdminKernel\Domain\Exception\InvalidSessionException;
+use Maatify\AdminKernel\Domain\Exception\SessionRevocationFailedException;
 use Maatify\AdminKernel\Domain\Service\AuthorizationService;
 use Maatify\AdminKernel\Domain\Service\SessionRevocationService;
 use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
@@ -14,9 +16,6 @@ use Maatify\AdminKernel\Validation\Schemas\Session\SessionRevokeSchema;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use Slim\Exception\HttpBadRequestException;
-use Slim\Exception\HttpNotFoundException;
-use Slim\Exception\HttpUnauthorizedException;
 
 class SessionRevokeController
 {
@@ -56,27 +55,16 @@ class SessionRevokeController
         $currentSessionHash = $token !== '' ? hash('sha256', $token) : '';
 
         if ($currentSessionHash === '') {
-            throw new HttpUnauthorizedException($request, 'Current session not found');
+            throw new InvalidSessionException('Current session not found');
         }
 
-        try {
-            $targetAdminId = $this->revocationService->revokeByHash(
-                $targetSessionHash,
-                $currentSessionHash,
-                $context
-            );
+        // Bubbles: SessionRevocationFailedException (422) or IdentifierNotFoundException (404)
+        $this->revocationService->revokeByHash(
+            $targetSessionHash,
+            $currentSessionHash,
+            $context
+        );
 
-            $requestContext = $request->getAttribute(RequestContext::class);
-            if (! $requestContext instanceof RequestContext) {
-                throw new \RuntimeException('Request Context not present');
-            }
-
-            return $this->json->data($response, ['status' => 'ok']);
-
-        } catch (DomainException $e) {
-            throw new HttpBadRequestException($request, $e->getMessage());
-        } catch (IdentifierNotFoundException $e) {
-            throw new HttpNotFoundException($request, $e->getMessage());
-        }
+        return $this->json->data($response, ['status' => 'ok']);
     }
 }

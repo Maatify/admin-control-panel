@@ -6,14 +6,14 @@ namespace Maatify\AdminKernel\Http\Controllers;
 
 use Maatify\AdminKernel\Application\Services\DiagnosticsTelemetryService;
 use Maatify\AdminKernel\Context\RequestContext;
+use Maatify\AdminKernel\Domain\Exception\AdminKernelValidationException;
+use Maatify\AdminKernel\Domain\Exception\InvalidSessionException;
+use Maatify\AdminKernel\Domain\Exception\PermissionDeniedException;
 use Maatify\AdminKernel\Domain\Service\StepUpService;
 use Maatify\AdminKernel\Validation\Schemas\Auth\StepUpVerifySchema;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use Slim\Exception\HttpBadRequestException;
-use Slim\Exception\HttpForbiddenException;
-use Slim\Exception\HttpUnauthorizedException;
 
 readonly class StepUpController
 {
@@ -37,19 +37,19 @@ readonly class StepUpController
         if ($scopeStr !== null) {
             $requestedScope = \Maatify\AdminKernel\Domain\Enum\Scope::tryFrom((string)$scopeStr);
             if ($requestedScope === null) {
-                throw new HttpBadRequestException($request, 'Invalid scope');
+                throw new AdminKernelValidationException('Invalid scope');
             }
         }
 
         $adminContext = $request->getAttribute(\Maatify\AdminKernel\Context\AdminContext::class);
         if (!$adminContext instanceof \Maatify\AdminKernel\Context\AdminContext) {
-             throw new HttpUnauthorizedException($request, 'Authentication required');
+             throw new InvalidSessionException('Authentication required');
         }
         $adminId = $adminContext->adminId;
 
         $sessionId = $this->getSessionIdFromRequest($request);
         if ($sessionId === null) {
-             throw new HttpUnauthorizedException($request, 'Session required');
+             throw new InvalidSessionException('Session required');
         }
 
         $context = $request->getAttribute(RequestContext::class);
@@ -93,7 +93,7 @@ readonly class StepUpController
             return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
         }
 
-        throw new HttpForbiddenException($request, (string)$result->errorReason);
+        throw new PermissionDeniedException((string)$result->errorReason);
     }
 
     private function getSessionIdFromRequest(Request $request): ?string

@@ -8,6 +8,7 @@ use Maatify\AdminKernel\Context\AdminContext;
 use Maatify\AdminKernel\Context\RequestContext;
 use Maatify\AdminKernel\Domain\Admin\Enum\AdminActivityActionEnum;
 use Maatify\AdminKernel\Domain\DTO\Response\VerificationResponseDTO;
+use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\AdminKernel\Domain\Exception\IdentifierNotFoundException;
 use Maatify\AdminKernel\Domain\Service\AdminEmailVerificationService;
 use Maatify\AdminKernel\Infrastructure\Repository\AdminEmailRepository;
@@ -15,7 +16,7 @@ use Maatify\AdminKernel\Validation\Schemas\Admin\AdminEmailVerifySchema;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Slim\Exception\HttpNotFoundException;
+use RuntimeException;
 
 readonly class AdminEmailVerificationController
 {
@@ -145,12 +146,12 @@ readonly class AdminEmailVerificationController
 
         $adminContext = $request->getAttribute(AdminContext::class);
         if (!$adminContext instanceof AdminContext) {
-            throw new \RuntimeException('AdminContext missing');
+            throw new RuntimeException('AdminContext missing');
         }
 
         $requestContext = $request->getAttribute(RequestContext::class);
         if (!$requestContext instanceof RequestContext) {
-            throw new \RuntimeException('RequestContext missing');
+            throw new RuntimeException('RequestContext missing');
         }
 
 
@@ -176,7 +177,7 @@ readonly class AdminEmailVerificationController
                 ->withStatus(200);
 
         } catch (IdentifierNotFoundException $e) {
-            throw new HttpNotFoundException($request, $e->getMessage());
+            throw new EntityNotFoundException('Email', $emailId);
         }
     }
 }
