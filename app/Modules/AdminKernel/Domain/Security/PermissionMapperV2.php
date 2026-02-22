@@ -143,7 +143,9 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'content_documents.versions.query.api' => 'content_documents.versions.query',
         'content_documents.versions.create.api' => 'content_documents.versions.create',
         'content_documents.versions.activate.api' => 'content_documents.versions.activate',
+        'content_documents.versions.deactivate.api' => 'content_documents.versions.deactivate',
         'content_documents.versions.archive.api' => 'content_documents.versions.archive',
+        'content_documents.versions.publish.api' => 'content_documents.versions.publish',
 
         'content_documents.translations.query.ui' => 'content_documents.translations.query',
         'content_documents.translations.query.api' => 'content_documents.translations.query',

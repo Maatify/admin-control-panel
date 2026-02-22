@@ -24,6 +24,12 @@ class ContentDocumentBinding
                 return new \Maatify\AdminKernel\Infrastructure\ContentDocuments\PDOContentDocumentQueryReaderRepository($pdo);
             },
 
+            \Maatify\AdminKernel\Domain\ContentDocuments\ContentDocumentVersionsQueryReaderInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\AdminKernel\Infrastructure\ContentDocuments\PDOContentDocumentVersionsQueryReaderRepository($pdo);
+            },
+
         ]);
     }
 }

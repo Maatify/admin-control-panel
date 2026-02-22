@@ -48,12 +48,12 @@ class ContentDocumentsApiRoutes
 
                     $versions->post(
                         '/query',
-                        \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\DocumentVersionsQueryController::class
+                        \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\ContentDocumentVersionsQueryController::class
                     )->setName('content_documents.versions.query.api');
 
                     $versions->post(
                         '/create',
-                        \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\DocumentVersionCreateController::class
+                        \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\ContentDocumentVersionsCreateController::class
                     )->setName('content_documents.versions.create.api');
 
                     $versions->group(
@@ -62,12 +62,22 @@ class ContentDocumentsApiRoutes
 
                             $document->post(
                                 '/activate',
-                                \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\DocumentActivateController::class
+                                \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\ContentDocumentVersionsActivateController::class
                             )->setName('content_documents.versions.activate.api');
 
                             $document->post(
+                                '/deactivate',
+                                \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\ContentDocumentVersionsDeactivateController::class
+                            )->setName('content_documents.versions.deactivate.api');
+
+                            $document->post(
+                                '/publish',
+                                \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\ContentDocumentVersionsPublishController::class
+                            )->setName('content_documents.versions.publish.api');
+
+                            $document->post(
                                 '/archive',
-                                \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\DocumentArchiveController::class
+                                \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\ContentDocumentVersionsArchiveController::class
                             )->setName('content_documents.versions.archive.api');
 
                             $document->group(
