@@ -86,7 +86,7 @@ class ContentDocumentsApiRoutes
 
                                     $translations->post(
                                         '/query',
-                                        \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\DocumentTranslationsQueryController::class
+                                        \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\ContentDocumentTranslationsQueryController::class
                                     )->setName('content_documents.translations.query.api');
 
                                     $translations->post(

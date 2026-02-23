@@ -31,9 +31,16 @@ final class ContentDocumentsUiRoutes
 
         $group->get(
             '/content-document-types/{type_id:[0-9]+}/documents/{document_id:[0-9]+}/translations',
-            [\Maatify\AdminKernel\Http\Controllers\Ui\ContentDocuments\UiDocumentTranslationsController::class, 'index']
+            [\Maatify\AdminKernel\Http\Controllers\Ui\ContentDocuments\UiContentDocumentTranslationsController::class, 'index']
         )
             ->setName('content_documents.translations.query.ui')
+            ->add(AuthorizationGuardMiddleware::class);
+
+        $group->get(
+            '/content-document-types/{type_id:[0-9]+}/documents/{document_id:[0-9]+}/translations/{translation_id:(?:[0-9]+|new)}',
+            [\Maatify\AdminKernel\Http\Controllers\Ui\ContentDocuments\UiContentDocumentTranslationsUpdateController::class, 'index']
+        )
+            ->setName('content_documents.translations.details')
             ->add(AuthorizationGuardMiddleware::class);
 
         $group->get(

@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 1. Translations (View/Edit)
             if (capabilities.can_view_translations) {
                 // Assuming UI URL follows pattern: /content-document-types/{type_id}/versions/{document_id}/translations
-                const uiUrl = `/content-document-types/${typeId}/versions/${id}/translations`;
+                const uiUrl = `/content-document-types/${typeId}/documents/${id}/translations`;
 
                 buttons.push(window.AdminUIComponents.buildActionButton({
                     cssClass: '',

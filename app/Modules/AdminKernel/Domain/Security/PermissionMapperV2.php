@@ -150,6 +150,8 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'content_documents.translations.query.ui' => 'content_documents.translations.query',
         'content_documents.translations.query.api' => 'content_documents.translations.query',
 
+        'content_documents.translations.details' => 'content_documents.translations.details',
+
         'content_documents.translations.upsert.api' => 'content_documents.translations.upsert',
 
         'content_documents.acceptance.query.api' => 'content_documents.acceptance.query',
