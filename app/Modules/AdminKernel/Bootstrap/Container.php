@@ -1268,9 +1268,11 @@ class Container
             SessionStateGuardMiddleware::class => function (ContainerInterface $c) {
                 $service = $c->get(StepUpService::class);
                 $repo = $c->get(AdminTotpSecretStoreInterface::class);
+                $redirectTokenService = $c->get(\Maatify\AdminKernel\Domain\Security\RedirectToken\RedirectTokenServiceInterface::class);
                 assert($service instanceof StepUpService);
                 assert($repo instanceof AdminTotpSecretStoreInterface);
-                return new SessionStateGuardMiddleware($service, $repo);
+                assert($redirectTokenService instanceof \Maatify\AdminKernel\Domain\Security\RedirectToken\RedirectTokenServiceInterface);
+                return new SessionStateGuardMiddleware($service, $repo, $redirectTokenService);
             },
             ScopeGuardMiddleware::class => function (ContainerInterface $c) {
                 $service = $c->get(StepUpService::class);
