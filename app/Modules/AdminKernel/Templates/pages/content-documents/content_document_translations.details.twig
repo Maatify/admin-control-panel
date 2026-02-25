@@ -1,0 +1,371 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}
+    Content Document Translations: {{ document_version.typeKey }} | {{ ui.appName }}
+{% endblock %}
+
+{% block content %}
+    {# =========================================================
+       UI CONTRACT
+       ---------------------------------------------------------
+       - window.contentDocumentTranslationsCapabilities
+       - window.contentDocumentTranslationsApi
+       - window.contentDocumentTranslationsContext
+       - JS owns all behavior
+       ========================================================= #}
+
+    <script>
+        window.contentDocumentTranslationsCapabilities = {
+            can_view_types: {{ capabilities.can_view_types ?? false ? 'true' : 'false' }},
+            can_view_versions: {{ capabilities.can_view_versions ?? false ? 'true' : 'false' }},
+            can_view_translations: {{ capabilities.can_view_translations ?? false ? 'true' : 'false' }},
+            can_upsert: {{ capabilities.can_upsert ?? false ? 'true' : 'false' }},
+        };
+        window.contentDocumentTranslationsApi = {
+            update: '/content-document-types/{type_id}/documents/{document_id}/translations/{language_id}',
+        };
+        window.typeId      = {{ document_version.documentTypeId }};
+        window.documentId  = {{ document_version.id }};
+        window.languageId  = {{ language.id }};
+        window.contentDocumentTranslationsContext = {
+            languages         : {{ languages|json_encode|raw }},
+            languageDirection : '{{ language.direction }}',
+            languageCode     : '{{ language.code }}',
+        };
+    </script>
+
+    {# ===================================================================
+       Page Header (breadcrumb + title)
+       =================================================================== #}
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div class="flex items-center gap-3">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                📄 {{ document_version.typeKey }} Version {{ document_version.version }} Translation Management
+            </h2>
+        </div>
+
+        <nav>
+            <ol class="flex items-center gap-1.5">
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                       href="{{ ui.adminUrl }}dashboard">
+                        Home
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                  stroke-width="1.2"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+
+                {% if capabilities.can_view_types ?? false %}
+                    <li>
+                        <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                           href="{{ ui.adminUrl }}content-document-types">
+                            Content Document Types
+                            <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16">
+                                <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                      stroke-width="1.2"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                    </li>
+                {% endif %}
+
+                {% if capabilities.can_view_versions ?? false %}
+                    <li>
+                        <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                           href="{{ ui.adminUrl }}content-document-types/{{ document_version.documentTypeId }}/documents">
+                            {{ document_version.typeKey }}
+                            <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16">
+                                <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                      stroke-width="1.2"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                    </li>
+                {% endif %}
+
+                {% if capabilities.can_view_translations ?? false %}
+                    <li>
+                        <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                           href="{{ ui.adminUrl }}content-document-types/{{ document_version.documentTypeId }}/documents/{{ document_version.id }}/translations">
+                            {{ document_version.version }}
+                            <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16">
+                                <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                      stroke-width="1.2"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                    </li>
+                {% endif %}
+
+                <li class="text-sm text-gray-800 dark:text-gray-200">
+                    {{ language.name }} ({{ language.code }})
+                </li>
+            </ol>
+        </nav>
+    </div>
+
+    {# ===================================================================
+       Overview Card
+       =================================================================== #}
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 mb-6 p-5">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Type ID</p>
+                <code class="text-sm font-mono bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-2 py-1 rounded text-gray-800 dark:text-gray-200">
+                    {{ document_version.documentTypeId }}
+                </code>
+            </div>
+
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Document ID</p>
+                <code class="text-sm font-mono bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-2 py-1 rounded text-gray-800 dark:text-gray-200">
+                    {{ document_version.id }}
+                </code>
+            </div>
+
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Key</p>
+                <p class="text-sm text-gray-800 dark:text-gray-100">{{ document_version.typeKey }}</p>
+            </div>
+
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Version</p>
+                <p class="text-sm text-gray-800 dark:text-gray-100">{{ document_version.version }}</p>
+            </div>
+
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Requires Acceptance Default</p>
+                <p class="text-sm text-gray-800 dark:text-gray-100">{{ document_version.requiresAcceptance ? 'Yes' : 'No' }}</p>
+            </div>
+
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Is Active</p>
+                <p class="text-sm text-gray-800 dark:text-gray-100">{{ document_version.isActive ? 'Yes' : 'No' }}</p>
+            </div>
+
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Created At</p>
+                <code class="text-sm font-mono bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-2 py-1 rounded text-gray-800 dark:text-gray-200">
+                    {{ document_version.createdAt|date('Y-m-d H:i:s') }}
+                </code>
+            </div>
+
+            {% if document_version.publishedAt %}
+                <div>
+                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Published At</p>
+                    <code class="text-sm font-mono bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-2 py-1 rounded text-gray-800 dark:text-gray-200">
+                        {{ document_version.publishedAt|date('Y-m-d H:i:s') }}
+                    </code>
+                </div>
+            {% endif %}
+
+            {% if document_version.updatedAt %}
+                <div>
+                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Updated At</p>
+                    <code class="text-sm font-mono bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-2 py-1 rounded text-gray-800 dark:text-gray-200">
+                        {{ document_version.updatedAt|date('Y-m-d H:i:s') }}
+                    </code>
+                </div>
+            {% endif %}
+
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Language</p>
+                <code class="text-sm font-mono bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-2 py-1 rounded text-gray-800 dark:text-gray-200">
+                    {{ language.icon ?? '' }} {{ language.name ?? '' }} ({{ language.code ?? '' }})
+                </code>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="px-0 py-2">
+        <div class="container lg:max-w-[100%] mt-6">
+
+            <!-- Language Switcher -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            🌍 Change Language
+                        </label>
+
+                        <div id="translation-filter-language-id" class="relative w-full">
+                            <div class="js-select-box w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 cursor-pointer flex items-center justify-between hover:border-gray-400 transition-colors">
+                                <input type="text"
+                                       class="js-select-input bg-transparent border-none outline-none w-full cursor-pointer text-gray-900 dark:text-gray-100"
+                                       value="{{ language.name }} ({{ language.code }})"
+                                       readonly>
+                                <svg class="js-arrow w-4 h-4 text-gray-500 transition-transform duration-200"
+                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+
+                            <div class="js-dropdown hidden absolute z-50 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                <div class="p-2 sticky top-0 bg-white dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                                    <input type="text"
+                                           class="js-search-input w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                           placeholder="Search...">
+                                </div>
+                                <ul class="js-select-list py-1">
+                                    {% for lang in languages %}
+                                        <li class="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors {{ lang.id == language.id ? 'bg-blue-50 text-blue-600' : '' }}"
+                                            data-value="{{ ui.adminUrl }}content-document-types/{{ document_version.documentTypeId }}/documents/{{ document_version.id }}/translations/{{ lang.id }}">
+                                            <div class="flex items-center justify-between">
+                                                <span>{{ lang.name }} ({{ lang.code }})</span>
+                                                {% if lang.id == language.id %}
+                                                    <span class="text-xs text-blue-500 font-semibold">Current</span>
+                                                {% endif %}
+                                            </div>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Translation Details Form -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                        ✍️ Translation Details
+                    </h2>
+
+                    {% if capabilities.can_upsert ?? false %}
+                        <button id="btn-save-translation"
+                                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            💾 Save Changes
+                        </button>
+                    {% endif %}
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    <!-- Title (required) -->
+                    <div>
+                        <label for="field-title"
+                               class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Title <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text"
+                               id="field-title"
+                               name="title"
+                               dir="{{ language.direction }}"
+                               value="{{ translation.title ?? '' }}"
+                               class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <!-- Meta Title (optional) -->
+                    <div>
+                        <label for="field-meta-title"
+                               class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Meta Title
+                        </label>
+                        <input type="text"
+                               id="field-meta-title"
+                               name="meta_title"
+                               dir="{{ language.direction }}"
+                               value="{{ translation.metaTitle ?? '' }}"
+                               class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                </div>
+
+                <!-- Meta Description (optional) -->
+                <div class="mt-6">
+                    <label for="field-meta-description"
+                           class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Meta Description
+                    </label>
+                    <textarea id="field-meta-description"
+                              name="meta_description"
+                              dir="{{ language.direction }}"
+                              rows="3"
+                              class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none">{{ translation.metaDescription ?? '' }}</textarea>
+                </div>
+
+                <!-- Content WYSIWYG (required) -->
+                <div class="mt-6">
+                    <label for="field-content"
+                           class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Content <span class="text-red-500">*</span>
+                    </label>
+                    {#
+                    Jodit replaces this textarea.
+                    dir / RTL is handled by the JS module via window.contentDocumentTranslationsContext
+                    #}
+                    <textarea id="field-content"
+                              name="content">{% if translation.content is defined and translation.content %}{{ translation.content|raw }}{% endif %}</textarea>
+                </div>
+
+                <!-- Audit Info -->
+                <div class="mt-6 border-t border-gray-200 dark:border-gray-700 pt-4 text-xs text-gray-500 dark:text-gray-400 flex flex-wrap gap-6">
+                    <div>
+                        Created:
+                        {{ translation.createdAt ? translation.createdAt|date('Y-m-d H:i:s') : '-' }}
+                    </div>
+                    <div>
+                        Updated:
+                        {{ translation.updatedAt ? translation.updatedAt|date('Y-m-d H:i:s') : '-' }}
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    {# ===================================================================
+       🎨 Custom Styles
+       =================================================================== #}
+    <style>
+        /* Dark Mode: Select2 active item */
+        .dark .js-select-list li.bg-blue-50  { background-color: rgba(30, 64, 175, 0.3) !important; }
+        .dark .js-select-list li.text-blue-600 { color: #60a5fa !important; }
+        .dark .js-select-list li.text-blue-600 span.font-bold { color: #60a5fa !important; }
+
+        /* Jodit: match admin border radius */
+        .jodit-container {
+            border-radius: 0.375rem !important;
+            overflow: hidden;
+        }
+    </style>
+
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/api_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/callback_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/Input_checker.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/data_table.js') }}"></script>
+
+    {# ✨ Select2 - Custom dropdown with search #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/select2.js') }}"></script>
+
+    {# ✨ Project-wide reusable UI components library #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
+
+    {# ✨ Jodit WYSIWYG — MIT License, zero API key, RTL + Dark Mode built-in
+       Source: official Jodit docs → https://xdsoft.net/jodit/docs/getting-started.html
+       jodit.fat.min = all plugins bundled in one file (no extra imports needed)
+    #}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jodit@latest/es2021/jodit.fat.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/jodit@latest/es2021/jodit.fat.min.js"></script>
+
+    {# ✨ Page-specific module #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/content_document/content_document_translation_details.js') }}"></script>
+{% endblock %}

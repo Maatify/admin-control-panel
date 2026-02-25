@@ -90,8 +90,8 @@ class ContentDocumentsApiRoutes
                                     )->setName('content_documents.translations.query.api');
 
                                     $translations->post(
-                                        '/upsert',
-                                        \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\DocumentTranslationUpsertController::class
+                                        '/{language_id:[0-9]+}',
+                                        \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\ContentDocumentTranslationsUpsertController::class
                                     )->setName('content_documents.translations.upsert.api');
                                 }
                             );

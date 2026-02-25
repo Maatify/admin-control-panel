@@ -107,11 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let uiUrl = apiEndpoints.translation_details
                     .replace('{type_id}', typeId)
                     .replace('{document_id}', documentId)
-                    .replace('{translation_id}', translationId || 'new');
-                
-                if (!translationId) {
-                    uiUrl += `?language_id=${row.language_id}`;
-                }
+                    .replace('{language_id}', row.language_id);
 
                 buttons.push(window.AdminUIComponents.buildActionButton({
                     cssClass: '',

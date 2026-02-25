@@ -110,6 +110,8 @@ final readonly class DocumentQueryService implements DocumentQueryServiceInterfa
             metaTitle: $translation->metaTitle,
             metaDescription: $translation->metaDescription,
             content: $translation->content,
+            createdAt: $translation->createdAt,
+            updatedAt: $translation->updatedAt
         );
     }
 
@@ -141,6 +143,8 @@ final readonly class DocumentQueryService implements DocumentQueryServiceInterfa
                     metaTitle: $trEntity->metaTitle,
                     metaDescription: $trEntity->metaDescription,
                     content: $trEntity->content,
+                    createdAt: $trEntity->createdAt,
+                    updatedAt: $trEntity->updatedAt
                 );
 
             $out[] = new DocumentVersionWithTranslationDTO(

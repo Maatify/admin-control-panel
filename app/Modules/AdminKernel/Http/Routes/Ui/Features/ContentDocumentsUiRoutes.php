@@ -37,7 +37,7 @@ final class ContentDocumentsUiRoutes
             ->add(AuthorizationGuardMiddleware::class);
 
         $group->get(
-            '/content-document-types/{type_id:[0-9]+}/documents/{document_id:[0-9]+}/translations/{translation_id:(?:[0-9]+|new)}',
+            '/content-document-types/{type_id:[0-9]+}/documents/{document_id:[0-9]+}/translations/{language_id:[0-9]+}',
             [\Maatify\AdminKernel\Http\Controllers\Ui\ContentDocuments\UiContentDocumentTranslationsUpdateController::class, 'index']
         )
             ->setName('content_documents.translations.details')

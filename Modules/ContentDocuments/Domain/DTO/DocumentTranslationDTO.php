@@ -13,6 +13,8 @@ final readonly class DocumentTranslationDTO
         public ?string $metaTitle,
         public ?string $metaDescription,
         public string $content,
+        public ?\DateTimeImmutable $createdAt,
+        public ?\DateTimeImmutable $updatedAt,
     ) {
     }
 }

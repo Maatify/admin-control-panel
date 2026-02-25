@@ -2578,6 +2578,9 @@ class Container
         // Register Maatify\AppSettings modules
         \Maatify\AppSettings\Bootstrap\AppSettingsBindings::register($containerBuilder);
 
+        // Register Infrastructure\LanguageCoreBinding modules
+        \Maatify\AdminKernel\Infrastructure\LanguageCore\Bootstrap\LanguageCoreBinding::register($containerBuilder);
+
         // Extension Hook: Allow host projects to override/extend bindings
         if ($builderHook !== null) {
             $builderHook($containerBuilder);
