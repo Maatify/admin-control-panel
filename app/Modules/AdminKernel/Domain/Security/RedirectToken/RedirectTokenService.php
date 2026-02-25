@@ -42,7 +42,16 @@ final readonly class RedirectTokenService implements RedirectTokenServiceInterfa
         [$encodedPayload, $encodedSignature] = $parts;
 
         $payloadJson = $this->base64UrlDecode($encodedPayload);
-        if ($payloadJson === false) {
+        $signature = $this->base64UrlDecode($encodedSignature);
+
+        if ($payloadJson === false || $signature === false) {
+            return null;
+        }
+
+        // 1. Verify Signature FIRST (before trusting payload)
+        $expectedSignature = $this->sign($payloadJson);
+
+        if (!hash_equals($expectedSignature, $signature)) {
             return null;
         }
 
@@ -64,38 +73,13 @@ final readonly class RedirectTokenService implements RedirectTokenServiceInterfa
             return null;
         }
 
-        // 1. Check Expiration
+        // 2. Check Expiration
         if ($exp < $this->clock->now()->getTimestamp()) {
             return null;
         }
 
-        // 2. Validate Path
+        // 3. Validate Path
         if (!$this->isPathValid($path)) {
-            return null;
-        }
-
-        // 3. Verify Signature
-        // We must verify the signature against the RAW payload string (from decode),
-        // or re-encode?
-        // The signature was created on the JSON string.
-        // We should verify against the decoded JSON string (exact bytes).
-        // BUT wait, `json_decode` and `json_encode` might not be symmetric if we don't have the original string.
-        // The standard JWT way is `Sign(base64(payload))`.
-        // The requirement says: `HMAC-SHA256(payload, REDIRECT_SIGNING_KEY)`.
-        // "Payload JSON structure".
-        // "Token format: BASE64URL(payload) + "." + BASE64URL(signature)".
-        // It implies `Sign(payload_json_string)`.
-        // To verify, we have `$payloadJson` which is the decoded string from base64.
-        // We should use THAT string to verify.
-
-        $signature = $this->base64UrlDecode($encodedSignature);
-        if ($signature === false) {
-            return null;
-        }
-
-        $expectedSignature = $this->sign($payloadJson);
-
-        if (!hash_equals($expectedSignature, $signature)) {
             return null;
         }
 
@@ -162,6 +146,11 @@ final readonly class RedirectTokenService implements RedirectTokenServiceInterfa
 
     private function base64UrlDecode(string $data): string|false
     {
-        return base64_decode(strtr($data, '-_', '+/'), true);
+        $data = strtr($data, '-_', '+/');
+        $remainder = strlen($data) % 4;
+        if ($remainder) {
+            $data .= str_repeat('=', 4 - $remainder);
+        }
+        return base64_decode($data, true);
     }
 }

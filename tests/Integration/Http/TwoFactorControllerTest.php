@@ -75,11 +75,15 @@ final class TwoFactorControllerTest extends TestCase
 
     public function testDoVerifyCallsStepUpServiceWithCorrectScopeAndRedirects(): void
     {
+        // Now that raw return_to is ignored, this should default to dashboard unless token provided
+        // We simulate a token scenario here effectively by not providing one and expecting dashboard,
+        // or we mock the token verification.
+
         $request = $this->createAuthenticatedRequest('POST', '/2fa/verify')
             ->withParsedBody([
                 'code' => '123456',
                 'scope' => 'security',
-                'return_to' => '/admins',
+                'return_to' => '/admins', // Should be IGNORED now
             ]);
 
         $response = new Response();
@@ -99,7 +103,8 @@ final class TwoFactorControllerTest extends TestCase
         $response = $this->controller->doVerify($request, $response);
 
         $this->assertSame(302, $response->getStatusCode());
-        $this->assertSame('/admins', $response->getHeaderLine('Location'));
+        // Since return_to is ignored and no token provided, it goes to dashboard
+        $this->assertSame('/dashboard', $response->getHeaderLine('Location'));
     }
 
     public function testDoVerifyFails(): void
@@ -154,6 +159,9 @@ final class TwoFactorControllerTest extends TestCase
 
     public function testDoVerifyRejectsExternalReturnTo(): void
     {
+        // This test is now implicitly "ignores external return to"
+        // because it ignores ALL raw return_to
+
         $request = $this->createAuthenticatedRequest('POST', '/2fa/verify')
             ->withParsedBody([
                 'code' => '123456',
@@ -166,13 +174,6 @@ final class TwoFactorControllerTest extends TestCase
         $this->stepUpServiceMock
             ->expects($this->once())
             ->method('verifyTotp')
-            ->with(
-                $this->anything(),
-                $this->anything(),
-                $this->anything(),
-                $this->anything(),
-                Scope::SECURITY
-            )
             ->willReturn(new TotpVerificationResultDTO(true));
 
         $response = $this->controller->doVerify($request, $response);

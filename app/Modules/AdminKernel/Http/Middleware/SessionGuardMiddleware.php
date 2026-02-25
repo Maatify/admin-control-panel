@@ -204,7 +204,14 @@ readonly class SessionGuardMiddleware implements MiddlewareInterface
                 ->withHeader('Content-Type', 'application/json');
         }
 
-        $path = $request->getUri()->getPath();
+        $uri = $request->getUri();
+        $path = $uri->getPath();
+        $query = $uri->getQuery();
+
+        if ($query !== '') {
+            $path .= '?' . $query;
+        }
+
         $token = $this->redirectTokenService->create($path);
 
         return (new \Slim\Psr7\Response())
@@ -226,7 +233,14 @@ readonly class SessionGuardMiddleware implements MiddlewareInterface
                 ->withHeader('Content-Type', 'application/json');
         }
 
-        $path = $request->getUri()->getPath();
+        $uri = $request->getUri();
+        $path = $uri->getPath();
+        $query = $uri->getQuery();
+
+        if ($query !== '') {
+            $path .= '?' . $query;
+        }
+
         $token = $this->redirectTokenService->create($path);
 
         return (new \Slim\Psr7\Response())

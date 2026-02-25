@@ -164,10 +164,6 @@ readonly class TwoFactorController
                 if ($path !== null) {
                     $redirect = $path;
                 }
-            } elseif ($returnTo !== null && $returnTo !== '') {
-                // ADDITIVE START
-                $redirect = $returnTo;
-                // ADDITIVE END
             }
 
             return $response->withHeader('Location', $redirect)->withStatus(302);

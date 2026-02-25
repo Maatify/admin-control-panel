@@ -15,6 +15,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\UriInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Slim\Psr7\Factory\ResponseFactory;
 use Slim\Psr7\Factory\ServerRequestFactory;
@@ -52,6 +53,24 @@ class SessionGuardMiddlewareTest extends TestCase
         $this->redirectTokenService->expects($this->once())
             ->method('create')
             ->with('/dashboard')
+            ->willReturn('generated.token');
+
+        $response = $this->middleware->process($request, $handler);
+
+        $this->assertSame(302, $response->getStatusCode());
+        $this->assertSame('/login?r=generated.token', $response->getHeaderLine('Location'));
+    }
+
+    public function testRedirectsToLoginWithTokenPreservingQueryString(): void
+    {
+        $request = (new ServerRequestFactory())->createServerRequest('GET', '/dashboard?sort=desc&filter=active');
+        $request = $request->withAttribute(RequestContext::class, new RequestContext('id', '127.0.0.1', 'ua'));
+
+        $handler = $this->createMock(RequestHandlerInterface::class);
+
+        $this->redirectTokenService->expects($this->once())
+            ->method('create')
+            ->with('/dashboard?sort=desc&filter=active')
             ->willReturn('generated.token');
 
         $response = $this->middleware->process($request, $handler);
