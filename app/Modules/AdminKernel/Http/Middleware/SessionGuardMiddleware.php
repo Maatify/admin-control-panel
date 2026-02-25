@@ -43,13 +43,23 @@ readonly class SessionGuardMiddleware implements MiddlewareInterface
         $cookies = $request->getCookieParams();
         $token   = $cookies['auth_token'] ?? null;
 
-        if ($token === null) {
-            return $this->handleFailure($isApi, 'No session token provided.');
-        }
-
         $context = $request->getAttribute(RequestContext::class);
         if (!$context instanceof RequestContext) {
             throw new \RuntimeException("Request context missing");
+        }
+
+        if ($token === null) {
+            if (isset($cookies['remember_me'])) {
+                return $this->attemptRememberFallback(
+                    $request,
+                    $handler,
+                    $context,
+                    $cookies['remember_me'],
+                    $isApi
+                );
+            }
+
+            return $this->handleFailure($isApi, 'No session token provided.');
         }
 
         try {

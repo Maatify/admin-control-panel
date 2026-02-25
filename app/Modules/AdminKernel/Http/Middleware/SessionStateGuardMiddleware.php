@@ -86,18 +86,10 @@ class SessionStateGuardMiddleware implements MiddlewareInterface
                     $context
                 );
 
-                $response = new \Slim\Psr7\Response();
-                $payload = [
-                    'code'  => 'STEP_UP_REQUIRED',
-                    'scope' => 'login',
-                ];
-                $response->getBody()->write(
-                    (string) json_encode($payload, JSON_THROW_ON_ERROR)
+                throw new \Maatify\AdminKernel\Domain\Exception\StepUpRequiredException(
+                    message: 'Authentication required',
+                    meta: ['scope' => 'login']
                 );
-
-                return $response
-                    ->withStatus(403)
-                    ->withHeader('Content-Type', 'application/json');
             }
 
             // Web: Redirect to 2FA Setup or Verify
