@@ -12,6 +12,7 @@ use Maatify\AdminKernel\Context\RequestContext;
 use Maatify\AdminKernel\Domain\Contracts\TotpServiceInterface;
 use Maatify\AdminKernel\Domain\DTO\TotpVerificationResultDTO;
 use Maatify\AdminKernel\Domain\Enum\Scope;
+use Maatify\AdminKernel\Domain\Security\RedirectToken\RedirectTokenServiceInterface;
 use Maatify\AdminKernel\Domain\Service\StepUpService;
 use Maatify\AdminKernel\Http\Controllers\Web\TwoFactorController;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -28,6 +29,7 @@ final class TwoFactorControllerTest extends TestCase
     private TotpServiceInterface&MockObject $totpServiceMock;
     private DiagnosticsTelemetryService&MockObject $telemetryServiceMock;
     private Twig&MockObject $viewMock;
+    private RedirectTokenServiceInterface&MockObject $redirectTokenServiceMock;
 
     protected function setUp(): void
     {
@@ -37,6 +39,7 @@ final class TwoFactorControllerTest extends TestCase
         $this->totpServiceMock = $this->createMock(TotpServiceInterface::class);
         $this->telemetryServiceMock = $this->createMock(DiagnosticsTelemetryService::class);
         $this->viewMock = $this->createMock(Twig::class);
+        $this->redirectTokenServiceMock = $this->createMock(RedirectTokenServiceInterface::class);
 
         $enrollmentService = new TwoFactorEnrollmentService(
             $this->stepUpServiceMock,
@@ -52,7 +55,8 @@ final class TwoFactorControllerTest extends TestCase
         $this->controller = new TwoFactorController(
             $enrollmentService,
             $verificationService,
-            $this->viewMock
+            $this->viewMock,
+            $this->redirectTokenServiceMock
         );
     }
 
@@ -200,5 +204,34 @@ final class TwoFactorControllerTest extends TestCase
             ->willReturn(new TotpVerificationResultDTO(true));
 
         $this->controller->doVerify($request, $response);
+    }
+
+    public function testDoVerifyRedirectsUsingRedirectToken(): void
+    {
+        $token = 'valid.token';
+        $path = '/protected/resource';
+
+        $request = $this->createAuthenticatedRequest('POST', '/2fa/verify')
+            ->withParsedBody([
+                'code' => '123456',
+            ])
+            ->withQueryParams(['r' => $token]);
+
+        $response = new Response();
+
+        $this->stepUpServiceMock
+            ->method('verifyTotp')
+            ->willReturn(new TotpVerificationResultDTO(true));
+
+        $this->redirectTokenServiceMock
+            ->expects($this->once())
+            ->method('verify')
+            ->with($token)
+            ->willReturn($path);
+
+        $response = $this->controller->doVerify($request, $response);
+
+        $this->assertSame(302, $response->getStatusCode());
+        $this->assertSame($path, $response->getHeaderLine('Location'));
     }
 }

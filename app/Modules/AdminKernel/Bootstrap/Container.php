@@ -787,15 +787,25 @@ class Container
                 $adminLoginService = $c->get(AdminLoginService::class);
                 $view = $c->get(Twig::class);
                 $challengeRenderer = $c->get(ChallengeWidgetRendererInterface::class);
+                $redirectTokenService = $c->get(\Maatify\AdminKernel\Domain\Security\RedirectToken\RedirectTokenServiceInterface::class);
                 assert($adminLoginService instanceof AdminLoginService);
                 assert($view instanceof Twig);
                 assert($challengeRenderer instanceof ChallengeWidgetRendererInterface);
+                assert($redirectTokenService instanceof \Maatify\AdminKernel\Domain\Security\RedirectToken\RedirectTokenServiceInterface);
 
                 return new LoginController(
                     $adminLoginService,
                     $view,
-                    $challengeRenderer
+                    $challengeRenderer,
+                    $redirectTokenService
                 );
+            },
+            \Maatify\AdminKernel\Domain\Security\RedirectToken\RedirectTokenServiceInterface::class => function (ContainerInterface $c) {
+                $keyRotation = $c->get(KeyRotationService::class);
+                $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
+                assert($keyRotation instanceof KeyRotationService);
+                assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
+                return new \Maatify\AdminKernel\Domain\Security\RedirectToken\RedirectTokenService($keyRotation, $clock);
             },
             \Maatify\AdminKernel\Application\Auth\AdminLogoutService::class                              => function (ContainerInterface $c) {
                 $sessionRepo = $c->get(\Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionValidationRepositoryInterface::class);
@@ -1045,12 +1055,14 @@ class Container
                 $enrollmentService = $c->get(\Maatify\AdminKernel\Application\Auth\TwoFactorEnrollmentService::class);
                 $verificationService = $c->get(\Maatify\AdminKernel\Application\Auth\TwoFactorVerificationService::class);
                 $view = $c->get(Twig::class);
+                $redirectTokenService = $c->get(\Maatify\AdminKernel\Domain\Security\RedirectToken\RedirectTokenServiceInterface::class);
 
                 assert($enrollmentService instanceof \Maatify\AdminKernel\Application\Auth\TwoFactorEnrollmentService);
                 assert($verificationService instanceof \Maatify\AdminKernel\Application\Auth\TwoFactorVerificationService);
                 assert($view instanceof Twig);
+                assert($redirectTokenService instanceof \Maatify\AdminKernel\Domain\Security\RedirectToken\RedirectTokenServiceInterface);
 
-                return new TwoFactorController($enrollmentService, $verificationService, $view);
+                return new TwoFactorController($enrollmentService, $verificationService, $view, $redirectTokenService);
             },
             AdminNotificationPreferenceController::class => function (ContainerInterface $c) {
                 $reader = $c->get(AdminNotificationPreferenceReaderInterface::class);

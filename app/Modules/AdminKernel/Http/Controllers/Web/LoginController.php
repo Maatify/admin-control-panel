@@ -11,6 +11,7 @@ use Maatify\AdminKernel\Domain\DTO\LoginRequestDTO;
 use Maatify\AdminKernel\Domain\Exception\AuthStateException;
 use Maatify\AdminKernel\Domain\Exception\InvalidCredentialsException;
 use Maatify\AdminKernel\Domain\Exception\MustChangePasswordException;
+use Maatify\AdminKernel\Domain\Security\RedirectToken\RedirectTokenServiceInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
@@ -20,7 +21,8 @@ readonly class LoginController
     public function __construct(
         private AdminLoginService $loginService,
         private Twig $view,
-        private ChallengeWidgetRendererInterface $challengeRenderer
+        private ChallengeWidgetRendererInterface $challengeRenderer,
+        private RedirectTokenServiceInterface $redirectTokenService
     )
     {
     }
@@ -160,8 +162,17 @@ readonly class LoginController
                     ->withAddedHeader('Set-Cookie', trim($signatureCookie, '; '));
             }
 
+            $redirect = '/dashboard';
+            $queryParams = $request->getQueryParams();
+            if (isset($queryParams['r']) && is_string($queryParams['r'])) {
+                $path = $this->redirectTokenService->verify($queryParams['r']);
+                if ($path !== null) {
+                    $redirect = $path;
+                }
+            }
+
             return $response
-                ->withHeader('Location', '/dashboard')
+                ->withHeader('Location', $redirect)
                 ->withStatus(302);
         } catch (MustChangePasswordException $e) {
             return $response
