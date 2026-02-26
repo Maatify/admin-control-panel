@@ -152,9 +152,8 @@
                 // ✅ Use ErrorNormalizer Bridge
                 const stepUp = window.ErrorNormalizer.getLegacyStepUpView(data);
                 if (stepUp) {
-                    const scope = encodeURIComponent(stepUp.scope || 'roles.create');
-                    const returnTo = encodeURIComponent(window.location.pathname);
-                    window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
+                    const scope = stepUp.scope || 'roles.create';
+                    await window.ErrorNormalizer.redirectToStepUp(scope);
                     return;
                 }
             }
@@ -693,9 +692,8 @@
                 // ✅ Use ErrorNormalizer Bridge
                 const stepUp = window.ErrorNormalizer.getLegacyStepUpView(data);
                 if (stepUp) {
-                    const scope = encodeURIComponent(stepUp.scope || 'roles.toggle');
-                    const returnTo = encodeURIComponent(window.location.pathname);
-                    window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
+                    const scope = stepUp.scope || 'roles.toggle';
+                    await window.ErrorNormalizer.redirectToStepUp(scope);
                     return;
                 }
             }

@@ -1067,9 +1067,8 @@
                 // ✅ Use ErrorNormalizer Bridge
                 const stepUp = window.ErrorNormalizer.getLegacyStepUpView(data);
                 if (stepUp) {
-                    const scope    = encodeURIComponent(stepUp.scope || 'admin.permissions.direct.assign');
-                    const returnTo = encodeURIComponent(window.location.pathname);
-                    window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
+                    const scope = stepUp.scope || `admins.permissions.assign`;
+                    await window.ErrorNormalizer.redirectToStepUp(scope);
                     return;
                 }
             }
@@ -1125,9 +1124,8 @@
                 // ✅ Use ErrorNormalizer Bridge
                 const stepUp = window.ErrorNormalizer.getLegacyStepUpView(data);
                 if (stepUp) {
-                    const scope    = encodeURIComponent(stepUp.scope || 'admin.permissions.direct.revoke');
-                    const returnTo = encodeURIComponent(window.location.pathname);
-                    window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
+                    const scope = stepUp.scope || `admins.permissions.revoke`;
+                    await window.ErrorNormalizer.redirectToStepUp(scope);
                     return;
                 }
             }

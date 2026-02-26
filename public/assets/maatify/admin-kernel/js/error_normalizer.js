@@ -121,12 +121,11 @@
         },
 
         /**
-         * Get legacy-compatible Step-Up view { code, scope }
-         * useful for existing redirect logic
+         * Get Step-Up view info
          * @param {object|null} data
          * @returns {object|null}
          */
-        getLegacyStepUpView(data) {
+        getStepUpInfo(data) {
             if (!this.isStepUpRequired(data)) return null;
 
             let scope = '';
@@ -144,6 +143,52 @@
                 code: 'STEP_UP_REQUIRED',
                 scope: scope
             };
+        },
+
+        // Alias for backward compatibility
+        getLegacyStepUpView(data) {
+            return this.getStepUpInfo(data);
+        },
+
+        /**
+         * Handle Step-Up redirect safely using signed token
+         * @param {string} scope - The required scope
+         */
+        async redirectToStepUp(scope) {
+            console.log('🔒 Initiating Step-Up Redirect for scope:', scope);
+
+            const currentPath = window.location.pathname + window.location.search;
+
+            try {
+                // Request signed token for current path
+                const response = await fetch('/api/auth/sign-redirect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path: currentPath })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // data.redirect_url contains /2fa/verify?r=...
+                    let target = data.redirect_url;
+
+                    // Append scope if not present (though controller assumes login scope if missing)
+                    // The standard is /2fa/verify?scope=...&r=...
+                    if (scope) {
+                        const separator = target.includes('?') ? '&' : '?';
+                        target += `${separator}scope=${encodeURIComponent(scope)}`;
+                    }
+
+                    window.location.href = target;
+                } else {
+                    console.error('❌ Failed to sign redirect token');
+                    // Fallback to dashboard if signing fails
+                    window.location.href = '/dashboard';
+                }
+            } catch (e) {
+                console.error('❌ Network error during signed redirect', e);
+                window.location.href = '/dashboard';
+            }
         },
 
         /**

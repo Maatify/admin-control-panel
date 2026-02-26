@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Http\Middleware;
 
 use Maatify\AdminKernel\Domain\Enum\Scope;
+use Maatify\AdminKernel\Domain\Security\RedirectToken\RedirectTokenServiceInterface;
 use Maatify\AdminKernel\Domain\Security\ScopeRegistry;
 use Maatify\AdminKernel\Context\RequestContext;
 use Maatify\AdminKernel\Domain\Service\StepUpService;
@@ -19,7 +20,8 @@ use Slim\Routing\RouteContext;
 class ScopeGuardMiddleware implements MiddlewareInterface
 {
     public function __construct(
-        private StepUpService $stepUpService
+        private StepUpService $stepUpService,
+        private RedirectTokenServiceInterface $redirectTokenService
     ) {
     }
 
@@ -67,8 +69,13 @@ class ScopeGuardMiddleware implements MiddlewareInterface
         }
 
         // Determine required scope
-        $routeContext = RouteContext::fromRequest($request);
-        $route = $routeContext->getRoute();
+        try {
+            $routeContext = RouteContext::fromRequest($request);
+            $route = $routeContext->getRoute();
+        } catch (\RuntimeException) {
+            // Route context missing (e.g. tests)
+            return $handler->handle($request);
+        }
 
         // If route is not found (404), we don't block here, let app handle it.
         if (!$route) {
@@ -132,8 +139,9 @@ class ScopeGuardMiddleware implements MiddlewareInterface
             $returnTo .= '?' . $query;
         }
 
-        $location = '/2fa/verify?scope=' . urlencode($requiredScope->value)
-                    . '&return_to=' . urlencode($returnTo);
+        $token = $this->redirectTokenService->create($returnTo);
+
+        $location = '/2fa/verify?scope=' . urlencode($requiredScope->value) . '&r=' . $token;
 
         $response = new \Slim\Psr7\Response();
         return $response

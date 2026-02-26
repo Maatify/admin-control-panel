@@ -8,6 +8,7 @@ use Maatify\AdminKernel\Context\RequestContext;
 use Maatify\AdminKernel\Domain\Contracts\Admin\AdminTotpSecretStoreInterface;
 use Maatify\AdminKernel\Domain\Enum\Scope;
 use Maatify\AdminKernel\Domain\Enum\SessionState;
+use Maatify\AdminKernel\Domain\Security\RedirectToken\RedirectTokenServiceInterface;
 use Maatify\AdminKernel\Domain\Service\StepUpService;
 use Maatify\AdminKernel\Http\Auth\AuthSurface;
 use Psr\Http\Message\ResponseInterface;
@@ -20,7 +21,8 @@ readonly class SessionStateGuardMiddleware implements MiddlewareInterface
 {
     public function __construct(
         private StepUpService $stepUpService,
-        private AdminTotpSecretStoreInterface $totpSecretStore
+        private AdminTotpSecretStoreInterface $totpSecretStore,
+        private RedirectTokenServiceInterface $redirectTokenService
     ) {
     }
 
@@ -56,9 +58,14 @@ readonly class SessionStateGuardMiddleware implements MiddlewareInterface
         }
 
         // Skip check for Step-Up Verification route to allow promotion
-        $routeContext = \Slim\Routing\RouteContext::fromRequest($request);
-        $route = $routeContext->getRoute();
-        $routeName = $route ? $route->getName() : null;
+        $routeName = null;
+        try {
+            $routeContext = \Slim\Routing\RouteContext::fromRequest($request);
+            $route = $routeContext->getRoute();
+            $routeName = $route ? $route->getName() : null;
+        } catch (\RuntimeException) {
+            // Route context not available (e.g. testing or early middleware stack)
+        }
 
         if (
             $routeName === 'auth.stepup.verify'
@@ -95,14 +102,25 @@ readonly class SessionStateGuardMiddleware implements MiddlewareInterface
             // Web: Redirect to 2FA Setup or Verify
             $response = new \Slim\Psr7\Response();
 
+            // Generate redirect token for the current URI
+            $uri = $request->getUri();
+            $path = $uri->getPath();
+            $query = $uri->getQuery();
+
+            if ($query !== '') {
+                $path .= '?' . $query;
+            }
+
+            $token = $this->redirectTokenService->create($path);
+
             if (!$this->totpSecretStore->exists($adminId)) {
                 return $response
-                    ->withHeader('Location', '/2fa/setup')
+                    ->withHeader('Location', '/2fa/setup?r=' . $token)
                     ->withStatus(302);
             }
 
             return $response
-                ->withHeader('Location', '/2fa/verify')
+                ->withHeader('Location', '/2fa/verify?r=' . $token)
                 ->withStatus(302);
         }
 

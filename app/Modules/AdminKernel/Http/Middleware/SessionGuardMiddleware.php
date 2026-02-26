@@ -13,6 +13,7 @@ use Maatify\AdminKernel\Domain\Exception\InvalidSessionException;
 use Maatify\AdminKernel\Domain\Exception\ExpiredSessionException;
 use Maatify\AdminKernel\Domain\Exception\RevokedSessionException;
 use Maatify\AdminKernel\Http\Cookie\CookieFactoryService;
+use Maatify\AdminKernel\Domain\Security\RedirectToken\RedirectTokenServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -33,7 +34,8 @@ readonly class SessionGuardMiddleware implements MiddlewareInterface
     public function __construct(
         private SessionValidationService $sessionValidationService,
         private RememberMeService $rememberMeService,
-        private CookieFactoryService $cookieFactory
+        private CookieFactoryService $cookieFactory,
+        private RedirectTokenServiceInterface $redirectTokenService
     ) {}
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
@@ -59,7 +61,7 @@ readonly class SessionGuardMiddleware implements MiddlewareInterface
                 );
             }
 
-            return $this->handleFailure($isApi, 'No session token provided.');
+            return $this->handleFailure($isApi, 'No session token provided.', $request);
         }
 
         try {
@@ -68,7 +70,7 @@ readonly class SessionGuardMiddleware implements MiddlewareInterface
         catch (InvalidSessionException | ExpiredSessionException | RevokedSessionException $e) {
 
             if (!isset($cookies['remember_me'])) {
-                return $this->handleFailure($isApi, $e->getMessage());
+                return $this->handleFailure($isApi, $e->getMessage(), $request);
             }
 
             return $this->attemptRememberFallback(
@@ -202,16 +204,26 @@ readonly class SessionGuardMiddleware implements MiddlewareInterface
                 ->withHeader('Content-Type', 'application/json');
         }
 
+        $uri = $request->getUri();
+        $path = $uri->getPath();
+        $query = $uri->getQuery();
+
+        if ($query !== '') {
+            $path .= '?' . $query;
+        }
+
+        $token = $this->redirectTokenService->create($path);
+
         return (new \Slim\Psr7\Response())
             ->withHeader('Set-Cookie', $clearCookie)
-            ->withHeader('Location', '/login')
+            ->withHeader('Location', '/login?r=' . $token)
             ->withStatus(302);
     }
 
     /**
      * Canonical failure handler.
      */
-    private function handleFailure(bool $isApi, string $message): ResponseInterface
+    private function handleFailure(bool $isApi, string $message, ServerRequestInterface $request): ResponseInterface
     {
         if ($isApi) {
             $response = new \Slim\Psr7\Response();
@@ -221,8 +233,18 @@ readonly class SessionGuardMiddleware implements MiddlewareInterface
                 ->withHeader('Content-Type', 'application/json');
         }
 
+        $uri = $request->getUri();
+        $path = $uri->getPath();
+        $query = $uri->getQuery();
+
+        if ($query !== '') {
+            $path .= '?' . $query;
+        }
+
+        $token = $this->redirectTokenService->create($path);
+
         return (new \Slim\Psr7\Response())
-            ->withHeader('Location', '/login')
+            ->withHeader('Location', '/login?r=' . $token)
             ->withStatus(302);
     }
 }
