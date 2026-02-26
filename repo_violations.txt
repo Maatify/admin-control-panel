@@ -1,0 +1,2 @@
+app/Modules/AdminKernel/Infrastructure/Repository/AdminTotpSecretRepository.php:21:use PDOException;
+app/Modules/AdminKernel/Infrastructure/Repository/AdminTotpSecretRepository.php:66:        } catch (PDOException $e) {

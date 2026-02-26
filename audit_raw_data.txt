@@ -1,0 +1,598 @@
+app/Modules/AdminKernel/Application/Admin/AdminProfileUpdateService.php:119:        } catch (\Throwable $e) {
+app/Modules/AdminKernel/Application/Admin/AdminProfileUpdateService.php:145:            throw new RuntimeException('Admin not found');
+app/Modules/AdminKernel/Application/Auth/ResendEmailVerificationService.php:67:        } catch (Throwable) {
+app/Modules/AdminKernel/Application/Auth/VerifyEmailService.php:69:        } catch (Throwable) {
+app/Modules/AdminKernel/Application/Auth/AdminLogoutService.php:61:        } catch (Throwable) {
+app/Modules/AdminKernel/Application/Auth/ChangePasswordService.php:90:        } catch (Throwable $e) {
+app/Modules/AdminKernel/Application/Auth/TwoFactorVerificationService.php:63:        } catch (Throwable) {
+app/Modules/AdminKernel/Application/Auth/TwoFactorEnrollmentService.php:71:        } catch (Throwable) {
+app/Modules/AdminKernel/Application/Auth/AdminLoginService.php:60:            throw new InvalidCredentialsException('Session creation failed.');
+app/Modules/AdminKernel/Application/Auth/AdminLoginService.php:65:            throw new InvalidCredentialsException('Session expiry not available.');
+app/Modules/AdminKernel/Application/Auth/AdminLoginService.php:74:                throw new InvalidCredentialsException('Session admin_id not available.');
+app/Modules/AdminKernel/Application/Services/SecuritySignalsService.php:51:        } catch (Throwable $e) {
+app/Modules/AdminKernel/Application/Services/SecuritySignalsService.php:74:        } catch (Throwable $e) {
+app/Modules/AdminKernel/Application/Services/SecuritySignalsService.php:97:        } catch (Throwable $e) {
+app/Modules/AdminKernel/Application/Services/SecuritySignalsService.php:119:        } catch (Throwable $e) {
+app/Modules/AdminKernel/Application/Services/SecuritySignalsService.php:141:        } catch (Throwable $e) {
+app/Modules/AdminKernel/Application/Services/BehaviorTraceService.php:48:        } catch (Throwable $e) {
+app/Modules/AdminKernel/Application/Services/BehaviorTraceService.php:67:        } catch (Throwable $e) {
+app/Modules/AdminKernel/Application/Services/BehaviorTraceService.php:86:        } catch (Throwable $e) {
+app/Modules/AdminKernel/Application/Services/BehaviorTraceService.php:109:        } catch (Throwable $e) {
+app/Modules/AdminKernel/Application/Services/BehaviorTraceService.php:130:        } catch (Throwable $e) {
+app/Modules/AdminKernel/Application/Services/DeliveryOperationsService.php:48:        } catch (Throwable $e) {
+app/Modules/AdminKernel/Application/Services/DeliveryOperationsService.php:70:        } catch (Throwable $e) {
+app/Modules/AdminKernel/Application/Services/DeliveryOperationsService.php:93:        } catch (Throwable $e) {
+app/Modules/AdminKernel/Application/Services/DeliveryOperationsService.php:114:        } catch (Throwable $e) {
+app/Modules/AdminKernel/Application/Services/DiagnosticsTelemetryService.php:52:        } catch (Throwable $e) {
+app/Modules/AdminKernel/Application/Services/DiagnosticsTelemetryService.php:74:        } catch (Throwable $e) {
+app/Modules/AdminKernel/Application/Services/DiagnosticsTelemetryService.php:100:        } catch (Throwable $e) {
+app/Modules/AdminKernel/Application/Services/DiagnosticsTelemetryService.php:127:        } catch (Throwable $e) {
+app/Modules/AdminKernel/Application/Services/AuditTrailService.php:47:        } catch (Throwable $e) {
+app/Modules/AdminKernel/Application/Services/AuditTrailService.php:65:        } catch (Throwable $e) {
+app/Modules/AdminKernel/Application/Services/AuditTrailService.php:86:        } catch (Throwable $e) {
+app/Modules/AdminKernel/Application/Services/AuditTrailService.php:107:        } catch (Throwable $e) {
+app/Modules/AdminKernel/Application/Services/AuditTrailService.php:130:        } catch (Throwable $e) {
+app/Modules/AdminKernel/Application/Verification/VerificationNotificationDispatcher.php:60:        } catch (Throwable $e) {
+app/Modules/AdminKernel/Templates/auth/2fa_setup.twig:242:                } catch (err) {
+app/Modules/AdminKernel/Templates/pages/i18n/scope_domain_keys_summary.twig:18:            languages: {{ languages|json_encode|raw }},
+app/Modules/AdminKernel/Templates/pages/i18n/scope_domain_translations.twig:18:            languages: {{ languages|json_encode|raw }}
+app/Modules/AdminKernel/Templates/pages/app-settings/app_settings.list.twig:17:        window.appSettingsCapabilities = {{ capabilities|json_encode|raw }};
+app/Modules/AdminKernel/Infrastructure/Admin/Reader/PdoAdminProfileReader.php:91:            throw new RuntimeException('Admin not found');
+app/Modules/AdminKernel/Infrastructure/Updater/PDOPermissionsMetadataRepository.php:40:            throw new RuntimeException('Nothing to update for permission metadata.');
+app/Modules/AdminKernel/Infrastructure/Updater/PDOPermissionsMetadataRepository.php:52:            throw new RuntimeException("Permission with id {$permissionId} does not exist.");
+app/Modules/AdminKernel/Infrastructure/Updater/PDOPermissionsMetadataRepository.php:79:            throw new RuntimeException("Failed to update metadata for permission {$permissionId}.");
+app/Modules/AdminKernel/Infrastructure/Database/PDOFactory.php:46:        } catch (\PDOException $e) {
+app/Modules/AdminKernel/Infrastructure/Database/PDOFactory.php:49:            throw new RuntimeException('Database connection failed: ' . $e->getMessage(), (int)$e->getCode(), $e);
+app/Modules/AdminKernel/Infrastructure/Reader/Admin/PdoAdminQueryReader.php:107:            throw new \RuntimeException('Failed to execute total admins count query');
+app/Modules/AdminKernel/Infrastructure/Reader/Session/PdoSessionListReader.php:121:            throw new RuntimeException('Failed to execute total count query');
+app/Modules/AdminKernel/Infrastructure/Reader/PDOPermissionsReaderRepository.php:83:            throw new \RuntimeException('Failed to execute permissions total count query');
+app/Modules/AdminKernel/Infrastructure/Reader/PDORolesReaderRepository.php:80:            throw new \RuntimeException('Failed to execute roles total count query');
+app/Modules/AdminKernel/Infrastructure/Reader/AppSettings/PdoAppSettingsQueryReader.php:75:            throw new RuntimeException('Failed to execute total app_settings count query');
+app/Modules/AdminKernel/Infrastructure/ContentDocuments/PDOContentDocumentQueryReaderRepository.php:88:            throw new RuntimeException('Failed to execute total document_types count query');
+app/Modules/AdminKernel/Infrastructure/Logging/AuditTrailMaatifyAdapter.php:34:            throw new InvalidArgumentException('AuditTrail: entityType is required by recorder but was null.');
+app/Modules/AdminKernel/Infrastructure/Logging/AuthoritativeAuditMaatifyAdapter.php:34:            throw new \RuntimeException('AuthoritativeAudit Failure: No Correlation ID available in RequestContext.');
+app/Modules/AdminKernel/Infrastructure/Crypto/AbuseProtectionCryptoSignatureProvider.php:60:            throw new RuntimeException('Crypto keys export is invalid (missing keys or active_key_id).');
+app/Modules/AdminKernel/Infrastructure/Crypto/AbuseProtectionCryptoSignatureProvider.php:65:            throw new RuntimeException('Active crypto key not found in export: ' . $activeKeyId);
+app/Modules/AdminKernel/Infrastructure/Crypto/AbuseProtectionCryptoSignatureProvider.php:128:            throw new RuntimeException('Active crypto key id is missing from export.');
+app/Modules/AdminKernel/Infrastructure/Crypto/NotificationCryptoService.php:84:        $json = json_encode($payload, JSON_THROW_ON_ERROR);
+app/Modules/AdminKernel/Infrastructure/Crypto/NotificationCryptoService.php:120:            throw new RuntimeException('Decrypted email payload is not an array.');
+app/Modules/AdminKernel/Infrastructure/Crypto/AdminIdentifierCryptoService.php:52:            throw new RuntimeException('Admin identifier blind index pepper must be configured.');
+app/Modules/AdminKernel/Infrastructure/Notification/TelegramHandler.php:86:        } catch (RuntimeException $e) {
+app/Modules/AdminKernel/Infrastructure/Notification/TelegramHandler.php:94:        } catch (\Exception $e) {
+app/Modules/AdminKernel/Infrastructure/Repository/PdoAdminNotificationPreferenceRepository.php:95:             throw new \RuntimeException('Failed to retrieve upserted preference');
+app/Modules/AdminKernel/Infrastructure/Repository/AdminNotificationChannelRepository.php:68:             throw new RuntimeException("Channel not found: $channelId");
+app/Modules/AdminKernel/Infrastructure/Repository/AdminNotificationChannelRepository.php:95:                    throw new RuntimeException("Telegram chat_id already linked to another admin.");
+app/Modules/AdminKernel/Infrastructure/Repository/AdminNotificationChannelRepository.php:104:        $configJson = json_encode($config);
+app/Modules/AdminKernel/Infrastructure/Repository/AdminNotificationChannelRepository.php:106:            throw new RuntimeException("Invalid config JSON");
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoDirectPermissionsWriterRepository.php:31:            throw new EntityNotFoundException('admin', $adminId);
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoDirectPermissionsWriterRepository.php:39:            throw new EntityNotFoundException('permission', $permissionId);
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoDirectPermissionsWriterRepository.php:70:            throw new RuntimeException('Failed to assign direct permission');
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoDirectPermissionsWriterRepository.php:90:            throw new RuntimeException('Failed to revoke direct permission');
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoPermissionAdminsQueryRepository.php:37:            throw new EntityNotFoundException('permission', $permissionId);
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoPermissionAdminsQueryRepository.php:81:            throw new RuntimeException('Failed to count total admins');
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoPermissionAdminsQueryRepository.php:99:            throw new RuntimeException('Failed to count filtered admins');
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoPermissionAdminsQueryRepository.php:134:            throw new RuntimeException('Failed to query admins for permission');
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoEffectivePermissionsRepository.php:36:            throw new EntityNotFoundException('admin', $adminId);
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoEffectivePermissionsRepository.php:99:            throw new RuntimeException('Failed to count effective permissions');
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoEffectivePermissionsRepository.php:195:            throw new RuntimeException('Failed to query effective permissions');
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoDirectPermissionsAssignableRepository.php:36:            throw new EntityNotFoundException('admin', $adminId);
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoDirectPermissionsAssignableRepository.php:90:            throw new RuntimeException('Failed to count assignable permissions');
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoDirectPermissionsAssignableRepository.php:145:            throw new RuntimeException('Failed to query assignable permissions');
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoPermissionRolesQueryRepository.php:35:            throw new EntityNotFoundException('permission', $permissionId);
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoPermissionRolesQueryRepository.php:93:            throw new RuntimeException('Failed to count permission roles');
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoPermissionRolesQueryRepository.php:144:            throw new RuntimeException('Failed to query permission roles');
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoPermissionDetailsRepository.php:39:            throw new EntityNotFoundException('permission', $permissionId);
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoDirectPermissionsRepository.php:37:            throw new EntityNotFoundException('admin', $adminId);
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoDirectPermissionsRepository.php:94:            throw new RuntimeException('Failed to count direct permissions');
+app/Modules/AdminKernel/Infrastructure/Repository/Permissions/PdoDirectPermissionsRepository.php:148:            throw new RuntimeException('Failed to query direct permissions');
+app/Modules/AdminKernel/Infrastructure/Repository/NotificationReadRepository.php:167:        } catch (\Exception) {
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleCreateRepository.php:43:            throw new EntityAlreadyExistsException(
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleCreateRepository.php:63:            throw new RuntimeException("Failed to create role '{$name}'.");
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoAdminRolesRepository.php:36:            throw new EntityNotFoundException('admin', $adminId);
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoAdminRolesRepository.php:92:            throw new RuntimeException('Failed to execute admin roles total count query');
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoAdminRolesRepository.php:142:            throw new RuntimeException('Failed to query admin roles.');
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleAdminsRepository.php:31:            throw new EntityNotFoundException('role', $roleId);
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleAdminsRepository.php:38:            throw new EntityNotFoundException('admin', $adminId);
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleAdminsRepository.php:50:            throw new RuntimeException('Failed to assign admin to role.');
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleAdminsRepository.php:60:            throw new EntityNotFoundException('role', $roleId);
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleAdminsRepository.php:73:            throw new RuntimeException('Failed to unassign admin from role.');
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleAdminsRepository.php:87:            throw new EntityNotFoundException('role', $roleId);
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleAdminsRepository.php:148:            throw new RuntimeException('Failed to count admins');
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRolePermissionsRepository.php:32:            throw new EntityNotFoundException('role', $roleId);
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRolePermissionsRepository.php:40:            throw new EntityNotFoundException('permission', $permissionId);
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRolePermissionsRepository.php:53:            throw new RuntimeException('Failed to assign permission to role.');
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRolePermissionsRepository.php:64:            throw new EntityNotFoundException('role', $roleId);
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRolePermissionsRepository.php:77:            throw new RuntimeException('Failed to unassign permission from role.');
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRolePermissionsRepository.php:93:            throw new EntityNotFoundException('role', $roleId);
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRolePermissionsRepository.php:137:            throw new RuntimeException('Failed to execute permissions total count query');
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleRepository.php:45:            throw new InvalidOperationException(
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleRepository.php:61:            throw new EntityNotFoundException('role', $roleId);
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleRepository.php:88:            throw new RuntimeException("Failed to update metadata for roles {$roleId}.");
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleRepository.php:103:            throw new EntityNotFoundException('role', $roleId);
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleRepository.php:117:            throw new RuntimeException("Failed to toggle role {$roleId}.");
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleRepository.php:134:            throw new EntityNotFoundException('role', $roleId);
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleRepository.php:153:            throw new EntityAlreadyExistsException('Role', 'name', $newName);
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleRepository.php:167:            throw new RuntimeException("Failed to rename role {$roleId}.");
+app/Modules/AdminKernel/Infrastructure/Repository/Roles/PdoRoleRepository.php:198:            throw new EntityNotFoundException('role', $roleId);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/PdoLanguageTranslationValueQueryReader.php:91:            throw new RuntimeException('Failed to execute total translation keys count query');
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopeCreateWriter.php:36:            throw new RuntimeException('Failed to create i18n scope');
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopeDetailsReader.php:48:            throw new EntityNotFoundException('scope', $scopeId);
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopeUpdater.php:60:            throw new RuntimeException('Failed to fetch current scope code');
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopeUpdater.php:78:            throw new RuntimeException('Failed to change scope code');
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopeUpdater.php:184:        } catch (\Throwable $e) {
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopesQueryReader.php:73:            throw new RuntimeException('Failed to execute total i18n_scopes count query');
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Scope/PdoI18nScopeDropdownReader.php:45:            throw new RuntimeException('Failed to prepare scope dropdown query');
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Translations/PdoI18nScopeDomainKeysSummaryQueryReader.php:120:            throw new RuntimeException('Failed to prepare total i18n keys query');
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Translations/PdoI18nScopeDomainKeysSummaryQueryReader.php:173:            throw new RuntimeException('Failed to prepare filtered i18n keys query');
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Translations/PdoI18nScopeDomainKeysSummaryQueryReader.php:200:            throw new RuntimeException('Failed to prepare i18n translations list query');
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Keys/PdoI18nScopeKeysQueryReader.php:84:            throw new RuntimeException('Failed to execute total translation keys count query');
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Keys/PdoI18nScopeKeysQueryReader.php:166:            throw new EntityNotFoundException('scope not found', 'scopeId');
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Domains/PdoI18nDomainCreate.php:47:            throw new RuntimeException('Failed to create i18n Domain');
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Domains/PdoI18nDomainDetailsReader.php:48:            throw new RuntimeException('Failed to prepare domain details query');
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Domains/PdoI18nDomainDetailsReader.php:56:            throw new EntityNotFoundException('Domain not found', 'domain_id');
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Domains/PdoI18nDomainUpdater.php:71:            throw new RuntimeException('Failed to fetch current scope code');
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Domains/PdoI18nDomainUpdater.php:89:            throw new RuntimeException('Failed to change scope code');
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Domains/PdoI18nDomainUpdater.php:195:        } catch (\Throwable $e) {
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Domains/PdoI18nDomainsQueryReader.php:82:            throw new RuntimeException('Failed to execute total i18n_domains count query');
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Languages/PdoLanguageLookup.php:54:            throw new RuntimeException('Failed to prepare language lookup query');
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/Languages/PdoLanguageQueryReader.php:83:            throw new RuntimeException('Failed to execute total languages count query');
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/ScopeDomains/PdoI18nScopeDomainsQueryReader.php:106:            throw new RuntimeException('Failed to execute total i18n_domains count query');
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/ScopeDomains/PdoI18nScopeDomainsWriter.php:50:            throw new RuntimeException('Failed to assign domain to scope');
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/ScopeDomains/PdoI18nScopeDomainsWriter.php:74:            throw new RuntimeException('Failed to unassign domain from scope');
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/ScopeDomains/PdoI18nScopeDomainsListReader.php:48:            throw new RuntimeException('Failed to prepare scope domains list query');
+app/Modules/AdminKernel/Infrastructure/Repository/I18n/ScopeDomains/PdoI18nScopeDomainsListReader.php:78:            throw new EntityNotFoundException('scope not found', 'scopeId');
+app/Modules/AdminKernel/Infrastructure/Repository/PdoStepUpGrantRepository.php:38:        $contextSnapshot = json_encode($grant->contextSnapshot, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+app/Modules/AdminKernel/Infrastructure/Repository/PdoSystemOwnershipRepository.php:22:            throw new RuntimeException("Failed to check system ownership.");
+app/Modules/AdminKernel/Infrastructure/Repository/PdoSystemOwnershipRepository.php:37:            throw new RuntimeException("System ownership already assigned.");
+app/Modules/AdminKernel/Infrastructure/Repository/AdminRepository.php:65:            throw new \RuntimeException('Admin not found when resolving status');
+app/Modules/AdminKernel/Infrastructure/Repository/AdminRepository.php:84:            throw new \RuntimeException('Admin not found when resolving session identity');
+app/Modules/AdminKernel/Infrastructure/Repository/AdminEmailRepository.php:107:            throw new RuntimeException('Invalid key ID: cannot be empty.');
+app/Modules/AdminKernel/Infrastructure/Repository/AdminEmailRepository.php:127:                throw new RuntimeException('Failed to read stream resource.');
+app/Modules/AdminKernel/Infrastructure/Repository/AdminEmailRepository.php:132:        throw new RuntimeException('Invalid data type from DB: expected string or resource.');
+app/Modules/AdminKernel/Infrastructure/Repository/AdminEmailRepository.php:156:            throw new IdentifierNotFoundException(
+app/Modules/AdminKernel/Infrastructure/Repository/AdminTotpSecretRepository.php:21:use PDOException;
+app/Modules/AdminKernel/Infrastructure/Repository/AdminTotpSecretRepository.php:66:        } catch (PDOException $e) {
+app/Modules/AdminKernel/Infrastructure/Repository/AdminTotpSecretRepository.php:67:            throw new RuntimeException(
+app/Modules/AdminKernel/Infrastructure/Repository/RedisStepUpGrantRepository.php:22:            throw new RuntimeException('Redis extension is required for Step-Up Grants.');
+app/Modules/AdminKernel/Infrastructure/Repository/RedisStepUpGrantRepository.php:28:                 throw new RuntimeException('Could not connect to Redis.');
+app/Modules/AdminKernel/Infrastructure/Repository/RedisStepUpGrantRepository.php:30:        } catch (RedisException $e) {
+app/Modules/AdminKernel/Infrastructure/Repository/RedisStepUpGrantRepository.php:31:            throw new RuntimeException('Redis connection failed: ' . $e->getMessage(), 0, $e);
+app/Modules/AdminKernel/Infrastructure/Repository/RedisStepUpGrantRepository.php:44:        $data = json_encode($grant);
+app/Modules/AdminKernel/Infrastructure/Repository/RedisStepUpGrantRepository.php:46:             throw new RuntimeException('Failed to encode grant data.');
+app/Modules/AdminKernel/Infrastructure/Repository/RedisStepUpGrantRepository.php:51:        } catch (RedisException $e) {
+app/Modules/AdminKernel/Infrastructure/Repository/RedisStepUpGrantRepository.php:53:            throw new RuntimeException('Failed to save Step-Up Grant to Redis.', 0, $e);
+app/Modules/AdminKernel/Infrastructure/Repository/RedisStepUpGrantRepository.php:62:        } catch (RedisException $e) {
+app/Modules/AdminKernel/Infrastructure/Repository/RedisStepUpGrantRepository.php:98:        } catch (\Throwable $e) {
+app/Modules/AdminKernel/Infrastructure/Repository/RedisStepUpGrantRepository.php:108:        } catch (RedisException $e) {
+app/Modules/AdminKernel/Infrastructure/Repository/RedisStepUpGrantRepository.php:127:        } catch (RedisException $e) {
+app/Modules/AdminKernel/Infrastructure/Repository/RedisStepUpGrantRepository.php:132:            throw new RuntimeException('Failed to revoke all Step-Up Grants from Redis.', 0, $e);
+app/Modules/AdminKernel/Kernel/DTO/AdminRuntimeConfigDTO.php:186:            throw new RuntimeException("Missing or invalid config key: {$key}");
+app/Modules/AdminKernel/Kernel/DTO/AdminRuntimeConfigDTO.php:209:            throw new RuntimeException("Missing config key: {$key}");
+app/Modules/AdminKernel/Kernel/DTO/AdminRuntimeConfigDTO.php:213:            throw new RuntimeException("Invalid boolean config key: {$key}");
+app/Modules/AdminKernel/Kernel/DTO/AdminRuntimeConfigDTO.php:262:            throw new RuntimeException("Missing or invalid int config key: {$key}");
+app/Modules/AdminKernel/Kernel/AdminKernel.php:42:            throw new RuntimeException('AdminRuntimeConfigDTO is required to boot AdminKernel.');
+app/Modules/AdminKernel/Kernel/AdminKernel.php:75:                throw new RuntimeException("Routes file not found: $routesPath");
+app/Modules/AdminKernel/Http/Middleware/SessionStateGuardMiddleware.php:33:                (string) json_encode(['error' => 'Authentication required'], JSON_THROW_ON_ERROR)
+app/Modules/AdminKernel/Http/Middleware/SessionStateGuardMiddleware.php:36:                ->withStatus(401)
+app/Modules/AdminKernel/Http/Middleware/SessionStateGuardMiddleware.php:51:                (string) json_encode(['error' => 'Session required'], JSON_THROW_ON_ERROR)
+app/Modules/AdminKernel/Http/Middleware/SessionStateGuardMiddleware.php:54:                ->withStatus(401)
+app/Modules/AdminKernel/Http/Middleware/SessionStateGuardMiddleware.php:74:            throw new \RuntimeException('Request context missing');
+app/Modules/AdminKernel/Http/Middleware/SessionStateGuardMiddleware.php:95:                    (string) json_encode($payload, JSON_THROW_ON_ERROR)
+app/Modules/AdminKernel/Http/Middleware/SessionStateGuardMiddleware.php:99:                    ->withStatus(403)
+app/Modules/AdminKernel/Http/Middleware/SessionStateGuardMiddleware.php:109:                    ->withStatus(302);
+app/Modules/AdminKernel/Http/Middleware/SessionStateGuardMiddleware.php:114:                ->withStatus(302);
+app/Modules/AdminKernel/Http/Middleware/RememberMeMiddleware.php:35:                    throw new \RuntimeException("Request context missing");
+app/Modules/AdminKernel/Http/Middleware/RememberMeMiddleware.php:81:            } catch (InvalidCredentialsException $e) {
+app/Modules/AdminKernel/Http/Middleware/RememberMeMiddleware.php:97:                    ->withStatus(302);
+app/Modules/AdminKernel/Http/Middleware/RequestIdMiddleware.php:47:            } catch (InvalidUuidStringException) {
+app/Modules/AdminKernel/Http/Middleware/UiRedirectNormalizationMiddleware.php:30://                        ->withStatus(302)
+app/Modules/AdminKernel/Http/Middleware/UiRedirectNormalizationMiddleware.php:39:                        ->withStatus(302)
+app/Modules/AdminKernel/Http/Middleware/UiRedirectNormalizationMiddleware.php:46:                    ->withStatus(302)
+app/Modules/AdminKernel/Http/Middleware/UiRedirectNormalizationMiddleware.php:52:                ->withStatus(302)
+app/Modules/AdminKernel/Http/Middleware/GuestGuardMiddleware.php:51:                 throw new \RuntimeException("Request context missing");
+app/Modules/AdminKernel/Http/Middleware/GuestGuardMiddleware.php:58:                $response->getBody()->write(json_encode(['error' => 'Already authenticated.'], JSON_THROW_ON_ERROR));
+app/Modules/AdminKernel/Http/Middleware/GuestGuardMiddleware.php:61:                    ->withStatus(403);
+app/Modules/AdminKernel/Http/Middleware/GuestGuardMiddleware.php:66:                    ->withStatus(302);
+app/Modules/AdminKernel/Http/Middleware/GuestGuardMiddleware.php:68:        } catch (InvalidSessionException | ExpiredSessionException | RevokedSessionException $e) {
+app/Modules/AdminKernel/Http/Middleware/RequestContextMiddleware.php:20:            throw new \RuntimeException(
+app/Modules/AdminKernel/Http/Middleware/HttpRequestTelemetryMiddleware.php:72:            } catch (Throwable) {
+app/Modules/AdminKernel/Http/Middleware/TrailingSlashMiddleware.php:32:                ->withStatus(301);
+app/Modules/AdminKernel/Http/Middleware/AuthorizationGuardMiddleware.php:27:            throw new \RuntimeException('AdminContext missing');
+app/Modules/AdminKernel/Http/Middleware/AuthorizationGuardMiddleware.php:34:            throw new UnauthorizedException("Route not found.");
+app/Modules/AdminKernel/Http/Middleware/AuthorizationGuardMiddleware.php:42:            throw new \RuntimeException("Request context missing");
+app/Modules/AdminKernel/Http/Middleware/SessionGuardMiddleware.php:52:            throw new \RuntimeException("Request context missing");
+app/Modules/AdminKernel/Http/Middleware/SessionGuardMiddleware.php:58:        catch (InvalidSessionException | ExpiredSessionException | RevokedSessionException $e) {
+app/Modules/AdminKernel/Http/Middleware/SessionGuardMiddleware.php:141:        } catch (InvalidCredentialsException) {
+app/Modules/AdminKernel/Http/Middleware/SessionGuardMiddleware.php:188:            $response->getBody()->write(json_encode(['error' => 'Invalid session'], JSON_THROW_ON_ERROR));
+app/Modules/AdminKernel/Http/Middleware/SessionGuardMiddleware.php:191:                ->withStatus(401)
+app/Modules/AdminKernel/Http/Middleware/SessionGuardMiddleware.php:198:            ->withStatus(302);
+app/Modules/AdminKernel/Http/Middleware/SessionGuardMiddleware.php:208:            $response->getBody()->write(json_encode(['error' => $message], JSON_THROW_ON_ERROR));
+app/Modules/AdminKernel/Http/Middleware/SessionGuardMiddleware.php:210:                ->withStatus(401)
+app/Modules/AdminKernel/Http/Middleware/SessionGuardMiddleware.php:216:            ->withStatus(302);
+app/Modules/AdminKernel/Http/Middleware/ScopeGuardMiddleware.php:31:            $response->getBody()->write((string)json_encode(['error' => 'Authentication required'], JSON_THROW_ON_ERROR));
+app/Modules/AdminKernel/Http/Middleware/ScopeGuardMiddleware.php:32:            return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
+app/Modules/AdminKernel/Http/Middleware/ScopeGuardMiddleware.php:40:             $response->getBody()->write((string)json_encode(['error' => 'Session required'], JSON_THROW_ON_ERROR));
+app/Modules/AdminKernel/Http/Middleware/ScopeGuardMiddleware.php:41:             return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
+app/Modules/AdminKernel/Http/Middleware/ScopeGuardMiddleware.php:46:            throw new \RuntimeException("Request context missing");
+app/Modules/AdminKernel/Http/Middleware/ScopeGuardMiddleware.php:61://             $response->getBody()->write((string)json_encode($payload, JSON_THROW_ON_ERROR));
+app/Modules/AdminKernel/Http/Middleware/ScopeGuardMiddleware.php:62://             return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
+app/Modules/AdminKernel/Http/Middleware/ScopeGuardMiddleware.php:106:             $response->getBody()->write((string)json_encode($payload, JSON_THROW_ON_ERROR));
+app/Modules/AdminKernel/Http/Middleware/ScopeGuardMiddleware.php:107:             return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
+app/Modules/AdminKernel/Http/Middleware/ScopeGuardMiddleware.php:141:            ->withStatus(302);
+app/Modules/AdminKernel/Http/Middleware/RecoveryStateMiddleware.php:28:            throw new \RuntimeException("Request context missing");
+app/Modules/AdminKernel/Http/Controllers/StepUpController.php:40:                throw new HttpBadRequestException($request, 'Invalid scope');
+app/Modules/AdminKernel/Http/Controllers/StepUpController.php:46:             throw new HttpUnauthorizedException($request, 'Authentication required');
+app/Modules/AdminKernel/Http/Controllers/StepUpController.php:52:             throw new HttpUnauthorizedException($request, 'Session required');
+app/Modules/AdminKernel/Http/Controllers/StepUpController.php:57:             throw new \RuntimeException("Request context missing");
+app/Modules/AdminKernel/Http/Controllers/StepUpController.php:87:        } catch (\Throwable) {
+app/Modules/AdminKernel/Http/Controllers/StepUpController.php:92:            $response->getBody()->write((string)json_encode(['status' => 'granted', 'scope' => $requestedScope?->value ?? 'login']));
+app/Modules/AdminKernel/Http/Controllers/StepUpController.php:93:            return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/StepUpController.php:96:        throw new HttpForbiddenException($request, (string)$result->errorReason);
+app/Modules/AdminKernel/Http/Controllers/AdminNotificationPreferenceController.php:32:            throw new \RuntimeException('AdminContext missing');
+app/Modules/AdminKernel/Http/Controllers/AdminNotificationPreferenceController.php:41:        $payload = json_encode($preferences);
+app/Modules/AdminKernel/Http/Controllers/AdminNotificationPreferenceController.php:43:             throw new \RuntimeException('JSON encoding failed');
+app/Modules/AdminKernel/Http/Controllers/AdminNotificationPreferenceController.php:54:            throw new \RuntimeException('AdminContext missing');
+app/Modules/AdminKernel/Http/Controllers/AdminNotificationPreferenceController.php:59:            throw new \RuntimeException('RequestContext missing');
+app/Modules/AdminKernel/Http/Controllers/AdminNotificationPreferenceController.php:79:            $errorPayload = json_encode(['error' => 'Invalid channel type']);
+app/Modules/AdminKernel/Http/Controllers/AdminNotificationPreferenceController.php:81:                throw new \RuntimeException('JSON encoding failed');
+app/Modules/AdminKernel/Http/Controllers/AdminNotificationPreferenceController.php:84:            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+app/Modules/AdminKernel/Http/Controllers/AdminNotificationPreferenceController.php:96:        $payload = json_encode($result);
+app/Modules/AdminKernel/Http/Controllers/AdminNotificationPreferenceController.php:98:             throw new \RuntimeException('JSON encoding failed');
+app/Modules/AdminKernel/Http/Controllers/Ui/Admin/UiAdminsController.php:65:     * @return Response
+app/Modules/AdminKernel/Http/Controllers/Ui/Admin/UiAdminsController.php:110:     * @return Response
+app/Modules/AdminKernel/Http/Controllers/Ui/Admin/UiAdminsController.php:146:     * @return Response
+app/Modules/AdminKernel/Http/Controllers/Ui/Admin/UiAdminsController.php:155:            throw new RuntimeException('Invalid request body');
+app/Modules/AdminKernel/Http/Controllers/Ui/Admin/UiAdminsController.php:172:                throw new RuntimeException('Invalid status value');
+app/Modules/AdminKernel/Http/Controllers/Ui/Admin/UiAdminsController.php:185:            throw new RuntimeException('Context missing');
+app/Modules/AdminKernel/Http/Controllers/Ui/Admin/UiAdminsController.php:198:            ->withStatus(302);
+app/Modules/AdminKernel/Http/Controllers/Ui/Admin/UiAdminsController.php:216:     * @return Response
+app/Modules/AdminKernel/Http/Controllers/Ui/Admin/UiAdminsController.php:225:            throw new HttpNotFoundException($request, 'Admin not found');
+app/Modules/AdminKernel/Http/Controllers/Ui/Admin/UiAdminsController.php:271:     * @return Response
+app/Modules/AdminKernel/Http/Controllers/Ui/Admin/UiAdminsController.php:280:            throw new HttpNotFoundException($request, 'Admin not found');
+app/Modules/AdminKernel/Http/Controllers/Ui/Admin/UiAdminsController.php:308:     * @return Response
+app/Modules/AdminKernel/Http/Controllers/Ui/Admin/UiAdminsController.php:317:            throw new HttpNotFoundException($request, 'Admin not found');
+app/Modules/AdminKernel/Http/Controllers/Ui/Admin/UiAdminsController.php:363:            throw new RuntimeException('Invalid admin id');
+app/Modules/AdminKernel/Http/Controllers/Ui/Permissions/UiAPermissionDetailsController.php:38:     * @return Response
+app/Modules/AdminKernel/Http/Controllers/Ui/I18n/ScopeDomainKeysSummaryController.php:61:            throw new DomainScopeViolationException($scopeCode, $domainCode);
+app/Modules/AdminKernel/Http/Controllers/Ui/I18n/ScopeDetailsController.php:50:     * @return Response
+app/Modules/AdminKernel/Http/Controllers/Ui/I18n/LanguageTranslationsListUiController.php:51:            throw new EntityNotFoundException('Language', $languageId);
+app/Modules/AdminKernel/Http/Controllers/Ui/I18n/ScopeKeysController.php:51:     * @return Response
+app/Modules/AdminKernel/Http/Controllers/Ui/I18n/ScopeDomainTranslationsUiController.php:61:            throw new DomainScopeViolationException($scopeCode, $domainCode);
+app/Modules/AdminKernel/Http/Controllers/Ui/Auth/UiTwoFactorSetupController.php:59:                throw new \RuntimeException('Session hash missing from request context');
+app/Modules/AdminKernel/Http/Controllers/Ui/Auth/UiTwoFactorSetupController.php:67:        } catch (TwoFactorAlreadyEnrolledException) {
+app/Modules/AdminKernel/Http/Controllers/Ui/Auth/UiTwoFactorSetupController.php:71:                ->withStatus(302);
+app/Modules/AdminKernel/Http/Controllers/Ui/Auth/UiTwoFactorSetupController.php:100:            throw new \RuntimeException('auth_token missing from cookies');
+app/Modules/AdminKernel/Http/Controllers/Ui/Auth/UiTwoFactorSetupController.php:128:        } catch (TwoFactorAlreadyEnrolledException) {
+app/Modules/AdminKernel/Http/Controllers/Ui/Auth/UiTwoFactorSetupController.php:132:                ->withStatus(302);
+app/Modules/AdminKernel/Http/Controllers/Ui/Auth/UiTwoFactorSetupController.php:157:            ->withStatus(302);
+app/Modules/AdminKernel/Http/Controllers/AdminNotificationReadController.php:30:            throw new \RuntimeException('AdminContext missing');
+app/Modules/AdminKernel/Http/Controllers/AdminNotificationReadController.php:35:            throw new \RuntimeException('RequestContext missing');
+app/Modules/AdminKernel/Http/Controllers/AdminNotificationReadController.php:51:        return $response->withStatus(204);
+app/Modules/AdminKernel/Http/Controllers/TelegramWebhookController.php:38:            return $response->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/TelegramWebhookController.php:45:            return $response->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/TelegramWebhookController.php:55:            return $response->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/TelegramWebhookController.php:69:        return $response->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Web/LoginController.php:67:                throw new \RuntimeException('Request Context not present');
+app/Modules/AdminKernel/Http/Controllers/Web/LoginController.php:165:                ->withStatus(302);
+app/Modules/AdminKernel/Http/Controllers/Web/LoginController.php:166:        } catch (MustChangePasswordException $e) {
+app/Modules/AdminKernel/Http/Controllers/Web/LoginController.php:169:                ->withStatus(302);
+app/Modules/AdminKernel/Http/Controllers/Web/LoginController.php:170:        } catch (AuthStateException $e) {
+app/Modules/AdminKernel/Http/Controllers/Web/LoginController.php:174:                    ->withStatus(302);
+app/Modules/AdminKernel/Http/Controllers/Web/LoginController.php:182:        } catch (InvalidCredentialsException $e) {
+app/Modules/AdminKernel/Http/Controllers/Web/TwoFactorController.php:53:            return $response->withStatus(401);
+app/Modules/AdminKernel/Http/Controllers/Web/TwoFactorController.php:59:            return $response->withStatus(401);
+app/Modules/AdminKernel/Http/Controllers/Web/TwoFactorController.php:64:            throw new \RuntimeException("Request context missing");
+app/Modules/AdminKernel/Http/Controllers/Web/TwoFactorController.php:78:            return $response->withHeader('Location', '/dashboard')->withStatus(302);
+app/Modules/AdminKernel/Http/Controllers/Web/TwoFactorController.php:126:            return $response->withStatus(401);
+app/Modules/AdminKernel/Http/Controllers/Web/TwoFactorController.php:132:            return $response->withStatus(401);
+app/Modules/AdminKernel/Http/Controllers/Web/TwoFactorController.php:137:            throw new \RuntimeException("Request context missing");
+app/Modules/AdminKernel/Http/Controllers/Web/TwoFactorController.php:158:                return $response->withHeader('Location', $returnTo)->withStatus(302);
+app/Modules/AdminKernel/Http/Controllers/Web/TwoFactorController.php:162:            return $response->withHeader('Location', '/dashboard')->withStatus(302);
+app/Modules/AdminKernel/Http/Controllers/Web/TwoFactorController.php:191:            } catch (\ValueError) {
+app/Modules/AdminKernel/Http/Controllers/Web/TwoFactorController.php:200:            } catch (\ValueError) {
+app/Modules/AdminKernel/Http/Controllers/Web/LogoutController.php:25:            throw new \RuntimeException('AdminContext missing');
+app/Modules/AdminKernel/Http/Controllers/Web/LogoutController.php:30:            throw new \RuntimeException('Request context missing');
+app/Modules/AdminKernel/Http/Controllers/Web/LogoutController.php:75:            ->withStatus(302);
+app/Modules/AdminKernel/Http/Controllers/Web/TelegramConnectController.php:29:            throw new RuntimeException('AdminContext missing');
+app/Modules/AdminKernel/Http/Controllers/Web/EmailVerificationController.php:66:            throw new \RuntimeException('RequestContext missing');
+app/Modules/AdminKernel/Http/Controllers/Web/EmailVerificationController.php:85:            ->withStatus(302);
+app/Modules/AdminKernel/Http/Controllers/Web/EmailVerificationController.php:104:            ->withStatus(302);
+app/Modules/AdminKernel/Http/Controllers/Web/ChangePasswordController.php:52:            throw new \RuntimeException('RequestContext missing');
+app/Modules/AdminKernel/Http/Controllers/Web/ChangePasswordController.php:72:            ->withStatus(302);
+app/Modules/AdminKernel/Http/Controllers/AuthController.php:45:                throw new \RuntimeException('Request Context not present');
+app/Modules/AdminKernel/Http/Controllers/AuthController.php:51:            $response->getBody()->write((string) json_encode($responseDto));
+app/Modules/AdminKernel/Http/Controllers/AuthController.php:54:        } catch (InvalidCredentialsException $e) {
+app/Modules/AdminKernel/Http/Controllers/AuthController.php:57:            $response->getBody()->write((string) json_encode(['error' => 'Invalid credentials']));
+app/Modules/AdminKernel/Http/Controllers/AuthController.php:58:            return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
+app/Modules/AdminKernel/Http/Controllers/AuthController.php:59:        } catch (AuthStateException $e) {
+app/Modules/AdminKernel/Http/Controllers/AuthController.php:61:            $response->getBody()->write((string) json_encode(['error' => $e->getMessage()]));
+app/Modules/AdminKernel/Http/Controllers/AuthController.php:62:            return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
+app/Modules/AdminKernel/Http/Controllers/NotificationQueryController.php:43:            } catch (\Exception) {
+app/Modules/AdminKernel/Http/Controllers/NotificationQueryController.php:54:        $payload = json_encode($notifications);
+app/Modules/AdminKernel/Http/Controllers/NotificationQueryController.php:62:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/AdminNotificationHistoryController.php:30:            throw new \RuntimeException('AdminContext missing');
+app/Modules/AdminKernel/Http/Controllers/AdminNotificationHistoryController.php:38:            return $response->withStatus(403);
+app/Modules/AdminKernel/Http/Controllers/AdminNotificationHistoryController.php:85:        $payload = json_encode($history);
+app/Modules/AdminKernel/Http/Controllers/AdminNotificationHistoryController.php:87:            throw new \RuntimeException('Failed to encode notification history');
+app/Modules/AdminKernel/Http/Controllers/AdminNotificationHistoryController.php:93:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminQueryController.php:73:        $response->getBody()->write(json_encode($result, JSON_THROW_ON_ERROR));
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminQueryController.php:75:        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/EffectivePermissionsQueryController.php:79:            json_encode($result, JSON_THROW_ON_ERROR)
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/EffectivePermissionsQueryController.php:84:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/RevokeDirectPermissionController.php:49:        return $response->withStatus(204);
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminRolesQueryController.php:79:            json_encode($result, JSON_THROW_ON_ERROR)
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminRolesQueryController.php:84:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/DirectPermissionsAssignableQueryController.php:66:            json_encode($result, JSON_THROW_ON_ERROR)
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/DirectPermissionsAssignableQueryController.php:71:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:60:            throw new RuntimeException('AdminContext missing');
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:66:            throw new RuntimeException('RequestContext missing');
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:77:        } catch (InvalidIdentifierFormatException) {
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:78:            throw new HttpBadRequestException($request, 'Invalid email format.');
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:89:            throw new HttpBadRequestException($request, 'Email already registered.');
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:102:                throw new HttpBadRequestException($request, 'Display name is required.');
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:134:        } catch (\Throwable $e) {
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:146:        $json = json_encode($responseDto->jsonSerialize(), JSON_THROW_ON_ERROR);
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:151:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:174:        } catch (InvalidIdentifierFormatException $e) {
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:177:            throw new HttpBadRequestException($request, 'Invalid email format.');
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:191:                throw new HttpBadRequestException($request, 'Email is already used by another admin.');
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:195:                    throw new HttpBadRequestException($request, 'Email already verified.');
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:197:                    throw new HttpBadRequestException($request, 'Email already failed.');
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:199:                    throw new HttpBadRequestException($request, 'Email already pending.');
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:213:            throw new \RuntimeException('AdminContext missing');
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:218:            throw new \RuntimeException('RequestContext missing');
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:226:        $json = json_encode($responseDto->jsonSerialize(), JSON_THROW_ON_ERROR);
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:230:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:248:     * @return Response
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:258:            throw new HttpNotFoundException($request, 'Admin not found');
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:272:        $json = json_encode($payload, JSON_THROW_ON_ERROR);
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:276:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:292://        } catch (InvalidIdentifierFormatException $e) {
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:294://            throw new HttpBadRequestException($request, 'Invalid email format.');
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:313://        $json = json_encode($responseDto->jsonSerialize(), JSON_THROW_ON_ERROR);
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:317://            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:338://        $json = json_encode($responseDto->jsonSerialize(), JSON_THROW_ON_ERROR);
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminController.php:342://            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AssignDirectPermissionController.php:61:        return $response->withStatus(204);
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/DirectPermissionsQueryController.php:80:            json_encode($result, JSON_THROW_ON_ERROR)
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/DirectPermissionsQueryController.php:85:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminEmailVerificationController.php:128:     * @return ResponseInterface
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminEmailVerificationController.php:148:            throw new \RuntimeException('AdminContext missing');
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminEmailVerificationController.php:153:            throw new \RuntimeException('RequestContext missing');
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminEmailVerificationController.php:171:            $json = json_encode($dto, JSON_THROW_ON_ERROR);
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminEmailVerificationController.php:176:                ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminEmailVerificationController.php:178:        } catch (IdentifierNotFoundException $e) {
+app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminEmailVerificationController.php:179:            throw new HttpNotFoundException($request, $e->getMessage());
+app/Modules/AdminKernel/Http/Controllers/Api/Permissions/PermissionMetadataUpdateController.php:60:                ->withStatus(204); // No Content (nothing changed)
+app/Modules/AdminKernel/Http/Controllers/Api/Permissions/PermissionMetadataUpdateController.php:73:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/Permissions/PermissionRolesQueryController.php:79:            json_encode($result, JSON_THROW_ON_ERROR)
+app/Modules/AdminKernel/Http/Controllers/Api/Permissions/PermissionRolesQueryController.php:84:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/Permissions/PermissionAdminsQueryController.php:74:            json_encode($result, JSON_THROW_ON_ERROR)
+app/Modules/AdminKernel/Http/Controllers/Api/Permissions/PermissionAdminsQueryController.php:79:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/Permissions/PermissionsController.php:72:        $response->getBody()->write(json_encode($result, JSON_THROW_ON_ERROR));
+app/Modules/AdminKernel/Http/Controllers/Api/Permissions/PermissionsController.php:76:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/Roles/RoleCreateController.php:60:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/Roles/RolesControllerQuery.php:74:        $response->getBody()->write(json_encode($result, JSON_THROW_ON_ERROR));
+app/Modules/AdminKernel/Http/Controllers/Api/Roles/RolesControllerQuery.php:78:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/Roles/RoleToggleController.php:63:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/Roles/RoleRenameController.php:57:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/Roles/RoleAdminsQueryController.php:62:        $response->getBody()->write(json_encode($result, JSON_THROW_ON_ERROR));
+app/Modules/AdminKernel/Http/Controllers/Api/Roles/RoleAdminsQueryController.php:66:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/Roles/RolePermissionUnassignController.php:49:        return $response->withStatus(204);
+app/Modules/AdminKernel/Http/Controllers/Api/Roles/RoleMetadataUpdateController.php:59:                ->withStatus(204); // No Content (nothing changed)
+app/Modules/AdminKernel/Http/Controllers/Api/Roles/RoleMetadataUpdateController.php:72:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/Roles/RoleAdminAssignController.php:40:        return $response->withStatus(204);
+app/Modules/AdminKernel/Http/Controllers/Api/Roles/RolePermissionsQueryController.php:57:            json_encode($result, JSON_THROW_ON_ERROR)
+app/Modules/AdminKernel/Http/Controllers/Api/Roles/RolePermissionsQueryController.php:62:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/Roles/RolePermissionAssignController.php:50:            ->withStatus(204);
+app/Modules/AdminKernel/Http/Controllers/Api/Roles/RoleAdminUnassignController.php:40:        return $response->withStatus(204);
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Scope/I18nScopesQueryController.php:73:        $response->getBody()->write(json_encode($result, JSON_THROW_ON_ERROR));
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Scope/I18nScopesQueryController.php:75:        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Scope/I18nScopeSetActiveController.php:53:            throw new EntityNotFoundException('I18nScope', (string)$id);
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Scope/I18nScopeCreateController.php:53:            throw new EntityAlreadyExistsException(
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Scope/I18nScopeCreateController.php:69:        $response->getBody()->write(json_encode([
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Scope/I18nScopeCreateController.php:78:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Scope/I18nScopeUpdateSortController.php:42:            throw new EntityNotFoundException('I18nScope', (string)$id);
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Scope/I18nScopeChangeCodeController.php:55:            throw new EntityNotFoundException('I18nScope', (string)$id);
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Scope/I18nScopeChangeCodeController.php:60:            throw new EntityInUseException(
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Scope/I18nScopeChangeCodeController.php:68:            throw new EntityAlreadyExistsException(
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Scope/I18nScopeUpdateMetadataController.php:45:            throw new EntityNotFoundException('I18nScope', (string) $id);
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Scope/I18nScopeUpdateMetadataController.php:55:            throw new InvalidOperationException(
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysUpdateDescriptionController.php:52:        }catch (TranslationKeyNotFoundException $e){
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysUpdateDescriptionController.php:53:            throw new EntityNotFoundException('key not found', 'keyId');
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysUpdateDescriptionController.php:54:        }catch (TranslationUpdateFailedException $e){
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysUpdateDescriptionController.php:55:            throw new InvalidOperationException('keyId', 'update_description', $e->getMessage());
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysUpdateNameController.php:68:        }catch (TranslationKeyNotFoundException $e){
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysUpdateNameController.php:69:            throw new EntityNotFoundException('key not found', 'keyId');
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysUpdateNameController.php:70:        }catch (TranslationKeyAlreadyExistsException){
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysUpdateNameController.php:71:            throw new EntityAlreadyExistsException('key already exists', 'keyName', $keyName);
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysUpdateNameController.php:72:        }catch (TranslationUpdateFailedException $e){
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysUpdateNameController.php:73:            throw new InvalidOperationException('keyId', 'rename', $e->getMessage());
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysCreateController.php:59:                throw new InvalidOperationException('description', 'create', 'Invalid description value.');
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysCreateController.php:75:        }catch (TranslationKeyAlreadyExistsException $e){
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysCreateController.php:76:            throw new EntityAlreadyExistsException('translation_key already exists', 'keyName', $keyName);
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysCreateController.php:77:        }catch (TranslationKeyCreateFailedException $e){
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Keys/I18nScopeKeysCreateController.php:78:            throw new InvalidOperationException('translation_key', 'create', $e->getMessage());
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Domains/I18nScopeDomainSortController.php:53:            throw new EntityNotFoundException('I18nDomain', (string)$id);
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Domains/I18nDomainChangeCodeController.php:54:            throw new EntityNotFoundException('I18nDomain', (string)$id);
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Domains/I18nDomainChangeCodeController.php:59:            throw new EntityInUseException(
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Domains/I18nDomainChangeCodeController.php:67:            throw new EntityAlreadyExistsException(
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Domains/I18nDomainsQueryController.php:73:        $response->getBody()->write(json_encode($result, JSON_THROW_ON_ERROR));
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Domains/I18nDomainsQueryController.php:75:        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Domains/I18nDomainSetActiveController.php:53:            throw new EntityNotFoundException('I18nDomain', (string)$id);
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Domains/I18nDomainCreateController.php:53:            throw new EntityAlreadyExistsException(
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Domains/I18nDomainCreateController.php:69:        $response->getBody()->write(json_encode([
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Domains/I18nDomainCreateController.php:78:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Domains/I18nDomainUpdateMetadataController.php:56:            throw new EntityNotFoundException('I18nDomain', (string) $id);
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Domains/I18nDomainUpdateMetadataController.php:66:            throw new InvalidOperationException(
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesUpdateSortOrderController.php:49:            throw new \RuntimeException('Invalid validated payload.');
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesUpdateSortOrderController.php:57:        return $response->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesUpdateCodeController.php:48:            throw new RuntimeException('Invalid validated payload.');
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesUpdateCodeController.php:56:        return $response->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesSetFallbackController.php:48:            throw new RuntimeException('Invalid validated payload.');
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesSetFallbackController.php:60:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesCreateController.php:48:            throw new \RuntimeException('Invalid validated payload.');
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesCreateController.php:54:                throw new \RuntimeException('Invalid icon value.');
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesCreateController.php:62:                throw new \RuntimeException('Invalid is_active value.');
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesCreateController.php:70:                throw new \RuntimeException('Invalid fallback_language_id value.');
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesCreateController.php:88:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesUpdateNameController.php:35:            throw new RuntimeException('Invalid validated payload.');
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesUpdateNameController.php:43:        return $response->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesQueryController.php:74:        $response->getBody()->write(json_encode($result, JSON_THROW_ON_ERROR));
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesSetActiveController.php:48:            throw new RuntimeException('Invalid validated payload.');
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesSetActiveController.php:60:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesClearFallbackController.php:41:            throw new \RuntimeException('Invalid validated payload.');
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesClearFallbackController.php:46:        return $response->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesUpdateSettingsController.php:51:            throw new RuntimeException('Invalid validated payload.');
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesUpdateSettingsController.php:57:                throw new RuntimeException('Invalid icon value.');
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/Languages/LanguagesUpdateSettingsController.php:72:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/ScopeDomains/ScopeDomainTranslationsQueryController.php:89:            throw new DomainScopeViolationException($scopeCode, $domainCode);
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/ScopeDomains/I18nScopeDomainsQueryController.php:84:        $response->getBody()->write(json_encode($result, JSON_THROW_ON_ERROR));
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/ScopeDomains/I18nScopeDomainsQueryController.php:86:        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/I18n/ScopeDomains/I18nScopeDomainKeysSummaryQueryController.php:95:            throw new DomainScopeViolationException($scopeCode, $domainCode);
+app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionBulkRevokeController.php:31:            throw new \RuntimeException("AdminContext missing");
+app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionBulkRevokeController.php:37:            throw new \RuntimeException("Request context missing");
+app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionBulkRevokeController.php:55:                json_encode(['error' => 'Current session not found'], JSON_THROW_ON_ERROR)
+app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionBulkRevokeController.php:57:            return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
+app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionBulkRevokeController.php:69:        } catch (DomainException $e) {
+app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionBulkRevokeController.php:72:                json_encode(['error' => $e->getMessage()], JSON_THROW_ON_ERROR)
+app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionBulkRevokeController.php:74:            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionQueryController.php:34:            throw new \RuntimeException("AdminContext missing");
+app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionQueryController.php:40:            throw new \RuntimeException("Request context missing");
+app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionQueryController.php:121:        } catch (\Throwable) {
+app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionQueryController.php:126:        $response->getBody()->write(json_encode($result, JSON_THROW_ON_ERROR));
+app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionRevokeController.php:38:            throw new \RuntimeException("AdminContext missing");
+app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionRevokeController.php:44:            throw new \RuntimeException("Request context missing");
+app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionRevokeController.php:59:            throw new HttpUnauthorizedException($request, 'Current session not found');
+app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionRevokeController.php:71:                throw new \RuntimeException('Request Context not present');
+app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionRevokeController.php:76:        } catch (DomainException $e) {
+app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionRevokeController.php:77:            throw new HttpBadRequestException($request, $e->getMessage());
+app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionRevokeController.php:78:        } catch (IdentifierNotFoundException $e) {
+app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionRevokeController.php:79:            throw new HttpNotFoundException($request, $e->getMessage());
+app/Modules/AdminKernel/Http/Controllers/Api/AppSettings/AppSettingsQueryController.php:73:        $response->getBody()->write(json_encode($result, JSON_THROW_ON_ERROR));
+app/Modules/AdminKernel/Http/Controllers/Api/AppSettings/AppSettingsQueryController.php:77:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Controllers/Api/AppSettings/AppSettingsMetadataController.php:35:            json_encode($metadata, JSON_THROW_ON_ERROR)
+app/Modules/AdminKernel/Http/Controllers/Api/AppSettings/AppSettingsMetadataController.php:40:            ->withStatus(200);
+app/Modules/AdminKernel/Http/Routes/HealthRoutes.php:20:            $payload = json_encode(['status' => 'ok']);
+app/Modules/AdminKernel/Http/Routes/HealthRoutes.php:24:                ->withStatus(200);
+app/Modules/AdminKernel/Http/Response/JsonResponseFactory.php:25:            json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)
+app/Modules/AdminKernel/Http/Response/JsonResponseFactory.php:31:            ->withStatus($status);
+app/Modules/AdminKernel/Http/Response/JsonResponseFactory.php:41:            ->withStatus(204);
+app/Modules/AdminKernel/Bootstrap/http.php:47:            json_encode($payload, JSON_THROW_ON_ERROR)
+app/Modules/AdminKernel/Bootstrap/http.php:82:            } catch (Throwable $e) {
+app/Modules/AdminKernel/Bootstrap/http.php:283:            } catch (Throwable) {
+app/Modules/AdminKernel/Bootstrap/Container.php:311:        ) ?? throw new RuntimeException(
+app/Modules/AdminKernel/Bootstrap/Container.php:339:                } catch (\Exception $e) {
+app/Modules/AdminKernel/Bootstrap/Container.php:340:                    throw new \RuntimeException("Invalid APP_TIMEZONE: " . $config->timezone, 0, $e);
+app/Modules/AdminKernel/Bootstrap/Container.php:598:                    throw new \Exception('PASSWORD_ARGON2_OPTIONS must be a valid JSON object.');
+app/Modules/AdminKernel/Bootstrap/Container.php:608:                     throw new \Exception('PASSWORD_ARGON2_OPTIONS must contain exactly: memory_cost, time_cost, threads.');
+app/Modules/AdminKernel/Bootstrap/Container.php:614:                        throw new \Exception("PASSWORD_ARGON2_OPTIONS key '$key' must be a positive integer.");
+app/Modules/AdminKernel/Bootstrap/Container.php:1370:                    throw new \Exception('CRYPTO_ACTIVE_KEY_ID is strictly required.');
+app/Modules/AdminKernel/Bootstrap/Container.php:1378:                        throw new \Exception('Invalid crypto key structure. "id" and "key" must be non-empty.');
+app/Modules/AdminKernel/Bootstrap/Container.php:1387:                        throw new \Exception('Failed to decode hex key for ID: ' . $keyData['id']);
+app/Modules/AdminKernel/Bootstrap/Container.php:1412:                    throw new \Exception("CRYPTO_ACTIVE_KEY_ID '{$activeKeyId}' not found in CRYPTO_KEYS.");
+app/Modules/AdminKernel/Bootstrap/Container.php:1424:                    throw new \Exception("Crypto Configuration Error: Exactly ONE active key is required. Found: {$activeCount}");
+app/Modules/AdminKernel/Bootstrap/Container.php:2063:                            throw new \RuntimeException('TURNSTILE_SECRET_KEY is missing.');
+app/Modules/AdminKernel/Bootstrap/Container.php:2075:                            throw new \RuntimeException('HCAPTCHA_SECRET_KEY is missing.');
+app/Modules/AdminKernel/Bootstrap/Container.php:2087:                            throw new \RuntimeException('RECAPTCHA_V2_SECRET_KEY is missing.');
+app/Modules/AdminKernel/Context/ActorContext.php:37:            throw new \RuntimeException('ActorContext accessed before actor was set.');
+app/Modules/AdminKernel/Domain/Policy/AdminKernelErrorPolicy.php:51:            throw new LogicException(sprintf(
+app/Modules/AdminKernel/Domain/Service/RoleHierarchyComparator.php:38:                 throw new LogicException("Actor role '{$roleName}' resolves to UNKNOWN level. Hierarchy ambiguous.");
+app/Modules/AdminKernel/Domain/Service/RoleHierarchyComparator.php:46:             throw new LogicException("Target role '{$targetRoleName}' resolves to UNKNOWN level. Hierarchy ambiguous.");
+app/Modules/AdminKernel/Domain/Service/VerificationCodeGenerator.php:39:        } catch (Exception $e) {
+app/Modules/AdminKernel/Domain/Service/VerificationCodeGenerator.php:40:            throw new RuntimeException('Failed to generate secure random code.', 0, $e);
+app/Modules/AdminKernel/Domain/Service/StepUpService.php:61:        } catch (\Throwable $e) {
+app/Modules/AdminKernel/Domain/Service/StepUpService.php:92:        } catch (\Throwable $e) {
+app/Modules/AdminKernel/Domain/Service/StepUpService.php:155:            } catch (\Throwable $e) {
+app/Modules/AdminKernel/Domain/Service/StepUpService.php:172:            } catch (\Throwable $e) {
+app/Modules/AdminKernel/Domain/Service/RememberMeService.php:41:        } catch (RandomException $e) {
+app/Modules/AdminKernel/Domain/Service/RememberMeService.php:42:            throw new \RuntimeException('Could not generate random bytes.', 0, $e);
+app/Modules/AdminKernel/Domain/Service/RememberMeService.php:62:        } catch (\Throwable $e) {
+app/Modules/AdminKernel/Domain/Service/RememberMeService.php:81:            throw new InvalidCredentialsException('Invalid remember-me token format.');
+app/Modules/AdminKernel/Domain/Service/RememberMeService.php:92:                throw new InvalidCredentialsException('Remember-me token not found.');
+app/Modules/AdminKernel/Domain/Service/RememberMeService.php:101:                throw new InvalidCredentialsException('Invalid remember-me validator.');
+app/Modules/AdminKernel/Domain/Service/RememberMeService.php:108:                throw new InvalidCredentialsException('Remember-me token expired.');
+app/Modules/AdminKernel/Domain/Service/RememberMeService.php:118:            } catch (RandomException $e) {
+app/Modules/AdminKernel/Domain/Service/RememberMeService.php:119:                throw new \RuntimeException('Random failure', 0, $e);
+app/Modules/AdminKernel/Domain/Service/RememberMeService.php:154:        } catch (\Throwable $e) {
+app/Modules/AdminKernel/Domain/Service/RememberMeService.php:169:        } catch (\Throwable $e) {
+app/Modules/AdminKernel/Domain/Service/RememberMeService.php:184:        } catch (\Throwable $e) {
+app/Modules/AdminKernel/Domain/Service/AdminEmailVerificationService.php:45:            throw new InvalidIdentifierStateException("Identifier is already verified.");
+app/Modules/AdminKernel/Domain/Service/AdminEmailVerificationService.php:49:            throw new InvalidIdentifierStateException("Cannot verify a failed identifier.");
+app/Modules/AdminKernel/Domain/Service/AdminEmailVerificationService.php:53:            throw new InvalidIdentifierStateException("Cannot verify a replaced identifier.");
+app/Modules/AdminKernel/Domain/Service/AdminEmailVerificationService.php:61:        } catch (\Throwable $e) {
+app/Modules/AdminKernel/Domain/Service/AdminEmailVerificationService.php:77:            throw new InvalidIdentifierStateException(
+app/Modules/AdminKernel/Domain/Service/AdminEmailVerificationService.php:102:            throw new InvalidIdentifierStateException(
+app/Modules/AdminKernel/Domain/Service/AdminEmailVerificationService.php:131:            throw new InvalidIdentifierStateException(
+app/Modules/AdminKernel/Domain/Service/AdminEmailVerificationService.php:160:            throw new InvalidIdentifierStateException(
+app/Modules/AdminKernel/Domain/Service/AdminEmailVerificationService.php:209:        } catch (\Throwable $e) {
+app/Modules/AdminKernel/Domain/Service/AdminAuthenticationService.php:41:            throw new InvalidCredentialsException("Invalid credentials.");
+app/Modules/AdminKernel/Domain/Service/AdminAuthenticationService.php:48:            throw new InvalidCredentialsException("Invalid credentials.");
+app/Modules/AdminKernel/Domain/Service/AdminAuthenticationService.php:55:            throw new AuthStateException(
+app/Modules/AdminKernel/Domain/Service/AdminAuthenticationService.php:82:            throw new AuthStateException(
+app/Modules/AdminKernel/Domain/Service/AdminAuthenticationService.php:90:            throw new MustChangePasswordException('Password change required.');
+app/Modules/AdminKernel/Domain/Service/AdminAuthenticationService.php:116:        } catch (\Throwable $e) {
+app/Modules/AdminKernel/Domain/Service/AdminAuthenticationService.php:133:        } catch (\Throwable $e) {
+app/Modules/AdminKernel/Domain/Service/SessionValidationService.php:38:            throw new InvalidSessionException('Session not found or invalid.');
+app/Modules/AdminKernel/Domain/Service/SessionValidationService.php:42:            throw new RevokedSessionException('Session has been revoked.');
+app/Modules/AdminKernel/Domain/Service/SessionValidationService.php:47:            throw new ExpiredSessionException('Session has expired.');
+app/Modules/AdminKernel/Domain/Service/RoleAssignmentService.php:33:        } catch (\Exception $e) {
+app/Modules/AdminKernel/Domain/Service/RoleAssignmentService.php:46:            throw new PermissionDeniedException("Self-assignment of roles is forbidden.");
+app/Modules/AdminKernel/Domain/Service/RoleAssignmentService.php:52:            throw new PermissionDeniedException("Step-Up authentication required for role assignment.");
+app/Modules/AdminKernel/Domain/Service/RoleAssignmentService.php:58:        } catch (LogicException $e) {
+app/Modules/AdminKernel/Domain/Service/RoleAssignmentService.php:61:             throw new PermissionDeniedException("Role hierarchy is ambiguous. Assignment denied.");
+app/Modules/AdminKernel/Domain/Service/RoleAssignmentService.php:67:            throw new PermissionDeniedException("Insufficient privilege to assign this role.");
+app/Modules/AdminKernel/Domain/Service/RoleAssignmentService.php:86:        } catch (\Throwable $e) {
+app/Modules/AdminKernel/Domain/Service/RoleAssignmentService.php:110:        } catch (\Throwable $e) {
+app/Modules/AdminKernel/Domain/Service/SessionRevocationService.php:34:        } catch (\Throwable $e) {
+app/Modules/AdminKernel/Domain/Service/SessionRevocationService.php:50:            throw new SessionRevocationFailedException('Cannot revoke own session via bulk operation.');
+app/Modules/AdminKernel/Domain/Service/SessionRevocationService.php:76:        } catch (\Throwable $e) {
+app/Modules/AdminKernel/Domain/Service/SessionRevocationService.php:85:            throw new SessionRevocationFailedException('Cannot revoke own session via global view.');
+app/Modules/AdminKernel/Domain/Service/SessionRevocationService.php:97:                throw new IdentifierNotFoundException('Session not found.');
+app/Modules/AdminKernel/Domain/Service/SessionRevocationService.php:112:        } catch (\Throwable $e) {
+app/Modules/AdminKernel/Domain/Service/SessionRevocationService.php:125:        } catch (\Throwable $e) {
+app/Modules/AdminKernel/Domain/Service/AuthorizationService.php:60:            throw new PermissionDeniedException(
+app/Modules/AdminKernel/Domain/Service/AuthorizationService.php:121:            throw new UnauthorizedException("Permission '$permission' does not exist.");
+app/Modules/AdminKernel/Domain/Service/AuthorizationService.php:129:                    throw new PermissionDeniedException("Explicit deny for '$permission'.");
+app/Modules/AdminKernel/Domain/Service/AuthorizationService.php:144:        throw new PermissionDeniedException(
+app/Modules/AdminKernel/Domain/Service/RecoveryStateService.php:82:            throw new RecoveryLockException("Action '$action' blocked by Recovery-Locked Mode.");
+app/Modules/AdminKernel/Domain/Service/RecoveryStateService.php:124:            throw new RuntimeException("Cannot exit recovery: Environment configuration enforces lock.");
+app/Modules/AdminKernel/Domain/Service/RecoveryStateService.php:158:        } catch (\Throwable $e) {
+app/Modules/AdminKernel/Domain/Service/RecoveryStateService.php:162:            throw new RuntimeException("Failed to persist recovery transition ({$eventType}): " . $e->getMessage(), 0, $e);
+app/Modules/AdminKernel/Domain/Service/PasswordService.php:50:        } catch (\RuntimeException) {
+app/Modules/AdminKernel/Domain/Service/TwoFactorEnrollmentService.php:67:            throw new TwoFactorAlreadyEnrolledException(
+app/Modules/AdminKernel/Domain/Service/TwoFactorEnrollmentService.php:157:            throw new TwoFactorEnrollmentFailedException('No pending TOTP enrollment found');
+app/Modules/AdminKernel/Domain/Service/TwoFactorEnrollmentService.php:166:            throw new TwoFactorEnrollmentFailedException('TOTP enrollment expired');
+app/Modules/AdminKernel/Domain/Service/TwoFactorEnrollmentService.php:200:        } catch (\Throwable $e) {
+app/Modules/AdminKernel/Domain/Actor/Actor.php:55:            throw new InvalidArgumentException(
+app/Modules/AdminKernel/Domain/Actor/Actor.php:64:            throw new InvalidArgumentException(
+app/Modules/AdminKernel/Domain/Actor/Actor.php:73:            throw new InvalidArgumentException(
+app/Modules/AdminKernel/Domain/DTO/TotpEnrollmentConfig.php:28:            throw new RuntimeException('Invalid TOTP enrollment TTL');
+app/Modules/AdminKernel/Domain/DTO/Request/VerifyAdminEmailRequestDTO.php:18:            throw new InvalidIdentifierFormatException();
+app/Modules/AdminKernel/Domain/DTO/Request/CreateAdminEmailRequestDTO.php:18:            throw new InvalidIdentifierFormatException();
+app/Modules/AdminKernel/Domain/I18n/Service/I18nScopeDomainsService.php:52:            throw new InvalidOperationException(
+app/Modules/AdminKernel/Domain/I18n/Service/I18nScopeDomainsService.php:74:            throw new InvalidOperationException(
+app/Modules/AdminKernel/Domain/I18n/Service/I18nScopeDomainsService.php:92:            throw new EntityNotFoundException('scope', $scopeId);
+app/Modules/AdminKernel/Domain/I18n/Service/I18nScopeDomainsService.php:106:            throw new EntityNotFoundException('domain', $domainCode);
+app/Modules/AdminKernel/Domain/I18n/Keys/I18nScopeKeyCommandService.php:36:            throw new TranslationKeyNotFoundException($keyId);
+app/Modules/AdminKernel/Domain/I18n/Keys/I18nScopeKeyCommandService.php:56:            throw new TranslationKeyNotFoundException($keyId);
+app/Modules/AdminKernel/Domain/Security/Password/PasswordPepperRing.php:20:            throw new RuntimeException('Password Peppers must be configured.');
+app/Modules/AdminKernel/Domain/Security/Password/PasswordPepperRing.php:23:            throw new RuntimeException("Active Pepper ID '$this->activeId' not found in configured peppers.");
+app/Modules/AdminKernel/Domain/Security/Password/PasswordPepperRing.php:27:                throw new RuntimeException("Pepper secret for ID '$id' is too short (min 32 chars).");
+app/Modules/AdminKernel/Domain/Security/Password/PasswordPepperRing.php:45:            throw new RuntimeException("Pepper ID '$id' not found in ring.");
+app/Modules/AdminKernel/Domain/Security/Password/PasswordPepperRingConfig.php:31:            throw new Exception('PASSWORD_PEPPERS is required and cannot be empty.');
+app/Modules/AdminKernel/Domain/Security/Password/PasswordPepperRingConfig.php:36:             throw new Exception('PASSWORD_PEPPERS must be a string.');
+app/Modules/AdminKernel/Domain/Security/Password/PasswordPepperRingConfig.php:43:            throw new Exception('PASSWORD_PEPPERS must be a non-empty JSON object map');
+app/Modules/AdminKernel/Domain/Security/Password/PasswordPepperRingConfig.php:49:                throw new Exception("Pepper secret for ID '$id' must be a string.");
+app/Modules/AdminKernel/Domain/Security/Password/PasswordPepperRingConfig.php:52:                throw new Exception("Pepper secret for ID '$id' is too short (min 32 chars).");
+app/Modules/AdminKernel/Domain/Security/Password/PasswordPepperRingConfig.php:60:            throw new Exception('PASSWORD_ACTIVE_PEPPER_ID is required.');
+app/Modules/AdminKernel/Domain/Security/Password/PasswordPepperRingConfig.php:64:            throw new Exception("PASSWORD_ACTIVE_PEPPER_ID '$activeId' not found in PASSWORD_PEPPERS.");
+app/Modules/AdminKernel/Domain/Security/Password/PasswordPepperRingConfig.php:71:        } catch (\RuntimeException $e) {
+app/Modules/AdminKernel/Domain/Security/Password/PasswordPepperRingConfig.php:72:            throw new Exception($e->getMessage(), 0, $e);
+app/Modules/AdminKernel/Domain/Security/Crypto/CryptoKeyRingConfig.php:27:            throw new \Exception('CRYPTO_KEYS is required and cannot be empty.');
+app/Modules/AdminKernel/Domain/Security/Crypto/CryptoKeyRingConfig.php:32:             throw new \Exception('CRYPTO_KEYS must be a string.');
+app/Modules/AdminKernel/Domain/Security/Crypto/CryptoKeyRingConfig.php:39:            throw new \Exception('CRYPTO_KEYS must be a non-empty JSON array');
+app/Modules/AdminKernel/Domain/Security/Crypto/CryptoKeyRingConfig.php:46:                throw new \Exception('Invalid CRYPTO_KEYS structure. Each key must have "id" and "key".');
+app/Modules/AdminKernel/Domain/Security/Crypto/CryptoKeyRingConfig.php:49:                throw new \Exception('Duplicate key ID in CRYPTO_KEYS: ' . $k['id']);
+app/Modules/AdminKernel/Domain/Security/Crypto/CryptoKeyRingConfig.php:56:            throw new \Exception('CRYPTO_ACTIVE_KEY_ID is required and must be a string.');
+app/Modules/AdminKernel/Domain/Security/Crypto/CryptoKeyRingConfig.php:60:            throw new \Exception("CRYPTO_ACTIVE_KEY_ID '{$activeKeyId}' not found in CRYPTO_KEYS.");
