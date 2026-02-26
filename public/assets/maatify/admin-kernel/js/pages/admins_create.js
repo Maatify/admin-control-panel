@@ -99,9 +99,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // ✅ Use ErrorNormalizer Bridge
                 const stepUp = window.ErrorNormalizer.getLegacyStepUpView(data);
                 if (stepUp) {
-                    const scope = encodeURIComponent(stepUp.scope || 'admins.create');
-                    const returnTo = encodeURIComponent(window.location.pathname);
-                    window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
+                    const scope = stepUp.scope || 'admins.create';
+                    await window.ErrorNormalizer.redirectToStepUp(scope);
                     return;
                 }
             }

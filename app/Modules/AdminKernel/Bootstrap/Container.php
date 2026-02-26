@@ -1184,6 +1184,16 @@ class Container
                 );
             },
 
+            \Maatify\AdminKernel\Http\Controllers\Api\Auth\RedirectTokenController::class => function (ContainerInterface $c) {
+                $service = $c->get(\Maatify\AdminKernel\Domain\Security\RedirectToken\RedirectTokenServiceInterface::class);
+                $validationGuard = $c->get(ValidationGuard::class);
+
+                assert($service instanceof \Maatify\AdminKernel\Domain\Security\RedirectToken\RedirectTokenServiceInterface);
+                assert($validationGuard instanceof ValidationGuard);
+
+                return new \Maatify\AdminKernel\Http\Controllers\Api\Auth\RedirectTokenController($service, $validationGuard);
+            },
+
             // Admin List
             //            AdminListReaderInterface::class => function (ContainerInterface $c) {
             //                $pdo = $c->get(PDO::class);
@@ -1276,8 +1286,10 @@ class Container
             },
             ScopeGuardMiddleware::class => function (ContainerInterface $c) {
                 $service = $c->get(StepUpService::class);
+                $redirectTokenService = $c->get(\Maatify\AdminKernel\Domain\Security\RedirectToken\RedirectTokenServiceInterface::class);
                 assert($service instanceof StepUpService);
-                return new ScopeGuardMiddleware($service);
+                assert($redirectTokenService instanceof \Maatify\AdminKernel\Domain\Security\RedirectToken\RedirectTokenServiceInterface);
+                return new ScopeGuardMiddleware($service, $redirectTokenService);
             },
             \Maatify\AdminKernel\Http\Controllers\StepUpController::class => function (ContainerInterface $c) {
                 $stepUpService = $c->get(\Maatify\AdminKernel\Domain\Service\StepUpService::class);

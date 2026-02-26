@@ -175,13 +175,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // ✅ Use ErrorNormalizer Bridge
                 const stepUp = window.ErrorNormalizer.getLegacyStepUpView(data);
                 if (stepUp) {
-                    console.log('🔐 Step-Up 2FA Required:', {
-                        scope: stepUp.scope,
-                        return_to: window.location.pathname
-                    });
-                    const scope = encodeURIComponent(stepUp.scope || 'admin.email.add');
-                    const returnTo = encodeURIComponent(window.location.pathname);
-                    window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
+                    const scope = stepUp.scope || 'admin.email.add';
+                    await window.ErrorNormalizer.redirectToStepUp(scope);
                     return;
                 }
             }
@@ -312,14 +307,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // ✅ Use ErrorNormalizer Bridge
                 const stepUp = window.ErrorNormalizer.getLegacyStepUpView(data);
                 if (stepUp) {
-                    console.log('🔐 Step-Up 2FA Required:', {
-                        action: action,
-                        scope: stepUp.scope,
-                        return_to: window.location.pathname
-                    });
-                    const scope = encodeURIComponent(stepUp.scope || `admin.email.${action}`);
-                    const returnTo = encodeURIComponent(window.location.pathname);
-                    window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
+                    const scope = stepUp.scope || `admin.email.${action}`;
+                    await window.ErrorNormalizer.redirectToStepUp(scope);
                     return;
                 }
             }

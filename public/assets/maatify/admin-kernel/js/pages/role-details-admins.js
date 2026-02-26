@@ -400,9 +400,8 @@
                 // ✅ Use ErrorNormalizer Bridge
                 const stepUp = window.ErrorNormalizer.getLegacyStepUpView(data);
                 if (stepUp) {
-                    const scope    = encodeURIComponent(stepUp.scope || `roles.admins.${action}`);
-                    const returnTo = encodeURIComponent(window.location.pathname);
-                    window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
+                    const scope = stepUp.scope || `roles.admins.${action}`;
+                    await window.ErrorNormalizer.redirectToStepUp(scope);
                     return;
                 }
             }

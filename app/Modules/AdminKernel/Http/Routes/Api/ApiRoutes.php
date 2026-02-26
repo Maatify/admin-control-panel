@@ -35,6 +35,12 @@ final class ApiRoutes
                 ->add(SessionGuardMiddleware::class)
                 ->setName('auth.stepup.verify');
 
+            // Signing Endpoint (Available during Step-Up)
+            $api->post('/auth/sign-redirect', [\Maatify\AdminKernel\Http\Controllers\Api\Auth\RedirectTokenController::class, 'create'])
+                ->add(\Maatify\AdminKernel\Http\Middleware\AdminContextMiddleware::class)
+                ->add(SessionGuardMiddleware::class)
+                ->setName('auth.sign_redirect');
+
             // Protected API
             ApiProtectedRoutes::register($api);
 
