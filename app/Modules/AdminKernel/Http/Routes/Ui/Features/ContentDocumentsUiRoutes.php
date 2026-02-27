@@ -43,11 +43,12 @@ final class ContentDocumentsUiRoutes
             ->setName('content_documents.translations.details')
             ->add(AuthorizationGuardMiddleware::class);
 
-        $group->get(
-            '/content-document-types/{type_id:[0-9]+}/documents/{document_id:[0-9]+}/acceptance',
-            [\Maatify\AdminKernel\Http\Controllers\Ui\ContentDocuments\UiDocumentAcceptanceController::class, 'index']
-        )
-            ->setName('content_documents.acceptance.query.ui')
-            ->add(AuthorizationGuardMiddleware::class);
+        // TODO within any project usage
+//        $group->get(
+//            '/content-document-types/{type_id:[0-9]+}/documents/{document_id:[0-9]+}/acceptance',
+//            [\Maatify\AdminKernel\Http\Controllers\Ui\ContentDocuments\UiDocumentAcceptanceController::class, 'index']
+//        )
+//            ->setName('content_documents.acceptance.query.ui')
+//            ->add(AuthorizationGuardMiddleware::class);
     }
 }

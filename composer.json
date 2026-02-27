@@ -6,10 +6,12 @@
 
   "require": {
     "php": "^8.2",
+    "ext-curl": "*",
     "ext-openssl": "*",
     "ext-pdo": "*",
     "ext-readline": "*",
     "ext-redis": "*",
+    "maatify/exceptions": "^1.0",
     "maatify/psr-logger": "^1.0",
     "php-di/php-di": "^7.0",
     "phpmailer/phpmailer": "^7.0",
@@ -19,8 +21,7 @@
     "slim/psr7": "^1.8",
     "slim/slim": "^4.15",
     "slim/twig-view": "^3.4",
-    "vlucas/phpdotenv": "^5.5",
-    "ext-curl": "*"
+    "vlucas/phpdotenv": "^5.5"
   },
 
   "require-dev": {
@@ -47,9 +48,7 @@
       "Maatify\\I18n\\": "Modules/I18n",
       "Maatify\\AppSettings\\": "Modules/AppSettings",
       "Maatify\\LanguageCore\\": "Modules/LanguageCore",
-      "Maatify\\ContentDocuments\\": "Modules/ContentDocuments",
-      "Maatify\\Exceptions\\": "Modules/Exceptions"
-
+      "Maatify\\ContentDocuments\\": "Modules/ContentDocuments"
     }
   },
 

@@ -8,6 +8,7 @@ use Maatify\AdminKernel\Context\AdminContext;
 use Maatify\AdminKernel\Context\RequestContext;
 use Maatify\AdminKernel\Domain\Contracts\Admin\AdminTotpSecretStoreInterface;
 use Maatify\AdminKernel\Domain\Enum\SessionState;
+use Maatify\AdminKernel\Domain\Exception\StepUpRequiredException;
 use Maatify\AdminKernel\Domain\Service\StepUpService;
 use Maatify\AdminKernel\Http\Middleware\SessionStateGuardMiddleware;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -45,7 +46,6 @@ class SessionStateGuardMiddlewareTest extends TestCase
         $request->method('getUri')->willReturn($uri);
         $request->method('getCookieParams')->willReturn(['auth_token' => 'token123']);
 
-        // Mock RouteContext to return a route that is NOT stepup verify
         $route = $this->createMock(Route::class);
         $route->method('getName')->willReturn('some.protected.route');
 
@@ -67,16 +67,10 @@ class SessionStateGuardMiddlewareTest extends TestCase
 
         $handler = $this->createMock(RequestHandlerInterface::class);
 
-        $response = $this->middleware->process($request, $handler);
-        $this->assertEquals(403, $response->getStatusCode());
+        $this->expectException(\Maatify\AdminKernel\Domain\Exception\StepUpRequiredException::class);
 
-        /** @var array{code: string, scope: string} $body */
-        $body = json_decode((string)$response->getBody(), true);
-        $this->assertIsArray($body);
-        $this->assertEquals('STEP_UP_REQUIRED', $body['code']);
-        $this->assertEquals('login', $body['scope']);
+        $this->middleware->process($request, $handler);
     }
-
     public function testAllowsAccessWhenStateIsActive(): void
     {
         $uri = $this->createMock(UriInterface::class);
@@ -106,7 +100,9 @@ class SessionStateGuardMiddlewareTest extends TestCase
             ->willReturn(SessionState::ACTIVE);
 
         $handler = $this->createMock(RequestHandlerInterface::class);
-        $handler->expects($this->once())->method('handle')->willReturn(new \Slim\Psr7\Response());
+        $handler->expects($this->once())
+            ->method('handle')
+            ->willReturn(new \Slim\Psr7\Response());
 
         $this->middleware->process($request, $handler);
     }

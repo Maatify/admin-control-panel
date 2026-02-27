@@ -63,7 +63,9 @@ final class DocumentTranslationServiceTest extends TestCase
             title: 'Terms V1',
             metaTitle: 'Meta',
             metaDescription: 'Desc',
-            content: 'Content'
+            content: 'Content',
+            createdAt: null,
+            updatedAt: null
         );
     }
 

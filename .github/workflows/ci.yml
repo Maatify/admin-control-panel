@@ -1,0 +1,65 @@
+name: admin-control-panel CI
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  quality:
+    name: Quality Checks (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ "8.2", "8.3", "8.4" ]
+
+    steps:
+      # -------------------------------------------------
+      # 1) Checkout
+      # -------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # -------------------------------------------------
+      # 2) Setup PHP
+      # -------------------------------------------------
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: composer
+          coverage: none
+
+      # -------------------------------------------------
+      # 3) Validate composer.json
+      # -------------------------------------------------
+      - name: Validate composer.json
+        run: composer validate --strict
+
+      # -------------------------------------------------
+      # 4) Install dependencies
+      # -------------------------------------------------
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      # -------------------------------------------------
+      # 5) Dump optimized autoload
+      # -------------------------------------------------
+      - name: Optimize autoload
+        run: composer dump-autoload --optimize
+
+      # -------------------------------------------------
+      # 6) Run PHPStan (Level Max)
+      # -------------------------------------------------
+      - name: Run PHPStan
+        run: composer analyse
+
+      # -------------------------------------------------
+      # 7) Syntax Check (extra safety)
+      # -------------------------------------------------
+      - name: Lint PHP files
+        run: |
+          find . -type f -name "*.php" -not -path "./vendor/*" -print0 | xargs -0 -n1 php -l

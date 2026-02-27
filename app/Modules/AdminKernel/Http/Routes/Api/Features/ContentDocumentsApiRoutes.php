@@ -96,16 +96,17 @@ class ContentDocumentsApiRoutes
                                 }
                             );
 
-                            $document->group(
-                                '/acceptance',
-                                function (RouteCollectorProxyInterface $acceptance) {
-
-                                    $acceptance->post(
-                                        '/query',
-                                        \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\DocumentAcceptanceQueryController::class
-                                    )->setName('content_documents.acceptance.query.api');
-                                }
-                            );
+                            // TODO within any project usage
+//                            $document->group(
+//                                '/acceptance',
+//                                function (RouteCollectorProxyInterface $acceptance) {
+//
+//                                    $acceptance->post(
+//                                        '/query',
+//                                        \Maatify\AdminKernel\Http\Controllers\Api\ContentDocuments\DocumentAcceptanceQueryController::class
+//                                    )->setName('content_documents.acceptance.query.api');
+//                                }
+//                            );
                         }
                     );
 
