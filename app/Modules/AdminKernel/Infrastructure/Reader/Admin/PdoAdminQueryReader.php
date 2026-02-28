@@ -10,8 +10,8 @@ use Maatify\AdminKernel\Domain\Admin\Reader\AdminQueryReaderInterface;
 use Maatify\AdminKernel\Domain\DTO\AdminList\AdminListItemDTO;
 use Maatify\AdminKernel\Domain\DTO\AdminList\AdminListResponseDTO;
 use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
+use Maatify\AdminKernel\Domain\List\Filters\ResolvedListFilters;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
-use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
 use PDO;
 
 final readonly class PdoAdminQueryReader implements AdminQueryReaderInterface

@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Infrastructure\Repository\I18n\Scope;
 
 use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
-use Maatify\AdminKernel\Domain\DTO\I18nScopesList\I18nScopesListItemDTO;
-use Maatify\AdminKernel\Domain\DTO\I18nScopesList\I18nScopesListResponseDTO;
+use Maatify\AdminKernel\Domain\I18n\Scope\DTO\I18nScopesListItemDTO;
+use Maatify\AdminKernel\Domain\I18n\Scope\DTO\I18nScopesListResponseDTO;
 use Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopesQueryReaderInterface;
+use Maatify\AdminKernel\Domain\List\Filters\ResolvedListFilters;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
-use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
 use PDO;
 use RuntimeException;
 

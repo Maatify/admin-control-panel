@@ -19,8 +19,8 @@ use Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionsReaderRepository
 use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
 use Maatify\AdminKernel\Domain\DTO\Permission\PermissionListItemDTO;
 use Maatify\AdminKernel\Domain\DTO\Permission\PermissionsQueryResponseDTO;
+use Maatify\AdminKernel\Domain\List\Filters\ResolvedListFilters;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
-use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
 use PDO;
 
 class PDOPermissionsReaderRepository implements PermissionsReaderRepositoryInterface

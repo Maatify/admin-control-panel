@@ -15,9 +15,9 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\I18n\Domain;
 
-use Maatify\AdminKernel\Domain\DTO\I18n\Domains\I18nDomainsListResponseDTO;
+use Maatify\AdminKernel\Domain\I18n\Domain\DTO\I18nDomainsListResponseDTO;
+use Maatify\AdminKernel\Domain\List\Filters\ResolvedListFilters;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
-use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
 
 interface I18nDomainsQueryReaderInterface
 {

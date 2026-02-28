@@ -1,8 +1,8 @@
 # Maatify/I18n
 
-**Kernel-Grade Internationalization Subsystem**
+**Kernel-Grade Translation Subsystem**
 
-This library provides a robust, database-driven internationalization (I18n) system designed for strict governance, structured keys, and high-performance runtime reads. It separates language identity from UI concerns and enforces a strong policy model for translation keys.
+This library provides a robust, database-driven internationalization (I18n) system designed for strict governance, structured keys, and high-performance runtime reads. It handles the *translation* layer, depending on `maatify/language-core` for identity.
 
 ![Maatify.dev](https://www.maatify.dev/assets/img/img/maatify_logo_white.svg)
 
@@ -22,10 +22,6 @@ This library provides a robust, database-driven internationalization (I18n) syst
 
 ![PHPStan](https://img.shields.io/badge/PHPStan-Level%20Max-4E8CAE)
 
-[//]: # ([![Changelog]&#40;https://img.shields.io/badge/Changelog-View-blue&#41;]&#40;CHANGELOG.md&#41;)
-[//]: # ([![Security]&#40;https://img.shields.io/badge/Security-Policy-important&#41;]&#40;SECURITY.md&#41;)
-
-
 ---
 
 ## Documentation Contract
@@ -38,25 +34,26 @@ This README serves as a high-level identity summary and architectural contract.
 
 **Contract Rules:**
 1.  **The Book is Authoritative:** If this README and the Book diverge, the Book is the source of truth.
-2.  **Illustrative Only:** Examples in this README are for architectural context. Real implementation code must follow `HOW_TO_USE.md`.
-3.  **Strict Governance:** Usage of this library implies adherence to the Governance Model defined in `BOOK/03_governance_model.md`.
+2.  **Strict Governance:** Usage of this library implies adherence to the Governance Model defined in `BOOK/03_governance_model.md`.
 
 ---
 
-## 1. Library Identity
+## Open Source Positioning
 
-*   **Database-Driven:** All languages, keys, and translations reside in the database.
-*   **Governance-First:** Enforces structural rules (Scopes & Domains) to prevent key sprawl.
-*   **Fail-Soft Reads:** Runtime lookups **must never** crash the application; they return `null` on failure.
-*   **Strict Writes:** Administrative operations **must** fail hard with typed exceptions to maintain data integrity.
+This module provides an **Enterprise-Ready** translation layer characterized by:
+*   **Strong Consistency:** Synchronous updates with zero reliance on background workers or eventual consistency.
+*   **Deterministic Behavior:** All derived data (aggregation summaries) is rebuildable and idempotent.
+*   **Extensible Core:** Strict contracts prevent vendor lock-in while ensuring reliability.
+
+---
+
+## 1. Dependencies
+
+*   **[maatify/language-core](../LanguageCore/README.md):** Provides the `languages` identity table and `LanguageManagementService`.
 
 ---
 
 ## 2. Core Concepts
-
-### Language Identity vs. Settings
-*   **Identity (`languages`):** The immutable core (e.g., `en-US`). Used for foreign keys.
-*   **Settings (`language_settings`):** UI-specific attributes (Direction, Icons, Sort Order).
 
 ### Structured Keys
 Translation keys are enforced as tuples: `scope` + `domain` + `key_part`.
@@ -74,26 +71,27 @@ Translation keys are enforced as tuples: `scope` + `domain` + `key_part`.
 
 The module adheres to a strict layered architecture:
 
-*   **Contracts (`Contract/`):** Repository interfaces.
 *   **Services (`Service/`):** Business logic (Read, Write, Governance).
 *   **Infrastructure (`Infrastructure/Mysql/`):** PDO-based repositories.
 *   **DTOs (`DTO/`):** Strictly typed Data Transfer Objects.
 *   **Exceptions (`Exception/`):** Typed exceptions for all failure scenarios.
 
+For details, see [**ARCHITECTURE.md**](ARCHITECTURE.md).
+
 ---
 
 ## 4. Database Schema
 
-The system relies on 7 mandatory tables:
+The system relies on 7 mandatory tables (plus 2 from LanguageCore):
 
-1.  **`languages`**: Canonical identity.
-2.  **`language_settings`**: UI configuration.
-3.  **`i18n_scopes`**: Allowed scopes.
-4.  **`i18n_domains`**: Allowed domains.
-5.  **`i18n_domain_scopes`**: Many-to-Many policy mapping.
-6.  **`i18n_keys`**: Registry of valid keys.
-7.  **`i18n_translations`**: Text values.
-
+1.  **`i18n_scopes`**: Allowed scopes.
+2.  **`i18n_domains`**: Allowed domains.
+3.  **`i18n_domain_scopes`**: Many-to-Many policy mapping.
+4.  **`i18n_keys`**: Registry of valid keys.
+5.  **`i18n_translations`**: Text values (References `languages.id`).
+6.  **`i18n_domain_language_summary`**: Derived aggregation layer (Synchronous).
+7.  **`i18n_key_stats`**: Derived aggregation (per-key translated counter for fast grid queries).
+>Derived Tables Rule: Tables marked as Derived are non-authoritative, fully rebuildable, and must be mutated inside the caller transaction.
 ---
 
 ## 5. Read vs. Write Semantics
@@ -105,17 +103,17 @@ The system relies on 7 mandatory tables:
 | **Validation** | Strict governance enforcement. | Minimal validation for speed. |
 | **Output**     | Void or ID (int).              | Strictly typed DTOs.          |
 
+Derived Aggregation Semantics
+- i18n_domain_language_summary and i18n_key_stats are derived and never authoritative.
+- All mutations affecting derived tables must run inside the same TX as the authoritative write (key/translation create/delete/rename).
+- Repair is always performed via DB-driven rebuild (no N+1, no PHP loops).
+
 ---
 
 ## 6. Integration
 
-### Requirements
-*   PHP 8.2+
-*   PDO (MySQL)
-
 ### Quick Start
 Refer to **[HOW_TO_USE.md](HOW_TO_USE.md)** for:
 *   Wiring Services & Repositories
-*   Creating Languages
 *   Handling Governance Exceptions
 *   Fetching Translations

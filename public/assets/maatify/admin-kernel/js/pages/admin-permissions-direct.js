@@ -429,8 +429,11 @@
             // Step-Up 2FA
             if (response.status === 403) {
                 const data = await response.json().catch(() => null);
-                if (data && data.code === 'STEP_UP_REQUIRED') {
-                    const scope    = encodeURIComponent(data.scope || 'admin.permissions.direct.revoke');
+
+                // ✅ Use ErrorNormalizer Bridge
+                const stepUp = window.ErrorNormalizer.getLegacyStepUpView(data);
+                if (stepUp) {
+                    const scope    = encodeURIComponent(stepUp.scope || 'admin.permissions.direct.revoke');
                     const returnTo = encodeURIComponent(window.location.pathname);
                     window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
                     return;
@@ -592,8 +595,11 @@
             // Step-Up 2FA
             if (response.status === 403) {
                 const data = await response.json().catch(() => null);
-                if (data && data.code === 'STEP_UP_REQUIRED') {
-                    const scope    = encodeURIComponent(data.scope || 'admin.permissions.direct.update');
+
+                // ✅ Use ErrorNormalizer Bridge
+                const stepUp = window.ErrorNormalizer.getLegacyStepUpView(data);
+                if (stepUp) {
+                    const scope    = encodeURIComponent(stepUp.scope || 'admin.permissions.direct.update');
                     const returnTo = encodeURIComponent(window.location.pathname);
                     window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
                     return;
@@ -1057,8 +1063,11 @@
             // Step-Up 2FA
             if (response.status === 403) {
                 const data = await response.json().catch(() => null);
-                if (data && data.code === 'STEP_UP_REQUIRED') {
-                    const scope    = encodeURIComponent(data.scope || 'admin.permissions.direct.assign');
+
+                // ✅ Use ErrorNormalizer Bridge
+                const stepUp = window.ErrorNormalizer.getLegacyStepUpView(data);
+                if (stepUp) {
+                    const scope    = encodeURIComponent(stepUp.scope || 'admin.permissions.direct.assign');
                     const returnTo = encodeURIComponent(window.location.pathname);
                     window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
                     return;
@@ -1112,8 +1121,11 @@
             // Step-Up 2FA
             if (response.status === 403) {
                 const data = await response.json().catch(() => null);
-                if (data && data.code === 'STEP_UP_REQUIRED') {
-                    const scope    = encodeURIComponent(data.scope || 'admin.permissions.direct.revoke');
+
+                // ✅ Use ErrorNormalizer Bridge
+                const stepUp = window.ErrorNormalizer.getLegacyStepUpView(data);
+                if (stepUp) {
+                    const scope    = encodeURIComponent(stepUp.scope || 'admin.permissions.direct.revoke');
                     const returnTo = encodeURIComponent(window.location.pathname);
                     window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
                     return;

@@ -15,8 +15,8 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\Scope;
 
+use Maatify\AdminKernel\Domain\I18n\Scope\List\I18nScopesListCapabilities;
 use Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopesQueryReaderInterface;
-use Maatify\AdminKernel\Domain\List\I18nScopesListCapabilities;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
 use Maatify\AdminKernel\Infrastructure\Query\ListFilterResolver;
 use Maatify\Validation\Guard\ValidationGuard;

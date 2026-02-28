@@ -15,8 +15,8 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Exception;
 
-use RuntimeException;
+use Maatify\AdminKernel\Domain\Exception\Base\AdminKernelConflictExceptionBase;
 
-final class TwoFactorAlreadyEnrolledException extends RuntimeException
+final class TwoFactorAlreadyEnrolledException extends AdminKernelConflictExceptionBase
 {
 }

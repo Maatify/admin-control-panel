@@ -15,9 +15,9 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Exception;
 
-use RuntimeException;
+use Maatify\AdminKernel\Domain\Exception\Base\AdminKernelUnsupportedExceptionBase;
 
-class InvalidOperationException extends RuntimeException
+class InvalidOperationException extends AdminKernelUnsupportedExceptionBase
 {
     public function __construct(
         string $entity,

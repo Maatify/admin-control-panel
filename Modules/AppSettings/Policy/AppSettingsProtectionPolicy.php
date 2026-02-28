@@ -24,33 +24,55 @@ use Maatify\AppSettings\DTO\AppSettingKeyDTO;
  * Protects critical application settings from being
  * disabled or modified in dangerous ways.
  *
- * IMPORTANT:
- * - Protected settings MUST always remain active
- * - Attempts to deactivate or modify them must fail loudly
+ * Design Notes:
+ * - Injectable (DI-friendly)
+ * - Has secure default protected list
+ * - Host project may override via container definition
+ * - Backward compatible behavior
  */
 final class AppSettingsProtectionPolicy
 {
     /**
-     * List of protected (group.key) identifiers.
+     * Secure default protected identifiers.
      *
      * @var array<int, string>
      */
-    private const PROTECTED = [
+    private const DEFAULT_PROTECTED = [
         'system.base_url',
         'system.environment',
         'system.timezone',
     ];
 
     /**
+     * Normalized protected identifiers.
+     *
+     * @var array<int, string>
+     */
+    private array $protected;
+
+    /**
+     * @param array<int, string>|null $protected
+     */
+    public function __construct(?array $protected = null)
+    {
+        $protected ??= self::DEFAULT_PROTECTED;
+
+        $this->protected = array_map(
+            fn(string $value) => self::normalize($value),
+            $protected
+        );
+    }
+
+    /**
      * Assert that a setting is NOT protected.
      *
      * @throws AppSettingProtectedException
      */
-    public static function assertNotProtected(AppSettingKeyDTO $key): void
+    public function assertNotProtected(AppSettingKeyDTO $key): void
     {
-        $identifier = self::normalize($key->group) . '.' . self::normalize($key->key);
+        if ($this->isProtected($key->group, $key->key)) {
+            $identifier = self::normalize($key->group) . '.' . self::normalize($key->key);
 
-        if (in_array($identifier, self::PROTECTED, true)) {
             throw new AppSettingProtectedException(
                 sprintf('Setting "%s" is protected and cannot be modified', $identifier)
             );
@@ -58,16 +80,20 @@ final class AppSettingsProtectionPolicy
     }
 
     /**
-     * Normalize input to a canonical format.
+     * Determine if a setting is protected.
+     */
+    public function isProtected(string $group, string $key): bool
+    {
+        $identifier = self::normalize($group) . '.' . self::normalize($key);
+
+        return in_array($identifier, $this->protected, true);
+    }
+
+    /**
+     * Normalize input to canonical format.
      */
     private static function normalize(string $value): string
     {
         return strtolower(trim($value));
-    }
-
-    public static function isProtected(string $group, string $key): bool
-    {
-        $identifier = self::normalize($group) . '.' . self::normalize($key);
-        return in_array($identifier, self::PROTECTED, true);
     }
 }

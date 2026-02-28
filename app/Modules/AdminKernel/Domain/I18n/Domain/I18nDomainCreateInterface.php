@@ -14,7 +14,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\I18n\Domain;
 
-use Maatify\AdminKernel\Domain\DTO\I18n\Domains\I18nDomainCreateDTO;
+use Maatify\AdminKernel\Domain\I18n\Domain\DTO\I18nDomainCreateDTO;
 
 interface I18nDomainCreateInterface
 {

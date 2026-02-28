@@ -53,14 +53,15 @@
 
     <script>
         window.languagesCapabilities = {
-            can_create        : {{ capabilities.can_create         ?? false ? 'true' : 'false' }},
-            can_update        : {{ capabilities.can_update         ?? false ? 'true' : 'false' }},
-            can_update_name   : {{ capabilities.can_update_name    ?? false ? 'true' : 'false' }},
-            can_update_code   : {{ capabilities.can_update_code    ?? false ? 'true' : 'false' }},
-            can_update_sort   : {{ capabilities.can_update_sort    ?? false ? 'true' : 'false' }},
-            can_active        : {{ capabilities.can_active         ?? false ? 'true' : 'false' }},
-            can_fallback_set  : {{ capabilities.can_fallback_set   ?? false ? 'true' : 'false' }},
-            can_fallback_clear: {{ capabilities.can_fallback_clear ?? false ? 'true' : 'false' }}
+            can_create        :             {{ capabilities.can_create         ?? false ? 'true' : 'false' }},
+            can_update        :             {{ capabilities.can_update         ?? false ? 'true' : 'false' }},
+            can_update_name   :             {{ capabilities.can_update_name    ?? false ? 'true' : 'false' }},
+            can_update_code   :             {{ capabilities.can_update_code    ?? false ? 'true' : 'false' }},
+            can_update_sort   :             {{ capabilities.can_update_sort    ?? false ? 'true' : 'false' }},
+            can_active        :             {{ capabilities.can_active         ?? false ? 'true' : 'false' }},
+            can_fallback_set  :             {{ capabilities.can_fallback_set   ?? false ? 'true' : 'false' }},
+            can_fallback_clear:             {{ capabilities.can_fallback_clear ?? false ? 'true' : 'false' }},
+            can_view_language_translations: {{ capabilities.can_view_language_translations ?? false ? 'true' : 'false' }}
         };
 
         console.log('🔐 Languages Capabilities Injected:', window.languagesCapabilities);
@@ -68,7 +69,7 @@
 
     <!-- Page Body -->
     <div class="px-0 py-2">
-        <div class="container mt-6">
+        <div class="container lg:max-w-[100%] mt-6">
             {# ============================================================
                🔍 Search & Filters Section
                ============================================================ #}
@@ -235,11 +236,11 @@
     <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
 
     {# Languages-specific helpers #}
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/languages-helpers.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/languages-helpers.js') }}"></script>
 
     {# Languages management scripts (OPTIMIZED VERSION) #}
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/languages-with-components.js') }}"></script>
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/languages-modals.js') }}"></script>
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/languages-actions.js') }}"></script>
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/languages-fallback.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/languages-with-components.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/languages-modals.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/languages-actions.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/languages-fallback.js') }}"></script>
 {% endblock %}

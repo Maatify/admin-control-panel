@@ -15,9 +15,9 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages;
 
-use Maatify\AdminKernel\Validation\Schemas\I18n\Language\LanguageCreateSchema;
-use Maatify\I18n\Enum\TextDirectionEnum;
-use Maatify\I18n\Service\LanguageManagementService;
+use Maatify\AdminKernel\Domain\I18n\Language\Validation\LanguageCreateSchema;
+use Maatify\LanguageCore\Enum\TextDirectionEnum;
+use Maatify\LanguageCore\Service\LanguageManagementService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;

@@ -119,12 +119,13 @@ window.scopeDetailsCapabilities = {
 
 ### Supported Column Filters (`search.columns`)
 
-| Alias       | Type   | Example   | Semantics         |
-|-------------|--------|-----------|-------------------|
-| `id`        | string | `"1"`     | exact match       |
-| `code`      | string | `"store"` | exact match       |
-| `name`      | string | `"Store"` | exact match       |
-| `is_active` | string | `"1"`     | cast to int (1/0) |
+| Alias       | Type   | Example   | Semantics                    |
+|-------------|--------|-----------|------------------------------|
+| `id`        | string | `"1"`     | exact match                  |
+| `code`      | string | `"store"` | exact match                  |
+| `name`      | string | `"Store"` | exact match                  |
+| `is_active` | string | `"1"`     | cast to int (1/0)            |
+| `assigned`  | string | `"1"`     | 1 = assigned, 0 = unassigned |
 
 ### Response Model
 

@@ -13,11 +13,11 @@ This file is a **runtime integration contract** for the App Settings UI.
 
 It answers, precisely:
 
-*   What the UI is allowed to send
-*   How global search and filters actually work
-*   What each endpoint requires vs what is optional
-*   What response shapes exist (success + failure)
-*   Why you are getting `422` / runtime exceptions
+* What the UI is allowed to send
+* How global search and filters actually work
+* What each endpoint requires vs what is optional
+* What response shapes exist (success + failure)
+* Why you are getting `422` / runtime exceptions
 
 If something is not documented here, treat it as **not supported**.
 
@@ -25,24 +25,27 @@ If something is not documented here, treat it as **not supported**.
 
 You must understand the difference between the **UI Page** and the **API**:
 
-*   **`GET /app-settings`**
-    *   ❌ **This is NOT an API.**
-    *   ✅ This is the **browser entry point** that renders the HTML page.
-    *   It returns `text/html`.
-    *   Do not call this from JavaScript fetch/axios.
+* **`GET /app-settings`**
 
-*   **`POST /api/app-settings/*`**
-    *   ✅ **These ARE the APIs.**
-    *   They return `application/json` (or empty 200).
-    *   All programmatic interaction happens here.
+  * ❌ **This is NOT an API.**
+  * ✅ This is the **browser entry point** that renders the HTML page.
+  * It returns `text/html`.
+  * Do not call this from JavaScript fetch/axios.
+
+* **`POST /api/app-settings/*`**
+
+  * ✅ **These ARE the APIs.**
+  * They return `application/json` (or empty 200).
+  * All programmatic interaction happens here.
 
 > ⚠️ **RUNTIME RULES:**
 > This document assumes **mandatory compliance** with the **[UI Runtime Integration Rules](UI_RUNTIME_RULES.md)**.
 > Refer to that file for:
-> *   Response parsing (JSON vs Empty Body)
-> *   Error handling (422/403)
-> *   Null handling in payloads
-> *   Canonical Query construction
+>
+> * Response parsing (JSON vs Empty Body)
+> * Error handling (422/403)
+> * Null handling in payloads
+> * Canonical Query construction
 
 ---
 
@@ -62,6 +65,8 @@ JavaScript
 API (authoritative)
   ├─ validates request schema
   ├─ applies query resolver rules
+  ├─ applies whitelist rules
+  ├─ applies protection rules
   └─ returns canonical envelope (queries) or empty 200 (actions)
 ```
 
@@ -107,8 +112,8 @@ $capabilities = [
 | `search.columns` | object | Optional | Key-value pairs for column filters              |
 
 ### Sorting Rule
-*   ⚠️ **SERVER-CONTROLLED**: `setting_group ASC, setting_key ASC, id ASC`.
-*   Clients **MUST NOT** send `sort` parameters.
+* ⚠️ **SERVER-CONTROLLED**: `setting_group ASC, setting_key ASC, id ASC`.
+* Clients **MUST NOT** send `sort` parameters.
 
 ### Supported Column Filters (`search.columns`)
 
@@ -144,7 +149,11 @@ $capabilities = [
       "setting_group": "system",
       "setting_key": "version",
       "setting_value": "1.0.0",
-      "is_active": 1
+      "setting_type": "string",
+      "is_active": 1,
+      "is_protected": true,
+      "is_whitelisted": true,
+      "is_editable": false
     }
   ],
   "pagination": {
@@ -156,10 +165,18 @@ $capabilities = [
 }
 ```
 
+**Row Meanings (additional fields):**
+
+* `setting_type`: `string`, `int`, `bool`, or `json`.
+* `is_protected`: this setting is protected by policy and cannot be modified/deactivated.
+* `is_whitelisted`: `true` if this key is allowed by the current whitelist; `false` if orphaned.
+* `is_editable`: UI must use this to enable/disable edit + toggle actions.
+
 **Pagination Meanings:**
-*   `total`: total records in DB (no filters)
-*   `filtered`: total records after applying `search.global` and/or `search.columns`
-*   When no filters are applied, `filtered` MAY equal `total`.
+
+* `total`: total records in DB (no filters)
+* `filtered`: total records after applying `search.global` and/or `search.columns`
+* When no filters are applied, `filtered` MAY equal `total`.
 
 ### Error Response Example (422 Invalid Filter)
 
@@ -244,6 +261,7 @@ $capabilities = [
 | `setting_group` | string | **Yes**  | 1-64 characters. Must match a valid group from Metadata.                                |
 | `setting_key`   | string | **Yes**  | 1-64 characters. Must match a valid key from Metadata (or any key if wildcard allowed). |
 | `setting_value` | string | **Yes**  | The value to store. At least 1 character.                                               |
+| `setting_type`  | string | No       | One of: `string`, `int`, `bool`, `json`. Defaults to `string`.                          |
 | `is_active`     | bool   | No       | Defaults to `true` if omitted.                                                          |
 
 ### Example Request
@@ -253,6 +271,7 @@ $capabilities = [
   "setting_group": "system",
   "setting_key": "maintenance_mode",
   "setting_value": "off",
+  "setting_type": "string",
   "is_active": true
 }
 ```
@@ -294,6 +313,7 @@ $capabilities = [
 | `setting_group` | string | **Yes**  | 1-64 characters. |
 | `setting_key`   | string | **Yes**  | 1-64 characters. |
 | `setting_value` | string | **Yes**  | The new value.   |
+| `setting_type`  | string | No       | Optional type override. One of: `string`, `int`, `bool`, `json`. |
 
 ### Example Request
 
@@ -301,7 +321,8 @@ $capabilities = [
 {
   "setting_group": "system",
   "setting_key": "maintenance_mode",
-  "setting_value": "on"
+  "setting_value": "on",
+  "setting_type": "string"
 }
 ```
 
@@ -377,7 +398,8 @@ $capabilities = [
 
 ## 8) Implementation Checklist (App Settings Specific)
 
-*   [ ] **Never send `sort`** to `/api/app-settings/query`.
-*   [ ] Fetch **Metadata** before opening the Create Modal.
-*   [ ] Use Metadata to validate/populate Group and Key dropdowns/inputs.
-*   [ ] Update requires Group and Key to identify the record (Composite Key).
+* [ ] **Never send `sort`** to `/api/app-settings/query`.
+* [ ] Fetch **Metadata** before opening the Create Modal.
+* [ ] Use Metadata to validate/populate Group and Key dropdowns/inputs.
+* [ ] Update requires Group and Key to identify the record (Composite Key).
+* [ ] Respect `is_protected` and `is_editable` from `/api/app-settings/query` when rendering actions.

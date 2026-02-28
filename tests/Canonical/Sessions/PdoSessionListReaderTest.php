@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Tests\Canonical\Sessions;
 
 use Maatify\AdminKernel\Application\Crypto\AdminIdentifierCryptoServiceInterface;
+use Maatify\AdminKernel\Domain\List\Filters\ResolvedListFilters;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
-use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
 use Maatify\AdminKernel\Infrastructure\Reader\Session\PdoSessionListReader;
 use PDO;
 use PDOStatement;

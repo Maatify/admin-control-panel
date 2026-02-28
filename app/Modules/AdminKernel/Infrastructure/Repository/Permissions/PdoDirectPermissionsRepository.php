@@ -9,8 +9,8 @@ use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
 use Maatify\AdminKernel\Domain\DTO\Permissions\DirectPermissionListItemDTO;
 use Maatify\AdminKernel\Domain\DTO\Permissions\DirectPermissionsQueryResponseDTO;
 use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
+use Maatify\AdminKernel\Domain\List\Filters\ResolvedListFilters;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
-use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
 use PDO;
 use RuntimeException;
 

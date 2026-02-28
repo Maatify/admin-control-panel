@@ -304,17 +304,43 @@ function getAuthToken() {
             const data = await res.json();
             console.log("API Response:", data);
 
-            const { response: value, action, more_info } = data.data;
+            // ✅ LEGACY SUPPORT BRIDGE
+            // If response matches expected legacy format, proceed as usual
+            if (data.data && typeof data.data.response !== 'undefined') {
+                const { response: value, action, more_info } = data.data;
 
-            if (value === 200) {
-                return data;
-            } else if (value === 405000) {
-                handleAuthRedirect(action, more_info);
-                return data;
-            } else {
-                handleErrorResponse(value, more_info, value);
+                if (value === 200) {
+                    return data;
+                } else if (value === 405000) {
+                    handleAuthRedirect(action, more_info);
+                    return data;
+                } else {
+                    handleErrorResponse(value, more_info, value);
+                    return data;
+                }
+            }
+
+            // ✅ UNIFIED FORMAT BRIDGE
+            // If response is new unified format, try to map it or alert safely
+            if (window.ErrorNormalizer) {
+                const normalized = window.ErrorNormalizer.normalize(data);
+
+                // If it's a success response (no error), create a fake legacy success structure
+                if (!normalized.message && data.success) {
+                    return { data: { response: 200, success: true }, ...data };
+                }
+
+                // If error, show alert using the normalized message
+                console.warn('⚠️ Legacy Handler received Unified Error. Bridging...');
+                showAlert("d", normalized.message || "An error occurred");
                 return data;
             }
+
+            // Fallback for unknown structure
+            console.error('❌ Unknown response format in legacy handler:', data);
+            showAlert("d", "Unexpected server response");
+            return data;
+
         } catch (err) {
             handleApiError(err);
         } finally {

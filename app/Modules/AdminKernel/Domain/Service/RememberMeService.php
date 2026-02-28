@@ -9,6 +9,7 @@ use Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\RememberMeRepositoryInterface;
 use Maatify\AdminKernel\Domain\DTO\RememberMeTokenDTO;
 use Maatify\AdminKernel\Domain\Exception\InvalidCredentialsException;
+use Maatify\AdminKernel\Infrastructure\Repository\AdminRepository;
 use Maatify\SharedCommon\Contracts\ClockInterface;
 use PDO;
 use Random\RandomException;
@@ -20,6 +21,7 @@ class RememberMeService
     public function __construct(
         private RememberMeRepositoryInterface $rememberMeRepository,
         private AdminSessionRepositoryInterface $sessionRepository,
+        private AdminRepository $adminRepository,
         private PDO $pdo,
         private ClockInterface $clock
     ) {
@@ -131,6 +133,16 @@ class RememberMeService
 
             // Create Session
             $sessionToken = $this->sessionRepository->createSession($tokenDto->adminId);
+
+            // 🔥 Snapshot Identity (match Login behavior)
+            $sessionHash = hash('sha256', $sessionToken);
+
+            $identity = $this->adminRepository->getIdentitySnapshot($tokenDto->adminId);
+
+            $this->sessionRepository->storeSessionIdentityByHash(
+                $sessionHash,
+                $identity
+            );
 
             $this->pdo->commit();
 

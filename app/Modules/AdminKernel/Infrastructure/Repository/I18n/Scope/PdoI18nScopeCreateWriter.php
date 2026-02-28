@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Infrastructure\Repository\I18n\Scope;
 
-use Maatify\AdminKernel\Domain\DTO\I18nScopes\I18nScopeCreateDTO;
+use Maatify\AdminKernel\Domain\I18n\Scope\DTO\I18nScopeCreateDTO;
 use Maatify\AdminKernel\Domain\I18n\Scope\Writer\I18nScopeCreateWriterInterface;
 use PDO;
 use RuntimeException;

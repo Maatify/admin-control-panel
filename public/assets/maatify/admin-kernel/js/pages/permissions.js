@@ -590,8 +590,11 @@ document.addEventListener('DOMContentLoaded', () => {
             // Handle Step-Up required (2FA verification)
             if (response.status === 403) {
                 const data = await response.json().catch(() => null);
-                if (data && data.code === 'STEP_UP_REQUIRED') {
-                    const scope = encodeURIComponent(data.scope || 'permissions.metadata.update');
+
+                // ✅ Use ErrorNormalizer Bridge
+                const stepUp = window.ErrorNormalizer.getLegacyStepUpView(data);
+                if (stepUp) {
+                    const scope = encodeURIComponent(stepUp.scope || 'permissions.metadata.update');
                     const returnTo = encodeURIComponent(window.location.pathname);
                     window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
                     return;

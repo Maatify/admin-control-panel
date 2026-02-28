@@ -74,10 +74,24 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'i18n.keys.list.api' => 'i18n.keys.list',
 
         // I18n Translations
-        'i18n.translations.list.ui'  => 'i18n.translations.list',
-        'i18n.translations.list.api' => 'i18n.translations.list',
+        'languages.translations.list.ui'  => 'i18n.translations.list',
+        'languages.translations.list.api' => 'languages.translations.list',
+        'languages.translations.upsert.api' => 'languages.translations.upsert',
+        'languages.translations.delete.api' => 'languages.translations.delete',
+
+        'i18n.scopes.domains.keys.query.api' => 'i18n.scopes.domains.keys',
+        'i18n.scopes.domains.keys.ui' => 'i18n.scopes.domains.keys',
+
+        'i18n.scopes.coverage.language.api' => 'i18n.scopes.details',
+
+        'i18n.scopes.coverage.domain.ui' => 'i18n.scopes.coverage.domain',
+        'i18n.scopes.coverage.domain.api' => 'i18n.scopes.coverage.domain',
+
+        'i18n.scopes.domains.translations.query.api' => 'i18n.scopes.domains.translations',
+        'i18n.scopes.domains.translations.ui' => 'i18n.scopes.domains.translations',
 
         // I18n Scopes Control
+        'i18n.scopes.dropdown.api' => 'i18n.scopes.dropdown',
         'i18n.scopes.list.ui' => 'i18n.scopes.list',
         'i18n.scopes.list.api' => 'i18n.scopes.list',
         'i18n.scopes.create.api' => 'i18n.scopes.create',
@@ -100,6 +114,13 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'i18n.domains.update_sort.api' => 'i18n.domains.update_sort',
         'i18n.domains.update_metadata.api' => 'i18n.domains.update_metadata',
 
+        // I18n Translations Keys Control
+        'i18n.scopes.keys.ui' => 'i18n.scopes.keys',
+        'i18n.scopes.keys.query.api' => 'i18n.scopes.keys',
+        'i18n.scopes.keys.update_name.api' => 'i18n.scopes.keys.update_name',
+        'i18n.scopes.keys.create.api' => 'i18n.scopes.keys.create',
+        'i18n.scopes.keys.update_metadata.api' => 'i18n.scopes.keys.update_metadata',
+
         // App Settings Control
         'app_settings.list.api' => 'app_settings.list',
         // App Settings UI
@@ -112,15 +133,54 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
 
         'app_settings.set_active.api' => 'app_settings.set_active',
 
+//        Content Documents Control
+        'content_documents.types.query.ui' => 'content_documents.types.query',
+        'content_documents.types.query.api' => 'content_documents.types.query',
+        'content_documents.types.create.api' => 'content_documents.types.create',
+        'content_documents.types.update.api' => 'content_documents.types.update',
+
+        'content_documents.versions.query.ui' => 'content_documents.versions.query',
+        'content_documents.versions.query.api' => 'content_documents.versions.query',
+        'content_documents.versions.create.api' => 'content_documents.versions.create',
+        'content_documents.versions.activate.api' => 'content_documents.versions.activate',
+        'content_documents.versions.deactivate.api' => 'content_documents.versions.deactivate',
+        'content_documents.versions.archive.api' => 'content_documents.versions.archive',
+        'content_documents.versions.publish.api' => 'content_documents.versions.publish',
+
+        'content_documents.translations.query.ui' => 'content_documents.translations.query',
+        'content_documents.translations.query.api' => 'content_documents.translations.query',
+
+        'content_documents.translations.details' => 'content_documents.translations.details',
+
+        'content_documents.translations.upsert.api' => 'content_documents.translations.upsert',
+
+        'content_documents.acceptance.query.api' => 'content_documents.acceptance.query',
+
         /**
          * Shared selector:
          * - allowed from translations UI (upsert permission implies ability to select context)
          * - allowed from languages context
          */
-        'i18n.languages.select.api' => [
+        'i18n.languages.dropdown.api' => [
             'anyOf' => [
                 'i18n.translations.upsert',
-                'i18n.languages.select',
+                'i18n.languages.dropdown',
+            ],
+            'allOf' => [],
+        ],
+        'content_documents.types.dropdown.api' => [
+            'anyOf' => [
+                'content_documents.types.dropdown',
+                'content_documents.types.query',
+            ],
+            'allOf' => [],
+        ],
+
+        // I18n Translations Keys Dropdown for create
+        'i18n.scopes.domains.dropdown.api' => [
+            'anyOf' => [
+                'i18n.scopes.keys.create',
+                'i18n.scopes.domains.dropdown',
             ],
             'allOf' => [],
         ],

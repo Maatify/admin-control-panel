@@ -9,10 +9,14 @@ use Maatify\AdminKernel\Context\RequestContext;
 use Maatify\AdminKernel\Domain\Exception\IdentifierNotFoundException;
 use Maatify\AdminKernel\Domain\Service\AuthorizationService;
 use Maatify\AdminKernel\Domain\Service\SessionRevocationService;
+use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
 use Maatify\AdminKernel\Validation\Schemas\Session\SessionRevokeSchema;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use Slim\Exception\HttpBadRequestException;
+use Slim\Exception\HttpNotFoundException;
+use Slim\Exception\HttpUnauthorizedException;
 
 class SessionRevokeController
 {
@@ -20,7 +24,7 @@ class SessionRevokeController
         private readonly SessionRevocationService $revocationService,
         private readonly AuthorizationService $authorizationService,
         private readonly ValidationGuard $validationGuard,
-
+        private readonly JsonResponseFactory $json,
     ) {
     }
 
@@ -52,10 +56,7 @@ class SessionRevokeController
         $currentSessionHash = $token !== '' ? hash('sha256', $token) : '';
 
         if ($currentSessionHash === '') {
-            $response->getBody()->write(
-                json_encode(['error' => 'Current session not found'], JSON_THROW_ON_ERROR)
-            );
-            return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
+            throw new HttpUnauthorizedException($request, 'Current session not found');
         }
 
         try {
@@ -70,22 +71,12 @@ class SessionRevokeController
                 throw new \RuntimeException('Request Context not present');
             }
 
-            $response->getBody()->write(json_encode(['status' => 'ok'], JSON_THROW_ON_ERROR));
-            return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
+            return $this->json->data($response, ['status' => 'ok']);
 
         } catch (DomainException $e) {
-
-            $response->getBody()->write(
-                json_encode(['error' => $e->getMessage()], JSON_THROW_ON_ERROR)
-            );
-            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
-
+            throw new HttpBadRequestException($request, $e->getMessage());
         } catch (IdentifierNotFoundException $e) {
-
-            $response->getBody()->write(
-                json_encode(['error' => $e->getMessage()], JSON_THROW_ON_ERROR)
-            );
-            return $response->withStatus(404)->withHeader('Content-Type', 'application/json');
+            throw new HttpNotFoundException($request, $e->getMessage());
         }
     }
 }

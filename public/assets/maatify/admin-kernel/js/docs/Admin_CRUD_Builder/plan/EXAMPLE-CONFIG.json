@@ -1,0 +1,27 @@
+{
+  "feature": "scopes",
+  "apiEndpoint": "/admin/i18n/scopes",
+  
+  "table": {
+    "columns": [
+      "id",
+      "name",
+      { "key": "slug", "renderer": "code" },
+      { "key": "is_active", "renderer": "status" }
+    ]
+  },
+  
+  "filters": [
+    "name",
+    "slug",
+    { "name": "is_active", "type": "select" }
+  ],
+  
+  "form": {
+    "fields": [
+      { "name": "name", "required": true },
+      { "name": "slug", "required": true, "slugify": "name" },
+      { "name": "description", "type": "textarea" }
+    ]
+  }
+}

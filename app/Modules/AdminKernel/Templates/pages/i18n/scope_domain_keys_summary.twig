@@ -1,0 +1,281 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}Keys Coverage: {{ scope.name }} / {{ domain.name }} | {{ ui.appName }}{% endblock %}
+
+{% block content %}
+
+    {# ===================================================================
+       Capabilities Injection
+       Computed server-side by AuthorizationService.
+       JavaScript reads window.i18nScopeDomainKeysContext — never infers.
+       =================================================================== #}
+    <script>
+        window.i18nScopeDomainKeysContext = {
+            scope_id: {{ scope.id }},
+            domain_id: {{ domain.id }},
+            scope_code: "{{ scope.code }}",
+            domain_code: "{{ domain.code }}",
+            languages: {{ languages|json_encode|raw }},
+        };
+        console.log('🌍 Scope Domain Keys Context:', window.i18nScopeDomainKeysContext);
+    </script>
+
+    {# ===================================================================
+       Page Header (breadcrumb + title)
+       =================================================================== #}
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div class="flex items-center gap-3">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                Keys Coverage
+            </h2>
+        </div>
+
+        <nav>
+            <ol class="flex items-center gap-1.5">
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                       href="{{ ui.adminUrl }}dashboard">
+                        Home
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                  stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+
+                {% if capabilities.can_view_i18n_scopes ?? false %}
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                       href="{{ ui.adminUrl }}i18n/scopes">
+                        Scopes
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                  stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+                {% endif %}
+
+                {% if capabilities.can_view_i18n_scopes_details ?? false %}
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                       href="{{ ui.adminUrl }}i18n/scopes/{{ scope.id }}">
+                        {{ scope.name }}
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                  stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+                {% endif %}
+
+                {% if capabilities.can_view_i18n_scopes_domains_translations ?? false %}
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                       href="{{ ui.adminUrl }}i18n/scopes/{{ scope.id }}/domains/{{ domain.id }}/translations">
+                        {{ domain.name }}
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                  stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+                {% else %}
+                <li class="text-sm text-gray-800 dark:text-gray-200">
+                    {{ domain.name }}
+                </li>
+                    <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none">
+                        <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                              stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                {% endif %}
+                <li class="text-sm text-gray-800 dark:text-gray-200">
+                    summary
+                </li>
+            </ol>
+        </nav>
+    </div>
+
+    {# ===================================================================
+       Context Cards (Scope + Domain)
+       =================================================================== #}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <!-- Scope Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-5">
+            <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3 border-b dark:border-gray-700 pb-2">
+                Scope
+            </h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Name</p>
+                    <p class="text-sm text-gray-800 dark:text-gray-100">{{ scope.name }}</p>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Code</p>
+                    <code class="text-sm font-mono bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-2 py-1 rounded text-gray-800 dark:text-gray-200">
+                        {{ scope.code }}
+                    </code>
+                </div>
+            </div>
+        </div>
+
+        <!-- Domain Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-5">
+            <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3 border-b dark:border-gray-700 pb-2">
+                Domain
+            </h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Name</p>
+                    <p class="text-sm text-gray-800 dark:text-gray-100">{{ domain.name }}</p>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Code</p>
+                    <code class="text-sm font-mono bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-2 py-1 rounded text-gray-800 dark:text-gray-200">
+                        {{ domain.code }}
+                    </code>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ===================================================================
+       Keys Coverage Table Section
+       =================================================================== #}
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-4">
+        <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-4">
+            Keys Coverage Report
+        </h3>
+
+        {# ============================================================
+           🔍 Filters Section
+           ============================================================ #}
+        <div class="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg mb-4 border border-gray-200 dark:border-gray-700">
+            <form id="keys-coverage-filter-form" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <!-- Column Filters -->
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Key Part</label>
+                        <input type="text" id="filter-key-part"
+                               class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Exact key part">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Language</label>
+                        <div id="translation-filter-language-id" class="relative w-full">
+                            <div class="js-select-box w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 cursor-pointer flex items-center justify-between hover:border-gray-400 transition-colors">
+                                <input type="text" class="js-select-input bg-transparent border-none outline-none w-full cursor-pointer text-gray-900 dark:text-gray-100" placeholder="Select a language" readonly>
+                                <svg class="js-arrow w-4 h-4 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                            <div class="js-dropdown hidden absolute z-50 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                <div class="p-2 sticky top-0 bg-white dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                                    <input type="text" class="js-search-input w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Search...">
+                                </div>
+                                <ul class="js-select-list py-1">
+                                    <!-- Options will be populated by JS -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Missing Translations</label>
+                        <select id="filter-missing"
+                                class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">All</option>
+                            <option value="1">Missing Only</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Language Status</label>
+                        <select id="filter-language-is-active"
+                                class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">All</option>
+                            <option value="1">Active Only</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex items-end gap-2">
+                    <button type="submit" id="btn-filter-search" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Search
+                    </button>
+                    <button type="button" id="btn-reset-filters" class="px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-medium border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                        Reset
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        {# ============================================================
+           🌍 Global Search Bar
+           ============================================================ #}
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4">
+            <div class="flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                        type="text"
+                        id="keys-search-global"
+                        class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400"
+                        placeholder="🔍 Quick search by key part or description..."
+                />
+                <button
+                        type="button"
+                        id="btn-search-global"
+                        class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                    Search
+                </button>
+                <button
+                        type="button"
+                        id="btn-clear-search"
+                        class="px-6 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
+                >
+                    Clear
+                </button>
+            </div>
+        </div>
+
+        <div id="keys-coverage-table-container"></div>
+    </div>
+
+    {# ===================================================================
+       🎨 Custom Styles for Select2 Dark Mode
+       =================================================================== #}
+    <style>
+        /* Dark Mode overrides for Select2 selected item */
+        .dark .js-select-list li.bg-blue-50 {
+            background-color: rgba(30, 64, 175, 0.3) !important; /* blue-900/30 */
+        }
+        .dark .js-select-list li.text-blue-600 {
+            color: #60a5fa !important; /* blue-400 */
+        }
+        .dark .js-select-list li.text-blue-600 span.font-bold {
+            color: #60a5fa !important; /* blue-400 */
+        }
+    </style>
+
+{% endblock %}
+
+{% block scripts %}
+    {# Shared infrastructure scripts #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/api_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/callback_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/Input_checker.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/data_table.js') }}"></script>
+
+    {# ✨ Select2 - Custom dropdown with search #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/select2.js') }}"></script>
+
+    {# ✨ Project-wide reusable UI components library #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
+
+    {# 🌐 Keys Coverage modular scripts #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n_scope_domain_keys_coverage.js') }}"></script>
+{% endblock %}

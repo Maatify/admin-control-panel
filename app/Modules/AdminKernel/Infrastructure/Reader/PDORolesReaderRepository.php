@@ -19,8 +19,8 @@ use Maatify\AdminKernel\Domain\Contracts\Roles\RolesReaderRepositoryInterface;
 use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
 use Maatify\AdminKernel\Domain\DTO\Roles\RolesListItemDTO;
 use Maatify\AdminKernel\Domain\DTO\Roles\RolesQueryResponseDTO;
+use Maatify\AdminKernel\Domain\List\Filters\ResolvedListFilters;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
-use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
 use PDO;
 
 readonly class PDORolesReaderRepository implements RolesReaderRepositoryInterface

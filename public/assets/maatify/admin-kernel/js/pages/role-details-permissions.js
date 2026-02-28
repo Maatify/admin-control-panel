@@ -406,8 +406,11 @@
             // Step-Up 2FA required
             if (response.status === 403) {
                 const data = await response.json().catch(() => null);
-                if (data && data.code === 'STEP_UP_REQUIRED') {
-                    const scope    = encodeURIComponent(data.scope || `roles.permissions.${action}`);
+
+                // ✅ Use ErrorNormalizer Bridge
+                const stepUp = window.ErrorNormalizer.getLegacyStepUpView(data);
+                if (stepUp) {
+                    const scope    = encodeURIComponent(stepUp.scope || `roles.permissions.${action}`);
                     const returnTo = encodeURIComponent(window.location.pathname);
                     window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
                     return;

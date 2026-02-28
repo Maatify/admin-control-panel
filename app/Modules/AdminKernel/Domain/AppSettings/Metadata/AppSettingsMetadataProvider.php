@@ -4,37 +4,65 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\AppSettings\Metadata;
 
-use Maatify\AdminKernel\Domain\DTO\AppSettingsMetadata\AppSettingsGroupMetadataDTO;
-use Maatify\AdminKernel\Domain\DTO\AppSettingsMetadata\AppSettingsKeyMetadataDTO;
-use Maatify\AdminKernel\Domain\DTO\AppSettingsMetadata\AppSettingsMetadataResponseDTO;
-use Maatify\AppSettings\Policy\AppSettingsWhitelistPolicy;
+use Maatify\AdminKernel\Domain\AppSettings\DTO\AppSettingsKeyMetadataDTO;
+use Maatify\AdminKernel\Domain\AppSettings\DTO\AppSettingsMetadata\AppSettingsGroupMetadataDTO;
+use Maatify\AdminKernel\Domain\AppSettings\DTO\AppSettingsMetadata\AppSettingsMetadataResponseDTO;
 use Maatify\AppSettings\Policy\AppSettingsProtectionPolicy;
-use ReflectionClass;
+use Maatify\AppSettings\Policy\AppSettingsWhitelistPolicy;
+use Maatify\AppSettings\Repository\AppSettingsRepositoryInterface;
+use Maatify\AppSettings\DTO\AppSettingsQueryDTO;
 
-final class AppSettingsMetadataProvider
+final readonly class AppSettingsMetadataProvider
 {
+    public function __construct(
+        private AppSettingsWhitelistPolicy $whitelistPolicy,
+        private AppSettingsProtectionPolicy $protectionPolicy,
+        private AppSettingsRepositoryInterface $repository,
+    ) {
+    }
+
     public function getMetadata(): AppSettingsMetadataResponseDTO
     {
         $groups = [];
 
-        $allowed = $this->readWhitelist();
+        // 🔹 1) Whitelisted structure
+        $allowed = $this->whitelistPolicy->getAllowed();
+
+        // 🔹 2) Existing settings in DB
+        $existingMap = $this->buildExistingMap();
 
         foreach ($allowed as $group => $keys) {
+
             $groupKeys = [];
 
             foreach ($keys as $key) {
+
                 $isWildcard = ($key === '*');
 
-                $protected = false;
+                // 🔹 Skip already existing keys (except wildcard)
+                if (! $isWildcard && isset($existingMap[$group][$key])) {
+                    continue;
+                }
+
+                $isProtected = false;
+                $isEditable  = true;
+
                 if (! $isWildcard) {
-                    $protected = AppSettingsProtectionPolicy::isProtected($group, $key);
+                    $isProtected = $this->protectionPolicy->isProtected($group, $key);
+                    $isEditable  = ! $isProtected;
                 }
 
                 $groupKeys[] = new AppSettingsKeyMetadataDTO(
                     key: $key,
-                    protected: $protected,
-                    wildcard: $isWildcard
+                    protected: $isProtected,
+                    wildcard: $isWildcard,
+                    editable: $isEditable
                 );
+            }
+
+            // 🔹 Do not include empty groups
+            if ($groupKeys === []) {
+                continue;
             }
 
             $groups[] = new AppSettingsGroupMetadataDTO(
@@ -48,12 +76,36 @@ final class AppSettingsMetadataProvider
     }
 
     /**
-     * @return array<string, array<int,string>>
+     * Build a fast lookup map of existing settings.
+     *
+     * @return array<string, array<string, bool>>
      */
-    private function readWhitelist(): array
+    private function buildExistingMap(): array
     {
-        $ref = new ReflectionClass(AppSettingsWhitelistPolicy::class);
-        /** @var array<string, array<int,string>> */
-        return $ref->getConstant('ALLOWED');
+        $query = new AppSettingsQueryDTO(
+            page: 1,
+            perPage: 10_000,
+            search: null,
+            group: null,
+            isActive: null
+        );
+
+        $rows = $this->repository->query($query);
+
+        $map = [];
+
+        foreach ($rows as $row) {
+
+            $group = $row['setting_group'] ?? null;
+            $key   = $row['setting_key'] ?? null;
+
+            if (! is_string($group) || ! is_string($key)) {
+                continue;
+            }
+
+            $map[$group][$key] = true;
+        }
+
+        return $map;
     }
 }

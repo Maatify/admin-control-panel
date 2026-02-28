@@ -15,9 +15,11 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\AppSettings;
 
-use Maatify\AdminKernel\Validation\Schemas\AppSettings\AppSettingsCreateSchema;
+use Maatify\AdminKernel\Domain\AppSettings\Validation\AppSettingsCreateSchema;
 use Maatify\AppSettings\AppSettingsServiceInterface;
 use Maatify\AppSettings\DTO\AppSettingDTO;
+use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
+use Maatify\AppSettings\Enum\AppSettingValueTypeEnum;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -26,7 +28,8 @@ final readonly class AppSettingsCreateController
 {
     public function __construct(
         private AppSettingsServiceInterface $service,
-        private ValidationGuard $validationGuard
+        private ValidationGuard $validationGuard,
+        private JsonResponseFactory $json,
     )
     {
     }
@@ -44,15 +47,22 @@ final readonly class AppSettingsCreateController
          *   setting_group: string,
          *   setting_key: string,
          *   setting_value: string,
+         *   setting_type?: string,
          *   is_active?: bool
          * } $body
          */
+
+        $valueType = AppSettingValueTypeEnum::STRING;
+        if (!empty($body['setting_type'])) {
+            $valueType = AppSettingValueTypeEnum::tryFrom($body['setting_type']) ?? AppSettingValueTypeEnum::STRING;
+        }
 
         // 2) Build DTO (existing DTO)
         $dto = new AppSettingDTO(
             group   : $body['setting_group'],
             key     : $body['setting_key'],
             value   : $body['setting_value'],
+            valueType: $valueType,
             isActive: $body['is_active'] ?? true
         );
 
@@ -60,12 +70,6 @@ final readonly class AppSettingsCreateController
         $this->service->create($dto);
 
         // 4) Response
-        $response->getBody()->write(
-            json_encode(['status' => 'ok'], JSON_THROW_ON_ERROR)
-        );
-
-        return $response
-            ->withHeader('Content-Type', 'application/json')
-            ->withStatus(200);
+        return $this->json->data($response, ['status' => 'ok']);
     }
 }

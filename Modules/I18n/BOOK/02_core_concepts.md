@@ -2,29 +2,10 @@
 
 This chapter defines the strictly enforced terminology and data models used by the `maatify/i18n` library.
 
-## Language Identity vs. Settings
+## Language Identity
 
-The library separates language identity from UI configuration into distinct, immutable entities.
-
-### 1. Language Identity (`languages`)
-This entity represents the canonical language reference.
-*   **Attributes:**
-    *   `id` (int): Internal primary key.
-    *   `code` (string): Canonical BCP 47 code (e.g., `en-US`, `ar-EG`).
-    *   `name` (string): Human-readable name (e.g., "English (US)").
-    *   `is_active` (bool): Global switch to disable/enable the language.
-    *   `fallback_language_id` (int|null): Pointer to another language for missing keys.
-
-This identity is rarely modified once created.
-
-### 2. Language Settings (`language_settings`)
-This entity stores UI-specific configuration.
-*   **Attributes:**
-    *   `direction` (enum): Text direction, strictly `LTR` or `RTL`.
-    *   `icon` (string): Path or URL to a flag/icon.
-    *   `sort_order` (int): Display priority in lists.
-
-Separating these concepts allows the kernel to operate on `Language Identity` without concern for UI attributes like icons or text direction.
+This module depends on **[Maatify/LanguageCore](../../LanguageCore/BOOK/02_language_identity.md)** for language identity (Code, Name, ID).
+It uses the `language_id` (int) as a Foreign Key in the `i18n_translations` table.
 
 ## Structured Keys
 

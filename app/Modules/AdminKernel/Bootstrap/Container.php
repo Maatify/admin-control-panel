@@ -68,8 +68,7 @@ use Maatify\AdminKernel\Domain\DTO\AdminConfigDTO;
 use Maatify\AdminKernel\Domain\DTO\TotpEnrollmentConfig;
 use Maatify\AdminKernel\Domain\DTO\Ui\UiConfigDTO;
 use Maatify\AdminKernel\Domain\I18n\Keys\I18nKeyInterface;
-use Maatify\AdminKernel\Domain\I18n\Reader\LanguageQueryReaderInterface;
-use Maatify\AdminKernel\Domain\I18n\Reader\TranslationKeyQueryReaderInterface;
+use Maatify\AdminKernel\Domain\I18n\Language\LanguageQueryReaderInterface;
 use Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsInterface;
 use Maatify\AdminKernel\Domain\Ownership\SystemOwnershipRepositoryInterface;
 use Maatify\AdminKernel\Domain\Security\Crypto\AdminCryptoContextProvider;
@@ -107,9 +106,6 @@ use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesUpdateCodeC
 use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesUpdateNameController;
 use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesUpdateSettingsController;
 use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesUpdateSortOrderController;
-use Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationKeysCreateController;
-use Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationKeysUpdateDescriptionController;
-use Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationKeysUpdateNameController;
 use Maatify\AdminKernel\Http\Controllers\Api\Permissions\PermissionMetadataUpdateController;
 use Maatify\AdminKernel\Http\Controllers\Api\Permissions\PermissionsController;
 use Maatify\AdminKernel\Http\Controllers\Api\Roles\RoleCreateController;
@@ -124,7 +120,6 @@ use Maatify\AdminKernel\Http\Controllers\AuthController;
 use Maatify\AdminKernel\Http\Controllers\NotificationQueryController;
 use Maatify\AdminKernel\Http\Controllers\TelegramWebhookController;
 use Maatify\AdminKernel\Http\Controllers\Ui\Admin\UiAdminsController;
-use Maatify\AdminKernel\Http\Controllers\Ui\I18n\TranslationKeysListController;
 use Maatify\AdminKernel\Http\Controllers\Ui\LanguagesListController;
 use Maatify\AdminKernel\Http\Controllers\Ui\Permissions\UiPermissionsController;
 use Maatify\AdminKernel\Http\Controllers\Ui\Roles\UiRolesController;
@@ -168,7 +163,6 @@ use Maatify\AdminKernel\Infrastructure\Repository\I18n\Domains\PdoI18nDomainCrea
 use Maatify\AdminKernel\Infrastructure\Repository\I18n\Domains\PdoI18nDomainsQueryReader;
 use Maatify\AdminKernel\Infrastructure\Repository\I18n\Keys\I18nKeyRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\I18n\Languages\PdoLanguageQueryReader;
-use Maatify\AdminKernel\Infrastructure\Repository\I18n\PdoTranslationKeyQueryReader;
 use Maatify\AdminKernel\Infrastructure\Repository\I18n\ScopeDomains\I18nScopeDomainsRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\NotificationReadRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\PdoAdminDirectPermissionRepository;
@@ -203,6 +197,8 @@ use Maatify\AdminKernel\Infrastructure\Updater\PDOPermissionsMetadataRepository;
 use Maatify\AdminKernel\Kernel\Adapter\CryptoKeyRingEnvAdapter;
 use Maatify\AdminKernel\Kernel\Adapter\PasswordPepperEnvAdapter;
 use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
+use Maatify\AppSettings\Policy\AppSettingsProtectionPolicy;
+use Maatify\AppSettings\Policy\AppSettingsWhitelistPolicy;
 use Maatify\Crypto\Contract\CryptoContextProviderInterface;
 use Maatify\Crypto\DX\CryptoContextFactory;
 use Maatify\Crypto\DX\CryptoDirectFactory;
@@ -222,25 +218,18 @@ use Maatify\EmailDelivery\Renderer\EmailRendererInterface;
 use Maatify\EmailDelivery\Renderer\TwigEmailRenderer;
 use Maatify\EmailDelivery\Transport\EmailTransportInterface;
 use Maatify\EmailDelivery\Transport\SmtpEmailTransport;
-use Maatify\I18n\Contract\LanguageRepositoryInterface;
-use Maatify\I18n\Contract\LanguageSettingsRepositoryInterface;
 use Maatify\I18n\Contract\TranslationKeyRepositoryInterface;
 use Maatify\I18n\Contract\TranslationRepositoryInterface;
-use Maatify\I18n\Http\Controllers\Api\LanguageSelectController;
-use Maatify\I18n\Infrastructure\Mysql\MysqlLanguageRepository;
-use Maatify\I18n\Infrastructure\Mysql\MysqlLanguageSettingsRepository;
-use Maatify\I18n\Infrastructure\Mysql\MysqlTranslationKeyRepository;
-use Maatify\I18n\Infrastructure\Mysql\MysqlTranslationRepository;
-use Maatify\I18n\Service\LanguageManagementService;
-use Maatify\I18n\Service\TranslationWriteService;
 use Maatify\InputNormalization\Contracts\InputNormalizerInterface;
 use Maatify\InputNormalization\Middleware\InputNormalizationMiddleware;
 use Maatify\InputNormalization\Normalizer\InputNormalizer;
+use Maatify\LanguageCore\Contract\LanguageRepositoryInterface;
+use Maatify\LanguageCore\Contract\LanguageSettingsRepositoryInterface;
+use Maatify\LanguageCore\Http\Controllers\Api\LanguageDropdownController;
+use Maatify\LanguageCore\Service\LanguageManagementService;
 use Maatify\PsrLogger\LoggerFactory;
 use Maatify\SharedCommon\Contracts\ClockInterface;
-use Maatify\Validation\Contracts\ValidatorInterface;
 use Maatify\Validation\Guard\ValidationGuard;
-use Maatify\Validation\Validator\RespectValidator;
 use PDO;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
@@ -330,12 +319,12 @@ class Container
 
         // Currently bound to login flow only.
         // Extendable when AbusePolicy supports multi-context challenges.
-        $hCaptchaConfigDTO = new HCaptchaConfigDto(
+        $hCaptchaConfigDTO = new HCaptchaConfigDTO(
             siteKey: $runtime->hCaptchaSiteKey,
             secretKey: $runtime->hCaptchaSecretKey
         );
 
-        $recaptchaV2ConfigDTO = new RecaptchaV2ConfigDto(
+        $recaptchaV2ConfigDTO = new RecaptchaV2ConfigDTO(
             siteKey: $runtime->recaptchaV2SiteKey,
             secretKey: $runtime->recaptchaV2SecretKey
         );
@@ -370,20 +359,13 @@ class Container
             TurnstileConfigDTO::class => function () use ($turnstileConfigDTO) {
                 return $turnstileConfigDTO;
             },
-            HCaptchaConfigDto::class => function () use ($hCaptchaConfigDTO) {
+            HCaptchaConfigDTO::class => function () use ($hCaptchaConfigDTO) {
                 return $hCaptchaConfigDTO;
             },
-            RecaptchaV2ConfigDto::class => function () use ($recaptchaV2ConfigDTO) {
+            RecaptchaV2ConfigDTO::class => function () use ($recaptchaV2ConfigDTO) {
                 return $recaptchaV2ConfigDTO;
             },
-            ValidatorInterface::class => function (ContainerInterface $c) {
-                return new RespectValidator();
-            },
-            ValidationGuard::class => function (ContainerInterface $c) {
-                $validator = $c->get(ValidatorInterface::class);
-                assert($validator instanceof ValidatorInterface);
-                return new ValidationGuard($validator);
-            },
+
             InputNormalizerInterface::class => function (ContainerInterface $c) {
                 return new InputNormalizer();
             },
@@ -1160,10 +1142,14 @@ class Container
                 assert($auth instanceof AuthorizationService);
                 assert($validationGuard instanceof ValidationGuard);
 
+                $json = $c->get(\Maatify\AdminKernel\Http\Response\JsonResponseFactory::class);
+                assert($json instanceof \Maatify\AdminKernel\Http\Response\JsonResponseFactory);
+
                 return new SessionRevokeController(
                     $service,
                     $auth,
-                    $validationGuard
+                    $validationGuard,
+                    $json
                 );
             },
             SessionBulkRevokeController::class => function (ContainerInterface $c) {
@@ -1175,10 +1161,14 @@ class Container
                 assert($auth instanceof AuthorizationService);
                 assert($validationGuard instanceof ValidationGuard);
 
+                $json = $c->get(\Maatify\AdminKernel\Http\Response\JsonResponseFactory::class);
+                assert($json instanceof \Maatify\AdminKernel\Http\Response\JsonResponseFactory);
+
                 return new SessionBulkRevokeController(
                     $service,
                     $auth,
                     $validationGuard,
+                    $json,
                 );
             },
 
@@ -1341,17 +1331,20 @@ class Container
             RememberMeService::class                                  => function (ContainerInterface $c) {
                 $rememberMeRepo = $c->get(RememberMeRepositoryInterface::class);
                 $sessionRepo = $c->get(AdminSessionRepositoryInterface::class);
+                $adminRepository = $c->get(AdminRepository::class);
                 $pdo = $c->get(PDO::class);
                 $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
 
                 assert($rememberMeRepo instanceof RememberMeRepositoryInterface);
                 assert($sessionRepo instanceof AdminSessionRepositoryInterface);
+                assert($adminRepository instanceof AdminRepository);
                 assert($pdo instanceof PDO);
                 assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
 
                 return new RememberMeService(
                     $rememberMeRepo,
                     $sessionRepo,
+                    $adminRepository,
                     $pdo,
                     $clock
                 );
@@ -2158,18 +2151,6 @@ class Container
                 return new AdminQueryController($reader, $validationGuard, $filterResolver);
             },
 
-            LanguageRepositoryInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new MysqlLanguageRepository($pdo);
-            },
-
-            LanguageSettingsRepositoryInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new MysqlLanguageSettingsRepository($pdo);
-            },
-
             LanguageManagementService::class => function (ContainerInterface $c) {
                 $languageRepository = $c->get(LanguageRepositoryInterface::class);
                 $settingsRepository = $c->get(LanguageSettingsRepositoryInterface::class);
@@ -2285,117 +2266,19 @@ class Container
                 );
             },
 
-            TranslationKeyQueryReaderInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-
-                return new PdoTranslationKeyQueryReader($pdo);
-            },
-
-            TranslationKeyRepositoryInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new MysqlTranslationKeyRepository($pdo);
-            },
-
-            TranslationRepositoryInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new MysqlTranslationRepository($pdo);
-            },
-
-            TranslationWriteService::class => function (ContainerInterface $c) {
-                $languageRepository = $c->get(LanguageRepositoryInterface::class);
-                $keyRepository = $c->get(TranslationKeyRepositoryInterface::class);
-                $translationRepository = $c->get(TranslationRepositoryInterface::class);
-                $governancePolicy = $c->get(\Maatify\I18n\Service\I18nGovernancePolicyService::class);
-                assert($languageRepository instanceof LanguageRepositoryInterface);
-                assert($keyRepository instanceof TranslationKeyRepositoryInterface);
-                assert($translationRepository instanceof TranslationRepositoryInterface);
-                assert($governancePolicy instanceof \Maatify\I18n\Service\I18nGovernancePolicyService);
-                return new TranslationWriteService($languageRepository, $keyRepository, $translationRepository, $governancePolicy);
-            },
-
-            TranslationKeysUpdateNameController::class => function (ContainerInterface $c) {
-                $translationWriteService = $c->get(TranslationWriteService::class);
-                $validationGuard = $c->get(ValidationGuard::class);
-
-                assert($translationWriteService instanceof TranslationWriteService);
-                assert($validationGuard instanceof ValidationGuard);
-
-                return new TranslationKeysUpdateNameController(
-                    $translationWriteService,
-                    $validationGuard
-                );
-            },
-
-            TranslationKeysUpdateDescriptionController::class => function (ContainerInterface $c) {
-                $translationWriteService = $c->get(TranslationWriteService::class);
-                $validationGuard = $c->get(ValidationGuard::class);
-
-                assert($translationWriteService instanceof TranslationWriteService);
-                assert($validationGuard instanceof ValidationGuard);
-
-                return new TranslationKeysUpdateDescriptionController(
-                    $translationWriteService,
-                    $validationGuard
-                );
-            },
-
-            TranslationKeysCreateController::class => function (ContainerInterface $c) {
-                $translationWriteService = $c->get(TranslationWriteService::class);
-                $validationGuard = $c->get(ValidationGuard::class);
-                assert($translationWriteService instanceof TranslationWriteService);
-                assert($validationGuard instanceof ValidationGuard);
-                return new TranslationKeysCreateController($translationWriteService, $validationGuard);
-            },
-
-            TranslationKeysListController::class => function (ContainerInterface $c) {
-                $twig = $c->get(Twig::class);
-                $authorizationService = $c->get(AuthorizationService::class);
-                assert($twig instanceof Twig);
-                assert($authorizationService instanceof AuthorizationService);
-                return new TranslationKeysListController($twig, $authorizationService);
-            },
-
-
-            \Maatify\AdminKernel\Domain\I18n\Reader\TranslationValueQueryReaderInterface::class => function (\Psr\Container\ContainerInterface $c) {
+            \Maatify\AdminKernel\Domain\I18n\LanguageTranslationValue\LanguageTranslationValueQueryReaderInterface::class => function (\Psr\Container\ContainerInterface $c) {
                 $pdo = $c->get(\PDO::class);
                 \assert($pdo instanceof \PDO);
 
-                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\PdoTranslationValueQueryReader($pdo);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\PdoLanguageTranslationValueQueryReader($pdo);
             },
 
-            \Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationValueUpsertController::class => function (\Psr\Container\ContainerInterface $c) {
-                $translationWriteService = $c->get(\Maatify\I18n\Service\TranslationWriteService::class);
-                $validationGuard = $c->get(\Maatify\Validation\Guard\ValidationGuard::class);
-                assert($translationWriteService instanceof \Maatify\I18n\Service\TranslationWriteService);
-                assert($validationGuard instanceof \Maatify\Validation\Guard\ValidationGuard);
-                return new \Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationValueUpsertController($translationWriteService, $validationGuard);
-            },
-
-            \Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationValueDeleteController::class => function (\Psr\Container\ContainerInterface $c) {
-                $translationWriteService = $c->get(\Maatify\I18n\Service\TranslationWriteService::class);
-                $validationGuard = $c->get(\Maatify\Validation\Guard\ValidationGuard::class);
-                assert($translationWriteService instanceof \Maatify\I18n\Service\TranslationWriteService);
-                assert($validationGuard instanceof \Maatify\Validation\Guard\ValidationGuard);
-                return new \Maatify\AdminKernel\Http\Controllers\Api\I18n\TranslationValueDeleteController($translationWriteService, $validationGuard);
-            },
-
-            \Maatify\AdminKernel\Http\Controllers\Ui\I18n\TranslationsListUiController::class => function (\Psr\Container\ContainerInterface $c) {
-                $twig = $c->get(Twig::class);
-                $authorizationService = $c->get(AuthorizationService::class);
-                assert($twig instanceof Twig);
-                assert($authorizationService instanceof AuthorizationService);
-                return new \Maatify\AdminKernel\Http\Controllers\Ui\I18n\TranslationsListUiController($twig, $authorizationService);
-            },
-
-            LanguageSelectController::class => function (\Psr\Container\ContainerInterface $c) {
+            LanguageDropdownController::class => function (\Psr\Container\ContainerInterface $c) {
                 $languageRepository = $c->get(LanguageRepositoryInterface::class);
                 $settingsRepository = $c->get(LanguageSettingsRepositoryInterface::class);
                 assert($languageRepository instanceof LanguageRepositoryInterface);
                 assert($settingsRepository instanceof LanguageSettingsRepositoryInterface);
-                return new LanguageSelectController($languageRepository, $settingsRepository);
+                return new LanguageDropdownController($languageRepository, $settingsRepository);
             },
 
             \Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopesQueryReaderInterface::class => function (ContainerInterface $c) {
@@ -2419,11 +2302,23 @@ class Container
             \Maatify\AdminKernel\Domain\AppSettings\Reader\AppSettingsQueryReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
-                return new \Maatify\AdminKernel\Infrastructure\Reader\AppSettings\PdoAppSettingsQueryReader($pdo);
+                $protectionPolicy = $c->get(AppSettingsProtectionPolicy::class);
+                assert($protectionPolicy instanceof AppSettingsProtectionPolicy);
+                return new \Maatify\AdminKernel\Infrastructure\Reader\AppSettings\PdoAppSettingsQueryReader($pdo, $protectionPolicy);
             },
 
             \Maatify\AdminKernel\Domain\AppSettings\Metadata\AppSettingsMetadataProvider::class => function (ContainerInterface $c) {
-                return new \Maatify\AdminKernel\Domain\AppSettings\Metadata\AppSettingsMetadataProvider();
+                $whitelistPolicy = $c->get(AppSettingsWhitelistPolicy::class);
+                assert($whitelistPolicy instanceof AppSettingsWhitelistPolicy);
+                $protectionPolicy = $c->get(AppSettingsProtectionPolicy::class);
+                assert($protectionPolicy instanceof AppSettingsProtectionPolicy);
+                $repository = $c->get(\Maatify\AppSettings\Repository\AppSettingsRepositoryInterface::class);
+                assert($repository instanceof \Maatify\AppSettings\Repository\AppSettingsRepositoryInterface);
+                return new \Maatify\AdminKernel\Domain\AppSettings\Metadata\AppSettingsMetadataProvider(
+                    $whitelistPolicy,
+                    $protectionPolicy,
+                    $repository
+                );
             },
 
             \Maatify\AdminKernel\Http\Controllers\Ui\AppSettings\AppSettingsListUiController::class => function (ContainerInterface $c) {
@@ -2455,24 +2350,6 @@ class Container
                     $translationRepository,
                     $policyService,
                 );
-            },
-
-            \Maatify\I18n\Contract\ScopeRepositoryInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new \Maatify\I18n\Infrastructure\Mysql\MysqlScopeRepository($pdo);
-            },
-
-            \Maatify\I18n\Contract\DomainScopeRepositoryInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new \Maatify\I18n\Infrastructure\Mysql\MysqlDomainScopeRepository($pdo);
-            },
-
-            \Maatify\I18n\Contract\DomainRepositoryInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new \Maatify\I18n\Infrastructure\Mysql\MysqlDomainRepository($pdo);
             },
 
             \Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopesListUiController::class
@@ -2536,9 +2413,173 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\ScopeDomains\PdoI18nScopeDomainsWriter($pdo);
-            }
+            },
+
+            \Maatify\AdminKernel\Domain\I18n\Keys\I18nScopeKeysQueryReaderInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Keys\PdoI18nScopeKeysQueryReader($pdo);
+            },
+
+            \Maatify\AdminKernel\Domain\I18n\Language\LanguageLookupInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Languages\PdoLanguageLookup($pdo);
+            },
+
+
+            \Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsListReaderInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\ScopeDomains\PdoI18nScopeDomainsListReader($pdo);
+            },
+
+            \Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopeDropdownReaderInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Scope\PdoI18nScopeDropdownReader($pdo);
+            },
+
+            \Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainDetailsReaderInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Domains\PdoI18nDomainDetailsReader($pdo);
+            },
+
+            \Maatify\AdminKernel\Domain\I18n\Translations\I18nScopeDomainKeysSummaryQueryReaderInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Translations\PdoI18nScopeDomainKeysSummaryQueryReader($pdo);
+            },
+
+            \Maatify\AdminKernel\Domain\I18n\Translations\I18nScopeDomainTranslationsQueryReaderInterface::class => function (ContainerInterface $c) {
+            $pdo = $c->get(PDO::class);
+            assert($pdo instanceof PDO);
+            return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Translations\PdoI18nScopeDomainTranslationsQueryReader($pdo);
+            },
+
+            \Maatify\AdminKernel\Domain\I18n\Coverage\I18nScopeCoverageReaderInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                assert($pdo instanceof PDO);
+                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Coverage\PdoI18nScopeCoverageReader($pdo);
+            },
+
+            \Maatify\AdminKernel\Http\Controllers\Api\I18n\Coverage\I18nScopeCoverageByLanguageController::class => function (ContainerInterface $c) {
+                $reader = $c->get(\Maatify\AdminKernel\Domain\I18n\Coverage\I18nScopeCoverageReaderInterface::class);
+                $json = $c->get(\Maatify\AdminKernel\Http\Response\JsonResponseFactory::class);
+                assert($reader instanceof \Maatify\AdminKernel\Domain\I18n\Coverage\I18nScopeCoverageReaderInterface);
+                assert($json instanceof \Maatify\AdminKernel\Http\Response\JsonResponseFactory);
+                return new \Maatify\AdminKernel\Http\Controllers\Api\I18n\Coverage\I18nScopeCoverageByLanguageController($reader, $json);
+            },
+
+            \Maatify\AdminKernel\Http\Controllers\Api\I18n\Coverage\I18nScopeCoverageByDomainController::class => function (ContainerInterface $c) {
+                $reader = $c->get(\Maatify\AdminKernel\Domain\I18n\Coverage\I18nScopeCoverageReaderInterface::class);
+                $json = $c->get(\Maatify\AdminKernel\Http\Response\JsonResponseFactory::class);
+                assert($reader instanceof \Maatify\AdminKernel\Domain\I18n\Coverage\I18nScopeCoverageReaderInterface);
+                assert($json instanceof \Maatify\AdminKernel\Http\Response\JsonResponseFactory);
+                return new \Maatify\AdminKernel\Http\Controllers\Api\I18n\Coverage\I18nScopeCoverageByDomainController($reader, $json);
+            },
+
+            \Maatify\AdminKernel\Http\Controllers\Ui\I18n\I18nScopeLanguageCoverageUiController::class => function (ContainerInterface $c) {
+                $twig = $c->get(Twig::class);
+                $auth = $c->get(AuthorizationService::class);
+                $scopeReader = $c->get(\Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopeDetailsRepositoryInterface::class);
+                $langRepo = $c->get(LanguageRepositoryInterface::class);
+
+                assert($twig instanceof Twig);
+                assert($auth instanceof AuthorizationService);
+                assert($scopeReader instanceof \Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopeDetailsRepositoryInterface);
+                assert($langRepo instanceof LanguageRepositoryInterface);
+
+                return new \Maatify\AdminKernel\Http\Controllers\Ui\I18n\I18nScopeLanguageCoverageUiController(
+                    $twig,
+                    $auth,
+                    $scopeReader,
+                    $langRepo
+                );
+            },
+
+
+
+            \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsCreateController::class => function (ContainerInterface $c) {
+                $service = $c->get(\Maatify\AppSettings\AppSettingsServiceInterface::class);
+                $guard = $c->get(ValidationGuard::class);
+                assert($service instanceof \Maatify\AppSettings\AppSettingsServiceInterface);
+                assert($guard instanceof ValidationGuard);
+
+                $json = $c->get(\Maatify\AdminKernel\Http\Response\JsonResponseFactory::class);
+                assert($json instanceof \Maatify\AdminKernel\Http\Response\JsonResponseFactory);
+
+                return new \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsCreateController(
+                    $service,
+                    $guard,
+                    $json,
+                );
+            },
+
+            \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsUpdateController::class => function (ContainerInterface $c) {
+                $service = $c->get(\Maatify\AppSettings\AppSettingsServiceInterface::class);
+                $guard = $c->get(ValidationGuard::class);
+                assert($service instanceof \Maatify\AppSettings\AppSettingsServiceInterface);
+                assert($guard instanceof ValidationGuard);
+                $json = $c->get(\Maatify\AdminKernel\Http\Response\JsonResponseFactory::class);
+                assert($json instanceof \Maatify\AdminKernel\Http\Response\JsonResponseFactory);
+                return new \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsUpdateController($service, $guard, $json);
+            },
+
+            \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsSetActiveController::class => function (ContainerInterface $c) {
+                $service = $c->get(\Maatify\AppSettings\AppSettingsServiceInterface::class);
+                $guard = $c->get(ValidationGuard::class);
+                assert($service instanceof \Maatify\AppSettings\AppSettingsServiceInterface);
+                assert($guard instanceof ValidationGuard);
+                $json = $c->get(\Maatify\AdminKernel\Http\Response\JsonResponseFactory::class);
+                assert($json instanceof \Maatify\AdminKernel\Http\Response\JsonResponseFactory);
+                return new \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsSetActiveController($service, $guard, $json);
+            },
+
+            \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsQueryController::class => function (ContainerInterface $c) {
+                $reader = $c->get(\Maatify\AdminKernel\Domain\AppSettings\Reader\AppSettingsQueryReaderInterface::class);
+                $guard = $c->get(ValidationGuard::class);
+                $resolver = $c->get(ListFilterResolver::class);
+                assert($reader instanceof \Maatify\AdminKernel\Domain\AppSettings\Reader\AppSettingsQueryReaderInterface);
+                assert($guard instanceof ValidationGuard);
+                assert($resolver instanceof ListFilterResolver);
+                return new \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsQueryController($reader, $guard, $resolver);
+            },
+
+            \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsMetadataController::class => function (ContainerInterface $c) {
+                $provider = $c->get(\Maatify\AdminKernel\Domain\AppSettings\Metadata\AppSettingsMetadataProvider::class);
+                assert($provider instanceof \Maatify\AdminKernel\Domain\AppSettings\Metadata\AppSettingsMetadataProvider);
+                return new \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsMetadataController($provider);
+            },
 
         ]);
+
+        // ------- Register Infrastructure modules -------
+
+        // Register ContentDocuments Infrastructure
+        \Maatify\AdminKernel\Infrastructure\ContentDocuments\Bootstrap\ContentDocumentBinding::register($containerBuilder);
+
+
+        // ------- Register internal modules -------
+
+        // Register Maatify\LanguageCore modules
+        \Maatify\LanguageCore\Bootstrap\LanguageCoreBindings::register($containerBuilder);
+
+        // Register Maatify\I18n modules
+        \Maatify\I18n\Bootstrap\I18nBindings::register($containerBuilder);
+
+        // Register Maatify\ContentDocuments modules
+        \Maatify\ContentDocuments\Bootstrap\ContentDocumentsBindings::register($containerBuilder);
+
+        // Register Maatify\Validation modules
+        \Maatify\Validation\Bootstrap\ValidationBindings::register($containerBuilder);
+
+        // Register Maatify\AppSettings modules
+        \Maatify\AppSettings\Bootstrap\AppSettingsBindings::register($containerBuilder);
+
+        // Register Infrastructure\LanguageCoreBinding modules
+        \Maatify\AdminKernel\Infrastructure\LanguageCore\Bootstrap\LanguageCoreBinding::register($containerBuilder);
 
         // Extension Hook: Allow host projects to override/extend bindings
         if ($builderHook !== null) {

@@ -61,14 +61,14 @@ The `upsertTranslation` method inserts or updates a translation value.
 
 ```php
 // Set English Value
-$service->upsertTranslation(
+$translationId = $service->upsertTranslation(
     languageId: 1, // en-US
     keyId: $keyId,
     value: 'Welcome Back'
 );
 
 // Update English Value (Overwrites previous)
-$service->upsertTranslation(
+$translationId = $service->upsertTranslation(
     languageId: 1,
     keyId: $keyId,
     value: 'Please Log In'
@@ -76,8 +76,9 @@ $service->upsertTranslation(
 ```
 
 **Behavior:**
-*   If a row exists for `(languageId, keyId)`, it is updated.
-*   If no row exists, a new row is inserted.
+*   Returns `int` (Translation ID).
+*   Internally uses `TranslationUpsertResultDTO` to detect changes.
+*   Synchronously updates aggregation counters (`translated_count`) if a new record is created.
 *   `updated_at` timestamp is refreshed.
 
 ## 5. Deleting Translations
@@ -91,4 +92,15 @@ $service->deleteTranslation(
 );
 ```
 
-**Note:** Deleting a `TranslationKey` (via `i18n_keys` cascade) automatically removes all associated translations. This method allows targeted removal of a single language's value.
+**Behavior:**
+*   Returns `void`.
+*   Internally tracks affected rows.
+*   Synchronously decrements aggregation counters (`translated_count`) if a record was removed.
+
+## 6. Key Deletion
+
+**Status: NOT SUPPORTED**
+
+The module does not support deleting keys (`deleteKey`).
+*   **Rationale:** Deleting keys breaks historical context and referential integrity in consuming applications.
+*   **Strategy:** Deprecated keys should be left as-is or renamed with a `deprecated.` prefix if necessary.

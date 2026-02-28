@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\I18n\Scope\Reader;
 
-use Maatify\AdminKernel\Domain\DTO\I18nScopesList\I18nScopesListItemDTO;
+use Maatify\AdminKernel\Domain\I18n\Scope\DTO\I18nScopesListItemDTO;
 
 interface I18nScopeDetailsRepositoryInterface
 {

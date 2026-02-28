@@ -15,8 +15,8 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\AppSettings;
 
+use Maatify\AdminKernel\Domain\AppSettings\List\AppSettingsListCapabilities;
 use Maatify\AdminKernel\Domain\AppSettings\Reader\AppSettingsQueryReaderInterface;
-use Maatify\AdminKernel\Domain\List\AppSettingsListCapabilities;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
 use Maatify\AdminKernel\Infrastructure\Query\ListFilterResolver;
 use Maatify\Validation\Guard\ValidationGuard;

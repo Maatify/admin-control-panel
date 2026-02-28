@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace Maatify\I18n\Infrastructure\Mysql;
 
+use Maatify\I18n\DTO\TranslationUpsertResultDTO;
 use PDO;
 use PDOStatement;
 use Maatify\I18n\Contract\TranslationRepositoryInterface;
@@ -27,20 +28,18 @@ final readonly class MysqlTranslationRepository implements TranslationRepository
         private PDO $pdo
     ) {}
 
-    public function upsert(int $languageId, int $keyId, string $value): int
+    public function upsert(int $languageId, int $keyId, string $value): TranslationUpsertResultDTO
     {
-        // NOTE:
-        // We force a stable returned ID even on UPDATE using LAST_INSERT_ID trick.
         $sql = 'INSERT INTO i18n_translations (language_id, key_id, value)
-                VALUES (:language_id, :key_id, :value)
-                ON DUPLICATE KEY UPDATE
-                    id = LAST_INSERT_ID(id),
-                    value = VALUES(value),
-                    updated_at = CURRENT_TIMESTAMP';
+            VALUES (:language_id, :key_id, :value)
+            ON DUPLICATE KEY UPDATE
+                id = LAST_INSERT_ID(id),
+                value = VALUES(value),
+                updated_at = CURRENT_TIMESTAMP';
 
         $stmt = $this->pdo->prepare($sql);
         if (!$stmt instanceof PDOStatement) {
-            return 0;
+            return new TranslationUpsertResultDTO(0, false);
         }
 
         $stmt->execute([
@@ -49,7 +48,10 @@ final readonly class MysqlTranslationRepository implements TranslationRepository
             'value' => $value,
         ]);
 
-        return (int) $this->pdo->lastInsertId();
+        $id = (int) $this->pdo->lastInsertId();
+        $created = ($stmt->rowCount() === 1);
+
+        return new TranslationUpsertResultDTO($id, $created);
     }
 
     public function getById(int $id): ?TranslationDTO
@@ -161,19 +163,22 @@ final readonly class MysqlTranslationRepository implements TranslationRepository
         return new TranslationCollectionDTO($items);
     }
 
-    public function deleteByLanguageAndKey(int $languageId, int $keyId): bool
+    public function deleteByLanguageAndKey(int $languageId, int $keyId): int
     {
         $sql = 'DELETE FROM i18n_translations
-                WHERE language_id = :language_id AND key_id = :key_id';
+            WHERE language_id = :language_id AND key_id = :key_id';
 
         $stmt = $this->pdo->prepare($sql);
+        if (!$stmt instanceof PDOStatement) {
+            return 0;
+        }
 
-        if (!$stmt instanceof PDOStatement) { return false; }
-
-        return $stmt->execute([
+        $stmt->execute([
             'language_id' => $languageId,
             'key_id' => $keyId,
         ]);
+
+        return $stmt->rowCount();
     }
 
     /**
@@ -208,4 +213,56 @@ final readonly class MysqlTranslationRepository implements TranslationRepository
             $updatedAtStr
         );
     }
+
+    public function existsByLanguageAndKey(int $languageId, int $keyId): bool
+    {
+        $sql = 'SELECT 1
+            FROM i18n_translations
+            WHERE language_id = :language_id AND key_id = :key_id
+            LIMIT 1';
+
+        $stmt = $this->pdo->prepare($sql);
+        if (!$stmt instanceof PDOStatement) {
+            return false;
+        }
+
+        $stmt->execute([
+            'language_id' => $languageId,
+            'key_id' => $keyId,
+        ]);
+
+        return (bool) $stmt->fetchColumn();
+    }
+
+    /**
+     * @param array<int> $keyIds
+     */
+    public function countByLanguageAndKeyIds(int $languageId, array $keyIds): int
+    {
+        if ($keyIds === []) {
+            return 0;
+        }
+
+        // safe placeholders
+        $placeholders = implode(',', array_fill(0, count($keyIds), '?'));
+
+        $sql = "SELECT COUNT(*) 
+            FROM i18n_translations
+            WHERE language_id = ?
+              AND key_id IN ($placeholders)";
+
+        $stmt = $this->pdo->prepare($sql);
+        if (!$stmt instanceof PDOStatement) {
+            return 0;
+        }
+
+        $params = array_merge([$languageId], $keyIds);
+
+        $stmt->execute($params);
+
+        $count = $stmt->fetchColumn();
+
+        return is_numeric($count) ? (int) $count : 0;
+    }
+
 }

@@ -110,13 +110,16 @@ function Select2(elementOrSelector, data = [], options = {}) {
         list.innerHTML = '';
 
         const filterLower = filter.toLowerCase();
-        const filtered = data.filter(item =>
-            item.label.toLowerCase().includes(filterLower)
-        );
+        const filtered = data.filter(item => {
+            const labelMatch = item.label.toLowerCase().includes(filterLower);
+            // Support searching in an extra 'search' property (e.g. for codes)
+            const searchMatch = item.search && String(item.search).toLowerCase().includes(filterLower);
+            return labelMatch || searchMatch;
+        });
 
         if (filtered.length === 0) {
             const li = document.createElement('li');
-            li.className = 'p-2 text-gray-400 cursor-default text-center text-sm dark:text-gray-200';
+            li.className = 'p-2 text-gray-400 cursor-default text-center text-sm dark:text-gray-400';
             li.textContent = 'No results found';
             list.appendChild(li);
             return;
@@ -125,16 +128,17 @@ function Select2(elementOrSelector, data = [], options = {}) {
         filtered.forEach(item => {
             const li = document.createElement('li');
             // Base styles
-            li.className = 'p-2 cursor-pointer text-gray-700  dark:hover:bg-gray-600 flex items-center justify-between transition-colors duration-150 rounded-sm dark:text-gray-200';
+            li.className = 'p-2 cursor-pointer text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center justify-between transition-colors duration-150 rounded-sm';
             
             if (selected && selected.value === item.value) {
                 // Selected styles
-                li.classList.add('bg-blue-50', 'text-blue-600', 'font-medium');
+                li.classList.add('bg-blue-50', 'text-blue-600', 'font-medium', 'dark:bg-blue-900/30', 'dark:text-blue-400');
+                li.classList.remove('text-gray-700', 'dark:text-gray-200');
             }
 
             li.innerHTML = `<span>${item.label}</span>`;
             if (selected && selected.value === item.value) {
-                 li.innerHTML += `<span class="text-blue-600 font-bold">&#10003;</span>`; // Checkmark
+                 li.innerHTML += `<span class="text-blue-600 dark:text-blue-400 font-bold">&#10003;</span>`; // Checkmark
             }
 
             li.addEventListener('click', (e) => {

@@ -40,6 +40,11 @@ interface AppSettingsServiceInterface
     public function get(string $group, string $key): string;
 
     /**
+     * Get a single active setting value, cast to its declared type.
+     */
+    public function getTyped(string $group, string $key): mixed;
+
+    /**
      * Check if an active setting exists.
      */
     public function has(string $group, string $key): bool;

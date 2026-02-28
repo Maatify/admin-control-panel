@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Domain\Exception;
 
-use DomainException;
+use Maatify\AdminKernel\Domain\Exception\Base\AdminKernelAuthenticationExceptionBase;
 
-class AuthStateException extends DomainException
+class AuthStateException extends AdminKernelAuthenticationExceptionBase
 {
     public const REASON_NOT_VERIFIED = 'not_verified';
     public const REASON_SUSPENDED = 'suspended';

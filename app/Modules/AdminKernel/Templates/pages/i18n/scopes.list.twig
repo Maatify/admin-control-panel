@@ -16,7 +16,8 @@
             can_set_active:         {{ capabilities.can_set_active         ?? false ? 'true' : 'false' }},
             can_update_sort:        {{ capabilities.can_update_sort        ?? false ? 'true' : 'false' }},
             can_update_meta:        {{ capabilities.can_update_meta        ?? false ? 'true' : 'false' }},
-            can_view_scope_details: {{ capabilities.can_view_scope_details ?? false ? 'true' : 'false' }}
+            can_view_scope_details: {{ capabilities.can_view_scope_details ?? false ? 'true' : 'false' }},
+            can_view_scope_keys:    {{ capabilities.can_view_scope_keys ?? false ? 'true' : 'false' }}
         };
     </script>
 
@@ -56,7 +57,7 @@
        Main Content Container
        =================================================================== #}
     <div class="px-0 py-2">
-        <div class="container mt-6">
+        <div class="container lg:max-w-[100%] mt-6">
             {# ============================================================
                🔍 Filters Section
                ============================================================ #}
@@ -215,7 +216,7 @@
     <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
 
     {# 🌐 Scopes modular scripts #}
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n-scopes-core.js') }}"></script>
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n-scopes-modals.js') }}"></script>
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n-scopes-actions.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n-scopes-core.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n-scopes-modals.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n-scopes-actions.js') }}"></script>
 {% endblock %}

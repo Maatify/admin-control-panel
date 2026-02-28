@@ -17,7 +17,7 @@ namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\ScopeDomains;
 
 use Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopeDetailsRepositoryInterface;
 use Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsQueryReaderInterface;
-use Maatify\AdminKernel\Domain\List\I18n\I18nScopeDomainsListCapabilities;
+use Maatify\AdminKernel\Domain\I18n\ScopeDomains\List\I18nScopeDomainsListCapabilities;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
 use Maatify\AdminKernel\Infrastructure\Query\ListFilterResolver;
 use Maatify\Validation\Guard\ValidationGuard;

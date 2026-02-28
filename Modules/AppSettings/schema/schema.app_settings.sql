@@ -58,6 +58,11 @@ CREATE TABLE app_settings (
     --   facebook, instagram, android, ios, privacy_policy
                               setting_key VARCHAR(64) NOT NULL,
 
+    -- Type of the setting value
+    -- Used for application-level casting and validation
+    -- Allowed: string, int, bool, json
+                              setting_type ENUM('string', 'int', 'bool', 'json') NOT NULL DEFAULT 'string',
+
     -- Actual value of the setting
     -- Stored as TEXT to allow:
     --   - URLs
@@ -86,4 +91,3 @@ CREATE TABLE app_settings (
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_general_ci
     COMMENT='Centralized application settings (grouped key-value store with soft activation)';
-

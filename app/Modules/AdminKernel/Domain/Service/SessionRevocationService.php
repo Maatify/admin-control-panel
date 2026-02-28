@@ -8,6 +8,7 @@ use DomainException;
 use Maatify\AdminKernel\Context\RequestContext;
 use Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionValidationRepositoryInterface;
 use Maatify\AdminKernel\Domain\Exception\IdentifierNotFoundException;
+use Maatify\AdminKernel\Domain\Exception\SessionRevocationFailedException;
 use PDO;
 
 class SessionRevocationService
@@ -46,7 +47,7 @@ class SessionRevocationService
         }
 
         if (in_array($currentSessionHash, $hashes, true)) {
-            throw new DomainException('Cannot revoke own session via bulk operation.');
+            throw new SessionRevocationFailedException('Cannot revoke own session via bulk operation.');
         }
 
         $this->pdo->beginTransaction();
@@ -81,7 +82,7 @@ class SessionRevocationService
     public function revokeByHash(string $targetHash, string $currentSessionHash, RequestContext $context): int
     {
         if (hash_equals($targetHash, $currentSessionHash)) {
-            throw new DomainException('Cannot revoke own session via global view.');
+            throw new SessionRevocationFailedException('Cannot revoke own session via global view.');
         }
 
         $this->pdo->beginTransaction();

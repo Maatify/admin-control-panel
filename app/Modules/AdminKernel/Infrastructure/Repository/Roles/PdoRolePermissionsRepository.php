@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Infrastructure\Repository\Roles;
 
 use Maatify\AdminKernel\Domain\Contracts\Roles\RolePermissionsRepositoryInterface;
-use Maatify\AdminKernel\Domain\DTO\Roles\RolePermissionListItemDTO;
-use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\AdminKernel\Domain\DTO\Common\PaginationDTO;
+use Maatify\AdminKernel\Domain\DTO\Roles\RolePermissionListItemDTO;
 use Maatify\AdminKernel\Domain\DTO\Roles\RolePermissionsQueryResponseDTO;
+use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
+use Maatify\AdminKernel\Domain\List\Filters\ResolvedListFilters;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
-use Maatify\AdminKernel\Infrastructure\Query\ResolvedListFilters;
 use PDO;
 use RuntimeException;
 

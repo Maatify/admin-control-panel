@@ -1,0 +1,331 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}Scope Keys: {{ scope.name }} | {{ ui.appName }}{% endblock %}
+
+{% block content %}
+
+    {# ===================================================================
+       Capabilities Injection
+       Computed server-side by AuthorizationService.
+       JavaScript reads window.scopeKeysCapabilities — never infers.
+       =================================================================== #}
+    <script>
+        window.scopeKeysCapabilities = {
+            can_create:      {{ capabilities.can_create      ?? false ? 'true' : 'false' }},
+            can_delete:      {{ capabilities.can_delete      ?? false ? 'true' : 'false' }},
+            can_rename:      {{ capabilities.can_rename      ?? false ? 'true' : 'false' }},
+            can_update_meta: {{ capabilities.can_update_meta ?? false ? 'true' : 'false' }},
+            can_view_scopes: {{ capabilities.can_view_scopes ?? false ? 'true' : 'false' }}
+        };
+
+        window.scopeId = {{ scope.id }};
+        console.log('🌍 Scope Keys Capabilities:', window.scopeKeysCapabilities);
+        console.log('🎯 Scope ID:', window.scopeId);
+    </script>
+
+    {# ===================================================================
+       Page Header (breadcrumb + title)
+       =================================================================== #}
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div class="flex items-center gap-3">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                {{ scope.name }} Keys
+            </h2>
+        </div>
+
+        <nav>
+            <ol class="flex items-center gap-1.5">
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                       href="{{ ui.adminUrl }}dashboard">
+                        Home
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                  stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+
+                {% if capabilities.can_view_scopes %}
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                       href="{{ ui.adminUrl }}i18n/scopes">
+                        Scopes
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                  stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+                {% endif %}
+
+                <li class="text-sm text-gray-800 dark:text-gray-200">
+                    {{ scope.name }} Keys
+                </li>
+            </ol>
+        </nav>
+    </div>
+
+    {# ===================================================================
+       Overview Card
+       =================================================================== #}
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 mb-6 p-5">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Code</p>
+                <code class="text-sm font-mono bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-2 py-1 rounded text-gray-800 dark:text-gray-200">
+                    {{ scope.code }}
+                </code>
+            </div>
+
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Name</p>
+                <p class="text-sm text-gray-800 dark:text-gray-100">
+                    {{ scope.name }}
+                </p>
+            </div>
+
+            <div class="md:col-span-2">
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Description</p>
+                <p class="text-sm text-gray-600 dark:text-gray-300">
+                    {{ scope.description ?: '—' }}
+                </p>
+            </div>
+
+        </div>
+    </div>
+
+    {# ===================================================================
+       Keys Management
+       =================================================================== #}
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-4">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+            <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                Scope Keys
+            </h3>
+            {% if capabilities.can_create %}
+            <button type="button" id="btn-create-key" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Create Key
+            </button>
+            {% endif %}
+        </div>
+
+        {# ============================================================
+           🔍 Filters Section
+           ============================================================ #}
+        <div class="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg mb-4 border border-gray-200 dark:border-gray-700">
+            <form id="scope-keys-filter-form" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Column Filters -->
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">ID</label>
+                        <input type="text" id="key-filter-id"
+                               class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Filter by ID">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Domain</label>
+                        <input type="text" id="key-filter-domain"
+                               class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Filter by domain">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Key Part</label>
+                        <input type="text" id="key-filter-part"
+                               class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Filter by key part">
+                    </div>
+                </div>
+
+                <div class="flex items-end gap-2">
+                    <button type="submit" id="btn-filter-search" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Search
+                    </button>
+                    <button type="button" id="btn-reset-filters" class="px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-medium border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                        Reset
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        {# ============================================================
+           🌍 Global Search Bar
+           ============================================================ #}
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4">
+            <div class="flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                        type="text"
+                        id="key-search-global"
+                        class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400"
+                        placeholder="🔍 Search by domain or key segment..."
+                />
+                <button
+                        type="button"
+                        id="btn-search-global"
+                        class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                    Search
+                </button>
+                <button
+                        type="button"
+                        id="btn-clear-search"
+                        class="px-6 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
+                >
+                    Clear
+                </button>
+            </div>
+        </div>
+
+        <div id="keys-table-container"></div>
+    </div>
+
+    {# ===================================================================
+       Modals
+       =================================================================== #}
+
+    {# Create Key Modal #}
+    <div id="modal-create-key" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100" id="modal-title">
+                        Create New Key
+                    </h3>
+                    <div class="mt-4 space-y-4">
+                        <div>
+                            <label for="create-domain-code" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Domain</label>
+
+                            {# Select2 Container #}
+                            <div id="create-domain-select" class="relative w-full" data-value="">
+                                <div class="js-select-box w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm relative">
+                                    <input type="text" class="js-select-input w-full border-none focus:ring-0 p-0 bg-transparent cursor-default dark:text-gray-100" placeholder="Select a domain..." readonly>
+                                    <span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                        <svg class="js-arrow h-5 w-5 text-gray-400 transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </span>
+                                </div>
+
+                                {# Dropdown #}
+                                <div class="js-dropdown hidden absolute z-10 mt-1 w-full bg-white dark:bg-gray-700 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+                                    {# Search Input inside dropdown #}
+                                    <div class="sticky top-0 z-10 bg-white dark:bg-gray-700 p-2 border-b border-gray-200 dark:border-gray-600">
+                                        <input type="text" class="js-search-input w-full border border-gray-300 dark:border-gray-600 rounded-md p-1 text-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-gray-100" placeholder="Search...">
+                                    </div>
+                                    <ul class="js-select-list pt-1">
+                                        {# Options will be populated by JS #}
+                                    </ul>
+                                </div>
+                            </div>
+                            <p id="domain-loading-msg" class="text-xs text-gray-500 mt-1 hidden">Loading domains...</p>
+                            <p id="domain-error-msg" class="text-xs text-red-500 mt-1 hidden"></p>
+                        </div>
+
+                        <div>
+                            <label for="create-key-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Key Name</label>
+                            <input type="text" id="create-key-name" class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-gray-100">
+                        </div>
+                        <div>
+                            <label for="create-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                            <textarea id="create-description" rows="3" class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-gray-100"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="btn-confirm-create" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Create
+                    </button>
+                    <button type="button" id="btn-cancel-create" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Rename Key Modal #}
+    <div id="modal-rename-key" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100" id="modal-title">
+                        Rename Key
+                    </h3>
+                    <div class="mt-4 space-y-4">
+                        <input type="hidden" id="rename-key-id">
+                        <div>
+                            <label for="rename-key-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">New Key Name</label>
+                            <input type="text" id="rename-key-name" class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-gray-100">
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="btn-confirm-rename" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Rename
+                    </button>
+                    <button type="button" id="btn-cancel-rename" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Update Metadata Modal #}
+    <div id="modal-update-meta" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100" id="modal-title">
+                        Update Description
+                    </h3>
+                    <div class="mt-4 space-y-4">
+                        <input type="hidden" id="meta-key-id">
+                        <div>
+                            <label for="meta-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                            <textarea id="meta-description" rows="3" class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-gray-100"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="btn-confirm-meta" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Update
+                    </button>
+                    <button type="button" id="btn-cancel-meta" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+    {# Shared infrastructure scripts #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/api_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/callback_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/Input_checker.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/data_table.js') }}"></script>
+
+    {# ✨ Select2 - Custom dropdown with search #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/select2.js') }}"></script>
+
+    {# ✨ Project-wide reusable UI components library #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
+
+    {# 🌐 Scope Keys modular scripts #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n_scope_keys.js') }}"></script>
+{% endblock %}

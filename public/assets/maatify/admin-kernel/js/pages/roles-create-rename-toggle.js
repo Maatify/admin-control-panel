@@ -148,8 +148,11 @@
             if (response.status === 403) {
                 const data = await response.json().catch(() => null);
                 console.log('🔐 Step-Up 2FA required');
-                if (data && data.code === 'STEP_UP_REQUIRED') {
-                    const scope = encodeURIComponent(data.scope || 'roles.create');
+
+                // ✅ Use ErrorNormalizer Bridge
+                const stepUp = window.ErrorNormalizer.getLegacyStepUpView(data);
+                if (stepUp) {
+                    const scope = encodeURIComponent(stepUp.scope || 'roles.create');
                     const returnTo = encodeURIComponent(window.location.pathname);
                     window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
                     return;
@@ -473,8 +476,11 @@
             if (response.status === 403) {
                 const data = await response.json().catch(() => null);
                 console.log('🔐 Step-Up 2FA required');
-                if (data && data.code === 'STEP_UP_REQUIRED') {
-                    const scope = encodeURIComponent(data.scope || 'roles.rename');
+
+                // ✅ Use ErrorNormalizer Bridge
+                const stepUp = window.ErrorNormalizer.getLegacyStepUpView(data);
+                if (stepUp) {
+                    const scope = encodeURIComponent(stepUp.scope || 'roles.rename');
                     const returnTo = encodeURIComponent(window.location.pathname);
                     window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
                     return;
@@ -683,8 +689,11 @@
             if (response.status === 403) {
                 const data = await response.json().catch(() => null);
                 console.log('🔐 Step-Up 2FA required');
-                if (data && data.code === 'STEP_UP_REQUIRED') {
-                    const scope = encodeURIComponent(data.scope || 'roles.toggle');
+
+                // ✅ Use ErrorNormalizer Bridge
+                const stepUp = window.ErrorNormalizer.getLegacyStepUpView(data);
+                if (stepUp) {
+                    const scope = encodeURIComponent(stepUp.scope || 'roles.toggle');
                     const returnTo = encodeURIComponent(window.location.pathname);
                     window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
                     return;

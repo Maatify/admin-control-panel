@@ -19,8 +19,9 @@ use Maatify\AdminKernel\Domain\Exception\EntityAlreadyExistsException;
 use Maatify\AdminKernel\Domain\Exception\EntityInUseException;
 use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainUpdaterInterface;
-use Maatify\AdminKernel\Domain\Service\I18nDomainUsageService;
-use Maatify\AdminKernel\Validation\Schemas\I18n\Domains\I18nDomainChangeCodeSchema;
+use Maatify\AdminKernel\Domain\I18n\Domain\Validation\I18nDomainChangeCodeSchema;
+use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
+use Maatify\AdminKernel\Domain\I18n\Service\I18nDomainUsageService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -30,7 +31,8 @@ final readonly class I18nDomainChangeCodeController
     public function __construct(
         private I18nDomainUpdaterInterface $writer,
         private I18nDomainUsageService $usageService,
-        private ValidationGuard $validationGuard
+        private ValidationGuard $validationGuard,
+        private JsonResponseFactory $json,
     )
     {
     }
@@ -71,12 +73,6 @@ final readonly class I18nDomainChangeCodeController
 
         $this->writer->changeCode($id, $newCode);
 
-        $response->getBody()->write(json_encode([
-            'status' => 'ok'
-        ], JSON_THROW_ON_ERROR));
-
-        return $response
-            ->withHeader('Content-Type', 'application/json')
-            ->withStatus(200);
+        return $this->json->data($response, ['status' => 'ok']);
     }
 }

@@ -10,6 +10,9 @@ return function (App $app) {
     // This allows the admin panel to work as a standalone application.
     // In a host application, they can call AdminRoutes::register($app) under a prefix.
 
+    // 🔴 FIRST: normalize URL
+    $app->add(\Maatify\AdminKernel\Http\Middleware\TrailingSlashMiddleware::class);
+
     // Note: AdminRoutes::register() now applies the canonical infrastructure middleware
     // (RequestId, Context, Telemetry) by default.
     AdminRoutes::register($app);

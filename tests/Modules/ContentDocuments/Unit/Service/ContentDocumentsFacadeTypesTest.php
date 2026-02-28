@@ -1,0 +1,94 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Modules\ContentDocuments\Unit\Service;
+
+use Maatify\ContentDocuments\Application\Service\ContentDocumentsFacade;
+use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface;
+use Maatify\ContentDocuments\Domain\Contract\Service\DocumentAcceptanceServiceInterface;
+use Maatify\ContentDocuments\Domain\Contract\Service\DocumentEnforcementServiceInterface;
+use Maatify\ContentDocuments\Domain\Contract\Service\DocumentLifecycleServiceInterface;
+use Maatify\ContentDocuments\Domain\Contract\Service\DocumentQueryServiceInterface;
+use Maatify\ContentDocuments\Domain\Contract\Service\DocumentTranslationServiceInterface;
+use Maatify\ContentDocuments\Domain\Contract\Service\DocumentTypeServiceInterface;
+use Maatify\ContentDocuments\Domain\DTO\DocumentTypeDTO;
+use Maatify\ContentDocuments\Domain\ValueObject\DocumentTypeKey;
+use PHPUnit\Framework\TestCase;
+
+final class ContentDocumentsFacadeTypesTest extends TestCase
+{
+    public function testListTypesDelegatesToTypeService(): void
+    {
+        $docRepo  = $this->createMock(DocumentRepositoryInterface::class);
+        $query    = $this->createMock(DocumentQueryServiceInterface::class);
+        $accept   = $this->createMock(DocumentAcceptanceServiceInterface::class);
+        $life     = $this->createMock(DocumentLifecycleServiceInterface::class);
+        $enf      = $this->createMock(DocumentEnforcementServiceInterface::class);
+        $typeSvc  = $this->createMock(DocumentTypeServiceInterface::class);
+        $transSvc = $this->createMock(DocumentTranslationServiceInterface::class);
+
+        $typeSvc->expects($this->once())
+            ->method('list')
+            ->willReturn([
+                new DocumentTypeDTO(
+                    id: 1,
+                    key: 'terms',
+                    requiresAcceptanceDefault: true,
+                    isSystem: true,
+                    createdAt: new \DateTimeImmutable('2024-01-01 00:00:00'),
+                    updatedAt: null
+                ),
+            ]);
+
+        $facade = new ContentDocumentsFacade(
+            documentRepository: $docRepo,
+            queryService: $query,
+            acceptanceService: $accept,
+            lifecycleService: $life,
+            enforcementService: $enf,
+            documentTypeService: $typeSvc,
+            translationService: $transSvc
+        );
+
+        $out = $facade->listDocumentTypes();
+        self::assertCount(1, $out);
+        self::assertSame('terms', $out[0]->key);
+    }
+
+    public function testCreateAndUpdateTypeDelegate(): void
+    {
+        $docRepo  = $this->createMock(DocumentRepositoryInterface::class);
+        $query    = $this->createMock(DocumentQueryServiceInterface::class);
+        $accept   = $this->createMock(DocumentAcceptanceServiceInterface::class);
+        $life     = $this->createMock(DocumentLifecycleServiceInterface::class);
+        $enf      = $this->createMock(DocumentEnforcementServiceInterface::class);
+        $typeSvc  = $this->createMock(DocumentTypeServiceInterface::class);
+        $transSvc = $this->createMock(DocumentTranslationServiceInterface::class);
+
+        $typeSvc->expects($this->once())
+            ->method('create')
+            ->with($this->isInstanceOf(DocumentTypeKey::class), true, true)
+            ->willReturn(99);
+
+        $typeSvc->expects($this->once())
+            ->method('update')
+            ->with(99, false, true);
+
+        $facade = new ContentDocumentsFacade(
+            documentRepository: $docRepo,
+            queryService: $query,
+            acceptanceService: $accept,
+            lifecycleService: $life,
+            enforcementService: $enf,
+            documentTypeService: $typeSvc,
+            translationService: $transSvc
+        );
+
+        $id = $facade->createDocumentType(new DocumentTypeKey('terms'), true, true);
+        self::assertSame(99, $id);
+
+        $facade->updateDocumentType(99, false, true);
+        self::assertTrue(true);
+    }
+}

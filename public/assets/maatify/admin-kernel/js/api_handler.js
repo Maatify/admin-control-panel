@@ -214,6 +214,30 @@ if (typeof window !== 'undefined') {
          * - { error: "...", errors: {...} }
          */
         function extractErrorMessage(data) {
+            // ✅ Use ErrorNormalizer if available
+            if (window.ErrorNormalizer) {
+                const normalized = window.ErrorNormalizer.normalize(data);
+
+                // If validation errors exist in meta (Unified)
+                if (normalized.meta && normalized.meta.errors) {
+                    const fieldErrors = Object.entries(normalized.meta.errors)
+                        .map(([field, msg]) => `${field}: ${msg}`)
+                        .join(', ');
+                    return `${normalized.message} (${fieldErrors})`;
+                }
+
+                // If legacy field errors exist
+                if (data && data.error && data.error.fields) {
+                    const fieldErrors = Object.entries(data.error.fields)
+                        .map(([field, msg]) => `${field}: ${msg}`)
+                        .join(', ');
+                    return `${normalized.message} (${fieldErrors})`;
+                }
+
+                return normalized.message;
+            }
+
+            // ⚠️ Fallback to legacy logic if ErrorNormalizer is missing
             if (!data) return 'An error occurred';
 
             // Format 1: { error: { message: "...", fields: {...} } }
@@ -262,9 +286,10 @@ if (typeof window !== 'undefined') {
          * @param {string} endpoint - API endpoint (e.g., 'languages/create')
          * @param {object} payload - Request body
          * @param {string} operation - Operation name for logging
+         * @param {string} method - HTTP Method (default: POST)
          * @returns {Promise<Object>} { success, data?, error? }
          */
-        async function call(endpoint, payload, operation = 'API Call') {
+        async function call(endpoint, payload, operation = 'API Call', method = 'POST') {
             // Start timing
             const startTime = performance.now();
 
@@ -275,12 +300,14 @@ if (typeof window !== 'undefined') {
             // 🔍 DIRECT LOGS (always visible - NO SEPARATORS!)
             console.log(`📤 [${operation}] ======== REQUEST ========`);
             console.log(`🌐 [${operation}] URL:`, `${API_BASE}/${endpoint.replace(/^\/+|\/+$/g, '').replace(/^api\//, '')}`);
+            console.log(`🌐 [${operation}] METHOD:`, method);
             console.log(`📦 [${operation}] PAYLOAD:`, payload);
             console.log(`📋 [${operation}] PAYLOAD (formatted):`, JSON.stringify(payload, null, 2));
 
             console.group(`📤 [${operation}] Request Details`);
             console.log('Timestamp:', new Date().toISOString());
             console.log('Endpoint:', endpoint);
+            console.log('Method:', method);
             console.log('Payload:', payload);
 
             // Pretty print payload
@@ -310,15 +337,20 @@ if (typeof window !== 'undefined') {
                 const url = `${API_BASE}/${cleanEndpoint}`;
 
                 console.log(`🌐 [${operation}] Full URL:`, url);
-                console.log(`🌐 [${operation}] Method: POST`);
+                console.log(`🌐 [${operation}] Method: ${method}`);
                 console.log(`🌐 [${operation}] Content-Type: application/json`);
 
+                const options = {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' }
+                };
+
+                if (method !== 'GET' && method !== 'HEAD') {
+                    options.body = JSON.stringify(payload);
+                }
+
                 // Make the actual API call
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+                const response = await fetch(url, options);
 
                 const result = await parseResponse(response, operation);
 

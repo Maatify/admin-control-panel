@@ -15,23 +15,26 @@ declare(strict_types=1);
 
 namespace Maatify\I18n\Service;
 
-use Maatify\I18n\Contract\LanguageRepositoryInterface;
+use Maatify\I18n\Contract\I18nTransactionManagerInterface;
 use Maatify\I18n\Contract\TranslationKeyRepositoryInterface;
 use Maatify\I18n\Contract\TranslationRepositoryInterface;
-use Maatify\I18n\Exception\LanguageNotFoundException;
 use Maatify\I18n\Exception\TranslationKeyAlreadyExistsException;
 use Maatify\I18n\Exception\TranslationKeyCreateFailedException;
 use Maatify\I18n\Exception\TranslationKeyNotFoundException;
-use Maatify\I18n\Exception\TranslationUpsertFailedException;
 use Maatify\I18n\Exception\TranslationUpdateFailedException;
+use Maatify\I18n\Exception\TranslationUpsertFailedException;
+use Maatify\LanguageCore\Contract\LanguageRepositoryInterface;
+use Maatify\LanguageCore\Exception\LanguageNotFoundException;
 
 final readonly class TranslationWriteService
 {
     public function __construct(
+        private I18nTransactionManagerInterface $tx,
         private LanguageRepositoryInterface $languageRepository,
         private TranslationKeyRepositoryInterface $keyRepository,
         private TranslationRepositoryInterface $translationRepository,
-        private I18nGovernancePolicyService $governancePolicy
+        private I18nGovernancePolicyService $governancePolicy,
+        private MissingCounterService $missingCounter
     ) {
     }
 
@@ -41,34 +44,40 @@ final readonly class TranslationWriteService
         string $key,
         ?string $description = null
     ): int {
-        $this->governancePolicy
-            ->assertScopeAndDomainAllowed($scope, $domain);
+        return $this->tx->run(function () use ($scope, $domain, $key, $description): int {
 
-        if ($this->keyRepository
-                ->getByStructuredKey($scope, $domain, $key) !== null) {
-            throw new TranslationKeyAlreadyExistsException(
-                $scope,
-                $domain,
-                $key
+            $this->governancePolicy
+                ->assertScopeAndDomainAllowed($scope, $domain);
+
+            if ($this->keyRepository
+                    ->getByStructuredKey($scope, $domain, $key) !== null) {
+                throw new TranslationKeyAlreadyExistsException(
+                    $scope,
+                    $domain,
+                    $key
+                );
+            }
+
+            $id = $this->keyRepository->create(
+                scope: $scope,
+                domain: $domain,
+                key: $key,
+                description: $description
             );
-        }
 
-        $id = $this->keyRepository->create(
-            scope: $scope,
-            domain: $domain,
-            key: $key,
-            description: $description
-        );
+            if ($id <= 0) {
+                throw new TranslationKeyCreateFailedException(
+                    $scope,
+                    $domain,
+                    $key
+                );
+            }
 
-        if ($id <= 0) {
-            throw new TranslationKeyCreateFailedException(
-                $scope,
-                $domain,
-                $key
-            );
-        }
+            // Must stay inside same TX
+            $this->missingCounter->onKeyCreated($id);
 
-        return $id;
+            return $id;
+        });
     }
 
     public function renameKey(
@@ -77,52 +86,86 @@ final readonly class TranslationWriteService
         string $domain,
         string $key
     ): void {
-        if ($this->keyRepository->getById($keyId) === null) {
-            throw new TranslationKeyNotFoundException($keyId);
-        }
+        $this->tx->run(function () use ($keyId, $scope, $domain, $key): void {
 
-        $this->governancePolicy
-            ->assertScopeAndDomainAllowed($scope, $domain);
+            $existingKey = $this->keyRepository->getById($keyId);
 
-        $existing = $this->keyRepository
-            ->getByStructuredKey($scope, $domain, $key);
+            if ($existingKey === null) {
+                throw new TranslationKeyNotFoundException($keyId);
+            }
 
-        if ($existing !== null && $existing->id !== $keyId) {
-            throw new TranslationKeyAlreadyExistsException(
-                $scope,
-                $domain,
-                $key
-            );
-        }
+            $this->governancePolicy
+                ->assertScopeAndDomainAllowed($scope, $domain);
 
-        if (
-            !$this->keyRepository->rename(
-                id: $keyId,
-                scope: $scope,
-                domain: $domain,
-                key: $key
-            )
-        ) {
-            throw new TranslationUpdateFailedException('key.rename');
-        }
+            $duplicate = $this->keyRepository
+                ->getByStructuredKey($scope, $domain, $key);
+
+            if ($duplicate !== null && $duplicate->id !== $keyId) {
+                throw new TranslationKeyAlreadyExistsException(
+                    $scope,
+                    $domain,
+                    $key
+                );
+            }
+
+            $oldScope  = $existingKey->scope;
+            $oldDomain = $existingKey->domain;
+
+            $changedScope  = $oldScope !== $scope;
+            $changedDomain = $oldDomain !== $domain;
+
+            if (
+                !$this->keyRepository->rename(
+                    id: $keyId,
+                    scope: $scope,
+                    domain: $domain,
+                    key: $key
+                )
+            ) {
+                throw new TranslationUpdateFailedException('key.rename');
+            }
+
+            /*
+             * 🔥 IMPORTANT:
+             * If scope/domain changed → adjust derived summary layer.
+             *
+             * We must:
+             * - decrement total_keys from old scope/domain
+             * - increment total_keys to new scope/domain
+             *
+             * This must stay inside same TX.
+             */
+            if ($changedScope || $changedDomain) {
+
+                $this->missingCounter->onKeyMoved(
+                    $oldScope,
+                    $oldDomain,
+                    $scope,
+                    $domain
+                );
+            }
+        });
     }
 
     public function updateKeyDescription(
         int $keyId,
         string $description
     ): void {
-        if ($this->keyRepository->getById($keyId) === null) {
-            throw new TranslationKeyNotFoundException($keyId);
-        }
+        $this->tx->run(function () use ($keyId, $description): void {
 
-        if (
-            !$this->keyRepository->updateDescription(
-                $keyId,
-                $description
-            )
-        ) {
-            throw new TranslationUpdateFailedException('key.description');
-        }
+            if ($this->keyRepository->getById($keyId) === null) {
+                throw new TranslationKeyNotFoundException($keyId);
+            }
+
+            if (
+                !$this->keyRepository->updateDescription(
+                    $keyId,
+                    $description
+                )
+            ) {
+                throw new TranslationUpdateFailedException('key.description');
+            }
+        });
     }
 
     public function upsertTranslation(
@@ -130,46 +173,66 @@ final readonly class TranslationWriteService
         int $keyId,
         string $value
     ): int {
-        if ($this->languageRepository->getById($languageId) === null) {
-            throw new LanguageNotFoundException($languageId);
-        }
+        return $this->tx->run(function () use ($languageId, $keyId, $value): int {
 
-        if ($this->keyRepository->getById($keyId) === null) {
-            throw new TranslationKeyNotFoundException($keyId);
-        }
+            if ($this->languageRepository->getById($languageId) === null) {
+                throw new LanguageNotFoundException($languageId);
+            }
 
-        $id = $this->translationRepository->upsert(
-            $languageId,
-            $keyId,
-            $value
-        );
+            if ($this->keyRepository->getById($keyId) === null) {
+                throw new TranslationKeyNotFoundException($keyId);
+            }
 
-        if ($id <= 0) {
-            throw new TranslationUpsertFailedException(
+            $result = $this->translationRepository->upsert(
                 $languageId,
-                $keyId
+                $keyId,
+                $value
             );
-        }
 
-        return $id;
+            if ($result->id <= 0) {
+                throw new TranslationUpsertFailedException(
+                    $languageId,
+                    $keyId
+                );
+            }
+
+            if ($result->created) {
+                // Must be inside same TX
+                $this->missingCounter->onTranslationCreated(
+                    $languageId,
+                    $keyId
+                );
+            }
+
+            return $result->id;
+        });
     }
 
     public function deleteTranslation(
         int $languageId,
         int $keyId
     ): void {
-        // fail-soft BUT validated
-        if ($this->languageRepository->getById($languageId) === null) {
-            throw new LanguageNotFoundException($languageId);
-        }
+        $this->tx->run(function () use ($languageId, $keyId): void {
 
-        if ($this->keyRepository->getById($keyId) === null) {
-            throw new TranslationKeyNotFoundException($keyId);
-        }
+            if ($this->languageRepository->getById($languageId) === null) {
+                throw new LanguageNotFoundException($languageId);
+            }
 
-        $this->translationRepository->deleteByLanguageAndKey(
-            languageId: $languageId,
-            keyId: $keyId
-        );
+            if ($this->keyRepository->getById($keyId) === null) {
+                throw new TranslationKeyNotFoundException($keyId);
+            }
+
+            $affected = $this->translationRepository
+                ->deleteByLanguageAndKey($languageId, $keyId);
+
+            if ($affected > 0) {
+                // Must be inside same TX
+                $this->missingCounter->onTranslationDeleted(
+                    $languageId,
+                    $keyId
+                );
+            }
+        });
     }
 }
+

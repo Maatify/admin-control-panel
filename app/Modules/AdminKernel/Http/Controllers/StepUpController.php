@@ -11,6 +11,9 @@ use Maatify\AdminKernel\Validation\Schemas\Auth\StepUpVerifySchema;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use Slim\Exception\HttpBadRequestException;
+use Slim\Exception\HttpForbiddenException;
+use Slim\Exception\HttpUnauthorizedException;
 
 readonly class StepUpController
 {
@@ -34,24 +37,19 @@ readonly class StepUpController
         if ($scopeStr !== null) {
             $requestedScope = \Maatify\AdminKernel\Domain\Enum\Scope::tryFrom((string)$scopeStr);
             if ($requestedScope === null) {
-                $response->getBody()->write((string)json_encode(['error' => 'Invalid scope']));
-                return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+                throw new HttpBadRequestException($request, 'Invalid scope');
             }
         }
 
         $adminContext = $request->getAttribute(\Maatify\AdminKernel\Context\AdminContext::class);
         if (!$adminContext instanceof \Maatify\AdminKernel\Context\AdminContext) {
-             $payload = json_encode(['error' => 'Authentication required']);
-             $response->getBody()->write((string)$payload);
-             return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
+             throw new HttpUnauthorizedException($request, 'Authentication required');
         }
         $adminId = $adminContext->adminId;
 
         $sessionId = $this->getSessionIdFromRequest($request);
         if ($sessionId === null) {
-             $payload = json_encode(['error' => 'Session required']);
-             $response->getBody()->write((string)$payload);
-             return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
+             throw new HttpUnauthorizedException($request, 'Session required');
         }
 
         $context = $request->getAttribute(RequestContext::class);
@@ -95,8 +93,7 @@ readonly class StepUpController
             return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
         }
 
-        $response->getBody()->write((string)json_encode(['error' => $result->errorReason]));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        throw new HttpForbiddenException($request, (string)$result->errorReason);
     }
 
     private function getSessionIdFromRequest(Request $request): ?string
