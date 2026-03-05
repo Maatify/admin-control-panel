@@ -36,14 +36,16 @@ use Respect\Validation\Validator as v;
 final class CredentialInputRule
 {
     /**
+     * Note: This rule has been relaxed to prevent rejecting valid legacy passwords.
+     * Whitespace and `=` characters are now allowed as they are valid password characters
+     * and do not present a transport risk.
+     *
      * @return Validatable
      */
     public static function rule(): Validatable
     {
         return v::stringType()
             ->notEmpty()
-            ->noWhitespace()
-            ->not(v::contains('='))
             ->regex('/^[^\p{C}]*$/u'); // No control characters
     }
 }
