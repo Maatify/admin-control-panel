@@ -20,7 +20,6 @@ use Maatify\Validation\DTO\ValidationResultDTO;
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Rules\PaginationRule;
 use Maatify\Validation\Rules\SearchQueryRule;
-use Respect\Validation\Exceptions\NestedValidationException;
 use Respect\Validation\Exceptions\ValidationException;
 use Respect\Validation\Validator as v;
 
@@ -43,7 +42,7 @@ final class SharedListQuerySchema implements SchemaInterface
         if (array_key_exists('page', $input)) {
             try {
                 PaginationRule::page()->assert($input['page']);
-            } catch (NestedValidationException | ValidationException) {
+            } catch (ValidationException) {
                 $errors['page'] = [ValidationErrorCodeEnum::INVALID_VALUE];
             }
         }
@@ -52,7 +51,7 @@ final class SharedListQuerySchema implements SchemaInterface
         if (array_key_exists('per_page', $input)) {
             try {
                 PaginationRule::perPage(100)->assert($input['per_page']);
-            } catch (NestedValidationException | ValidationException) {
+            } catch (ValidationException) {
                 $errors['per_page'] = [ValidationErrorCodeEnum::INVALID_VALUE];
             }
         }
@@ -72,7 +71,7 @@ final class SharedListQuerySchema implements SchemaInterface
                     // Use existing rule for content validation
                     try {
                         SearchQueryRule::rule()->assert($input['search']);
-                    } catch (NestedValidationException | ValidationException) {
+                    } catch (ValidationException) {
                         $errors['search'] = [ValidationErrorCodeEnum::INVALID_VALUE];
                     }
                 }
@@ -87,7 +86,7 @@ final class SharedListQuerySchema implements SchemaInterface
                     v::key('from', v::date('Y-m-d'), true), // mandatory
                     v::key('to', v::date('Y-m-d'), true)    // mandatory
                 )->assert($input['date']);
-            } catch (NestedValidationException | ValidationException) {
+            } catch (ValidationException) {
                 $errors['date'] = [ValidationErrorCodeEnum::INVALID_VALUE];
             }
         }
