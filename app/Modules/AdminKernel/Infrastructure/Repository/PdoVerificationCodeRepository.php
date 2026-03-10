@@ -26,10 +26,10 @@ class PdoVerificationCodeRepository implements VerificationCodeRepositoryInterfa
         $stmt = $this->pdo->prepare("
             INSERT INTO verification_codes (
                 identity_type, identity_id, purpose, code_hash,
-                status, attempts, max_attempts, expires_at, created_at
+                status, attempts, max_attempts, expires_at, created_at, created_ip
             ) VALUES (
                 :identity_type, :identity_id, :purpose, :code_hash,
-                :status, :attempts, :max_attempts, :expires_at, :created_at
+                :status, :attempts, :max_attempts, :expires_at, :created_at, :created_ip
             )
         ");
 
@@ -43,6 +43,7 @@ class PdoVerificationCodeRepository implements VerificationCodeRepositoryInterfa
             'max_attempts' => $code->maxAttempts,
             'expires_at' => $code->expiresAt->format('Y-m-d H:i:s'),
             'created_at' => $code->createdAt->format('Y-m-d H:i:s'),
+            'created_ip' => $code->createdIp,
         ]);
     }
 
@@ -102,14 +103,14 @@ class PdoVerificationCodeRepository implements VerificationCodeRepositoryInterfa
         $stmt->execute(['id' => $codeId]);
     }
 
-    public function markUsed(int $codeId): void
+    public function markUsed(int $codeId, ?string $usedIp = null): void
     {
         $stmt = $this->pdo->prepare("
             UPDATE verification_codes
-            SET status = 'used'
+            SET status = 'used', used_ip = :used_ip
             WHERE id = :id
         ");
-        $stmt->execute(['id' => $codeId]);
+        $stmt->execute(['id' => $codeId, 'used_ip' => $usedIp]);
     }
 
     public function expire(int $codeId): void
@@ -164,6 +165,10 @@ class PdoVerificationCodeRepository implements VerificationCodeRepositoryInterfa
         $expiresAt = $row['expires_at'];
         /** @var string $createdAt */
         $createdAt = $row['created_at'];
+        /** @var ?string $createdIp */
+        $createdIp = $row['created_ip'] ?? null;
+        /** @var ?string $usedIp */
+        $usedIp = $row['used_ip'] ?? null;
 
         return new VerificationCode(
             (int)$id,
@@ -175,7 +180,9 @@ class PdoVerificationCodeRepository implements VerificationCodeRepositoryInterfa
             (int)$attempts,
             (int)$maxAttempts,
             new DateTimeImmutable($expiresAt, $this->clock->getTimezone()),
-            new DateTimeImmutable($createdAt, $this->clock->getTimezone())
+            new DateTimeImmutable($createdAt, $this->clock->getTimezone()),
+            $createdIp,
+            $usedIp
         );
     }
 }

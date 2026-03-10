@@ -13,5 +13,5 @@ interface VerificationCodeGeneratorInterface
     /**
      * Generates a new verification code, invalidating previous ones.
      */
-    public function generate(IdentityTypeEnum $identityType, string $identityId, VerificationPurposeEnum $purpose): GeneratedVerificationCode;
+    public function generate(IdentityTypeEnum $identityType, string $identityId, VerificationPurposeEnum $purpose, ?string $createdIp = null): GeneratedVerificationCode;
 }

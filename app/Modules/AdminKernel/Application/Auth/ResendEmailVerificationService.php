@@ -52,7 +52,8 @@ final readonly class ResendEmailVerificationService
             $generated = $this->generator->generate(
                 IdentityTypeEnum::Admin,
                 (string)$identifierDTO->adminId,
-                VerificationPurposeEnum::EmailVerification
+                VerificationPurposeEnum::EmailVerification,
+                $request->requestContext->getIpAddress()
             );
 
             $this->dispatcher->dispatch(

@@ -20,7 +20,7 @@ class VerificationCodeValidator implements VerificationCodeValidatorInterface
     ) {
     }
 
-    public function validate(IdentityTypeEnum $identityType, string $identityId, VerificationPurposeEnum $purpose, string $plainCode): VerificationResult
+    public function validate(IdentityTypeEnum $identityType, string $identityId, VerificationPurposeEnum $purpose, string $plainCode, ?string $usedIp = null): VerificationResult
     {
         // 1. Find active code
         $code = $this->repository->findActive($identityType, $identityId, $purpose);
@@ -54,12 +54,12 @@ class VerificationCodeValidator implements VerificationCodeValidatorInterface
         }
 
         // 5. Mark used on success
-        $this->repository->markUsed($code->id);
+        $this->repository->markUsed($code->id, $usedIp);
 
         return VerificationResult::success($code->identityType, $code->identityId, $code->purpose);
     }
 
-    public function validateByCode(string $plainCode): VerificationResult
+    public function validateByCode(string $plainCode, ?string $usedIp = null): VerificationResult
     {
         // 1. Hash the input
         $codeHash = hash('sha256', $plainCode);
@@ -91,7 +91,7 @@ class VerificationCodeValidator implements VerificationCodeValidatorInterface
         }
 
         // 6. Success -> Mark used
-        $this->repository->markUsed($code->id);
+        $this->repository->markUsed($code->id, $usedIp);
 
         return VerificationResult::success($code->identityType, $code->identityId, $code->purpose);
     }

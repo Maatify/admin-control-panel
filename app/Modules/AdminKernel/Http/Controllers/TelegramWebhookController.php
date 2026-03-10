@@ -58,7 +58,9 @@ readonly class TelegramWebhookController
         $otp = trim($parts[1]);
 
         // Process
-        $resultMessage = $this->handler->handleStart($otp, $chatId);
+        $requestContext = $request->getAttribute(\Maatify\AdminKernel\Context\RequestContext::class);
+        $ip = $requestContext instanceof \Maatify\AdminKernel\Context\RequestContext ? $requestContext->getIpAddress() : null;
+        $resultMessage = $this->handler->handleStart($otp, $chatId, $ip);
 
         // Log result (Handler logs specific failures, we log high level)
         $this->logger->info('telegram_webhook_processed', [

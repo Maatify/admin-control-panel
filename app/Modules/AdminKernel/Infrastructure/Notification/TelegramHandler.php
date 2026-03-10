@@ -27,10 +27,10 @@ readonly class TelegramHandler
     ) {
     }
 
-    public function handleStart(string $otp, string $chatId): string
+    public function handleStart(string $otp, string $chatId, ?string $ipAddress = null): string
     {
         // 1. Validate OTP
-        $result = $this->validator->validateByCode($otp);
+        $result = $this->validator->validateByCode($otp, $ipAddress);
 
         if (!$result->success) {
             return $this->fail(VerificationFailureReasonEnum::INVALID_OTP, [
