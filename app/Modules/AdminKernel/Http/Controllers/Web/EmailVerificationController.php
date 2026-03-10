@@ -91,9 +91,11 @@ readonly class EmailVerificationController
         $email = is_array($data) ? (string)($data['email'] ?? '') : '';
 
         $requestContext = $request->getAttribute(RequestContext::class);
-        $this->resendService->resend(
-            new ResendEmailVerificationRequestDTO($email, $requestContext)
-        );
+        if ($requestContext instanceof RequestContext) {
+            $this->resendService->resend(
+                new ResendEmailVerificationRequestDTO($email, $requestContext)
+            );
+        }
 
         return $response
             ->withHeader(
