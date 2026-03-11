@@ -1,0 +1,13 @@
+{
+    "name": "maatify/shared-common",
+    "description": "Fundamental contracts and shared abstractions for Maatify modules, including clock and telemetry interfaces.",
+    "type": "library",
+    "require": {
+        "php": "^8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Maatify\\SharedCommon\\": ""
+        }
+    }
+}
