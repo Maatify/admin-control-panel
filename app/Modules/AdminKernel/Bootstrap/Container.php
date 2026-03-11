@@ -1281,33 +1281,8 @@ class Container
                 );
             },
 
-            // Phase Sx: Verification Code Infrastructure
-            VerificationCodeRepositoryInterface::class                => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
-                assert($pdo instanceof PDO);
-                assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
-                return new PdoVerificationCodeRepository($pdo, $clock);
-            },
-            VerificationCodePolicyResolverInterface::class => function (ContainerInterface $c) {
-                return new VerificationCodePolicyResolver();
-            },
-            VerificationCodeGeneratorInterface::class                 => function (ContainerInterface $c) {
-                $repo = $c->get(VerificationCodeRepositoryInterface::class);
-                $resolver = $c->get(VerificationCodePolicyResolverInterface::class);
-                $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
-                assert($repo instanceof VerificationCodeRepositoryInterface);
-                assert($resolver instanceof VerificationCodePolicyResolverInterface);
-                assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
-                return new VerificationCodeGenerator($repo, $resolver, $clock);
-            },
-            VerificationCodeValidatorInterface::class                 => function (ContainerInterface $c) {
-                $repo = $c->get(VerificationCodeRepositoryInterface::class);
-                $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
-                assert($repo instanceof VerificationCodeRepositoryInterface);
-                assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
-                return new VerificationCodeValidator($repo, $clock);
-            },
+            // Phase Sx: Verification Code Infrastructure (Migrated to VerificationBindings)
+
             RecoveryStateService::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 $config = $c->get(AdminConfigDTO::class);
@@ -2577,6 +2552,9 @@ class Container
 
         // Register Maatify\AppSettings modules
         \Maatify\AppSettings\Bootstrap\AppSettingsBindings::register($containerBuilder);
+
+        // Register Maatify\Verification modules
+        \Maatify\Verification\Bootstrap\VerificationBindings::register($containerBuilder);
 
         // Register Infrastructure\LanguageCoreBinding modules
         \Maatify\AdminKernel\Infrastructure\LanguageCore\Bootstrap\LanguageCoreBinding::register($containerBuilder);
