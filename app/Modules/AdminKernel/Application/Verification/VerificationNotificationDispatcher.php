@@ -17,8 +17,8 @@ namespace Maatify\AdminKernel\Application\Verification;
 
 use Maatify\AdminKernel\Application\Verification\Enum\EmailTemplateEnum;
 use Maatify\AdminKernel\Application\Verification\Enum\NotificationSenderTypeEnum;
-use Maatify\AdminKernel\Domain\Enum\IdentityTypeEnum;
-use Maatify\AdminKernel\Domain\Enum\VerificationPurposeEnum;
+use Maatify\Verification\Domain\Enum\IdentityTypeEnum;
+use Maatify\Verification\Domain\Enum\VerificationPurposeEnum;
 use Maatify\EmailDelivery\Queue\DTO\EmailQueuePayloadDTO;
 use Maatify\EmailDelivery\Queue\EmailQueueWriterInterface;
 use Psr\Log\LoggerInterface;

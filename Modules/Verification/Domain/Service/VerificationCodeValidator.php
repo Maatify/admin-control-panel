@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\Service;
+namespace Maatify\Verification\Domain\Service;
 
-use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodeRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodeValidatorInterface;
-use Maatify\AdminKernel\Domain\DTO\VerificationResult;
-use Maatify\AdminKernel\Domain\Enum\IdentityTypeEnum;
-use Maatify\AdminKernel\Domain\Enum\VerificationCodeStatus;
-use Maatify\AdminKernel\Domain\Enum\VerificationPurposeEnum;
+use Maatify\Verification\Domain\Contracts\VerificationCodeRepositoryInterface;
+use Maatify\Verification\Domain\Contracts\VerificationCodeValidatorInterface;
+use Maatify\Verification\Domain\DTO\VerificationResult;
+use Maatify\Verification\Domain\Enum\IdentityTypeEnum;
+use Maatify\Verification\Domain\Enum\VerificationCodeStatus;
+use Maatify\Verification\Domain\Enum\VerificationPurposeEnum;
 use Maatify\SharedCommon\Contracts\ClockInterface;
 
 class VerificationCodeValidator implements VerificationCodeValidatorInterface

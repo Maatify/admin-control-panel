@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\Service;
+namespace Maatify\Verification\Domain\Service;
 
 use Exception;
-use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodeGeneratorInterface;
-use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodePolicyResolverInterface;
-use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodeRepositoryInterface;
-use Maatify\AdminKernel\Domain\DTO\GeneratedVerificationCode;
-use Maatify\AdminKernel\Domain\DTO\VerificationCode;
-use Maatify\AdminKernel\Domain\Enum\IdentityTypeEnum;
-use Maatify\AdminKernel\Domain\Enum\VerificationCodeStatus;
-use Maatify\AdminKernel\Domain\Enum\VerificationPurposeEnum;
+use Maatify\Verification\Domain\Contracts\VerificationCodeGeneratorInterface;
+use Maatify\Verification\Domain\Contracts\VerificationCodePolicyResolverInterface;
+use Maatify\Verification\Domain\Contracts\VerificationCodeRepositoryInterface;
+use Maatify\Verification\Domain\DTO\GeneratedVerificationCode;
+use Maatify\Verification\Domain\DTO\VerificationCode;
+use Maatify\Verification\Domain\Enum\IdentityTypeEnum;
+use Maatify\Verification\Domain\Enum\VerificationCodeStatus;
+use Maatify\Verification\Domain\Enum\VerificationPurposeEnum;
 use Maatify\SharedCommon\Contracts\ClockInterface;
 use RuntimeException;
 

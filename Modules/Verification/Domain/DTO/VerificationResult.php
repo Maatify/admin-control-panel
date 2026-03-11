@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\DTO;
+namespace Maatify\Verification\Domain\DTO;
 
-use Maatify\AdminKernel\Domain\Enum\IdentityTypeEnum;
-use Maatify\AdminKernel\Domain\Enum\VerificationPurposeEnum;
+use Maatify\Verification\Domain\Enum\IdentityTypeEnum;
+use Maatify\Verification\Domain\Enum\VerificationPurposeEnum;
 
 readonly class VerificationResult
 {

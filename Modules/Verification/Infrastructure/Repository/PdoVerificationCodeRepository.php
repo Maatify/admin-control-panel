@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Infrastructure\Repository;
+namespace Maatify\Verification\Infrastructure\Repository;
 
 use DateTimeImmutable;
-use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodeRepositoryInterface;
-use Maatify\AdminKernel\Domain\DTO\VerificationCode;
-use Maatify\AdminKernel\Domain\Enum\IdentityTypeEnum;
-use Maatify\AdminKernel\Domain\Enum\VerificationCodeStatus;
-use Maatify\AdminKernel\Domain\Enum\VerificationPurposeEnum;
+use Maatify\Verification\Domain\Contracts\VerificationCodeRepositoryInterface;
+use Maatify\Verification\Domain\DTO\VerificationCode;
+use Maatify\Verification\Domain\Enum\IdentityTypeEnum;
+use Maatify\Verification\Domain\Enum\VerificationCodeStatus;
+use Maatify\Verification\Domain\Enum\VerificationPurposeEnum;
 use Maatify\SharedCommon\Contracts\ClockInterface;
 use PDO;
 

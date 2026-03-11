@@ -19,9 +19,9 @@ use Maatify\AdminKernel\Application\Auth\DTO\VerifyEmailRequestDTO;
 use Maatify\AdminKernel\Application\Auth\DTO\VerifyEmailResultDTO;
 use Maatify\AdminKernel\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use Maatify\AdminKernel\Domain\Contracts\Admin\AdminIdentifierLookupInterface;
-use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodeValidatorInterface;
-use Maatify\AdminKernel\Domain\Enum\IdentityTypeEnum;
-use Maatify\AdminKernel\Domain\Enum\VerificationPurposeEnum;
+use Maatify\Verification\Domain\Contracts\VerificationCodeValidatorInterface;
+use Maatify\Verification\Domain\Enum\IdentityTypeEnum;
+use Maatify\Verification\Domain\Enum\VerificationPurposeEnum;
 use Maatify\AdminKernel\Domain\Service\AdminEmailVerificationService;
 use Throwable;
 

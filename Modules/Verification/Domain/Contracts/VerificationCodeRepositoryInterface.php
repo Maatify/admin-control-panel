@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\Contracts\VerificationCode;
+namespace Maatify\Verification\Domain\Contracts;
 
-use Maatify\AdminKernel\Domain\DTO\VerificationCode;
-use Maatify\AdminKernel\Domain\Enum\IdentityTypeEnum;
-use Maatify\AdminKernel\Domain\Enum\VerificationPurposeEnum;
+use Maatify\Verification\Domain\DTO\VerificationCode;
+use Maatify\Verification\Domain\Enum\IdentityTypeEnum;
+use Maatify\Verification\Domain\Enum\VerificationPurposeEnum;
 
 interface VerificationCodeRepositoryInterface
 {

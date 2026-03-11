@@ -48,7 +48,8 @@
       "Maatify\\I18n\\": "Modules/I18n",
       "Maatify\\AppSettings\\": "Modules/AppSettings",
       "Maatify\\LanguageCore\\": "Modules/LanguageCore",
-      "Maatify\\ContentDocuments\\": "Modules/ContentDocuments"
+      "Maatify\\ContentDocuments\\": "Modules/ContentDocuments",
+      "Maatify\\Verification\\": "Modules/Verification"
     }
   },
 

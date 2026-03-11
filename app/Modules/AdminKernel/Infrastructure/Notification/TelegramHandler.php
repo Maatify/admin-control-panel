@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Infrastructure\Notification;
 
 use Maatify\AdminKernel\Domain\Contracts\Admin\AdminNotificationChannelRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodeValidatorInterface;
-use Maatify\AdminKernel\Domain\Enum\IdentityTypeEnum;
+use Maatify\Verification\Domain\Contracts\VerificationCodeValidatorInterface;
+use Maatify\Verification\Domain\Enum\IdentityTypeEnum;
 use Maatify\AdminKernel\Domain\Enum\NotificationChannelType;
 use Maatify\AdminKernel\Domain\Enum\VerificationFailureReasonEnum;
-use Maatify\AdminKernel\Domain\Enum\VerificationPurposeEnum;
+use Maatify\Verification\Domain\Enum\VerificationPurposeEnum;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 

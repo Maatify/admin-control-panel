@@ -1,0 +1,14 @@
+{
+    "name": "maatify/verification",
+    "description": "A framework-agnostic verification code component for managing OTPs and temporary codes.",
+    "type": "library",
+    "require": {
+        "php": "^8.2",
+        "maatify/shared-common": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Maatify\\Verification\\": ""
+        }
+    }
+}
