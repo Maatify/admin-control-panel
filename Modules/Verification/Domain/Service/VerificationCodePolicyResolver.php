@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\Service;
+namespace Maatify\Verification\Domain\Service;
 
-use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodePolicyResolverInterface;
-use Maatify\AdminKernel\Domain\DTO\VerificationPolicy;
-use Maatify\AdminKernel\Domain\Enum\VerificationPurposeEnum;
+use Maatify\Verification\Domain\Contracts\VerificationCodePolicyResolverInterface;
+use Maatify\Verification\Domain\DTO\VerificationPolicy;
+use Maatify\Verification\Domain\Enum\VerificationPurposeEnum;
 
 class VerificationCodePolicyResolver implements VerificationCodePolicyResolverInterface
 {

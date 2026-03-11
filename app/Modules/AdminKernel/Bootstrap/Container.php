@@ -60,10 +60,6 @@ use Maatify\AdminKernel\Domain\Contracts\Roles\RolesReaderRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\Roles\RoleToggleRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\StepUpGrantRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\TotpServiceInterface;
-use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodeGeneratorInterface;
-use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodePolicyResolverInterface;
-use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodeRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodeValidatorInterface;
 use Maatify\AdminKernel\Domain\DTO\AdminConfigDTO;
 use Maatify\AdminKernel\Domain\DTO\TotpEnrollmentConfig;
 use Maatify\AdminKernel\Domain\DTO\Ui\UiConfigDTO;
@@ -88,9 +84,6 @@ use Maatify\AdminKernel\Domain\Service\RoleHierarchyComparator;
 use Maatify\AdminKernel\Domain\Service\RoleLevelResolver;
 use Maatify\AdminKernel\Domain\Service\SessionRevocationService;
 use Maatify\AdminKernel\Domain\Service\StepUpService;
-use Maatify\AdminKernel\Domain\Service\VerificationCodeGenerator;
-use Maatify\AdminKernel\Domain\Service\VerificationCodePolicyResolver;
-use Maatify\AdminKernel\Domain\Service\VerificationCodeValidator;
 use Maatify\AdminKernel\Domain\Session\Reader\SessionListReaderInterface;
 use Maatify\AdminKernel\Http\Controllers\AdminNotificationHistoryController;
 use Maatify\AdminKernel\Http\Controllers\AdminNotificationPreferenceController;
@@ -173,7 +166,6 @@ use Maatify\AdminKernel\Infrastructure\Repository\PdoAdminNotificationReadMarker
 use Maatify\AdminKernel\Infrastructure\Repository\PdoRememberMeRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\PdoStepUpGrantRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\PdoSystemOwnershipRepository;
-use Maatify\AdminKernel\Infrastructure\Repository\PdoVerificationCodeRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\RolePermissionRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\Roles\PdoRoleAdminsRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\Roles\PdoRoleCreateRepository;
@@ -230,6 +222,8 @@ use Maatify\LanguageCore\Service\LanguageManagementService;
 use Maatify\PsrLogger\LoggerFactory;
 use Maatify\SharedCommon\Contracts\ClockInterface;
 use Maatify\Validation\Guard\ValidationGuard;
+use Maatify\Verification\Domain\Contracts\VerificationCodeGeneratorInterface;
+use Maatify\Verification\Domain\Contracts\VerificationCodeValidatorInterface;
 use PDO;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
@@ -1281,33 +1275,8 @@ class Container
                 );
             },
 
-            // Phase Sx: Verification Code Infrastructure
-            VerificationCodeRepositoryInterface::class                => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
-                assert($pdo instanceof PDO);
-                assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
-                return new PdoVerificationCodeRepository($pdo, $clock);
-            },
-            VerificationCodePolicyResolverInterface::class => function (ContainerInterface $c) {
-                return new VerificationCodePolicyResolver();
-            },
-            VerificationCodeGeneratorInterface::class                 => function (ContainerInterface $c) {
-                $repo = $c->get(VerificationCodeRepositoryInterface::class);
-                $resolver = $c->get(VerificationCodePolicyResolverInterface::class);
-                $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
-                assert($repo instanceof VerificationCodeRepositoryInterface);
-                assert($resolver instanceof VerificationCodePolicyResolverInterface);
-                assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
-                return new VerificationCodeGenerator($repo, $resolver, $clock);
-            },
-            VerificationCodeValidatorInterface::class                 => function (ContainerInterface $c) {
-                $repo = $c->get(VerificationCodeRepositoryInterface::class);
-                $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
-                assert($repo instanceof VerificationCodeRepositoryInterface);
-                assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
-                return new VerificationCodeValidator($repo, $clock);
-            },
+            // Phase Sx: Verification Code Infrastructure (Migrated to VerificationBindings)
+
             RecoveryStateService::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 $config = $c->get(AdminConfigDTO::class);
@@ -2577,6 +2546,9 @@ class Container
 
         // Register Maatify\AppSettings modules
         \Maatify\AppSettings\Bootstrap\AppSettingsBindings::register($containerBuilder);
+
+        // Register Maatify\Verification modules
+        \Maatify\Verification\Bootstrap\VerificationBindings::register($containerBuilder);
 
         // Register Infrastructure\LanguageCoreBinding modules
         \Maatify\AdminKernel\Infrastructure\LanguageCore\Bootstrap\LanguageCoreBinding::register($containerBuilder);

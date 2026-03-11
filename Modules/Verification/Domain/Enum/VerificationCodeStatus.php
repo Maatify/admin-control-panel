@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\Enum;
+namespace Maatify\Verification\Domain\Enum;
 
 enum VerificationCodeStatus: string
 {

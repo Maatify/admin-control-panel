@@ -15,8 +15,8 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Application\Verification;
 
-use Maatify\AdminKernel\Domain\Enum\IdentityTypeEnum;
-use Maatify\AdminKernel\Domain\Enum\VerificationPurposeEnum;
+use Maatify\Verification\Domain\Enum\IdentityTypeEnum;
+use Maatify\Verification\Domain\Enum\VerificationPurposeEnum;
 
 interface VerificationNotificationDispatcherInterface
 {

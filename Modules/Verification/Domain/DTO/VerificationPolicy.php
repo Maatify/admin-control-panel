@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\DTO;
+namespace Maatify\Verification\Domain\DTO;
 
 readonly class VerificationPolicy
 {
