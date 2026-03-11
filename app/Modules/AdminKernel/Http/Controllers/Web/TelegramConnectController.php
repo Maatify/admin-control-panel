@@ -33,7 +33,10 @@ readonly class TelegramConnectController
         // Generate OTP
         // Identity: admin, ID: adminId
         // Purpose: telegram_channel_link
-        $code = $this->generator->generate(IdentityTypeEnum::Admin, (string)$adminId, VerificationPurposeEnum::TelegramChannelLink);
+        $requestContext = $request->getAttribute(\Maatify\AdminKernel\Context\RequestContext::class);
+        $ip = $requestContext instanceof \Maatify\AdminKernel\Context\RequestContext ? $requestContext->getIpAddress() : null;
+
+        $code = $this->generator->generate(IdentityTypeEnum::Admin, (string)$adminId, VerificationPurposeEnum::TelegramChannelLink, $ip);
 
         return $this->view->render($response, 'telegram-connect.twig', [
             'otp' => $code->plainCode

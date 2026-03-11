@@ -10,7 +10,7 @@ use Maatify\AdminKernel\Domain\Enum\VerificationPurposeEnum;
 
 interface VerificationCodeValidatorInterface
 {
-    public function validate(IdentityTypeEnum $identityType, string $identityId, VerificationPurposeEnum $purpose, string $plainCode): VerificationResult;
+    public function validate(IdentityTypeEnum $identityType, string $identityId, VerificationPurposeEnum $purpose, string $plainCode, ?string $usedIp = null): VerificationResult;
 
-    public function validateByCode(string $plainCode): VerificationResult;
+    public function validateByCode(string $plainCode, ?string $usedIp = null): VerificationResult;
 }

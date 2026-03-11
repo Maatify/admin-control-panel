@@ -25,7 +25,7 @@ class VerificationCodeGenerator implements VerificationCodeGeneratorInterface
     ) {
     }
 
-    public function generate(IdentityTypeEnum $identityType, string $identityId, VerificationPurposeEnum $purpose): GeneratedVerificationCode
+    public function generate(IdentityTypeEnum $identityType, string $identityId, VerificationPurposeEnum $purpose, ?string $createdIp = null): GeneratedVerificationCode
     {
         // 1. Resolve Policy
         $policy = $this->policyResolver->resolve($purpose);
@@ -57,7 +57,8 @@ class VerificationCodeGenerator implements VerificationCodeGeneratorInterface
             0,
             $policy->maxAttempts,
             $expiresAt,
-            $now
+            $now,
+            $createdIp
         );
 
         // 6. Store

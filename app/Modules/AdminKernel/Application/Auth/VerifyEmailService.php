@@ -53,7 +53,8 @@ final readonly class VerifyEmailService
             IdentityTypeEnum::Admin,
             $adminId,
             VerificationPurposeEnum::EmailVerification,
-            $request->otp
+            $request->otp,
+            $request->requestContext->getIpAddress()
         );
 
         if (! $result->success) {

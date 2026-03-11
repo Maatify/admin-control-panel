@@ -18,7 +18,7 @@ interface VerificationCodeRepositoryInterface
 
     public function incrementAttempts(int $codeId): void;
 
-    public function markUsed(int $codeId): void;
+    public function markUsed(int $codeId, ?string $usedIp = null): void;
 
     public function expire(int $codeId): void;
 
