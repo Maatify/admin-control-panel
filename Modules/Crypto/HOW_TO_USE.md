@@ -25,17 +25,23 @@ The Password pipeline is strictly for one-way hashing of authentication credenti
 4. **Check** if a stored hash needs rehashing (e.g., after policy updates).
 
 ```php
-// 1. Hash a new password
-$hash = $passwordService->hash($inputPassword);
-// Store $hash in your database (VARCHAR/TEXT)
+use Maatify\Crypto\Password\PasswordHasherInterface;
 
-// 2. Verify a login attempt
-$isValid = $passwordService->verify($inputPassword, $storedHash);
+class AuthLoginService
+{
+    public function __construct(private PasswordHasherInterface $passwordHasher) {}
 
-// 3. Maintenance (Login Flow)
-if ($isValid && $passwordService->needsRehash($storedHash)) {
-    $newHash = $passwordService->hash($inputPassword);
-    // Update storage with $newHash
+    public function verifyLogin(string $inputPassword, string $storedHash): bool
+    {
+        $isValid = $this->passwordHasher->verify($inputPassword, $storedHash);
+
+        if ($isValid && $this->passwordHasher->needsRehash($storedHash)) {
+            $newHash = $this->passwordHasher->hash($inputPassword);
+            // Update storage with $newHash
+        }
+
+        return $isValid;
+    }
 }
 ```
 
@@ -57,18 +63,31 @@ If the `user:email:v1` key is compromised, the `payment:card:v1` data remains se
 **Usage:**
 
 ```php
-// 1. Obtain an encrypter for a specific context
-$encrypter = $cryptoProvider->context('user:phone_number:v1');
+use Maatify\Crypto\DX\CryptoProvider;
+use Maatify\Crypto\DTO\EncryptedDataDTO;
 
-// 2. Encrypt data (Returns an opaque object/DTO)
-$encryptedResult = $encrypter->encrypt($sensitiveData);
+class UserEmailCryptoService
+{
+    public function __construct(private CryptoProvider $cryptoProvider) {}
 
-// 3. Decrypt data
-// The $encryptedResult contains all necessary metadata (IV, Key ID, Tag).
-$plainText = $encrypter->decrypt($encryptedResult);
+    public function encryptEmail(string $emailAddress): EncryptedDataDTO
+    {
+        // 1. Obtain an encrypter for a specific context
+        $encrypter = $this->cryptoProvider->context('user:email:v1');
+
+        // 2. Encrypt data
+        return $encrypter->encrypt($emailAddress);
+    }
+
+    public function decryptEmail(EncryptedDataDTO $encryptedData): string
+    {
+        $encrypter = $this->cryptoProvider->context('user:email:v1');
+        return $encrypter->decrypt($encryptedData);
+    }
+}
 ```
 
-**Note:** The result of encryption is an object/array containing the ciphertext, IV, tag, and key ID. You must store all these components to decrypt successfully.
+**Note:** The result of encryption is an object containing the ciphertext, IV, tag, and key ID. You must store all these components to decrypt successfully.
 
 ## 5. Direct Encryption Usage
 
