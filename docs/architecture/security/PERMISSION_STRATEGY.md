@@ -139,10 +139,30 @@ This avoids duplicating permissions for the same logical action.
 ## 8. Design Constraints (LOCKED)
 
 * ❌ No permission logic inside routes
-* ❌ No UI/API-specific permissions in the database
 * ❌ No authorization branching based on transport layer
 * ✅ Mapping MUST occur before permission existence checks
-* ✅ AuthorizationService only works with canonical permissions
+* ✅ AuthorizationService MUST evaluate ONLY canonical permissions (after mapping)
+
+---
+
+### ⚠️ Transport-Aware Permissions (Legacy Behavior)
+
+Existing systems MAY include transport-aware permissions
+(e.g. `.api`, `.ui`, `.web`) as part of legacy or pre-normalization behavior.
+
+These permissions:
+
+* MUST be treated as valid runtime permissions
+* MUST NOT be removed or renamed without a full migration plan
+* MAY exist in the database if directly used by the system
+
+---
+
+### 🚫 New Code Constraint
+
+Transport-aware permissions SHOULD NOT be introduced in new code.
+
+All new routes MUST resolve to canonical permissions via the mapping layer.
 
 ---
 
