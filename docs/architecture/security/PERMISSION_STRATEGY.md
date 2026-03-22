@@ -166,7 +166,42 @@ All new routes MUST resolve to canonical permissions via the mapping layer.
 
 ---
 
-## 9. Non-Goals
+## 9. Authorization Exceptions (Intentional Behavior)
+
+The system MAY include specific routes that intentionally bypass
+the permission-based authorization layer.
+
+These routes are:
+
+- Protected by authentication (SessionGuard)
+- NOT evaluated through AuthorizationService
+- Considered safe within the current system phase
+
+### Examples
+
+- Dashboard and base UI routes (e.g. `/`, `/dashboard`)
+- General UI views (e.g. `/settings`, `/examples`)
+
+### Rationale
+
+- These routes do not represent distinct business capabilities
+- They serve as entry points or UI containers
+- Access is granted to any authenticated admin by design
+
+### Constraints
+
+- Such routes MUST NOT perform sensitive operations
+- They MUST NOT expose restricted data beyond admin baseline access
+- They MUST remain minimal and UI-oriented
+
+### Future Evolution
+
+In stricter RBAC modes, these routes MAY be converted into
+permission-based endpoints (e.g. `dashboard.view`).
+
+---
+
+## 10. Non-Goals
 
 This document does NOT define:
 
@@ -179,7 +214,7 @@ Those are handled in their respective documents.
 
 ---
 
-## 10. Summary
+## 11. Summary
 
 * Routes are **implementation details**
 * Permissions are **business capabilities**
