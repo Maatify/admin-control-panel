@@ -76,6 +76,7 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'languages.list.api' => 'languages.list',
 
         'languages.clear.fallback.api' => 'languages.set.fallback',
+        'languages.set.fallback.api'   => 'languages.set.fallback',
 
         // I18n Keys
         'i18n.keys.list.ui'  => 'i18n.keys.list',
