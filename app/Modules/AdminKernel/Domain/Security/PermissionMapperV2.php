@@ -63,6 +63,14 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'sessions.revoke.id'   => 'sessions.revoke',
         'sessions.revoke.bulk' => 'sessions.revoke',
 
+        // Permissions
+        'permissions.query.ui'  => 'permissions.query',
+        'permissions.query.api' => 'permissions.query',
+
+        // Roles
+        'roles.query.ui'  => 'roles.query',
+        'roles.query.api' => 'roles.query',
+
         // Languages
         'languages.list.ui'  => 'languages.list',
         'languages.list.api' => 'languages.list',
@@ -133,7 +141,7 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
 
         'app_settings.set_active.api' => 'app_settings.set_active',
 
-//        Content Documents Control
+        //        Content Documents Control
         'content_documents.types.query.ui' => 'content_documents.types.query',
         'content_documents.types.query.api' => 'content_documents.types.query',
         'content_documents.types.create.api' => 'content_documents.types.create',
@@ -155,6 +163,7 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'content_documents.translations.upsert.api' => 'content_documents.translations.upsert',
 
         'content_documents.acceptance.query.api' => 'content_documents.acceptance.query',
+        'content_documents.acceptance.query.ui'  => 'content_documents.acceptance.query',
 
         /**
          * Shared selector:
