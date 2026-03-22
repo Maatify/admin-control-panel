@@ -70,6 +70,7 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         // Roles
         'roles.query.ui'  => 'roles.query',
         'roles.query.api' => 'roles.query',
+        'roles.view.ui'   => 'roles.view',
 
         // Languages
         'languages.list.ui'  => 'languages.list',
