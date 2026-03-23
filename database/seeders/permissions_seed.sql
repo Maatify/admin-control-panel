@@ -42,7 +42,6 @@ VALUES
     ('admins.list', 'List Admins', 'Allows list admins'),
     ('admins.permissions', 'Permissions Admins', 'Allows permissions admins'),
     ('admins.profile.edit', 'Edit Profile Admins', 'Allows edit profile admins'),
-    ('admins.profile.edit.view', 'View Edit Profile Admins', 'Allows view edit profile admins'),
     ('admins.profile.view', 'View Profile Admins', 'Allows view profile admins'),
     ('admins.session.list', 'List Session Admins', 'Allows list session admins'),
     ('app_settings.create', 'Create App settings', 'Allows create app settings'),
@@ -128,7 +127,5 @@ VALUES
     ('roles.view', 'View Roles', 'Allows view roles'),
     ('sessions.list', 'List Sessions', 'Allows list sessions'),
     ('sessions.revoke', 'Revoke Sessions', 'Allows revoke sessions'),
-    ('sessions.revoke.bulk', 'Bulk Revoke Sessions', 'Allows bulk revoke sessions'),
-    ('sessions.revoke.id', 'Id Revoke Sessions', 'Allows id revoke sessions'),
     ('sessions.view_all', 'View all Sessions', 'Allows view all sessions'),
     ('telemetry.list', 'List Telemetry', 'Allows list telemetry');
