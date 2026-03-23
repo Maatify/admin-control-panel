@@ -67,9 +67,15 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'permissions.query.ui'  => 'permissions.query',
         'permissions.query.api' => 'permissions.query',
 
+        // Permission details (UI normalization)
+        'permission.details.ui' => 'permission.details',
+
         // Roles
         'roles.query.ui'  => 'roles.query',
         'roles.query.api' => 'roles.query',
+
+        // Roles view normalization
+        'roles.view.ui' => 'roles.view',
 
         // Languages
         'languages.list.ui'  => 'languages.list',
@@ -77,6 +83,13 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
 
         'languages.clear.fallback.api' => 'languages.set.fallback',
         'languages.set.fallback.api'   => 'languages.set.fallback',
+
+        'languages.create.api' => 'languages.create',
+        'languages.set.active.api' => 'languages.set.active',
+        'languages.update.code.api' => 'languages.update.code',
+        'languages.update.name.api' => 'languages.update.name',
+        'languages.update.settings.api' => 'languages.update.settings',
+        'languages.update.sort.api' => 'languages.update.sort',
 
         // I18n Keys
         'i18n.keys.list.ui'  => 'i18n.keys.list',
