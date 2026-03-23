@@ -14,7 +14,7 @@ readonly class SessionListController
 {
     public function __construct(
         private Twig $twig,
-        private AuthorizationService $authorizationService,
+        private UiPermissionService $uiPermissionService,
     )
     {
     }
@@ -26,9 +26,9 @@ readonly class SessionListController
         $adminId = $context->adminId;
 
         $capabilities = [
-            'can_revoke_id'   => $this->authorizationService->hasPermission($adminId, 'sessions.revoke.id'),
-            'can_revoke_bulk' => $this->authorizationService->hasPermission($adminId, 'sessions.revoke.bulk'),
-            'can_view_admin'  => $this->authorizationService->hasPermission($adminId, 'admins.profile.view'),
+            'can_revoke_id'   => $this->uiPermissionService->hasPermission($adminId, 'sessions.revoke.id'),
+            'can_revoke_bulk' => $this->uiPermissionService->hasPermission($adminId, 'sessions.revoke.bulk'),
+            'can_view_admin'  => $this->uiPermissionService->hasPermission($adminId, 'admins.profile.view'),
         ];
 
         return $this->twig->render($response, 'pages/sessions.twig', [

@@ -28,7 +28,7 @@ final readonly class LanguageTranslationsListUiController
 {
     public function __construct(
         private Twig $twig,
-        private AuthorizationService $authorizationService,
+        private UiPermissionService $uiPermissionService,
         private LanguageLookupInterface $repository
     )
     {
@@ -62,9 +62,9 @@ final readonly class LanguageTranslationsListUiController
         ];
 
         $capabilities = [
-            'can_upsert'        => $this->authorizationService->hasPermission($adminId, 'languages.translations.upsert'),
-            'can_delete'        => $this->authorizationService->hasPermission($adminId, 'languages.translations.delete'),
-            'can_view_languages'        => $this->authorizationService->hasPermission($adminId, 'languages.list'),
+            'can_upsert'        => $this->uiPermissionService->hasPermission($adminId, 'languages.translations.upsert'),
+            'can_delete'        => $this->uiPermissionService->hasPermission($adminId, 'languages.translations.delete'),
+            'can_view_languages'        => $this->uiPermissionService->hasPermission($adminId, 'languages.list'),
         ];
         return $this->twig->render(
             $response,

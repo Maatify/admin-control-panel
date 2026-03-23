@@ -16,7 +16,7 @@ final readonly class I18nScopeLanguageCoverageUiController
 {
     public function __construct(
         private Twig $twig,
-        private AuthorizationService $authorizationService,
+        private UiPermissionService $uiPermissionService,
         private I18nScopeDetailsRepositoryInterface $scopeReader,
         private LanguageRepositoryInterface $languageRepository
     ) {
@@ -43,8 +43,8 @@ final readonly class I18nScopeLanguageCoverageUiController
         // For now, reuse basic scope read.
 
         $capabilities = [
-            'can_view_scopes' => $this->authorizationService->hasPermission($adminId, 'i18n.scopes.list'),
-            'can_view_scope_details' => $this->authorizationService->hasPermission($adminId, 'i18n.scopes.details'),
+            'can_view_scopes' => $this->uiPermissionService->hasPermission($adminId, 'i18n.scopes.list'),
+            'can_view_scope_details' => $this->uiPermissionService->hasPermission($adminId, 'i18n.scopes.details'),
             // We assume if they can view details, they can view coverage
         ];
 

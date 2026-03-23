@@ -16,8 +16,10 @@ use Slim\Routing\RouteContext;
 readonly class AuthorizationGuardMiddleware implements MiddlewareInterface
 {
 
-    public function __construct(private AuthorizationService $authorizationService)
-    {
+    public function __construct(
+        private AuthorizationService $authorizationService,
+        private \Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionMapperV2Interface $permissionMapper
+    ) {
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
@@ -42,8 +44,35 @@ readonly class AuthorizationGuardMiddleware implements MiddlewareInterface
             throw new \RuntimeException("Request context missing");
         }
 
-        $this->authorizationService->checkPermission($adminId, $permission, $context);
+        $requirement = $this->permissionMapper->resolve($permission);
 
-        return $handler->handle($request);
+        // AND logic
+        if ($requirement->allOf !== []) {
+            foreach ($requirement->allOf as $reqPerm) {
+                $this->authorizationService->checkPermission($adminId, $reqPerm, $context);
+            }
+            return $handler->handle($request);
+        }
+
+        // OR logic (including single permission wrapper)
+        if ($requirement->anyOf !== []) {
+            $hasAny = false;
+            foreach ($requirement->anyOf as $reqPerm) {
+                if ($this->authorizationService->hasPermission($adminId, $reqPerm)) {
+                    $hasAny = true;
+                    break;
+                }
+            }
+            if (!$hasAny) {
+                throw new \Maatify\AdminKernel\Domain\Exception\PermissionDeniedException(
+                    "Admin $adminId lacks required permissions."
+                );
+            }
+            return $handler->handle($request);
+        }
+
+        throw new \Maatify\AdminKernel\Domain\Exception\PermissionDeniedException(
+            "Admin $adminId access denied by default (no permissions resolved)."
+        );
     }
 }

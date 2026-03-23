@@ -15,7 +15,7 @@ readonly class UiRoleDetailsController
 {
     public function __construct(
         private Twig $view,
-        private AuthorizationService $authorizationService,
+        private UiPermissionService $uiPermissionService,
         private RoleRepositoryInterface $roleRepository,
     ) {
     }
@@ -45,18 +45,18 @@ readonly class UiRoleDetailsController
         // ─────────────────────────────
         $capabilities = [
             // Overview
-            'can_view_roles'            => $this->authorizationService->hasPermission($adminId, 'roles.query'),
+            'can_view_roles'            => $this->uiPermissionService->hasPermission($adminId, 'roles.query'),
 
             // Permissions tab
-            'can_view_permissions'     => $this->authorizationService->hasPermission($adminId, 'roles.permissions.view'),
-            'can_assign_permissions'   => $this->authorizationService->hasPermission($adminId, 'roles.permissions.assign'),
-            'can_unassign_permissions'   => $this->authorizationService->hasPermission($adminId, 'roles.permissions.unassign'),
+            'can_view_permissions'     => $this->uiPermissionService->hasPermission($adminId, 'roles.permissions.view'),
+            'can_assign_permissions'   => $this->uiPermissionService->hasPermission($adminId, 'roles.permissions.assign'),
+            'can_unassign_permissions'   => $this->uiPermissionService->hasPermission($adminId, 'roles.permissions.unassign'),
 
             // Admins tab (next phase)
-            'can_view_admin_profile'           => $this->authorizationService->hasPermission($adminId, 'admins.profile.view'),
-            'can_view_admins'           => $this->authorizationService->hasPermission($adminId, 'roles.admins.view'),
-            'can_assign_admins'         => $this->authorizationService->hasPermission($adminId, 'roles.admins.assign'),
-            'can_unassign_admins'         => $this->authorizationService->hasPermission($adminId, 'roles.admins.unassign'),
+            'can_view_admin_profile'           => $this->uiPermissionService->hasPermission($adminId, 'admins.profile.view'),
+            'can_view_admins'           => $this->uiPermissionService->hasPermission($adminId, 'roles.admins.view'),
+            'can_assign_admins'         => $this->uiPermissionService->hasPermission($adminId, 'roles.admins.assign'),
+            'can_unassign_admins'         => $this->uiPermissionService->hasPermission($adminId, 'roles.admins.unassign'),
         ];
 
         return $this->view->render($response, 'pages/roles/details.twig', [

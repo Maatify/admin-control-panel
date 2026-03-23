@@ -14,7 +14,7 @@ readonly class UiPermissionsController
 {
     public function __construct(
         private Twig $view,
-        private AuthorizationService $authorizationService,
+        private UiPermissionService $uiPermissionService,
     ) {
     }
 
@@ -25,7 +25,7 @@ readonly class UiPermissionsController
         $adminId = $context->adminId;
 
         $capabilities = [
-            'can_update_meta'  => $this->authorizationService->hasPermission($adminId, 'permissions.metadata.update'),
+            'can_update_meta'  => $this->uiPermissionService->hasPermission($adminId, 'permissions.metadata.update'),
         ];
         return $this->view->render($response, 'pages/permissions.twig', [
             'capabilities' => $capabilities

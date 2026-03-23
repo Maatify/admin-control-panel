@@ -34,7 +34,7 @@ final readonly class ScopeDomainTranslationsUiController
         private I18nScopeDetailsRepositoryInterface $scopeDetailsReader,
         private I18nDomainDetailsReaderInterface $domainDetailsReader,
         private I18nScopeDomainsInterface $scopeDomainsReader,
-        private AuthorizationService $authorizationService,
+        private UiPermissionService $uiPermissionService,
         private LanguageRepositoryInterface $languageRepository,
         private LanguageSettingsRepositoryInterface $settingsRepository
     ) {
@@ -85,11 +85,11 @@ final readonly class ScopeDomainTranslationsUiController
         }
 
         $capabilities = [
-            'can_view_i18n_scopes'  => $this->authorizationService->hasPermission($adminId, 'i18n.scopes.list'),
-            'can_view_i18n_scopes_details'  => $this->authorizationService->hasPermission($adminId, 'i18n.scopes.details'),
-            'can_view_i18n_scopes_domains_keys'  => $this->authorizationService->hasPermission($adminId, 'i18n.scopes.domains.keys'),
-            'can_upsert'        => $this->authorizationService->hasPermission($adminId, 'languages.translations.upsert'),
-            'can_delete'        => $this->authorizationService->hasPermission($adminId, 'languages.translations.delete'),
+            'can_view_i18n_scopes'  => $this->uiPermissionService->hasPermission($adminId, 'i18n.scopes.list'),
+            'can_view_i18n_scopes_details'  => $this->uiPermissionService->hasPermission($adminId, 'i18n.scopes.details'),
+            'can_view_i18n_scopes_domains_keys'  => $this->uiPermissionService->hasPermission($adminId, 'i18n.scopes.domains.keys'),
+            'can_upsert'        => $this->uiPermissionService->hasPermission($adminId, 'languages.translations.upsert'),
+            'can_delete'        => $this->uiPermissionService->hasPermission($adminId, 'languages.translations.delete'),
         ];
 
         return $this->view->render($response, 'pages/i18n/scope_domain_translations.twig', [

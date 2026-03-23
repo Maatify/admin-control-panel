@@ -26,7 +26,7 @@ final readonly class ScopeDetailsController
 {
     public function __construct(
         private Twig $view,
-        private AuthorizationService $authorizationService,
+        private UiPermissionService $uiPermissionService,
         private I18nScopeDetailsRepositoryInterface $repository
     ) {
     }
@@ -63,17 +63,17 @@ final readonly class ScopeDetailsController
         // Capabilities (UI visibility only)
         // ─────────────────────────────
         $capabilities = [
-            'can_assign' => $this->authorizationService->hasPermission(
+            'can_assign' => $this->uiPermissionService->hasPermission(
                 $adminId,
                 'i18n.scopes.domains.assign'
             ),
 
-            'can_unassign' => $this->authorizationService->hasPermission(
+            'can_unassign' => $this->uiPermissionService->hasPermission(
                 $adminId,
                 'i18n.scopes.domains.unassign'
             ),
 
-            'can_view_scopes' => $this->authorizationService->hasPermission(
+            'can_view_scopes' => $this->uiPermissionService->hasPermission(
                 $adminId,
                 'i18n.scopes.list'
             ),

@@ -25,7 +25,7 @@ final readonly class ScopesListUiController
 {
     public function __construct(
         private Twig $twig,
-        private AuthorizationService $authorizationService,
+        private UiPermissionService $uiPermissionService,
     )
     {
     }
@@ -37,14 +37,14 @@ final readonly class ScopesListUiController
         $adminId = $context->adminId;
 
         $capabilities = [
-            'can_create'        => $this->authorizationService->hasPermission($adminId, 'i18n.scopes.create'),
-            'can_update'        => $this->authorizationService->hasPermission($adminId, 'i18n.scopes.update'),
-            'can_change_code'   => $this->authorizationService->hasPermission($adminId, 'i18n.scopes.change_code'),
-            'can_set_active'    => $this->authorizationService->hasPermission($adminId, 'i18n.scopes.set_active'),
-            'can_update_sort'   => $this->authorizationService->hasPermission($adminId, 'i18n.scopes.update_sort'),
-            'can_update_meta'   => $this->authorizationService->hasPermission($adminId, 'i18n.scopes.update_metadata'),
-            'can_view_scope_details'   => $this->authorizationService->hasPermission($adminId, 'i18n.scopes.details'),
-            'can_view_scope_keys'   => $this->authorizationService->hasPermission($adminId, 'i18n.scopes.keys'),
+            'can_create'        => $this->uiPermissionService->hasPermission($adminId, 'i18n.scopes.create'),
+            'can_update'        => $this->uiPermissionService->hasPermission($adminId, 'i18n.scopes.update'),
+            'can_change_code'   => $this->uiPermissionService->hasPermission($adminId, 'i18n.scopes.change_code'),
+            'can_set_active'    => $this->uiPermissionService->hasPermission($adminId, 'i18n.scopes.set_active'),
+            'can_update_sort'   => $this->uiPermissionService->hasPermission($adminId, 'i18n.scopes.update_sort'),
+            'can_update_meta'   => $this->uiPermissionService->hasPermission($adminId, 'i18n.scopes.update_metadata'),
+            'can_view_scope_details'   => $this->uiPermissionService->hasPermission($adminId, 'i18n.scopes.details'),
+            'can_view_scope_keys'   => $this->uiPermissionService->hasPermission($adminId, 'i18n.scopes.keys'),
         ];
 
         return $this->twig->render(

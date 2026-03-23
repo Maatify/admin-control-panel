@@ -25,7 +25,7 @@ final readonly class LanguagesListController
 {
     public function __construct(
         private Twig $twig,
-        private AuthorizationService $authorizationService,
+        private UiPermissionService $uiPermissionService,
     )
     {
     }
@@ -37,15 +37,15 @@ final readonly class LanguagesListController
         $adminId = $context->adminId;
 
         $capabilities = [
-            'can_create' => $this->authorizationService->hasPermission($adminId, 'languages.create.api'),
-            'can_update' => $this->authorizationService->hasPermission($adminId, 'languages.update.settings.api'),
-            'can_update_name'    => $this->authorizationService->hasPermission($adminId, 'languages.update.name.api'),
-            'can_update_code'    => $this->authorizationService->hasPermission($adminId, 'languages.update.code.api'),
-            'can_update_sort' => $this->authorizationService->hasPermission($adminId, 'languages.update.sort.api'),
-            'can_active' => $this->authorizationService->hasPermission($adminId, 'languages.set.active.api'),
-            'can_fallback_set' => $this->authorizationService->hasPermission($adminId, 'languages.set.fallback.api'),
-            'can_fallback_clear' => $this->authorizationService->hasPermission($adminId, 'languages.clear.fallback.api'),
-            'can_view_language_translations' => $this->authorizationService->hasPermission($adminId, 'languages.translations.list'),
+            'can_create' => $this->uiPermissionService->hasPermission($adminId, 'languages.create.api'),
+            'can_update' => $this->uiPermissionService->hasPermission($adminId, 'languages.update.settings.api'),
+            'can_update_name'    => $this->uiPermissionService->hasPermission($adminId, 'languages.update.name.api'),
+            'can_update_code'    => $this->uiPermissionService->hasPermission($adminId, 'languages.update.code.api'),
+            'can_update_sort' => $this->uiPermissionService->hasPermission($adminId, 'languages.update.sort.api'),
+            'can_active' => $this->uiPermissionService->hasPermission($adminId, 'languages.set.active.api'),
+            'can_fallback_set' => $this->uiPermissionService->hasPermission($adminId, 'languages.set.fallback.api'),
+            'can_fallback_clear' => $this->uiPermissionService->hasPermission($adminId, 'languages.clear.fallback.api'),
+            'can_view_language_translations' => $this->uiPermissionService->hasPermission($adminId, 'languages.translations.list'),
         ];
 
         return $this->twig->render(

@@ -14,7 +14,7 @@ readonly class UiRolesController
 {
     public function __construct(
         private Twig $view,
-        private AuthorizationService $authorizationService,
+        private UiPermissionService $uiPermissionService,
     ) {
     }
 
@@ -25,11 +25,11 @@ readonly class UiRolesController
         $adminId = $context->adminId;
 
         $capabilities = [
-            'can_create'       => $this->authorizationService->hasPermission($adminId, 'roles.create'),
-            'can_update_meta'  => $this->authorizationService->hasPermission($adminId, 'roles.metadata.update'),
-            'can_rename'       => $this->authorizationService->hasPermission($adminId, 'roles.rename'),
-            'can_toggle'       => $this->authorizationService->hasPermission($adminId, 'roles.toggle'),
-            'can_view_role'    => $this->authorizationService->hasPermission($adminId, 'roles.view'),
+            'can_create'       => $this->uiPermissionService->hasPermission($adminId, 'roles.create'),
+            'can_update_meta'  => $this->uiPermissionService->hasPermission($adminId, 'roles.metadata.update'),
+            'can_rename'       => $this->uiPermissionService->hasPermission($adminId, 'roles.rename'),
+            'can_toggle'       => $this->uiPermissionService->hasPermission($adminId, 'roles.toggle'),
+            'can_view_role'    => $this->uiPermissionService->hasPermission($adminId, 'roles.view'),
         ];
         return $this->view->render($response, 'pages/roles.twig', [
             'capabilities' => $capabilities
