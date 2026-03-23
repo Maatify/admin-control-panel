@@ -145,6 +145,25 @@ This avoids duplicating permissions for the same logical action.
 
 ---
 
+### 🔒 Canonical Merge Rule
+
+If multiple permission identifiers represent the same capability
+(even if they differ in execution context such as bulk or single actions),
+they MUST be normalized into a single canonical permission.
+
+Example:
+
+sessions.revoke.bulk
+sessions.revoke.id
+        ↓
+sessions.revoke
+
+Only the canonical permission MUST exist in the database.
+
+Mapping in this case represents a capability merge, not just transport normalization.
+
+---
+
 ### ⚠️ Transport-Aware Permissions (Legacy Behavior)
 
 Existing systems MAY include transport-aware permissions
