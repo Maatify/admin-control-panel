@@ -1,0 +1,205 @@
+## 1. Canonical Permissions
+- 2fa.enable
+- 2fa.setup
+- activity_logs.view
+- admin.create
+- admin.email.add
+- admin.email.fail
+- admin.email.list
+- admin.email.replace
+- admin.email.restart
+- admin.email.verify
+- admin.notifications.history
+- admin.notifications.read
+- admin.permissions.direct.assign
+- admin.permissions.direct.assignable.query
+- admin.permissions.direct.query
+- admin.permissions.direct.revoke
+- admin.permissions.effective
+- admin.preferences.read
+- admin.preferences.write
+- admin.roles.query
+- admins.list
+- admins.permissions
+- admins.profile.view
+- admins.session.list
+- app_settings.create
+- app_settings.list
+- app_settings.set_active
+- app_settings.update
+- auth.logout
+- auth.stepup.verify
+- content_documents.acceptance.query
+- content_documents.translations.query
+- content_documents.translations.upsert
+- content_documents.types.create
+- content_documents.types.dropdown
+- content_documents.types.query
+- content_documents.types.update
+- content_documents.versions.activate
+- content_documents.versions.archive
+- content_documents.versions.create
+- content_documents.versions.deactivate
+- content_documents.versions.publish
+- content_documents.versions.query
+- i18n.domains.change_code
+- i18n.domains.create
+- i18n.domains.list
+- i18n.domains.set_active
+- i18n.domains.update
+- i18n.domains.update_metadata
+- i18n.domains.update_sort
+- i18n.keys.list
+- i18n.languages.dropdown
+- i18n.scopes.change_code
+- i18n.scopes.coverage.domain
+- i18n.scopes.create
+- i18n.scopes.details
+- i18n.scopes.domains.assign
+- i18n.scopes.domains.dropdown
+- i18n.scopes.domains.keys
+- i18n.scopes.domains.translations
+- i18n.scopes.domains.unassign
+- i18n.scopes.dropdown
+- i18n.scopes.keys
+- i18n.scopes.keys.create
+- i18n.scopes.keys.update_metadata
+- i18n.scopes.keys.update_name
+- i18n.scopes.list
+- i18n.scopes.set_active
+- i18n.scopes.update
+- i18n.scopes.update_metadata
+- i18n.scopes.update_sort
+- i18n.translations.list
+- i18n.translations.upsert
+- languages.create
+- languages.list
+- languages.set.active
+- languages.set.fallback
+- languages.translations.delete
+- languages.translations.list
+- languages.translations.upsert
+- languages.update.code
+- languages.update.name
+- languages.update.settings
+- languages.update.sort
+- notifications.list
+- permission.details
+- permissions.admins.query
+- permissions.metadata.update
+- permissions.query
+- permissions.roles.query
+- roles.admins.assign
+- roles.admins.query
+- roles.admins.unassign
+- roles.admins.view
+- roles.create
+- roles.metadata.update
+- roles.permissions.assign
+- roles.permissions.query
+- roles.permissions.unassign
+- roles.permissions.view
+- roles.query
+- roles.rename
+- roles.toggle
+- roles.view
+- sessions.list
+- sessions.revoke
+- sessions.view_all
+- telemetry.list
+
+## 2. Transport Permissions
+- admin.create.api -> admin.create
+- admin.create.ui -> admin.create
+- admin.email.list.api -> admin.email.list
+- admin.email.list.ui -> admin.email.list
+- admins.list.api -> admins.list
+- admins.list.ui -> admins.list
+- app_settings.create.api -> app_settings.create
+- app_settings.list.api -> app_settings.list
+- app_settings.list.ui -> app_settings.list
+- app_settings.metadata.api -> app_settings.create
+- app_settings.set_active.api -> app_settings.set_active
+- app_settings.update.api -> app_settings.update
+- content_documents.acceptance.query.api -> content_documents.acceptance.query
+- content_documents.acceptance.query.ui -> content_documents.acceptance.query
+- content_documents.translations.query.api -> content_documents.translations.query
+- content_documents.translations.query.ui -> content_documents.translations.query
+- content_documents.translations.upsert.api -> content_documents.translations.upsert
+- content_documents.types.create.api -> content_documents.types.create
+- content_documents.types.dropdown.api -> content_documents.types.dropdown OR content_documents.types.query
+- content_documents.types.query.api -> content_documents.types.query
+- content_documents.types.query.ui -> content_documents.types.query
+- content_documents.types.update.api -> content_documents.types.update
+- content_documents.versions.activate.api -> content_documents.versions.activate
+- content_documents.versions.archive.api -> content_documents.versions.archive
+- content_documents.versions.create.api -> content_documents.versions.create
+- content_documents.versions.deactivate.api -> content_documents.versions.deactivate
+- content_documents.versions.publish.api -> content_documents.versions.publish
+- content_documents.versions.query.api -> content_documents.versions.query
+- content_documents.versions.query.ui -> content_documents.versions.query
+- i18n.domains.change_code.api -> i18n.domains.change_code
+- i18n.domains.create.api -> i18n.domains.create
+- i18n.domains.list.api -> i18n.domains.list
+- i18n.domains.list.ui -> i18n.domains.list
+- i18n.domains.set_active.api -> i18n.domains.set_active
+- i18n.domains.update_metadata.api -> i18n.domains.update_metadata
+- i18n.domains.update_sort.api -> i18n.domains.update_sort
+- i18n.languages.dropdown.api -> i18n.translations.upsert OR i18n.languages.dropdown
+- i18n.scopes.change_code.api -> i18n.scopes.change_code
+- i18n.scopes.coverage.domain.api -> i18n.scopes.coverage.domain
+- i18n.scopes.coverage.domain.ui -> i18n.scopes.coverage.domain
+- i18n.scopes.coverage.language.api -> i18n.scopes.details
+- i18n.scopes.create.api -> i18n.scopes.create
+- i18n.scopes.details.ui -> i18n.scopes.details
+- i18n.scopes.domains.assign.api -> i18n.scopes.domains.assign
+- i18n.scopes.domains.dropdown.api -> i18n.scopes.keys.create OR i18n.scopes.domains.dropdown
+- i18n.scopes.domains.keys.query.api -> i18n.scopes.domains.keys
+- i18n.scopes.domains.keys.ui -> i18n.scopes.domains.keys
+- i18n.scopes.domains.query.api -> i18n.scopes.details
+- i18n.scopes.domains.translations.query.api -> i18n.scopes.domains.translations
+- i18n.scopes.domains.translations.ui -> i18n.scopes.domains.translations
+- i18n.scopes.domains.unassign.api -> i18n.scopes.domains.unassign
+- i18n.scopes.dropdown.api -> i18n.scopes.dropdown
+- i18n.scopes.keys.create.api -> i18n.scopes.keys.create
+- i18n.scopes.keys.query.api -> i18n.scopes.keys
+- i18n.scopes.keys.ui -> i18n.scopes.keys
+- i18n.scopes.keys.update_metadata.api -> i18n.scopes.keys.update_metadata
+- i18n.scopes.keys.update_name.api -> i18n.scopes.keys.update_name
+- i18n.scopes.list.api -> i18n.scopes.list
+- i18n.scopes.list.ui -> i18n.scopes.list
+- i18n.scopes.set_active.api -> i18n.scopes.set_active
+- i18n.scopes.update_metadata.api -> i18n.scopes.update_metadata
+- i18n.scopes.update_sort.api -> i18n.scopes.update_sort
+- languages.clear.fallback.api -> languages.set.fallback
+- languages.create.api -> languages.create
+- languages.list.api -> languages.list
+- languages.list.ui -> languages.list
+- languages.set.active.api -> languages.set.active
+- languages.set.fallback.api -> languages.set.fallback
+- languages.translations.delete.api -> languages.translations.delete
+- languages.translations.list.api -> languages.translations.list
+- languages.translations.list.ui -> i18n.translations.list
+- languages.translations.upsert.api -> languages.translations.upsert
+- languages.update.code.api -> languages.update.code
+- languages.update.name.api -> languages.update.name
+- languages.update.settings.api -> languages.update.settings
+- languages.update.sort.api -> languages.update.sort
+- permission.details.ui -> permission.details
+- permissions.query.api -> permissions.query
+- permissions.query.ui -> permissions.query
+- roles.query.api -> roles.query
+- roles.query.ui -> roles.query
+- roles.view.ui -> roles.view
+- sessions.list.api -> sessions.list
+- sessions.list.ui -> sessions.list
+
+## 3. Variant Permissions (Merged)
+- admins.profile.edit -> admins.profile.edit
+- admins.profile.edit.view -> admins.profile.edit
+- content_documents.translations.details -> content_documents.translations.details
+- sessions.revoke.bulk -> sessions.revoke
+- sessions.revoke.id -> sessions.revoke
+
+## 4. Violations (if any)
+- auth.logout.web: Unmapped transport permission ending with `.web`.
