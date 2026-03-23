@@ -8,11 +8,11 @@ The `permissions` table in the database MUST be the single source of truth for a
 
 **Allowed in DB:**
 - ✅ **Canonical Permissions:** Core business capabilities (e.g., `admin.create`, `sessions.revoke`).
+- ✅ **Variant Permissions:** Explicit feature toggles or UI paths (e.g., `sessions.revoke.bulk`, `sessions.revoke.id`) are allowed if they represent specific assignable capabilities.
 - ✅ **Approved Standalone Permissions:** Specific transport or interface permissions explicitly intended to bypass transport merging for legitimate architectural reasons (rare).
 
 **Strictly Forbidden in DB:**
 - ❌ **Transport Permissions:** Any permission key ending in `.api`, `.ui`, or `.web` MUST NOT be stored in the database unless explicitly approved as a standalone exception.
-- ❌ **Variant (Merged) Permissions:** Specific action variants like `sessions.revoke.bulk` or `sessions.revoke.id` MUST NOT be stored in the database. They must be normalized to their canonical form.
 
 ## 2. Transport Rules
 Transport permissions define the method of execution but refer to the same underlying capability.
@@ -21,10 +21,10 @@ Transport permissions define the method of execution but refer to the same under
 - ✅ **Normalization:** Transport permissions MUST normalize to exactly one Canonical Permission or a structured Array (e.g., `anyOf`/`allOf`) of Canonical Permissions.
 
 ## 3. Variant Rules
-Variant permissions define specific forms of a single business capability.
+Variant permissions define specific forms or UI-driven toggles of a single business capability.
 
-- ✅ **Mapping Requirement:** All variant permissions (e.g., specific actions on individual vs. bulk targets) MUST exist in the mapper.
-- ✅ **Normalization:** Variants MUST resolve to their base Canonical Permission (e.g., `sessions.revoke.id` → `sessions.revoke`).
+- ✅ **UI Logic Integration:** Variant permissions MUST map to a canonical permission OR be explicitly used in UI logic (`hasPermission` checks).
+- ✅ **Normalization:** If a variant triggers an API route, it MUST resolve to its base Canonical Permission via the mapper (e.g., `sessions.revoke.id` → `sessions.revoke`).
 
 ## 4. Architectural Checks (CI Guidelines)
 - All protected routes MUST be analyzed to extract required permission keys.
@@ -32,4 +32,4 @@ Variant permissions define specific forms of a single business capability.
   1. Exist in the database seed as a Canonical Permission.
   2. Exist in `PermissionMapperV2` and resolve to a valid Canonical Permission.
 - Any unmapped `.api`, `.ui`, or `.web` permission is considered an explicit architectural violation.
-- Any duplicate or variant permissions found in the database seed are considered an explicit architectural violation.
+- Any unapproved duplicate permissions found in the database seed are considered an explicit architectural violation.

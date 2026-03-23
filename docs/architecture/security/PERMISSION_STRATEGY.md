@@ -34,7 +34,31 @@ All of these MUST resolve to **one canonical permission**.
 
 ---
 
-## 3. Canonical Permission
+## 3. Permission Layers
+
+The system's permission model operates across three distinct layers, aligning documentation and classification with real system behavior:
+
+### 1. Canonical (API enforcement)
+*   **Definition:** The core business capability.
+*   **Storage:** Always stored in the database.
+*   **Usage:** Used as the final authority in authorization checks at the API/Service level.
+*   **Example:** `sessions.revoke`
+
+### 2. Variant (UI behavior)
+*   **Definition:** Specific behavioral pathways, feature toggles, or UI actions of a single business capability.
+*   **Storage:** May exist in the database if they represent assignable specific capabilities.
+*   **Usage:** Used explicitly in UI logic (`hasPermission` checks) to dynamically render buttons or views. These are fully-fledged capability expressions within the UI layer, not just a mapping layer.
+*   **Example:** `sessions.revoke.bulk` vs `sessions.revoke.id`
+
+### 3. Transport (routing)
+*   **Definition:** Defines the method of execution (e.g., API vs UI) but refers to the same underlying capability.
+*   **Storage:** Strictly forbidden in the database (unless explicitly approved as a standalone exception).
+*   **Usage:** Used for routing. MUST be mapped to a Canonical or Variant permission via `PermissionMapperV2`.
+*   **Example:** `sessions.list.api`
+
+---
+
+## 4. Canonical Permission
 
 A **canonical permission** is:
 

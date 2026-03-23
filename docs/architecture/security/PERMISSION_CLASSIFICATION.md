@@ -194,7 +194,13 @@
 - sessions.list.api -> sessions.list
 - sessions.list.ui -> sessions.list
 
-## 3. Variant Permissions (Merged)
+## 3. Variant (Behavior Permissions)
+Variant permissions represent behavioral pathways, feature toggles, or specific UI actions rather than just transport normalization.
+- **Used in UI logic:** Controllers use variants in `hasPermission` checks to dynamically render buttons or views (e.g., `sessions.revoke.bulk` vs `sessions.revoke.id`).
+- **Feature toggling:** Variants distinguish execution paths without needing distinct overarching API constraints.
+- **May exist in DB:** Unlike pure Transport permissions, Variants may be explicitly stored in the database if they represent assignable specific capabilities.
+- **NOT just a mapping layer:** These are fully-fledged capability expressions within the UI layer.
+
 - admins.profile.edit -> admins.profile.edit
 - admins.profile.edit.view -> admins.profile.edit
 - content_documents.translations.details -> content_documents.translations.details
