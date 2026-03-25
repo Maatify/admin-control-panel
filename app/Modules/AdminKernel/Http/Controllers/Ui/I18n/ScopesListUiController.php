@@ -15,8 +15,9 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Ui\I18n;
 
+use Maatify\AdminKernel\Application\Security\UiPermissionService;
+
 use Maatify\AdminKernel\Context\AdminContext;
-use Maatify\AdminKernel\Domain\Service\AuthorizationService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;

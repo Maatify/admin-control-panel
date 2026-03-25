@@ -15,11 +15,12 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Ui\I18n;
 
+use Maatify\AdminKernel\Application\Security\UiPermissionService;
+
 use Maatify\AdminKernel\Context\AdminContext;
 use Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainDetailsReaderInterface;
 use Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopeDetailsRepositoryInterface;
 use Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsInterface;
-use Maatify\AdminKernel\Domain\Service\AuthorizationService;
 use Maatify\I18n\Exception\DomainScopeViolationException;
 use Maatify\LanguageCore\Contract\LanguageRepositoryInterface;
 use Maatify\LanguageCore\Contract\LanguageSettingsRepositoryInterface;

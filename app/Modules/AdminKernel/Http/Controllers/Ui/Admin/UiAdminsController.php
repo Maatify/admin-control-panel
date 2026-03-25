@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Ui\Admin;
 
+use Maatify\AdminKernel\Application\Security\UiPermissionService;
+
 use Maatify\AdminKernel\Application\Admin\AdminProfileUpdateService;
 use Maatify\AdminKernel\Context\AdminContext;
 use Maatify\AdminKernel\Domain\Admin\Reader\AdminBasicInfoReaderInterface;
 use Maatify\AdminKernel\Domain\Admin\Reader\AdminEmailReaderInterface;
 use Maatify\AdminKernel\Domain\Admin\Reader\AdminProfileReaderInterface;
-use Maatify\AdminKernel\Domain\Service\AuthorizationService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use RuntimeException;

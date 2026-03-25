@@ -71,8 +71,9 @@ readonly class AuthorizationGuardMiddleware implements MiddlewareInterface
             return $handler->handle($request);
         }
 
-        throw new \Maatify\AdminKernel\Domain\Exception\PermissionDeniedException(
-            "Admin $adminId access denied by default (no permissions resolved)."
-        );
+        // Canonical Fallback (If requirement resolves to empty anyOf/allOf)
+        $this->authorizationService->checkPermission($adminId, $permission, $context);
+
+        return $handler->handle($request);
     }
 }

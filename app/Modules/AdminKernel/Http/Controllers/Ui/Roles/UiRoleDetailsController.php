@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Ui\Roles;
 
+use Maatify\AdminKernel\Application\Security\UiPermissionService;
+
 use Maatify\AdminKernel\Context\AdminContext;
 use Maatify\AdminKernel\Domain\Contracts\Roles\RoleRepositoryInterface;
-use Maatify\AdminKernel\Domain\Service\AuthorizationService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
