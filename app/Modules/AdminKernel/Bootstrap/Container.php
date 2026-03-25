@@ -2345,10 +2345,10 @@ class Container
             \Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopesListUiController::class
             => function (ContainerInterface $c) {
                 $twig = $c->get(Twig::class);
-                $authorization = $c->get(AuthorizationService::class);
+                $authorization = $c->get(\Maatify\AdminKernel\Application\Security\UiPermissionService::class);
 
                 assert($twig instanceof Twig);
-                assert($authorization instanceof AuthorizationService);
+                assert($authorization instanceof \Maatify\AdminKernel\Application\Security\UiPermissionService);
 
                 return new \Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopesListUiController(
                     $twig,
