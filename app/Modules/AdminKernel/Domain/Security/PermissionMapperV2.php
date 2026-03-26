@@ -44,11 +44,8 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'admins.list.ui'  => 'admins.list',
         'admins.list.api' => 'admins.list',
 
-        // NOTE:
-        // auth.stepup.verify is intentionally NOT mapped.
-        // This route is handled as a security step-up flow and bypasses permission mapping.
-
         // Admin Profile
+        'admins.profile.edit.view' => 'admins.profile.edit',
         'admins.profile.edit'      => 'admins.profile.edit',
 
         // Admin Emails
