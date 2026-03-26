@@ -53,7 +53,7 @@ readonly class UiPermissionService
         }
 
         foreach ($allRequirements as $req) {
-            if (preg_match('/^.+\.(api|ui|web|bulk|id)$/', $req)) {
+            if (preg_match('/^.+\.(api|ui|web)$/', $req)) {
                 return false;
             }
         }

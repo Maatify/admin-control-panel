@@ -88,7 +88,7 @@ readonly class AuthorizationGuardMiddleware implements MiddlewareInterface
         }
 
         foreach ($allRequirements as $req) {
-            if (preg_match('/^.+\.(api|ui|web|bulk|id)$/', $req)) {
+            if (preg_match('/^.+\.(api|ui|web)$/', $req)) {
                 // Unresolved transport/variant must not leak into AuthorizationService. Safe degradation.
                 throw new \Maatify\AdminKernel\Domain\Exception\PermissionDeniedException(
                     "Admin $adminId lacks required permissions (unresolved permission: $req)."
