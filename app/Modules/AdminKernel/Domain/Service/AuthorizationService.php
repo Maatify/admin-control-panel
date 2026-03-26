@@ -71,29 +71,7 @@ readonly class AuthorizationService
      */
     private function assertSinglePermission(int $adminId, string $permission): void
     {
-//        $permission = $this->permissionMapper->map($permission);
-
-        if (!$this->rolePermissionRepository->permissionExists($permission)) {
-            throw new UnauthorizedException("Permission '$permission' does not exist.");
-        }
-
-        // 1. Direct Permissions (Explicit Deny/Allow)
-        $directPermissions = $this->directPermissionRepository->getActivePermissions($adminId);
-        foreach ($directPermissions as $direct) {
-            if ($direct['permission'] === $permission) {
-                if (!$direct['is_allowed']) {
-                    throw new PermissionDeniedException("Explicit deny for '$permission'.");
-                }
-
-                // Explicit allow
-                return;
-            }
-        }
-
-        // 2. Role Permissions
-        $roleIds = $this->adminRoleRepository->getRoleIds($adminId);
-
-        if ($this->rolePermissionRepository->hasPermission($roleIds, $permission)) {
+        if ($this->hasSinglePermission($adminId, $permission)) {
             return;
         }
 
@@ -107,19 +85,39 @@ readonly class AuthorizationService
      */
     private function hasSinglePermission(int $adminId, string $permission): bool
     {
-//        $permission = $this->permissionMapper->map($permission);
+        if ($this->checkCorePermission($adminId, $permission)) {
+            return true;
+        }
 
+        // Hierarchy Implication: .edit satisfies .view
+        if (str_ends_with($permission, '.view')) {
+            $impliedPermission = substr($permission, 0, -5) . '.edit';
+            if ($this->checkCorePermission($adminId, $impliedPermission)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function checkCorePermission(int $adminId, string $permission): bool
+    {
         if (!$this->rolePermissionRepository->permissionExists($permission)) {
             return false;
         }
 
+        // 1. Direct Permissions (Explicit Deny/Allow)
         $directPermissions = $this->directPermissionRepository->getActivePermissions($adminId);
         foreach ($directPermissions as $direct) {
             if ($direct['permission'] === $permission) {
-                return (bool) $direct['is_allowed'];
+                if (!$direct['is_allowed']) {
+                    return false;
+                }
+                return true;
             }
         }
 
+        // 2. Role Permissions
         $roleIds = $this->adminRoleRepository->getRoleIds($adminId);
 
         return $this->rolePermissionRepository->hasPermission($roleIds, $permission);
