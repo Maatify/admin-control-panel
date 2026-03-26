@@ -257,7 +257,6 @@ class Container
             PasswordPepperEnvAdapter::adapt($runtime)
         );
 
-
         // Create Config DTO
         $config = new AdminConfigDTO(
             appEnv: $runtime->appEnv,
@@ -411,7 +410,6 @@ class Container
 
 
 
-
             \Maatify\AdminKernel\Domain\Contracts\Ui\NavigationProviderInterface::class => function (ContainerInterface $c) {
                 return new \Maatify\AdminKernel\Infrastructure\Ui\DefaultNavigationProvider();
             },
@@ -507,7 +505,6 @@ class Container
 
                 assert($emailReader instanceof AdminEmailReaderInterface);
                 assert($basicInfoReader instanceof AdminBasicInfoReaderInterface);
-
 
                 return new AdminController(
                     $adminRepo,
@@ -770,11 +767,9 @@ class Container
                 // Crypto
                 $cryptoService = $c->get(AdminIdentifierCryptoServiceInterface::class);
 
-
                 assert($authService instanceof AdminAuthenticationService);
                 assert($validationGuard instanceof ValidationGuard);
                 assert($cryptoService instanceof AdminIdentifierCryptoServiceInterface);
-
 
                 return new AuthController(
                     $authService,
@@ -1145,7 +1140,6 @@ class Container
                 assert($filterResolver instanceof \Maatify\AdminKernel\Infrastructure\Query\ListFilterResolver);
                 assert($telemetryService instanceof \Maatify\AdminKernel\Application\Services\DiagnosticsTelemetryService);
 
-
                 return new SessionQueryController($reader, $auth, $validationGuard, $filterResolver, $telemetryService);
             },
             SessionRevokeController::class => function (ContainerInterface $c) {
@@ -1490,7 +1484,6 @@ class Container
                 return new TotpSecretCryptoService($cryptoProvider, $cryptoContextProvider);
             },
 
-
             AdminIdentifierCryptoServiceInterface::class => function (ContainerInterface $c) {
                 $cryptoProvider = $c->get(CryptoProvider::class);
                 $adminRuntimeConfigDTO = $c->get(AdminRuntimeConfigDTO::class);
@@ -1508,7 +1501,6 @@ class Container
                     $cryptoContextProvider
                 );
             },
-
 
             PasswordCryptoServiceInterface::class => function (ContainerInterface $c) {
                 $passwordService = $c->get(PasswordService::class);
@@ -1894,7 +1886,6 @@ class Container
                 assert($filterResolver instanceof ListFilterResolver);
                 return new \Maatify\AdminKernel\Http\Controllers\Api\Admin\AdminRolesQueryController($reader, $validationGuard, $filterResolver);
             },
-
 
             \Maatify\AdminKernel\Domain\Contracts\Permissions\EffectivePermissionsRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
@@ -2345,10 +2336,10 @@ class Container
             \Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopesListUiController::class
             => function (ContainerInterface $c) {
                 $twig = $c->get(Twig::class);
-                $authorization = $c->get(AuthorizationService::class);
+                $authorization = $c->get(\Maatify\AdminKernel\Application\Security\UiPermissionService::class);
 
                 assert($twig instanceof Twig);
-                assert($authorization instanceof AuthorizationService);
+                assert($authorization instanceof \Maatify\AdminKernel\Application\Security\UiPermissionService);
 
                 return new \Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopesListUiController(
                     $twig,
@@ -2422,7 +2413,6 @@ class Container
                 return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Languages\PdoLanguageLookup($pdo);
             },
 
-
             \Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsListReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
@@ -2494,8 +2484,6 @@ class Container
                 );
             },
 
-
-
             \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsCreateController::class => function (ContainerInterface $c) {
                 $service = $c->get(\Maatify\AppSettings\AppSettingsServiceInterface::class);
                 $guard = $c->get(ValidationGuard::class);
@@ -2554,7 +2542,6 @@ class Container
 
         // Register ContentDocuments Infrastructure
         \Maatify\AdminKernel\Infrastructure\ContentDocuments\Bootstrap\ContentDocumentBinding::register($containerBuilder);
-
 
         // ------- Register internal modules -------
 
