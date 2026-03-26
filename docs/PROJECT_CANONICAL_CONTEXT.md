@@ -149,6 +149,57 @@ This rule is **SECURITY-CRITICAL** and MUST NOT be bypassed, inferred, or altere
 
 ---
 
+### 3.1 Permission Resolution & Enforcement (LOCKED)
+
+**Status:** ARCHITECTURE-LOCKED / FINAL
+**Source:** `docs/architecture/security/PERMISSION_SYSTEM_DECISION_LOCK.md`
+
+The system adopts a **Route-Based Flexible Permission Model** with explicit
+resolution and fail-safe enforcement semantics.
+
+#### Core Rules
+
+- Permissions MAY originate from:
+  - Direct DB entries
+  - PermissionMapperV2
+  - anyOf / allOf compositions
+
+- Permission resolution is **MANDATORY before enforcement**
+
+- Unresolved permissions MUST:
+  - NOT reach AuthorizationService
+  - NOT cause system failure
+  - ALWAYS result in `403 NOT_AUTHORIZED`
+
+#### Responsibility Split
+
+| Layer                          | Responsibility |
+|--------------------------------|--------------|
+| AuthorizationGuardMiddleware   | Resolution + validation |
+| AuthorizationService           | Evaluation ONLY |
+
+#### Failure Semantics (CRITICAL)
+
+- NO runtime crashes
+- NO infrastructure exceptions
+- NO HTTP 500
+
+ALL failures MUST degrade into:
+
+→ `403 NOT_AUTHORIZED`
+
+#### Variants & Transport Permissions
+
+- Variants are VALID assignable permissions
+- Transport suffixes (.api / .ui / .web) are ALLOWED
+- They MUST NOT cause system instability if unresolved
+
+#### Final Principle
+
+> Permission resolution MUST succeed OR fail safely — never crash the system.
+
+---
+
 ### 4. Auditing (Authority & Security Only)
 
 * **Scope**: **Authoritative Audit** is strictly reserved for **Authority Changes**, **Security-Impacting Actions**, and **Admin Responsibility Events**.
