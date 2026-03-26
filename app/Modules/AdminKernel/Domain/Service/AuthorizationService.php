@@ -94,6 +94,8 @@ readonly class AuthorizationService
 
     /**
      * Checks if the user is granted at least one of the candidate permissions.
+     *
+     * @param array<string> $candidates
      */
     private function isGrantedAnyCandidate(int $adminId, array $candidates): bool
     {
