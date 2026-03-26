@@ -20,9 +20,17 @@ readonly class AuthorizationService
         private RolePermissionRepositoryInterface $rolePermissionRepository,
         private AdminDirectPermissionRepositoryInterface $directPermissionRepository,
         private SystemOwnershipRepositoryInterface $systemOwnershipRepository,
-//        private PermissionMapperInterface $permissionMapper,        // V1
-        private PermissionMapperV2Interface $permissionMapperV2,    // V2
     ) {
+    }
+
+    /**
+     * Validates that the permission is canonical.
+     */
+    private function assertCanonical(string $permission): void
+    {
+        if (preg_match('/^.+\.(bulk|id|ui|api)$/', $permission)) {
+            throw new \InvalidArgumentException("AuthorizationService requires canonical permission, rejected variant/transport: $permission");
+        }
     }
 
     /**
@@ -30,84 +38,32 @@ readonly class AuthorizationService
      */
     public function checkPermission(
         int $adminId,
-        string $routeName,
+        string $permission,
         RequestContext $context
     ): void {
+        $this->assertCanonical($permission);
+
         // 0. System Owner Bypass
         // Authorization decision only — no audit, no activity
         if ($this->systemOwnershipRepository->isOwner($adminId)) {
             return;
         }
 
-        $requirement = $this->permissionMapperV2->resolve($routeName);
-
-        // AND logic
-        if ($requirement->allOf !== []) {
-            foreach ($requirement->allOf as $permission) {
-                $this->assertSinglePermission($adminId, $permission);
-            }
-            return;
-        }
-
-        // OR logic
-        if ($requirement->anyOf !== []) {
-            foreach ($requirement->anyOf as $permission) {
-                if ($this->hasSinglePermission($adminId, $permission)) {
-                    return;
-                }
-            }
-
-            throw new PermissionDeniedException(
-                "Admin $adminId lacks required permissions (anyOf)."
-            );
-        }
-
-        // Absolute fallback (defensive)
-//        $permission = $this->permissionMapper->map($routeName);
-//        $this->assertSinglePermission($adminId, $permission);
+        $this->assertSinglePermission($adminId, $permission);
     }
 
     /**
      * Read-only helper — no logging
      */
-    public function hasPermission(int $adminId, string $routeName): bool
+    public function hasPermission(int $adminId, string $permission): bool
     {
+        $this->assertCanonical($permission);
+
         if ($this->systemOwnershipRepository->isOwner($adminId)) {
             return true;
         }
 
-        $requirement = $this->permissionMapperV2->resolve($routeName);
-
-        // AND logic
-        if ($requirement->allOf !== []) {
-            foreach ($requirement->allOf as $permission) {
-                if (!$this->hasSinglePermission($adminId, $permission)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        // OR logic: must have AT LEAST ONE permission
-        if ($requirement->anyOf !== []) {
-            foreach ($requirement->anyOf as $permission) {
-                if ($this->hasSinglePermission($adminId, $permission)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        // Absolute fallback
-//        $permission = $this->permissionMapper->map($routeName);
-//        return $this->hasSinglePermission($adminId, $permission);
-
-        /**
-         * Defensive default:
-         * - No requirements resolved
-         * - Treat as denied (secure by default)
-         */
-        return false;
+        return $this->hasSinglePermission($adminId, $permission);
     }
 
     /**

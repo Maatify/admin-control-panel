@@ -257,7 +257,6 @@ class Container
             PasswordPepperEnvAdapter::adapt($runtime)
         );
 
-
         // Create Config DTO
         $config = new AdminConfigDTO(
             appEnv: $runtime->appEnv,
@@ -373,24 +372,44 @@ class Container
                 $rolePermissionRepo = $c->get(RolePermissionRepositoryInterface::class);
                 $directPermissionRepo = $c->get(AdminDirectPermissionRepositoryInterface::class);
                 $ownershipRepo = $c->get(SystemOwnershipRepositoryInterface::class);
-//                $permissionMapper = $c->get(PermissionMapperInterface::class);
-                $permissionMapperV2 = $c->get(PermissionMapperV2Interface::class);
                 assert($adminRoleRepo instanceof AdminRoleRepositoryInterface);
                 assert($rolePermissionRepo instanceof RolePermissionRepositoryInterface);
                 assert($directPermissionRepo instanceof AdminDirectPermissionRepositoryInterface);
                 assert($ownershipRepo instanceof SystemOwnershipRepositoryInterface);
-//                assert($permissionMapper instanceof PermissionMapperInterface);
-                assert($permissionMapperV2 instanceof PermissionMapperV2Interface);
 
                 return new AuthorizationService(
                     $adminRoleRepo,
                     $rolePermissionRepo,
                     $directPermissionRepo,
-                    $ownershipRepo,
-//                    $permissionMapper,
-                    $permissionMapperV2
+                    $ownershipRepo
                 );
             },
+            \Maatify\AdminKernel\Application\Security\UiPermissionService::class => function (ContainerInterface $c) {
+                $mapper = $c->get(\Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionMapperV2Interface::class);
+                $auth = $c->get(\Maatify\AdminKernel\Domain\Service\AuthorizationService::class);
+                assert($mapper instanceof \Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionMapperV2Interface);
+                assert($auth instanceof \Maatify\AdminKernel\Domain\Service\AuthorizationService);
+
+                return new \Maatify\AdminKernel\Application\Security\UiPermissionService($mapper, $auth);
+            },
+
+            \Maatify\AdminKernel\Http\Middleware\AuthorizationGuardMiddleware::class => function (ContainerInterface $c) {
+                $auth = $c->get(\Maatify\AdminKernel\Domain\Service\AuthorizationService::class);
+                $mapper = $c->get(\Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionMapperV2Interface::class);
+                assert($auth instanceof \Maatify\AdminKernel\Domain\Service\AuthorizationService);
+                assert($mapper instanceof \Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionMapperV2Interface);
+
+                return new \Maatify\AdminKernel\Http\Middleware\AuthorizationGuardMiddleware($auth, $mapper);
+            },
+
+
+
+
+
+
+
+
+
             \Maatify\AdminKernel\Domain\Contracts\Ui\NavigationProviderInterface::class => function (ContainerInterface $c) {
                 return new \Maatify\AdminKernel\Infrastructure\Ui\DefaultNavigationProvider();
             },
@@ -486,7 +505,6 @@ class Container
 
                 assert($emailReader instanceof AdminEmailReaderInterface);
                 assert($basicInfoReader instanceof AdminBasicInfoReaderInterface);
-
 
                 return new AdminController(
                     $adminRepo,
@@ -749,11 +767,9 @@ class Container
                 // Crypto
                 $cryptoService = $c->get(AdminIdentifierCryptoServiceInterface::class);
 
-
                 assert($authService instanceof AdminAuthenticationService);
                 assert($validationGuard instanceof ValidationGuard);
                 assert($cryptoService instanceof AdminIdentifierCryptoServiceInterface);
-
 
                 return new AuthController(
                     $authService,
@@ -960,13 +976,13 @@ class Container
                 $profileUpdateService = $c->get(AdminProfileUpdateService::class);
                 $emailReaderInterface = $c->get(AdminEmailReaderInterface::class);
                 $basicInfoReaderInterface = $c->get(AdminBasicInfoReaderInterface::class);
-                $authorizationService = $c->get(AuthorizationService::class);
+                $authorizationService = $c->get(\Maatify\AdminKernel\Application\Security\UiPermissionService::class);
                 assert($view instanceof Twig);
                 assert($profileReader instanceof AdminProfileReaderInterface);
                 assert($profileUpdateService instanceof AdminProfileUpdateService);
                 assert($emailReaderInterface instanceof AdminEmailReaderInterface);
                 assert($basicInfoReaderInterface instanceof AdminBasicInfoReaderInterface);
-                assert($authorizationService instanceof AuthorizationService);
+                assert($authorizationService instanceof \Maatify\AdminKernel\Application\Security\UiPermissionService);
                 return new UiAdminsController(
                     $view,
                     $profileReader,
@@ -983,16 +999,16 @@ class Container
             },
             UiPermissionsController::class => function (ContainerInterface $c) {
                 $view = $c->get(Twig::class);
-                $authorizationService = $c->get(AuthorizationService::class);
+                $authorizationService = $c->get(\Maatify\AdminKernel\Application\Security\UiPermissionService::class);
                 assert($view instanceof Twig);
-                assert($authorizationService instanceof AuthorizationService);
+                assert($authorizationService instanceof \Maatify\AdminKernel\Application\Security\UiPermissionService);
                 return new UiPermissionsController($view, $authorizationService);
             },
             UiRolesController::class => function (ContainerInterface $c) {
                 $view = $c->get(Twig::class);
-                $authorizationService = $c->get(AuthorizationService::class);
+                $authorizationService = $c->get(\Maatify\AdminKernel\Application\Security\UiPermissionService::class);
                 assert($view instanceof Twig);
-                assert($authorizationService instanceof AuthorizationService);
+                assert($authorizationService instanceof \Maatify\AdminKernel\Application\Security\UiPermissionService);
                 return new UiRolesController($view, $authorizationService);
             },
             UiSettingsController::class => function (ContainerInterface $c) {
@@ -1106,9 +1122,9 @@ class Container
             },
             SessionListController::class => function (ContainerInterface $c) {
                 $twig = $c->get(Twig::class);
-                $authorizationService = $c->get(AuthorizationService::class);
+                $authorizationService = $c->get(\Maatify\AdminKernel\Application\Security\UiPermissionService::class);
                 assert($twig instanceof Twig);
-                assert($authorizationService instanceof AuthorizationService);
+                assert($authorizationService instanceof \Maatify\AdminKernel\Application\Security\UiPermissionService);
                 return new SessionListController($twig, $authorizationService);
             },
             SessionQueryController::class => function (ContainerInterface $c) {
@@ -1123,7 +1139,6 @@ class Container
                 assert($validationGuard instanceof ValidationGuard);
                 assert($filterResolver instanceof \Maatify\AdminKernel\Infrastructure\Query\ListFilterResolver);
                 assert($telemetryService instanceof \Maatify\AdminKernel\Application\Services\DiagnosticsTelemetryService);
-
 
                 return new SessionQueryController($reader, $auth, $validationGuard, $filterResolver, $telemetryService);
             },
@@ -1469,7 +1484,6 @@ class Container
                 return new TotpSecretCryptoService($cryptoProvider, $cryptoContextProvider);
             },
 
-
             AdminIdentifierCryptoServiceInterface::class => function (ContainerInterface $c) {
                 $cryptoProvider = $c->get(CryptoProvider::class);
                 $adminRuntimeConfigDTO = $c->get(AdminRuntimeConfigDTO::class);
@@ -1487,7 +1501,6 @@ class Container
                     $cryptoContextProvider
                 );
             },
-
 
             PasswordCryptoServiceInterface::class => function (ContainerInterface $c) {
                 $passwordService = $c->get(PasswordService::class);
@@ -1786,11 +1799,11 @@ class Container
 
             \Maatify\AdminKernel\Http\Controllers\Ui\Roles\UiRoleDetailsController::class => function (ContainerInterface $c) {
                 $view = $c->get(Twig::class);
-                $authorizationService = $c->get(AuthorizationService::class);
+                $authorizationService = $c->get(\Maatify\AdminKernel\Application\Security\UiPermissionService::class);
                 $roleRepository = $c->get(\Maatify\AdminKernel\Domain\Contracts\Roles\RoleRepositoryInterface::class);
 
                 assert($view instanceof Twig);
-                assert($authorizationService instanceof AuthorizationService);
+                assert($authorizationService instanceof \Maatify\AdminKernel\Application\Security\UiPermissionService);
                 assert($roleRepository instanceof \Maatify\AdminKernel\Domain\Contracts\Roles\RoleRepositoryInterface);
 
                 return new \Maatify\AdminKernel\Http\Controllers\Ui\Roles\UiRoleDetailsController($view, $authorizationService, $roleRepository);
@@ -1874,7 +1887,6 @@ class Container
                 return new \Maatify\AdminKernel\Http\Controllers\Api\Admin\AdminRolesQueryController($reader, $validationGuard, $filterResolver);
             },
 
-
             \Maatify\AdminKernel\Domain\Contracts\Permissions\EffectivePermissionsRepositoryInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
@@ -1953,10 +1965,10 @@ class Container
 
             \Maatify\AdminKernel\Http\Controllers\Ui\Permissions\UiAPermissionDetailsController::class => function (ContainerInterface $c) {
                 $view = $c->get(Twig::class);
-                $authorizationService = $c->get(AuthorizationService::class);
+                $authorizationService = $c->get(\Maatify\AdminKernel\Application\Security\UiPermissionService::class);
                 $permissionDetailsRepository = $c->get(\Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionDetailsRepositoryInterface::class);
                 assert($view instanceof Twig);
-                assert($authorizationService instanceof AuthorizationService);
+                assert($authorizationService instanceof \Maatify\AdminKernel\Application\Security\UiPermissionService);
                 assert($permissionDetailsRepository instanceof \Maatify\AdminKernel\Domain\Contracts\Permissions\PermissionDetailsRepositoryInterface);
                 return new \Maatify\AdminKernel\Http\Controllers\Ui\Permissions\UiAPermissionDetailsController($view, $authorizationService, $permissionDetailsRepository);
             },
@@ -2177,9 +2189,9 @@ class Container
 
             LanguagesListController::class => function (ContainerInterface $c) {
                 $twig = $c->get(Twig::class);
-                $authorizationService = $c->get(AuthorizationService::class);
+                $authorizationService = $c->get(\Maatify\AdminKernel\Application\Security\UiPermissionService::class);
                 assert($twig instanceof Twig);
-                assert($authorizationService instanceof AuthorizationService);
+                assert($authorizationService instanceof \Maatify\AdminKernel\Application\Security\UiPermissionService);
                 return new LanguagesListController($twig, $authorizationService);
             },
 
@@ -2292,9 +2304,9 @@ class Container
 
             \Maatify\AdminKernel\Http\Controllers\Ui\AppSettings\AppSettingsListUiController::class => function (ContainerInterface $c) {
                 $twig = $c->get(Twig::class);
-                $authorizationService = $c->get(AuthorizationService::class);
+                $authorizationService = $c->get(\Maatify\AdminKernel\Application\Security\UiPermissionService::class);
                 assert($twig instanceof Twig);
-                assert($authorizationService instanceof AuthorizationService);
+                assert($authorizationService instanceof \Maatify\AdminKernel\Application\Security\UiPermissionService);
             return new \Maatify\AdminKernel\Http\Controllers\Ui\AppSettings\AppSettingsListUiController($twig, $authorizationService);
             },
 
@@ -2324,16 +2336,21 @@ class Container
             \Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopesListUiController::class
             => function (ContainerInterface $c) {
                 $twig = $c->get(Twig::class);
-                $authorization = $c->get(AuthorizationService::class);
+                $authorization = $c->get(\Maatify\AdminKernel\Application\Security\UiPermissionService::class);
 
                 assert($twig instanceof Twig);
-                assert($authorization instanceof AuthorizationService);
+                assert($authorization instanceof \Maatify\AdminKernel\Application\Security\UiPermissionService);
 
                 return new \Maatify\AdminKernel\Http\Controllers\Ui\I18n\ScopesListUiController(
                     $twig,
                     $authorization
                 );
             },
+
+
+
+
+
 
             \Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainsQueryReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
@@ -2396,7 +2413,6 @@ class Container
                 return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Languages\PdoLanguageLookup($pdo);
             },
 
-
             \Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsListReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
@@ -2451,12 +2467,12 @@ class Container
 
             \Maatify\AdminKernel\Http\Controllers\Ui\I18n\I18nScopeLanguageCoverageUiController::class => function (ContainerInterface $c) {
                 $twig = $c->get(Twig::class);
-                $auth = $c->get(AuthorizationService::class);
+                $auth = $c->get(\Maatify\AdminKernel\Application\Security\UiPermissionService::class);
                 $scopeReader = $c->get(\Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopeDetailsRepositoryInterface::class);
                 $langRepo = $c->get(LanguageRepositoryInterface::class);
 
                 assert($twig instanceof Twig);
-                assert($auth instanceof AuthorizationService);
+                assert($auth instanceof \Maatify\AdminKernel\Application\Security\UiPermissionService);
                 assert($scopeReader instanceof \Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopeDetailsRepositoryInterface);
                 assert($langRepo instanceof LanguageRepositoryInterface);
 
@@ -2467,8 +2483,6 @@ class Container
                     $langRepo
                 );
             },
-
-
 
             \Maatify\AdminKernel\Http\Controllers\Api\AppSettings\AppSettingsCreateController::class => function (ContainerInterface $c) {
                 $service = $c->get(\Maatify\AppSettings\AppSettingsServiceInterface::class);
@@ -2528,7 +2542,6 @@ class Container
 
         // Register ContentDocuments Infrastructure
         \Maatify\AdminKernel\Infrastructure\ContentDocuments\Bootstrap\ContentDocumentBinding::register($containerBuilder);
-
 
         // ------- Register internal modules -------
 

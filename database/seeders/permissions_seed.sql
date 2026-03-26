@@ -42,6 +42,7 @@ VALUES
     ('admins.list', 'List Admins', 'Allows list admins'),
     ('admins.permissions', 'Permissions Admins', 'Allows permissions admins'),
     ('admins.profile.edit', 'Edit Profile Admins', 'Allows edit profile admins'),
+    ('admins.profile.edit.view', 'View Edit Profile Admins', 'Allows access to edit profile form'),
     ('admins.profile.view', 'View Profile Admins', 'Allows view profile admins'),
     ('admins.session.list', 'List Session Admins', 'Allows list session admins'),
     ('app_settings.create', 'Create App settings', 'Allows create app settings'),

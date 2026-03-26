@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Ui\Admin;
 
+use Maatify\AdminKernel\Application\Security\UiPermissionService;
+
 use Maatify\AdminKernel\Application\Admin\AdminProfileUpdateService;
 use Maatify\AdminKernel\Context\AdminContext;
 use Maatify\AdminKernel\Domain\Admin\Reader\AdminBasicInfoReaderInterface;
 use Maatify\AdminKernel\Domain\Admin\Reader\AdminEmailReaderInterface;
 use Maatify\AdminKernel\Domain\Admin\Reader\AdminProfileReaderInterface;
-use Maatify\AdminKernel\Domain\Service\AuthorizationService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use RuntimeException;
@@ -27,7 +28,7 @@ readonly class UiAdminsController
         private AdminProfileUpdateService $profileUpdateService,
         private AdminEmailReaderInterface $emailReader,
         private AdminBasicInfoReaderInterface $basicInfoReader,
-        private AuthorizationService $authorizationService,
+        private UiPermissionService $uiPermissionService,
     )
     {
     }
@@ -39,8 +40,8 @@ readonly class UiAdminsController
         $adminId = $context->adminId;
 
         $capabilities = [
-            'can_create'     => $this->authorizationService->hasPermission($adminId, 'admin.create.api'),
-            'can_view_admin' => $this->authorizationService->hasPermission($adminId, 'admins.profile.view'),
+            'can_create'     => $this->uiPermissionService->hasPermission($adminId, 'admin.create.api'),
+            'can_view_admin' => $this->uiPermissionService->hasPermission($adminId, 'admins.profile.view'),
         ];
 
         return $this->view->render($response, 'pages/admins.twig', [
@@ -78,11 +79,11 @@ readonly class UiAdminsController
         $adminId = $context->adminId;
 
         $capabilities = [
-            'can_edit'               => $this->authorizationService->hasPermission($adminId, 'admins.profile.edit'),
-            'can_view_sessions'      => $this->authorizationService->hasPermission($adminId, 'sessions.list'),
-            'can_view_emails'        => $this->authorizationService->hasPermission($adminId, 'admin.email.list'),
-            'can_view_admins'        => $this->authorizationService->hasPermission($adminId, 'admins.list'),
-            'can_view_notifications' => $this->authorizationService->hasPermission($adminId, 'notifications.list'),
+            'can_edit'               => $this->uiPermissionService->hasPermission($adminId, 'admins.profile.edit'),
+            'can_view_sessions'      => $this->uiPermissionService->hasPermission($adminId, 'sessions.list'),
+            'can_view_emails'        => $this->uiPermissionService->hasPermission($adminId, 'admin.email.list'),
+            'can_view_admins'        => $this->uiPermissionService->hasPermission($adminId, 'admins.list'),
+            'can_view_notifications' => $this->uiPermissionService->hasPermission($adminId, 'notifications.list'),
         ];
         $profile['capabilities'] = $capabilities;
 
@@ -232,13 +233,13 @@ readonly class UiAdminsController
         $adminId = $context->adminId;
 
         $capabilities = [
-            'can_view_profile' => $this->authorizationService->hasPermission($adminId, 'admins.profile.view'),
-            'can_view_admins'  => $this->authorizationService->hasPermission($adminId, 'admins.list'),
-            'can_add'          => $this->authorizationService->hasPermission($adminId, 'admin.email.add'),
-            'can_verify'       => $this->authorizationService->hasPermission($adminId, 'admin.email.verify'),
-            'can_replace'      => $this->authorizationService->hasPermission($adminId, 'admin.email.replace'),
-            'can_fail'         => $this->authorizationService->hasPermission($adminId, 'admin.email.fail'),
-            'can_restart'      => $this->authorizationService->hasPermission($adminId, 'admin.email.restart'),
+            'can_view_profile' => $this->uiPermissionService->hasPermission($adminId, 'admins.profile.view'),
+            'can_view_admins'  => $this->uiPermissionService->hasPermission($adminId, 'admins.list'),
+            'can_add'          => $this->uiPermissionService->hasPermission($adminId, 'admin.email.add'),
+            'can_verify'       => $this->uiPermissionService->hasPermission($adminId, 'admin.email.verify'),
+            'can_replace'      => $this->uiPermissionService->hasPermission($adminId, 'admin.email.replace'),
+            'can_fail'         => $this->uiPermissionService->hasPermission($adminId, 'admin.email.fail'),
+            'can_restart'      => $this->uiPermissionService->hasPermission($adminId, 'admin.email.restart'),
         ];
 
         return $this->view->render(
@@ -326,17 +327,17 @@ readonly class UiAdminsController
         // ─────────────────────────────
         $capabilities = [
             // Overview
-            'can_view_admin_roles'            => $this->authorizationService->hasPermission($adminId, 'admin.roles.query'),
-            'can_view_permissions_effective'            => $this->authorizationService->hasPermission($adminId, 'admin.permissions.effective'),
+            'can_view_admin_roles'            => $this->uiPermissionService->hasPermission($adminId, 'admin.roles.query'),
+            'can_view_permissions_effective'            => $this->uiPermissionService->hasPermission($adminId, 'admin.permissions.effective'),
 
             // Permissions tab
-            'can_view_admin_direct_permissions'     => $this->authorizationService->hasPermission($adminId, 'admin.permissions.direct.query'),
-            'can_assign_admin_direct_permissions'   => $this->authorizationService->hasPermission($adminId, 'admin.permissions.direct.assign'),
-            'can_revoke_admin_direct_permissions'   => $this->authorizationService->hasPermission($adminId, 'admin.permissions.direct.revoke'),
+            'can_view_admin_direct_permissions'     => $this->uiPermissionService->hasPermission($adminId, 'admin.permissions.direct.query'),
+            'can_assign_admin_direct_permissions'   => $this->uiPermissionService->hasPermission($adminId, 'admin.permissions.direct.assign'),
+            'can_revoke_admin_direct_permissions'   => $this->uiPermissionService->hasPermission($adminId, 'admin.permissions.direct.revoke'),
 
             // Clickable breadcrumbs
-            'can_view_admin_profile'           => $this->authorizationService->hasPermission($adminId, 'admins.profile.view'),
-            'can_view_admins'           => $this->authorizationService->hasPermission($adminId, 'roles.admins.view'),
+            'can_view_admin_profile'           => $this->uiPermissionService->hasPermission($adminId, 'admins.profile.view'),
+            'can_view_admins'           => $this->uiPermissionService->hasPermission($adminId, 'roles.admins.view'),
         ];
 
         return $this->view->render(
