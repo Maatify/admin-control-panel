@@ -46,6 +46,9 @@ readonly class AuthorizationGuardMiddleware implements MiddlewareInterface
 
         $requirement = $this->permissionMapper->resolve($permission);
 
+        // Validate resolution BEFORE enforcement to prevent AuthorizationService crash
+        $this->assertResolvedRequirements($adminId, $requirement, $permission);
+
         // AND logic
         if ($requirement->allOf !== []) {
             foreach ($requirement->allOf as $reqPerm) {
@@ -75,5 +78,22 @@ readonly class AuthorizationGuardMiddleware implements MiddlewareInterface
         $this->authorizationService->checkPermission($adminId, $permission, $context);
 
         return $handler->handle($request);
+    }
+
+    private function assertResolvedRequirements(int $adminId, \Maatify\AdminKernel\Domain\Security\PermissionRequirement $requirement, string $originalPermission): void
+    {
+        $allRequirements = array_merge($requirement->allOf, $requirement->anyOf);
+        if (empty($allRequirements)) {
+            $allRequirements[] = $originalPermission;
+        }
+
+        foreach ($allRequirements as $req) {
+            if (preg_match('/^.+\.(api|ui|web|bulk|id)$/', $req)) {
+                // Unresolved transport/variant must not leak into AuthorizationService. Safe degradation.
+                throw new \Maatify\AdminKernel\Domain\Exception\PermissionDeniedException(
+                    "Admin $adminId lacks required permissions (unresolved permission: $req)."
+                );
+            }
+        }
     }
 }

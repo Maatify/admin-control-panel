@@ -18,6 +18,10 @@ readonly class UiPermissionService
     {
         $requirement = $this->permissionMapper->resolve($permission);
 
+        if (!$this->isResolvedValid($requirement, $permission)) {
+            return false;
+        }
+
         // AND logic
         if ($requirement->allOf !== []) {
             foreach ($requirement->allOf as $reqPerm) {
@@ -39,5 +43,20 @@ readonly class UiPermissionService
         }
 
         return $this->authorizationService->hasPermission($adminId, $permission);
+    }
+
+    private function isResolvedValid(\Maatify\AdminKernel\Domain\Security\PermissionRequirement $requirement, string $originalPermission): bool
+    {
+        $allRequirements = array_merge($requirement->allOf, $requirement->anyOf);
+        if (empty($allRequirements)) {
+            $allRequirements[] = $originalPermission;
+        }
+
+        foreach ($allRequirements as $req) {
+            if (preg_match('/^.+\.(api|ui|web|bulk|id)$/', $req)) {
+                return false;
+            }
+        }
+        return true;
     }
 }
