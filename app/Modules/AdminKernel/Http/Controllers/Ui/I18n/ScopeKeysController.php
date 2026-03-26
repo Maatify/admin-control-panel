@@ -77,7 +77,7 @@ final readonly class ScopeKeysController
 
             'can_rename' => $this->uiPermissionService->hasPermission(
                 $adminId,
-                'i18n.scopes.keys.rename'
+                'i18n.scopes.keys.update_name'
             ),
 
             'can_update_meta'   => $this->uiPermissionService->hasPermission(
