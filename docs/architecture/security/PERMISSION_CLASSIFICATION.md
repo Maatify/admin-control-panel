@@ -1,4 +1,13 @@
-## 1. Canonical Permissions
+# Permission Classification
+
+## Status
+FINAL — ALIGNED WITH DECISION LOCK
+
+---
+
+## 1. Valid Permissions (Database)
+The following are valid, assignable permissions stored directly in the database. These MAY include base domain actions AND specific variants used for granular control or UI rendering.
+
 - 2fa.enable
 - 2fa.setup
 - activity_logs.view
@@ -21,6 +30,8 @@
 - admin.roles.query
 - admins.list
 - admins.permissions
+- admins.profile.edit
+- admins.profile.edit.view
 - admins.profile.view
 - admins.session.list
 - app_settings.create
@@ -28,8 +39,10 @@
 - app_settings.set_active
 - app_settings.update
 - auth.logout
+- auth.logout.web
 - auth.stepup.verify
 - content_documents.acceptance.query
+- content_documents.translations.details
 - content_documents.translations.query
 - content_documents.translations.upsert
 - content_documents.types.create
@@ -105,10 +118,19 @@
 - roles.view
 - sessions.list
 - sessions.revoke
+- sessions.revoke.bulk
+- sessions.revoke.id
 - sessions.view_all
 - telemetry.list
 
 ## 2. Transport Permissions
+Transport permissions indicate the specific route context (e.g., `.api`, `.ui`, `.web`).
+
+- They ARE NOT inherently invalid.
+- They MAY be mapped to direct database permissions to share capabilities.
+- If unmapped, they MUST safely degrade to a 403 authorization failure without causing system crashes.
+
+### Mapped Transports
 - admin.create.api -> admin.create
 - admin.create.ui -> admin.create
 - admin.email.list.api -> admin.email.list
@@ -194,18 +216,11 @@
 - sessions.list.api -> sessions.list
 - sessions.list.ui -> sessions.list
 
-## 3. Variant (Behavior Permissions)
-Variant permissions represent behavioral pathways, feature toggles, or specific UI actions rather than just transport normalization.
-- **Used in UI logic:** Controllers use variants in `hasPermission` checks to dynamically render buttons or views (e.g., `sessions.revoke.bulk` vs `sessions.revoke.id`).
-- **Feature toggling:** Variants distinguish execution paths without needing distinct overarching API constraints.
-- **May exist in DB:** Unlike pure Transport permissions, Variants may be explicitly stored in the database if they represent assignable specific capabilities.
-- **NOT just a mapping layer:** These are fully-fledged capability expressions within the UI layer.
+## 3. Variant Permissions
+Variant permissions (e.g., ending in `.bulk`, `.id`, `.view`) are valid, assignable permissions that may exist directly in the database. They provide granular control over behavioral pathways or UI rendering.
 
-- admins.profile.edit -> admins.profile.edit
-- admins.profile.edit.view -> admins.profile.edit
-- content_documents.translations.details -> content_documents.translations.details
-- sessions.revoke.bulk -> sessions.revoke
-- sessions.revoke.id -> sessions.revoke
-
-## 4. Violations (if any)
-- auth.logout.web: Unmapped transport permission ending with `.web`.
+Examples of Valid Variants:
+- admins.profile.edit.view
+- content_documents.translations.details
+- sessions.revoke.bulk
+- sessions.revoke.id

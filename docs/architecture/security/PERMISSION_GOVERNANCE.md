@@ -1,100 +1,55 @@
 # Permission Governance
 
+## Status
+FINAL — ALIGNED WITH DECISION LOCK
+
 ## Purpose
+This document outlines the operational rules and standards governing the creation and assignment of permissions within the RBAC system.
 
-This document defines the strict governance rules controlling the growth, usage, and lifecycle of the three permission layers in the system: Canonical, Variant, and Transport. These rules ensure the RBAC architecture remains scalable, predictable, and free of duplication.
+## 1. Core Model & Flexibility
+The system follows a flexible, route-based permission model.
 
----
+- **Route names MAY be permissions:** Not all routes require mapping. A route name can directly map to a capability.
+- **Mapping is OPTIONAL:** `PermissionMapperV2` is used for deduplication or complex requirement structures (`anyOf`, `allOf`), not as a mandatory bottleneck.
+- **System Stability:** Flexibility and safe failure degradation take precedence over strict canonical-only normalization.
 
-## 1. Canonical Rules
+## 2. Canonical Capabilities
+These are the primary actions a user can take.
 
-Canonical permissions represent the core, assignable business capabilities of the system.
+- **Storage:** Stored in the `permissions` table.
+- **Example:** `sessions.revoke`, `admin.create`.
 
-### When to Create
-- **New Feature Scope:** When a distinct new business capability is introduced that requires distinct authorization (e.g., managing a new entity).
-- **Hard API Boundary:** When an action fundamentally differs in risk or domain from existing actions (e.g., viewing logs vs. deleting logs).
+## 3. Variant Permissions
+Variant permissions represent behavioral forms, feature toggles, or UI logic branches for a given capability.
 
-### Naming Conventions
-- Must be domain-centric, not transport-centric.
-- Format: `[domain].[action]` or `[domain].[subdomain].[action]`.
-- Examples: `admin.create`, `sessions.revoke`, `languages.list`.
-- **Must NOT** end in `.api`, `.ui`, `.web`, or specific execution vectors like `.bulk`.
+- **Validation:** Variants ARE valid, assignable permissions.
+- **Storage:** Variants MAY exist directly in the database.
+- **Usage:** They MAY be used in UI rendering logic to show/hide specific options (e.g., `sessions.revoke.bulk` vs `sessions.revoke.id`).
 
-### Ownership & Storage
-- **Ownership:** Exclusively owned by the Domain logic and validated at the API/Service layer.
-- **Storage:** MUST be seeded in `database/seeders/permissions_seed.sql` and stored in the `permissions` table.
+## 4. Transport Permissions
+Transport permissions identify the HTTP vector (e.g., `.api`, `.ui`, `.web`).
 
----
+- **Validity:** They MAY exist and MUST NOT be inherently treated as invalid.
+- **Storage:** They SHOULD generally be mapped to a Canonical/Variant permission via `PermissionMapperV2` rather than stored in the database, though exceptions (like `auth.logout.web`) are permitted if explicitly designed.
+- **Handling:** If a transport permission remains unresolved, the system MUST NOT crash. It MUST safely degrade to a 403 authorization failure.
 
-## 2. Variant Rules
+## 5. Middleware and Service Governance
 
-Variant permissions represent specific behavioral pathways, feature toggles, or UI actions of a single business capability.
+### 5.1 The Middleware
+The `AuthorizationGuardMiddleware` owns resolution.
 
-### When Variant is Allowed
-- **UI Distinctions:** When the UI needs to conditionally render distinct elements (e.g., a "Revoke All" button vs. a single "Revoke" button) for the *same* canonical capability.
-- **Granular Toggling:** When specific administrative roles require access to a subset of an action's execution forms, but the underlying API capability remains identical.
+- It MUST intercept route permissions.
+- It MUST resolve them against the `PermissionMapperV2`.
+- It MUST perform final validation BEFORE passing them to the `AuthorizationService`.
+- If resolution fails, it MUST throw a 403 `PermissionDeniedException`.
 
-### When Variant is NOT Allowed
-- **API Enforcement:** Variants MUST NOT be used in the core service/domain layer for authorization checks (`checkPermission`). They are strictly for UI logic (`hasPermission`).
-- **Fake Distinctions:** If the API endpoints require completely different authorization rules, they are distinct capabilities, not variants.
+### 5.2 The Service
+The `AuthorizationService` owns enforcement.
 
-### Required Justification
-Every variant must be justified by an explicit conditional branch in UI rendering logic or a frontend feature toggle.
+- It MUST receive valid, resolved permissions.
+- It MUST evaluate those permissions against admin roles/assignments.
+- It MUST NEVER receive unresolved transport permissions or attempt to handle fallback mappings.
 
-### UI-Only vs API-Triggered Variants
-- **UI-Only:** Used purely to show/hide sections (e.g., `admins.profile.edit.view`).
-- **API-Triggered:** Triggers a specific route but maps back to a canonical permission (e.g., `sessions.revoke.bulk` triggers a bulk endpoint but requires the canonical `sessions.revoke` capability).
-
----
-
-## 3. Transport Rules
-
-Transport permissions represent the routing or execution method (API, UI, Web) of a capability.
-
-### Strict Mapping Enforcement
-- **ALL** transport permissions extracted from guarded routes MUST be mapped in `PermissionMapperV2`.
-- They must resolve directly to a Canonical permission, a Variant permission, or an `anyOf`/`allOf` array.
-
-### No DB Storage
-- Transport keys (ending in `.api`, `.ui`, `.web`) MUST NOT be stored in the database.
-- *Exception:* Explicitly approved standalone exceptions (e.g., `auth.logout.web`) that do not share logic with API counterparts.
-
----
-
-## 4. Anti-Patterns
-
-The following practices violate the governance model and are strictly prohibited:
-
-- ❌ **Creating a variant without a UI need:** Introducing `users.delete.soft` when the UI simply has one "Delete" button that determines soft/hard deletion via payload.
-- ❌ **Duplicating canonical as variant:** Creating `admin.create.single` when `admin.create` already perfectly describes the capability.
-- ❌ **Using transport in DB:** Inserting `languages.list.api` into `permissions_seed.sql`.
-- ❌ **Using variant in API logic:** A service calling `$auth->checkPermission($adminId, 'sessions.revoke.bulk')`. The API must only check the canonical `sessions.revoke`.
-
----
-
-## 5. Decision Matrix
-
-Given a new permission requirement, use this matrix to determine its classification:
-
-| Scenario | Classification | Action |
-| :--- | :--- | :--- |
-| Represents a completely new business action (e.g., "Export Data") | **Canonical** | Add to DB seed (`export.data`), use in API service. |
-| UI needs to hide a specific button for an existing action (e.g., "Export All") | **Variant** | Add to DB seed (`export.data.all`), use in UI `hasPermission`. Map route to Canonical. |
-| A new endpoint is created to serve data for an existing UI view (e.g., `/api/export`) | **Transport** | DO NOT add to DB. Name route `export.data.api`, map to `export.data` in `PermissionMapperV2`. |
-
----
-
-## 6. Real System Examples
-
-### `sessions.revoke.*`
-- **Canonical:** `sessions.revoke` (Used in `SessionBulkRevokeController` to enforce access).
-- **Variant:** `sessions.revoke.bulk` and `sessions.revoke.id` (Stored in DB, used in `SessionListController` to toggle specific UI buttons).
-- **Transport:** Not explicitly needed if routes match variants, but if an API existed like `sessions.revoke.api`, it would map to `sessions.revoke`.
-
-### `roles.*`
-- **Canonical:** `roles.view` (Core capability to view roles).
-- **Transport:** `roles.view.ui` (The specific UI route to render the page, mapped to `roles.view` in `PermissionMapperV2`).
-
-### `languages.*`
-- **Canonical:** `languages.set.fallback` (Core capability).
-- **Transport:** `languages.clear.fallback.api` and `languages.set.fallback.api` (Two distinct API routes mapped to the exact same canonical capability via `PermissionMapperV2`).
+## 6. Failure Guarantee
+- Under NO circumstances should permission resolution failures result in an HTTP 500 or infrastructure exception.
+- All unresolved permutations MUST result in HTTP 403.

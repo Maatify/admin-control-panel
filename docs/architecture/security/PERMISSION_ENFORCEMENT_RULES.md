@@ -1,35 +1,53 @@
 # Permission Enforcement Rules
 
+## Status
+FINAL — ALIGNED WITH DECISION LOCK
+
 ## Purpose
-This document establishes the strict rules for permission classification, validation, and database storage within the system.
+This document establishes the strict rules for permission validation, resolution, and authorization enforcement within the system.
 
-## 1. Database Seed Rules
-The `permissions` table in the database MUST be the single source of truth for all assignable capabilities.
+## 1. Route-Based Model & Mapping
+The system operates on a flexible route-based permission model.
 
-**Allowed in DB:**
-- ✅ **Canonical Permissions:** Core business capabilities (e.g., `admin.create`, `sessions.revoke`).
-- ✅ **Variant Permissions:** Explicit feature toggles or UI paths (e.g., `sessions.revoke.bulk`, `sessions.revoke.id`) are allowed if they represent specific assignable capabilities.
-- ✅ **Approved Standalone Permissions:** Specific transport or interface permissions explicitly intended to bypass transport merging for legitimate architectural reasons (rare).
+- Route names MAY represent permissions directly.
+- Mapping via `PermissionMapperV2` is OPTIONAL.
+- `PermissionMapperV2` MAY be used to map transport-aware routes (e.g., `*.api`) to core permissions to reduce duplication or to define complex `anyOf`/`allOf` arrays.
 
-**Strictly Forbidden in DB:**
-- ❌ **Transport Permissions:** Any permission key ending in `.api`, `.ui`, or `.web` MUST NOT be stored in the database unless explicitly approved as a standalone exception.
+## 2. Valid Permission Definition
+A permission is considered VALID and Enforceable if ANY of the following is true:
 
-## 2. Transport Rules
-Transport permissions define the method of execution but refer to the same underlying capability.
+1. It exists directly in the `permissions` table in the database.
+2. It is mapped via `PermissionMapperV2` to an existing database permission.
+3. It is part of an `anyOf`/`allOf` array containing valid permissions.
 
-- ✅ **Mapping Requirement:** ALL transport permissions (`*.api`, `*.ui`, `*.web`) extracted from protected routes (via `AuthorizationGuardMiddleware`) MUST be explicitly mapped in `PermissionMapperV2`.
-- ✅ **Normalization:** Transport permissions MUST normalize to exactly one Canonical Permission or a structured Array (e.g., `anyOf`/`allOf`) of Canonical Permissions.
+## 3. Variant Permissions
+Variant permissions represent behavioral pathways, explicit toggles, or UI forms (e.g., `sessions.revoke.bulk`, `sessions.revoke.id`).
 
-## 3. Variant Rules
-Variant permissions define specific forms or UI-driven toggles of a single business capability.
+- Variants ARE valid assignable permissions.
+- Variants MAY exist in the database.
+- Variants MAY be used directly in UI rendering logic (`hasPermission`).
 
-- ✅ **UI Logic Integration:** Variant permissions MUST map to a canonical permission OR be explicitly used in UI logic (`hasPermission` checks).
-- ✅ **Normalization:** If a variant triggers an API route, it MUST resolve to its base Canonical Permission via the mapper (e.g., `sessions.revoke.id` → `sessions.revoke`).
+## 4. Transport Permissions
+Transport permissions indicate the specific route context (`.api`, `.ui`, `.web`).
 
-## 4. Architectural Checks (CI Guidelines)
-- All protected routes MUST be analyzed to extract required permission keys.
-- Extracted permission keys MUST either:
-  1. Exist in the database seed as a Canonical Permission.
-  2. Exist in `PermissionMapperV2` and resolve to a valid Canonical Permission.
-- Any unmapped `.api`, `.ui`, or `.web` permission is considered an explicit architectural violation.
-- Any unapproved duplicate permissions found in the database seed are considered an explicit architectural violation.
+- Transport permissions MAY exist.
+- They MUST NOT be treated as inherently invalid or crash the system.
+- While they SHOULD NOT typically be stored in the database, doing so is permitted if explicitly intended by the architecture (e.g., `auth.logout.web`).
+
+## 5. Resolution & Middleware Responsibility
+The `AuthorizationGuardMiddleware` is the EXCLUSIVE layer responsible for resolving route-based permissions.
+
+- It MUST attempt to resolve permissions using `PermissionMapperV2` before authorization.
+- If resolution fails, the request MUST be rejected immediately.
+
+## 6. Authorization Boundary
+The `AuthorizationService` enforces final access decisions.
+
+- `AuthorizationService` MUST ONLY receive resolved, valid permissions.
+- It MUST NOT receive unresolved transport permissions.
+- It MUST NOT perform fallback resolution logic.
+
+## 7. Failure Semantics (CRITICAL)
+Under NO circumstances should permission resolution failures cause runtime crashes, infrastructure exceptions, or HTTP 500 errors.
+
+- ALL resolution and validation failures MUST degrade safely to an HTTP 403 (NOT_AUTHORIZED) response.
