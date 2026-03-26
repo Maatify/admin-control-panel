@@ -28,8 +28,8 @@ readonly class AuthorizationService
      */
     private function assertCanonical(string $permission): void
     {
-        if (preg_match('/^.+\.(bulk|id|ui|api)$/', $permission)) {
-            throw new \InvalidArgumentException("AuthorizationService requires canonical permission, rejected variant/transport: $permission");
+        if (preg_match('/^.+\.(api|ui|web)$/', $permission)) {
+            throw new PermissionDeniedException("AuthorizationService requires resolved permission, rejected transport: $permission");
         }
     }
 
