@@ -4,13 +4,14 @@
 This document enforces strict, non-negotiable execution rules for the HTTP layer, standardizing request and response behavior, transaction boundaries, and error orchestration.
 
 ## 2. Scope (New code only)
-These rules apply to all new API and UI controllers. Legacy implementations MUST be refactored to comply with these rules when modified.
+These rules apply to all new API and UI controllers. Legacy implementations are tolerated but MUST NOT be copied into new features. When modified, they SHOULD be refactored to comply with these rules.
 
 ## 3. Response Handling Rules
 - Controllers MUST inject and use `Maatify\AdminKernel\Http\Response\JsonResponseFactory` for all JSON responses.
 - Controllers MUST NOT use `json_encode()` manually.
 - Controllers MUST NOT manually construct response payloads via array mutation before serialization.
 - Controllers MUST NOT write directly to the response body stream (`$response->getBody()->write()`).
+- `JsonResponseFactory` is the single source of truth for all HTTP JSON responses.
 
 ## 4. Action Response Rules
 - Simple, state-changing actions returning no meaningful data MUST call `$this->json->noContent($response)` to return an HTTP 204.
@@ -22,6 +23,7 @@ These rules apply to all new API and UI controllers. Legacy implementations MUST
 - Controllers MUST NOT manually construct error responses or attempt to serialize error objects.
 - Controllers MUST NOT catch exceptions merely to convert them into a custom JSON response.
 - The global `ErrorMiddleware` is solely responsible for catching exceptions and mapping them into the unified JSON error envelope using `JsonResponseFactory`.
+- Controllers MUST NOT swallow exceptions; all caught exceptions MUST be re-thrown.
 
 ## 6. Transaction Rules
 - Database transactions MUST be controlled explicitly at the controller level when orchestrating multiple state-changing operations across distinct repositories.
