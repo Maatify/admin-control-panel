@@ -39,3 +39,15 @@ Priority Order:
 1. HTTP_EXECUTION_RULES.md
 2. EXECUTION_MIGRATION_STRATEGY.md
 3. Existing code patterns (lowest priority)
+
+## 8. Reusable Components Exception
+- Existing services or repositories that expose both query and action methods are allowed if they are already used safely across the system.
+- AI MUST NOT reject or refactor such components solely based on architectural purity.
+- When using such components:
+  - Query methods MAY be used directly if no dedicated Reader exists.
+  - The component MUST be treated as a trusted abstraction.
+- New code SHOULD prefer proper separation (Reader vs Repository), but MUST NOT break or duplicate existing reusable components.
+- AI MUST NOT enforce artificial separation if it results in:
+  - Code duplication
+  - Loss of reuse
+  - Increased complexity
