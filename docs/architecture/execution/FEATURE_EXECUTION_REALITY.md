@@ -95,3 +95,45 @@ The following items are specific implementations that must not be abstracted int
 -   Extracting the "Data Scope Check" (e.g., `sessions.view_all`) into a generalized middleware or abstract repository logic. The Sessions feature handles this explicitly within its specific API controller domain logic.
 -   Adding `DiagnosticsTelemetryService` event recording indiscriminately to all `ListQuery` controllers.
 -   Standardizing UI Capability mapping string names. They are highly feature-specific (e.g., `can_revoke_id`, `can_view_admin`).
+
+## 13. Action Execution Flow (Observed)
+
+### 1. Shared Steps
+- **Route Registration & Permission Mapping:** API routes use the `.api` suffix (e.g., `languages.create.api`, `admin.create.api`), mapped to canonical permissions (e.g., `languages.create`, `admin.create`) in `PermissionMapperV2.php` and enforced by `AuthorizationGuardMiddleware`.
+- **Request Validation:** The controller extracts the raw array payload using `getParsedBody()` and validates it via `ValidationGuard` using a specific schema object (e.g., `LanguageCreateSchema`, `AdminCreateSchema`).
+- **Manual Data Extraction:** Controllers manually map scalar values (e.g., `is_string`, `is_bool`, `array_key_exists`, `trim`) directly from the validated array.
+
+### 2. Simple Actions (Observed)
+- The controller Observed:
+Controller calls LanguageManagementService with scalar and enum arguments (e.g., `LanguageManagementService`).
+- The controller passes individual scalar values and enumerated types (e.g., `TextDirectionEnum`) as separate arguments to the service method.
+- Returns an empty JSON response with an HTTP 200 status.
+
+### 3. Complex Actions (Observed)
+- The controller Observed:
+Controller directly calls multiple repositories and services in sequence, directly interacting with multiple Repositories (`AdminRepository`, `AdminEmailRepository`, `AdminPasswordRepositoryInterface`) and Services (`AdminIdentifierCryptoServiceInterface`, `PasswordService`).
+- The controller Observed:
+Controller calls:
+- AdminRepository->create()
+- AdminEmailRepository->addEmail()
+- AdminPasswordRepositoryInterface->savePassword()
+in sequence.
+- Returns a populated Response DTO (`AdminCreateResponseDTO`) serialized to JSON.
+
+### 4. DTO Usage (Observed)
+- Comprehensive Request DTOs representing the entire validated payload are not used in either action. Data is handled as a structured array or scalar variables.
+- Partial Request DTOs are used for specific, complex nested data structures (e.g., `CreateAdminEmailRequestDTO` for email validation).
+- Observed:
+- Admin CREATE returns AdminCreateResponseDTO
+- Languages CREATE returns HTTP 200 with no body.
+
+### 5. Transaction Handling (Observed)
+- Database transactions are explicitly managed at the Observed:
+Transaction is started and committed using PDO inside the controller when coordinating multiple repository insertions.
+- The sequence starts with `$this->pdo->beginTransaction()`, executes multiple repository writes, concludes with `$this->pdo->commit()`, and utilizes a `catch (\Throwable $e)` block to trigger `$this->pdo->rollBack()`.
+- No global or middleware-based transaction management was observed for these actions.
+
+### 6. Notes / Unsafe To Generalize
+- It is unsafe to assume the existence of a dedicated "Creation Service" for every entity; complex creations may be orchestrated directly inside the controller.
+- It is unsafe to assume that every POST payload maps to a single Request DTO; manual array parsing is prevalent.
+- It is unsafe to assume that transactions are handled implicitly or within repository layers; they are explicitly declared in the controller when required.
