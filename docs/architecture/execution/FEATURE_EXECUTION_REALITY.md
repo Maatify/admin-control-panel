@@ -104,32 +104,32 @@ The following items are specific implementations that must not be abstracted int
 - **Manual Data Extraction:** Controllers manually map scalar values (e.g., `is_string`, `is_bool`, `array_key_exists`, `trim`) directly from the validated array.
 
 ### 2. Simple Actions (Observed)
-- The controller Observed:
-Controller calls LanguageManagementService with scalar and enum arguments (e.g., `LanguageManagementService`).
+- Observed:
+  Controller calls LanguageManagementService with scalar and enum arguments (e.g., `LanguageManagementService`).
 - The controller passes individual scalar values and enumerated types (e.g., `TextDirectionEnum`) as separate arguments to the service method.
 - Returns an empty JSON response with an HTTP 200 status.
 
 ### 3. Complex Actions (Observed)
-- The controller Observed:
-Controller directly calls multiple repositories and services in sequence, directly interacting with multiple Repositories (`AdminRepository`, `AdminEmailRepository`, `AdminPasswordRepositoryInterface`) and Services (`AdminIdentifierCryptoServiceInterface`, `PasswordService`).
-- The controller Observed:
-Controller calls:
-- AdminRepository->create()
-- AdminEmailRepository->addEmail()
-- AdminPasswordRepositoryInterface->savePassword()
-in sequence.
+- Observed:
+  Controller directly calls multiple repositories and services in sequence, directly interacting with multiple Repositories (`AdminRepository`, `AdminEmailRepository`, `AdminPasswordRepositoryInterface`) and Services (`AdminIdentifierCryptoServiceInterface`, `PasswordService`).
+- Observed:
+  Controller calls:
+  - AdminRepository->create()
+  - AdminEmailRepository->addEmail()
+  - AdminPasswordRepositoryInterface->savePassword()
+  in sequence.
 - Returns a populated Response DTO (`AdminCreateResponseDTO`) serialized to JSON.
 
 ### 4. DTO Usage (Observed)
 - Comprehensive Request DTOs representing the entire validated payload are not used in either action. Data is handled as a structured array or scalar variables.
 - Partial Request DTOs are used for specific, complex nested data structures (e.g., `CreateAdminEmailRequestDTO` for email validation).
 - Observed:
-- Admin CREATE returns AdminCreateResponseDTO
-- Languages CREATE returns HTTP 200 with no body.
+  - Admin CREATE returns AdminCreateResponseDTO
+  - Languages CREATE returns HTTP 200 with no body.
 
 ### 5. Transaction Handling (Observed)
-- Database transactions are explicitly managed at the Observed:
-Transaction is started and committed using PDO inside the controller when coordinating multiple repository insertions.
+- Observed:
+  Transaction is started and committed using PDO inside the controller when coordinating multiple repository insertions.
 - The sequence starts with `$this->pdo->beginTransaction()`, executes multiple repository writes, concludes with `$this->pdo->commit()`, and utilizes a `catch (\Throwable $e)` block to trigger `$this->pdo->rollBack()`.
 - No global or middleware-based transaction management was observed for these actions.
 
