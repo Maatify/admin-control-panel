@@ -255,3 +255,20 @@ Observed UI route definitions require specific URL contexts to navigate between 
 ### 5. Unsafe To Generalize
 - It is unsafe to assume the entire application follows a single page application (SPA) paradigm; deep navigation often forces full HTTP GET requests for distinct Twig controllers.
 - It is unsafe to assume URL paths are purely cosmetic; they strictly define the required context (`{scope_id}`, `{domain_id}`) passed to the underlying UI Controllers.
+
+## 17. Validation Reality
+- Validation is enforced via `ValidationGuard`
+- Validation MUST throw exceptions
+- Controllers MUST NOT handle validation results manually
+
+## 18. Query System Reality
+- List endpoints MUST use:
+  - `ListQueryDTO`
+  - `Capabilities::define()`
+  - `ListFilterResolver->resolve()`
+- If underlying service does not support this pattern:
+  - Controllers MUST adapt WITHOUT bypassing validation and filtering
+
+## 19. Permission Mapping Reality
+- Every new route defined via `->setName(...)` MUST be registered in `PermissionMapperV2.php`
+- Missing mappings will fail CI (permission-lint)

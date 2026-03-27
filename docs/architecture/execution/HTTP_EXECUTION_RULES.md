@@ -14,6 +14,10 @@ These rules apply to all new API and UI controllers. Legacy implementations are 
 - `JsonResponseFactory` is the single source of truth for all HTTP JSON responses.
 
 ## 4. Action Response Rules
+
+NOTE: This section represents LEGACY behavior.
+For all NEW implementations, refer to Section 9 (Response Behavior Rules), which overrides this section.
+
 - Simple, state-changing actions returning no meaningful data MUST call `$this->json->noContent($response)` to return an HTTP 204.
 - Complex actions returning created entities or credentials MUST encapsulate the data in a dedicated Response DTO and call `$this->json->data($response, $dto)` to return an HTTP 200.
 - Actions MUST NOT return arbitrary unstructured JSON arrays or scalar variables.
@@ -36,3 +40,72 @@ These rules apply to all new API and UI controllers. Legacy implementations are 
 - Controllers MUST NOT contain intrinsic business logic, complex data transformations, or domain rule evaluations.
 - Controllers MUST NOT contain direct SQL queries or invoke PDO directly outside of transaction management.
 - Controllers MUST delegate validation, contextual lookups, capability resolution, and data persistence to injected services, repositories, or guards.
+
+## 8. Validation Execution Boundary
+- Controllers MUST use `ValidationGuard->check(new Schema(), $payload)`
+- `ValidationManagerInterface` is DEPRECATED and marked as LEGACY.
+- Controllers MUST NOT use `ValidatorInterface`, `ValidationManagerInterface` or `SystemErrorMapperInterface`
+- Controllers MUST NOT manually handle validation errors
+- `ValidationGuard` is MANDATORY for all new validation logic.
+
+## 9. Response Behavior Rules (OVERRIDES SECTION 4)
+- This section EXPLICITLY OVERRIDES Section 4 for all new code.
+- Query endpoints MUST return `$this->json->data(...)`
+- Command endpoints MUST return `$this->json->success(...)`
+- `noContent()` is DEPRECATED and MUST NOT be used for standard command endpoints.
+- `noContent()` is only allowed for legacy backward compatibility.
+
+## 10. Exception Handling Rules
+- Controllers MUST use domain-specific exceptions
+- `RuntimeException` MUST NOT be used
+- Exceptions MUST include context-specific messages
+- Empty exception constructors MUST NOT be used unless explicitly allowed
+
+## 11. Static Analysis Constraints (PHPStan)
+- All array parameters MUST define strict types (e.g., `array<string, string>`)
+- All framework generics MUST be annotated
+- Code MUST pass PHPStan `level=max`
+
+## 12. Rule Override Policy
+- Newer rules ALWAYS override older conflicting rules in this document.
+- Legacy rules (e.g., Section 4) remain for backward compatibility only.
+- AI executors MUST always follow the latest defined rule definitions.
+
+## 13. RUNTIME API CONTRACT RULES
+
+### 13.1 Request Contract Strictness
+- The backend MUST enforce strict payload shapes.
+- The backend MUST reject any undocumented or forbidden fields (e.g., `limit`, `filters`, `sort`).
+- The backend MUST treat `null` as an explicit value, not as an omitted field, and MUST reject `null` if the field does not explicitly support it.
+
+### 13.2 Route-Scoped Context (Backend)
+- Resource identifiers MUST come exclusively from the route context when logically required by the endpoint hierarchy (e.g., `/{type_id}/versions/{document_id}`).
+- The backend MUST reject requests where route-scoped identifiers are duplicated or contradicted within the payload.
+- Cross-type or cross-scope access attempts MUST return a `404 Not Found` error.
+
+### 13.3 Response Contract (REAL API)
+- Query endpoints MUST return a strict JSON envelope containing `data` and `pagination` objects.
+- Command (Mutation/Action) endpoints MUST return a `200 OK` success response with an empty body, unless explicitly designed to return a data object.
+- The backend MUST NOT assume the client expects or parses JSON from standard command responses.
+
+### 13.4 Server-Controlled Behavior
+- Sorting authority is strictly server-controlled. The backend MUST NOT allow clients to pass arbitrary `sort` or `sort_order` parameters unless explicitly supported by a legacy endpoint.
+- Filtering authority rests with the backend schema. Clients MUST NOT bypass column-specific filter definitions.
+- The backend MUST enforce these controls and reject client attempts to override server-defined list behaviors.
+
+### 13.5 Scope Enforcement (Backend)
+- The backend MUST enforce strict boundary scopes for all nested resources (e.g., a version MUST belong to the specified document type).
+- Invalid scope or cross-scope access MUST return a `404 Not Found` exception, not a partial success or `403`.
+
+### 13.6 Lifecycle Rules (Domain Behavior)
+- The backend MUST treat state-changing lifecycle endpoints (e.g., activate, deactivate, publish, archive) as idempotent.
+- Applying a state change to an entity already in that state MUST result in a successful `200 OK` (no-op) response without throwing an error.
+
+### 13.7 Capability Awareness (Backend)
+- The backend MUST enforce all authorization and permission checks server-side.
+- The backend MUST NOT trust UI capability flags as a security layer.
+- Endpoints MUST independently verify the caller's capabilities regardless of UI state.
+
+### 13.8 No-Assumption Principle (Backend)
+- The backend MUST reject implicit fields, undefined behavior, or silent defaults.
+- If a behavior, payload field, or state transition is not explicitly defined by the API contract, the backend MUST treat it as unsupported and reject the request.
