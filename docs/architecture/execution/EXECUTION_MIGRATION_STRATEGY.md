@@ -12,6 +12,7 @@ This document defines the strict behavioral strategy for handling the structural
 - New features MUST strictly follow all rules defined in `HTTP_EXECUTION_RULES.md`.
 - Legacy code is tolerated in its current state and MUST NOT block isolated new feature development.
 - Modified legacy code SHOULD be upgraded to comply with `HTTP_EXECUTION_RULES.md` when the scope of modification is significant enough to warrant refactoring.
+- Upgrading MUST NOT introduce breaking changes to existing behavior.
 
 ## 4. Response Handling Strategy
 - New features MUST inject and use `JsonResponseFactory` for all JSON responses.
@@ -32,4 +33,9 @@ This document defines the strict behavioral strategy for handling the structural
 When generating code, AI executors MUST:
 - Detect the context of the current task (creating new components vs. modifying legacy components).
 - Choose the correct execution pattern strictly aligned with `HTTP_EXECUTION_RULES.md` for all new files.
-- Avoid mimicking surrounding legacy patterns (such as manual `json_encode` or repository-level transactions) when extending the system.
+- AI MUST NOT mimic surrounding legacy patterns (such as manual `json_encode` or repository-level transactions) when generating new logic.
+
+Priority Order:
+1. HTTP_EXECUTION_RULES.md
+2. EXECUTION_MIGRATION_STRATEGY.md
+3. Existing code patterns (lowest priority)
