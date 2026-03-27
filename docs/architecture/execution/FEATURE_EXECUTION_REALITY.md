@@ -19,11 +19,12 @@ A request moves from the route matcher through permission validation to response
 ## 4. API Query Execution Flow
 The step-by-step pipeline for API list endpoints is observed uniformly:
 1.  **Validation:** Validation step using `SharedListQuerySchema` before DTO construction.
-2.  **DTO Conversion:** `ListQueryDTO::fromArray()` formats the input.
-3.  **Capabilities Definition:** A specific `ListCapabilities` configuration is loaded (e.g., `AdminListCapabilities::define()`, `PermissionsCapabilities::define()`).
-4.  **Filter Resolution:** `ListFilterResolver->resolve()` accepts the `ListQueryDTO` and `ListCapabilities` and returns `ResolvedListFilters`.
-5.  **Reader Invocation:** The controller invokes a specific interface (e.g., `SessionListReaderInterface->getSessions()`) passing the `ListQueryDTO` and `ResolvedListFilters`.
-6.  **Response Generation:** The reader returns a concrete response DTO (e.g., `SessionListResponseDTO`) that the controller serializes via `json_encode`.
+2.  **Context Resolution & Validation (Observed):** For nested endpoints, route parameters (e.g., `scope_id`, `domain_id`) are used to fetch parent entities via repository lookups (`scopeDetailsReader->getScopeDetailsById()`, `domainDetailsReader->getDomainDetailsById()`), followed by context validation via domain exceptions.
+3.  **DTO Conversion:** `ListQueryDTO::fromArray()` formats the input.
+4.  **Capabilities Definition:** A specific `ListCapabilities` configuration is loaded (e.g., `AdminListCapabilities::define()`, `PermissionsCapabilities::define()`).
+5.  **Filter Resolution:** `ListFilterResolver->resolve()` accepts the `ListQueryDTO` and `ListCapabilities` and returns `ResolvedListFilters`.
+6.  **Reader Invocation:** The controller invokes a specific interface (e.g., `SessionListReaderInterface->getSessions()`) passing the `ListQueryDTO` and `ResolvedListFilters` (and any resolved context identifiers).
+7.  **Response Generation:** The reader returns a concrete response DTO (e.g., `SessionListResponseDTO`) that the controller serializes via `json_encode` or `JsonResponseFactory`.
 
 ## 5. Route & Permission Mapping
 API route names use the `.api` suffix, and UI route names use the `.ui` suffix.
@@ -44,7 +45,11 @@ These suffixes act as transport keys mapped directly to a single canonical permi
     -   `app/Modules/AdminKernel/Http/Routes/Api/ApiProtectedRoutes.php`
 
 ## 6. Validation & DTO Flow
-Validation step using `SharedListQuerySchema` before DTO construction. Validated request payloads are passed to the static constructor `ListQueryDTO::fromArray()`.
+The validation sequence involves two distinct observed layers before DTO construction:
+-   **Payload Validation:** `ValidationGuard` verifies the raw array shape using schemas like `SharedListQuerySchema`.
+-   **Context Validation:** For nested routes, domain-level checks enforce relationships using specific route parameters (e.g., verifying a `domain_id` belongs to a `scope_id`).
+
+Validated request payloads are passed to the static constructor `ListQueryDTO::fromArray()`.
 -   **Supporting File Paths:**
     -   `Modules/Validation/Schemas/SharedListQuerySchema.php`
     -   `app/Modules/AdminKernel/Domain/List/ListQueryDTO.php`
@@ -73,30 +78,39 @@ A domain-specific reader interface (implemented by a PDO reader) receives the `L
     -   `app/Modules/AdminKernel/Domain/DTO/AdminList/AdminListResponseDTO.php`
     -   `app/Modules/AdminKernel/Domain/DTO/Permission/PermissionsQueryResponseDTO.php`
 
-## 9. UI Execution Flow (Observed)
+## 9. Response Handling (Observed)
+Controllers emit standardized JSON responses. While older implementations manually call `json_encode`, complex and newer controllers utilize `JsonResponseFactory` to standardize output formats and manage HTTP headers internally.
+-   **`data()` method:** Serializes the `ResponseDTO` into JSON, attaching necessary headers (e.g., `Cache-Control`, `Content-Type`) and returning HTTP 200.
+-   **`noContent()` method:** Returns an empty body with an HTTP 204 status, generally observed in Action (CREATE/UPDATE) endpoints.
+-   **Supporting File Paths:**
+    -   `app/Modules/AdminKernel/Http/Response/JsonResponseFactory.php`
+
+## 10. UI Execution Flow (Observed)
 UI Controllers explicitly query the `UiPermissionService` with specific string keys representing discrete actions (e.g. `sessions.revoke.id`, `admins.profile.view`). The controllers construct an array of capabilities, which is passed to the Twig view data to determine frontend rendering states.
 -   **Supporting File Paths:**
     -   `app/Modules/AdminKernel/Application/Security/UiPermissionService.php`
     -   `app/Modules/AdminKernel/Http/Controllers/Ui/SessionListController.php`
     -   `app/Modules/AdminKernel/Http/Controllers/Ui/Admin/UiAdminsController.php`
 
-## 10. Feature-Specific Variations
+## 11. Feature-Specific Variations
 -   **Inline Hard Data Scope Check:** `AuthorizationService->hasPermission()` is called inline within the API controller to determine if the query should be restricted by `$adminIdFilter` before calling the reader repository.
     -   **Observed in:** Sessions LIST (`app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionQueryController.php`)
 -   **Best-effort Telemetry:** The API controller attempts to write an audit trail mapping the query shape, result count, and request context using `DiagnosticsTelemetryService` wrapped in a swallowed `try/catch`.
     -   **Observed in:** Sessions LIST (`app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionQueryController.php`)
 
-## 11. Canonical vs Observed Reality
+## 12. Canonical vs Observed Reality
 -   **Observed behavior aligns with:** `docs/architecture/security/PERMISSION_STRATEGY.md`. `PermissionMapperV2.php` Observed mapping between route names and permissions via PermissionMapperV2.php separating routing transport definitions from canonical business capabilities. Observed: used in UI Controllers for `UiPermissionService`. Observed: used in API Controllers for `AuthorizationService`.
 -   **No direct canonical document reference identified:** The exact execution pipeline for querying lists (Validation step using SharedListQuerySchema -> `ListQueryDTO` -> `ListCapabilities` -> `ListFilterResolver` -> `ResolvedListFilters` -> `Reader`) is a consistent structural querying pattern across API list routes.
 
-## 12. Unsafe To Generalize
+## 13. Unsafe To Generalize
 The following items are specific implementations that must not be abstracted into global layers based on observed code:
 -   Extracting the "Data Scope Check" (e.g., `sessions.view_all`) into a generalized middleware or abstract repository logic. The Sessions feature handles this explicitly within its specific API controller domain logic.
 -   Adding `DiagnosticsTelemetryService` event recording indiscriminately to all `ListQuery` controllers.
 -   Standardizing UI Capability mapping string names. They are highly feature-specific (e.g., `can_revoke_id`, `can_view_admin`).
+-   Assuming a fixed HTTP 200 response; simple actions natively return HTTP 204 No Content via `JsonResponseFactory`.
+-   Assuming all controllers manually format JSON via `json_encode`, as some rely directly on the ResponseFactory abstraction.
 
-## 13. Action Execution Flow (Observed)
+## 14. Action Execution Flow (Observed)
 
 ### 1. Shared Steps
 - **Route Registration & Permission Mapping:** API routes use the `.api` suffix (e.g., `languages.create.api`, `admin.create.api`), mapped to canonical permissions (e.g., `languages.create`, `admin.create`) in `PermissionMapperV2.php` and enforced by `AuthorizationGuardMiddleware`.
@@ -138,7 +152,7 @@ The following items are specific implementations that must not be abstracted int
 - It is unsafe to assume that every POST payload maps to a single Request DTO; manual array parsing is prevalent.
 - It is unsafe to assume that transactions are handled implicitly or within repository layers; they are explicitly declared in the controller when required.
 
-## 14. UI Query Execution Flow (Observed)
+## 15. UI Query Execution Flow (Observed)
 
 ### 1. Route & Controller
 - A UI request matches a route ending with the `.ui` suffix (e.g., `/sessions` matches `sessions.list.ui`, `/admins` matches `admins.list.ui`).
@@ -181,7 +195,7 @@ The following items are specific implementations that must not be abstracted int
 - **Supporting File Paths:**
   - `public/assets/maatify/admin-kernel/js/pages/sessions.js`
 
-## 15. UI Interaction Depth (Observed)
+## 16. UI Interaction Depth (Observed)
 
 ### 1. Hierarchical Feature Structure
 Observed API route definitions reveal varying levels of structural nesting.
@@ -229,7 +243,7 @@ The UI layer is heavily dependent on specific API hierarchies.
 - It is unsafe to assume frontend requests map one-to-one with database tables without considering the mandatory URL path parameters (like `{scope_id}`).
 - It is unsafe to generalize the authorization enforcement of flat routes (e.g. `sessions.view_all` inline check) to nested routes, where capability scope might be inherited or strictly tied to parent resource ownership (UNVERIFIED).
 
-## 16. UI Navigation Model (Observed)
+## 17. UI Navigation Model (Observed)
 
 ### 1. Flat UI (Client-driven)
 - UI routes like `/admins` (`admins.list.ui`) or `/sessions` load a primary shell via Twig.
