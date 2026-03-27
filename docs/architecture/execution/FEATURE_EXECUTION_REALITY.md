@@ -137,3 +137,121 @@ The following items are specific implementations that must not be abstracted int
 - It is unsafe to assume the existence of a dedicated "Creation Service" for every entity; complex creations may be orchestrated directly inside the controller.
 - It is unsafe to assume that every POST payload maps to a single Request DTO; manual array parsing is prevalent.
 - It is unsafe to assume that transactions are handled implicitly or within repository layers; they are explicitly declared in the controller when required.
+
+## 14. UI Query Execution Flow (Observed)
+
+### 1. Route & Controller
+- A UI request matches a route ending with the `.ui` suffix (e.g., `/sessions` matches `sessions.list.ui`, `/admins` matches `admins.list.ui`).
+- `AuthorizationGuardMiddleware` resolves the route name to a canonical permission using `PermissionMapperV2.php` and executes an authorization check.
+- The associated UI controller (e.g., `SessionListController`, `UiAdminsController`) is invoked.
+- **Supporting File Paths:**
+  - `app/Modules/AdminKernel/Http/Routes/Ui/Features/SessionsUiRoutes.php`
+  - `app/Modules/AdminKernel/Http/Routes/Ui/Features/AdminsUiRoutes.php`
+  - `app/Modules/AdminKernel/Http/Controllers/Ui/SessionListController.php`
+  - `app/Modules/AdminKernel/Http/Controllers/Ui/Admin/UiAdminsController.php`
+
+### 2. Permission Resolution (UI Layer)
+- The UI controller calls `UiPermissionService->hasPermission()` explicitly for each UI capability required on the page (e.g., `sessions.revoke.id`, `sessions.revoke.bulk`, `admin.create.api`, `admins.profile.view`).
+- These capabilities are grouped into a `$capabilities` array.
+- **Supporting File Paths:**
+  - `app/Modules/AdminKernel/Application/Security/UiPermissionService.php`
+
+### 3. Twig Rendering
+- The UI controller calls the Twig renderer, passing the `$capabilities` array (and any other necessary data) to the template.
+- The Twig template outputs the UI shell and injects the capabilities into the frontend environment via a global JavaScript object (e.g., `window.sessionsCapabilities`).
+- **Supporting File Paths:**
+  - `app/Modules/AdminKernel/Templates/pages/sessions.twig`
+
+### 4. Frontend Trigger (JS)
+- A specific page-level JavaScript file (e.g., `sessions.js`, `admins-list.js`) initializes on page load.
+- The JS file attaches event listeners for user input (search, filters, pagination).
+- It triggers an initial data load by calling an underlying table rendering mechanism (UNVERIFIED: source of `createTable` function).
+- **Supporting File Paths:**
+  - `public/assets/maatify/admin-kernel/js/pages/sessions.js`
+  - `public/assets/maatify/admin-kernel/js/pages/admins-list.js`
+
+### 5. API Interaction
+- The JavaScript function issues an asynchronous POST request to the corresponding API query endpoint (e.g., `/api/sessions/query`, `/api/admins/query`).
+- This request triggers the standard "API Query Execution Flow" defined in Section 4.
+
+### 6. Data Rendering Cycle
+- The API responds with JSON containing a data array (`*ListItemDTO`s) and pagination metadata.
+- The JS file receives this JSON and executes custom rendering functions (e.g., `statusRenderer`, `sessionIdRenderer`, `actionsRenderer`).
+- During rendering, the JS explicitly checks the injected `window.*Capabilities` object to determine whether to show or hide specific action buttons (e.g., Revoke, Edit, Delete).
+- **Supporting File Paths:**
+  - `public/assets/maatify/admin-kernel/js/pages/sessions.js`
+
+## 15. UI Interaction Depth (Observed)
+
+### 1. Hierarchical Feature Structure
+Observed API route definitions reveal varying levels of structural nesting.
+
+**Flat Routing (Level 1):**
+- `/sessions/query` (`sessions.list.api`)
+- `/admins/query` (`admins.list.api`)
+
+**Deeply Nested Hierarchical Routing (Level 3+):**
+- `/i18n/scopes/{scope_id:[0-9]+}/domains/query` (`i18n.scopes.domains.query.api`)
+- `/i18n/scopes/{scope_id:[0-9]+}/domains/{domain_id:[0-9]+}/keys/query` (`i18n.scopes.domains.keys.query.api`)
+- `/i18n/scopes/{scope_id:[0-9]+}/domains/{domain_id:[0-9]+}/translations/query` (`i18n.scopes.domains.translations.query.api`)
+- `/i18n/scopes/{scope_id:[0-9]+}/coverage/languages/{language_id:[0-9]+}` (`i18n.scopes.coverage.domain.api`)
+
+### 2. Interaction Levels
+The depth of UI interaction directly corresponds to the URL structure necessary to fulfill the request.
+
+- **Level 1 (Single Context):** UI views like Admins or Sessions load a flat list. The UI controller (`UiAdminsController`) resolves capabilities once, and the frontend (`admins-list.js`) queries a flat API endpoint (`/admins/query`) requiring no parent identifiers.
+- **Level 2 (Parent-Child Context):** A UI view requiring a parent resource identifier to load children (e.g., `/i18n/scopes/{scope_id}/domains/query`). The UI must retain or fetch the `scope_id` context to query the domains.
+- **Level 3 (Grandparent-Parent-Child Context):** A UI view querying nested elements (e.g., `/i18n/scopes/{scope_id}/domains/{domain_id}/keys/query`). The frontend must maintain state across two parental layers (`scope_id` and `domain_id`) before fetching the target resource (`keys`).
+
+### 3. Request Chaining Flow
+In hierarchically nested features, data retrieval requires sequential dependencies.
+
+**Observed Chaining Pattern for `i18n.scopes.domains.keys.query.api`:**
+1. UI requests Scope context (`scope_id`).
+2. UI requests Domain context within that Scope (`domain_id`).
+3. UI requests Keys belonging to both the `scope_id` and `domain_id`.
+
+If a user navigates to a deep interaction view, the frontend JavaScript must orchestrate these parameters, constructing API paths that satisfy the strict routing requirements defined in `I18nApiRoutes.php`.
+
+### 4. UI → API Dependency Model
+The UI layer is heavily dependent on specific API hierarchies.
+
+- **Flat Dependencies:** `sessions.js` depends solely on `/api/sessions/query`. Capabilities like `can_revoke_id` dictate button visibility, triggering parallel flat endpoints (`/api/sessions/{id}`).
+- **Nested Dependencies:** A frontend implementing I18n translations depends on a specific parameter lineage (`scope_id` -> `domain_id` -> `keys`). The UI logic must be structured to supply these IDs correctly to match the defined route paths.
+
+### 5. Performance Implications (Observed)
+- **Flat Endpoints:** Require only single database queries orchestrated by readers (e.g., `PdoSessionListReader`), filtering based on independent payload DTOs.
+- **Hierarchical Endpoints:** Enforce route-level validation of contextual relationships (e.g., matching a `domain_id` to a specific `scope_id`). This implies that the respective API controllers or underlying readers must validate these multi-tier relationships during query execution (UNVERIFIED: precise reader implementations for I18n queries).
+- Fetching deep data may require sequential API calls if the frontend lacks the parent IDs upfront, contrasting with flat endpoints where single, immediate payload submissions are sufficient.
+
+### 6. Unsafe To Generalize
+- It is unsafe to assume all UI views interact with flat API routes. I18n routes demonstrate multi-tier nesting requiring complex state management.
+- It is unsafe to assume frontend requests map one-to-one with database tables without considering the mandatory URL path parameters (like `{scope_id}`).
+- It is unsafe to generalize the authorization enforcement of flat routes (e.g. `sessions.view_all` inline check) to nested routes, where capability scope might be inherited or strictly tied to parent resource ownership (UNVERIFIED).
+
+## 16. UI Navigation Model (Observed)
+
+### 1. Flat UI (Client-driven)
+- UI routes like `/admins` (`admins.list.ui`) or `/sessions` load a primary shell via Twig.
+- Navigation (pagination, filtering, sorting) within these views is entirely client-driven, managed by frontend JavaScript (`admins-list.js`) fetching from flat API endpoints (`/admins/query`).
+- State is managed within the browser session/URL parameters rather than relying on deep path hierarchy.
+
+### 2. Nested UI (Server-driven)
+- The I18n UI module demonstrates a server-driven navigation model where user drill-down requires rendering distinct Twig views matching a strict URL hierarchy.
+- For example, drilling into a Scope requires a full page load to `/i18n/scopes/{scope_id}` (`i18n.scopes.details.ui`).
+
+### 3. Route Hierarchy (Observed)
+Observed UI route definitions require specific URL contexts to navigate between logical layers.
+
+- **Level 1 (List):** `/i18n/scopes` (`i18n.scopes.list.ui`)
+- **Level 2 (Detail):** `/i18n/scopes/{scope_id:[0-9]+}` (`i18n.scopes.details.ui`)
+- **Level 3 (Nested Summary):** `/i18n/scopes/{scope_id:[0-9]+}/domains/{domain_id:[0-9]+}/keys` (`i18n.scopes.domains.keys.ui`)
+- **Level 3 (Nested Detail):** `/i18n/scopes/{scope_id:[0-9]+}/domains/{domain_id:[0-9]+}/translations` (`i18n.scopes.domains.translations.ui`)
+
+### 4. Hybrid Behavior
+- Even within deeply nested, server-driven UI views (e.g., loading the shell for `i18n.scopes.domains.translations.ui`), the final data rendering relies on client-driven API interactions targeting correspondingly nested API endpoints (e.g., `i18n.scopes.domains.translations.query.api`).
+- The Twig layer is responsible for injecting the necessary parent IDs (e.g., `scope_id`, `domain_id`) into the frontend context so JavaScript can construct the correct API query path.
+
+### 5. Unsafe To Generalize
+- It is unsafe to assume the entire application follows a single page application (SPA) paradigm; deep navigation often forces full HTTP GET requests for distinct Twig controllers.
+- It is unsafe to assume URL paths are purely cosmetic; they strictly define the required context (`{scope_id}`, `{domain_id}`) passed to the underlying UI Controllers.
