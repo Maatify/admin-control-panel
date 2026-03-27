@@ -49,8 +49,7 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         // This route is handled as a security step-up flow and bypasses permission mapping.
 
         // Admin Profile
-        'admins.profile.edit.view' => 'admins.profile.edit',
-        'admins.profile.edit'      => 'admins.profile.edit',
+                'admins.profile.edit'      => 'admins.profile.edit',
 
         // Admin Emails
         'admin.email.list.ui'  => 'admin.email.list',
