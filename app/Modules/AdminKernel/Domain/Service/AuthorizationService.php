@@ -102,24 +102,29 @@ readonly class AuthorizationService
         $directPermissions = $this->directPermissionRepository->getActivePermissions($adminId);
         $roleIds = $this->adminRoleRepository->getRoleIds($adminId);
 
+        // 1. Global Explicit Deny Check (Precedence)
         foreach ($candidates as $candidate) {
             if (!$this->rolePermissionRepository->permissionExists($candidate)) {
                 continue;
             }
 
-            $explicitDeny = false;
             foreach ($directPermissions as $direct) {
-                if ($direct['permission'] === $candidate) {
-                    if ((bool) $direct['is_allowed']) {
-                        return true;
-                    }
-                    $explicitDeny = true;
-                    break;
+                if ($direct['permission'] === $candidate && !(bool) $direct['is_allowed']) {
+                    return false; // Explicit deny on ANY valid candidate blocks immediately
                 }
             }
+        }
 
-            if ($explicitDeny) {
+        // 2. Allow Check
+        foreach ($candidates as $candidate) {
+            if (!$this->rolePermissionRepository->permissionExists($candidate)) {
                 continue;
+            }
+
+            foreach ($directPermissions as $direct) {
+                if ($direct['permission'] === $candidate && (bool) $direct['is_allowed']) {
+                    return true;
+                }
             }
 
             if ($this->rolePermissionRepository->hasPermission($roleIds, $candidate)) {
@@ -135,14 +140,14 @@ readonly class AuthorizationService
      */
     private function assertSinglePermission(int $adminId, string $permission): void
     {
+        if (!$this->rolePermissionRepository->permissionExists($permission)) {
+            throw new PermissionDeniedException("Permission '$permission' does not exist.");
+        }
+
         $candidates = $this->getCandidatePermissions($permission);
 
         if ($this->isGrantedAnyCandidate($adminId, $candidates)) {
             return;
-        }
-
-        if (!$this->rolePermissionRepository->permissionExists($permission)) {
-            throw new UnauthorizedException("Permission '$permission' does not exist.");
         }
 
         // Direct Permissions (Explicit Deny) for original permission
@@ -165,6 +170,10 @@ readonly class AuthorizationService
      */
     private function hasSinglePermission(int $adminId, string $permission): bool
     {
+        if (!$this->rolePermissionRepository->permissionExists($permission)) {
+            return false;
+        }
+
         $candidates = $this->getCandidatePermissions($permission);
         return $this->isGrantedAnyCandidate($adminId, $candidates);
     }
