@@ -87,8 +87,8 @@ UI Controllers explicitly query the `UiPermissionService` with specific string k
     -   **Observed in:** Sessions LIST (`app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionQueryController.php`)
 
 ## 11. Canonical vs Observed Reality
--   **Observed behavior aligns with:** `docs/architecture/security/PERMISSION_STRATEGY.md`. `PermissionMapperV2.php` functions as an explicit anti-corruption layer separating routing transport definitions from canonical business capabilities. Observed: used in UI Controllers for `UiPermissionService`. Observed: used in API Controllers for `AuthorizationService`.
--   **No direct canonical document reference identified:** The exact execution pipeline for querying lists (`ValidationGuard(SharedListQuerySchema)` -> `ListQueryDTO` -> `ListCapabilities` -> `ListFilterResolver` -> `ResolvedListFilters` -> `Reader`) is a consistent structural querying pattern across API list routes.
+-   **Observed behavior aligns with:** `docs/architecture/security/PERMISSION_STRATEGY.md`. `PermissionMapperV2.php` Observed mapping between route names and permissions via PermissionMapperV2.php separating routing transport definitions from canonical business capabilities. Observed: used in UI Controllers for `UiPermissionService`. Observed: used in API Controllers for `AuthorizationService`.
+-   **No direct canonical document reference identified:** The exact execution pipeline for querying lists (Validation step using SharedListQuerySchema -> `ListQueryDTO` -> `ListCapabilities` -> `ListFilterResolver` -> `ResolvedListFilters` -> `Reader`) is a consistent structural querying pattern across API list routes.
 
 ## 12. Unsafe To Generalize
 The following items are specific implementations that must not be abstracted into global layers based on observed code:
