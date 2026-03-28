@@ -55,6 +55,7 @@ Manage the languages supported by the platform.
 
 ### 🔤 Translations
 Precisely control the translated text displayed to users.
+* Main Guide → [docs/admin/translations.md](translations.md)
 * Overview → [docs/admin/translations/overview.md](translations/overview.md)
 * Scopes → [docs/admin/translations/scopes.md](translations/scopes.md)
 * Domains → [docs/admin/translations/domains.md](translations/domains.md)
