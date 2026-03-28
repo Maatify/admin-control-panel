@@ -22,7 +22,7 @@ When you open the Permissions tab, you will see a list of access rights availabl
   * **Group:** The category the permission belongs to.
   * **Description:** An explanation of what the permission allows the user to do.
   * **Assigned toggle:** A switch used to enable or disable the permission.
-* **Filters/search:** UNCLEAR.
+* **Filters/search:** Above the table, you will find a global search bar to quickly find permissions by typing any keyword (it automatically searches after a brief delay). Additionally, a filter form allows you to search specifically by Permission ID, Name, or Group. A Reset button clears all active filters.
 
 ## Enabling or Disabling a Permission
 
@@ -45,9 +45,7 @@ When a permission is toggled on or off, it directly changes the system's interfa
 
 ## Permission Groups
 
-Permissions in the list are grouped together. These groups help organize permissions by related features or sections of the platform, making it easier to find what you need.
-
-* **Grouping logic and layout:** UNCLEAR.
+Permissions in the list are organized logically by a "Group" classification (e.g., separating user management permissions from system settings permissions). This is reflected in the "Group" column of the data table, allowing you to easily sort, filter, and identify related access rights visually.
 
 ## Real Usage Examples
 

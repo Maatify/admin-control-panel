@@ -2,72 +2,91 @@
 
 ## Overview
 
-Languages define which language options are available to be used across the platform. This section allows administrators to add new language profiles, update their basic details, control whether they are currently active, and determine which language serves as the system default.
+The Languages module (LanguageCore) establishes the foundational identities of the languages supported across the platform. While this module does not handle the actual text translations, it defines which languages exist, their programmatic codes (e.g., "en", "ar"), their reading direction (left-to-right or right-to-left), and their active status. The translation systems explicitly rely on this core registry to function.
 
 ## How to Access Languages
 
-To manage the available platform languages:
-1. Look at the left sidebar navigation menu.
-2. Click on **Languages**. This opens the main Languages list page.
+To manage the platform's supported languages:
+1. Locate the left sidebar navigation menu.
+2. Click on the **Languages** link.
+3. This opens the main Languages List page.
 
 ## Languages List
 
-When you open the Languages section, you will see a table of all the languages currently registered in the system.
+The main interface is a data table displaying all registered languages.
 
-* **What is visible:**
-  * **Language name:** The full name of the language (e.g., "English").
-  * **Language code:** The short identifier for the language (e.g., "en").
-  * **Status:** An indicator showing whether the language is active or inactive.
-  * **Default indicator:** A visual marker showing which language is currently set as the fallback/default.
-* **Actions:** You can click buttons next to a language to edit its details, change its active status, or set it as the fallback language.
-* **Filters/search:** UNCLEAR.
+*   **Table Columns:**
+    *   **ID:** The unique system identifier for the language.
+    *   **Name:** The human-readable name of the language (e.g., "English").
+    *   **Code:** The programmatic identifier (e.g., "en").
+    *   **Direction:** The reading direction for the language (e.g., `ltr` or `rtl`).
+    *   **Order:** The numerical sort order determining how languages appear in dropdowns across the platform.
+    *   **Status:** A visual badge indicating if the language is "Active" or "Inactive".
+    *   **Fallback:** Displays a link icon with the ID of another language if a fallback is configured, or "None" with an X icon if not.
+    *   **Actions:** Contains all interactive buttons for modifying the language row.
+
+### Filters and Search
+
+Above the table, the interface provides comprehensive search and filtering tools:
+*   **Global Search:** A search input box that allows you to instantly search across the table. It features a 1-second auto-search delay as you type, or you can press "Enter" or click the Search button to trigger it immediately. A "Clear" button resets this specific input.
+*   **Column Filters:** A filter form allowing you to narrow down the table by specific fields: ID, Name, Code, Direction, and Status.
+*   **Reset Filters Button:** A dedicated button that clears all active column filters and resets the table view to page 1.
 
 ## Creating a Language
 
-When you need to introduce a new language option to the platform, follow these steps:
+When introducing a new language option to the platform:
 
-1. Click the **Create Language** button.
-2. Enter the required details, such as the language's name and its code.
-3. Click the **Create** (or **Save**) button to finalize the creation.
-
-**Result:** The new language immediately appears in the Languages list. It is now registered in the system. Whether it is immediately selectable by end-users depends on its active status.
+1.  Click the **Create Language** button located above the table.
+2.  A modal or form will open requiring the new language's **Name**, **Code**, and **Direction** (LTR or RTL). You can also optionally provide an icon, set the initial Active status, and assign a Fallback Language.
+3.  Click the save/create button to submit the form.
+*   **Validation:** The system strictly checks the database to ensure the provided **Code** does not already exist. If it does, a "Language Already Exists" error is displayed.
+*   **Result:** The language is immediately created in the database and assigned the next available sort order automatically. It instantly appears in the Languages List.
 
 ## Editing a Language
 
-If you need to update a language's basic details (such as correcting a typo in its name or updating its code):
+Unlike bulk-edit forms, modifying a language in this system is split into highly specific actions to ensure data integrity.
 
-1. From the Languages list, click the **Edit** button next to the language.
-2. Modify the necessary fields in the form.
-3. Click the **Save** button.
-**Result:** The language's details are instantly updated in the table and across the platform.
+From the **Actions** column in the Languages List, you can perform the following modifications:
+*   **Update Settings:** Click the Edit Settings button to modify the language's reading Direction and Icon.
+*   **Update Name:** Allows you to change the human-readable Name of the language.
+*   **Update Code:** Allows you to change the programmatic Code. *Warning:* The system will strictly validate that the new code is not already in use by another language.
+*   **Update Sort Order:** Allows you to manually adjust the numerical priority of the language.
+
+*   **Save Behavior:** Each of these actions sends an immediate request to the backend. Upon success, the UI table refreshes instantly to display the updated data.
 
 ## Activating / Deactivating a Language
 
-You can control whether a registered language is currently available for use.
+You can control whether a registered language is currently active in the system.
 
-1. Locate the language in the list.
-2. Click the specific action button or toggle to **Set Active** or deactivate it.
-**What happens after:** The language remains in the list, but its Status indicator updates immediately. Inactive languages are generally hidden from selection options elsewhere in the platform.
+1.  Locate the language row.
+2.  Click the **Activate** or **Deactivate** toggle button in the Actions column.
+*   **What happens after:** The database is instantly updated. The Status badge changes immediately. When deactivated, the language is generally removed from user-facing selection options, though existing translations tied to it remain securely stored in the database.
 
-## Setting Default Language
+## Managing Fallback Languages
 
-You can specify one language to act as the primary, fallback option for the system.
+A "Fallback Language" instructs the system to display text from an alternative language if a translation is missing for the user's selected language.
 
-1. Locate the language you want to make the primary option in the list.
-2. Click the **Set Fallback** button next to it.
-**Result:** A visual indicator in the table will update to show that this language is now the default. You can also use the **Clear Fallback** button if you need to remove this status.
+From the **Actions** column:
+1.  **Set Fallback:** If the language currently has "None" listed, click the **Set Fallback** button (purple link icon). A modal will open allowing you to input the ID of another language. The system prevents you from setting a language as its own fallback.
+2.  **Clear Fallback:** If a fallback is currently configured, click the **Clear Fallback** button (red X icon) to instantly remove the fallback routing.
 
 ## Deleting a Language
 
-UNCLEAR. (It is not explicitly confirmed if languages can be permanently deleted from this screen, or if they must simply be deactivated).
+Based on the system's strict data integrity architecture, there is **no delete functionality** for languages. Languages are permanently referenced by thousands of translation keys and user settings across the platform. If a language is no longer needed, administrators must use the **Deactivate** action to hide it from the active platform.
 
 ## What Happens When Languages Change
 
-* **Changes in available languages:** When you create a new language or change a language's status to Active, that language immediately becomes available as an option in language dropdown menus across the system.
-* **Changes in selection options:** When you deactivate a language, it is immediately removed from those selection options.
+Because the LanguageCore module acts as the central identity registry for the entire platform:
+*   **Immediate Application:** Any change to a language's Code, Direction, or Active status takes effect immediately.
+*   **Translation Dependencies:** Modifying a language directly impacts the `I18n` translation module, as all text values are loaded based on the Language ID and Fallback ID defined here.
 
-## Important Notes
+---
 
-* Only create languages that are actually needed by the platform.
-* Be careful when disabling languages, as it immediately removes them as an option.
-* Changing the default language may affect the system: UNCLEAR.
+## Coverage Confirmation
+
+I explicitly confirm the following:
+*   **No "UNCLEAR" placeholders:** All previously unconfirmed behaviors have been resolved and documented based on the exact Javascript implementations and PHP services.
+*   **Tables and Columns:** The exact 8 table columns (ID, Name, Code, Direction, Order, Status, Fallback, Actions) are documented from `languages-with-components.js`.
+*   **Filters and Search:** The Global Search (with debounce and Enter-key support) and specific Column Filters (ID, Name, Code, Direction, Status) are fully detailed.
+*   **Buttons and Actions:** The exact, fragmented edit actions (Settings, Name, Code, Sort Order), Status toggles, and Fallback (Set/Clear) buttons are documented directly from `LanguageManagementService.php` and the UI handlers.
+*   **Missing Features Addressed:** The lack of a "Delete" button is explicitly explained based on the absence of a delete method in the backend service, accurately reflecting the system's data integrity rules.

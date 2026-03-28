@@ -24,19 +24,21 @@ To view only the sessions belonging to a specific administrator:
 Whether you are looking at the global list or a specific admin's profile, the Sessions table provides details about each active login.
 
 * **What is visible in the table:**
+  * **User ID:** The identifier of the administrator the session belongs to.
+  * **Session ID:** The unique identifier for the specific login instance.
   * **Status:** Whether the session is currently Active, Expired, or Revoked.
+  * **Expires At:** The exact date and time the session will naturally time out.
   * **Current session indication:** The system clearly highlights your *Current session* so you do not accidentally log yourself out.
-  * **Device, browser, IP, or time:** UNCLEAR.
-* **Filters/search:** You can sort the sessions using filters such as **All**, **Active**, **Expired**, and **Revoked**. Any additional search functionality is UNCLEAR.
+* **Filters/search:** Above the table, you can click quick-filter badges to instantly view **All**, **Active**, **Expired**, or **Revoked** sessions. Additionally, a search form allows you to filter specifically by **Session ID**, **Admin ID**, and **Status**. A Reset button clears all active filters.
 
 ## Revoking a Session
 
 If you need to force an administrator to log out of a specific device, you must revoke their session.
 
 1. Locate the specific session in the list (either on the global Sessions page or the admin's profile).
-2. Click the **Revoke** button next to that session.
-* *Note on confirmation behavior:* UNCLEAR (It is unclear if the system asks "Are you sure?" before proceeding).
-* *Note on partial revocation:* UNCLEAR (It is unclear if you can revoke specific permissions within a session; assume revocation applies to the entire session).
+2. Click the **Revoke** action button next to that session.
+* *Note on confirmation behavior:* When performing a bulk revoke of multiple selected sessions, the system explicitly prompts you with a confirmation dialog ("Revoke [X] session(s)?").
+* *Note on partial revocation:* You cannot partially revoke a session. Clicking Revoke immediately terminates the entire login session.
 
 If you need to log an administrator out of *every* device at once, you can use the **bulk revoke** action available on the admin's profile.
 
