@@ -34,13 +34,8 @@ Use the links below to navigate through the complete admin guide.
 ### 👥 Admin Management
 Learn how to create, manage, and monitor the administrators who operate the platform.
 * Admins → [docs/admin/admins.md](admins.md)
+* Admin Permissions → [docs/admin/admins-permissions.md](admins-permissions.md)
 * Sessions → [docs/admin/sessions.md](sessions.md)
-
-### 🔐 Roles & Permissions
-Understand how access control works and how to assign the right capabilities to the right people.
-* Overview → [docs/admin/rbac/overview.md](rbac/overview.md)
-* Roles → [docs/admin/rbac/roles.md](rbac/roles.md)
-* Permissions → [docs/admin/rbac/permissions.md](rbac/permissions.md)
 
 ### ⚙️ Settings
 Control dynamic application configurations and manage authoritative, version-controlled legal documents.
@@ -48,13 +43,21 @@ Control dynamic application configurations and manage authoritative, version-con
 * Content Documents → [docs/admin/settings/content-documents.md](settings/content-documents.md)
 * App Settings → [docs/admin/settings/app-settings.md](settings/app-settings.md)
 
-### 🌍 Localization
-Manage the languages supported by the platform and precisely control the translated text displayed to users.
+### 🔐 RBAC
+Understand how access control works and how to assign the right capabilities to the right people.
+* Overview → [docs/admin/rbac/overview.md](rbac/overview.md)
+* Roles → [docs/admin/rbac/roles.md](rbac/roles.md)
+* Permissions → [docs/admin/rbac/permissions.md](rbac/permissions.md)
+
+### 🌍 Languages
+Manage the languages supported by the platform.
 * Languages → [docs/admin/languages.md](languages.md)
-* Translations Overview → [docs/admin/localization/translations/overview.md](localization/translations/overview.md)
-* Scopes → [docs/admin/localization/translations/scopes.md](localization/translations/scopes.md)
-* Domains → [docs/admin/localization/translations/domains.md](localization/translations/domains.md)
-* Translations → [docs/admin/translations.md](translations.md)
+
+### 🔤 Translations
+Precisely control the translated text displayed to users.
+* Overview → [docs/admin/translations/overview.md](translations/overview.md)
+* Scopes → [docs/admin/translations/scopes.md](translations/scopes.md)
+* Domains → [docs/admin/translations/domains.md](translations/domains.md)
 
 ## 3. Common Tasks
 

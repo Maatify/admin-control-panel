@@ -61,7 +61,7 @@ The system separates configuration into two distinct, database-driven sub-module
 ## 9. Boundaries of the Settings Module
 
 *   **What Settings control:** They strictly control dynamic configuration values (key-value pairs) and long-form, versioned platform documents (legal policies, terms, announcements).
-*   **What they do NOT control:** They do NOT control the wording of UI buttons, menu items, or system error messages (handled by `I18n`). They do not control administrator accounts or roles (handled by `AdminKernel`/`RBAC`). They do not control the addition of new system languages (handled by `LanguageCore`).
+*   **What they do NOT control:** They do not control the wording of UI buttons, menu items, or system error messages (handled by `I18n`). They do not control administrator accounts or roles (handled by `AdminKernel`/`RBAC`). They do not control the addition of new system languages (handled by `LanguageCore`).
 
 ## 10. Coverage Confirmation
 
