@@ -84,6 +84,7 @@ readonly class UiAdminsController
             'can_view_emails'        => $this->uiPermissionService->hasPermission($adminId, 'admin.email.list'),
             'can_view_admins'        => $this->uiPermissionService->hasPermission($adminId, 'admins.list'),
             'can_view_notifications' => $this->uiPermissionService->hasPermission($adminId, 'notifications.list'),
+            'can_view_permissions'   => $this->uiPermissionService->hasPermission($adminId, 'admins.permissions'),
         ];
         $profile['capabilities'] = $capabilities;
 
