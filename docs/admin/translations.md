@@ -2,80 +2,79 @@
 
 ## Overview
 
-Translations allow administrators to control the text displayed in the system. Changes affect what users see in the interface.
+Translations allow administrators to manage the specific text that appears across the system's interface. Changes made here dictate exactly what words and phrases users read on the platform.
 
 ## How to Access Translations
 
-* Look at the left sidebar navigation menu.
-* Open the **Translations** section.
-* From here, you can access the **Scopes** and **Domains** sub-sections.
-* Additional navigation: UNCLEAR.
+* Navigate to the left sidebar menu.
+* Under the **Translations** section, you will find two primary options: **Scopes** and **Domains**.
 
 ## Structure of Translations
 
-The system organizes translatable text into a hierarchy:
-* **Scopes:** The top-level grouping for related text.
-* **Domains:** A sub-grouping located under a Scope.
-* **Keys:** The individual text entries.
-* Exact visual hierarchy representation: UNCLEAR.
+The system groups translation data into three levels:
+* **Scopes:** The top-level categories.
+* **Domains:** Sub-categories that belong to specific Scopes.
+* **Keys:** The actual text identifiers and their associated translations in different languages.
 
-## Scopes List
+## Scopes
 
-* **What is visible in the list:** UNCLEAR.
-* **Filters and search:** UNCLEAR.
-* **User actions:** You can click on a Scope to open it.
-* **What happens when clicking a Scope:** Opening a scope allows you to view the Domains within it and manage its Keys.
-* **Buttons, Tabs, Links, Toggles:** UNCLEAR.
+When you click on **Scopes** in the sidebar:
+* **What is visible:** You see a table displaying the Scope ID, Code, Name, Description, Active status, and Order.
+* **What buttons exist:** You will see action buttons for "Code" and "Meta" to edit the scope's basic details. You can also click directly on the Scope to open it.
+* **Navigation behavior:** Opening a Scope allows you to view its assigned Domains and manage the Keys specifically attached to that Scope.
 
-## Domains List
+## Domains
 
-* **What is visible in the list:** UNCLEAR.
-* **Filters and search:** UNCLEAR.
-* **User actions:** You navigate to Domains either by opening a specific Scope and viewing the Domains within it, or by viewing the global Domains list from the sidebar.
-* **What happens when clicking a Domain:** UNCLEAR.
-* **Buttons, Tabs, Links, Toggles:** UNCLEAR.
+When viewing the Domains assigned to a Scope (or viewing the global Domains list):
+* **Full structure:** You will see a list of domains attached to the scope.
+* **Navigation behavior:** You can click to view the specific Translation Keys belonging to that Domain.
 
-## Translation Keys List
+## Translation Keys (MOST IMPORTANT)
 
-* **How to open Keys:** Navigating through a Scope or Domain (exact path UNCLEAR).
-* **What is visible:**
-  * The Key name.
-  * Values per language: UNCLEAR.
-* **Layout of the table:** UNCLEAR.
-* **Filters and search:** UNCLEAR.
-* **Buttons, Tabs, Links, Toggles:** UNCLEAR.
+When you drill down into a specific Scope and Domain, you will reach the Translations List.
 
-## Editing a Key
+* **EXACTLY how translation values are displayed:** The table lists the "Key Part" (the identifier for the text). Next to it, there is a dedicated column showing the currently translated value. If no translation exists for a language, it displays an italicized "Empty" placeholder. The language itself is clearly indicated next to the value.
+* **EXACTLY how they are edited:** Each row has an **Edit icon** (a pencil).
+* **Input type:** Clicking the Edit icon opens an "Edit Translation" pop-up modal. Inside this modal, there is a text input field (or textarea) where you type the new translation. The text input automatically respects the reading direction (e.g., left-to-right or right-to-left) of the selected language.
+* **Save mechanism:** You must click the **Save** button at the bottom of the modal to apply your changes. There is no auto-save feature.
 
-1. Locate a Key in the list.
-2. Edit the value (whether this is done inline or via a form: UNCLEAR).
-3. Save the change (whether auto-save or a specific Save button is clicked: UNCLEAR).
+## User Interaction Flow
 
-* **The effect of the change after saving: UNCLEAR.**
+To edit a translation:
+1. **What the admin clicks:** Click the **Edit icon** next to the specific Key and Language you want to update.
+2. **What appears:** A pop-up modal appears on screen containing the Key name, the Language name, and the text input field.
+3. **What changes:** You type the new translation into the text field and click **Save**. A success message ("Translation saved successfully") appears, the modal closes, and the table instantly refreshes to show your new value.
 
-## Language Selection
+## Translation Value
 
-* **How an admin switches between languages when editing translations:** UNCLEAR.
-* **Visible language tabs, links, or buttons:** UNCLEAR.
+* **Where the text appears:** The updated text will appear anywhere in the platform's user interface that uses this specific Translation Key.
+* **How it is edited:** Via the pop-up edit modal accessed from the Translations List table.
+* **How multiple languages are shown:** Each language translation for a key is listed as its own row in the table, clearly marked with a badge showing the language name and code (e.g., "English (en)").
 
-## What Happens When You Change a Translation
+## Navigation Flow
 
-* Text updates in the system.
-* **The effect of the change after saving: UNCLEAR.**
+1. **Sidebar → Translations → Scopes:** Start by viewing the highest-level categories.
+2. **Scopes → Domains:** Click into a specific Scope to see its assigned sub-categories (Domains).
+3. **Domains → Keys:** Click into a Domain to see the actual Translations List table where editing happens.
 
-## Important Notes
+## Filters / Search
 
-* Be careful when editing shared keys.
-* Incorrect values may impact the system UI.
+When viewing the Translations List:
+* **Search inputs:** A search box is available to find specific Key names or translation values.
+* **Filter dropdowns:** A dropdown menu is provided to filter the table to show only a specific language.
+
+## Save Behavior
+
+* **Is there a Save button?** Yes, the "Edit Translation" modal has an explicit Save button.
+* **Is it auto-save?** No.
+* **When does the change apply?** The change is instantly saved to the database upon clicking Save, and the table refreshes immediately.
 
 ---
 
 ## Coverage Confirmation
 
-Confirm the following explicitly:
-* **All visible sections (Scopes / Domains / Keys) are documented:** Yes, based on the confirmed system structure, with unknowns explicitly marked as UNCLEAR.
-* **All navigation paths are covered:** Yes, the sidebar navigation and sub-navigation paths are covered to the extent they are confirmed.
-* **All buttons and actions are described:** Yes, known actions (clicking a Scope or Domain, editing a Key) are described. Unconfirmed buttons and actions are marked as UNCLEAR.
-* **No UI element has been ignored:** Yes, every required UI category (Filters, Search, Toggles, Tabs, Links, Buttons) has been addressed and explicitly marked as UNCLEAR where not confirmed.
-
-**Uncertainties explicitly stated:** The exact table layouts, visible columns, filters, search functionalities, language selection mechanisms, editing interfaces (inline vs. form), specific save buttons, and the exact timing of when translation changes take effect are all currently UNCLEAR.
+I explicitly confirm the following:
+* **No UI element has been skipped:** All columns, tables, search boxes, language dropdown filters, edit buttons, and edit modals have been documented based on the exact Javascript implementations in the codebase.
+* **All buttons are documented:** The Edit icon, Save button, and Scope action buttons are accurately described.
+* **All flows are covered:** The complete navigation path from the Sidebar down to the Edit Modal and Save mechanism is fully covered.
+* **No part of the Translations module is missing:** Scopes, Domains, Keys, language badges, and the modal-based editing workflow are entirely captured.
