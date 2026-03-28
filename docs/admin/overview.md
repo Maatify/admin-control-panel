@@ -27,6 +27,35 @@ This system is an administrative control panel designed to help you securely man
 * **Notifications & Activity Logging**
   Keeps you informed of system events. You can review your own notifications, view historical notifications, and access a detailed activity log that records actions taken within the system.
 
+## 📂 Documentation Map
+
+Use the links below to navigate through the complete admin guide.
+
+### 👥 Admin Management
+Learn how to create, manage, and monitor the administrators who operate the platform.
+* Admins → [docs/admin/admins.md](admins.md)
+* Sessions → [docs/admin/sessions.md](sessions.md)
+
+### 🔐 Roles & Permissions
+Understand how access control works and how to assign the right capabilities to the right people.
+* Overview → [docs/admin/rbac/overview.md](rbac/overview.md)
+* Roles → [docs/admin/rbac/roles.md](rbac/roles.md)
+* Permissions → [docs/admin/rbac/permissions.md](rbac/permissions.md)
+
+### ⚙️ Settings
+Control dynamic application configurations and manage authoritative, version-controlled legal documents.
+* Overview → [docs/admin/settings/overview.md](settings/overview.md)
+* Content Documents → [docs/admin/settings/content-documents.md](settings/content-documents.md)
+* App Settings → [docs/admin/settings/app-settings.md](settings/app-settings.md)
+
+### 🌍 Localization
+Manage the languages supported by the platform and precisely control the translated text displayed to users.
+* Languages → [docs/admin/languages.md](languages.md)
+* Translations Overview → [docs/admin/localization/translations/overview.md](localization/translations/overview.md)
+* Scopes → [docs/admin/localization/translations/scopes.md](localization/translations/scopes.md)
+* Domains → [docs/admin/localization/translations/domains.md](localization/translations/domains.md)
+* Translations → [docs/admin/translations.md](translations.md)
+
 ## 3. Common Tasks
 
 ### Logging In
