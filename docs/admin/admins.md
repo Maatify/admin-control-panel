@@ -20,7 +20,7 @@ When you open the Admins section, you will see the **Admins List**.
 
 * **What is visible:** A table displaying all administrator accounts, showing key details like their name, primary email, and current account status (e.g., Active or Disabled).
 * **Filters:** You can filter the list to quickly find specific accounts, such as viewing only active admins or searching by name and email.
-* **Actions:** From this list, you can click on an admin to **View** their full profile, or click the **Add Admin** button to create a new account.
+* **Actions:** From this list, you can click **View** next to an admin to open their full profile, or click the **Add Admin** button to create a new account.
 
 ---
 
@@ -32,7 +32,7 @@ When you need to grant a new staff member access, you must follow this exact seq
 2. **Clicking create:** Submit the form to generate the account.
 3. **What happens next:** The account is created immediately, and you are automatically transitioned to a secure credentials screen.
 4. **Temporary password screen:** The system will display the new admin's initial password on the screen.
-5. **Required actions:** You must securely copy this password. To proceed and leave this screen, you are required to explicitly confirm that you have secured the credentials by acknowledging a prompt (e.g., "I have saved the password").
+5. **Required actions:** You must securely copy this password. You can simply click on the password field to copy it to your clipboard. To proceed and leave this screen, you are strictly required to explicitly confirm that you have secured the credentials by acknowledging the prompt ("I have saved the password"). You CANNOT proceed until this confirmation is made.
 
 ---
 
@@ -42,18 +42,18 @@ When a new administrator is created, the system handles their initial access und
 
 * **The password is auto-generated:** The system creates a highly secure, random temporary password. You cannot choose it.
 * **It is displayed ONLY ONCE:** The password appears on the screen immediately after the account creation form is submitted.
-* **You must copy it immediately:** You are responsible for copying this password and securely providing it to the new administrator.
-* **The system requires confirmation:** You cannot accidentally close or navigate away without acknowledging the prompt stating "I have saved the password".
+* **You must copy it immediately:** You are responsible for copying this password (by clicking the password field) and securely providing it to the new administrator.
+* **The system requires confirmation:** You cannot accidentally close or navigate away without clicking to confirm "I have saved the password". The system blocks all navigation until this is done.
 * **It will NEVER be shown again:** Once you leave that screen, the password is gone forever. If it is lost before the new admin logs in, you will have to completely reset their credentials.
 
 ---
 
 ## Admin Profile
 
-Clicking on any administrator in the list opens their full **Admin Profile**. The page is structured into distinct areas:
+Clicking **View** next to an administrator in the list opens their full **Admin Profile**. The page is structured into distinct areas:
 
 * **Profile info:** At the top, you will see their general information, such as their name and current account status.
-* **Sections:** Below the general info, the profile is divided into specific tabs or sections:
+* **Sections:** Below the general info, the profile is divided into specific sections:
   * **Emails:** To manage all email addresses associated with the admin.
   * **Sessions:** To monitor and control where the admin is currently logged in.
   * **Notifications:** To review the history of system alerts and messages sent to this admin.
@@ -66,7 +66,7 @@ An administrator can have multiple email addresses tied to their account.
 
 * **Multiple emails allowed:** You can add backup or secondary emails to an account.
 * **Statuses:** Every email address will display one of the following states:
-  * **Pending:** The email has been added but the owner has not yet clicked the verification link.
+  * **Pending:** The email has been added but the owner has not yet clicked the verification link. *If an email is "Pending", it cannot be used to log in or receive notifications until verified.*
   * **Verified:** The email is confirmed, active, and fully usable.
   * **Failed:** The verification process was unsuccessful or expired.
   * **Replaced:** An older email that has been superseded by a new primary address.
@@ -79,7 +79,7 @@ An administrator can have multiple email addresses tied to their account.
 
 A "session" represents an active login on a specific computer, phone, or browser.
 
-* **Sessions list:** This tab shows a detailed log of everywhere the administrator is currently or was previously logged in.
+* **Sessions list:** This section shows a detailed log of everywhere the administrator is currently or was previously logged in.
 * **Filters:** You can sort the sessions using filters: **All**, **Active** (currently logged in), **Expired** (timed out naturally), or **Revoked** (forced out).
 * **Current session indication:** The system clearly highlights your *Current session* so you do not accidentally log yourself out while reviewing the list.
 * **Revoke actions:** If you see an unrecognized or old device, you can click **Revoke** next to it to instantly log that device out. You also have access to a **bulk revoke** action to instantly log the admin out of all active sessions at once.
