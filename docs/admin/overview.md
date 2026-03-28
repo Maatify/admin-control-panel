@@ -50,10 +50,11 @@ Control dynamic application configurations and manage authoritative, version-con
 
 ### 🌍 Localization
 Manage the languages supported by the platform and precisely control the translated text displayed to users.
-* Languages → [docs/admin/localization/languages.md](localization/languages.md)
+* Languages → [docs/admin/languages.md](languages.md)
 * Translations Overview → [docs/admin/localization/translations/overview.md](localization/translations/overview.md)
 * Scopes → [docs/admin/localization/translations/scopes.md](localization/translations/scopes.md)
 * Domains → [docs/admin/localization/translations/domains.md](localization/translations/domains.md)
+* Translations → [docs/admin/translations.md](translations.md)
 
 ## 3. Common Tasks
 
