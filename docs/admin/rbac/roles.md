@@ -24,26 +24,43 @@ When you need to define a new job function with specific access rights, follow t
 
 1. Click the **Create Role** button.
 2. Enter a clear, descriptive **Role Name** (e.g., "Support Agent" or "Translator").
-3. Select the permissions you want this role to have. You will be presented with a list of system permissions to choose from.
-   * *How permissions appear in the UI (e.g., grouped or checkboxes):* UNCLEAR.
-4. Click the **Create Role** button to finalize the creation. The new role will immediately appear in the Roles List and become available to assign to administrators.
+3. Click the **Create Role** button to finalize the creation.
+* **Result:** The creation step only creates the role's basic information (its name). It does not fully manage permissions from this step. After creation, the new role will immediately appear in the Roles List.
+
+## Viewing and Managing a Role
+
+The primary way to configure a role's access rights and assignments is through its management screen.
+
+1. From the Roles List, click the **View** button next to a role.
+2. This opens the role details page.
+3. This page contains two main sections:
+   * **Permissions tab:** Where you control what the role allows.
+   * **Admins tab:** Where you control who holds the role.
+
+### Permissions Management
+
+Permissions are strictly managed from the **Permissions tab**.
+1. Open the **Permissions tab** on the role details page.
+2. A list of permissions is shown.
+3. Each permission has a toggle to enable or disable it.
+4. Clicking a toggle immediately enables or disables that permission for the role.
+* **Result:** Changing a toggle instantly updates the role's access rights across the entire platform.
+
+### Admin Assignment from Role Page
+
+You manage who holds this specific role from the **Admins tab**.
+1. Open the **Admins tab** on the role details page.
+2. The tab shows a list of administrators.
+3. Each administrator has a toggle next to their name.
+4. Clicking an administrator's toggle instantly assigns or unassigns this role for them.
 
 ## Editing a Role
 
-If a job function changes and requires more or less access, you must update its role:
+If you only need to change the basic details of a role:
 
-1. From the Roles List, click the **Edit** button next to the role you want to change.
-2. You can rename the role or modify its assigned permissions.
-3. Click the **Save** button.
-* **Result:** The changes are saved immediately. Any administrator currently assigned this role will instantly have their access updated across the platform.
-
-## Assigning Roles to Admins
-
-Roles are assigned directly from an administrator's profile, not from the Roles list.
-1. Navigate to the **Admins** section in the left sidebar.
-2. Click **View** next to the specific administrator.
-3. Open the **Roles** tab on their profile.
-4. Click **Assign Role**, select the role from the dropdown menu, and click **Save**.
+1. From the Roles List, click the **Edit** button next to the role.
+2. You can modify its basic information, such as its name.
+3. Click the **Save** button to apply the changes.
 
 ## What Happens When a Role Changes
 
