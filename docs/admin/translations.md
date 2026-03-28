@@ -2,67 +2,80 @@
 
 ## Overview
 
-Translations allow administrators to control the actual text displayed across the system. Updating these entries changes exactly what users read in the platform's interface.
+Translations allow administrators to control the text displayed in the system. Changes affect what users see in the interface.
 
 ## How to Access Translations
 
-To access the translation management area:
 * Look at the left sidebar navigation menu.
 * Open the **Translations** section.
 * From here, you can access the **Scopes** and **Domains** sub-sections.
+* Additional navigation: UNCLEAR.
 
 ## Structure of Translations
 
-The system organizes translatable text into a strict hierarchy:
+The system organizes translatable text into a hierarchy:
 * **Scopes:** The top-level grouping for related text.
-* **Domains:** A sub-grouping assigned to a specific Scope.
-* **Keys:** The individual text entries that hold the actual words or phrases.
+* **Domains:** A sub-grouping located under a Scope.
+* **Keys:** The individual text entries.
+* Exact visual hierarchy representation: UNCLEAR.
 
-## Scopes
+## Scopes List
 
-* **What scopes represent in the UI:** Scopes act as the highest-level categories for organizing text across the platform.
-* **How to open a scope:** Navigate to the Scopes list and click on the name of a specific scope.
-* **What happens when selecting a scope:** Opening a scope allows you to view the Domains assigned to it, check its translation coverage, and manage its individual Keys.
+* **What is visible in the list:** UNCLEAR.
+* **Filters and search:** UNCLEAR.
+* **User actions:** You can click on a Scope to open it.
+* **What happens when clicking a Scope:** Opening a scope allows you to view the Domains within it and manage its Keys.
+* **Buttons, Tabs, Links, Toggles:** UNCLEAR.
 
-## Domains
+## Domains List
 
-* **How domains appear:** Domains appear as sub-categories that can be assigned to or unassigned from a Scope.
-* **How to navigate between them:** You navigate to them by opening a specific Scope and viewing its assigned Domains, or by viewing the global Domains list from the sidebar.
+* **What is visible in the list:** UNCLEAR.
+* **Filters and search:** UNCLEAR.
+* **User actions:** You navigate to Domains either by opening a specific Scope and viewing the Domains within it, or by viewing the global Domains list from the sidebar.
+* **What happens when clicking a Domain:** UNCLEAR.
+* **Buttons, Tabs, Links, Toggles:** UNCLEAR.
 
-## Translation Keys
+## Translation Keys List
 
-When viewing the translation keys for a specific Scope and Domain:
+* **How to open Keys:** Navigating through a Scope or Domain (exact path UNCLEAR).
 * **What is visible:**
-  * The **Key name** (the identifier for the text).
-  * The actual translation values per language: UNCLEAR.
+  * The Key name.
+  * Values per language: UNCLEAR.
 * **Layout of the table:** UNCLEAR.
+* **Filters and search:** UNCLEAR.
+* **Buttons, Tabs, Links, Toggles:** UNCLEAR.
 
-## Editing Translations
+## Editing a Key
 
-When you need to update what a specific piece of text says:
-1. Locate the specific Key you want to change.
-2. Edit the translation value (whether this is done directly inline or via a separate form is UNCLEAR).
-3. Save the change (whether this happens automatically or requires clicking a "Save" button is UNCLEAR).
+1. Locate a Key in the list.
+2. Edit the value (whether this is done inline or via a form: UNCLEAR).
+3. Save the change (whether auto-save or a specific Save button is clicked: UNCLEAR).
 
-* **When changes apply:** The new text is applied to the system as soon as the translation is saved.
-* **Immediate effect:** Yes, the text update is immediate.
-
-## Filtering and Searching
-
-* **Filters:** UNCLEAR.
-* **Search functionality:** UNCLEAR.
+* **The effect of the change after saving: UNCLEAR.**
 
 ## Language Selection
 
-* **How to switch between languages when editing:** UNCLEAR.
+* **How an admin switches between languages when editing translations:** UNCLEAR.
+* **Visible language tabs, links, or buttons:** UNCLEAR.
 
 ## What Happens When You Change a Translation
 
-* **Text updates in system:** The words or phrases displayed to users in the platform's interface will instantly reflect the new translation you provided.
-* **Immediate effect:** The change takes effect immediately once saved. Users will see the new text the next time they load or refresh the affected page.
+* Text updates in the system.
+* **The effect of the change after saving: UNCLEAR.**
 
 ## Important Notes
 
-* Changes affect visible text instantly.
-* Be careful when editing shared keys, as changing a common word might alter the text in multiple different places across the platform.
-* Incorrect values, typos, or blank entries will directly impact the system UI and what end-users see.
+* Be careful when editing shared keys.
+* Incorrect values may impact the system UI.
+
+---
+
+## Coverage Confirmation
+
+Confirm the following explicitly:
+* **All visible sections (Scopes / Domains / Keys) are documented:** Yes, based on the confirmed system structure, with unknowns explicitly marked as UNCLEAR.
+* **All navigation paths are covered:** Yes, the sidebar navigation and sub-navigation paths are covered to the extent they are confirmed.
+* **All buttons and actions are described:** Yes, known actions (clicking a Scope or Domain, editing a Key) are described. Unconfirmed buttons and actions are marked as UNCLEAR.
+* **No UI element has been ignored:** Yes, every required UI category (Filters, Search, Toggles, Tabs, Links, Buttons) has been addressed and explicitly marked as UNCLEAR where not confirmed.
+
+**Uncertainties explicitly stated:** The exact table layouts, visible columns, filters, search functionalities, language selection mechanisms, editing interfaces (inline vs. form), specific save buttons, and the exact timing of when translation changes take effect are all currently UNCLEAR.
