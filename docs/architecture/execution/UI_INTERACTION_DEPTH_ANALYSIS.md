@@ -36,12 +36,21 @@ The UI layer is heavily dependent on specific API hierarchies.
 - **Flat Dependencies:** `sessions.js` depends solely on `/api/sessions/query`. Capabilities like `can_revoke_id` dictate button visibility, triggering parallel flat endpoints (`/api/sessions/{id}`).
 - **Nested Dependencies:** A frontend implementing I18n translations depends on a specific parameter lineage (`scope_id` -> `domain_id` -> `keys`). The UI logic must be structured to supply these IDs correctly to match the defined route paths.
 
-## 5. Performance Implications (Observed)
+## 5. Modals vs. Dedicated Pages
+The architectural choice between rendering interactions in a Modal vs. a Dedicated Page MUST adhere to the following depth principles:
+
+- **Modals:** Use Modals ONLY for simple, flat, text-only CRUD operations (e.g., App Settings, simple lookups, quick status toggles). Modals MUST NOT contain file uploads, complex multi-step relationships, or extensive forms.
+- **Dedicated Pages:** Use Dedicated Pages (`entity_details.twig` or `entity_edit.twig`) for entities requiring any of the following:
+  - File or Image Uploads (requires dedicated space, drag-and-drop, and immediate persistence).
+  - Complex relationships or nested contexts (e.g., Translations mapped to a Product, Domains mapped to a Scope).
+  - Extensive forms (more than 5 fields) requiring logical grouping or separate saving mechanisms (e.g., saving text data separately from media).
+
+## 6. Performance Implications (Observed)
 - **Flat Endpoints:** Require only single database queries orchestrated by readers (e.g., `PdoSessionListReader`), filtering based on independent payload DTOs.
 - **Hierarchical Endpoints:** Enforce route-level validation of contextual relationships (e.g., matching a `domain_id` to a specific `scope_id`). This implies that the respective API controllers or underlying readers must validate these multi-tier relationships during query execution (UNVERIFIED: precise reader implementations for I18n queries).
 - Fetching deep data may require sequential API calls if the frontend lacks the parent IDs upfront, contrasting with flat endpoints where single, immediate payload submissions are sufficient.
 
-## 6. Unsafe To Generalize
+## 7. Unsafe To Generalize
 - It is unsafe to assume all UI views interact with flat API routes. I18n routes demonstrate multi-tier nesting requiring complex state management.
 - It is unsafe to assume frontend requests map one-to-one with database tables without considering the mandatory URL path parameters (like `{scope_id}`).
 - It is unsafe to generalize the authorization enforcement of flat routes (e.g. `sessions.view_all` inline check) to nested routes, where capability scope might be inherited or strictly tied to parent resource ownership (UNVERIFIED).

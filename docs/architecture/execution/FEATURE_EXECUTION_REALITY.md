@@ -272,3 +272,10 @@ Observed UI route definitions require specific URL contexts to navigate between 
 ## 19. Permission Mapping Reality
 - Every new route defined via `->setName(...)` MUST be registered in `PermissionMapperV2.php`
 - Missing mappings will fail CI (permission-lint)
+
+## 20. File Upload Architecture Reality
+- **Separation of Concerns:** Uploading files/images MUST be strictly separated from generic textual data updates.
+- **Dedicated Endpoints:** File uploads MUST utilize a dedicated API endpoint (e.g., `/update-image`) expecting `multipart/form-data`.
+- **Payload Prohibition:** Base64 encoded file data MUST NEVER be embedded inside standard JSON update payloads.
+- **Centralized Service:** Physical file saving MUST be handled exclusively by a centralized `FileUploadService`.
+- **Path Resolution:** The `FileUploadService` MUST calculate public directory paths robustly using `realpath()` and STRICTLY validate the result (`if ($path === false) throw new \RuntimeException(...)`).

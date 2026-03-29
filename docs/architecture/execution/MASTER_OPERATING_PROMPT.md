@@ -15,6 +15,10 @@ You MUST strictly follow these documents:
 5. docs/architecture/execution/EXECUTION_ENVIRONMENT_RULES.md
 6. docs/architecture/execution/UI_EXECUTION_RULES.md
 
+In addition to the above, for any UI/Frontend implementation, you MUST ALWAYS consult and adhere to:
+7. public/assets/maatify/admin-kernel/js/docs/ (Directory containing all JS component documentation)
+8. docs/ADMIN_KERNEL_EXCEPTION_BASELINE_AUDIT.md (Design baseline and exceptions)
+
 ---
 
 GLOBAL BEHAVIOR:
@@ -154,8 +158,9 @@ Audit ONLY the code created or modified in the current task.
 #### 1. HTTP Rules Compliance
 - All responses MUST use JsonResponseFactory
 - Query endpoints MUST use $this->json->data(...)
-- Command endpoints MUST use $this->json->success(...)
+- Command endpoints MUST use $this->json->success(...) or $this->json->data($response, ['success' => true])
 - noContent() MUST NOT be used (LEGACY only)
+- For all POST/PUT/PATCH requests expecting payload data, MUST use `$request->getParsedBody()` and NEVER `getQueryParams()`.
 
 ---
 
@@ -187,8 +192,12 @@ Audit ONLY the code created or modified in the current task.
 ---
 
 #### 5. Permission Mapping
-- ALL new routes MUST be registered in PermissionMapperV2.php
-- Route names MUST follow: feature.action.api
+- ALL new routes (both .api and .ui) MUST be registered in PermissionMapperV2.php
+- Route names MUST follow:
+  - feature.action.api
+  - feature.action.ui
+- If routing is modified, you MUST run: `php tools/permission_linter.php`
+- Commit MUST NOT proceed unless the output states: "All checks passed"
 
 ---
 
@@ -223,51 +232,64 @@ Audit ONLY the code created or modified in the current task.
   - `{feature}-actions.js`
   - `{feature}-helpers.js`
 - Monolithic JS is FORBIDDEN
+- Dedicated pages (`entity_details.twig`) MUST be used for file uploads, complex relationships, or large forms instead of Modals.
 
 #### 10. API Integration (Frontend)
-- MUST use `ApiHandler.call(...)`
-- MUST NOT use `fetch` / `axios` directly
-- MUST use `POST` for all API interactions
+- MUST use `ApiHandler.call(...)` with a descriptive action string as the 3rd parameter (NOT 'POST' or 'GET')
+- MUST NOT use `fetch` / `axios` directly for JSON APIs. (Exception: File uploads via `multipart/form-data` using `fetch`, but MUST parse response via `ApiHandler.parseResponse()`).
+- MUST NOT prepend `/api/` to endpoint paths passed to `ApiHandler.call`.
 
 #### 11. Table System
-- MUST use `createTable()`
-- MUST use renderers `(value, row) => HTML`
-- MUST NOT use inline HTML inside config
-- MUST NOT use inline `onclick` handlers
+- MUST initialize tables exclusively via the global `createTable(apiUrl, payload, ...)` function.
+- MUST NOT manually fetch data and pass it to `TableComponent(...)` for CRUD list endpoints.
+- MUST globally export `window.changePage(page)` and `window.changePerPage(perPage)`.
+- MUST use renderers `(value, row) => HTML`.
+- MUST use `AdminUIComponents.buildActionButton(...)` for all actions (raw HTML is FORBIDDEN).
+- MUST handle event delegation exclusively via `setupButtonHandler(...)`.
+- MUST bind all action UI event listeners securely via `data-entity-id="{id}"`. NEVER use arbitrary `data-id`.
 
-#### 12. Capability Enforcement
+#### 12. UI Documentation & Baseline Adherence
+- MUST consult and strictly follow the component documentation in `public/assets/maatify/admin-kernel/js/docs/` (ignoring `Admin_CRUD_Builder`).
+- MUST align all UI implementations with the design baseline defined in `docs/ADMIN_KERNEL_EXCEPTION_BASELINE_AUDIT.md`.
+
+#### 13. Capability Enforcement
 - MUST consume `window.{feature}Capabilities`
 - MUST NOT render UI actions if capability is false
 
-#### 13. UI State Sync
+#### 14. UI State Sync
 - MUST call `loadData()` after mutations
 - MUST NOT manually patch DOM
 
-#### 14. Error Handling
+#### 15. Error Handling
 - MUST catch ALL API errors
-- MUST use `window.showAlert(...)`
+- MUST use global `window.ApiHandler.showAlert(type, message)` (or a wrapper invoking it). NEVER use native `alert()` or custom notification HTML.
 
-#### 15. Routing Context
+#### 16. Routing Context
 - MUST pass route IDs correctly
 - MUST NOT duplicate route IDs in payload
+
+#### 17. File Upload Architecture
+- Base64 MUST NEVER be embedded within general JSON update payloads.
+- Dedicated `multipart/form-data` API endpoints MUST be used for file uploads.
+- Centralized `FileUploadService` MUST be used in the backend for physical file saving and strict public directory calculation (`realpath()`).
 
 ---
 
 ### BACKEND CONSISTENCY CHECKS
 
-#### 16. Request Validation
+#### 18. Request Validation
 - MUST use `ValidationGuard`
 - MUST NOT manually validate
 
-#### 17. Response Rules
+#### 19. Response Rules
 - Query → `json->data(...)`
-- Command → `json->success(...)`
+- Command → `json->success(...)` or `json->data($response, ['success' => true])`
 
-#### 18. Exception Rules
+#### 20. Exception Rules
 - MUST include message
 - MUST NOT use empty constructors
 
-#### 19. Query System
+#### 21. Query System
 - MUST use:
   - `ListQueryDTO`
   - `Capabilities::define()`
@@ -277,7 +299,7 @@ Audit ONLY the code created or modified in the current task.
 
 ### CROSS-LAYER CONSISTENCY CHECKS
 
-#### 20. Full-Stack Integrity
+#### 22. Full-Stack Integrity
 - UI payload MUST match backend schema
 - UI MUST NOT send unsupported fields
 - Backend MUST reject invalid payloads

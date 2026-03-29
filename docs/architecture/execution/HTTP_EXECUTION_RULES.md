@@ -74,6 +74,8 @@ For all NEW implementations, refer to Section 9 (Response Behavior Rules), which
 ## 13. RUNTIME API CONTRACT RULES
 
 ### 13.1 Request Contract Strictness
+- **Request Payload Parsing:** For all `POST`, `PUT`, and `PATCH` requests expecting JSON or Form Data payloads, **ALWAYS** use `$request->getParsedBody()`. NEVER use `getQueryParams()` unless explicitly reading from the URL query string in a `GET` request.
+- **File Upload Parsing:** When handling `multipart/form-data` for file uploads, **ALWAYS** use `$request->getUploadedFiles()` to retrieve the files, do NOT use `getParsedBody()` for the file itself.
 - The backend MUST enforce strict payload shapes.
 - The backend MUST reject any undocumented or forbidden fields (e.g., `limit`, `filters`, `sort`).
 - The backend MUST treat `null` as an explicit value, not as an omitted field, and MUST reject `null` if the field does not explicitly support it.
@@ -85,27 +87,30 @@ For all NEW implementations, refer to Section 9 (Response Behavior Rules), which
 
 ### 13.3 Response Contract (REAL API)
 - Query endpoints MUST return a strict JSON envelope containing `data` and `pagination` objects.
-- Command (Mutation/Action) endpoints MUST return a `200 OK` success response with an empty body, unless explicitly designed to return a data object.
-- The backend MUST NOT assume the client expects or parses JSON from standard command responses.
+- Command (Mutation/Action) endpoints MUST return a `200 OK` success response using `$this->json->success($response)` or `$this->json->data($response, ['success' => true])`.
+- The backend MUST NOT assume the client expects or parses JSON from standard command responses unless explicitly documented.
 
-### 13.4 Server-Controlled Behavior
+### 13.4 Frontend API Routing
+- **Frontend API Routing:** When using `ApiHandler.call()`, NEVER prepend `/api/` to the endpoint string. The handler automatically resolves the base URL. Use relative feature paths directly (e.g., `products/query`).
+
+### 13.5 Server-Controlled Behavior
 - Sorting authority is strictly server-controlled. The backend MUST NOT allow clients to pass arbitrary `sort` or `sort_order` parameters unless explicitly supported by a legacy endpoint.
 - Filtering authority rests with the backend schema. Clients MUST NOT bypass column-specific filter definitions.
 - The backend MUST enforce these controls and reject client attempts to override server-defined list behaviors.
 
-### 13.5 Scope Enforcement (Backend)
+### 13.6 Scope Enforcement (Backend)
 - The backend MUST enforce strict boundary scopes for all nested resources (e.g., a version MUST belong to the specified document type).
 - Invalid scope or cross-scope access MUST return a `404 Not Found` exception, not a partial success or `403`.
 
-### 13.6 Lifecycle Rules (Domain Behavior)
+### 13.7 Lifecycle Rules (Domain Behavior)
 - The backend MUST treat state-changing lifecycle endpoints (e.g., activate, deactivate, publish, archive) as idempotent.
 - Applying a state change to an entity already in that state MUST result in a successful `200 OK` (no-op) response without throwing an error.
 
-### 13.7 Capability Awareness (Backend)
+### 13.8 Capability Awareness (Backend)
 - The backend MUST enforce all authorization and permission checks server-side.
 - The backend MUST NOT trust UI capability flags as a security layer.
 - Endpoints MUST independently verify the caller's capabilities regardless of UI state.
 
-### 13.8 No-Assumption Principle (Backend)
+### 13.9 No-Assumption Principle (Backend)
 - The backend MUST reject implicit fields, undefined behavior, or silent defaults.
 - If a behavior, payload field, or state transition is not explicitly defined by the API contract, the backend MUST treat it as unsupported and reject the request.
