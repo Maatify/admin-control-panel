@@ -14,9 +14,9 @@ To manage roles:
 ## Roles List
 
 When you open the Roles section, you will see a table of all existing roles.
-* **What is visible:** The table displays the name of each Role and its current status.
-* **Actions available:** You can click the **View** or **Edit** buttons next to an existing role, or click the **Create Role** button to add a new one.
-* **Filters:** Above the table, there is a global search bar to instantly find roles by name or group. You can also click the quick-filter badges to view "All", "Active", or "Inactive" roles. Additionally, a dedicated filter form allows you to search specifically by Role ID, Name, or Group, complete with a Reset button to clear active filters.
+* **Table Columns:** The table displays the name of each Role and its current status.
+* **Actions:** You can click the **View** or **Edit** buttons next to an existing role, or click the **Create Role** button to add a new one.
+* **Filters and Search:** Above the table, there is a global search bar to instantly find roles by name or group. You can also click the quick-filter badges to view "All", "Active", or "Inactive" roles. Additionally, a dedicated filter form allows you to search specifically by Role ID, Name, or Group, complete with a Reset button to clear active filters.
 
 ## Creating a Role (FULL FLOW)
 

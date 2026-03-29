@@ -2,92 +2,86 @@
 
 ## 1. What is a Domain
 
-A Domain represents a specific feature, module, or logical grouping of text within the translation system. While a Scope defines the broad application boundary (like "admin" or "client"), Domains break that boundary down into manageable pieces. Domains exist to organize translation keys so they are easy to find, audit, and maintain without creating massive, unmanageable lists of text.
-*   **Examples:** Common domains include `auth` (text related to login and passwords), `products` (text related to catalog pages), or `errors` (system error messages).
+A Domain is the secondary categorization level in the translation system, acting as a functional grouping or sub-namespace within a larger Scope. It represents a specific feature, module, or logical area of the application.
+*   **Examples:** Common domains include `auth` (for authentication-related text like login and password reset), `errors` (for system error messages), `emails` (for email templates), or `dashboard` (for the main user interface).
 
 ## 2. Role of Domains in the Architecture
 
-*   **Hierarchy:** Domains represent the second tier in the translation structure: **Scopes → Domains → Keys → Values**.
-*   **Mandatory Requirement:** A Domain is strictly required before any Keys can be created. Every translation Key must be bound to a valid Scope and Domain combination (e.g., `admin` + `auth` + `login.title`).
+*   **Hierarchy:** Domains sit below Scopes and above Keys in the translation hierarchy: **Scopes → Domains → Keys → Values**.
+*   **Mandatory Requirement:** Every translation Key in the system must belong to a specific Scope and Domain combination. A Key cannot exist without a Domain.
+*   **Logical Grouping:** Domains provide a structured way to organize thousands of translation keys, making them easier to manage, export, and assign to translators.
 
 ## 3. Domain Data Model
 
-Under the hood, Domains are stored independently in the database in the `i18n_domains` table. Based on the backend repositories and DTOs, the main columns are:
-*   **`id` (int):** The unique primary key identifier for the Domain.
-*   **`code` (string):** The programmatic, unique string identifier used by the application (e.g., "auth").
-*   **`name` (string):** The human-readable name displayed in the administrator UI.
-*   **`description` (string, nullable):** Optional metadata explaining what kind of text this Domain should contain.
-*   **`is_active` (bool):** A flag determining whether the Domain is enabled and available for use in the system.
-*   **`sort_order` (int):** Determines the visual order in which Domains appear in UI dropdowns and lists.
-*   **`created_at` (string):** Timestamp of when the Domain was registered in the database.
+Domains consist of the following properties:
+*   **ID:** The unique system identifier for the Domain.
+*   **Code:** The programmatic, unique string identifier used in the system (e.g., "auth").
+*   **Name:** The human-readable name displayed in the UI.
+*   **Description:** Optional metadata explaining the purpose of the Domain.
+*   **Active Status:** A flag determining whether the Domain is currently enabled and available for translation resolution.
+*   **Order:** Determines the visual order in which Domains appear in UI lists.
+*   **Created At:** Timestamp of when the Domain was registered.
 
-## 4. Domain ↔ Scope Relationship
+## 4. Scope ↔ Domain Relationship
 
-*   **How Domains are attached:** Domains are not intrinsically owned by a Scope. They are independent entities that must be explicitly mapped to one or more Scopes.
-*   **Mapping table:** This relationship is controlled by the `i18n_domain_scopes` mapping table. It links a `scope_code` to a `domain_code` alongside an `is_active` flag.
-*   **Relationship Type:** It is a **Many-to-Many** relationship. A single Domain (like "errors") can be mapped to multiple Scopes (like "admin" and "api").
-*   **Rules:**
-    *   **Can a Domain exist without a Scope?** Yes. A Domain can be created in the `i18n_domains` table without being mapped to any Scope.
-    *   **Can a Domain be used without mapping?** No. Before you can create any Translation Keys for a Domain, the `I18nGovernancePolicyService` strictly requires that the Domain be mapped to the requested Scope in the `i18n_domain_scopes` table, and that the mapping itself is marked active.
+*   **Mapping:** A Domain must be explicitly mapped to one or more Scopes to be used. This mapping defines where the Domain is valid.
+*   **Relationship Type:** This is a **Many-to-Many** relationship. A single Domain (like "auth") can be attached to multiple Scopes (like both "admin" and "client"), and a single Scope can have many Domains.
+*   **Constraints:**
+    *   A Domain can be created independently without being immediately mapped to a Scope.
+    *   However, before any Keys can be created under a Domain, that Domain must be explicitly mapped to a specific Scope.
+    *   The combination of a Scope and Domain defines the namespace for translation Keys.
 
 ## 5. Domain Lifecycle (Admin Behavior)
 
 ### Creating a Domain
-*   **What admin provides:** The administrator provides a programmatic `code`, a display `name`, and an optional `description`.
-*   **Validation rules:** The system checks that the `code` is unique across all `i18n_domains`.
-*   **What happens in database:** A new row is inserted into `i18n_domains`. At this stage, it is not yet linked to any Scope.
+*   **What admin inputs:** The admin provides a code, name, and optional description.
+*   **What validation exists:** The system verifies that the code is unique across all Domains and formatted correctly.
+*   **What happens in the system:** The new Domain is securely registered and becomes available to be mapped to Scopes.
 
 ### Editing a Domain
-*   **Editable fields:** Administrators can update the `code`, `name`, `description`, and `sort_order`.
-*   **Any restrictions:** Updating the `code` of a Domain triggers massive synchronous updates in the background. The system must move all associated Keys and rebuild all derived summary tables (`i18n_domain_language_summary`) to reflect the new code.
+*   **What fields are editable:** Administrators can edit the Code (via a Change Code action), the Name and Description (via an Update Metadata action), and the Sort Order (via an Update Sort action).
+*   **What is restricted:** The internal ID cannot be changed. Modifying the Code is allowed but affects any Keys associated with this Domain across all mapped Scopes.
 
 ### Activating / Deactivating
-*   **What active state means:** In the `i18n_domains` table, the `is_active` boolean is toggled to false.
-*   **How it affects usage:** If a Domain is deactivated, it is hidden from standard active queries and dropdown menus, and the system governance policy will block the creation of any new Keys under it.
+*   **What "active" means:** The active status can be toggled on or off.
+*   **How it affects system behavior:** Deactivating a Domain globally prevents it from being used in any new mappings and may affect the resolution of existing keys depending on system configuration.
 
-## 6. Domain List (UI — CODE-BASED)
+## 6. Domain List
 
-When viewing the Domain Assignments table inside a specific Scope Details page, the UI renders the following:
-*   **Table columns:** `ID`, `Code`, `Name`, `Description`, `Active` (status badge), `Assigned` (whether it is mapped to the current Scope), and `Actions`.
-*   **Available actions/buttons:**
-    *   **Assign Domain:** If the domain is not currently assigned to the scope, an "Assign" button is visible.
-    *   **Unassign Domain:** If the domain is currently assigned to the scope, an "Unassign" button (typically styled in danger/red) is visible.
-*   **What each action does:**
-    *   Clicking **Assign** triggers a browser confirmation dialog ("Are you sure you want to assign domain..."). Upon confirmation, it sends a POST request to `/api/i18n/scopes/{scope_id}/domains/assign`, inserting a record into `i18n_domain_scopes` and reloading the table.
-    *   Clicking **Unassign** triggers a confirmation dialog. Upon confirmation, it sends a POST request to `/api/i18n/scopes/{scope_id}/domains/unassign`, removing or deactivating the mapping.
+The main UI for managing Domains displays a data table with the following structure:
+*   **Table Columns:** ID, Code (rendered with a code badge), Name, Description, Active (rendered as an Active/Inactive status badge), Order (sort order badge), and Actions.
+*   **Actions:** Each row contains actionable buttons depending on admin permissions:
+    *   **Code:** Opens a modal to change the programmatic Domain code.
+    *   **Meta:** Opens a modal to update the Name and Description.
+    *   **Sort:** Opens a modal to change the Sort Order.
+    *   **Activate / Deactivate:** A toggle button to change the global active status of the Domain.
+*   **Buttons:** The table includes a global **Create Domain** button at the top to initialize a new Domain.
 
 ## 7. Domain Interaction Flow
 
-*   **What happens when admin clicks a Domain:** When an admin clicks on an assigned Domain row in the Scope Details table, they are directed to the specific Translation Keys list for that exact Scope + Domain tuple.
-*   **How it leads to Keys:** The navigation routes them to `/i18n/scopes/{scope_id}/domains/{domain_id}/keys`.
-*   **What data is loaded:** The system loads the Domain metadata and queries the `i18n_keys` table to render the list of translatable keys specifically bound to that Scope and Domain mapping.
+*   **What happens when clicking a Domain:** Clicking a Domain in the table directs the administrator to the specific Domain Details page.
+*   **How it leads to Scopes:** The Domain Details page displays the Scope Assignments table, showing all Scopes to which this specific Domain is currently mapped.
+*   **What data is loaded:** The system loads the Domain's metadata, its mapped Scopes, and aggregated translation coverage statistics for this Domain.
 
 ## 8. Constraints & Rules
 
-*   **Code uniqueness:** The Domain `code` must be completely unique globally within the `i18n_domains` table.
-*   **Required fields:** When creating a Domain, the `code` and `name` are strictly required.
-*   **Dependency on Scope mapping:** A Translation Key cannot be created if its Domain is not explicitly mapped to the requested Scope in `i18n_domain_scopes`. The `I18nGovernancePolicyService` enforces this via a `DomainScopeViolationException`.
+*   **Code uniqueness:** The Domain code must be globally unique across all Domains.
+*   **Naming rules:** A valid name is required, while the description is optional.
+*   **Dependency constraints:** You cannot create a Key for a specific Domain unless that Domain has been mapped to a Scope and both are active.
 
 ## 9. Impact on Translations System
 
-*   **How Domains affect Keys:** Keys are inextricably bound to Domains. You cannot query or resolve a Key without knowing its Domain.
-*   **How Domains affect Values:** Translation values are tied to Keys. If a Domain is unmapped from a Scope, all Keys under that tuple effectively become orphaned/unresolvable by the frontend application.
-*   **System rendering:** The UI heavily relies on Domains to group translation forms. If a Domain is disabled, administrators cannot easily find or edit the text values within it.
+*   **How Domain affects Keys:** Every Key requires a Domain. If a Domain's code is changed, the system automatically updates the namespace path for all corresponding Keys.
+*   **How Domain affects Values:** Values (Translations) are tied to Key IDs. If a Domain is deactivated or deleted, the entire structure of Keys and Values under it becomes unavailable for that Domain's namespace.
+*   **UI rendering:** Changes to a Domain's name or sort order immediately update how the translation management menus and filters appear to administrators.
 
-## 10. System Behavior
+## 10. System Behavior & Consistency
 
-*   **When changes take effect:** Actions like Assigning or Unassigning a Domain from a Scope take effect immediately via synchronous database transactions.
-*   **Validations or checks:** The system strictly checks for duplicates before assigning a domain, and verifies the domain actually exists before mapping it.
-*   **Visible errors:** If an assignment fails, the UI captures the JSON error response and renders an alert notification (e.g., `Failed to assign domain`). Attempting to bypass the UI to create a key under an unmapped domain throws backend exceptions (`DomainNotAllowedException`).
+*   **Immediate vs delayed changes:** All modifications to Domains (creating, renaming, updating metadata) are synchronous and immediately reflected in the system.
+*   **Validations:** The system strictly validates all actions performed on a Domain, ensuring that dependent mappings and keys are handled correctly.
+*   **Error cases:** Attempting an invalid action, such as creating a Domain with a duplicate code or deleting a Domain that still has active Keys, will be blocked by the system with an error message.
 
 ## 11. Boundaries
 
-*   **What Domains control:** Domains strictly control the secondary logical grouping of Translation Keys. They define the "feature" or "module" namespace (e.g., separating `auth` text from `checkout` text). They also control whether Keys can be created within that grouping via active status and Scope mappings.
-*   **What they do NOT control:** Domains do NOT control application boundaries (that is the Scope's job), and they do NOT control language identities or actual text translations.
-
-## 12. Coverage Confirmation
-
-*   **All Domain behavior is covered:** Yes, the creation, editing, activation, and assigning/unassigning lifecycles are fully detailed.
-*   **UI actions are documented:** Yes, the Assign and Unassign action buttons, table columns, and browser confirmation dialogs are extracted directly from the JavaScript (`i18n_scopes_domains.js`).
-*   **Relationships are explained:** Yes, the many-to-many mapping table (`i18n_domain_scopes`) and the `I18nGovernancePolicyService` enforcement rules are explicitly documented.
-*   **No assumptions were made:** All documentation was strictly extracted from `MysqlDomainRepository.php`, `MysqlDomainScopeRepository.php`, `DomainDTO.php`, and the UI Javascript components. No generic theories or "UNCLEAR" placeholders were used.
+*   **What Domain controls:** A Domain strictly controls the secondary namespace boundary for translation keys. It acts as a functional container within a Scope.
+*   **What it does NOT control:** A Domain does NOT control Language availability, fallback mechanisms, or the actual translated text values. It is purely an organizational categorization.

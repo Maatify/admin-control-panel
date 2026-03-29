@@ -118,13 +118,3 @@ The columns displayed in the UI exactly match these structures:
 *   **Direct permissions should be used sparingly:** Rely on Roles for 99% of your access management. Direct permissions should be reserved strictly for temporary exceptions or highly unique administrative requirements.
 
 ---
-
-## Coverage Confirmation
-
-I explicitly confirm the following:
-*   **All tabs are documented:** Yes, the Effective, Direct, and Roles tabs and their specific purposes are fully explained.
-*   **All tables and columns are described:** Yes, the exact columns for Effective, Direct, Roles, and the Assignable Modal are accurately listed based on the system UI definitions.
-*   **All buttons (Assign, Edit, Revoke) are covered:** Yes, their workflows and immediate effects are documented.
-*   **Modal behavior is fully explained:** Yes, the Assignable Permissions modal, its columns, and its Allow/Deny toggle configuration are detailed.
-*   **Filters and exports are included:** Yes, the ID, Name, and Group search inputs, global search bar, reset button, and CSV/Excel/PDF export buttons are explicitly documented.
-*   **No visible UI element is ignored:** Yes, the entire feature footprint has been translated into an accurate, non-technical user guide.

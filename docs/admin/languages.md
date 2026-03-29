@@ -81,12 +81,3 @@ Because this is the central language list for the platform:
 *   **Translation Dependencies:** Modifying a language directly impacts the translations area, as all text values are loaded based on the languages and fallbacks defined here.
 
 ---
-
-## Coverage Confirmation
-
-I explicitly confirm the following:
-*   **No "UNCLEAR" placeholders:** All previously unconfirmed behaviors have been resolved and documented based exactly on what the administrator interacts with.
-*   **Tables and Columns:** The exact 8 table columns (ID, Name, Code, Direction, Order, Status, Fallback, Actions) are fully documented.
-*   **Filters and Search:** The Global Search (with debounce and Enter-key support) and specific Column Filters (ID, Name, Code, Direction, Status) are fully detailed.
-*   **Buttons and Actions:** The exact edit actions (Settings, Name, Code, Sort Order), Status toggles, and Fallback (Set/Clear) buttons are documented directly from the UI flows.
-*   **Missing Features Addressed:** The lack of a "Delete" button is explicitly explained, guiding administrators to use the Deactivate function instead.

@@ -17,12 +17,12 @@ To manage permissions, follow this exact flow:
 
 When you open the Permissions tab, you will see a list of access rights available in the system.
 
-* **What is visible in the table:**
+* **Table Columns:**
   * **Permission name:** The specific title of the access right.
   * **Group:** The category the permission belongs to.
   * **Description:** An explanation of what the permission allows the user to do.
   * **Assigned toggle:** A switch used to enable or disable the permission.
-* **Filters/search:** Above the table, you will find a global search bar to quickly find permissions by typing any keyword (it automatically searches after a brief delay). Additionally, a filter form allows you to search specifically by Permission ID, Name, or Group. A Reset button clears all active filters.
+* **Filters and Search:** Above the table, you will find a global search bar to quickly find permissions by typing any keyword (it automatically searches after a brief delay). Additionally, a filter form allows you to search specifically by Permission ID, Name, or Group. A Reset button clears all active filters.
 
 ## Enabling or Disabling a Permission
 

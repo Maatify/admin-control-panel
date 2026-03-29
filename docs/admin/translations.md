@@ -19,7 +19,7 @@ The system groups translation data into three levels:
 ## Scopes
 
 When you click on **Scopes** in the sidebar:
-* **What is visible:** You see a table displaying the Scope ID, Code, Name, Description, Active status, and Order.
+* **Table Columns:** You see a table displaying the Scope ID, Code, Name, Description, Active status, and Order.
 * **What buttons exist:** You will see action buttons for "Code" and "Meta" to edit the scope's basic details. You can also click directly on the Scope to open it.
 * **Navigation behavior:** Opening a Scope allows you to view its assigned Domains and manage the Keys specifically attached to that Scope.
 
@@ -67,14 +67,6 @@ When viewing the Translations List:
 
 * **Is there a Save button?** Yes, the "Edit Translation" modal has an explicit Save button.
 * **Is it auto-save?** No.
-* **When does the change apply?** The change is instantly saved to the database upon clicking Save, and the table refreshes immediately.
+* **When does the change apply?** The change is instantly saved to the system upon clicking Save, and the table refreshes immediately.
 
 ---
-
-## Coverage Confirmation
-
-I explicitly confirm the following:
-* **No UI element has been skipped:** All columns, tables, search boxes, language dropdown filters, edit buttons, and edit modals have been documented based on the exact Javascript implementations in the codebase.
-* **All buttons are documented:** The Edit icon, Save button, and Scope action buttons are accurately described.
-* **All flows are covered:** The complete navigation path from the Sidebar down to the Edit Modal and Save mechanism is fully covered.
-* **No part of the Translations module is missing:** Scopes, Domains, Keys, language badges, and the modal-based editing workflow are entirely captured.

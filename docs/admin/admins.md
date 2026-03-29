@@ -18,8 +18,8 @@ To access the administrator management area:
 
 When you open the Admins section, you will see the **Admins List**.
 
-* **What is visible:** A table displaying all administrator accounts, showing key details like their name, primary email, and current account status (e.g., Active or Disabled).
-* **Filters:** You can filter the list to quickly find specific accounts, such as viewing only active admins or searching by name and email.
+* **Table Columns:** A table displaying all administrator accounts, showing key details like their name, primary email, and current account status (e.g., Active or Disabled).
+* **Filters and Search:** You can filter the list to quickly find specific accounts, such as viewing only active admins or searching by name and email.
 * **Actions:** From this list, you can click **View** next to an admin to open their full profile, or click the **Add Admin** button to create a new account.
 
 ---
@@ -80,7 +80,7 @@ An administrator can have multiple email addresses tied to their account.
 A "session" represents an active login on a specific computer, phone, or browser.
 
 * **Sessions list:** This section shows a detailed log of everywhere the administrator is currently or was previously logged in.
-* **Filters:** You can sort the sessions using filters: **All**, **Active** (currently logged in), **Expired** (timed out naturally), or **Revoked** (forced out).
+* **Filters and Search:** You can sort the sessions using filters: **All**, **Active** (currently logged in), **Expired** (timed out naturally), or **Revoked** (forced out).
 * **Current session indication:** The system clearly highlights your *Current session* so you do not accidentally log yourself out while reviewing the list.
 * **Revoke actions:** If you see an unrecognized or old device, you can click **Revoke** next to it to instantly log that device out. You also have access to a **bulk revoke** action to instantly log the admin out of all active sessions at once.
 
