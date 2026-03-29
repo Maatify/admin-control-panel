@@ -250,6 +250,34 @@
 					</div>
 				{% endif %}
 
+				{# ✅ Show "Permissions" Section only if user has can_view_permissions capability #}
+				{% if capabilities.can_view_permissions ?? false %}
+					<!-- Permissions Section -->
+					<div class="bg-white dark:bg-gray-700 rounded-2xl shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-600 overflow-hidden  ">
+						<div class="px-6 py-4 border-b border-gray-200 dark:border-gray-600">
+							<div class="flex items-center gap-3">
+								<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-gray-600 dark:text-gray-400">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+								</svg>
+								<h4 class="text-base font-semibold text-gray-800 dark:text-gray-100">Permissions</h4>
+							</div>
+						</div>
+
+						<div class="px-6 py-4">
+							<ul class="space-y-3">
+								<li>
+									<a href="{{ ui.adminUrl }}admins/{{ admin.id }}/permissions" class="flex items-center justify-between group hover:bg-sky-50 dark:hover:bg-sky-900/30 px-3 py-2 rounded-lg transition-colors duration-200">
+										<span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-sky-600 dark:group-hover:text-sky-400 font-medium">Manage Permissions</span>
+										<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-400 group-hover:text-sky-600">
+											<path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
+										</svg>
+									</a>
+								</li>
+							</ul>
+						</div>
+					</div>
+				{% endif %}
+
 				{# ✅ Show "Activity" Section only if user has can_view_notifications capability #}
 				{% if capabilities.can_view_notifications ?? false %}
 					<!-- Activity Section -->
