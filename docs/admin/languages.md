@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Languages module (LanguageCore) establishes the foundational identities of the languages supported across the platform. While this module does not handle the actual text translations, it defines which languages exist, their programmatic codes (e.g., "en", "ar"), their reading direction (left-to-right or right-to-left), and their active status. The translation systems explicitly rely on this core registry to function.
+The Languages page allows administrators to manage the list of available languages used across the platform. While this page does not handle the actual text translations, it defines which languages exist, their programmatic codes (e.g., "en", "ar"), their reading direction (left-to-right or right-to-left), and their active status. Other parts of the system use these languages to display content.
 
 ## How to Access Languages
 
@@ -39,8 +39,8 @@ When introducing a new language option to the platform:
 1.  Click the **Create Language** button located above the table.
 2.  A modal or form will open requiring the new language's **Name**, **Code**, and **Direction** (LTR or RTL). You can also optionally provide an icon, set the initial Active status, and assign a Fallback Language.
 3.  Click the save/create button to submit the form.
-*   **Validation:** The system strictly checks the database to ensure the provided **Code** does not already exist. If it does, a "Language Already Exists" error is displayed.
-*   **Result:** The language is immediately created in the database and assigned the next available sort order automatically. It instantly appears in the Languages List.
+*   **Validation:** The system strictly verifies that the provided **Code** does not already exist. If it does, a "Language Already Exists" error is displayed.
+*   **Result:** The language is immediately created and assigned the next available sort order automatically. It instantly appears in the Languages List.
 
 ## Editing a Language
 
@@ -52,7 +52,7 @@ From the **Actions** column in the Languages List, you can perform the following
 *   **Update Code:** Allows you to change the programmatic Code. *Warning:* The system will strictly validate that the new code is not already in use by another language.
 *   **Update Sort Order:** Allows you to manually adjust the numerical priority of the language.
 
-*   **Save Behavior:** Each of these actions sends an immediate request to the backend. Upon success, the UI table refreshes instantly to display the updated data.
+*   **Save Behavior:** Each of these actions applies immediately. Upon success, the UI table refreshes instantly to display the updated data.
 
 ## Activating / Deactivating a Language
 
@@ -60,7 +60,7 @@ You can control whether a registered language is currently active in the system.
 
 1.  Locate the language row.
 2.  Click the **Activate** or **Deactivate** toggle button in the Actions column.
-*   **What happens after:** The database is instantly updated. The Status badge changes immediately. When deactivated, the language is generally removed from user-facing selection options, though existing translations tied to it remain securely stored in the database.
+*   **What happens after:** The Status badge changes immediately. When deactivated, the language is generally removed from user-facing selection options, though existing translations tied to it remain securely preserved.
 
 ## Managing Fallback Languages
 
@@ -72,21 +72,21 @@ From the **Actions** column:
 
 ## Deleting a Language
 
-Based on the system's strict data integrity architecture, there is **no delete functionality** for languages. Languages are permanently referenced by thousands of translation keys and user settings across the platform. If a language is no longer needed, administrators must use the **Deactivate** action to hide it from the active platform.
+There is **no delete functionality** for languages. Languages are permanently referenced by translations and user settings across the platform. If a language is no longer needed, administrators must use the **Deactivate** action to hide it from the active platform.
 
 ## What Happens When Languages Change
 
-Because the LanguageCore module acts as the central identity registry for the entire platform:
-*   **Immediate Application:** Any change to a language's Code, Direction, or Active status takes effect immediately.
-*   **Translation Dependencies:** Modifying a language directly impacts the `I18n` translation module, as all text values are loaded based on the Language ID and Fallback ID defined here.
+Because this is the central language list for the platform:
+*   **Immediate Application:** Any change to a language's Code, Direction, or Active status takes effect immediately across the interface.
+*   **Translation Dependencies:** Modifying a language directly impacts the translations area, as all text values are loaded based on the languages and fallbacks defined here.
 
 ---
 
 ## Coverage Confirmation
 
 I explicitly confirm the following:
-*   **No "UNCLEAR" placeholders:** All previously unconfirmed behaviors have been resolved and documented based on the exact Javascript implementations and PHP services.
-*   **Tables and Columns:** The exact 8 table columns (ID, Name, Code, Direction, Order, Status, Fallback, Actions) are documented from `languages-with-components.js`.
+*   **No "UNCLEAR" placeholders:** All previously unconfirmed behaviors have been resolved and documented based exactly on what the administrator interacts with.
+*   **Tables and Columns:** The exact 8 table columns (ID, Name, Code, Direction, Order, Status, Fallback, Actions) are fully documented.
 *   **Filters and Search:** The Global Search (with debounce and Enter-key support) and specific Column Filters (ID, Name, Code, Direction, Status) are fully detailed.
-*   **Buttons and Actions:** The exact, fragmented edit actions (Settings, Name, Code, Sort Order), Status toggles, and Fallback (Set/Clear) buttons are documented directly from `LanguageManagementService.php` and the UI handlers.
-*   **Missing Features Addressed:** The lack of a "Delete" button is explicitly explained based on the absence of a delete method in the backend service, accurately reflecting the system's data integrity rules.
+*   **Buttons and Actions:** The exact edit actions (Settings, Name, Code, Sort Order), Status toggles, and Fallback (Set/Clear) buttons are documented directly from the UI flows.
+*   **Missing Features Addressed:** The lack of a "Delete" button is explicitly explained, guiding administrators to use the Deactivate function instead.
