@@ -67,8 +67,8 @@ You can control whether a registered language is currently active in the system.
 A "Fallback Language" instructs the system to display text from an alternative language if a translation is missing for the user's selected language.
 
 From the **Actions** column:
-1.  **Set Fallback:** If the language currently has "None" listed, click the **Set Fallback** button (purple link icon). A modal will open allowing you to input the ID of another language. The system prevents you from setting a language as its own fallback.
-2.  **Clear Fallback:** If a fallback is currently configured, click the **Clear Fallback** button (red X icon) to instantly remove the fallback routing.
+1.  **Set Fallback:** If the language currently has "None" listed, click the **Set Fallback** button (purple link icon). A modal opens allowing you to input the ID of another language.
+2.  **Clear Fallback:** If a fallback is currently configured, click the **Clear Fallback** button (red X icon) to remove the fallback.
 
 ## Deleting a Language
 

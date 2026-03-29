@@ -41,7 +41,7 @@ Scopes consist of the following properties:
 
 ### Editing a Scope
 *   **What fields are editable:** Administrators can edit the Code (via a dedicated Change Code action), the Name and Description (via an Update Metadata action), and the Sort Order (via an Update Sort action).
-*   **What is restricted:** You cannot directly edit the internal ID. Changing the Code is allowed but has massive downstream implications for any Keys tied to the old code.
+*   **What is restricted:** If you attempt to change the Code, a warning modal appears requiring confirmation.
 
 ### Activating / Deactivating
 *   **What "active" means:** The active status is toggled on or off.
@@ -73,7 +73,7 @@ The main UI for managing Scopes displays a data table with the following structu
 ## 9. Impact on Translations System
 
 *   **How Scope affects Keys:** Every Key requires a Scope. If a Scope's code is changed, the system automatically updates all corresponding translation coverage statistics.
-*   **How Scope affects Values:** Values (Translations) are tied to Key IDs. While the Value doesn't care about the Scope, if the parent Scope is deactivated or deleted, the entire tree of Keys and Values under it becomes unavailable to the application.
+*   **How Scope affects Values:** If a Scope is deactivated, its associated Translations are hidden.
 *   **UI rendering:** Changing a Scope name or sort order updates how the translation management menus appear to administrators.
 
 ## 10. System Behavior & Consistency

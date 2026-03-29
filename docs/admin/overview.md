@@ -88,8 +88,8 @@ To see who did what, you can check the Activity Logs. This provides a secure tra
 * **Session Control**
   Every time you log in, a session is created. You have full visibility into your active sessions and can revoke (log out) any unrecognized or old sessions to keep your account secure.
 
-* **Protection Against Abuse**
-  The system automatically monitors for unusual behavior, such as repeated failed login attempts or rapid, excessive actions. If such behavior is detected, the system may temporarily limit actions or require additional verification to prevent abuse.
+
+
 
 ## 5. Important Notes
 

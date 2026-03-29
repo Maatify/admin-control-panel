@@ -66,7 +66,7 @@ An administrator can have multiple email addresses tied to their account.
 
 * **Multiple emails allowed:** You can add backup or secondary emails to an account.
 * **Statuses:** Every email address will display one of the following states:
-  * **Pending:** The email has been added but the owner has not yet clicked the verification link. *If an email is "Pending", it cannot be used to log in or receive notifications until verified.*
+  * **Pending:** The email has been added but the owner has not yet clicked the verification link. *If an email is "Pending", the system displays a "Pending" badge. You will see action buttons to "Verify manually" or "Mark as failed".*
   * **Verified:** The email is confirmed, active, and fully usable.
   * **Failed:** The verification process was unsuccessful or expired.
   * **Replaced:** An older email that has been superseded by a new primary address.

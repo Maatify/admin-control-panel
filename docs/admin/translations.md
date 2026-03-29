@@ -47,7 +47,7 @@ To edit a translation:
 
 ## Translation Value
 
-* **Where the text appears:** The updated text will appear anywhere in the platform's user interface that uses this specific Translation Key.
+* **Where the text appears:** The updated translation is now saved and will be displayed to users.
 * **How it is edited:** Via the pop-up edit modal accessed from the Translations List table.
 * **How multiple languages are shown:** Each language translation for a key is listed as its own row in the table, clearly marked with a badge showing the language name and code (e.g., "English (en)").
 

@@ -28,7 +28,7 @@ Domains consist of the following properties:
 *   **Relationship Type:** This is a **Many-to-Many** relationship. A single Domain (like "auth") can be attached to multiple Scopes (like both "admin" and "client"), and a single Scope can have many Domains.
 *   **Constraints:**
     *   A Domain can be created independently without being immediately mapped to a Scope.
-    *   However, before any Keys can be created under a Domain, that Domain must be explicitly mapped to a specific Scope.
+    *   The "Create Key" button is only available when a Domain is assigned to a Scope.
     *   The combination of a Scope and Domain defines the namespace for translation Keys.
 
 ## 5. Domain Lifecycle (Admin Behavior)
