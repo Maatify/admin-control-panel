@@ -28,7 +28,7 @@ The table displays all available settings with the following columns:
 *   **Group:** The category the setting belongs to.
 *   **Key:** The name of the setting.
 *   **Value:** The current configured value.
-*   **Type:** The data format of the setting (e.g., string, integer, boolean, json).
+*   **Type:** Indicates the format of the value.
 *   **Status:** Indicates if the setting is currently Active or Inactive.
 *   **Actions:** Contains buttons to interact with the setting.
 
@@ -51,13 +51,13 @@ To modify an existing setting:
 
 If your account has the necessary permissions, you can create new settings:
 1.  Click the **Create Setting** button located near the search filters.
-2.  A creation modal will appear.
-3.  Fill in the required fields (Group, Key, Value, and Type).
-4.  Click **Save**.
-5.  A success message will appear, and the new setting will be added to the list.
+2.  A creation modal will open on your screen.
+3.  Fill in the required input fields (Group, Key, Value, and Type).
+4.  Click the **Save** button inside the modal.
+5.  A success message will appear, the modal will close, and the table will automatically refresh to show the newly created setting.
 
 ## 5. Usage Guidance
 
-*   **Active vs. Inactive:** Toggling a setting's status to Inactive effectively turns off that specific configuration.
+*   **Active vs. Inactive:** You can change a setting's status by clicking the toggle button in the Actions column for that row. A success message is shown and the table refreshes to display the new status.
 *   **Locked Settings:** You cannot modify settings marked with the 🔒 icon. The interface restricts editing for these configurations.
-*   **Immediate Effect:** Any changes made and saved in this interface apply instantly to the platform's behavior.
+*   **Immediate Updates:** Any changes made and saved in this interface will appear immediately in the table.
