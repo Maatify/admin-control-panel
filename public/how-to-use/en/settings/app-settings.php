@@ -2,100 +2,76 @@
 
 
 <h1>Managing Application Settings</h1>
-<h2>1. What are Application Settings</h2>
-<p>Application Settings are dynamic configurations that control the runtime behavior of the platform. They act as a configuration engine, allowing administrators to toggle features, adjust limits, and configure external integration logic directly from the control panel without requiring a developer to intervene.</p>
+
+<h2>1. Overview</h2>
+<p>Application Settings are configurations that control the behavior of the platform. This section allows administrators to toggle features, adjust limits, and configure integration logic directly from the control panel.</p>
+
+<h2>2. Admin Interaction Flow</h2>
+<p>Administrators manage these configurations through the App Settings list interface.</p>
+
+<h3>Search &amp; Filters</h3>
+<p>At the top of the page, you can use filters to quickly find specific settings:</p>
 <ul>
-<li><strong>Difference between static configuration and App Settings:</strong> Core infrastructure configurations (like server ports) must remain completely secure and are only changed during deployment. App Settings, conversely, represent dynamic business logic variables that are safe for administrators to modify on the fly through the UI.</li>
+    <li><strong>ID:</strong> Search by the exact setting ID.</li>
+    <li><strong>Group:</strong> Filter by category (e.g., <code>system</code>, <code>security</code>).</li>
+    <li><strong>Key:</strong> Search by the specific setting name.</li>
+    <li><strong>Status:</strong> Filter by Active or Inactive settings.</li>
+    <li><strong>Search Button:</strong> Applies the entered filters.</li>
+    <li><strong>Reset Button:</strong> Clears all column filters and reloads the default list.</li>
 </ul>
-<h2>2. Core Architecture</h2>
-<p>The architecture of an App Setting is built on a strict typed key-value pairing:</p>
-<h3>Setting Key</h3>
+
+<h3>Global Search</h3>
+<p>Below the filters is a quick search bar:</p>
 <ul>
-<li><strong>Unique identifier:</strong> A setting is uniquely identified by the combination of its Group and its Key.</li>
-<li><strong>Naming conventions:</strong> They are typically namespaced using dot notation internally (e.g., <code>system.timezone</code>), but managed as distinct Group (e.g., "system") and Key (e.g., "timezone") components.</li>
+    <li><strong>Quick Search:</strong> Type to search across group, key, or value simultaneously.</li>
+    <li><strong>Clear Button:</strong> Removes the global search text.</li>
 </ul>
-<h3>Setting Value</h3>
+
+<h3>Settings List (Table)</h3>
+<p>The table displays all available settings with the following columns:</p>
 <ul>
-<li><strong>Data type:</strong> Every setting explicitly declares a logical type: Text, Integer, Boolean, or JSON.</li>
-<li><strong>Storage format:</strong> Regardless of the logical type, all values are stored and presented logically. The system handles converting the value into the correct format behind the scenes.</li>
+    <li><strong>ID:</strong> The unique identifier for the setting.</li>
+    <li><strong>Group:</strong> The category the setting belongs to.</li>
+    <li><strong>Key:</strong> The name of the setting.</li>
+    <li><strong>Value:</strong> The current configured value.</li>
+    <li><strong>Type:</strong> Indicates the format of the value.</li>
+    <li><strong>Status:</strong> Indicates if the setting is currently Active or Inactive.</li>
+    <li><strong>Actions:</strong> Contains buttons to interact with the setting.</li>
 </ul>
-<h3>Grouping</h3>
+
+<h3>Visual Indicators</h3>
 <ul>
-<li><strong>Categories:</strong> The Group categorization collects related settings together, allowing the system to query entire blocks of configuration at once (e.g., loading all <code>smtp</code> settings).</li>
+    <li><strong>Protected Settings (🔒 Lock Icon):</strong> Some settings are critical to the system and cannot be edited. These appear with a lock icon next to their key.</li>
+    <li><strong>Orphaned Settings (⚠️ Warning Icon):</strong> Settings that are no longer recognized by the system appear with a warning icon. These can only be deactivated.</li>
 </ul>
-<h3>Metadata</h3>
-<ul>
-<li><strong>Editable flag:</strong> Settings have an active status flag. Inactive settings are effectively ignored by the application.</li>
-<li><strong>System flag:</strong> Settings can be marked as protected (cannot be modified or disabled by the UI) and whitelisted (must be recognized by the application code to be valid).</li>
-</ul>
-<h2>3. Storage Model</h2>
-<ul>
-<li><strong>Data structure:</strong> Settings consist of properties such as ID, Group, Key, Value, Type, and Active Status.</li>
-<li><strong>Key → value mapping:</strong> The system uniquely maps the group and key to a single value.</li>
-<li><strong>JSON structure usage:</strong> If a setting is declared as JSON, it stores a structured JSON format.</li>
-<li><strong>Normalization:</strong> Settings are managed as a flat, high-performance registry.</li>
-</ul>
-<h2>4. Retrieval Flow</h2>
-<p>When the application needs a configuration value:
-1.  <strong>How settings are loaded:</strong> The application retrieves the setting using its group and key.
-2.  <strong>Verification:</strong> The system verifies the setting against a strict whitelist to ensure the requested setting is actually known to the system.
-3.  <strong>System lookup:</strong> The system performs an immediate lookup to retrieve the current value.
-4.  <strong>Casting:</strong> The system formats the retrieved value according to its defined type before using it.</p>
-<h2>5. Caching Strategy</h2>
-<ul>
-<li><strong>Cache layer:</strong> There is no caching layer implemented for App Settings.</li>
-<li>Every request performs a direct, real-time check to ensure absolute consistency.</li>
-</ul>
-<h2>6. Update Flow</h2>
+
+<h2>3. How to Edit a Setting</h2>
+<p>To modify an existing setting:</p>
 <ol>
-<li><strong>How admin updates a setting:</strong> The administrator edits the setting's value via the UI and clicks save. The information is processed by the system.</li>
-<li><strong>Validation rules:</strong> The system first verifies that the setting isn't locked. It then strictly validates the provided value against the declared type (e.g., ensuring text entered for an integer setting is actually a number). If validation fails, the system blocks the update and displays an error.</li>
-<li><strong>What happens after update:</strong> The system instantly updates the value.</li>
-<li><strong>Immediate effect:</strong> Because there is no caching layer, the system serves as the absolute source of truth. The update takes immediate effect. The very next time the platform requests that setting, it receives the new value.</li>
+    <li>Locate the setting in the list using the search or filters.</li>
+    <li>Click the <strong>Edit</strong> button in the Actions column for that row.</li>
+    <li>An <strong>Edit App Setting</strong> modal will open on your screen.</li>
+    <li>Modify the <strong>Value</strong> in the provided input field.</li>
+    <li>If necessary, change the <strong>Type</strong> from the dropdown menu.</li>
+    <li>Click the <strong>Save Changes</strong> button inside the modal.</li>
+    <li>A success message will appear, the modal will close, and the table will automatically refresh to show the updated value.</li>
 </ol>
-<h2>7. Runtime Behavior</h2>
-<p>App Settings are used across the platform to govern business rules dynamically.</p>
+
+<h2>4. How to Create a Setting</h2>
+<p>If your account has the necessary permissions, you can create new settings:</p>
+<ol>
+    <li>Click the <strong>Create Setting</strong> button located near the search filters.</li>
+    <li>A creation modal will open on your screen.</li>
+    <li>Fill in the required input fields (Group, Key, Value, and Type).</li>
+    <li>Click the <strong>Save</strong> button inside the modal.</li>
+    <li>A success message will appear, the modal will close, and the table will automatically refresh to show the newly created setting.</li>
+</ol>
+
+<h2>5. Usage Guidance</h2>
 <ul>
-<li><strong>How settings affect system behavior:</strong> They act as conditional gates within the platform.</li>
-<li><strong>Examples:</strong><ul>
-<li><strong>Toggles (Boolean):</strong> A <code>feature.maintenance_mode</code> setting used to block user logins.</li>
-<li><strong>Limits (Integer):</strong> A <code>security.max_login_attempts</code> limit applied before locking an account.</li>
-<li><strong>Configurations (JSON):</strong> An <code>integration.payment_gateways</code> setting that stores an array of enabled providers for the checkout screen.</li>
-</ul>
-</li>
-</ul>
-<h2>8. Admin Interaction Flow</h2>
-<p>Administrators manage these configurations through the specific App Settings list interface:</p>
-<ul>
-<li><strong>Table Columns:</strong> The table displays ID, Group, Key, Value, Type, Status, and Actions. It includes visual badges for context (e.g., a 🔒 lock icon for protected settings, and a ⚠️ warning icon for orphaned settings not recognized by the system whitelist).</li>
-<li><strong>Editing settings:</strong> Admins click an edit action on a row to modify the value and the logical type.</li>
-<li><strong>Saving changes:</strong> Submitting the form updates the system instantly, and the UI table refreshes.</li>
-</ul>
-<h2>9. Constraints &amp; Rules</h2>
-<p>The system enforces strict governance over what can be modified:</p>
-<ul>
-<li><strong>System-protected:</strong> The system hardcodes critical infrastructure settings (e.g., <code>system.base_url</code>) that are completely blocked from modification via the UI. Attempting to change them will be blocked by the system.</li>
-<li><strong>Whitelist policy:</strong> The system strictly ensures that invalid or unrecognized settings cannot be created. Only setting keys that are explicitly declared in the application's internal whitelist can be created or queried.</li>
-</ul>
-<h2>10. Relationship with Other Modules</h2>
-<ul>
-<li><strong>Auth / Admin System:</strong> Changes to security settings (like timeout limits) immediately impact how the platform processes user sessions.</li>
-<li><strong>Content Documents &amp; Localization:</strong> App Settings are completely decoupled from Languages and Translations. They manage system logic, not localized text or legal document versions.</li>
-</ul>
-<h2>11. Boundaries</h2>
-<ul>
-<li><strong>What belongs to App Settings:</strong> Dynamic feature toggles, administrative email routing addresses, pagination limits, and active integration flags.</li>
-<li><strong>What MUST NOT be stored here:</strong><ul>
-<li><strong>Secrets:</strong> API tokens, database passwords, and encryption keys must never be stored here; they belong exclusively in core infrastructure configuration.</li>
-<li><strong>Large content:</strong> Large HTML blocks or legal policies must not be stored here; they belong in the Content Documents module.</li>
-<li><strong>Translations:</strong> User-facing text strings belong in the Translations module.</li>
-</ul>
-</li>
-</ul>
-<h2>12. Risks &amp; Misuse</h2>
-<ul>
-<li><strong>Dangers of misuse:</strong> Because changes take immediate effect, entering an invalid configuration (e.g., setting a pagination limit to <code>0</code> or <code>1000000</code>) can instantly break UI layouts or cause performance issues platform-wide.</li>
-<li><strong>Wrong usage patterns:</strong> Administrators attempting to use App Settings to store user-specific preferences or large localized strings violate the module's architectural boundaries.</li>
+    <li><strong>Active vs. Inactive:</strong> You can change a setting's status by clicking the toggle button in the Actions column for that row. A success message is shown and the table refreshes to display the new status.</li>
+    <li><strong>Locked Settings:</strong> You cannot modify settings marked with the 🔒 icon. The interface restricts editing for these configurations.</li>
+    <li><strong>Immediate Updates:</strong> Any changes made and saved in this interface will appear immediately in the table.</li>
 </ul>
 
 
