@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الأدوار</title>
+    <style>
+    :root {
+        --primary: #4338ca;
+        --bg: #f9fafb;
+        --surface: #ffffff;
+        --text: #374151;
+        --text-light: #6b7280;
+        --border: #e5e7eb;
+        --active-bg: #e0e7ff;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+    .layout { display: flex; min-height: 100vh; flex-direction: row; }
+    .sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); padding: 1.5rem; flex-shrink: 0; overflow-y: auto; }
+    .sidebar.rtl { border-right: none; border-left: 1px solid var(--border); }
+    .sidebar a { display: block; padding: 0.5rem 0.75rem; color: var(--text); text-decoration: none; border-radius: 0.375rem; margin-bottom: 0.25rem; font-size: 0.95rem; transition: background 0.2s; }
+    .sidebar a:hover { background: var(--bg); color: #111827; }
+    .sidebar a.active { background: var(--active-bg); color: var(--primary); font-weight: 600; }
+    .sidebar-section { margin-bottom: 1.5rem; }
+    .sidebar-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--text-light); margin-bottom: 0.5rem; padding-left: 0.75rem; }
+    .sidebar.rtl .sidebar-title { padding-left: 0; padding-right: 0.75rem; }
+    .sub-nav { margin-left: 0.5rem; border-left: 1px solid var(--border); padding-left: 0.5rem; }
+    .sidebar.rtl .sub-nav { margin-left: 0; margin-right: 0.5rem; border-left: none; border-right: 1px solid var(--border); padding-left: 0; padding-right: 0.5rem; }
+
+    .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+    .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .header-title { font-weight: 600; font-size: 1.25rem; }
+
+    .main-content { padding: 2rem; max-width: 800px; width: 100%; margin: 0 auto; background: var(--surface); margin-top: 2rem; margin-bottom: 2rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); }
+    h1 { font-size: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-top: 0; }
+    h1, h2, h3, h4 { color: #111827; }
+    code { background: var(--bg); padding: 0.2em 0.4em; border-radius: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.85em; border: 1px solid var(--border); }
+    pre { background: #1f2937; color: #f9fafb; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; }
+    pre code { background: none; padding: 0; border: none; color: inherit; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+    th, td { border: 1px solid var(--border); padding: 0.75rem; text-align: left; }
+    th { background: var(--bg); font-weight: 600; }
+    .sidebar.rtl th, .sidebar.rtl td { text-align: right; }
+
+    .lang-switcher a { display: inline-flex; align-items: center; justify-content: center; padding: 0.375rem 0.75rem; border: 1px solid var(--border); border-radius: 0.375rem; text-decoration: none; color: var(--text); background: var(--surface); font-size: 0.875rem; font-weight: 500; transition: all 0.2s; }
+    .lang-switcher a:hover { background: var(--bg); border-color: #d1d5db; }
+
+    blockquote { border-left: 4px solid var(--border); margin: 0; padding-left: 1rem; color: var(--text-light); }
+    .layout[dir="rtl"] blockquote { border-left: none; border-right: 4px solid var(--border); padding-left: 0; padding-right: 1rem; }
+
+    @media (max-width: 768px) {
+        .layout { flex-direction: column; }
+        .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+        .sidebar.rtl { border-left: none; }
+        .main-content { margin-top: 1rem; border-radius: 0; box-shadow: none; padding: 1.5rem; }
+    }
+    </style>
+</head>
+<body>
+    <div class="layout" dir="rtl">
+        <aside class="sidebar rtl">
+            <nav><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="../overview.html" class="">ملخص</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="../admins.html" class="">المشرفين</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="../admins-permissions.html" class="">أذونات المسؤول</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="../sessions.html" class="">الجلسات</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="../languages.html" class="">اللغات</a></div><div class="sidebar-section"><div class="sidebar-title">إعدادات</div><div class="sub-nav"><a href="../settings/overview.html" class="">ملخص</a><a href="../settings/content-documents.html" class="">وثائق المحتوى</a><a href="../settings/app-settings.html" class="">إعدادات التطبيق</a></div></div><div class="sidebar-section"><div class="sidebar-title">RBAC</div><div class="sub-nav"><a href="../rbac/overview.html" class="">ملخص</a><a href="../rbac/roles.html" class="active">الأدوار</a><a href="../rbac/permissions.html" class="">الأذونات</a></div></div><div class="sidebar-section"><div class="sidebar-title">ترجمات</div><div class="sub-nav"><a href="../translations/overview.html" class="">ملخص</a><a href="../translations/scopes.html" class="">النطاقات</a><a href="../translations/domains.html" class="">المجالات</a></div></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="../translations.html" class="">الترجمات (قديمة)</a></div></nav>
+        </aside>
+        <div class="main-wrapper">
+            <header class="header">
+                <div class="header-title">مركز المساعدة</div>
+                <div class="lang-switcher">
+                    <a href="#" id="langSwitch">English</a>
+                </div>
+            </header>
+            <main class="main-content">
+                <h1>إدارة الأدوار</h1>
+<h2>ملخص</h2>
+<p>تتحكم الأدوار في الوصول عبر النظام الأساسي. يقوم الدور بتجميع أذونات محددة معًا حتى تتمكن من منح مجموعة قياسية من حقوق الوصول إلى مسؤول بمهمة واحدة، بدلاً من إدارة مئات الأذونات المحددة بشكل فردي.</p>
+<h2>كيفية الوصول إلى الأدوار</h2>
+<p>لإدارة الأدوار:
+1. انظر إلى قائمة التنقل في الشريط الجانبي الأيسر.
+2. افتح <strong>RBAC</strong> قسم.
+3. انقر على <strong>الأدوار</strong>. يؤدي هذا إلى فتح صفحة قائمة الأدوار الرئيسية.</p>
+<h2>قائمة الأدوار</h2>
+<p>عندما تفتح قسم الأدوار، سترى جدولاً بجميع الأدوار الموجودة.
+* <strong>أعمدة الجدول:</strong> يعرض الجدول اسم كل دور وحالته الحالية.
+* <strong>الإجراءات:</strong> يمكنك النقر فوق <strong>منظر</strong> أو <strong>يحرر</strong> الأزرار الموجودة بجوار الدور الحالي، أو انقر فوق <strong>إنشاء دور</strong> زر لإضافة واحدة جديدة.
+* <strong>المرشحات والبحث:</strong> يوجد أعلى الجدول شريط بحث عالمي للعثور على الأدوار على الفور حسب الاسم أو المجموعة. يمكنك أيضًا النقر فوق شارات التصفية السريعة لعرض الأدوار "الكل" أو "النشطة" أو "غير النشطة". بالإضافة إلى ذلك، يسمح لك نموذج التصفية المخصص بالبحث على وجه التحديد حسب معرف الدور أو الاسم أو المجموعة، مع استكمال زر إعادة الضبط لمسح عوامل التصفية النشطة.</p>
+<h2>إنشاء دور (التدفق الكامل)</h2>
+<p>عندما تحتاج إلى تحديد وظيفة وظيفة جديدة بحقوق وصول محددة، اتبع الخطوات التالية:</p>
+<ol>
+<li>انقر فوق <strong>إنشاء دور</strong> زر.</li>
+<li>أدخل واضحا ووصفيا <strong>اسم الدور</strong> (على سبيل المثال، "وكيل الدعم" أو "المترجم").</li>
+<li>انقر فوق <strong>إنشاء دور</strong> زر لإنهاء الإنشاء.</li>
+<li><strong>نتيجة:</strong> تقوم خطوة الإنشاء فقط بإنشاء المعلومات الأساسية للدور (اسمه). لا يدير الأذونات بشكل كامل من هذه الخطوة. بعد الإنشاء، سيظهر الدور الجديد على الفور في قائمة الأدوار.</li>
+</ol>
+<h2>عرض وإدارة الدور</h2>
+<p>الطريقة الأساسية لتكوين حقوق الوصول والتعيينات الخاصة بالدور هي من خلال شاشة الإدارة الخاصة به.</p>
+<ol>
+<li>من قائمة الأدوار، انقر فوق <strong>منظر</strong> الزر بجوار الدور.</li>
+<li>يؤدي هذا إلى فتح صفحة تفاصيل الدور.</li>
+<li>تحتوي هذه الصفحة على قسمين رئيسيين:</li>
+<li><strong>علامة تبويب الأذونات:</strong> حيث يمكنك التحكم في ما يسمح به الدور.</li>
+<li><strong>علامة التبويب "المسؤولون":</strong> حيث يمكنك التحكم في من يحمل الدور.</li>
+</ol>
+<h3>إدارة الأذونات</h3>
+<p>تتم إدارة الأذونات بشكل صارم من <strong>علامة تبويب الأذونات</strong>.
+1. افتح <strong>علامة تبويب الأذونات</strong> في صفحة تفاصيل الدور.
+2. تظهر قائمة الأذونات.
+3. يحتوي كل إذن على مفتاح تبديل لتمكينه أو تعطيله.
+4. يؤدي النقر فوق مفتاح التبديل على الفور إلى تمكين هذا الإذن للدور أو تعطيله.
+* <strong>نتيجة:</strong> يؤدي تغيير التبديل على الفور إلى تحديث حقوق الوصول للدور عبر النظام الأساسي بأكمله.</p>
+<h3>تعيين المسؤول من صفحة الدور</h3>
+<p>أنت تدير من يشغل هذا الدور المحدد من <strong>علامة تبويب المسؤولين</strong>.
+1. افتح <strong>علامة تبويب المسؤولين</strong> في صفحة تفاصيل الدور.
+2. تعرض علامة التبويب قائمة المسؤولين.
+3. لدى كل مسؤول زر تبديل بجوار اسمه.
+4. يؤدي النقر فوق مفتاح تبديل المسؤول إلى تعيين هذا الدور أو إلغاء تعيينه له على الفور.</p>
+<h2>تحرير الدور</h2>
+<p>إذا كنت بحاجة فقط إلى تغيير التفاصيل الأساسية للدور:</p>
+<ol>
+<li>من قائمة الأدوار، انقر فوق <strong>يحرر</strong> الزر بجوار الدور.</li>
+<li>يمكنك تعديل معلوماته الأساسية، مثل اسمه.</li>
+<li>انقر فوق <strong>يحفظ</strong> زر لتطبيق التغييرات.</li>
+</ol>
+<h2>ماذا يحدث عندما يتغير الدور</h2>
+<p>ونظرًا لأن الأدوار مرتبطة مباشرةً بجلسة المسؤول، فإن أي تعديلات تصبح سارية المفعول على الفور.
+* <strong>تحديثات الشريط الجانبي:</strong> إذا قمت بإضافة أو إزالة الأذونات التي تتحكم في أقسام كاملة من النظام الأساسي (مثل قائمة "الإعدادات")، فسيظهر هذا الرابط على الفور أو يختفي من الشريط الجانبي الأيسر لأي مسؤول يشغل هذا الدور.
+* <strong>تظهر/تختفي الأزرار:</strong> إذا قمت بإضافة أو إزالة أذونات إجراء محددة (مثل "إنشاء مسؤول")، فسيصبح هذا الزر المحدد مرئيًا على الفور أو سيتم إخفاؤه على الصفحات ذات الصلة.
+* إذا كان المسؤول يعرض بشكل نشط صفحة قام تغيير الدور للتو بإلغاء الوصول إليها، فسيقوم النظام بحظره في المرة التالية التي ينقر فيها على زر أو يقوم بتحديث الصفحة.</p>
+<h2>ملاحظات هامة</h2>
+<ul>
+<li>تأكد دائمًا من أن الأدوار تتوافق مع مسؤوليات الوظيفة الفعلية.</li>
+<li>تجنب المبالغة في تعقيد الأدوار؛ اجعلها واسعة بما يكفي لتكون مفيدة للعديد من الموظفين الذين لديهم واجبات مماثلة.</li>
+<li>فضل تعيين الأدوار بدلاً من منح الأذونات المباشرة كلما أمكن ذلك، حيث إن تتبع الأدوار وتدقيقها وإدارتها على نطاق واسع أسهل بكثير.</li>
+</ul>
+            </main>
+        </div>
+    </div>
+    <script>
+        document.getElementById('langSwitch').addEventListener('click', function(e) {
+            e.preventDefault();
+            var currentUrl = window.location.href;
+            if ('ar' === 'en') {
+                window.location.href = currentUrl.replace('/en/', '/ar/');
+            } else {
+                window.location.href = currentUrl.replace('/ar/', '/en/');
+            }
+        });
+    </script>
+</body>
+</html>

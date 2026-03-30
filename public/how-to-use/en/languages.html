@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Managing Languages</title>
+    <style>
+    :root {
+        --primary: #4338ca;
+        --bg: #f9fafb;
+        --surface: #ffffff;
+        --text: #374151;
+        --text-light: #6b7280;
+        --border: #e5e7eb;
+        --active-bg: #e0e7ff;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+    .layout { display: flex; min-height: 100vh; flex-direction: row; }
+    .sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); padding: 1.5rem; flex-shrink: 0; overflow-y: auto; }
+    .sidebar.rtl { border-right: none; border-left: 1px solid var(--border); }
+    .sidebar a { display: block; padding: 0.5rem 0.75rem; color: var(--text); text-decoration: none; border-radius: 0.375rem; margin-bottom: 0.25rem; font-size: 0.95rem; transition: background 0.2s; }
+    .sidebar a:hover { background: var(--bg); color: #111827; }
+    .sidebar a.active { background: var(--active-bg); color: var(--primary); font-weight: 600; }
+    .sidebar-section { margin-bottom: 1.5rem; }
+    .sidebar-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--text-light); margin-bottom: 0.5rem; padding-left: 0.75rem; }
+    .sidebar.rtl .sidebar-title { padding-left: 0; padding-right: 0.75rem; }
+    .sub-nav { margin-left: 0.5rem; border-left: 1px solid var(--border); padding-left: 0.5rem; }
+    .sidebar.rtl .sub-nav { margin-left: 0; margin-right: 0.5rem; border-left: none; border-right: 1px solid var(--border); padding-left: 0; padding-right: 0.5rem; }
+
+    .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+    .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .header-title { font-weight: 600; font-size: 1.25rem; }
+
+    .main-content { padding: 2rem; max-width: 800px; width: 100%; margin: 0 auto; background: var(--surface); margin-top: 2rem; margin-bottom: 2rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); }
+    h1 { font-size: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-top: 0; }
+    h1, h2, h3, h4 { color: #111827; }
+    code { background: var(--bg); padding: 0.2em 0.4em; border-radius: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.85em; border: 1px solid var(--border); }
+    pre { background: #1f2937; color: #f9fafb; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; }
+    pre code { background: none; padding: 0; border: none; color: inherit; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+    th, td { border: 1px solid var(--border); padding: 0.75rem; text-align: left; }
+    th { background: var(--bg); font-weight: 600; }
+    .sidebar.rtl th, .sidebar.rtl td { text-align: right; }
+
+    .lang-switcher a { display: inline-flex; align-items: center; justify-content: center; padding: 0.375rem 0.75rem; border: 1px solid var(--border); border-radius: 0.375rem; text-decoration: none; color: var(--text); background: var(--surface); font-size: 0.875rem; font-weight: 500; transition: all 0.2s; }
+    .lang-switcher a:hover { background: var(--bg); border-color: #d1d5db; }
+
+    blockquote { border-left: 4px solid var(--border); margin: 0; padding-left: 1rem; color: var(--text-light); }
+    .layout[dir="rtl"] blockquote { border-left: none; border-right: 4px solid var(--border); padding-left: 0; padding-right: 1rem; }
+
+    @media (max-width: 768px) {
+        .layout { flex-direction: column; }
+        .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+        .sidebar.rtl { border-left: none; }
+        .main-content { margin-top: 1rem; border-radius: 0; box-shadow: none; padding: 1.5rem; }
+    }
+    </style>
+</head>
+<body>
+    <div class="layout" dir="ltr">
+        <aside class="sidebar">
+            <nav><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="overview.html" class="">Overview</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="admins.html" class="">Admins</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="admins-permissions.html" class="">Admin Permissions</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="sessions.html" class="">Sessions</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="languages.html" class="active">Languages</a></div><div class="sidebar-section"><div class="sidebar-title">Settings</div><div class="sub-nav"><a href="settings/overview.html" class="">Overview</a><a href="settings/content-documents.html" class="">Content Documents</a><a href="settings/app-settings.html" class="">App Settings</a></div></div><div class="sidebar-section"><div class="sidebar-title">RBAC</div><div class="sub-nav"><a href="rbac/overview.html" class="">Overview</a><a href="rbac/roles.html" class="">Roles</a><a href="rbac/permissions.html" class="">Permissions</a></div></div><div class="sidebar-section"><div class="sidebar-title">Translations</div><div class="sub-nav"><a href="translations/overview.html" class="">Overview</a><a href="translations/scopes.html" class="">Scopes</a><a href="translations/domains.html" class="">Domains</a></div></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="translations.html" class="">Translations (Old)</a></div></nav>
+        </aside>
+        <div class="main-wrapper">
+            <header class="header">
+                <div class="header-title">Help Center</div>
+                <div class="lang-switcher">
+                    <a href="#" id="langSwitch">العربية</a>
+                </div>
+            </header>
+            <main class="main-content">
+                <h1>Managing Languages</h1>
+<h2>Overview</h2>
+<p>The Languages page allows administrators to manage the list of available languages used across the platform. While this page does not handle the actual text translations, it defines which languages exist, their programmatic codes (e.g., "en", "ar"), their reading direction (left-to-right or right-to-left), and their active status. Other parts of the system use these languages to display content.</p>
+<h2>How to Access Languages</h2>
+<p>To manage the platform's supported languages:
+1. Locate the left sidebar navigation menu.
+2. Click on the <strong>Languages</strong> link.
+3. This opens the main Languages List page.</p>
+<h2>Languages List</h2>
+<p>The main interface is a data table displaying all registered languages.</p>
+<ul>
+<li><strong>Table Columns:</strong><ul>
+<li><strong>ID:</strong> The unique system identifier for the language.</li>
+<li><strong>Name:</strong> The human-readable name of the language (e.g., "English").</li>
+<li><strong>Code:</strong> The programmatic identifier (e.g., "en").</li>
+<li><strong>Direction:</strong> The reading direction for the language (e.g., <code>ltr</code> or <code>rtl</code>).</li>
+<li><strong>Order:</strong> The numerical sort order determining how languages appear in dropdowns across the platform.</li>
+<li><strong>Status:</strong> A visual badge indicating if the language is "Active" or "Inactive".</li>
+<li><strong>Fallback:</strong> Displays a link icon with the ID of another language if a fallback is configured, or "None" with an X icon if not.</li>
+<li><strong>Actions:</strong> Contains all interactive buttons for modifying the language row.</li>
+</ul>
+</li>
+</ul>
+<h3>Filters and Search</h3>
+<p>Above the table, the interface provides comprehensive search and filtering tools:
+*   <strong>Global Search:</strong> A search input box that allows you to instantly search across the table. It features a 1-second auto-search delay as you type, or you can press "Enter" or click the Search button to trigger it immediately. A "Clear" button resets this specific input.
+*   <strong>Column Filters:</strong> A filter form allowing you to narrow down the table by specific fields: ID, Name, Code, Direction, and Status.
+*   <strong>Reset Filters Button:</strong> A dedicated button that clears all active column filters and resets the table view to page 1.</p>
+<h2>Creating a Language</h2>
+<p>When introducing a new language option to the platform:</p>
+<ol>
+<li>Click the <strong>Create Language</strong> button located above the table.</li>
+<li>A modal or form will open requiring the new language's <strong>Name</strong>, <strong>Code</strong>, and <strong>Direction</strong> (LTR or RTL). You can also optionally provide an icon, set the initial Active status, and assign a Fallback Language.</li>
+<li>Click the save/create button to submit the form.</li>
+<li><strong>Validation:</strong> The system strictly verifies that the provided <strong>Code</strong> does not already exist. If it does, a "Language Already Exists" error is displayed.</li>
+<li><strong>Result:</strong> The language is immediately created and assigned the next available sort order automatically. It instantly appears in the Languages List.</li>
+</ol>
+<h2>Editing a Language</h2>
+<p>Unlike bulk-edit forms, modifying a language in this system is split into highly specific actions to ensure data integrity.</p>
+<p>From the <strong>Actions</strong> column in the Languages List, you can perform the following modifications:
+*   <strong>Update Settings:</strong> Click the Edit Settings button to modify the language's reading Direction and Icon.
+*   <strong>Update Name:</strong> Allows you to change the human-readable Name of the language.
+*   <strong>Update Code:</strong> Allows you to change the programmatic Code. <em>Warning:</em> The system will strictly validate that the new code is not already in use by another language.
+*   <strong>Update Sort Order:</strong> Allows you to manually adjust the numerical priority of the language.</p>
+<ul>
+<li><strong>Save Behavior:</strong> Each of these actions applies immediately. Upon success, the UI table refreshes instantly to display the updated data.</li>
+</ul>
+<h2>Activating / Deactivating a Language</h2>
+<p>You can control whether a registered language is currently active in the system.</p>
+<ol>
+<li>Locate the language row.</li>
+<li>Click the <strong>Activate</strong> or <strong>Deactivate</strong> toggle button in the Actions column.</li>
+<li><strong>What happens after:</strong> The Status badge changes immediately. When deactivated, the language is generally removed from user-facing selection options, though existing translations tied to it remain securely preserved.</li>
+</ol>
+<h2>Managing Fallback Languages</h2>
+<p>A "Fallback Language" instructs the system to display text from an alternative language if a translation is missing for the user's selected language.</p>
+<p>From the <strong>Actions</strong> column:
+1.  <strong>Set Fallback:</strong> If the language currently has "None" listed, click the <strong>Set Fallback</strong> button (purple link icon). A modal opens allowing you to input the ID of another language.
+2.  <strong>Clear Fallback:</strong> If a fallback is currently configured, click the <strong>Clear Fallback</strong> button (red X icon) to remove the fallback.</p>
+<h2>Deleting a Language</h2>
+<p>There is <strong>no delete functionality</strong> for languages. Languages are permanently referenced by translations and user settings across the platform. If a language is no longer needed, administrators must use the <strong>Deactivate</strong> action to hide it from the active platform.</p>
+<h2>What Happens When Languages Change</h2>
+<p>Because this is the central language list for the platform:
+*   <strong>Immediate Application:</strong> Any change to a language's Code, Direction, or Active status takes effect immediately across the interface.
+*   <strong>Translation Dependencies:</strong> Modifying a language directly impacts the translations area, as all text values are loaded based on the languages and fallbacks defined here.</p>
+<hr />
+            </main>
+        </div>
+    </div>
+    <script>
+        document.getElementById('langSwitch').addEventListener('click', function(e) {
+            e.preventDefault();
+            var currentUrl = window.location.href;
+            if ('en' === 'en') {
+                window.location.href = currentUrl.replace('/en/', '/ar/');
+            } else {
+                window.location.href = currentUrl.replace('/ar/', '/en/');
+            }
+        });
+    </script>
+</body>
+</html>

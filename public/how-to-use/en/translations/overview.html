@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Managing Translations — System Overview</title>
+    <style>
+    :root {
+        --primary: #4338ca;
+        --bg: #f9fafb;
+        --surface: #ffffff;
+        --text: #374151;
+        --text-light: #6b7280;
+        --border: #e5e7eb;
+        --active-bg: #e0e7ff;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+    .layout { display: flex; min-height: 100vh; flex-direction: row; }
+    .sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); padding: 1.5rem; flex-shrink: 0; overflow-y: auto; }
+    .sidebar.rtl { border-right: none; border-left: 1px solid var(--border); }
+    .sidebar a { display: block; padding: 0.5rem 0.75rem; color: var(--text); text-decoration: none; border-radius: 0.375rem; margin-bottom: 0.25rem; font-size: 0.95rem; transition: background 0.2s; }
+    .sidebar a:hover { background: var(--bg); color: #111827; }
+    .sidebar a.active { background: var(--active-bg); color: var(--primary); font-weight: 600; }
+    .sidebar-section { margin-bottom: 1.5rem; }
+    .sidebar-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--text-light); margin-bottom: 0.5rem; padding-left: 0.75rem; }
+    .sidebar.rtl .sidebar-title { padding-left: 0; padding-right: 0.75rem; }
+    .sub-nav { margin-left: 0.5rem; border-left: 1px solid var(--border); padding-left: 0.5rem; }
+    .sidebar.rtl .sub-nav { margin-left: 0; margin-right: 0.5rem; border-left: none; border-right: 1px solid var(--border); padding-left: 0; padding-right: 0.5rem; }
+
+    .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+    .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .header-title { font-weight: 600; font-size: 1.25rem; }
+
+    .main-content { padding: 2rem; max-width: 800px; width: 100%; margin: 0 auto; background: var(--surface); margin-top: 2rem; margin-bottom: 2rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); }
+    h1 { font-size: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-top: 0; }
+    h1, h2, h3, h4 { color: #111827; }
+    code { background: var(--bg); padding: 0.2em 0.4em; border-radius: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.85em; border: 1px solid var(--border); }
+    pre { background: #1f2937; color: #f9fafb; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; }
+    pre code { background: none; padding: 0; border: none; color: inherit; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+    th, td { border: 1px solid var(--border); padding: 0.75rem; text-align: left; }
+    th { background: var(--bg); font-weight: 600; }
+    .sidebar.rtl th, .sidebar.rtl td { text-align: right; }
+
+    .lang-switcher a { display: inline-flex; align-items: center; justify-content: center; padding: 0.375rem 0.75rem; border: 1px solid var(--border); border-radius: 0.375rem; text-decoration: none; color: var(--text); background: var(--surface); font-size: 0.875rem; font-weight: 500; transition: all 0.2s; }
+    .lang-switcher a:hover { background: var(--bg); border-color: #d1d5db; }
+
+    blockquote { border-left: 4px solid var(--border); margin: 0; padding-left: 1rem; color: var(--text-light); }
+    .layout[dir="rtl"] blockquote { border-left: none; border-right: 4px solid var(--border); padding-left: 0; padding-right: 1rem; }
+
+    @media (max-width: 768px) {
+        .layout { flex-direction: column; }
+        .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+        .sidebar.rtl { border-left: none; }
+        .main-content { margin-top: 1rem; border-radius: 0; box-shadow: none; padding: 1.5rem; }
+    }
+    </style>
+</head>
+<body>
+    <div class="layout" dir="ltr">
+        <aside class="sidebar">
+            <nav><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="../overview.html" class="">Overview</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="../admins.html" class="">Admins</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="../admins-permissions.html" class="">Admin Permissions</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="../sessions.html" class="">Sessions</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="../languages.html" class="">Languages</a></div><div class="sidebar-section"><div class="sidebar-title">Settings</div><div class="sub-nav"><a href="../settings/overview.html" class="">Overview</a><a href="../settings/content-documents.html" class="">Content Documents</a><a href="../settings/app-settings.html" class="">App Settings</a></div></div><div class="sidebar-section"><div class="sidebar-title">RBAC</div><div class="sub-nav"><a href="../rbac/overview.html" class="">Overview</a><a href="../rbac/roles.html" class="">Roles</a><a href="../rbac/permissions.html" class="">Permissions</a></div></div><div class="sidebar-section"><div class="sidebar-title">Translations</div><div class="sub-nav"><a href="../translations/overview.html" class="active">Overview</a><a href="../translations/scopes.html" class="">Scopes</a><a href="../translations/domains.html" class="">Domains</a></div></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="../translations.html" class="">Translations (Old)</a></div></nav>
+        </aside>
+        <div class="main-wrapper">
+            <header class="header">
+                <div class="header-title">Help Center</div>
+                <div class="lang-switcher">
+                    <a href="#" id="langSwitch">العربية</a>
+                </div>
+            </header>
+            <main class="main-content">
+                <h1>Managing Translations — System Overview</h1>
+<h2>1. Purpose of the Translations System</h2>
+<p>The Translations System is a localization layer designed to manage all localized text across the platform. It solves the problem of hardcoding strings into applications by allowing administrators to dynamically define, edit, and organize text in multiple languages. Administrators use this system to control exactly what users read in the interface, ensuring consistent terminology and allowing the platform to serve a global audience without requiring code deployments for text changes.</p>
+<h2>2. Core Architecture</h2>
+<p>The system organizes translations into a four-level hierarchy:</p>
+<ul>
+<li><strong>Scopes:</strong> The top-level namespace (e.g., admin, client, api). It represents the major application boundary. It connects to Domains to organize specific features.</li>
+<li><strong>Domains:</strong> A sub-grouping within a Scope (e.g., auth, products, errors). It represents a specific feature or module. A Domain must be explicitly allowed for a Scope before Keys can be created under it.</li>
+<li><strong>Keys:</strong> The structured registry of valid text identifiers (e.g., login.title). A Key is a strict combination of Scope, Domain, and Key Part. It acts as the anchor for the actual text values.</li>
+<li><strong>Values:</strong> The actual localized text strings. Each value is tied directly to a specific Key and Language.</li>
+</ul>
+<h2>3. How Translations Work in the System</h2>
+<p>When the system renders text in the UI, it follows these rules:</p>
+<ol>
+<li><strong>Language Resolution:</strong> The system determines the user's requested language.</li>
+<li><strong>System Lookup:</strong> The system retrieves the exact translation matching the requested language and key.</li>
+<li><strong>Fallback Behavior:</strong> If the exact translation is missing, the system utilizes a strict fallback chain. It checks if the requested language has a fallback language defined. If so, it automatically attempts to load the translation for that fallback language. If both the primary and fallback languages are missing the translation, the system returns the raw key string.</li>
+</ol>
+<h2>4. Admin Interaction Model</h2>
+<p>Administrators interact with the system through a drill-down flow designed to enforce the strict hierarchy:</p>
+<ol>
+<li><strong>Start at Scopes:</strong> The admin begins at the top level, viewing the available namespaces.</li>
+<li><strong>Drill down to Domains:</strong> The admin selects a Scope to view its explicitly assigned Domains.</li>
+<li><strong>Drill down to Keys:</strong> The admin selects a Domain to view the registry of Keys belonging to that specific Scope and Domain pair.</li>
+<li><strong>Actual Editing:</strong> The admin reaches the deepest level (the Translations List) where they manage the actual text values tied to those Keys across different languages.</li>
+</ol>
+<h2>5. Translation Editing Model</h2>
+<ul>
+<li><strong>How values are edited:</strong> Admins edit values directly through the translation interface.</li>
+<li><strong>How multiple languages are handled:</strong> Translations for multiple languages are attached to the same Key.</li>
+<li><strong>How updates propagate to the system:</strong> The system uses a strict consistency model. There are no background delays. When a translation is updated, it is immediately applied. Simultaneously, all translation coverage statistics are instantly recalculated to ensure admin dashboards reflect the new coverage immediately.</li>
+</ul>
+<h2>6. Language Dependency</h2>
+<p>The Translations module depends on the active languages defined in the system.</p>
+<ul>
+<li><strong>How languages affect translations:</strong> The Translations module does not define what languages exist. It strictly relies on the active languages list. Every translation must be attached to a valid language.</li>
+<li><strong>What happens when a language is inactive/missing:</strong> If a language is deleted or deactivated, translations tied to that language become unavailable. The system will block any attempts to save a translation for an invalid language.</li>
+<li><strong>How fallback language is used:</strong> The fallback language is defined in the Languages management section. The Translations module simply reads this fallback configuration during runtime to resolve missing keys.</li>
+</ul>
+<h2>7. System Behavior &amp; Consistency</h2>
+<ul>
+<li><strong>Immediate vs delayed updates:</strong> All updates are strongly consistent and immediate. The system enforces instantaneous updates.</li>
+<li><strong>Caching:</strong> Translations are updated immediately without requiring cache clears.</li>
+<li><strong>Impact of changing shared keys:</strong> Because Keys are strictly registered and globally queried by the application, changing the value of a shared key (e.g., changing a generic "Save" button text) will instantly and immediately update that text everywhere the key is referenced across the entire platform.</li>
+</ul>
+<h2>8. Navigation Overview</h2>
+<p>The high-level navigation structure mirrors the architectural hierarchy:</p>
+<p><code>Translations</code> → <code>Scopes</code> → <code>Domains</code> → <code>Keys</code></p>
+<h2>9. Boundaries of This Module</h2>
+<ul>
+<li><strong>What this module DOES:</strong> It strictly manages the registry of valid text Keys, enforces the Scope and Domain hierarchy, and stores and retrieves the actual localized text strings. It maintains statistics about translation coverage.</li>
+<li><strong>What it DOES NOT do:</strong> It does NOT manage language identity, language codes, or fallback configurations. Those responsibilities belong entirely to the Languages module.</li>
+</ul>
+            </main>
+        </div>
+    </div>
+    <script>
+        document.getElementById('langSwitch').addEventListener('click', function(e) {
+            e.preventDefault();
+            var currentUrl = window.location.href;
+            if ('en' === 'en') {
+                window.location.href = currentUrl.replace('/en/', '/ar/');
+            } else {
+                window.location.href = currentUrl.replace('/ar/', '/en/');
+            }
+        });
+    </script>
+</body>
+</html>

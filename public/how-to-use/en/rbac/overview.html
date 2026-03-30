@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Control (Roles & Permissions)</title>
+    <style>
+    :root {
+        --primary: #4338ca;
+        --bg: #f9fafb;
+        --surface: #ffffff;
+        --text: #374151;
+        --text-light: #6b7280;
+        --border: #e5e7eb;
+        --active-bg: #e0e7ff;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+    .layout { display: flex; min-height: 100vh; flex-direction: row; }
+    .sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); padding: 1.5rem; flex-shrink: 0; overflow-y: auto; }
+    .sidebar.rtl { border-right: none; border-left: 1px solid var(--border); }
+    .sidebar a { display: block; padding: 0.5rem 0.75rem; color: var(--text); text-decoration: none; border-radius: 0.375rem; margin-bottom: 0.25rem; font-size: 0.95rem; transition: background 0.2s; }
+    .sidebar a:hover { background: var(--bg); color: #111827; }
+    .sidebar a.active { background: var(--active-bg); color: var(--primary); font-weight: 600; }
+    .sidebar-section { margin-bottom: 1.5rem; }
+    .sidebar-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--text-light); margin-bottom: 0.5rem; padding-left: 0.75rem; }
+    .sidebar.rtl .sidebar-title { padding-left: 0; padding-right: 0.75rem; }
+    .sub-nav { margin-left: 0.5rem; border-left: 1px solid var(--border); padding-left: 0.5rem; }
+    .sidebar.rtl .sub-nav { margin-left: 0; margin-right: 0.5rem; border-left: none; border-right: 1px solid var(--border); padding-left: 0; padding-right: 0.5rem; }
+
+    .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+    .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .header-title { font-weight: 600; font-size: 1.25rem; }
+
+    .main-content { padding: 2rem; max-width: 800px; width: 100%; margin: 0 auto; background: var(--surface); margin-top: 2rem; margin-bottom: 2rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); }
+    h1 { font-size: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-top: 0; }
+    h1, h2, h3, h4 { color: #111827; }
+    code { background: var(--bg); padding: 0.2em 0.4em; border-radius: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.85em; border: 1px solid var(--border); }
+    pre { background: #1f2937; color: #f9fafb; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; }
+    pre code { background: none; padding: 0; border: none; color: inherit; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+    th, td { border: 1px solid var(--border); padding: 0.75rem; text-align: left; }
+    th { background: var(--bg); font-weight: 600; }
+    .sidebar.rtl th, .sidebar.rtl td { text-align: right; }
+
+    .lang-switcher a { display: inline-flex; align-items: center; justify-content: center; padding: 0.375rem 0.75rem; border: 1px solid var(--border); border-radius: 0.375rem; text-decoration: none; color: var(--text); background: var(--surface); font-size: 0.875rem; font-weight: 500; transition: all 0.2s; }
+    .lang-switcher a:hover { background: var(--bg); border-color: #d1d5db; }
+
+    blockquote { border-left: 4px solid var(--border); margin: 0; padding-left: 1rem; color: var(--text-light); }
+    .layout[dir="rtl"] blockquote { border-left: none; border-right: 4px solid var(--border); padding-left: 0; padding-right: 1rem; }
+
+    @media (max-width: 768px) {
+        .layout { flex-direction: column; }
+        .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+        .sidebar.rtl { border-left: none; }
+        .main-content { margin-top: 1rem; border-radius: 0; box-shadow: none; padding: 1.5rem; }
+    }
+    </style>
+</head>
+<body>
+    <div class="layout" dir="ltr">
+        <aside class="sidebar">
+            <nav><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="../overview.html" class="">Overview</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="../admins.html" class="">Admins</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="../admins-permissions.html" class="">Admin Permissions</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="../sessions.html" class="">Sessions</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="../languages.html" class="">Languages</a></div><div class="sidebar-section"><div class="sidebar-title">Settings</div><div class="sub-nav"><a href="../settings/overview.html" class="">Overview</a><a href="../settings/content-documents.html" class="">Content Documents</a><a href="../settings/app-settings.html" class="">App Settings</a></div></div><div class="sidebar-section"><div class="sidebar-title">RBAC</div><div class="sub-nav"><a href="../rbac/overview.html" class="active">Overview</a><a href="../rbac/roles.html" class="">Roles</a><a href="../rbac/permissions.html" class="">Permissions</a></div></div><div class="sidebar-section"><div class="sidebar-title">Translations</div><div class="sub-nav"><a href="../translations/overview.html" class="">Overview</a><a href="../translations/scopes.html" class="">Scopes</a><a href="../translations/domains.html" class="">Domains</a></div></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="../translations.html" class="">Translations (Old)</a></div></nav>
+        </aside>
+        <div class="main-wrapper">
+            <header class="header">
+                <div class="header-title">Help Center</div>
+                <div class="lang-switcher">
+                    <a href="#" id="langSwitch">العربية</a>
+                </div>
+            </header>
+            <main class="main-content">
+                <h1>Access Control (Roles &amp; Permissions)</h1>
+<h2>Why Access Control Exists</h2>
+<p>Not all administrators require the ability to modify every part of the platform. For example, a support agent needs to view user accounts but should not be allowed to change global application settings or delete system translation languages. Access control restricts visibility and actions. It ensures that staff members can only see the specific sections of the left sidebar navigation menu—and click the specific buttons—that they actually need to perform their jobs.</p>
+<h2>Roles</h2>
+<p>A Role functions as a pre-packaged set of access rights designed for a specific job title, such as a "Translator" or "Content Manager". Instead of manually clicking and selecting dozens of individual access boxes every time a new staff member joins, you create a Role, check the necessary access boxes once, and then simply assign that Role to the administrator's profile.</p>
+<h2>Permissions</h2>
+<p>A Permission is the smallest, most specific unit of access. It dictates exactly which buttons appear and which pages load for an administrator. For example, one permission determines if the "View" button appears next to a translation, while a completely separate permission determines if the "Edit" or "Delete" buttons appear on that same page.</p>
+<h2>How Roles and Permissions Work Together</h2>
+<p>Roles are the primary way to manage access in the system. When you assign a Role to an administrator, they instantly receive all the underlying Permissions attached to that Role, immediately updating their navigation sidebar.</p>
+<p>You can also assign Permissions directly to an administrator's profile. Direct permissions are used only for exceptional cases. For example, if a staff member needs a single, unique capability (like clicking "Publish" on a specific legal document) but does not need a completely new Role, you can grant them that specific right directly.</p>
+<h2>How to Use Roles</h2>
+<p>Using roles correctly saves you time and ensures consistent security. Here is the standard step-by-step process:</p>
+<ol>
+<li><strong>Create the Role:</strong> Go to the Roles section and create a new role based on a job function (e.g., "Customer Support"). At this stage, you are just defining the name.</li>
+<li><strong>Assign Permissions to the Role:</strong> Open the newly created role, go to its Permissions section, and toggle ON all the specific actions that someone in this job would need to perform.</li>
+<li><strong>Assign the Role to an Admin:</strong> Go to the specific administrator's profile, open their Roles section, and assign the "Customer Support" role to them. They will instantly gain all the access rights you previously toggled on.</li>
+</ol>
+<h2>How to Use Direct Permissions</h2>
+<p>While Roles group permissions together, <strong>Direct Permissions</strong> are assigned directly to an individual administrator's profile, completely bypassing any Role.</p>
+<ul>
+<li><strong>When to use them:</strong> Use direct permissions for temporary exceptions or highly specialized tasks. For example, if an administrator normally has a standard "Editor" role but you need them to have a one-time ability to delete a specific system log, you can grant them that single "Delete Log" permission directly.</li>
+<li><strong>When NOT to use them:</strong> Do not use direct permissions as your primary way of managing access. If you find yourself assigning the same 10 direct permissions to multiple people, you should create a Role instead.</li>
+</ul>
+<h2>What Happens When Access Changes</h2>
+<p>When an administrator's assigned Roles or Permissions are modified, the effects happen instantly across their active sessions.
+*   Entire menu items (like "Admins", "Sessions", or "Settings") in the left sidebar navigation will instantly appear or disappear based on what they are newly allowed to view.
+*   Specific action buttons (such as "Create Admin," "Edit Profile," or "Revoke Session") within a page will instantly become visible or be hidden.</p>
+<h2>What Happens If Access is Denied</h2>
+<p>From the perspective of an administrator, the system is designed to be invisible unless they have the proper access. If an administrator does not have permission to perform an action:</p>
+<ul>
+<li><strong>Buttons will not appear:</strong> The "Delete" or "Edit" buttons will simply be missing from their screen.</li>
+<li><strong>Pages will not load:</strong> If they try to manually type the web address of a page they shouldn't see, the page will not load. Instead, the system will actively block the request and display an "Access Denied" error message.</li>
+<li><strong>Actions are blocked:</strong> Even if they somehow clicked a button before their access was revoked, the system will block the underlying action from completing.</li>
+</ul>
+<h2>Real Usage Scenario</h2>
+<p>Imagine you create a "Translation Specialist" role and assign it only the permissions to view and edit Translations.</p>
+<ul>
+<li><strong>What the user sees:</strong> When an administrator with this role logs in, they will only see the "Languages" and "Translations" links in their left sidebar. Inside the Translations page, they will see the "Edit" buttons allowing them to update localized text.</li>
+<li><strong>What the user cannot see:</strong> The "Admins," "Sessions," and "Settings" links will be completely missing from their sidebar.</li>
+<li><strong>What happens if access is removed:</strong> If you suddenly remove the "Translation Specialist" role from their profile while they are working, the "Translations" link will vanish from their screen. If they try to click "Edit" on a translation they were just looking at, the system will instantly block them and show an error.</li>
+</ul>
+<h2>Common Mistakes</h2>
+<p>When managing access, administrators often fall into these traps:</p>
+<ul>
+<li><strong>Giving too many permissions:</strong> Assigning a broad "Manager" role to someone who only needs to view logs violates security. Always start with zero access and add only what is necessary.</li>
+<li><strong>Forgetting direct permissions:</strong> Because direct permissions bypass Roles, it is easy to forget someone has them. Always review an administrator's direct permissions periodically to ensure they don't have leftover access from a past project.</li>
+<li><strong>Confusion between Roles and Permissions:</strong> Remember that a Role does nothing on its own; it is simply a container. You must toggle the Permissions <em>inside</em> the Role for it to have any effect.</li>
+</ul>
+<h2>Best Practices</h2>
+<ul>
+<li><strong>Always use Roles first:</strong> Group permissions logically by job title. This keeps your system organized and easy to audit.</li>
+<li><strong>Keep permissions minimal:</strong> Follow the principle of least privilege. Only grant the exact permissions required for the job.</li>
+<li><strong>Use direct permissions only when necessary:</strong> Reserve direct permissions for rare, highly specific exceptions to keep your overall access strategy clean and manageable.</li>
+</ul>
+<hr />
+            </main>
+        </div>
+    </div>
+    <script>
+        document.getElementById('langSwitch').addEventListener('click', function(e) {
+            e.preventDefault();
+            var currentUrl = window.location.href;
+            if ('en' === 'en') {
+                window.location.href = currentUrl.replace('/en/', '/ar/');
+            } else {
+                window.location.href = currentUrl.replace('/ar/', '/en/');
+            }
+        });
+    </script>
+</body>
+</html>

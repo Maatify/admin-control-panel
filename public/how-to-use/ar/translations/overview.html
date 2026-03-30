@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الترجمات — نظرة عامة على النظام</title>
+    <style>
+    :root {
+        --primary: #4338ca;
+        --bg: #f9fafb;
+        --surface: #ffffff;
+        --text: #374151;
+        --text-light: #6b7280;
+        --border: #e5e7eb;
+        --active-bg: #e0e7ff;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+    .layout { display: flex; min-height: 100vh; flex-direction: row; }
+    .sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); padding: 1.5rem; flex-shrink: 0; overflow-y: auto; }
+    .sidebar.rtl { border-right: none; border-left: 1px solid var(--border); }
+    .sidebar a { display: block; padding: 0.5rem 0.75rem; color: var(--text); text-decoration: none; border-radius: 0.375rem; margin-bottom: 0.25rem; font-size: 0.95rem; transition: background 0.2s; }
+    .sidebar a:hover { background: var(--bg); color: #111827; }
+    .sidebar a.active { background: var(--active-bg); color: var(--primary); font-weight: 600; }
+    .sidebar-section { margin-bottom: 1.5rem; }
+    .sidebar-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--text-light); margin-bottom: 0.5rem; padding-left: 0.75rem; }
+    .sidebar.rtl .sidebar-title { padding-left: 0; padding-right: 0.75rem; }
+    .sub-nav { margin-left: 0.5rem; border-left: 1px solid var(--border); padding-left: 0.5rem; }
+    .sidebar.rtl .sub-nav { margin-left: 0; margin-right: 0.5rem; border-left: none; border-right: 1px solid var(--border); padding-left: 0; padding-right: 0.5rem; }
+
+    .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+    .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .header-title { font-weight: 600; font-size: 1.25rem; }
+
+    .main-content { padding: 2rem; max-width: 800px; width: 100%; margin: 0 auto; background: var(--surface); margin-top: 2rem; margin-bottom: 2rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); }
+    h1 { font-size: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-top: 0; }
+    h1, h2, h3, h4 { color: #111827; }
+    code { background: var(--bg); padding: 0.2em 0.4em; border-radius: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.85em; border: 1px solid var(--border); }
+    pre { background: #1f2937; color: #f9fafb; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; }
+    pre code { background: none; padding: 0; border: none; color: inherit; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+    th, td { border: 1px solid var(--border); padding: 0.75rem; text-align: left; }
+    th { background: var(--bg); font-weight: 600; }
+    .sidebar.rtl th, .sidebar.rtl td { text-align: right; }
+
+    .lang-switcher a { display: inline-flex; align-items: center; justify-content: center; padding: 0.375rem 0.75rem; border: 1px solid var(--border); border-radius: 0.375rem; text-decoration: none; color: var(--text); background: var(--surface); font-size: 0.875rem; font-weight: 500; transition: all 0.2s; }
+    .lang-switcher a:hover { background: var(--bg); border-color: #d1d5db; }
+
+    blockquote { border-left: 4px solid var(--border); margin: 0; padding-left: 1rem; color: var(--text-light); }
+    .layout[dir="rtl"] blockquote { border-left: none; border-right: 4px solid var(--border); padding-left: 0; padding-right: 1rem; }
+
+    @media (max-width: 768px) {
+        .layout { flex-direction: column; }
+        .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+        .sidebar.rtl { border-left: none; }
+        .main-content { margin-top: 1rem; border-radius: 0; box-shadow: none; padding: 1.5rem; }
+    }
+    </style>
+</head>
+<body>
+    <div class="layout" dir="rtl">
+        <aside class="sidebar rtl">
+            <nav><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="../overview.html" class="">ملخص</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="../admins.html" class="">المشرفين</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="../admins-permissions.html" class="">أذونات المسؤول</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="../sessions.html" class="">الجلسات</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="../languages.html" class="">اللغات</a></div><div class="sidebar-section"><div class="sidebar-title">إعدادات</div><div class="sub-nav"><a href="../settings/overview.html" class="">ملخص</a><a href="../settings/content-documents.html" class="">وثائق المحتوى</a><a href="../settings/app-settings.html" class="">إعدادات التطبيق</a></div></div><div class="sidebar-section"><div class="sidebar-title">RBAC</div><div class="sub-nav"><a href="../rbac/overview.html" class="">ملخص</a><a href="../rbac/roles.html" class="">الأدوار</a><a href="../rbac/permissions.html" class="">الأذونات</a></div></div><div class="sidebar-section"><div class="sidebar-title">ترجمات</div><div class="sub-nav"><a href="../translations/overview.html" class="active">ملخص</a><a href="../translations/scopes.html" class="">النطاقات</a><a href="../translations/domains.html" class="">المجالات</a></div></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="../translations.html" class="">الترجمات (قديمة)</a></div></nav>
+        </aside>
+        <div class="main-wrapper">
+            <header class="header">
+                <div class="header-title">مركز المساعدة</div>
+                <div class="lang-switcher">
+                    <a href="#" id="langSwitch">English</a>
+                </div>
+            </header>
+            <main class="main-content">
+                <h1>إدارة الترجمات — نظرة عامة على النظام</h1>
+<h2>1. الغرض من نظام الترجمات</h2>
+<p>نظام الترجمات عبارة عن طبقة ترجمة مصممة لإدارة كل النصوص المترجمة عبر النظام الأساسي. فهو يحل مشكلة ترميز السلاسل الثابتة في التطبيقات من خلال السماح للمسؤولين بتعريف النص وتحريره وتنظيمه ديناميكيًا بلغات متعددة. يستخدم المسؤولون هذا النظام للتحكم بالضبط في ما يقرأه المستخدمون في الواجهة، مما يضمن مصطلحات متسقة ويسمح للنظام الأساسي بخدمة جمهور عالمي دون الحاجة إلى نشر التعليمات البرمجية لتغييرات النص.</p>
+<h2>2. البنية الأساسية</h2>
+<p>ينظم النظام الترجمات في تسلسل هرمي من أربعة مستويات:</p>
+<ul>
+<li><strong>النطاقات:</strong> مساحة الاسم ذات المستوى الأعلى (على سبيل المثال، admin، client، api). وهو يمثل حدود التطبيق الرئيسية. يتصل بالمجالات لتنظيم ميزات محددة.</li>
+<li><strong>المجالات:</strong> مجموعة فرعية ضمن النطاق (على سبيل المثال، المصادقة، المنتجات، الأخطاء). إنه يمثل ميزة أو وحدة محددة. يجب السماح بالمجال بشكل صريح للنطاق قبل أن يتم إنشاء المفاتيح ضمنه.</li>
+<li><strong>المفاتيح:</strong> السجل المنظم لمعرفات النص الصالحة (على سبيل المثال، تسجيل الدخول. العنوان). المفتاح هو مزيج صارم من النطاق والمجال والجزء الرئيسي. إنه بمثابة مرساة لقيم النص الفعلية.</li>
+<li><strong>قيم:</strong> السلاسل النصية المترجمة الفعلية. ترتبط كل قيمة مباشرة بمفتاح ولغة محددين.</li>
+</ul>
+<h2>3. كيف تعمل الترجمات في النظام</h2>
+<p>عندما يعرض النظام نصًا في واجهة المستخدم، فإنه يتبع القواعد التالية:</p>
+<ol>
+<li><strong>دقة اللغة:</strong> يحدد النظام اللغة المطلوبة للمستخدم.</li>
+<li><strong>بحث النظام:</strong> يقوم النظام باسترداد الترجمة الدقيقة المطابقة للغة والمفتاح المطلوبين.</li>
+<li><strong>السلوك الاحتياطي:</strong> إذا كانت الترجمة الدقيقة مفقودة، يستخدم النظام سلسلة احتياطية صارمة. يتحقق مما إذا كانت اللغة المطلوبة تحتوي على لغة احتياطية محددة. إذا كان الأمر كذلك، فإنه يحاول تلقائيًا تحميل الترجمة لتلك اللغة الاحتياطية. إذا كانت كل من اللغات الأساسية والاحتياطية تفتقد الترجمة، فسيقوم النظام بإرجاع سلسلة المفاتيح الأولية.</li>
+</ol>
+<h2>4. نموذج التفاعل الإداري</h2>
+<p>يتفاعل المسؤولون مع النظام من خلال تدفق تفصيلي مصمم لفرض التسلسل الهرمي الصارم:</p>
+<ol>
+<li><strong>ابدأ بالنطاقات:</strong> يبدأ المسؤول من المستوى الأعلى، ويعرض مساحات الأسماء المتاحة.</li>
+<li><strong>انتقل لأسفل إلى المجالات:</strong> يحدد المسؤول نطاقًا لعرض النطاقات المخصصة له بشكل صريح.</li>
+<li><strong>انتقل لأسفل إلى المفاتيح:</strong> يحدد المسؤول مجالًا لعرض سجل المفاتيح التي تنتمي إلى زوج النطاق والمجال المحدد.</li>
+<li><strong>التحرير الفعلي:</strong> يصل المسؤول إلى المستوى الأعمق (قائمة الترجمات) حيث يقوم بإدارة القيم النصية الفعلية المرتبطة بتلك المفاتيح عبر اللغات المختلفة.</li>
+</ol>
+<h2>5. نموذج تحرير الترجمة</h2>
+<ul>
+<li><strong>كيف يتم تحرير القيم:</strong> يقوم المسؤولون بتحرير القيم مباشرة من خلال واجهة الترجمة.</li>
+<li><strong>كيف يتم التعامل مع اللغات المتعددة:</strong> يتم إرفاق الترجمات للغات متعددة بنفس المفتاح.</li>
+<li><strong>كيفية نشر التحديثات إلى النظام:</strong> يستخدم النظام نموذج اتساق صارم. لا توجد تأخيرات في الخلفية. عندما يتم تحديث الترجمة، يتم تطبيقها على الفور. وفي الوقت نفسه، تتم إعادة حساب جميع إحصائيات تغطية الترجمة على الفور للتأكد من أن لوحات التحكم الإدارية تعكس التغطية الجديدة على الفور.</li>
+</ul>
+<h2>6. التبعية اللغوية</h2>
+<p>تعتمد وحدة الترجمات على اللغات النشطة المحددة في النظام.</p>
+<ul>
+<li><strong>كيف تؤثر اللغات على الترجمات:</strong> لا تحدد وحدة الترجمات اللغات الموجودة. يعتمد بشكل صارم على قائمة اللغات النشطة. يجب أن تكون كل ترجمة مرفقة بلغة صالحة.</li>
+<li><strong>ماذا يحدث عندما تكون اللغة غير نشطة/مفقودة:</strong> إذا تم حذف لغة ما أو إلغاء تنشيطها، تصبح الترجمات المرتبطة بتلك اللغة غير متاحة. سيقوم النظام بحظر أي محاولات لحفظ الترجمة للغة غير صالحة.</li>
+<li><strong>كيف يتم استخدام اللغة الاحتياطية:</strong> يتم تعريف اللغة الاحتياطية في قسم إدارة اللغات. تقوم وحدة الترجمات ببساطة بقراءة هذا التكوين الاحتياطي أثناء وقت التشغيل لحل المفاتيح المفقودة.</li>
+</ul>
+<h2>7. سلوك النظام واتساقه</h2>
+<ul>
+<li><strong>التحديثات الفورية والمتأخرة:</strong> جميع التحديثات متسقة بقوة وفورية. يفرض النظام تحديثات فورية.</li>
+<li><strong>التخزين المؤقت:</strong> يتم تحديث الترجمات على الفور دون الحاجة إلى مسح ذاكرة التخزين المؤقت.</li>
+<li><strong>تأثير تغيير المفاتيح المشتركة:</strong> نظرًا لأن المفاتيح مسجلة بشكل صارم ويتم الاستعلام عنها عالميًا بواسطة التطبيق، فإن تغيير قيمة المفتاح المشترك (على سبيل المثال، تغيير نص زر "حفظ" عام) سيؤدي على الفور وبشكل فوري إلى تحديث هذا النص في كل مكان تتم الإشارة فيه إلى المفتاح عبر النظام الأساسي بأكمله.</li>
+</ul>
+<h2>8. نظرة عامة على الملاحة</h2>
+<p>يعكس هيكل التنقل عالي المستوى التسلسل الهرمي المعماري:</p>
+<p><code>Translations</code> → <code>Scopes</code> → <code>Domains</code> → <code>Keys</code></p>
+<h2>9. حدود هذه الوحدة</h2>
+<ul>
+<li><strong>ماذا تفعل هذه الوحدة:</strong> فهو يدير بشكل صارم تسجيل مفاتيح النص الصالحة، ويفرض التسلسل الهرمي للنطاق والمجال، ويخزن ويستعيد السلاسل النصية المترجمة الفعلية. ويحتفظ بإحصائيات حول تغطية الترجمة.</li>
+<li><strong>ما لا يفعله:</strong> ولا يدير هوية اللغة أو رموز اللغة أو التكوينات الاحتياطية. تنتمي هذه المسؤوليات بالكامل إلى وحدة اللغات.</li>
+</ul>
+            </main>
+        </div>
+    </div>
+    <script>
+        document.getElementById('langSwitch').addEventListener('click', function(e) {
+            e.preventDefault();
+            var currentUrl = window.location.href;
+            if ('ar' === 'en') {
+                window.location.href = currentUrl.replace('/en/', '/ar/');
+            } else {
+                window.location.href = currentUrl.replace('/ar/', '/en/');
+            }
+        });
+    </script>
+</body>
+</html>

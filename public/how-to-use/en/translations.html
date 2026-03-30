@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Managing Translations</title>
+    <style>
+    :root {
+        --primary: #4338ca;
+        --bg: #f9fafb;
+        --surface: #ffffff;
+        --text: #374151;
+        --text-light: #6b7280;
+        --border: #e5e7eb;
+        --active-bg: #e0e7ff;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+    .layout { display: flex; min-height: 100vh; flex-direction: row; }
+    .sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); padding: 1.5rem; flex-shrink: 0; overflow-y: auto; }
+    .sidebar.rtl { border-right: none; border-left: 1px solid var(--border); }
+    .sidebar a { display: block; padding: 0.5rem 0.75rem; color: var(--text); text-decoration: none; border-radius: 0.375rem; margin-bottom: 0.25rem; font-size: 0.95rem; transition: background 0.2s; }
+    .sidebar a:hover { background: var(--bg); color: #111827; }
+    .sidebar a.active { background: var(--active-bg); color: var(--primary); font-weight: 600; }
+    .sidebar-section { margin-bottom: 1.5rem; }
+    .sidebar-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--text-light); margin-bottom: 0.5rem; padding-left: 0.75rem; }
+    .sidebar.rtl .sidebar-title { padding-left: 0; padding-right: 0.75rem; }
+    .sub-nav { margin-left: 0.5rem; border-left: 1px solid var(--border); padding-left: 0.5rem; }
+    .sidebar.rtl .sub-nav { margin-left: 0; margin-right: 0.5rem; border-left: none; border-right: 1px solid var(--border); padding-left: 0; padding-right: 0.5rem; }
+
+    .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+    .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .header-title { font-weight: 600; font-size: 1.25rem; }
+
+    .main-content { padding: 2rem; max-width: 800px; width: 100%; margin: 0 auto; background: var(--surface); margin-top: 2rem; margin-bottom: 2rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); }
+    h1 { font-size: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-top: 0; }
+    h1, h2, h3, h4 { color: #111827; }
+    code { background: var(--bg); padding: 0.2em 0.4em; border-radius: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.85em; border: 1px solid var(--border); }
+    pre { background: #1f2937; color: #f9fafb; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; }
+    pre code { background: none; padding: 0; border: none; color: inherit; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+    th, td { border: 1px solid var(--border); padding: 0.75rem; text-align: left; }
+    th { background: var(--bg); font-weight: 600; }
+    .sidebar.rtl th, .sidebar.rtl td { text-align: right; }
+
+    .lang-switcher a { display: inline-flex; align-items: center; justify-content: center; padding: 0.375rem 0.75rem; border: 1px solid var(--border); border-radius: 0.375rem; text-decoration: none; color: var(--text); background: var(--surface); font-size: 0.875rem; font-weight: 500; transition: all 0.2s; }
+    .lang-switcher a:hover { background: var(--bg); border-color: #d1d5db; }
+
+    blockquote { border-left: 4px solid var(--border); margin: 0; padding-left: 1rem; color: var(--text-light); }
+    .layout[dir="rtl"] blockquote { border-left: none; border-right: 4px solid var(--border); padding-left: 0; padding-right: 1rem; }
+
+    @media (max-width: 768px) {
+        .layout { flex-direction: column; }
+        .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+        .sidebar.rtl { border-left: none; }
+        .main-content { margin-top: 1rem; border-radius: 0; box-shadow: none; padding: 1.5rem; }
+    }
+    </style>
+</head>
+<body>
+    <div class="layout" dir="ltr">
+        <aside class="sidebar">
+            <nav><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="overview.html" class="">Overview</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="admins.html" class="">Admins</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="admins-permissions.html" class="">Admin Permissions</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="sessions.html" class="">Sessions</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="languages.html" class="">Languages</a></div><div class="sidebar-section"><div class="sidebar-title">Settings</div><div class="sub-nav"><a href="settings/overview.html" class="">Overview</a><a href="settings/content-documents.html" class="">Content Documents</a><a href="settings/app-settings.html" class="">App Settings</a></div></div><div class="sidebar-section"><div class="sidebar-title">RBAC</div><div class="sub-nav"><a href="rbac/overview.html" class="">Overview</a><a href="rbac/roles.html" class="">Roles</a><a href="rbac/permissions.html" class="">Permissions</a></div></div><div class="sidebar-section"><div class="sidebar-title">Translations</div><div class="sub-nav"><a href="translations/overview.html" class="">Overview</a><a href="translations/scopes.html" class="">Scopes</a><a href="translations/domains.html" class="">Domains</a></div></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="translations.html" class="active">Translations (Old)</a></div></nav>
+        </aside>
+        <div class="main-wrapper">
+            <header class="header">
+                <div class="header-title">Help Center</div>
+                <div class="lang-switcher">
+                    <a href="#" id="langSwitch">العربية</a>
+                </div>
+            </header>
+            <main class="main-content">
+                <h1>Managing Translations</h1>
+<h2>Overview</h2>
+<p>Translations allow administrators to manage the specific text that appears across the system's interface. Changes made here dictate exactly what words and phrases users read on the platform.</p>
+<h2>How to Access Translations</h2>
+<ul>
+<li>Navigate to the left sidebar menu.</li>
+<li>Under the <strong>Translations</strong> section, you will find two primary options: <strong>Scopes</strong> and <strong>Domains</strong>.</li>
+</ul>
+<h2>Structure of Translations</h2>
+<p>The system groups translation data into three levels:
+* <strong>Scopes:</strong> The top-level categories.
+* <strong>Domains:</strong> Sub-categories that belong to specific Scopes.
+* <strong>Keys:</strong> The actual text identifiers and their associated translations in different languages.</p>
+<h2>Scopes</h2>
+<p>When you click on <strong>Scopes</strong> in the sidebar:
+* <strong>Table Columns:</strong> You see a table displaying the Scope ID, Code, Name, Description, Active status, and Order.
+* <strong>What buttons exist:</strong> You will see action buttons for "Code" and "Meta" to edit the scope's basic details. You can also click directly on the Scope to open it.
+* <strong>Navigation behavior:</strong> Opening a Scope allows you to view its assigned Domains and manage the Keys specifically attached to that Scope.</p>
+<h2>Domains</h2>
+<p>When viewing the Domains assigned to a Scope (or viewing the global Domains list):
+* <strong>Full structure:</strong> You will see a list of domains attached to the scope.
+* <strong>Navigation behavior:</strong> You can click to view the specific Translation Keys belonging to that Domain.</p>
+<h2>Translation Keys (MOST IMPORTANT)</h2>
+<p>When you drill down into a specific Scope and Domain, you will reach the Translations List.</p>
+<ul>
+<li><strong>EXACTLY how translation values are displayed:</strong> The table lists the "Key Part" (the identifier for the text). Next to it, there is a dedicated column showing the currently translated value. If no translation exists for a language, it displays an italicized "Empty" placeholder. The language itself is clearly indicated next to the value.</li>
+<li><strong>EXACTLY how they are edited:</strong> Each row has an <strong>Edit icon</strong> (a pencil).</li>
+<li><strong>Input type:</strong> Clicking the Edit icon opens an "Edit Translation" pop-up modal. Inside this modal, there is a text input field (or textarea) where you type the new translation. The text input automatically respects the reading direction (e.g., left-to-right or right-to-left) of the selected language.</li>
+<li><strong>Save mechanism:</strong> You must click the <strong>Save</strong> button at the bottom of the modal to apply your changes. There is no auto-save feature.</li>
+</ul>
+<h2>User Interaction Flow</h2>
+<p>To edit a translation:
+1. <strong>What the admin clicks:</strong> Click the <strong>Edit icon</strong> next to the specific Key and Language you want to update.
+2. <strong>What appears:</strong> A pop-up modal appears on screen containing the Key name, the Language name, and the text input field.
+3. <strong>What changes:</strong> You type the new translation into the text field and click <strong>Save</strong>. A success message ("Translation saved successfully") appears, the modal closes, and the table instantly refreshes to show your new value.</p>
+<h2>Translation Value</h2>
+<ul>
+<li><strong>Where the text appears:</strong> The updated translation is now saved and will be displayed to users.</li>
+<li><strong>How it is edited:</strong> Via the pop-up edit modal accessed from the Translations List table.</li>
+<li><strong>How multiple languages are shown:</strong> Each language translation for a key is listed as its own row in the table, clearly marked with a badge showing the language name and code (e.g., "English (en)").</li>
+</ul>
+<h2>Navigation Flow</h2>
+<ol>
+<li><strong>Sidebar → Translations → Scopes:</strong> Start by viewing the highest-level categories.</li>
+<li><strong>Scopes → Domains:</strong> Click into a specific Scope to see its assigned sub-categories (Domains).</li>
+<li><strong>Domains → Keys:</strong> Click into a Domain to see the actual Translations List table where editing happens.</li>
+</ol>
+<h2>Filters / Search</h2>
+<p>When viewing the Translations List:
+* <strong>Search inputs:</strong> A search box is available to find specific Key names or translation values.
+* <strong>Filter dropdowns:</strong> A dropdown menu is provided to filter the table to show only a specific language.</p>
+<h2>Save Behavior</h2>
+<ul>
+<li><strong>Is there a Save button?</strong> Yes, the "Edit Translation" modal has an explicit Save button.</li>
+<li><strong>Is it auto-save?</strong> No.</li>
+<li><strong>When does the change apply?</strong> The change is instantly saved to the system upon clicking Save, and the table refreshes immediately.</li>
+</ul>
+<hr />
+            </main>
+        </div>
+    </div>
+    <script>
+        document.getElementById('langSwitch').addEventListener('click', function(e) {
+            e.preventDefault();
+            var currentUrl = window.location.href;
+            if ('en' === 'en') {
+                window.location.href = currentUrl.replace('/en/', '/ar/');
+            } else {
+                window.location.href = currentUrl.replace('/ar/', '/en/');
+            }
+        });
+    </script>
+</body>
+</html>

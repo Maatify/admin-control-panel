@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel Overview</title>
+    <style>
+    :root {
+        --primary: #4338ca;
+        --bg: #f9fafb;
+        --surface: #ffffff;
+        --text: #374151;
+        --text-light: #6b7280;
+        --border: #e5e7eb;
+        --active-bg: #e0e7ff;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+    .layout { display: flex; min-height: 100vh; flex-direction: row; }
+    .sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); padding: 1.5rem; flex-shrink: 0; overflow-y: auto; }
+    .sidebar.rtl { border-right: none; border-left: 1px solid var(--border); }
+    .sidebar a { display: block; padding: 0.5rem 0.75rem; color: var(--text); text-decoration: none; border-radius: 0.375rem; margin-bottom: 0.25rem; font-size: 0.95rem; transition: background 0.2s; }
+    .sidebar a:hover { background: var(--bg); color: #111827; }
+    .sidebar a.active { background: var(--active-bg); color: var(--primary); font-weight: 600; }
+    .sidebar-section { margin-bottom: 1.5rem; }
+    .sidebar-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--text-light); margin-bottom: 0.5rem; padding-left: 0.75rem; }
+    .sidebar.rtl .sidebar-title { padding-left: 0; padding-right: 0.75rem; }
+    .sub-nav { margin-left: 0.5rem; border-left: 1px solid var(--border); padding-left: 0.5rem; }
+    .sidebar.rtl .sub-nav { margin-left: 0; margin-right: 0.5rem; border-left: none; border-right: 1px solid var(--border); padding-left: 0; padding-right: 0.5rem; }
+
+    .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+    .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .header-title { font-weight: 600; font-size: 1.25rem; }
+
+    .main-content { padding: 2rem; max-width: 800px; width: 100%; margin: 0 auto; background: var(--surface); margin-top: 2rem; margin-bottom: 2rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); }
+    h1 { font-size: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-top: 0; }
+    h1, h2, h3, h4 { color: #111827; }
+    code { background: var(--bg); padding: 0.2em 0.4em; border-radius: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.85em; border: 1px solid var(--border); }
+    pre { background: #1f2937; color: #f9fafb; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; }
+    pre code { background: none; padding: 0; border: none; color: inherit; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+    th, td { border: 1px solid var(--border); padding: 0.75rem; text-align: left; }
+    th { background: var(--bg); font-weight: 600; }
+    .sidebar.rtl th, .sidebar.rtl td { text-align: right; }
+
+    .lang-switcher a { display: inline-flex; align-items: center; justify-content: center; padding: 0.375rem 0.75rem; border: 1px solid var(--border); border-radius: 0.375rem; text-decoration: none; color: var(--text); background: var(--surface); font-size: 0.875rem; font-weight: 500; transition: all 0.2s; }
+    .lang-switcher a:hover { background: var(--bg); border-color: #d1d5db; }
+
+    blockquote { border-left: 4px solid var(--border); margin: 0; padding-left: 1rem; color: var(--text-light); }
+    .layout[dir="rtl"] blockquote { border-left: none; border-right: 4px solid var(--border); padding-left: 0; padding-right: 1rem; }
+
+    @media (max-width: 768px) {
+        .layout { flex-direction: column; }
+        .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+        .sidebar.rtl { border-left: none; }
+        .main-content { margin-top: 1rem; border-radius: 0; box-shadow: none; padding: 1.5rem; }
+    }
+    </style>
+</head>
+<body>
+    <div class="layout" dir="ltr">
+        <aside class="sidebar">
+            <nav><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="overview.html" class="active">Overview</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="admins.html" class="">Admins</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="admins-permissions.html" class="">Admin Permissions</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="sessions.html" class="">Sessions</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="languages.html" class="">Languages</a></div><div class="sidebar-section"><div class="sidebar-title">Settings</div><div class="sub-nav"><a href="settings/overview.html" class="">Overview</a><a href="settings/content-documents.html" class="">Content Documents</a><a href="settings/app-settings.html" class="">App Settings</a></div></div><div class="sidebar-section"><div class="sidebar-title">RBAC</div><div class="sub-nav"><a href="rbac/overview.html" class="">Overview</a><a href="rbac/roles.html" class="">Roles</a><a href="rbac/permissions.html" class="">Permissions</a></div></div><div class="sidebar-section"><div class="sidebar-title">Translations</div><div class="sub-nav"><a href="translations/overview.html" class="">Overview</a><a href="translations/scopes.html" class="">Scopes</a><a href="translations/domains.html" class="">Domains</a></div></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="translations.html" class="">Translations (Old)</a></div></nav>
+        </aside>
+        <div class="main-wrapper">
+            <header class="header">
+                <div class="header-title">Help Center</div>
+                <div class="lang-switcher">
+                    <a href="#" id="langSwitch">العربية</a>
+                </div>
+            </header>
+            <main class="main-content">
+                <h1>Admin Panel Overview</h1>
+<h2>1. What is this system?</h2>
+<p>This system is an administrative control panel designed to help you securely manage the platform. It allows you to organize user accounts, assign roles and permissions, configure platform settings, manage translated content across multiple languages, and handle important policies or documents. The platform is built with strong security in mind, ensuring all actions are tracked, verified, and protected against unauthorized access.</p>
+<h2>2. Main Areas of the System</h2>
+<ul>
+<li>
+<p><strong>User &amp; Admin Management</strong>
+  Allows you to create and manage administrative accounts. You can update their profiles, manage their associated email addresses, configure notification preferences, and oversee their active login sessions.</p>
+</li>
+<li>
+<p><strong>Roles &amp; Permissions</strong>
+  Provides a way to control who has access to what. You can create different roles, assign specific permissions to these roles, and then grant them to administrators. You can also assign direct permissions to specific users for more granular control.</p>
+</li>
+<li>
+<p><strong>Languages &amp; Translations</strong>
+  Enables you to manage the platform in multiple languages. You can create new languages, set fallback (default) languages, define translation keys, and update the actual translated text for different sections of the application.</p>
+</li>
+<li>
+<p><strong>Content &amp; Documents</strong>
+  Allows you to manage important platform documents (like Terms of Service or Privacy Policies). You can create different document types, manage multiple versions, publish new versions, add translations for them, and enforce requirements for users to accept these documents.</p>
+</li>
+<li>
+<p><strong>System Settings</strong>
+  Provides tools to manage application-wide settings and configurations. You can view, create, and update metadata or toggle specific platform features on and off.</p>
+</li>
+<li>
+<p><strong>Security &amp; Sessions</strong>
+  Offers oversight into how users are accessing the system. You can view a list of active login sessions and revoke them individually or in bulk if needed.</p>
+</li>
+<li>
+<p><strong>Notifications &amp; Activity Logging</strong>
+  Keeps you informed of system events. You can review your own notifications, view historical notifications, and access a detailed activity log that records actions taken within the system.</p>
+</li>
+</ul>
+<h2>📂 Documentation Map</h2>
+<p>Use the links below to navigate through the complete admin guide.</p>
+<h3>👥 Admin Management</h3>
+<p>Learn how to create, manage, and monitor the administrators who operate the platform.
+* Admins → <a href="admins.md">docs/admin/admins.md</a>
+* Admin Permissions → <a href="admins-permissions.md">docs/admin/admins-permissions.md</a>
+* Sessions → <a href="sessions.md">docs/admin/sessions.md</a></p>
+<h3>⚙️ Settings</h3>
+<p>Control dynamic application configurations and manage authoritative, version-controlled legal documents.
+* Overview → <a href="settings/overview.md">docs/admin/settings/overview.md</a>
+* Content Documents → <a href="settings/content-documents.md">docs/admin/settings/content-documents.md</a>
+* App Settings → <a href="settings/app-settings.md">docs/admin/settings/app-settings.md</a></p>
+<h3>🔐 RBAC</h3>
+<p>Understand how access control works and how to assign the right capabilities to the right people.
+* Overview → <a href="rbac/overview.md">docs/admin/rbac/overview.md</a>
+* Roles → <a href="rbac/roles.md">docs/admin/rbac/roles.md</a>
+* Permissions → <a href="rbac/permissions.md">docs/admin/rbac/permissions.md</a></p>
+<h3>🌍 Languages</h3>
+<p>Manage the languages supported by the platform.
+* Languages → <a href="languages.md">docs/admin/languages.md</a></p>
+<h3>🔤 Translations</h3>
+<p>Precisely control the translated text displayed to users.
+* Main Guide → <a href="translations.md">docs/admin/translations.md</a>
+* Overview → <a href="translations/overview.md">docs/admin/translations/overview.md</a>
+* Scopes → <a href="translations/scopes.md">docs/admin/translations/scopes.md</a>
+* Domains → <a href="translations/domains.md">docs/admin/translations/domains.md</a></p>
+<h2>3. Common Tasks</h2>
+<h3>Logging In</h3>
+<p>To access the system, you must log in using your credentials. After providing your email and password, you will be required to complete a Two-Factor Authentication (2FA) step to verify your identity.</p>
+<h3>Managing Admins</h3>
+<p>You can view a list of all administrators. When managing a specific admin, you can edit their profile details, add or update their email addresses, and review their notification preferences.</p>
+<h3>Assigning Roles</h3>
+<p>Once roles are created (such as "Manager" or "Support"), you can assign them to admins. If a role is no longer appropriate, you can unassign it. You can also manage the specific permissions associated with each role to change what that role is allowed to do.</p>
+<h3>Editing Translations</h3>
+<p>To update text on the platform, navigate to the translations area. You can assign languages to different sections (scopes) of the platform, search for specific translation keys, and update the translated text.</p>
+<h3>Managing Documents</h3>
+<p>When a new policy needs to be published, you first create a document version. Once drafted, you can add translations for it. When ready, you can publish the version, making it active and archiving older versions if necessary.</p>
+<h3>Reviewing Activity Logs</h3>
+<p>To see who did what, you can check the Activity Logs. This provides a secure trail of actions performed within the admin panel, helping with accountability and troubleshooting.</p>
+<h2>4. Security &amp; Protection</h2>
+<ul>
+<li>
+<p><strong>Login Security (2FA)</strong>
+  Accessing sensitive areas of the panel requires Two-Factor Authentication. This means even if someone knows your password, they cannot access the system without your secondary verification method.</p>
+</li>
+<li>
+<p><strong>Session Control</strong>
+  Every time you log in, a session is created. You have full visibility into your active sessions and can revoke (log out) any unrecognized or old sessions to keep your account secure.</p>
+</li>
+</ul>
+<h2>5. Important Notes</h2>
+<ul>
+<li><strong>Some changes require activation:</strong> Creating a new document version or adding a new language doesn't immediately make it visible to end-users. You must explicitly "publish" or "set active" these items before they take effect.</li>
+<li><strong>Permissions affect visibility:</strong> The menus and options you see in the admin panel depend entirely on your assigned roles and permissions. If you cannot see a feature, it means your account does not have the required access.</li>
+<li><strong>Some actions require verification:</strong> Changing critical account details, like email addresses or passwords, may trigger a verification step (like receiving a confirmation email) before the change is finalized.</li>
+</ul>
+            </main>
+        </div>
+    </div>
+    <script>
+        document.getElementById('langSwitch').addEventListener('click', function(e) {
+            e.preventDefault();
+            var currentUrl = window.location.href;
+            if ('en' === 'en') {
+                window.location.href = currentUrl.replace('/en/', '/ar/');
+            } else {
+                window.location.href = currentUrl.replace('/ar/', '/en/');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الجلسات</title>
+    <style>
+    :root {
+        --primary: #4338ca;
+        --bg: #f9fafb;
+        --surface: #ffffff;
+        --text: #374151;
+        --text-light: #6b7280;
+        --border: #e5e7eb;
+        --active-bg: #e0e7ff;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+    .layout { display: flex; min-height: 100vh; flex-direction: row; }
+    .sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); padding: 1.5rem; flex-shrink: 0; overflow-y: auto; }
+    .sidebar.rtl { border-right: none; border-left: 1px solid var(--border); }
+    .sidebar a { display: block; padding: 0.5rem 0.75rem; color: var(--text); text-decoration: none; border-radius: 0.375rem; margin-bottom: 0.25rem; font-size: 0.95rem; transition: background 0.2s; }
+    .sidebar a:hover { background: var(--bg); color: #111827; }
+    .sidebar a.active { background: var(--active-bg); color: var(--primary); font-weight: 600; }
+    .sidebar-section { margin-bottom: 1.5rem; }
+    .sidebar-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--text-light); margin-bottom: 0.5rem; padding-left: 0.75rem; }
+    .sidebar.rtl .sidebar-title { padding-left: 0; padding-right: 0.75rem; }
+    .sub-nav { margin-left: 0.5rem; border-left: 1px solid var(--border); padding-left: 0.5rem; }
+    .sidebar.rtl .sub-nav { margin-left: 0; margin-right: 0.5rem; border-left: none; border-right: 1px solid var(--border); padding-left: 0; padding-right: 0.5rem; }
+
+    .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+    .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .header-title { font-weight: 600; font-size: 1.25rem; }
+
+    .main-content { padding: 2rem; max-width: 800px; width: 100%; margin: 0 auto; background: var(--surface); margin-top: 2rem; margin-bottom: 2rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); }
+    h1 { font-size: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-top: 0; }
+    h1, h2, h3, h4 { color: #111827; }
+    code { background: var(--bg); padding: 0.2em 0.4em; border-radius: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.85em; border: 1px solid var(--border); }
+    pre { background: #1f2937; color: #f9fafb; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; }
+    pre code { background: none; padding: 0; border: none; color: inherit; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+    th, td { border: 1px solid var(--border); padding: 0.75rem; text-align: left; }
+    th { background: var(--bg); font-weight: 600; }
+    .sidebar.rtl th, .sidebar.rtl td { text-align: right; }
+
+    .lang-switcher a { display: inline-flex; align-items: center; justify-content: center; padding: 0.375rem 0.75rem; border: 1px solid var(--border); border-radius: 0.375rem; text-decoration: none; color: var(--text); background: var(--surface); font-size: 0.875rem; font-weight: 500; transition: all 0.2s; }
+    .lang-switcher a:hover { background: var(--bg); border-color: #d1d5db; }
+
+    blockquote { border-left: 4px solid var(--border); margin: 0; padding-left: 1rem; color: var(--text-light); }
+    .layout[dir="rtl"] blockquote { border-left: none; border-right: 4px solid var(--border); padding-left: 0; padding-right: 1rem; }
+
+    @media (max-width: 768px) {
+        .layout { flex-direction: column; }
+        .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+        .sidebar.rtl { border-left: none; }
+        .main-content { margin-top: 1rem; border-radius: 0; box-shadow: none; padding: 1.5rem; }
+    }
+    </style>
+</head>
+<body>
+    <div class="layout" dir="rtl">
+        <aside class="sidebar rtl">
+            <nav><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="overview.html" class="">ملخص</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="admins.html" class="">المشرفين</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="admins-permissions.html" class="">أذونات المسؤول</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="sessions.html" class="active">الجلسات</a></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="languages.html" class="">اللغات</a></div><div class="sidebar-section"><div class="sidebar-title">إعدادات</div><div class="sub-nav"><a href="settings/overview.html" class="">ملخص</a><a href="settings/content-documents.html" class="">وثائق المحتوى</a><a href="settings/app-settings.html" class="">إعدادات التطبيق</a></div></div><div class="sidebar-section"><div class="sidebar-title">RBAC</div><div class="sub-nav"><a href="rbac/overview.html" class="">ملخص</a><a href="rbac/roles.html" class="">الأدوار</a><a href="rbac/permissions.html" class="">الأذونات</a></div></div><div class="sidebar-section"><div class="sidebar-title">ترجمات</div><div class="sub-nav"><a href="translations/overview.html" class="">ملخص</a><a href="translations/scopes.html" class="">النطاقات</a><a href="translations/domains.html" class="">المجالات</a></div></div><div class="sidebar-section" style="margin-bottom: 0.5rem;"><a href="translations.html" class="">الترجمات (قديمة)</a></div></nav>
+        </aside>
+        <div class="main-wrapper">
+            <header class="header">
+                <div class="header-title">مركز المساعدة</div>
+                <div class="lang-switcher">
+                    <a href="#" id="langSwitch">English</a>
+                </div>
+            </header>
+            <main class="main-content">
+                <h1>إدارة الجلسات</h1>
+<h2>ملخص</h2>
+<p>تمثل "الجلسة" مثيلًا محددًا للمسؤول الذي قام بتسجيل الدخول إلى النظام الأساسي على جهاز كمبيوتر أو هاتف أو متصفح ويب معين. ونظرًا لأن المسؤولين لديهم حق الوصول إلى عناصر التحكم الحساسة، فإن تتبع هذه الجلسات يساعدك على معرفة مكان وكيفية استخدام الحسابات بالضبط. في حالة فقدان جهاز أو تعرض حساب للاختراق، يمكنك استخدام أدوات إدارة الجلسات لقطع الوصول على الفور.</p>
+<h2>كيفية الوصول إلى الجلسات</h2>
+<p>هناك طريقتان أساسيتان لعرض وإدارة جلسات تسجيل الدخول النشطة عبر النظام الأساسي.</p>
+<h3>الخيار 1: صفحة الجلسات العالمية</h3>
+<p>لعرض قائمة بجميع الجلسات النشطة عبر جميع المسؤولين:
+1. انظر إلى قائمة التنقل في الشريط الجانبي الأيسر.
+2. انقر على <strong>الجلسات</strong>. يؤدي هذا إلى فتح قائمة الجلسات العامة.</p>
+<h3>الخيار 2: لكل جلسات الإدارة</h3>
+<p>لعرض الجلسات التي تخص مسؤولًا محددًا فقط:
+1. في الشريط الجانبي الأيسر، انقر فوق <strong>المشرفين</strong>.
+2. انقر فوق <strong>منظر</strong> الزر الموجود بجوار المسؤول المحدد الذي تريد فحصه.
+3. في صفحة الملف الشخصي الخاصة بهم، انقر فوق <strong>علامة تبويب الجلسات</strong>.</p>
+<h2>قائمة الجلسات</h2>
+<p>سواء كنت تنظر إلى القائمة العامة أو الملف الشخصي لمسؤول محدد، فإن جدول الجلسات يوفر تفاصيل حول كل تسجيل دخول نشط.</p>
+<ul>
+<li><strong>أعمدة الجدول:</strong></li>
+<li><strong>معرف المستخدم:</strong> معرف المسؤول الذي تنتمي إليه الجلسة.</li>
+<li><strong>معرف الجلسة:</strong> المعرف الفريد لمثيل تسجيل الدخول المحدد.</li>
+<li><strong>حالة:</strong> ما إذا كانت الجلسة نشطة حاليًا أو منتهية الصلاحية أو ملغاة.</li>
+<li><strong>تنتهي في:</strong> التاريخ والوقت الدقيقان الذي ستنتهي فيه الجلسة بطبيعة الحال.</li>
+<li><strong>إشارة الجلسة الحالية:</strong> النظام يسلط الضوء بوضوح على الخاص بك <em>الجلسة الحالية</em> حتى لا تقوم بتسجيل الخروج عن طريق الخطأ.</li>
+<li><strong>المرشحات والبحث:</strong> أعلى الجدول، يمكنك النقر على شارات التصفية السريعة لعرضها على الفور <strong>الجميع</strong>, <strong>نشيط</strong>, <strong>منتهي الصلاحية</strong>، أو <strong>تم إبطاله</strong> جلسات. بالإضافة إلى ذلك، يسمح لك نموذج البحث بالتصفية حسب <strong>معرف الجلسة</strong>, <strong>معرف المشرف</strong>، و <strong>حالة</strong>. يقوم زر إعادة الضبط بمسح جميع المرشحات النشطة.</li>
+</ul>
+<h2>إلغاء الجلسة</h2>
+<p>إذا كنت تريد إجبار أحد المسؤولين على تسجيل الخروج من جهاز معين، فيجب عليك إلغاء جلسته.</p>
+<ol>
+<li>حدد موقع الجلسة المحددة في القائمة (إما في صفحة الجلسات العامة أو الملف الشخصي للمسؤول).</li>
+<li>انقر فوق <strong>إبطال</strong> زر الإجراء بجوار تلك الجلسة.</li>
+<li><em>ملاحظة حول سلوك التأكيد:</em> عند إجراء إلغاء مجمع لجلسات محددة متعددة، يطالبك النظام صراحةً من خلال مربع حوار التأكيد ("إلغاء جلسة (جلسات) [X]؟").</li>
+<li><em>ملاحظة حول الإلغاء الجزئي:</em> لا يمكنك إلغاء الجلسة جزئيًا. يؤدي النقر فوق إبطال إلى إنهاء جلسة تسجيل الدخول بأكملها على الفور.</li>
+</ol>
+<p>إذا كنت بحاجة إلى تسجيل خروج المسؤول <em>كل</em> الجهاز مرة واحدة، يمكنك استخدام <strong>إبطال بالجملة</strong> الإجراء متاح في الملف الشخصي للمسؤول.</p>
+<h2>ماذا يحدث بعد الإلغاء</h2>
+<ul>
+<li><strong>يتم إنهاء الجلسة على الفور:</strong> في اللحظة التي تنقر فيها على إبطال، يقوم النظام بإبطال تسجيل الدخول المحدد هذا.</li>
+<li><strong>يتم إجبار المستخدم على الخروج:</strong> إذا كان المسؤول يستخدم حاليًا اللوحة الموجودة على هذا الجهاز الذي تم إبطاله، فسيتم إعادته على الفور إلى شاشة تسجيل الدخول في المرة التالية التي ينقر فيها على رابط أو يقوم بتحديث الصفحة.</li>
+<li><strong>الوصول محظور حتى إعادة تسجيل الدخول:</strong> لا يمكن للجهاز الوصول إلى لوحة الإدارة مرة أخرى حتى يقوم المسؤول بإعادة إدخال البريد الإلكتروني وكلمة المرور وإكمال عملية التحقق من المصادقة الثنائية (2FA).</li>
+</ul>
+<h2>حالات الاستخدام الأمني</h2>
+<ul>
+<li><strong>تم اكتشاف جهاز غير معروف:</strong> إذا لاحظت أنت أو مسؤول آخر جلسة نشطة من موقع أو متصفح غير مألوف، فيمكنك إبطالها على الفور لتأمين الحساب.</li>
+<li><strong>المشرف ترك الشركة:</strong> عندما يستقيل أحد المسؤولين أو يتم إنهاؤه، يجب عليك على الفور إلغاء جميع جلساته النشطة بشكل جماعي وتعطيل حسابه لضمان عدم تمكنه من الوصول إلى النظام الأساسي من جهاز شخصي.</li>
+<li><strong>تنظيف الجهاز المشترك:</strong> إذا ترك المسؤول نفسه عن طريق الخطأ مسجلاً الدخول على جهاز كمبيوتر عام أو مشترك، فيمكنه (أو أنت) إلغاء تلك الجلسة المحددة عن بعد دون التأثير على وصوله إلى كمبيوتر العمل الأساسي الخاص به.</li>
+</ul>
+<h2>ملاحظات هامة</h2>
+<ul>
+<li><strong>الإلغاء فوري:</strong> ليس هناك تأخير. يفقد الجهاز إمكانية الوصول في اللحظة التي يتم فيها الضغط على زر الإلغاء.</li>
+<li><strong>سلامة الجلسة الحالية:</strong> انتبه دائمًا إلى <em>الجلسة الحالية</em> مؤشر للتأكد من عدم تسجيل خروجك من اللوحة عن طريق الخطأ.</li>
+</ul>
+            </main>
+        </div>
+    </div>
+    <script>
+        document.getElementById('langSwitch').addEventListener('click', function(e) {
+            e.preventDefault();
+            var currentUrl = window.location.href;
+            if ('ar' === 'en') {
+                window.location.href = currentUrl.replace('/en/', '/ar/');
+            } else {
+                window.location.href = currentUrl.replace('/ar/', '/en/');
+            }
+        });
+    </script>
+</body>
+</html>
