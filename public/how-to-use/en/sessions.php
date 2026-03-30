@@ -1,6 +1,6 @@
 <?php include __DIR__ . '/../layouts/header.php'; ?>
 
-<main class="main-content">
+
 <h1>Managing Sessions</h1>
 <h2>Overview</h2>
 <p>A "session" represents a specific instance of an administrator being logged into the platform on a particular computer, phone, or web browser. Because administrators have access to sensitive controls, tracking these sessions helps you see exactly where and how accounts are being used. If a device is lost or an account is compromised, you can use the Sessions management tools to instantly cut off access.</p>
@@ -52,6 +52,6 @@
 <li><strong>Revoking is immediate:</strong> There is no delay. The device loses access the exact second the Revoke button is pressed.</li>
 <li><strong>Current session safety:</strong> Always pay attention to the <em>Current session</em> indicator to ensure you do not accidentally log yourself out of the panel.</li>
 </ul>
-</main>
+
 
 <?php include __DIR__ . '/../layouts/footer.php'; ?>

@@ -1,6 +1,6 @@
 <?php include __DIR__ . '/../layouts/header.php'; ?>
 
-<main class="main-content">
+
 <h1>Managing Languages</h1>
 <h2>Overview</h2>
 <p>The Languages page allows administrators to manage the list of available languages used across the platform. While this page does not handle the actual text translations, it defines which languages exist, their programmatic codes (e.g., "en", "ar"), their reading direction (left-to-right or right-to-left), and their active status. Other parts of the system use these languages to display content.</p>
@@ -67,6 +67,6 @@
 *   <strong>Immediate Application:</strong> Any change to a language's Code, Direction, or Active status takes effect immediately across the interface.
 *   <strong>Translation Dependencies:</strong> Modifying a language directly impacts the translations area, as all text values are loaded based on the languages and fallbacks defined here.</p>
 <hr/>
-</main>
+
 
 <?php include __DIR__ . '/../layouts/footer.php'; ?>

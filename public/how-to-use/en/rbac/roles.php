@@ -1,6 +1,6 @@
 <?php include __DIR__ . '/../../layouts/header.php'; ?>
 
-<main class="main-content">
+
 <h1>Managing Roles</h1>
 <h2>Overview</h2>
 <p>Roles control access across the platform. A Role groups specific permissions together so you can grant a standard set of access rights to an administrator with a single assignment, rather than individually managing hundreds of specific permissions.</p>
@@ -62,6 +62,6 @@
 <li>Avoid overcomplicating roles; keep them broad enough to be useful for multiple staff members with similar duties.</li>
 <li>Prefer assigning Roles over granting Direct Permissions whenever possible, as Roles are much easier to track, audit, and manage at scale.</li>
 </ul>
-</main>
+
 
 <?php include __DIR__ . '/../../layouts/footer.php'; ?>

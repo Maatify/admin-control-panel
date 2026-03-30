@@ -1,6 +1,6 @@
 <?php include __DIR__ . '/../../layouts/header.php'; ?>
 
-<main class="main-content">
+
 <h1>Managing Translations — System Overview</h1>
 <h2>1. Purpose of the Translations System</h2>
 <p>The Translations System is a localization layer designed to manage all localized text across the platform. It solves the problem of hardcoding strings into applications by allowing administrators to dynamically define, edit, and organize text in multiple languages. Administrators use this system to control exactly what users read in the interface, ensuring consistent terminology and allowing the platform to serve a global audience without requiring code deployments for text changes.</p>
@@ -54,6 +54,6 @@
 <li><strong>What this module DOES:</strong> It strictly manages the registry of valid text Keys, enforces the Scope and Domain hierarchy, and stores and retrieves the actual localized text strings. It maintains statistics about translation coverage.</li>
 <li><strong>What it DOES NOT do:</strong> It does NOT manage language identity, language codes, or fallback configurations. Those responsibilities belong entirely to the Languages module.</li>
 </ul>
-</main>
+
 
 <?php include __DIR__ . '/../../layouts/footer.php'; ?>

@@ -2,7 +2,7 @@
 $current_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $lang = strpos($current_path, '/how-to-use/ar/') !== false ? 'ar' : 'en';
 $base_url = '/how-to-use/' . $lang;
-$sidebar_class = $lang === 'ar' ? 'sidebar rtl' : 'sidebar';
+$sidebar_class = 'sidebar';
 
 function isActive($path, $current) {
     return strpos($current, $path) !== false ? 'active' : '';

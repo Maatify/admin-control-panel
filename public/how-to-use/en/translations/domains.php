@@ -1,6 +1,6 @@
 <?php include __DIR__ . '/../../layouts/header.php'; ?>
 
-<main class="main-content">
+
 <h1>Managing Translation Domains</h1>
 <h2>1. What is a Domain</h2>
 <p>A Domain is the secondary categorization level in the translation system, acting as a functional grouping or sub-namespace within a larger Scope. It represents a specific feature, module, or logical area of the application.
@@ -86,6 +86,6 @@
 <li><strong>What Domain controls:</strong> A Domain strictly controls the secondary namespace boundary for translation keys. It acts as a functional container within a Scope.</li>
 <li><strong>What it does NOT control:</strong> A Domain does NOT control Language availability, fallback mechanisms, or the actual translated text values. It is purely an organizational categorization.</li>
 </ul>
-</main>
+
 
 <?php include __DIR__ . '/../../layouts/footer.php'; ?>

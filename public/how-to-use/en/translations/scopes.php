@@ -1,6 +1,6 @@
 <?php include __DIR__ . '/../../layouts/header.php'; ?>
 
-<main class="main-content">
+
 <h1>Managing Translation Scopes</h1>
 <h2>1. What is a Scope</h2>
 <p>A Scope is the highest-level namespace and category in the translation system. It represents a major application boundary or environment. Scopes exist to organize text logically so that translations for completely different parts of the system do not overlap or conflict.
@@ -87,6 +87,6 @@
 <li><strong>What Scope controls:</strong> A Scope strictly controls the top-level namespace boundary for translation keys. It acts as a mandatory parent container that dictates which Domains are allowed to be used within it.</li>
 <li><strong>What it does NOT control:</strong> A Scope does NOT control Language availability, fallback mechanisms, or the actual text values. It is purely an organizational namespace.</li>
 </ul>
-</main>
+
 
 <?php include __DIR__ . '/../../layouts/footer.php'; ?>

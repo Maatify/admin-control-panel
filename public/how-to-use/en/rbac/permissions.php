@@ -1,6 +1,6 @@
 <?php include __DIR__ . '/../../layouts/header.php'; ?>
 
-<main class="main-content">
+
 <h1>Managing Permissions</h1>
 <h2>Overview</h2>
 <p>Permissions are the specific access rights that control exactly what an administrator can see and do on the platform. Rather than dealing with broad concepts, permissions determine the practical reality of the system: they dictate exactly which buttons appear on a page, which links show up in the navigation menu, and which pages successfully load.</p>
@@ -49,6 +49,6 @@ The change is applied to the system the exact moment you click the toggle. There
 <li><strong>Permissions should be carefully managed:</strong> Only enable toggles for actions that the specific role absolutely requires to perform their job.</li>
 <li><strong>Removing a permission can instantly block access:</strong> If an administrator is currently working on a page and you toggle their permission OFF, they will be blocked the next time they click a button or refresh their screen.</li>
 </ul>
-</main>
+
 
 <?php include __DIR__ . '/../../layouts/footer.php'; ?>

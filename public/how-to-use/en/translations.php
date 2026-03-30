@@ -1,6 +1,6 @@
 <?php include __DIR__ . '/../layouts/header.php'; ?>
 
-<main class="main-content">
+
 <h1>Managing Translations</h1>
 <h2>Overview</h2>
 <p>Translations allow administrators to manage the specific text that appears across the system's interface. Changes made here dictate exactly what words and phrases users read on the platform.</p>
@@ -59,6 +59,6 @@
 <li><strong>When does the change apply?</strong> The change is instantly saved to the system upon clicking Save, and the table refreshes immediately.</li>
 </ul>
 <hr/>
-</main>
+
 
 <?php include __DIR__ . '/../layouts/footer.php'; ?>

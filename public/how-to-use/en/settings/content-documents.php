@@ -1,6 +1,6 @@
 <?php include __DIR__ . '/../../layouts/header.php'; ?>
 
-<main class="main-content">
+
 <h1>Managing Content Documents</h1>
 <h2>1. What are Content Documents</h2>
 <p>Content Documents represent the long-form, authoritative texts of the platform. Unlike UI labels or button text, these are formal policies, agreements, or announcements that users must read or explicitly accept. They exist to enforce legal compliance, define platform rules, and maintain a rigorous audit trail of exactly what a user agreed to at a specific point in time.
@@ -107,6 +107,6 @@
 <li><strong>What Content Documents control:</strong> They strictly control authoritative, versioned texts that require historical preservation and optional explicit user acceptance.</li>
 <li><strong>What they do NOT control:</strong> They do not control standard UI strings, email templates, or dynamic application settings.</li>
 </ul>
-</main>
+
 
 <?php include __DIR__ . '/../../layouts/footer.php'; ?>

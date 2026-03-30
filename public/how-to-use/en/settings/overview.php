@@ -1,6 +1,6 @@
 <?php include __DIR__ . '/../../layouts/header.php'; ?>
 
-<main class="main-content">
+
 <h1>Managing System Settings — Overview</h1>
 <h2>1. Purpose of the Settings Module</h2>
 <p>The Settings module serves as the central control hub for configuring the platform's behavior and managing its authoritative, long-form content. Administrators use this system to control dynamic application configurations (feature toggles, external integration keys) and legal or policy documents (Terms of Service, Privacy Policies) directly from the control panel. It exists to ensure that both the operational parameters of the system and the legally binding agreements presented to users can be governed, versioned, and audited securely through the interface.</p>
@@ -69,6 +69,6 @@
 <li><strong>What Settings control:</strong> They strictly control dynamic configuration values (key-value pairs) and long-form, versioned platform documents (legal policies, terms, announcements).</li>
 <li><strong>What they do NOT control:</strong> They do not control the wording of UI buttons, menu items, or system error messages (handled by Translations). They do not control administrator accounts or roles (handled by Admins/RBAC). They do not control the addition of new system languages (handled by Languages).</li>
 </ul>
-</main>
+
 
 <?php include __DIR__ . '/../../layouts/footer.php'; ?>

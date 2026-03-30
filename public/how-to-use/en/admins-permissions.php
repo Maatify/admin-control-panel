@@ -1,6 +1,6 @@
 <?php include __DIR__ . '/../layouts/header.php'; ?>
 
-<main class="main-content">
+
 <h1>Managing Permissions</h1>
 <h2>1. Overview</h2>
 <p>This page displays ALL permissions currently affecting a specific administrator. It acts as the final source of truth for access control, combining the permissions granted indirectly through Roles with the permissions granted via Direct Permissions. It reflects the real access behavior and exact security boundaries currently applied to the administrator in the system.</p>
@@ -114,6 +114,6 @@
 <li><strong>Direct permissions should be used sparingly:</strong> Rely on Roles for 99% of your access management. Direct permissions should be reserved strictly for temporary exceptions or highly unique administrative requirements.</li>
 </ul>
 <hr/>
-</main>
+
 
 <?php include __DIR__ . '/../layouts/footer.php'; ?>

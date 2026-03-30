@@ -1,6 +1,6 @@
 <?php include __DIR__ . '/../../layouts/header.php'; ?>
 
-<main class="main-content">
+
 <h1>Access Control (Roles &amp; Permissions)</h1>
 <h2>Why Access Control Exists</h2>
 <p>Not all administrators require the ability to modify every part of the platform. For example, a support agent needs to view user accounts but should not be allowed to change global application settings or delete system translation languages. Access control restricts visibility and actions. It ensures that staff members can only see the specific sections of the left sidebar navigation menu—and click the specific buttons—that they actually need to perform their jobs.</p>
@@ -56,6 +56,6 @@
 <li><strong>Use direct permissions only when necessary:</strong> Reserve direct permissions for rare, highly specific exceptions to keep your overall access strategy clean and manageable.</li>
 </ul>
 <hr/>
-</main>
+
 
 <?php include __DIR__ . '/../../layouts/footer.php'; ?>

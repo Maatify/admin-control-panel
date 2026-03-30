@@ -1,6 +1,6 @@
 <?php include __DIR__ . '/../layouts/header.php'; ?>
 
-<main class="main-content">
+
 <h1>Managing Admins</h1>
 <h2>Overview</h2>
 <p>Administrators are the authorized staff members who manage and operate the platform. Because they have extensive controls and access to sensitive information, their accounts must be strictly governed. This section allows you to oversee who has access to the administrative panel, manage their account details, and monitor their security and active login sessions.</p>
@@ -85,6 +85,6 @@
 <li><strong>Sessions should be revoked if suspicious:</strong> If an admin reports a lost device or you notice an unusual login location, use the Revoke tools immediately to protect the platform.</li>
 <li><strong>Actions are tracked:</strong> Every action, from creating an account to revoking a session, is permanently tracked in the system's audit logs for complete accountability.</li>
 </ul>
-</main>
+
 
 <?php include __DIR__ . '/../layouts/footer.php'; ?>

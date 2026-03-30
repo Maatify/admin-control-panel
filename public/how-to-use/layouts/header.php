@@ -25,6 +25,8 @@ $switch_url = str_replace('/how-to-use/' . $lang . '/', '/how-to-use/' . $other_
             --border: #e5e7eb;
             --active-bg: #e0e7ff;
             --link: #2563eb;
+            --sidebar-width: 260px;
+            --content-max-width: 1100px;
         }
 
         .dark {
@@ -39,24 +41,35 @@ $switch_url = str_replace('/how-to-use/' . $lang . '/', '/how-to-use/' . $other_
         }
 
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; margin: 0; padding: 0; background: var(--bg); color: var(--text); transition: background-color 0.3s, color 0.3s; }
-        .layout { display: flex; min-height: 100vh; flex-direction: row; }
-        .sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); padding: 1.5rem; flex-shrink: 0; overflow-y: auto; transition: background-color 0.3s, border-color 0.3s; }
-        .sidebar.rtl { border-right: none; border-left: 1px solid var(--border); }
+
+        .layout { display: flex; flex-direction: column; min-height: 100vh; }
+
+        .sidebar { position: fixed; top: 0; bottom: 0; width: var(--sidebar-width); background: var(--surface); border-right: 1px solid var(--border); padding: 1.5rem; flex-shrink: 0; overflow-y: auto; transition: background-color 0.3s, border-color 0.3s; z-index: 40; }
+        [dir="ltr"] .sidebar { left: 0; border-right: 1px solid var(--border); border-left: none; }
+        [dir="rtl"] .sidebar { right: 0; border-left: 1px solid var(--border); border-right: none; }
+
         .sidebar a { display: block; padding: 0.5rem 0.75rem; color: var(--text); text-decoration: none; border-radius: 0.375rem; margin-bottom: 0.25rem; font-size: 0.95rem; transition: background 0.2s, color 0.3s; }
         .sidebar a:hover { background: var(--bg); color: var(--primary); }
         .sidebar a.active { background: var(--active-bg); color: var(--primary); font-weight: 600; }
         .sidebar-section { margin-bottom: 1.5rem; }
         .sidebar-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--text-light); margin-bottom: 0.5rem; padding-left: 0.75rem; }
-        .sidebar.rtl .sidebar-title { padding-left: 0; padding-right: 0.75rem; }
+        [dir="rtl"] .sidebar-title { padding-left: 0; padding-right: 0.75rem; }
         .sub-nav { margin-left: 0.5rem; border-left: 1px solid var(--border); padding-left: 0.5rem; }
-        .sidebar.rtl .sub-nav { margin-left: 0; margin-right: 0.5rem; border-left: none; border-right: 1px solid var(--border); padding-left: 0; padding-right: 0.5rem; }
+        [dir="rtl"] .sub-nav { margin-left: 0; margin-right: 0.5rem; border-left: none; border-right: 1px solid var(--border); padding-left: 0; padding-right: 0.5rem; }
 
-        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
-        .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; transition: background-color 0.3s, border-color 0.3s; }
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; }
+        [dir="ltr"] .main-wrapper { margin-left: var(--sidebar-width); }
+        [dir="rtl"] .main-wrapper { margin-right: var(--sidebar-width); }
+
+        .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; transition: background-color 0.3s, border-color 0.3s; position: sticky; top: 0; z-index: 30; }
         .header-title { font-weight: 600; font-size: 1.25rem; color: var(--text); }
         .header-actions { display: flex; gap: 1rem; align-items: center; }
 
-        .main-content { padding: 2rem; max-width: 800px; width: 100%; margin: 0 auto; background: var(--surface); margin-top: 2rem; margin-bottom: 2rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); transition: background-color 0.3s, box-shadow 0.3s; }
+        .main-content { padding: 2rem; width: 100%; display: flex; justify-content: center; }
+        .content-wrapper { width: 100%; max-width: var(--content-max-width); }
+
+        .page-content { background: var(--surface); padding: 2rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); transition: background-color 0.3s, box-shadow 0.3s; }
+
         h1 { font-size: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-top: 0; color: var(--text); }
         h2, h3, h4 { color: var(--text); }
         a { color: var(--link); text-decoration: none; }
@@ -67,7 +80,7 @@ $switch_url = str_replace('/how-to-use/' . $lang . '/', '/how-to-use/' . $other_
         table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
         th, td { border: 1px solid var(--border); padding: 0.75rem; text-align: left; }
         th { background: var(--bg); font-weight: 600; color: var(--text); }
-        .sidebar.rtl th, .sidebar.rtl td, [dir="rtl"] th, [dir="rtl"] td { text-align: right; }
+        [dir="rtl"] th, [dir="rtl"] td { text-align: right; }
 
         .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.375rem 0.75rem; border: 1px solid var(--border); border-radius: 0.375rem; text-decoration: none; color: var(--text); background: var(--surface); font-size: 0.875rem; font-weight: 500; transition: all 0.2s; cursor: pointer; }
         .btn:hover { background: var(--bg); }
@@ -82,10 +95,12 @@ $switch_url = str_replace('/how-to-use/' . $lang . '/', '/how-to-use/' . $other_
         .breadcrumb span.current { color: var(--text); font-weight: 500; }
 
         @media (max-width: 768px) {
-            .layout { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); padding: 1rem; }
-            .sidebar.rtl { border-left: none; }
-            .main-content { margin-top: 1rem; border-radius: 0; box-shadow: none; padding: 1.5rem; }
+            .sidebar { position: static; width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); padding: 1rem; }
+            [dir="ltr"] .sidebar { border-right: none; }
+            [dir="rtl"] .sidebar { border-left: none; }
+            [dir="ltr"] .main-wrapper, [dir="rtl"] .main-wrapper { margin-left: 0; margin-right: 0; }
+            .main-content { padding: 1rem; }
+            .page-content { border-radius: 0; box-shadow: none; padding: 1.5rem; }
         }
     </style>
     <script>
@@ -111,7 +126,8 @@ $switch_url = str_replace('/how-to-use/' . $lang . '/', '/how-to-use/' . $other_
             </div>
         </header>
         <main class="main-content">
-            <?php
+            <div class="content-wrapper">
+                <?php
             // Generate breadcrumbs
             $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
             $parts = explode('/', trim($path, '/'));
@@ -172,3 +188,4 @@ $switch_url = str_replace('/how-to-use/' . $lang . '/', '/how-to-use/' . $other_
                 echo '</div>';
             }
             ?>
+                <div class="page-content">

@@ -1,6 +1,6 @@
 <?php include __DIR__ . '/../../layouts/header.php'; ?>
 
-<main class="main-content">
+
 <h1>Managing Application Settings</h1>
 <h2>1. What are Application Settings</h2>
 <p>Application Settings are dynamic configurations that control the runtime behavior of the platform. They act as a configuration engine, allowing administrators to toggle features, adjust limits, and configure external integration logic directly from the control panel without requiring a developer to intervene.</p>
@@ -93,6 +93,6 @@
 <li><strong>Dangers of misuse:</strong> Because changes take immediate effect, entering an invalid configuration (e.g., setting a pagination limit to <code>0</code> or <code>1000000</code>) can instantly break UI layouts or cause performance issues platform-wide.</li>
 <li><strong>Wrong usage patterns:</strong> Administrators attempting to use App Settings to store user-specific preferences or large localized strings violate the module's architectural boundaries.</li>
 </ul>
-</main>
+
 
 <?php include __DIR__ . '/../../layouts/footer.php'; ?>

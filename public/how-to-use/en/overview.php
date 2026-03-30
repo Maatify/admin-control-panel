@@ -1,6 +1,6 @@
 <?php include __DIR__ . '/../layouts/header.php'; ?>
 
-<main class="main-content">
+
 <h1>Admin Panel Overview</h1>
 <h2>1. What is this system?</h2>
 <p>This system is an administrative control panel designed to help you securely manage the platform. It allows you to organize user accounts, assign roles and permissions, configure platform settings, manage translated content across multiple languages, and handle important policies or documents. The platform is built with strong security in mind, ensuring all actions are tracked, verified, and protected against unauthorized access.</p>
@@ -91,6 +91,6 @@
 <li><strong>Permissions affect visibility:</strong> The menus and options you see in the admin panel depend entirely on your assigned roles and permissions. If you cannot see a feature, it means your account does not have the required access.</li>
 <li><strong>Some actions require verification:</strong> Changing critical account details, like email addresses or passwords, may trigger a verification step (like receiving a confirmation email) before the change is finalized.</li>
 </ul>
-</main>
+
 
 <?php include __DIR__ . '/../layouts/footer.php'; ?>
