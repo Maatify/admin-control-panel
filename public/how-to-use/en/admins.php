@@ -6,9 +6,11 @@
 <p>Administrators are the authorized staff members who manage and operate the platform. Because they have extensive controls and access to sensitive information, their accounts must be strictly governed. This section allows you to oversee who has access to the administrative panel, manage their account details, and monitor their security and active login sessions.</p>
 <hr/>
 <h2>How to Access Admins</h2>
-<p>To access the administrator management area:
-* Look at the left sidebar navigation menu.
-* Click on <strong>Admins</strong>. This will open the main Admins List page.</p>
+<p>To access the administrator management area:</p>
+<ul>
+<li>Look at the left sidebar navigation menu.</li>
+<li>Click on <strong>Admins</strong>. This will open the main Admins List page.</li>
+</ul>
 <hr/>
 <h2>Admins List</h2>
 <p>When you open the Admins section, you will see the <strong>Admins List</strong>.</p>

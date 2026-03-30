@@ -48,12 +48,14 @@
 <li>Click the <strong>Assign Permission</strong> button located on the Direct tab.</li>
 <li>A large modal opens titled <strong>Assignable Permissions</strong>.</li>
 </ol>
-<p>Inside the modal:
-*   You will see a paginated, searchable table of every permission available in the system.
-*   The columns displayed in this modal are: <strong>ID</strong>, <strong>Name</strong>, <strong>Group</strong>, <strong>Display Name</strong>, <strong>Assigned</strong>, <strong>Type</strong>, and <strong>Expires At</strong>.
-*   <strong>Action:</strong> Each row has a toggle or button to assign the permission.
-*   <strong>Configuration:</strong> When assigning, you can set the Type to <strong>Allowed</strong> (to grant access) or <strong>Denied</strong> (to explicitly block access, even if a role grants it). You can optionally set an expiration date.
-*   <strong>Result:</strong> Once assigned, the permission reflects instantly in the Direct tab and recalculates the administrator's final access in the Effective tab.</p>
+<p>Inside the modal:</p>
+<ul>
+<li>You will see a paginated, searchable table of every permission available in the system.</li>
+<li>The columns displayed in this modal are: <strong>ID</strong>, <strong>Name</strong>, <strong>Group</strong>, <strong>Display Name</strong>, <strong>Assigned</strong>, <strong>Type</strong>, and <strong>Expires At</strong>.</li>
+<li><strong>Action:</strong> Each row has a toggle or button to assign the permission.</li>
+<li><strong>Configuration:</strong> When assigning, you can set the Type to <strong>Allowed</strong> (to grant access) or <strong>Denied</strong> (to explicitly block access, even if a role grants it). You can optionally set an expiration date.</li>
+<li><strong>Result:</strong> Once assigned, the permission reflects instantly in the Direct tab and recalculates the administrator's final access in the Effective tab.</li>
+</ul>
 <h2>6. Editing / Revoking</h2>
 <p>From the <strong>Direct</strong> tab, you can modify existing direct assignments using the buttons in the Actions column:</p>
 <ul>

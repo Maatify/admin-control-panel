@@ -25,9 +25,11 @@
 <li><strong>When NOT to use them:</strong> Do not use direct permissions as your primary way of managing access. If you find yourself assigning the same 10 direct permissions to multiple people, you should create a Role instead.</li>
 </ul>
 <h2>What Happens When Access Changes</h2>
-<p>When an administrator's assigned Roles or Permissions are modified, the effects happen instantly across their active sessions.
-*   Entire menu items (like "Admins", "Sessions", or "Settings") in the left sidebar navigation will instantly appear or disappear based on what they are newly allowed to view.
-*   Specific action buttons (such as "Create Admin," "Edit Profile," or "Revoke Session") within a page will instantly become visible or be hidden.</p>
+<p>When an administrator's assigned Roles or Permissions are modified, the effects happen instantly across their active sessions.</p>
+<ul>
+<li>Entire menu items (like "Admins", "Sessions", or "Settings") in the left sidebar navigation will instantly appear or disappear based on what they are newly allowed to view.</li>
+<li>Specific action buttons (such as "Create Admin," "Edit Profile," or "Revoke Session") within a page will instantly become visible or be hidden.</li>
+</ul>
 <h2>What Happens If Access is Denied</h2>
 <p>From the perspective of an administrator, the system is designed to be invisible unless they have the proper access. If an administrator does not have permission to perform an action:</p>
 <ul>

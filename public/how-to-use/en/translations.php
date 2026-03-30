@@ -10,19 +10,25 @@
 <li>Under the <strong>Translations</strong> section, you will find two primary options: <strong>Scopes</strong> and <strong>Domains</strong>.</li>
 </ul>
 <h2>Structure of Translations</h2>
-<p>The system groups translation data into three levels:
-* <strong>Scopes:</strong> The top-level categories.
-* <strong>Domains:</strong> Sub-categories that belong to specific Scopes.
-* <strong>Keys:</strong> The actual text identifiers and their associated translations in different languages.</p>
+<p>The system groups translation data into three levels:</p>
+<ul>
+<li><strong>Scopes:</strong> The top-level categories.</li>
+<li><strong>Domains:</strong> Sub-categories that belong to specific Scopes.</li>
+<li><strong>Keys:</strong> The actual text identifiers and their associated translations in different languages.</li>
+</ul>
 <h2>Scopes</h2>
-<p>When you click on <strong>Scopes</strong> in the sidebar:
-* <strong>Table Columns:</strong> You see a table displaying the Scope ID, Code, Name, Description, Active status, and Order.
-* <strong>What buttons exist:</strong> You will see action buttons for "Code" and "Meta" to edit the scope's basic details. You can also click directly on the Scope to open it.
-* <strong>Navigation behavior:</strong> Opening a Scope allows you to view its assigned Domains and manage the Keys specifically attached to that Scope.</p>
+<p>When you click on <strong>Scopes</strong> in the sidebar:</p>
+<ul>
+<li><strong>Table Columns:</strong> You see a table displaying the Scope ID, Code, Name, Description, Active status, and Order.</li>
+<li><strong>What buttons exist:</strong> You will see action buttons for "Code" and "Meta" to edit the scope's basic details. You can also click directly on the Scope to open it.</li>
+<li><strong>Navigation behavior:</strong> Opening a Scope allows you to view its assigned Domains and manage the Keys specifically attached to that Scope.</li>
+</ul>
 <h2>Domains</h2>
-<p>When viewing the Domains assigned to a Scope (or viewing the global Domains list):
-* <strong>Full structure:</strong> You will see a list of domains attached to the scope.
-* <strong>Navigation behavior:</strong> You can click to view the specific Translation Keys belonging to that Domain.</p>
+<p>When viewing the Domains assigned to a Scope (or viewing the global Domains list):</p>
+<ul>
+<li><strong>Full structure:</strong> You will see a list of domains attached to the scope.</li>
+<li><strong>Navigation behavior:</strong> You can click to view the specific Translation Keys belonging to that Domain.</li>
+</ul>
 <h2>Translation Keys (MOST IMPORTANT)</h2>
 <p>When you drill down into a specific Scope and Domain, you will reach the Translations List.</p>
 <ul>
@@ -49,9 +55,11 @@
 <li><strong>Domains → Keys:</strong> Click into a Domain to see the actual Translations List table where editing happens.</li>
 </ol>
 <h2>Filters / Search</h2>
-<p>When viewing the Translations List:
-* <strong>Search inputs:</strong> A search box is available to find specific Key names or translation values.
-* <strong>Filter dropdowns:</strong> A dropdown menu is provided to filter the table to show only a specific language.</p>
+<p>When viewing the Translations List:</p>
+<ul>
+<li><strong>Search inputs:</strong> A search box is available to find specific Key names or translation values.</li>
+<li><strong>Filter dropdowns:</strong> A dropdown menu is provided to filter the table to show only a specific language.</li>
+</ul>
 <h2>Save Behavior</h2>
 <ul>
 <li><strong>Is there a Save button?</strong> Yes, the "Edit Translation" modal has an explicit Save button.</li>

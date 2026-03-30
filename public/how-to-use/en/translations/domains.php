@@ -3,8 +3,10 @@
 
 <h1>Managing Translation Domains</h1>
 <h2>1. What is a Domain</h2>
-<p>A Domain is the secondary categorization level in the translation system, acting as a functional grouping or sub-namespace within a larger Scope. It represents a specific feature, module, or logical area of the application.
-*   <strong>Examples:</strong> Common domains include <code>auth</code> (for authentication-related text like login and password reset), <code>errors</code> (for system error messages), <code>emails</code> (for email templates), or <code>dashboard</code> (for the main user interface).</p>
+<p>A Domain is the secondary categorization level in the translation system, acting as a functional grouping or sub-namespace within a larger Scope. It represents a specific feature, module, or logical area of the application.</p>
+<ul>
+<li><strong>Examples:</strong> Common domains include <code>auth</code> (for authentication-related text like login and password reset), <code>errors</code> (for system error messages), <code>emails</code> (for email templates), or <code>dashboard</code> (for the main user interface).</li>
+</ul>
 <h2>2. Role of Domains in the Architecture</h2>
 <ul>
 <li><strong>Hierarchy:</strong> Domains sit below Scopes and above Keys in the translation hierarchy: <strong>Scopes → Domains → Keys → Values</strong>.</li>
@@ -12,14 +14,16 @@
 <li><strong>Logical Grouping:</strong> Domains provide a structured way to organize thousands of translation keys, making them easier to manage, export, and assign to translators.</li>
 </ul>
 <h2>3. Domain Data Model</h2>
-<p>Domains consist of the following properties:
-*   <strong>ID:</strong> The unique system identifier for the Domain.
-*   <strong>Code:</strong> The programmatic, unique string identifier used in the system (e.g., "auth").
-*   <strong>Name:</strong> The human-readable name displayed in the UI.
-*   <strong>Description:</strong> Optional metadata explaining the purpose of the Domain.
-*   <strong>Active Status:</strong> A flag determining whether the Domain is currently enabled and available for translation resolution.
-*   <strong>Order:</strong> Determines the visual order in which Domains appear in UI lists.
-*   <strong>Created At:</strong> Timestamp of when the Domain was registered.</p>
+<p>Domains consist of the following properties:</p>
+<ul>
+<li><strong>ID:</strong> The unique system identifier for the Domain.</li>
+<li><strong>Code:</strong> The programmatic, unique string identifier used in the system (e.g., "auth").</li>
+<li><strong>Name:</strong> The human-readable name displayed in the UI.</li>
+<li><strong>Description:</strong> Optional metadata explaining the purpose of the Domain.</li>
+<li><strong>Active Status:</strong> A flag determining whether the Domain is currently enabled and available for translation resolution.</li>
+<li><strong>Order:</strong> Determines the visual order in which Domains appear in UI lists.</li>
+<li><strong>Created At:</strong> Timestamp of when the Domain was registered.</li>
+</ul>
 <h2>4. Scope ↔ Domain Relationship</h2>
 <ul>
 <li><strong>Mapping:</strong> A Domain must be explicitly mapped to one or more Scopes to be used. This mapping defines where the Domain is valid.</li>
@@ -49,14 +53,16 @@
 <li><strong>How it affects system behavior:</strong> Deactivating a Domain globally prevents it from being used in any new mappings and may affect the resolution of existing keys depending on system configuration.</li>
 </ul>
 <h2>6. Domain List</h2>
-<p>The main UI for managing Domains displays a data table with the following structure:
-*   <strong>Table Columns:</strong> ID, Code (rendered with a code badge), Name, Description, Active (rendered as an Active/Inactive status badge), Order (sort order badge), and Actions.
-*   <strong>Actions:</strong> Each row contains actionable buttons depending on admin permissions:
-    *   <strong>Code:</strong> Opens a modal to change the programmatic Domain code.
-    *   <strong>Meta:</strong> Opens a modal to update the Name and Description.
-    *   <strong>Sort:</strong> Opens a modal to change the Sort Order.
-    *   <strong>Activate / Deactivate:</strong> A toggle button to change the global active status of the Domain.
-*   <strong>Buttons:</strong> The table includes a global <strong>Create Domain</strong> button at the top to initialize a new Domain.</p>
+<p>The main UI for managing Domains displays a data table with the following structure:</p>
+<ul>
+<li><strong>Table Columns:</strong> ID, Code (rendered with a code badge), Name, Description, Active (rendered as an Active/Inactive status badge), Order (sort order badge), and Actions.</li>
+<li><strong>Actions:</strong> Each row contains actionable buttons depending on admin permissions:</li>
+<li><strong>Code:</strong> Opens a modal to change the programmatic Domain code.</li>
+<li><strong>Meta:</strong> Opens a modal to update the Name and Description.</li>
+<li><strong>Sort:</strong> Opens a modal to change the Sort Order.</li>
+<li><strong>Activate / Deactivate:</strong> A toggle button to change the global active status of the Domain.</li>
+<li><strong>Buttons:</strong> The table includes a global <strong>Create Domain</strong> button at the top to initialize a new Domain.</li>
+</ul>
 <h2>7. Domain Interaction Flow</h2>
 <ul>
 <li><strong>What happens when clicking a Domain:</strong> Clicking a Domain in the table directs the administrator to the specific Domain Details page.</li>

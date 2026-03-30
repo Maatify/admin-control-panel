@@ -65,14 +65,18 @@
 </li>
 </ul>
 <h2>8. Admin Interaction Flow</h2>
-<p>Administrators manage these configurations through the specific App Settings list interface:
-*   <strong>Table Columns:</strong> The table displays ID, Group, Key, Value, Type, Status, and Actions. It includes visual badges for context (e.g., a 🔒 lock icon for protected settings, and a ⚠️ warning icon for orphaned settings not recognized by the system whitelist).
-*   <strong>Editing settings:</strong> Admins click an edit action on a row to modify the value and the logical type.
-*   <strong>Saving changes:</strong> Submitting the form updates the system instantly, and the UI table refreshes.</p>
+<p>Administrators manage these configurations through the specific App Settings list interface:</p>
+<ul>
+<li><strong>Table Columns:</strong> The table displays ID, Group, Key, Value, Type, Status, and Actions. It includes visual badges for context (e.g., a 🔒 lock icon for protected settings, and a ⚠️ warning icon for orphaned settings not recognized by the system whitelist).</li>
+<li><strong>Editing settings:</strong> Admins click an edit action on a row to modify the value and the logical type.</li>
+<li><strong>Saving changes:</strong> Submitting the form updates the system instantly, and the UI table refreshes.</li>
+</ul>
 <h2>9. Constraints &amp; Rules</h2>
-<p>The system enforces strict governance over what can be modified:
-*   <strong>System-protected:</strong> The system hardcodes critical infrastructure settings (e.g., <code>system.base_url</code>) that are completely blocked from modification via the UI. Attempting to change them will be blocked by the system.
-*   <strong>Whitelist policy:</strong> The system strictly ensures that invalid or unrecognized settings cannot be created. Only setting keys that are explicitly declared in the application's internal whitelist can be created or queried.</p>
+<p>The system enforces strict governance over what can be modified:</p>
+<ul>
+<li><strong>System-protected:</strong> The system hardcodes critical infrastructure settings (e.g., <code>system.base_url</code>) that are completely blocked from modification via the UI. Attempting to change them will be blocked by the system.</li>
+<li><strong>Whitelist policy:</strong> The system strictly ensures that invalid or unrecognized settings cannot be created. Only setting keys that are explicitly declared in the application's internal whitelist can be created or queried.</li>
+</ul>
 <h2>10. Relationship with Other Modules</h2>
 <ul>
 <li><strong>Auth / Admin System:</strong> Changes to security settings (like timeout limits) immediately impact how the platform processes user sessions.</li>

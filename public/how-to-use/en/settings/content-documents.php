@@ -3,8 +3,10 @@
 
 <h1>Managing Content Documents</h1>
 <h2>1. What are Content Documents</h2>
-<p>Content Documents represent the long-form, authoritative texts of the platform. Unlike UI labels or button text, these are formal policies, agreements, or announcements that users must read or explicitly accept. They exist to enforce legal compliance, define platform rules, and maintain a rigorous audit trail of exactly what a user agreed to at a specific point in time.
-*   <strong>Examples:</strong> Terms of Service, Privacy Policy, Cookie Policy, End User License Agreements (EULA).</p>
+<p>Content Documents represent the long-form, authoritative texts of the platform. Unlike UI labels or button text, these are formal policies, agreements, or announcements that users must read or explicitly accept. They exist to enforce legal compliance, define platform rules, and maintain a rigorous audit trail of exactly what a user agreed to at a specific point in time.</p>
+<ul>
+<li><strong>Examples:</strong> Terms of Service, Privacy Policy, Cookie Policy, End User License Agreements (EULA).</li>
+</ul>
 <h2>2. Core Architecture</h2>
 <p>The system models Content Documents via three distinct relational elements:</p>
 <h3>Document Type</h3>

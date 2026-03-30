@@ -25,10 +25,12 @@
 </li>
 </ul>
 <h3>Filters and Search</h3>
-<p>Above the table, the interface provides comprehensive search and filtering tools:
-*   <strong>Global Search:</strong> A search input box that allows you to instantly search across the table. It features a 1-second auto-search delay as you type, or you can press "Enter" or click the Search button to trigger it immediately. A "Clear" button resets this specific input.
-*   <strong>Column Filters:</strong> A filter form allowing you to narrow down the table by specific fields: ID, Name, Code, Direction, and Status.
-*   <strong>Reset Filters Button:</strong> A dedicated button that clears all active column filters and resets the table view to page 1.</p>
+<p>Above the table, the interface provides comprehensive search and filtering tools:</p>
+<ul>
+<li><strong>Global Search:</strong> A search input box that allows you to instantly search across the table. It features a 1-second auto-search delay as you type, or you can press "Enter" or click the Search button to trigger it immediately. A "Clear" button resets this specific input.</li>
+<li><strong>Column Filters:</strong> A filter form allowing you to narrow down the table by specific fields: ID, Name, Code, Direction, and Status.</li>
+<li><strong>Reset Filters Button:</strong> A dedicated button that clears all active column filters and resets the table view to page 1.</li>
+</ul>
 <h2>Creating a Language</h2>
 <p>When introducing a new language option to the platform:</p>
 <ol>
@@ -40,11 +42,13 @@
 </ol>
 <h2>Editing a Language</h2>
 <p>Unlike bulk-edit forms, modifying a language in this system is split into highly specific actions to ensure data integrity.</p>
-<p>From the <strong>Actions</strong> column in the Languages List, you can perform the following modifications:
-*   <strong>Update Settings:</strong> Click the Edit Settings button to modify the language's reading Direction and Icon.
-*   <strong>Update Name:</strong> Allows you to change the human-readable Name of the language.
-*   <strong>Update Code:</strong> Allows you to change the programmatic Code. <em>Warning:</em> The system will strictly validate that the new code is not already in use by another language.
-*   <strong>Update Sort Order:</strong> Allows you to manually adjust the numerical priority of the language.</p>
+<p>From the <strong>Actions</strong> column in the Languages List, you can perform the following modifications:</p>
+<ul>
+<li><strong>Update Settings:</strong> Click the Edit Settings button to modify the language's reading Direction and Icon.</li>
+<li><strong>Update Name:</strong> Allows you to change the human-readable Name of the language.</li>
+<li><strong>Update Code:</strong> Allows you to change the programmatic Code. <em>Warning:</em> The system will strictly validate that the new code is not already in use by another language.</li>
+<li><strong>Update Sort Order:</strong> Allows you to manually adjust the numerical priority of the language.</li>
+</ul>
 <ul>
 <li><strong>Save Behavior:</strong> Each of these actions applies immediately. Upon success, the UI table refreshes instantly to display the updated data.</li>
 </ul>
@@ -63,9 +67,11 @@
 <h2>Deleting a Language</h2>
 <p>There is <strong>no delete functionality</strong> for languages. Languages are permanently referenced by translations and user settings across the platform. If a language is no longer needed, administrators must use the <strong>Deactivate</strong> action to hide it from the active platform.</p>
 <h2>What Happens When Languages Change</h2>
-<p>Because this is the central language list for the platform:
-*   <strong>Immediate Application:</strong> Any change to a language's Code, Direction, or Active status takes effect immediately across the interface.
-*   <strong>Translation Dependencies:</strong> Modifying a language directly impacts the translations area, as all text values are loaded based on the languages and fallbacks defined here.</p>
+<p>Because this is the central language list for the platform:</p>
+<ul>
+<li><strong>Immediate Application:</strong> Any change to a language's Code, Direction, or Active status takes effect immediately across the interface.</li>
+<li><strong>Translation Dependencies:</strong> Modifying a language directly impacts the translations area, as all text values are loaded based on the languages and fallbacks defined here.</li>
+</ul>
 <hr/>
 
 

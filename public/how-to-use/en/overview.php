@@ -38,29 +38,39 @@
 <h2>📂 Documentation Map</h2>
 <p>Use the links below to navigate through the complete admin guide.</p>
 <h3>👥 Admin Management</h3>
-<p>Learn how to create, manage, and monitor the administrators who operate the platform.
-* Admins → <a href="/how-to-use/en/admins.php">docs/admin/admins.md</a>
-* Admin Permissions → <a href="/how-to-use/en/admins-permissions.php">docs/admin/admins-permissions.md</a>
-* Sessions → <a href="/how-to-use/en/sessions.php">docs/admin/sessions.md</a></p>
+<p>Learn how to create, manage, and monitor the administrators who operate the platform.</p>
+<ul>
+<li>Admins → <a href="/how-to-use/en/admins.php">admins.md</a></li>
+<li>Admin Permissions → <a href="/how-to-use/en/admins-permissions.php">admins-permissions.md</a></li>
+<li>Sessions → <a href="/how-to-use/en/sessions.php">sessions.md</a></li>
+</ul>
 <h3>⚙️ Settings</h3>
-<p>Control dynamic application configurations and manage authoritative, version-controlled legal documents.
-* Overview → <a href="/how-to-use/en/settings/overview.php">docs/admin/settings/overview.md</a>
-* Content Documents → <a href="/how-to-use/en/settings/content-documents.php">docs/admin/settings/content-documents.md</a>
-* App Settings → <a href="/how-to-use/en/settings/app-settings.php">docs/admin/settings/app-settings.md</a></p>
+<p>Control dynamic application configurations and manage authoritative, version-controlled legal documents.</p>
+<ul>
+<li>Overview → <a href="/how-to-use/en/settings/overview.php">settings/overview.md</a></li>
+<li>Content Documents → <a href="/how-to-use/en/settings/content-documents.php">settings/content-documents.md</a></li>
+<li>App Settings → <a href="/how-to-use/en/settings/app-settings.php">settings/app-settings.md</a></li>
+</ul>
 <h3>🔐 RBAC</h3>
-<p>Understand how access control works and how to assign the right capabilities to the right people.
-* Overview → <a href="/how-to-use/en/rbac/overview.php">docs/admin/rbac/overview.md</a>
-* Roles → <a href="/how-to-use/en/rbac/roles.php">docs/admin/rbac/roles.md</a>
-* Permissions → <a href="/how-to-use/en/rbac/permissions.php">docs/admin/rbac/permissions.md</a></p>
+<p>Understand how access control works and how to assign the right capabilities to the right people.</p>
+<ul>
+<li>Overview → <a href="/how-to-use/en/rbac/overview.php">rbac/overview.md</a></li>
+<li>Roles → <a href="/how-to-use/en/rbac/roles.php">rbac/roles.md</a></li>
+<li>Permissions → <a href="/how-to-use/en/rbac/permissions.php">rbac/permissions.md</a></li>
+</ul>
 <h3>🌍 Languages</h3>
-<p>Manage the languages supported by the platform.
-* Languages → <a href="/how-to-use/en/languages.php">docs/admin/languages.md</a></p>
+<p>Manage the languages supported by the platform.</p>
+<ul>
+<li>Languages → <a href="/how-to-use/en/languages.php">languages.md</a></li>
+</ul>
 <h3>🔤 Translations</h3>
-<p>Precisely control the translated text displayed to users.
-* Main Guide → <a href="/how-to-use/en/translations.php">docs/admin/translations.md</a>
-* Overview → <a href="/how-to-use/en/translations/overview.php">docs/admin/translations/overview.md</a>
-* Scopes → <a href="/how-to-use/en/translations/scopes.php">docs/admin/translations/scopes.md</a>
-* Domains → <a href="/how-to-use/en/translations/domains.php">docs/admin/translations/domains.md</a></p>
+<p>Precisely control the translated text displayed to users.</p>
+<ul>
+<li>Main Guide → <a href="/how-to-use/en/translations.php">translations.md</a></li>
+<li>Overview → <a href="/how-to-use/en/translations/overview.php">translations/overview.md</a></li>
+<li>Scopes → <a href="/how-to-use/en/translations/scopes.php">translations/scopes.md</a></li>
+<li>Domains → <a href="/how-to-use/en/translations/domains.php">translations/domains.md</a></li>
+</ul>
 <h2>3. Common Tasks</h2>
 <h3>Logging In</h3>
 <p>To access the system, you must log in using your credentials. After providing your email and password, you will be required to complete a Two-Factor Authentication (2FA) step to verify your identity.</p>

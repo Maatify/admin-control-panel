@@ -3,8 +3,10 @@
 
 <h1>Managing Translation Scopes</h1>
 <h2>1. What is a Scope</h2>
-<p>A Scope is the highest-level namespace and category in the translation system. It represents a major application boundary or environment. Scopes exist to organize text logically so that translations for completely different parts of the system do not overlap or conflict.
-*   <strong>Examples:</strong> Common scopes in the system typically include <code>admin</code> (text intended for the administrative control panel), <code>client</code> (text for the end-user application), or <code>api</code> (text returned in API responses).</p>
+<p>A Scope is the highest-level namespace and category in the translation system. It represents a major application boundary or environment. Scopes exist to organize text logically so that translations for completely different parts of the system do not overlap or conflict.</p>
+<ul>
+<li><strong>Examples:</strong> Common scopes in the system typically include <code>admin</code> (text intended for the administrative control panel), <code>client</code> (text for the end-user application), or <code>api</code> (text returned in API responses).</li>
+</ul>
 <h2>2. Role of Scopes in the Architecture</h2>
 <ul>
 <li><strong>Hierarchy:</strong> Scopes sit at the very top of the translation hierarchy: <strong>Scopes → Domains → Keys → Values</strong>.</li>
@@ -12,14 +14,16 @@
 <li><strong>Uniqueness:</strong> Scope plays a critical role in Key uniqueness. A Key (like <code>login.title</code>) can exist multiple times in the system as long as it belongs to a different Scope or Domain. The system enforces uniqueness strictly on the combination of a scope, domain, and key.</li>
 </ul>
 <h2>3. Scope Data Model</h2>
-<p>Scopes consist of the following properties:
-*   <strong>ID:</strong> The unique system identifier for the Scope.
-*   <strong>Code:</strong> The programmatic, unique string identifier used in the system (e.g., "admin").
-*   <strong>Name:</strong> The human-readable name displayed in the UI.
-*   <strong>Description:</strong> Optional metadata explaining the purpose of the Scope.
-*   <strong>Active Status:</strong> A flag determining whether the Scope is currently enabled and available for translation resolution.
-*   <strong>Order:</strong> Determines the visual order in which Scopes appear in UI lists.
-*   <strong>Created At:</strong> Timestamp of when the Scope was registered.</p>
+<p>Scopes consist of the following properties:</p>
+<ul>
+<li><strong>ID:</strong> The unique system identifier for the Scope.</li>
+<li><strong>Code:</strong> The programmatic, unique string identifier used in the system (e.g., "admin").</li>
+<li><strong>Name:</strong> The human-readable name displayed in the UI.</li>
+<li><strong>Description:</strong> Optional metadata explaining the purpose of the Scope.</li>
+<li><strong>Active Status:</strong> A flag determining whether the Scope is currently enabled and available for translation resolution.</li>
+<li><strong>Order:</strong> Determines the visual order in which Scopes appear in UI lists.</li>
+<li><strong>Created At:</strong> Timestamp of when the Scope was registered.</li>
+</ul>
 <h2>4. Scope ↔ Domain Relationship</h2>
 <ul>
 <li><strong>How domains are attached:</strong> Domains are explicitly linked to Scopes via a mapping.</li>
@@ -50,14 +54,16 @@
 <li><strong>How it affects system behavior:</strong> Deactivating a Scope hides it from standard lists and prevents new keys from being resolved under that namespace.</li>
 </ul>
 <h2>6. Scope List</h2>
-<p>The main UI for managing Scopes displays a data table with the following structure:
-*   <strong>Table Columns:</strong> ID, Code (rendered with a code badge), Name, Description, Active (rendered as an Active/Inactive status badge), Order (sort order badge), and Actions.
-*   <strong>Actions:</strong> Each row contains multiple actionable buttons depending on the admin's permissions:
-    *   <strong>Code:</strong> Opens a modal to change the programmatic Scope code.
-    *   <strong>Meta:</strong> Opens a modal to update the Name and Description.
-    *   <strong>Sort:</strong> Opens a modal to change the Sort Order.
-    *   <strong>Activate / Deactivate:</strong> A toggle button to change the active status.
-*   <strong>Buttons:</strong> The table also features a global <strong>Create Scope</strong> button at the top to initialize a new Scope.</p>
+<p>The main UI for managing Scopes displays a data table with the following structure:</p>
+<ul>
+<li><strong>Table Columns:</strong> ID, Code (rendered with a code badge), Name, Description, Active (rendered as an Active/Inactive status badge), Order (sort order badge), and Actions.</li>
+<li><strong>Actions:</strong> Each row contains multiple actionable buttons depending on the admin's permissions:</li>
+<li><strong>Code:</strong> Opens a modal to change the programmatic Scope code.</li>
+<li><strong>Meta:</strong> Opens a modal to update the Name and Description.</li>
+<li><strong>Sort:</strong> Opens a modal to change the Sort Order.</li>
+<li><strong>Activate / Deactivate:</strong> A toggle button to change the active status.</li>
+<li><strong>Buttons:</strong> The table also features a global <strong>Create Scope</strong> button at the top to initialize a new Scope.</li>
+</ul>
 <h2>7. Scope Interaction Flow</h2>
 <ul>
 <li><strong>What happens when clicking a Scope:</strong> Clicking the Scope's ID in the table redirects the administrator to the specific Scope Details page.</li>

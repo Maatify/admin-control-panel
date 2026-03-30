@@ -38,29 +38,39 @@
 <h2>📂 خريطة توثيقية</h2>
 <p>استخدم الروابط أدناه للتنقل عبر دليل المسؤول الكامل.</p>
 <h3>👥 الإدارة الإدارية</h3>
-<p>تعرف على كيفية إنشاء وإدارة ومراقبة المسؤولين الذين يقومون بتشغيل النظام الأساسي.
-* المشرفون → <a href="/how-to-use/ar/admins.php">docs/admin/admins.md</a>
-* أذونات المسؤول → <a href="/how-to-use/ar/admins-permissions.php">docs/admin/admins-permissions.md</a>
-* الجلسات → <a href="/how-to-use/ar/sessions.php">docs/admin/sessions.md</a></p>
+<p>تعرف على كيفية إنشاء وإدارة ومراقبة المسؤولين الذين يقومون بتشغيل النظام الأساسي.</p>
+<ul>
+<li>المشرفون → <a href="/how-to-use/ar/admins.php">admins.md</a></li>
+<li>أذونات المسؤول → <a href="/how-to-use/ar/admins-permissions.php">admins-permissions.md</a></li>
+<li>الجلسات → <a href="/how-to-use/ar/sessions.php">sessions.md</a></li>
+</ul>
 <h3>⚙️ الإعدادات</h3>
-<p>التحكم في تكوينات التطبيق الديناميكية وإدارة المستندات القانونية الرسمية التي يتم التحكم في إصدارها.
-* نظرة عامة → <a href="/how-to-use/ar/settings/overview.php">docs/admin/settings/overview.md</a>
-* وثائق المحتوى → <a href="/how-to-use/ar/settings/content-documents.php">docs/admin/settings/content-documents.md</a>
-* إعدادات التطبيق → <a href="/how-to-use/ar/settings/app-settings.php">docs/admin/settings/app-settings.md</a></p>
+<p>التحكم في تكوينات التطبيق الديناميكية وإدارة المستندات القانونية الرسمية التي يتم التحكم في إصدارها.</p>
+<ul>
+<li>نظرة عامة → <a href="/how-to-use/ar/settings/overview.php">settings/overview.md</a></li>
+<li>وثائق المحتوى → <a href="/how-to-use/ar/settings/content-documents.php">settings/content-documents.md</a></li>
+<li>إعدادات التطبيق → <a href="/how-to-use/ar/settings/app-settings.php">settings/app-settings.md</a></li>
+</ul>
 <h3>🔐 ار بي سي</h3>
-<p>فهم كيفية عمل التحكم في الوصول وكيفية تعيين الإمكانات المناسبة للأشخاص المناسبين.
-* نظرة عامة → <a href="/how-to-use/ar/rbac/overview.php">docs/admin/rbac/overview.md</a>
-* الأدوار → <a href="/how-to-use/ar/rbac/roles.php">docs/admin/rbac/roles.md</a>
-* الأذونات → <a href="/how-to-use/ar/rbac/permissions.php">docs/admin/rbac/permissions.md</a></p>
+<p>فهم كيفية عمل التحكم في الوصول وكيفية تعيين الإمكانات المناسبة للأشخاص المناسبين.</p>
+<ul>
+<li>نظرة عامة → <a href="/how-to-use/ar/rbac/overview.php">rbac/overview.md</a></li>
+<li>الأدوار → <a href="/how-to-use/ar/rbac/roles.php">rbac/roles.md</a></li>
+<li>الأذونات → <a href="/how-to-use/ar/rbac/permissions.php">rbac/permissions.md</a></li>
+</ul>
 <h3>🌍 اللغات</h3>
-<p>إدارة اللغات التي تدعمها المنصة.
-* اللغات → <a href="/how-to-use/ar/languages.php">docs/admin/languages.md</a></p>
+<p>إدارة اللغات التي تدعمها المنصة.</p>
+<ul>
+<li>اللغات → <a href="/how-to-use/ar/languages.php">languages.md</a></li>
+</ul>
 <h3>🔤 الترجمات</h3>
-<p>التحكم بدقة في النص المترجم المعروض للمستخدمين.
-* الدليل الرئيسي → <a href="/how-to-use/ar/translations.php">docs/admin/translations.md</a>
-* نظرة عامة → <a href="/how-to-use/ar/translations/overview.php">docs/admin/translations/overview.md</a>
-* النطاقات → <a href="/how-to-use/ar/translations/scopes.php">docs/admin/translations/scopes.md</a>
-* المجالات → <a href="/how-to-use/ar/translations/domains.php">docs/admin/translations/domains.md</a></p>
+<p>التحكم بدقة في النص المترجم المعروض للمستخدمين.</p>
+<ul>
+<li>الدليل الرئيسي → <a href="/how-to-use/ar/translations.php">translations.md</a></li>
+<li>نظرة عامة → <a href="/how-to-use/ar/translations/overview.php">translations/overview.md</a></li>
+<li>النطاقات → <a href="/how-to-use/ar/translations/scopes.php">translations/scopes.md</a></li>
+<li>المجالات → <a href="/how-to-use/ar/translations/domains.php">translations/domains.md</a></li>
+</ul>
 <h2>3. المهام المشتركة</h2>
 <h3>تسجيل الدخول</h3>
 <p>للوصول إلى النظام، يجب عليك تسجيل الدخول باستخدام بيانات الاعتماد الخاصة بك. بعد تقديم بريدك الإلكتروني وكلمة المرور، سيُطلب منك إكمال خطوة المصادقة الثنائية (2FA) للتحقق من هويتك.</p>

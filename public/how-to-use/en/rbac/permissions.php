@@ -31,10 +31,12 @@
 <p><strong>What happens immediately after toggle:</strong>
 The change is applied to the system the exact moment you click the toggle. There is no "Save" button required on this tab. Any administrator currently holding this role will instantly have their access updated across the platform.</p>
 <h2>How Permissions Affect the System</h2>
-<p>When a permission is toggled on or off, it directly changes the system's interface and security boundaries:
-* <strong>Sidebar sections appear/disappear:</strong> If a permission controls access to an entire section, the corresponding link in the left sidebar will instantly appear or vanish.
-* <strong>Buttons appear/disappear:</strong> If a permission controls a specific action (like deleting a record), the "Delete" button will instantly become visible or hide itself on the relevant page.
-* <strong>Access to pages is blocked:</strong> If an administrator attempts to visit a page for which they just had the permission disabled, the system will instantly block them and display an error.</p>
+<p>When a permission is toggled on or off, it directly changes the system's interface and security boundaries:</p>
+<ul>
+<li><strong>Sidebar sections appear/disappear:</strong> If a permission controls access to an entire section, the corresponding link in the left sidebar will instantly appear or vanish.</li>
+<li><strong>Buttons appear/disappear:</strong> If a permission controls a specific action (like deleting a record), the "Delete" button will instantly become visible or hide itself on the relevant page.</li>
+<li><strong>Access to pages is blocked:</strong> If an administrator attempts to visit a page for which they just had the permission disabled, the system will instantly block them and display an error.</li>
+</ul>
 <h2>Permission Groups</h2>
 <p>Permissions in the list are organized logically by a "Group" classification (e.g., separating user management permissions from system settings permissions). This is reflected in the "Group" column of the data table, allowing you to easily sort, filter, and identify related access rights visually.</p>
 <h2>Real Usage Examples</h2>
