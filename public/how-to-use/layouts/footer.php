@@ -1,9 +1,12 @@
 
-                    <div style="height: 40px; clear: both;"></div>
-                    <div style="text-align: center; margin-top: 20px; margin-bottom: 20px; font-size: 0.85rem; color: var(--text-light);">
-                        &copy; <?php echo date('Y'); ?> <a href="https://maatify.dev" target="_blank" style="color: var(--primary); font-weight: 500; text-decoration: none;">Maatify</a>. All rights reserved.
                     </div>
-                </div>
+                <footer class="footer">
+                    <?php if ($lang === 'ar'): ?>
+                        جميع الحقوق محفوظة &copy; 2026 <a href="https://maatify.dev" target="_blank" dir="ltr" style="display:inline-block;">Maatify</a>
+                    <?php else: ?>
+                        &copy; 2026 <a href="https://maatify.dev" target="_blank">Maatify</a>. All rights reserved.
+                    <?php endif; ?>
+                </footer>
             </div>
         </main>
 

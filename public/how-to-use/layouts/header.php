@@ -189,6 +189,27 @@ $switch_url = str_replace('/how-to-use/' . $lang . '/', '/how-to-use/' . $other_
         blockquote { border-left: 4px solid var(--border); margin: 0; padding-left: 1rem; color: var(--text-light); }
         [dir="rtl"] blockquote { border-left: none; border-right: 4px solid var(--border); padding-left: 0; padding-right: 1rem; }
 
+
+        .footer {
+            margin-top: 40px;
+            padding: 20px 0;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border);
+        }
+        [dir="rtl"] .footer {
+            direction: rtl;
+        }
+        .footer a {
+            color: var(--primary);
+            font-weight: 500;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
         /* RESPONSIVE */
         @media (max-width: 768px) {
             body { overflow-y: auto; }
