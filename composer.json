@@ -49,7 +49,8 @@
       "Maatify\\AppSettings\\": "Modules/AppSettings",
       "Maatify\\LanguageCore\\": "Modules/LanguageCore",
       "Maatify\\ContentDocuments\\": "Modules/ContentDocuments",
-      "Maatify\\Verification\\": "Modules/Verification"
+      "Maatify\\Verification\\": "Modules/Verification",
+      "Maatify\\Currency\\": "Modules/currency/src"
     }
   },
 
