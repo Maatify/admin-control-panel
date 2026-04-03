@@ -46,7 +46,13 @@ final class CurrenciesBindings
 
             CurrencyCommandRepositoryInterface::class =>
                 static function (ContainerInterface $c): PdoCurrencyCommandRepository {
-                    return new PdoCurrencyCommandRepository(self::getPdo($c));
+                    $queryReader = $c->get(CurrencyQueryReaderInterface::class);
+                    if (!$queryReader instanceof CurrencyQueryReaderInterface) {
+                        throw CurrencyPersistenceException::containerTypeMismatch(
+                            CurrencyQueryReaderInterface::class,
+                        );
+                    }
+                    return new PdoCurrencyCommandRepository(self::getPdo($c), $queryReader);
                 },
 
             // --- Services -----------------------------------------------

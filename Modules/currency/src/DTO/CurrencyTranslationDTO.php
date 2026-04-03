@@ -4,38 +4,74 @@ declare(strict_types=1);
 
 namespace Maatify\Currency\DTO;
 
-use InvalidArgumentException;
+use Maatify\Currency\Exception\CurrencyInvalidArgumentException;
 
 /**
- * Immutable read-model for a single currency_translations row.
- * Used when managing translations explicitly (admin screens).
+ * Immutable read-model for a currency translation row, always enriched
+ * with language identity data from the `languages` table.
+ *
+ * ── Listing behaviour ───────────────────────────────────────────────────
+ *
+ *  listTranslationsForCurrency() performs a LEFT JOIN on `languages` so
+ *  every active language is represented — including those without a
+ *  translation row yet.
+ *
+ *  When no translation exists for a language:
+ *    $id             → null
+ *    $translatedName → null
+ *    $createdAt      → null
+ *    $updatedAt      → null
+ *
+ *  The caller can use ($dto->translatedName === null) to detect
+ *  untranslated languages and render an "Add translation" prompt.
+ *
+ * ── Single-record lookups ────────────────────────────────────────────────
+ *
+ *  findTranslation() performs an INNER JOIN so it only returns a DTO
+ *  when the translation row actually exists (non-null fields guaranteed).
  */
 final class CurrencyTranslationDTO
 {
     public function __construct(
-        public readonly int     $id,
-        public readonly int     $currencyId,
+        public readonly ?int    $id,              // null = no translation row yet
         public readonly int     $languageId,
-        public readonly string  $translatedName,
-        public readonly string  $createdAt,
-        public readonly ?string $updatedAt,
+        public readonly string  $languageCode,
+        public readonly string  $languageName,
+        public readonly ?string $translatedName,  // null = no translation row yet
+        public readonly ?string $createdAt,       // null = no translation row yet
+        public readonly ?string $updatedAt,       // null = no translation row yet
     ) {}
+
+    // ------------------------------------------------------------------ //
+    //  Convenience
+    // ------------------------------------------------------------------ //
+
+    /** Returns true when a real translation row exists for this language. */
+    public function hasTranslation(): bool
+    {
+        return $this->translatedName !== null;
+    }
 
     // ------------------------------------------------------------------ //
     //  Factory
     // ------------------------------------------------------------------ //
 
     /**
+     * Hydrates from a row produced by either:
+     *   • LEFT JOIN languages → currency_translations  (listing — nulls possible)
+     *   • INNER JOIN languages → currency_translations (single lookup — no nulls)
+     *
      * @param array<string, mixed> $row
      */
     public static function fromRow(array $row): self
     {
         return new self(
-            id:             self::int($row['id']),
-            currencyId:     self::int($row['currency_id']),
+            id:             self::nullableInt($row['id'] ?? null),
             languageId:     self::int($row['language_id']),
-            translatedName: self::string($row['name']),
-            createdAt:      self::string($row['created_at']),
+            languageCode:   self::string($row['language_code']),
+            languageName:   self::string($row['language_name']),
+            translatedName: self::nullableString($row['name'] ?? null),
+            createdAt:      self::nullableString($row['created_at'] ?? null),
             updatedAt:      self::nullableString($row['updated_at'] ?? null),
         );
     }
@@ -46,11 +82,13 @@ final class CurrencyTranslationDTO
 
     /**
      * @return array{
-     *     id:              int,
-     *     currency_id:     int,
+     *     id:              int|null,
      *     language_id:     int,
-     *     translated_name: string,
-     *     created_at:      string,
+     *     language_code:   string,
+     *     language_name:   string,
+     *     translated_name: string|null,
+     *     has_translation: bool,
+     *     created_at:      string|null,
      *     updated_at:      string|null
      * }
      */
@@ -58,9 +96,11 @@ final class CurrencyTranslationDTO
     {
         return [
             'id'              => $this->id,
-            'currency_id'     => $this->currencyId,
             'language_id'     => $this->languageId,
+            'language_code'   => $this->languageCode,
+            'language_name'   => $this->languageName,
             'translated_name' => $this->translatedName,
+            'has_translation' => $this->hasTranslation(),
             'created_at'      => $this->createdAt,
             'updated_at'      => $this->updatedAt,
         ];
@@ -70,44 +110,38 @@ final class CurrencyTranslationDTO
     //  Private — type-safe row casting helpers
     // ------------------------------------------------------------------ //
 
-    /**
-     * Narrows mixed → int.
-     * Accepts int or any numeric-string (as returned by MySQL PDO drivers).
-     */
     private static function int(mixed $value): int
     {
         if (is_int($value)) {
             return $value;
         }
-
         if (is_numeric($value)) {
             return (int) $value;
         }
-
-        throw new InvalidArgumentException(
-            sprintf('Expected numeric value, got %s.', get_debug_type($value)),
-        );
+        throw CurrencyInvalidArgumentException::unexpectedType('int field', $value);
     }
 
-    /** Narrows mixed → string. */
     private static function string(mixed $value): string
     {
         if (is_string($value)) {
             return $value;
         }
-
-        throw new InvalidArgumentException(
-            sprintf('Expected string value, got %s.', get_debug_type($value)),
-        );
+        throw CurrencyInvalidArgumentException::unexpectedType('string field', $value);
     }
 
-    /** Narrows mixed → string|null. */
+    private static function nullableInt(mixed $value): ?int
+    {
+        if ($value === null) {
+            return null;
+        }
+        return self::int($value);
+    }
+
     private static function nullableString(mixed $value): ?string
     {
         if ($value === null) {
             return null;
         }
-
         return self::string($value);
     }
 }

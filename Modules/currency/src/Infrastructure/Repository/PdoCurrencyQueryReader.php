@@ -7,14 +7,28 @@ namespace Maatify\Currency\Infrastructure\Repository;
 use Maatify\Currency\Contract\CurrencyQueryReaderInterface;
 use Maatify\Currency\DTO\CurrencyDTO;
 use Maatify\Currency\DTO\CurrencyTranslationDTO;
+use Maatify\Currency\Exception\CurrencyPersistenceException;
 use PDO;
 use PDOStatement;
-use RuntimeException;
 
 final class PdoCurrencyQueryReader implements CurrencyQueryReaderInterface
 {
-    /** Columns that callers are allowed to filter on directly. */
+    /** Columns that callers are allowed to filter on directly (currency list). */
     private const ALLOWED_FILTERS = ['is_active', 'code'];
+
+    /**
+     * SELECT fragment shared by all translation queries.
+     * Always aliased so CurrencyTranslationDTO::fromRow() gets consistent keys.
+     */
+    private const TRANSLATION_SELECT = '
+        ct.id,
+        l.id   AS language_id,
+        l.code AS language_code,
+        l.name AS language_name,
+        ct.name,
+        ct.created_at,
+        ct.updated_at
+    ';
 
     public function __construct(private readonly PDO $pdo) {}
 
@@ -50,18 +64,14 @@ final class PdoCurrencyQueryReader implements CurrencyQueryReaderInterface
         [$where, $filterParams] = $this->buildWhereClause($globalSearch, $columnFilters);
         [$selectExtra, $join, $joinParams] = $this->buildTranslationJoin($languageId);
 
-        // Total (no filters, no join needed)
         $total = $this->scalarInt('SELECT COUNT(*) FROM `currencies`');
 
-        // Filtered count (search/column filters only — join not needed for counting)
         $filtered = $this->scalarInt(
             "SELECT COUNT(*) FROM `currencies` AS c {$where}",
             $filterParams,
         );
 
-        // Data page (join here to get localised display names)
-        // NOTE: Use only positional ? throughout — PDO forbids mixing ? and :name
-        //       in the same statement (SQLSTATE[HY093]).
+        // NOTE: positional ? only — PDO forbids mixing ? and :name in one statement.
         $sql = "
             SELECT c.*, {$selectExtra}
             FROM   `currencies` AS c
@@ -73,7 +83,6 @@ final class PdoCurrencyQueryReader implements CurrencyQueryReaderInterface
 
         $stmt = $this->prepareOrFail($sql);
 
-        // Bind order must match ? positions in SQL: join → filter → pagination
         $pos = 1;
         foreach ($joinParams as $v) {
             $stmt->bindValue($pos++, $v, PDO::PARAM_INT);
@@ -196,15 +205,21 @@ final class PdoCurrencyQueryReader implements CurrencyQueryReaderInterface
     }
 
     // ================================================================== //
-    //  Translation management
+    //  Translation management — single lookup
     // ================================================================== //
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     *
+     * INNER JOIN — only returns a DTO when the translation row exists.
+     */
     public function findTranslation(int $currencyId, int $languageId): ?CurrencyTranslationDTO
     {
         $stmt = $this->prepareOrFail(
-            'SELECT * FROM `currency_translations`
-             WHERE `currency_id` = ? AND `language_id` = ?
+            'SELECT ' . self::TRANSLATION_SELECT . '
+             FROM `currency_translations` ct
+             INNER JOIN `languages` l ON l.id = ct.`language_id`
+             WHERE ct.`currency_id` = ? AND ct.`language_id` = ?
              LIMIT 1',
         );
         $stmt->execute([$currencyId, $languageId]);
@@ -214,17 +229,28 @@ final class PdoCurrencyQueryReader implements CurrencyQueryReaderInterface
         return $row !== null ? CurrencyTranslationDTO::fromRow($row) : null;
     }
 
+    // ================================================================== //
+    //  Translation management — full listing (all languages)
+    // ================================================================== //
+
     /**
      * {@inheritDoc}
+     *
+     * LEFT JOIN `languages` — shows every active language, including those
+     * without a translation row (translatedName = null for those).
      *
      * @return list<CurrencyTranslationDTO>
      */
     public function listTranslationsForCurrency(int $currencyId): array
     {
         $stmt = $this->prepareOrFail(
-            'SELECT * FROM `currency_translations`
-             WHERE  `currency_id` = ?
-             ORDER BY `language_id` ASC',
+            'SELECT ' . self::TRANSLATION_SELECT . '
+             FROM `languages` l
+             LEFT JOIN `currency_translations` ct
+                    ON ct.`language_id` = l.`id`
+                   AND ct.`currency_id` = ?
+             WHERE l.`is_active` = 1
+             ORDER BY l.`id` ASC',
         );
         $stmt->execute([$currencyId]);
 
@@ -235,6 +261,91 @@ final class PdoCurrencyQueryReader implements CurrencyQueryReaderInterface
         );
 
         return $result;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @param  array<string, int|string> $columnFilters
+     * @return array{
+     *     data:       list<CurrencyTranslationDTO>,
+     *     pagination: array{
+     *         page:     int,
+     *         per_page: int,
+     *         total:    int,
+     *         filtered: int
+     *     }
+     * }
+     */
+    public function listTranslationsForCurrencyPaginated(
+        int     $currencyId,
+        int     $page,
+        int     $perPage,
+        ?string $globalSearch,
+        array   $columnFilters,
+    ): array {
+        $page    = max(1, $page);
+        $perPage = max(1, min(200, $perPage));
+        $offset  = ($page - 1) * $perPage;
+
+        [$where, $params] = $this->buildTranslationWhereClause(
+            $currencyId,
+            $globalSearch,
+            $columnFilters,
+        );
+
+        // Base JOIN used by all three queries
+        $baseFrom = '
+            FROM `languages` l
+            LEFT JOIN `currency_translations` ct
+                   ON ct.`language_id` = l.`id`
+                  AND ct.`currency_id` = :currency_id
+        ';
+
+        // Total = all active languages for this currency (unfiltered)
+        $stmtTotal = $this->prepareOrFail(
+            "SELECT COUNT(*) {$baseFrom} WHERE l.`is_active` = 1",
+        );
+        $stmtTotal->execute([':currency_id' => $currencyId]);
+        $total = (int) $stmtTotal->fetchColumn();
+
+        // Filtered count
+        $stmtFiltered = $this->prepareOrFail(
+            "SELECT COUNT(*) {$baseFrom} {$where}",
+        );
+        $stmtFiltered->execute($params);
+        $filtered = (int) $stmtFiltered->fetchColumn();
+
+        // Data page
+        $stmt = $this->prepareOrFail(
+            'SELECT ' . self::TRANSLATION_SELECT . "
+             {$baseFrom}
+             {$where}
+             ORDER BY l.`id` ASC
+             LIMIT :limit OFFSET :offset",
+        );
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        $stmt->bindValue(':limit',  $perPage, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset,  PDO::PARAM_INT);
+        $stmt->execute();
+
+        /** @var list<CurrencyTranslationDTO> $data */
+        $data = array_map(
+            static fn (array $row): CurrencyTranslationDTO => CurrencyTranslationDTO::fromRow($row),
+            $this->fetchAllAssoc($stmt),
+        );
+
+        return [
+            'data'       => $data,
+            'pagination' => [
+                'page'     => $page,
+                'per_page' => $perPage,
+                'total'    => $total,
+                'filtered' => $filtered,
+            ],
+        ];
     }
 
     // ================================================================== //
@@ -250,25 +361,11 @@ final class PdoCurrencyQueryReader implements CurrencyQueryReaderInterface
     }
 
     // ================================================================== //
-    //  Private — translation JOIN builder
+    //  Private — currency list JOIN builder
     // ================================================================== //
 
     /**
-     * Builds the SELECT fragment + LEFT JOIN for optional translation lookup.
-     *
-     * When $languageId is null:
-     *   • No JOIN is added.
-     *   • translated_name and translation_language_id are both NULL in the result.
-     *
-     * When $languageId is an int:
-     *   • LEFT JOIN currency_translations ON (currency_id = c.id AND language_id = ?).
-     *   • COALESCE(ct.name, c.name) → translated_name is NEVER null.
-     *   • translation_language_id carries the requested language_id (even when
-     *     no translation row existed and the COALESCE fallback fired).
-     *
-     * Param positions in the returned SQL fragments (both ? are positional):
-     *   [0] in SELECT  : ? AS `translation_language_id`
-     *   [1] in JOIN ON : ct.`language_id` = ?
+     * Builds the SELECT fragment + LEFT JOIN for the currency display name.
      *
      * @return array{0: string, 1: string, 2: list<int>}
      *   [selectExtra, joinClause, bindParams]
@@ -284,16 +381,15 @@ final class PdoCurrencyQueryReader implements CurrencyQueryReaderInterface
         }
 
         return [
-            // COALESCE: real translation → base name fallback (never null)
             'COALESCE(ct.`name`, c.`name`) AS `translated_name`, ? AS `translation_language_id`',
             'LEFT JOIN `currency_translations` ct
                     ON ct.`currency_id` = c.`id` AND ct.`language_id` = ?',
-            [$languageId, $languageId], // pos[0]: SELECT alias, pos[1]: JOIN ON
+            [$languageId, $languageId],
         ];
     }
 
     // ================================================================== //
-    //  Private — WHERE builder
+    //  Private — currency list WHERE builder
     // ================================================================== //
 
     /**
@@ -316,7 +412,7 @@ final class PdoCurrencyQueryReader implements CurrencyQueryReaderInterface
 
         foreach ($columnFilters as $column => $value) {
             if (!in_array($column, self::ALLOWED_FILTERS, true)) {
-                continue; // silently ignore unknown columns — no SQL injection risk
+                continue;
             }
             $conditions[] = "c.`{$column}` = ?";
             $params[]     = $value;
@@ -329,20 +425,88 @@ final class PdoCurrencyQueryReader implements CurrencyQueryReaderInterface
         return [$where, $params];
     }
 
+    // ================================================================== //
+    //  Private — translation listing WHERE builder
+    // ================================================================== //
+
+    /**
+     * Builds the WHERE clause for listTranslationsForCurrencyPaginated.
+     * Uses named params (:key) so they can be merged safely with the
+     * pagination named params (:limit, :offset).
+     *
+     * @param  array<string, int|string>  $columnFilters
+     * @return array{0: string, 1: array<string, int|string>}
+     *   [whereSql, namedParams]
+     */
+    private function buildTranslationWhereClause(
+        int     $currencyId,
+        ?string $globalSearch,
+        array   $columnFilters,
+    ): array {
+        $conditions = ['l.`is_active` = 1'];
+
+        /** @var array<string, int|string> $params */
+        $params = [':currency_id' => $currencyId];
+
+        // Global search — language name, code, or translated name
+        if ($globalSearch !== null && trim($globalSearch) !== '') {
+            $like                  = '%' . $this->escapeLike(trim($globalSearch)) . '%';
+            $conditions[]          = '(l.`name` LIKE :global_text OR l.`code` LIKE :global_text OR ct.`name` LIKE :global_text)';
+            $params[':global_text'] = $like;
+        }
+
+        // Column filters
+        if (isset($columnFilters['language_id'])) {
+            $conditions[]          = 'l.`id` = :language_id';
+            $params[':language_id'] = (int) $columnFilters['language_id'];
+        }
+
+        if (isset($columnFilters['language_code'])) {
+            $conditions[]             = 'l.`code` LIKE :language_code';
+            $params[':language_code']  = '%' . $this->escapeLike((string) $columnFilters['language_code']) . '%';
+        }
+
+        if (isset($columnFilters['language_name'])) {
+            $conditions[]             = 'l.`name` LIKE :language_name';
+            $params[':language_name']  = '%' . $this->escapeLike((string) $columnFilters['language_name']) . '%';
+        }
+
+        if (isset($columnFilters['name'])) {
+            $conditions[]    = 'ct.`name` LIKE :trans_name';
+            $params[':trans_name'] = '%' . $this->escapeLike((string) $columnFilters['name']) . '%';
+        }
+
+        // has_translation filter: '1' = only translated, '0' = only untranslated
+        // Uses ct.id IS NOT NULL — checks row existence, not name content.
+        // Consistent with hasTranslation() in CurrencyTranslationDTO.
+        if (isset($columnFilters['has_translation'])) {
+            $val = (string) $columnFilters['has_translation'];
+            if ($val === '1') {
+                $conditions[] = 'ct.`id` IS NOT NULL';
+            } elseif ($val === '0') {
+                $conditions[] = 'ct.`id` IS NULL';
+            }
+        }
+
+        $where = 'WHERE ' . implode(' AND ', $conditions);
+
+        return [$where, $params];
+    }
+
+    // ================================================================== //
+    //  Private — shared utilities
+    // ================================================================== //
+
     private function escapeLike(string $value): string
     {
         return str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $value);
     }
 
-    // ================================================================== //
-    //  Private — PDO helpers
-    // ================================================================== //
-
     private function prepareOrFail(string $sql): PDOStatement
     {
         $stmt = $this->pdo->prepare($sql);
         if ($stmt === false) {
-            throw new RuntimeException("PDO::prepare failed for: {$sql}");
+            throw CurrencyPersistenceException::prepareFailed($sql);
         }
 
         return $stmt;
@@ -367,8 +531,6 @@ final class PdoCurrencyQueryReader implements CurrencyQueryReaderInterface
      */
     private function fetchAllAssoc(PDOStatement $stmt): array
     {
-        // PDOStatement::fetchAll() is typed as array (not array|false) in PHPStan
-        // stubs when PDO::ERRMODE_EXCEPTION is active — the false branch is unreachable.
         /** @var list<array<string, mixed>> $rows */
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

@@ -27,6 +27,13 @@ final class CurrencyInvalidArgumentException extends InvalidArgumentMaatifyExcep
         );
     }
 
+    public static function invalidLanguageId(int $languageId): self
+    {
+        return new self(
+            sprintf('Language id %d does not exist in the languages table.', $languageId),
+        );
+    }
+
     public static function unexpectedType(string $field, mixed $value): self
     {
         return new self(

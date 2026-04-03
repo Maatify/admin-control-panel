@@ -10,10 +10,12 @@ use Maatify\Currency\Command\UpdateCurrencyCommand;
 use Maatify\Currency\Command\UpdateCurrencyStatusCommand;
 use Maatify\Currency\Command\UpsertCurrencyTranslationCommand;
 use Maatify\Currency\Contract\CurrencyCommandRepositoryInterface;
+use Maatify\Currency\Contract\CurrencyQueryReaderInterface;
 use Maatify\Currency\DTO\CurrencyDTO;
 use Maatify\Currency\DTO\CurrencyTranslationDTO;
 use Maatify\Currency\Exception\CurrencyCodeAlreadyExistsException;
 use Maatify\Currency\Exception\CurrencyExceptionInterface;
+use Maatify\Currency\Exception\CurrencyInvalidArgumentException;
 use Maatify\Currency\Exception\CurrencyNotFoundException;
 use Maatify\Currency\Exception\CurrencyPersistenceException;
 use Maatify\Currency\Exception\CurrencyTranslationNotFoundException;
@@ -23,7 +25,15 @@ use Throwable;
 
 final class PdoCurrencyCommandRepository implements CurrencyCommandRepositoryInterface
 {
-    public function __construct(private readonly PDO $pdo) {}
+    /**
+     * @param CurrencyQueryReaderInterface $queryReader  Injected for translation read-back
+     *                                                   after upsert — avoids duplicating
+     *                                                   the JOIN SELECT from the query reader.
+     */
+    public function __construct(
+        private readonly PDO                         $pdo,
+        private readonly CurrencyQueryReaderInterface $queryReader,
+    ) {}
 
     /** {@inheritDoc} */
     public function create(CreateCurrencyCommand $command): CurrencyDTO
@@ -216,11 +226,21 @@ final class PdoCurrencyCommandRepository implements CurrencyCommandRepositoryInt
              VALUES (:currency_id, :language_id, :name) AS new_row
              ON DUPLICATE KEY UPDATE `name` = new_row.`name`',
         );
-        $stmt->execute([
-            ':currency_id' => $command->currencyId,
-            ':language_id' => $command->languageId,
-            ':name'        => $command->translatedName,
-        ]);
+
+        try {
+            $stmt->execute([
+                ':currency_id' => $command->currencyId,
+                ':language_id' => $command->languageId,
+                ':name'        => $command->translatedName,
+            ]);
+        } catch (\PDOException $e) {
+            // MySQL 1452: FK violation on language_id — language does not exist.
+            // currency_id FK is already guarded by CurrencyCommandService::assertExists().
+            if ($this->isForeignKeyViolation($e)) {
+                throw CurrencyInvalidArgumentException::invalidLanguageId($command->languageId);
+            }
+            throw CurrencyPersistenceException::fromPdoException($e);
+        }
 
         return $this->fetchTranslationOrFail($command->currencyId, $command->languageId);
     }
@@ -336,20 +356,15 @@ final class PdoCurrencyCommandRepository implements CurrencyCommandRepositoryInt
 
     private function fetchTranslationOrFail(int $currencyId, int $languageId): CurrencyTranslationDTO
     {
-        $stmt = $this->prepareOrFail(
-            'SELECT * FROM `currency_translations`
-             WHERE `currency_id` = ? AND `language_id` = ?
-             LIMIT 1',
-        );
-        $stmt->execute([$currencyId, $languageId]);
+        // Delegate to the query reader — it owns the JOIN SELECT logic and the
+        // TRANSLATION_SELECT constant, so we never duplicate that SQL here.
+        $dto = $this->queryReader->findTranslation($currencyId, $languageId);
 
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($row === false || !is_array($row)) {
+        if ($dto === null) {
             throw CurrencyTranslationNotFoundException::for($currencyId, $languageId);
         }
 
-        /** @var array<string, mixed> $row */
-        return CurrencyTranslationDTO::fromRow($row);
+        return $dto;
     }
 
     private function prepareOrFail(string $sql): PDOStatement
@@ -370,5 +385,15 @@ final class PdoCurrencyCommandRepository implements CurrencyCommandRepositoryInt
     {
         return $e->getCode() === '23000'
                && str_contains($e->getMessage(), '1062');
+    }
+
+    /**
+     * Returns true when the PDOException is MySQL error 1452 (FK constraint fails).
+     * Used to translate a missing foreign key reference into a domain validation error.
+     */
+    private function isForeignKeyViolation(\PDOException $e): bool
+    {
+        return $e->getCode() === '23000'
+               && str_contains($e->getMessage(), '1452');
     }
 }
