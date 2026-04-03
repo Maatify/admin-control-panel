@@ -18,7 +18,7 @@ namespace Maatify\AdminKernel\Http\Controllers\Ui\ContentDocuments;
 use Maatify\AdminKernel\Context\AdminContext;
 use Maatify\AdminKernel\Domain\Exception\IdentifierNotFoundException;
 use Maatify\AdminKernel\Domain\LanguageCore\LanguageWithSettingsListReaderInterface;
-use Maatify\AdminKernel\Domain\Service\AuthorizationService;
+use Maatify\AdminKernel\Application\Security\UiPermissionService;
 use Maatify\AdminKernel\Domain\Support\LanguageCollectionHelper;
 use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentRepositoryInterface;
 use Maatify\ContentDocuments\Domain\Contract\Service\ContentDocumentsFacadeInterface;
@@ -32,7 +32,7 @@ final readonly class UiContentDocumentTranslationsUpdateController
 {
     public function __construct(
         private Twig $twig,
-        private AuthorizationService $authorization,
+        private UiPermissionService $authorization,
         private DocumentRepositoryInterface $reader,
         private ContentDocumentsFacadeInterface $facade,
         private LanguageWithSettingsListReaderInterface $languageWithSettingsListReader,

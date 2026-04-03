@@ -17,7 +17,7 @@ namespace Maatify\AdminKernel\Http\Controllers\Ui\ContentDocuments;
 
 use Maatify\AdminKernel\Context\AdminContext;
 use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
-use Maatify\AdminKernel\Domain\Service\AuthorizationService;
+use Maatify\AdminKernel\Application\Security\UiPermissionService;
 use Maatify\ContentDocuments\Domain\Contract\Service\ContentDocumentsFacadeInterface;
 use Maatify\ContentDocuments\Domain\DTO\DocumentTypeDTO;
 use Maatify\Exceptions\Exception\Validation\InvalidArgumentMaatifyException;
@@ -29,7 +29,7 @@ final readonly class UiContentDocumentVersionsController
 {
     public function __construct(
         private Twig $twig,
-        private AuthorizationService $authorization,
+        private UiPermissionService $authorization,
         private ContentDocumentsFacadeInterface $facade,
     )
     {

@@ -16,7 +16,7 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Http\Controllers\Ui\AppSettings;
 
 use Maatify\AdminKernel\Context\AdminContext;
-use Maatify\AdminKernel\Domain\Service\AuthorizationService;
+use Maatify\AdminKernel\Application\Security\UiPermissionService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
@@ -25,7 +25,7 @@ final readonly class AppSettingsListUiController
 {
     public function __construct(
         private Twig $twig,
-        private AuthorizationService $authorization
+        private UiPermissionService $authorization
     )
     {
     }

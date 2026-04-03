@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Infrastructure\Notification;
 
 use Maatify\AdminKernel\Domain\Contracts\Admin\AdminNotificationChannelRepositoryInterface;
-use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodeValidatorInterface;
-use Maatify\AdminKernel\Domain\Enum\IdentityTypeEnum;
 use Maatify\AdminKernel\Domain\Enum\NotificationChannelType;
 use Maatify\AdminKernel\Domain\Enum\VerificationFailureReasonEnum;
-use Maatify\AdminKernel\Domain\Enum\VerificationPurposeEnum;
+use Maatify\Verification\Domain\Contracts\VerificationCodeValidatorInterface;
+use Maatify\Verification\Domain\Enum\IdentityTypeEnum;
+use Maatify\Verification\Domain\Enum\VerificationPurposeEnum;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 
@@ -27,10 +27,10 @@ readonly class TelegramHandler
     ) {
     }
 
-    public function handleStart(string $otp, string $chatId): string
+    public function handleStart(string $otp, string $chatId, ?string $ipAddress = null): string
     {
         // 1. Validate OTP
-        $result = $this->validator->validateByCode($otp);
+        $result = $this->validator->validateByCode($otp, $ipAddress);
 
         if (!$result->success) {
             return $this->fail(VerificationFailureReasonEnum::INVALID_OTP, [

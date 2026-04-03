@@ -15,9 +15,10 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Ui\I18n;
 
+use Maatify\AdminKernel\Application\Security\UiPermissionService;
+
 use Maatify\AdminKernel\Context\AdminContext;
 use Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopeDetailsRepositoryInterface;
-use Maatify\AdminKernel\Domain\Service\AuthorizationService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
@@ -26,7 +27,7 @@ final readonly class ScopeKeysController
 {
     public function __construct(
         private Twig $view,
-        private AuthorizationService $authorizationService,
+        private UiPermissionService $uiPermissionService,
         private I18nScopeDetailsRepositoryInterface $repository
     )
     {
@@ -64,27 +65,27 @@ final readonly class ScopeKeysController
         // Capabilities (UI visibility only)
         // ─────────────────────────────
         $capabilities = [
-            'can_create' => $this->authorizationService->hasPermission(
+            'can_create' => $this->uiPermissionService->hasPermission(
                 $adminId,
                 'i18n.scopes.keys.create'
             ),
 
-//            'can_delete' => $this->authorizationService->hasPermission(
+//            'can_delete' => $this->uiPermissionService->hasPermission(
 //                $adminId,
 //                'i18n.scopes.keys.delete'
 //            ),
 
-            'can_rename' => $this->authorizationService->hasPermission(
+            'can_rename' => $this->uiPermissionService->hasPermission(
                 $adminId,
-                'i18n.scopes.keys.rename'
+                'i18n.scopes.keys.update_name'
             ),
 
-            'can_update_meta'   => $this->authorizationService->hasPermission(
+            'can_update_meta'   => $this->uiPermissionService->hasPermission(
                 $adminId,
                 'i18n.scopes.keys.update_metadata'
             ),
 
-            'can_view_scopes' => $this->authorizationService->hasPermission(
+            'can_view_scopes' => $this->uiPermissionService->hasPermission(
                 $adminId,
                 'i18n.scopes.list'
             ),

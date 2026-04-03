@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Web;
 
-use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodeGeneratorInterface;
-use Maatify\AdminKernel\Domain\Enum\IdentityTypeEnum;
-use Maatify\AdminKernel\Domain\Enum\VerificationPurposeEnum;
+use Maatify\Verification\Domain\Contracts\VerificationCodeGeneratorInterface;
+use Maatify\Verification\Domain\Enum\IdentityTypeEnum;
+use Maatify\Verification\Domain\Enum\VerificationPurposeEnum;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use RuntimeException;
@@ -33,7 +33,10 @@ readonly class TelegramConnectController
         // Generate OTP
         // Identity: admin, ID: adminId
         // Purpose: telegram_channel_link
-        $code = $this->generator->generate(IdentityTypeEnum::Admin, (string)$adminId, VerificationPurposeEnum::TelegramChannelLink);
+        $requestContext = $request->getAttribute(\Maatify\AdminKernel\Context\RequestContext::class);
+        $ip = $requestContext instanceof \Maatify\AdminKernel\Context\RequestContext ? $requestContext->getIpAddress() : null;
+
+        $code = $this->generator->generate(IdentityTypeEnum::Admin, (string)$adminId, VerificationPurposeEnum::TelegramChannelLink, $ip);
 
         return $this->view->render($response, 'telegram-connect.twig', [
             'otp' => $code->plainCode

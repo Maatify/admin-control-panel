@@ -17,6 +17,7 @@ readonly class UiDashboardController
 
     public function index(Request $request, Response $response): Response
     {
+        // TODO: Introduce dashboard.view permission in RBAC strict mode
         return $this->webDashboard->index(
             $request->withAttribute('template', 'pages/dashboard.twig'),
             $response

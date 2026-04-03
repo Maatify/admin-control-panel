@@ -15,8 +15,9 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Ui\I18n;
 
+use Maatify\AdminKernel\Application\Security\UiPermissionService;
+
 use Maatify\AdminKernel\Context\AdminContext;
-use Maatify\AdminKernel\Domain\Service\AuthorizationService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
@@ -25,7 +26,7 @@ final readonly class DomainsListUiController
 {
     public function __construct(
         private Twig $twig,
-        private AuthorizationService $authorizationService,
+        private UiPermissionService $uiPermissionService,
     )
     {
     }
@@ -37,12 +38,12 @@ final readonly class DomainsListUiController
         $adminId = $context->adminId;
 
         $capabilities = [
-            'can_create'        => $this->authorizationService->hasPermission($adminId, 'i18n.domains.create'),
-            'can_update'        => $this->authorizationService->hasPermission($adminId, 'i18n.domains.update'),
-            'can_change_code'   => $this->authorizationService->hasPermission($adminId, 'i18n.domains.change_code'),
-            'can_set_active'    => $this->authorizationService->hasPermission($adminId, 'i18n.domains.set_active'),
-            'can_update_sort'   => $this->authorizationService->hasPermission($adminId, 'i18n.domains.update_sort'),
-            'can_update_meta'   => $this->authorizationService->hasPermission($adminId, 'i18n.domains.update_metadata'),
+            'can_create'        => $this->uiPermissionService->hasPermission($adminId, 'i18n.domains.create'),
+            'can_update'        => $this->uiPermissionService->hasPermission($adminId, 'i18n.domains.update'),
+            'can_change_code'   => $this->uiPermissionService->hasPermission($adminId, 'i18n.domains.change_code'),
+            'can_set_active'    => $this->uiPermissionService->hasPermission($adminId, 'i18n.domains.set_active'),
+            'can_update_sort'   => $this->uiPermissionService->hasPermission($adminId, 'i18n.domains.update_sort'),
+            'can_update_meta'   => $this->uiPermissionService->hasPermission($adminId, 'i18n.domains.update_metadata'),
         ];
 
         return $this->twig->render(

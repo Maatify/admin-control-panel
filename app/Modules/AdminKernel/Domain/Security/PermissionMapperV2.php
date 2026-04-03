@@ -44,9 +44,12 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'admins.list.ui'  => 'admins.list',
         'admins.list.api' => 'admins.list',
 
+        // NOTE:
+        // auth.stepup.verify is intentionally NOT mapped.
+        // This route is handled as a security step-up flow and bypasses permission mapping.
+
         // Admin Profile
-        'admins.profile.edit.view' => 'admins.profile.edit',
-        'admins.profile.edit'      => 'admins.profile.edit',
+                'admins.profile.edit'      => 'admins.profile.edit',
 
         // Admin Emails
         'admin.email.list.ui'  => 'admin.email.list',
@@ -63,15 +66,37 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'sessions.revoke.id'   => 'sessions.revoke',
         'sessions.revoke.bulk' => 'sessions.revoke',
 
+        // Permissions
+        'permissions.query.ui'  => 'permissions.query',
+        'permissions.query.api' => 'permissions.query',
+
+        // Permission details (UI normalization)
+        'permission.details.ui' => 'permission.details',
+
+        // Roles
+        'roles.query.ui'  => 'roles.query',
+        'roles.query.api' => 'roles.query',
+
+        // Roles view normalization
+        'roles.view.ui' => 'roles.view',
+
         // Languages
         'languages.list.ui'  => 'languages.list',
         'languages.list.api' => 'languages.list',
 
         'languages.clear.fallback.api' => 'languages.set.fallback',
+        'languages.set.fallback.api'   => 'languages.set.fallback',
+
+        'languages.create.api' => 'languages.create',
+        'languages.set.active.api' => 'languages.set.active',
+        'languages.update.code.api' => 'languages.update.code',
+        'languages.update.name.api' => 'languages.update.name',
+        'languages.update.settings.api' => 'languages.update.settings',
+        'languages.update.sort.api' => 'languages.update.sort',
 
         // I18n Keys
-        'i18n.keys.list.ui'  => 'i18n.keys.list',
-        'i18n.keys.list.api' => 'i18n.keys.list',
+//        'i18n.keys.list.ui'  => 'i18n.keys.list',
+//        'i18n.keys.list.api' => 'i18n.keys.list',
 
         // I18n Translations
         'languages.translations.list.ui'  => 'i18n.translations.list',
@@ -133,7 +158,7 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
 
         'app_settings.set_active.api' => 'app_settings.set_active',
 
-//        Content Documents Control
+        //        Content Documents Control
         'content_documents.types.query.ui' => 'content_documents.types.query',
         'content_documents.types.query.api' => 'content_documents.types.query',
         'content_documents.types.create.api' => 'content_documents.types.create',
@@ -150,11 +175,12 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'content_documents.translations.query.ui' => 'content_documents.translations.query',
         'content_documents.translations.query.api' => 'content_documents.translations.query',
 
-        'content_documents.translations.details' => 'content_documents.translations.details',
+//        'content_documents.translations.details' => 'content_documents.translations.details',
 
         'content_documents.translations.upsert.api' => 'content_documents.translations.upsert',
 
         'content_documents.acceptance.query.api' => 'content_documents.acceptance.query',
+        'content_documents.acceptance.query.ui'  => 'content_documents.acceptance.query',
 
         /**
          * Shared selector:

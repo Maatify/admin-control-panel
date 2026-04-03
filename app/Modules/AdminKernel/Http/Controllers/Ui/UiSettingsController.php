@@ -17,6 +17,7 @@ readonly class UiSettingsController
 
     public function index(Request $request, Response $response): Response
     {
+        // TODO: Introduce dashboard.view permission in RBAC strict mode
         return $this->view->render($response, 'pages/settings.twig');
     }
 }

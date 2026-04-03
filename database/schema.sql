@@ -292,19 +292,31 @@ CREATE TABLE system_state (
 
 CREATE TABLE verification_codes (
                                     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
                                     identity_type ENUM('admin','user','customer') NOT NULL,
                                     identity_id VARCHAR(64) NOT NULL,
+
                                     purpose VARCHAR(64) NOT NULL,
+
                                     code_hash VARCHAR(64) NOT NULL,
-                                    expires_at DATETIME NOT NULL,
+
                                     max_attempts INT UNSIGNED NOT NULL,
                                     attempts INT UNSIGNED NOT NULL DEFAULT 0,
+
                                     status ENUM('active','used','expired','revoked') NOT NULL DEFAULT 'active',
+
+                                    expires_at DATETIME NOT NULL,
+
+                                    created_ip VARCHAR(45) DEFAULT NULL,
+                                    used_ip VARCHAR(45) DEFAULT NULL,
+
                                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                                     used_at DATETIME NULL,
-                                    UNIQUE KEY uniq_verification_code_hash (code_hash),
-                                    INDEX idx_active_lookup (identity_type, identity_id, purpose, status),
-                                    INDEX idx_status_expiry (status, expires_at)
+
+                                    INDEX idx_identity_lookup (identity_type, identity_id, purpose, status),
+                                    INDEX idx_status_expiry (status, expires_at),
+                                    INDEX idx_code_hash (code_hash)
+
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE admin_notification_channels (

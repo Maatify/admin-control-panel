@@ -20,9 +20,17 @@ readonly class AuthorizationService
         private RolePermissionRepositoryInterface $rolePermissionRepository,
         private AdminDirectPermissionRepositoryInterface $directPermissionRepository,
         private SystemOwnershipRepositoryInterface $systemOwnershipRepository,
-//        private PermissionMapperInterface $permissionMapper,        // V1
-        private PermissionMapperV2Interface $permissionMapperV2,    // V2
     ) {
+    }
+
+    /**
+     * Validates that the permission is canonical.
+     */
+    private function assertCanonical(string $permission): void
+    {
+        if (preg_match('/^.+\.(bulk|id|ui|api)$/', $permission)) {
+            throw new \InvalidArgumentException("AuthorizationService requires canonical permission, rejected variant/transport: $permission");
+        }
     }
 
     /**
@@ -30,83 +38,100 @@ readonly class AuthorizationService
      */
     public function checkPermission(
         int $adminId,
-        string $routeName,
+        string $permission,
         RequestContext $context
     ): void {
+        $this->assertCanonical($permission);
+
         // 0. System Owner Bypass
         // Authorization decision only — no audit, no activity
         if ($this->systemOwnershipRepository->isOwner($adminId)) {
             return;
         }
 
-        $requirement = $this->permissionMapperV2->resolve($routeName);
-
-        // AND logic
-        if ($requirement->allOf !== []) {
-            foreach ($requirement->allOf as $permission) {
-                $this->assertSinglePermission($adminId, $permission);
-            }
-            return;
-        }
-
-        // OR logic
-        if ($requirement->anyOf !== []) {
-            foreach ($requirement->anyOf as $permission) {
-                if ($this->hasSinglePermission($adminId, $permission)) {
-                    return;
-                }
-            }
-
-            throw new PermissionDeniedException(
-                "Admin $adminId lacks required permissions (anyOf)."
-            );
-        }
-
-        // Absolute fallback (defensive)
-//        $permission = $this->permissionMapper->map($routeName);
-//        $this->assertSinglePermission($adminId, $permission);
+        $this->assertSinglePermission($adminId, $permission);
     }
 
     /**
      * Read-only helper — no logging
      */
-    public function hasPermission(int $adminId, string $routeName): bool
+    public function hasPermission(int $adminId, string $permission): bool
     {
+        $this->assertCanonical($permission);
+
         if ($this->systemOwnershipRepository->isOwner($adminId)) {
             return true;
         }
 
-        $requirement = $this->permissionMapperV2->resolve($routeName);
+        return $this->hasSinglePermission($adminId, $permission);
+    }
 
-        // AND logic
-        if ($requirement->allOf !== []) {
-            foreach ($requirement->allOf as $permission) {
-                if (!$this->hasSinglePermission($adminId, $permission)) {
-                    return false;
-                }
-            }
-            return true;
+    /**
+     * @return array<string>
+     */
+    private function getCandidatePermissions(string $required): array
+    {
+        $candidates = [$required];
+
+        if (str_ends_with($required, '.query')) {
+            $prefix = substr($required, 0, -6);
+            array_push(
+                $candidates,
+                $prefix . '.create',
+                $prefix . '.update',
+                $prefix . '.activate',
+                $prefix . '.deactivate',
+                $prefix . '.archive',
+                $prefix . '.publish'
+            );
+        } elseif (str_ends_with($required, '.view')) {
+            $prefix = substr($required, 0, -5);
+            $candidates[] = $prefix . '.edit';
         }
 
-        // OR logic: must have AT LEAST ONE permission
-        if ($requirement->anyOf !== []) {
-            foreach ($requirement->anyOf as $permission) {
-                if ($this->hasSinglePermission($adminId, $permission)) {
+        return $candidates;
+    }
+
+    /**
+     * Checks if the user is granted at least one of the candidate permissions.
+     *
+     * @param array<string> $candidates
+     */
+    private function isGrantedAnyCandidate(int $adminId, array $candidates): bool
+    {
+        $directPermissions = $this->directPermissionRepository->getActivePermissions($adminId);
+        $roleIds = $this->adminRoleRepository->getRoleIds($adminId);
+
+        // 1. Global Explicit Deny Check (Precedence)
+        foreach ($candidates as $candidate) {
+            if (!$this->rolePermissionRepository->permissionExists($candidate)) {
+                continue;
+            }
+
+            foreach ($directPermissions as $direct) {
+                if ($direct['permission'] === $candidate && !(bool) $direct['is_allowed']) {
+                    return false; // Explicit deny on ANY valid candidate blocks immediately
+                }
+            }
+        }
+
+        // 2. Allow Check
+        foreach ($candidates as $candidate) {
+            if (!$this->rolePermissionRepository->permissionExists($candidate)) {
+                continue;
+            }
+
+            foreach ($directPermissions as $direct) {
+                if ($direct['permission'] === $candidate && (bool) $direct['is_allowed']) {
                     return true;
                 }
             }
-            return false;
+
+            if ($this->rolePermissionRepository->hasPermission($roleIds, $candidate)) {
+                return true;
+            }
         }
 
-        // Absolute fallback
-//        $permission = $this->permissionMapper->map($routeName);
-//        return $this->hasSinglePermission($adminId, $permission);
-
-        /**
-         * Defensive default:
-         * - No requirements resolved
-         * - Treat as denied (secure by default)
-         */
         return false;
     }
 
@@ -115,30 +140,24 @@ readonly class AuthorizationService
      */
     private function assertSinglePermission(int $adminId, string $permission): void
     {
-//        $permission = $this->permissionMapper->map($permission);
-
         if (!$this->rolePermissionRepository->permissionExists($permission)) {
-            throw new UnauthorizedException("Permission '$permission' does not exist.");
+            throw new PermissionDeniedException("Permission '$permission' does not exist.");
         }
 
-        // 1. Direct Permissions (Explicit Deny/Allow)
+        $candidates = $this->getCandidatePermissions($permission);
+
+        if ($this->isGrantedAnyCandidate($adminId, $candidates)) {
+            return;
+        }
+
+        // Direct Permissions (Explicit Deny) for original permission
         $directPermissions = $this->directPermissionRepository->getActivePermissions($adminId);
         foreach ($directPermissions as $direct) {
             if ($direct['permission'] === $permission) {
                 if (!$direct['is_allowed']) {
                     throw new PermissionDeniedException("Explicit deny for '$permission'.");
                 }
-
-                // Explicit allow
-                return;
             }
-        }
-
-        // 2. Role Permissions
-        $roleIds = $this->adminRoleRepository->getRoleIds($adminId);
-
-        if ($this->rolePermissionRepository->hasPermission($roleIds, $permission)) {
-            return;
         }
 
         throw new PermissionDeniedException(
@@ -151,21 +170,11 @@ readonly class AuthorizationService
      */
     private function hasSinglePermission(int $adminId, string $permission): bool
     {
-//        $permission = $this->permissionMapper->map($permission);
-
         if (!$this->rolePermissionRepository->permissionExists($permission)) {
             return false;
         }
 
-        $directPermissions = $this->directPermissionRepository->getActivePermissions($adminId);
-        foreach ($directPermissions as $direct) {
-            if ($direct['permission'] === $permission) {
-                return (bool) $direct['is_allowed'];
-            }
-        }
-
-        $roleIds = $this->adminRoleRepository->getRoleIds($adminId);
-
-        return $this->rolePermissionRepository->hasPermission($roleIds, $permission);
+        $candidates = $this->getCandidatePermissions($permission);
+        return $this->isGrantedAnyCandidate($adminId, $candidates);
     }
 }

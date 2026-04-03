@@ -15,10 +15,13 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Application\Auth\DTO;
 
+use Maatify\AdminKernel\Context\RequestContext;
+
 final readonly class ResendEmailVerificationRequestDTO
 {
     public function __construct(
         public string $email,
+        public RequestContext $requestContext,
     )
     {
     }

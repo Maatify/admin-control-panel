@@ -19,9 +19,9 @@ use Maatify\AdminKernel\Application\Auth\DTO\ResendEmailVerificationRequestDTO;
 use Maatify\AdminKernel\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use Maatify\AdminKernel\Application\Verification\VerificationNotificationDispatcherInterface;
 use Maatify\AdminKernel\Domain\Contracts\Admin\AdminIdentifierLookupInterface;
-use Maatify\AdminKernel\Domain\Contracts\VerificationCode\VerificationCodeGeneratorInterface;
-use Maatify\AdminKernel\Domain\Enum\IdentityTypeEnum;
-use Maatify\AdminKernel\Domain\Enum\VerificationPurposeEnum;
+use Maatify\Verification\Domain\Contracts\VerificationCodeGeneratorInterface;
+use Maatify\Verification\Domain\Enum\IdentityTypeEnum;
+use Maatify\Verification\Domain\Enum\VerificationPurposeEnum;
 use Throwable;
 
 final readonly class ResendEmailVerificationService
@@ -52,7 +52,8 @@ final readonly class ResendEmailVerificationService
             $generated = $this->generator->generate(
                 IdentityTypeEnum::Admin,
                 (string)$identifierDTO->adminId,
-                VerificationPurposeEnum::EmailVerification
+                VerificationPurposeEnum::EmailVerification,
+                $request->requestContext->getIpAddress()
             );
 
             $this->dispatcher->dispatch(

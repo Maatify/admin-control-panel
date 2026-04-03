@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Ui\I18n;
 
+use Maatify\AdminKernel\Application\Security\UiPermissionService;
+
 use Maatify\AdminKernel\Context\AdminContext;
 use Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopeDetailsRepositoryInterface;
-use Maatify\AdminKernel\Domain\Service\AuthorizationService;
 use Maatify\LanguageCore\Contract\LanguageRepositoryInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -16,7 +17,7 @@ final readonly class I18nScopeLanguageCoverageUiController
 {
     public function __construct(
         private Twig $twig,
-        private AuthorizationService $authorizationService,
+        private UiPermissionService $uiPermissionService,
         private I18nScopeDetailsRepositoryInterface $scopeReader,
         private LanguageRepositoryInterface $languageRepository
     ) {
@@ -43,8 +44,8 @@ final readonly class I18nScopeLanguageCoverageUiController
         // For now, reuse basic scope read.
 
         $capabilities = [
-            'can_view_scopes' => $this->authorizationService->hasPermission($adminId, 'i18n.scopes.list'),
-            'can_view_scope_details' => $this->authorizationService->hasPermission($adminId, 'i18n.scopes.details'),
+            'can_view_scopes' => $this->uiPermissionService->hasPermission($adminId, 'i18n.scopes.list'),
+            'can_view_scope_details' => $this->uiPermissionService->hasPermission($adminId, 'i18n.scopes.details'),
             // We assume if they can view details, they can view coverage
         ];
 

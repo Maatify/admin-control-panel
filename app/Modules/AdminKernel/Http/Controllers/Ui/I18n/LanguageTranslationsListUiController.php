@@ -15,10 +15,11 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Ui\I18n;
 
+use Maatify\AdminKernel\Application\Security\UiPermissionService;
+
 use Maatify\AdminKernel\Context\AdminContext;
 use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\AdminKernel\Domain\I18n\Language\LanguageLookupInterface;
-use Maatify\AdminKernel\Domain\Service\AuthorizationService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
@@ -28,7 +29,7 @@ final readonly class LanguageTranslationsListUiController
 {
     public function __construct(
         private Twig $twig,
-        private AuthorizationService $authorizationService,
+        private UiPermissionService $uiPermissionService,
         private LanguageLookupInterface $repository
     )
     {
@@ -62,9 +63,9 @@ final readonly class LanguageTranslationsListUiController
         ];
 
         $capabilities = [
-            'can_upsert'        => $this->authorizationService->hasPermission($adminId, 'languages.translations.upsert'),
-            'can_delete'        => $this->authorizationService->hasPermission($adminId, 'languages.translations.delete'),
-            'can_view_languages'        => $this->authorizationService->hasPermission($adminId, 'languages.list'),
+            'can_upsert'        => $this->uiPermissionService->hasPermission($adminId, 'languages.translations.upsert'),
+            'can_delete'        => $this->uiPermissionService->hasPermission($adminId, 'languages.translations.delete'),
+            'can_view_languages'        => $this->uiPermissionService->hasPermission($adminId, 'languages.list'),
         ];
         return $this->twig->render(
             $response,
