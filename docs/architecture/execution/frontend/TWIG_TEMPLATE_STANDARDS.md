@@ -268,3 +268,10 @@ All context injection MUST be in the same `<script>` tag as capabilities, inside
 | Nested Level 2 — single parent ID | `scope_details.twig` |
 | Nested Level 3 — context object | `scope_domain_translations.twig` |
 | Report / coverage page | `scope_language_coverage.twig` |
+
+---
+
+## 8. Strict Rules
+
+### Strict DOM Visibility Control
+You MUST NOT use inline CSS `style="display: none;"` (or any other inline display manipulation) to control the visibility state of UI components or modals. You MUST manage visibility strictly through the addition or removal of the framework's semantic utility classes (e.g., Tailwind's `hidden`) via JavaScript `classList` manipulation.
