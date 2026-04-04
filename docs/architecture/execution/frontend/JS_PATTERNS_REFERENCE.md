@@ -820,3 +820,10 @@ const selectedValue = mySelect?.getValue() || '';
     </div>
 </div>
 ```
+
+---
+
+## Strict Rules
+
+### Component Data Flow & Trace Validation
+When utilizing component builders (e.g., `AdminUIComponents.buildActionButton()`) alongside delegated event handlers (e.g., `setupButtonHandler()`), you MUST trace the exact `data-*` attribute from generation to extraction. You MUST explicitly map the required identifier string in the builder's `dataAttributes` property to match the listener's expected extraction key. You MUST NOT rely on default attribute outputs if the listener contract expects a domain-specific key.

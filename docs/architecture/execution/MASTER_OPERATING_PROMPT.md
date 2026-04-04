@@ -221,6 +221,7 @@ Complete these steps in order before writing any code:
 Check `docs/API/` for a contract file matching this feature.
 - Found → read it completely before proceeding to Step 1.
 - Not found → write "No contract found" and apply CONFLICT RESOLUTION → No contract found rules.
+- When aligning, migrating, or refactoring an existing UI feature to a reference pattern, you MUST retrieve and read the associated `docs/API/{feature}.md` contract FIRST. You MUST NOT apply structural patterns (e.g., `createTable()`) from a reference file if the backend API contract for the target feature does not explicitly return the required data shape (e.g., a paginated envelope vs. a flat array).
 
 **Step 0.5 — Reference Declaration and Conflict Matrix**
 You MUST explicitly select a physical reference file as your Source of Truth. You MUST build a mental matrix comparing the required components (e.g., event listeners, table mechanism) against the system rules using the CONFLICT MATRIX defined above. If a `MUST` rule fails the matrix against the reference, you MUST halt and report.
