@@ -18,6 +18,7 @@
     <li><a href="settings/content-documents.php">مستندات المحتوى</a></li>
     <li><a href="settings/app-settings.php">إعدادات التطبيق</a></li>
     <li><a href="languages.php">اللغات</a></li>
+    <li><a href="currencies.php">العملات</a></li>
 </ul>
 
 <h2>التحكم في الوصول (RBAC)</h2>
@@ -32,7 +33,7 @@
     <li><a href="translations/overview.php">نظرة عامة على الترجمات</a></li>
     <li><a href="translations/scopes.php">النطاقات</a></li>
     <li><a href="translations/domains.php">المجالات</a></li>
-    <li><a href="translations.php">الترجمات (القديمة)</a></li>
+    <li><a href="translations.php">الترجمات</a></li>
 </ul>
 
 

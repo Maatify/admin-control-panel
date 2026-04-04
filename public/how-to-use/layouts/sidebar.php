@@ -24,7 +24,8 @@ function tr($en_text, $lang) {
         'Permissions' => 'الصلاحيات',
         'Translations' => 'الترجمات',
         'Scopes' => 'النطاقات',
-        'Domains' => 'المجالات'
+        'Domains' => 'المجالات',
+        'Currencies' => 'العملات'
     ];
     return isset($translations[$en_text]) ? $translations[$en_text] : $en_text;
 }
@@ -45,6 +46,9 @@ function tr($en_text, $lang) {
         </div>
         <div class="sidebar-section" style="margin-bottom: 0.5rem;">
             <a href="<?php echo $base_url; ?>/languages.php" class="<?php echo isActive('/languages.php', $current_path); ?>"><?php echo tr('Languages', $lang); ?></a>
+        </div>
+        <div class="sidebar-section" style="margin-bottom: 0.5rem;">
+            <a href="<?php echo $base_url; ?>/currencies.php" class="<?php echo isActive('/currencies.php', $current_path); ?>"><?php echo tr('Currencies', $lang); ?></a>
         </div>
 
         <div class="sidebar-section">
