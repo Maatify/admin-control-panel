@@ -2563,8 +2563,11 @@ class Container
         // Register Maatify\Verification modules
         \Maatify\Verification\Bootstrap\VerificationBindings::register($containerBuilder);
 
-        // Register Infrastructure\LanguageCoreBinding modules
+        // Register Maatify\LanguageCoreBinding modules
         \Maatify\AdminKernel\Infrastructure\LanguageCore\Bootstrap\LanguageCoreBinding::register($containerBuilder);
+
+        // Register Maatify\CurrenciesBindings modules
+        \Maatify\Currency\Bootstrap\CurrenciesBindings::register($containerBuilder);
 
         // Extension Hook: Allow host projects to override/extend bindings
         if ($builderHook !== null) {

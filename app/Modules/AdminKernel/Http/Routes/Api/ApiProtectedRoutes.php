@@ -11,6 +11,7 @@ use Maatify\AdminKernel\Http\Routes\Api\Features\AdminEmailApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\AdminsApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\AppSettingsApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\ContentDocumentsApiRoutes;
+use Maatify\AdminKernel\Http\Routes\Api\Features\CurrenciesApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\I18nApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\LanguagesApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\PermissionsApiRoutes;
@@ -45,6 +46,8 @@ final class ApiProtectedRoutes
             PermissionsApiRoutes::register($group);
 
             RolesApiRoutes::register($group);
+
+            CurrenciesApiRoutes::register($group);
 
             $group->get('/notifications', [NotificationQueryController::class, 'index'])
                 ->setName('notifications.list');

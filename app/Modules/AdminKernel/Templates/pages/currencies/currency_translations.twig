@@ -1,0 +1,266 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}Translations: {{ currency.name }} | {{ ui.appName }}{% endblock %}
+
+{% block content %}
+
+    {# ===================================================================
+       Capabilities Injection
+       Computed server-side by AuthorizationService.
+       JavaScript reads window.currencyTranslationsContext — never infers.
+       =================================================================== #}
+    <script>
+        window.currencyTranslationsContext = {
+            currency_id: {{ currency.id }},
+            currency_code: "{{ currency.code }}",
+            languages: {{ languages|json_encode|raw }}
+        };
+
+        window.currencyTranslationsCapabilities = {
+            can_upsert: {{ capabilities.can_upsert ? 'true' : 'false' }},
+            can_delete: {{ capabilities.can_delete ? 'true' : 'false' }}
+        };
+
+        console.log('🌍 Currency Translations Context:', window.currencyTranslationsContext);
+        console.log('🔐 Capabilities:', window.currencyTranslationsCapabilities);
+    </script>
+
+    {# ===================================================================
+       Page Header (breadcrumb + title)
+       =================================================================== #}
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div class="flex items-center gap-3">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                Translations Management
+            </h2>
+        </div>
+
+        <nav>
+            <ol class="flex items-center gap-1.5">
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                       href="{{ ui.adminUrl }}dashboard">
+                        Home
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                  stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+
+                {% if capabilities.can_view_currencies %}
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                       href="{{ ui.adminUrl }}currencies">
+                        Currencies
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                  stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+                {% else %}
+                    <li class="text-sm text-gray-800 dark:text-gray-200">
+                        Currencies
+                    </li>
+                    <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none">
+                        <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                              stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                {% endif %}
+
+                <li class="text-sm text-gray-800 dark:text-gray-200">
+                    {{ currency.name }}
+                    <svg class="stroke-current inline-block ml-1.5" width="17" height="16" viewBox="0 0 17 16" fill="none">
+                        <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                              stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </li>
+
+                <li class="text-sm text-gray-800 dark:text-gray-200">
+                    Translations
+                </li>
+            </ol>
+        </nav>
+    </div>
+
+    {# ===================================================================
+       Context Cards
+       =================================================================== #}
+    <div class="grid grid-cols-1 mb-6">
+        <!-- Currency Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-5">
+            <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3 border-b dark:border-gray-700 pb-2">
+                Currency
+            </h3>
+            <div class="grid grid-cols-3 gap-4">
+                <div>
+                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Name</p>
+                    <p class="text-sm text-gray-800 dark:text-gray-100">{{ currency.name }}</p>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Code</p>
+                    <code class="text-sm font-mono bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-2 py-1 rounded text-gray-800 dark:text-gray-200">
+                        {{ currency.code }}
+                    </code>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Symbol</p>
+                    <p class="text-sm text-gray-800 dark:text-gray-100">{{ currency.symbol }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ===================================================================
+       Translations Table Section
+       =================================================================== #}
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-4">
+        <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-4">
+            Translations List
+        </h3>
+
+        {# ============================================================
+           🔍 Filters Section
+           ============================================================ #}
+        <div class="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg mb-4 border border-gray-200 dark:border-gray-700">
+            <form id="translations-filter-form" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Language Name</label>
+                        <input type="text" id="filter-language-name"
+                               class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Filter by language">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Language Code</label>
+                        <input type="text" id="filter-language-code"
+                               class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Filter by code">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Translated Name</label>
+                        <input type="text" id="filter-translated-name"
+                               class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Filter by translated value">
+                    </div>
+                </div>
+
+                <div class="flex items-end gap-2">
+                    <button type="submit" id="btn-filter-search" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Search
+                    </button>
+                    <button type="button" id="btn-reset-filters" class="px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-medium border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                        Reset
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        {# ============================================================
+           🌍 Global Search Bar
+           ============================================================ #}
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4">
+            <div class="flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                        type="text"
+                        id="translations-search-global"
+                        class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400"
+                        placeholder="🔍 Quick search by name or language..."
+                />
+                <button
+                        type="button"
+                        id="btn-search-global"
+                        class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                    Search
+                </button>
+                <button
+                        type="button"
+                        id="btn-clear-search"
+                        class="px-6 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
+                >
+                    Clear
+                </button>
+            </div>
+        </div>
+
+        <div id="translations-table-container"></div>
+    </div>
+
+    {# ===================================================================
+       📝 Edit Translation Modal
+       =================================================================== #}
+    <div id="edit-translation-modal" class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-50 flex items-center justify-center hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full mx-4 border border-transparent dark:border-gray-700 transform transition-all">
+            <!-- Header -->
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Edit Translation
+                </h3>
+                <button class="close-modal text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="edit-language-id">
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 uppercase">Currency Name</label>
+                    <div id="edit-currency-display" class="text-sm font-mono bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600"></div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 uppercase">Language</label>
+                    <div id="edit-language-name-display" class="text-sm font-medium text-gray-800 dark:text-gray-200"></div>
+                </div>
+
+                <div>
+                    <label for="edit-translation-value" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Translation Value</label>
+                    <input type="text" id="edit-translation-value"
+                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
+                           placeholder="Enter translation here...">
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3 bg-gray-50 dark:bg-gray-800/50 rounded-b-lg">
+                <button type="button" class="close-modal px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                    Cancel
+                </button>
+                <button type="button" id="btn-save-translation" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {# Shared infrastructure scripts #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/api_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/callback_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/Input_checker.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/data_table.js') }}"></script>
+
+    {# ✨ Select2 - Custom dropdown with search #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/select2.js') }}"></script>
+
+    {# ✨ Project-wide reusable UI components library #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
+
+    {# 🌐 Translations modular scripts #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/currencies/currency_translations.js') }}"></script>
+{% endblock %}

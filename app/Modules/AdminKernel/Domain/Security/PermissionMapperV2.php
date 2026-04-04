@@ -94,6 +94,20 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'languages.update.settings.api' => 'languages.update.settings',
         'languages.update.sort.api' => 'languages.update.sort',
 
+        // Currencies
+        'currencies.list.ui' => 'currencies.list',
+        'currencies.list.api' => 'currencies.list',
+        'currencies.create.api' => 'currencies.create',
+        'currencies.update.api' => 'currencies.update',
+        'currencies.set_active.api' => 'currencies.set_active',
+        'currencies.update_sort.api' => 'currencies.update_sort',
+        'currencies.dropdown.api' => 'currencies.dropdown',
+
+        'currencies.translations.list.ui' => 'currencies.translations.list',
+        'currencies.translations.list.api' => 'currencies.translations.list',
+        'currencies.translations.upsert.api' => 'currencies.translations.upsert',
+        'currencies.translations.delete.api' => 'currencies.translations.delete',
+
         // I18n Keys
 //        'i18n.keys.list.ui'  => 'i18n.keys.list',
 //        'i18n.keys.list.api' => 'i18n.keys.list',
