@@ -15,7 +15,7 @@ To view and manage the platform's supported currencies:
 
 The main interface is a data table displaying all registered currencies.
 
-* **Table Columns:** You will typically see standard details identifying the currency, such as its Name (e.g., "US Dollar"), Code (e.g., "USD"), Symbol (e.g., "$"), and its active status.
+* **Table Columns:** The table displays standard details identifying the currency, such as its Name (e.g., "US Dollar"), Code (e.g., "USD"), Symbol (e.g., "$"), and its active status.
 * **Actions:** The table provides options to interact with each currency, including the ability to manage how the currency's name and details are translated.
 
 ## Viewing Currency Translations
@@ -23,7 +23,7 @@ The main interface is a data table displaying all registered currencies.
 To modify how a currency appears in different languages:
 
 1. Locate the specific currency row in the Currencies List table.
-2. Click on the currency row or its specific translations action button.
+2. Click on the currency or use the available action to open its translations.
 3. This will navigate you to the dedicated Currency Translations page for that specific currency.
 
 ## Currency Translations
@@ -31,7 +31,7 @@ To modify how a currency appears in different languages:
 Each currency can have its own translations, ensuring that global users see familiar and localized currency names.
 
 * **What is translated:** This section allows you to manage the localized text associated with the currency, such as its name or display label in different languages.
-* **Translation System:** The currency translations utilize the same robust translation system found elsewhere in the platform. This means the translations are organized under specific scopes and domains, ensuring consistency in how text values are managed.
+* **Translation System:** Currency translations follow the same translation system used across the platform.
 
 ## User Flow
 
@@ -45,7 +45,7 @@ To update a currency's translation, follow these steps:
 ## What Happens After Changes
 
 * **Immediate Application:** Any changes made to currency translations are saved and applied immediately across the system.
-* **Global Visibility:** The updated localized text will now be displayed anywhere that specific currency appears to users.
+* **Global Visibility:** The updated localized text will be displayed across the platform wherever the currency appears to users.
 
 ## Important Notes
 
