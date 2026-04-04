@@ -33,13 +33,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const documentId = window.documentId;
     const languageId = window.languageId;
 
-    // Normalize: trim + lowercase, fallback to 'ltr'
-    const direction = (ctx.languageDirection || 'ltr').trim().toLowerCase();
-    const langCode  = (ctx.languageCode || 'en').trim().toLowerCase();
-    const isDark    = document.documentElement.classList.contains('dark');
-
-    console.log(`↔️  [TranslationDetails] direction="${direction}" | dark=${isDark}`);
-
     // ================================================================
     // 2. Helper — resolve URL template
     // ================================================================
@@ -53,154 +46,26 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ================================================================
-    // 3. Force direction on every layer of the Jodit DOM
+    // 3. Initialize WYSIWYG Editor using admin-wysiwyg.js
     // ================================================================
 
-    /**
-     * Jodit's `direction` option targets the toolbar wrapper.
-     * The actual contenteditable body needs to be patched manually
-     * after init — this is the reliable cross-version approach.
-     *
-     * Layers patched:
-     *   1. .jodit-container  (outer wrapper)
-     *   2. editor.editor     (contenteditable div)
-     *   3. editorDocument.body (iframe body, when Jodit uses iframe mode)
-     *
-     * @param {Jodit}  editor
-     * @param {string} dir  'rtl' | 'ltr'
-     */
+    if (typeof window.initWysiwyg === 'function') {
+        window.initWysiwyg({
+            languageCode: ctx.languageCode,
+            languageDirection: ctx.languageDirection
+        });
 
-    function applyEditorDirection(editor, dir) {
-        const align = dir === 'rtl' ? 'right' : 'left';
-
-        try {
-            const doc = editor.editorDocument;
-
-            // ✅ مهم جدًا: نتأكد إن ده مش document الرئيسي
-            if (doc && doc !== document && doc.body) {
-                doc.body.style.direction = dir;
-                doc.body.style.textAlign = align;
-            }
-
-            // لو inline mode
-            if (editor.editor && doc === document) {
-                editor.editor.style.direction = dir;
-                editor.editor.style.textAlign = align;
-            }
-
-        } catch (_) {}
-
-        console.log(`↔️ Editor direction applied safely → ${dir}`);
-    }
-
-    // ================================================================
-    // 4. Jodit config factory
-    // ================================================================
-
-    function buildJoditConfig(dark) {
-        return {
-            // ⚠️  Do NOT pass `direction` here — Jodit applies it to
-            //     document.body which flips the whole admin page.
-            //     Direction is applied manually via applyEditorDirection()
-            //     inside the afterInit event (editor container + body only).
-            theme:      dark ? 'dark' : '',
-            height:     520,
-            minHeight:  320,
-            language:   langCode ?? 'auto',
-
-            buttons: [
-                'undo', 'redo', '|',
-                'bold', 'italic', 'underline', 'strikethrough', '|',
-                'ul', 'ol', 'outdent', 'indent', '|',
-                'font', 'fontsize', 'brush', 'paragraph', '|',
-                'align', '|',
-                'link', 'image', 'table', '|',
-                'hr', 'eraser', 'copyformat', '|',
-                'source', 'fullsize', '|',
-                'left', 'right',
-            ],
-
-            enableDragAndDropFileToEditor: false,
-            uploader:   { insertImageAsBase64URI: true },
-            cleanHTML:  { fillEmptyParagraph: false },
-            enter:      'p',
-
-            showCharsCounter:     true,
-            showWordsCounter:     true,
-            showXPathInStatusbar: false,
-            spellcheck:           false,
-            disablePlugins:       'about',
-
-            // Patch direction on every layer right after the editor is ready
-            events: {
-                afterInit: function (editor) {
-                    applyEditorDirection(editor, direction);
-                },
-            },
-        };
-    }
-
-    // ================================================================
-    // 5. Jodit init + re-init helper
-    // ================================================================
-
-    let jodit   = null;
-    let isDirty = false;
-
-    /**
-     * (Re)initializes Jodit.
-     *  - On first call  : reads content from the raw textarea.
-     *  - On theme toggle: snapshots current editor HTML, destroys the
-     *                     old instance, then creates a fresh one with
-     *                     the correct skin — no page reload needed.
-     *
-     * @param {boolean} dark
-     */
-    function initJodit(dark) {
-        const savedContent = jodit ? jodit.value : null;
-
-        if (jodit) {
-            jodit.destruct();
-            jodit = null;
-        }
-
-        jodit = Jodit.make('#field-content', buildJoditConfig(dark));
-
-        if (savedContent !== null) {
-            jodit.value = savedContent;
-        }
-
-        jodit.events.on('change', function () {
-            isDirty = true;
+        // Listen for custom wysiwygChange event to handle dirty state styling
+        document.addEventListener('wysiwygChange', (e) => {
             const btn = document.getElementById('btn-save-translation');
             if (btn) btn.classList.add('ring-2', 'ring-blue-400');
         });
+    } else {
+        console.warn("⚠️ initWysiwyg wrapper is missing from the global scope.");
     }
 
-    // First render
-    initJodit(isDark);
-
     // ================================================================
-    // 6. Watch <html class="dark"> toggling — no page refresh needed
-    // ================================================================
-
-    const themeObserver = new MutationObserver(function (mutations) {
-        mutations.forEach(function (mutation) {
-            if (mutation.attributeName !== 'class') return;
-
-            const nowDark = document.documentElement.classList.contains('dark');
-
-            if (nowDark !== (jodit.options.theme === 'dark')) {
-                console.log(`🎨 [TranslationDetails] Theme → ${nowDark ? 'dark' : 'light'}, reinit Jodit`);
-                initJodit(nowDark);
-            }
-        });
-    });
-
-    themeObserver.observe(document.documentElement, { attributes: true });
-
-    // ================================================================
-    // 7. Save button wiring
+    // 4. Save button wiring
     // ================================================================
 
     const saveBtn = document.getElementById('btn-save-translation');
@@ -212,16 +77,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
     saveBtn.addEventListener('click', async function () {
 
-        const content = jodit?.value
-            ?? document.getElementById('field-content')?.value
-            ?? '';
-
         const payload = {
             title:            document.getElementById('field-title')?.value?.trim()            ?? '',
             meta_title:       document.getElementById('field-meta-title')?.value?.trim()       ?? '',
             meta_description: document.getElementById('field-meta-description')?.value?.trim() ?? '',
-            content:          content,
         };
+
+        // Extract WYSIWYG data via the global wrapper if available
+        if (typeof window.getWysiwygData === 'function') {
+            const wysiwygData = window.getWysiwygData();
+            if (wysiwygData.content && wysiwygData.content.trim()) {
+                payload.content = wysiwygData.content.trim();
+            }
+        } else {
+            const contentInput = document.getElementById('field-content');
+            if (contentInput && contentInput.value.trim()) {
+                payload.content = contentInput.value.trim();
+            }
+        }
 
         console.log('📝 [TranslationDetails] Payload:', payload);
 
@@ -233,7 +106,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!payload.content || payload.content.replace(/<[^>]*>/g, '').trim() === '') {
             ApiHandler.showAlert('warning', '⚠️ Content cannot be empty.');
-            jodit.focus();
             return;
         }
 
@@ -252,7 +124,9 @@ document.addEventListener('DOMContentLoaded', function () {
         saveBtn.innerHTML = '💾 Save Changes';
 
         if (result.success) {
-            isDirty = false;
+            if (window.AdminKernel && window.AdminKernel.Wysiwyg) {
+                window.AdminKernel.Wysiwyg.resetDirtyState();
+            }
             ApiHandler.showAlert('success', '✅ Translation saved successfully!');
         } else {
             ApiHandler.showAlert('danger', result.error || '❌ Failed to save translation.');

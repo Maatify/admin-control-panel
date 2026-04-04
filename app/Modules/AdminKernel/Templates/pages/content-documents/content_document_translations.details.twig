@@ -305,10 +305,12 @@
                         Content <span class="text-red-500">*</span>
                     </label>
                     {#
-                    Jodit replaces this textarea.
-                    dir / RTL is handled by the JS module via window.contentDocumentTranslationsContext
+                    Jodit replaces this textarea via admin-wysiwyg.js.
+                    dir / RTL is handled globally via initWysiwyg(context).
                     #}
                     <textarea id="field-content"
+                              class="js-wysiwyg-editor"
+                              data-field="content"
                               name="content">{% if translation.content is defined and translation.content %}{{ translation.content|raw }}{% endif %}</textarea>
                 </div>
 
@@ -365,6 +367,9 @@
     #}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jodit@latest/es2021/jodit.fat.min.css">
     <script src="https://cdn.jsdelivr.net/npm/jodit@latest/es2021/jodit.fat.min.js"></script>
+
+    {# ✨ AdminKernel WYSIWYG Manager #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-wysiwyg.js') }}"></script>
 
     {# ✨ Page-specific module #}
     <script src="{{ asset('assets/maatify/admin-kernel/js/pages/content_document/content_document_translation_details.js') }}"></script>
