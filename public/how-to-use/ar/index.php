@@ -18,6 +18,7 @@
     <li><a href="settings/content-documents.php">مستندات المحتوى</a></li>
     <li><a href="settings/app-settings.php">إعدادات التطبيق</a></li>
     <li><a href="languages.php">اللغات</a></li>
+    <li><a href="currencies.php">العملات</a></li>
 </ul>
 
 <h2>التحكم في الوصول (RBAC)</h2>
