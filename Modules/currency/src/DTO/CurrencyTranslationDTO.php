@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace Maatify\Currency\DTO;
 
+use JsonSerializable;
 use Maatify\Currency\Exception\CurrencyInvalidArgumentException;
 
 /**
  * Immutable read-model for a currency translation row, always enriched
  * with language identity data from the `languages` table.
  *
+ * Implements JsonSerializable — json_encode($dto) and json_encode($list)
+ * both work directly without a manual .toArray() call in the controller.
+ *
  * ── Listing behaviour ───────────────────────────────────────────────────
  *
- *  listTranslationsForCurrency() performs a LEFT JOIN on `languages` so
- *  every active language is represented — including those without a
+ *  listTranslationsForCurrencyPaginated() performs a LEFT JOIN on `languages`
+ *  so every active language is represented — including those without a
  *  translation row yet.
  *
  *  When no translation exists for a language:
@@ -22,15 +26,15 @@ use Maatify\Currency\Exception\CurrencyInvalidArgumentException;
  *    $createdAt      → null
  *    $updatedAt      → null
  *
- *  The caller can use ($dto->translatedName === null) to detect
- *  untranslated languages and render an "Add translation" prompt.
+ *  The caller can use ($dto->translatedName === null) or hasTranslation()
+ *  to detect untranslated languages and render an "Add translation" prompt.
  *
  * ── Single-record lookups ────────────────────────────────────────────────
  *
  *  findTranslation() performs an INNER JOIN so it only returns a DTO
  *  when the translation row actually exists (non-null fields guaranteed).
  */
-final class CurrencyTranslationDTO
+final class CurrencyTranslationDTO implements JsonSerializable
 {
     public function __construct(
         public readonly ?int    $id,              // null = no translation row yet
@@ -77,7 +81,7 @@ final class CurrencyTranslationDTO
     }
 
     // ------------------------------------------------------------------ //
-    //  Serialisation
+    //  Serialisation — single source of truth for the JSON shape
     // ------------------------------------------------------------------ //
 
     /**
@@ -92,7 +96,7 @@ final class CurrencyTranslationDTO
      *     updated_at:      string|null
      * }
      */
-    public function toArray(): array
+    public function jsonSerialize(): array
     {
         return [
             'id'              => $this->id,

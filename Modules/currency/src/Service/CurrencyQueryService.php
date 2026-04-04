@@ -110,10 +110,33 @@ final class CurrencyQueryService
     }
 
     /**
-     * @return list<CurrencyTranslationDTO>
+     * Paginated, searchable, filterable translation list for admin screens.
+     * Returns all active languages — including those without a translation row.
+     *
+     * @param  array<string, int|string> $columnFilters
+     * @return array{
+     *     data:       list<CurrencyTranslationDTO>,
+     *     pagination: array{
+     *         page:     int,
+     *         per_page: int,
+     *         total:    int,
+     *         filtered: int
+     *     }
+     * }
      */
-    public function listTranslations(int $currencyId): array
-    {
-        return $this->reader->listTranslationsForCurrency($currencyId);
+    public function listTranslationsPaginated(
+        int     $currencyId,
+        int     $page          = 1,
+        int     $perPage       = 20,
+        ?string $globalSearch  = null,
+        array   $columnFilters = [],
+    ): array {
+        return $this->reader->listTranslationsForCurrencyPaginated(
+            $currencyId,
+            $page,
+            $perPage,
+            $globalSearch,
+            $columnFilters,
+        );
     }
 }

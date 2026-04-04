@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const containerId = 'translations-table-container';
-    const apiUrl = `/api/currencies/${currencyId}/translations/query`;
+    const apiUrl = `currencies/${currencyId}/translations/query`;
 
     const getFilters = () => {
         const filters = {};
@@ -306,7 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function upsertTranslation(languageId, value) {
-        const endpoint = `/api/currencies/${currencyId}/translations/upsert`;
+        const endpoint = `currencies/${currencyId}/translations/upsert`;
         const payload = {
             language_id: parseInt(languageId, 10),
             translated_name: value
@@ -328,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function deleteTranslation(languageId) {
-        const endpoint = `/api/currencies/${currencyId}/translations/delete`;
+        const endpoint = `currencies/${currencyId}/translations/delete`;
         const payload = {
             language_id: parseInt(languageId, 10)
         };

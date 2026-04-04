@@ -78,11 +78,8 @@ getByCode(string $code, ?int $languageId = null): CurrencyDTO  // throws Currenc
 ### Translation Management (Admin)
 
 ```php
-// Simple list — all active languages, LEFT JOIN translations
-// Returns languages with no translation too (translatedName = null)
-listTranslations(int $currencyId): list<CurrencyTranslationDTO>
-
-// Paginated + filterable version of the above
+// Admin standard: paginated + filterable — all active languages shown,
+// including those without a translation row (translatedName = null)
 listTranslationsPaginated(
     int     $currencyId,
     int     $page          = 1,
@@ -94,11 +91,11 @@ listTranslationsPaginated(
     pagination: array{ page: int, per_page: int, total: int, filtered: int }
 }
 
-// columnFilters keys for listTranslationsPaginated:
-//   'language_id'      (int)    — exact match
-//   'language_code'    (string) — LIKE
-//   'language_name'    (string) — LIKE
-//   'name'             (string) — LIKE on translated name
+// columnFilters keys:
+//   'language_id'      (int)     — exact match
+//   'language_code'    (string)  — LIKE
+//   'language_name'    (string)  — LIKE
+//   'name'             (string)  — LIKE on translated name
 //   'has_translation'  ('1'|'0') — filter translated / untranslated
 
 // Check a specific (currency, language) pair
@@ -183,6 +180,8 @@ deleteTranslation(DeleteCurrencyTranslationCommand $command): void
 
 ## DTOs
 
+Both DTOs implement `JsonSerializable` — `json_encode($dto)` and `json_encode($list)` work directly in the controller without a manual conversion call.
+
 ### CurrencyDTO
 
 ```php
@@ -197,9 +196,9 @@ $dto->updatedAt       // string|null
 $dto->translatedName  // string|null — null when no $languageId was passed
 $dto->languageId      // int|null    — the language that was queried
 
-$dto->displayName()   // string — translatedName ?? name (best available name)
-$dto->toArray()       // array{id, code, name, symbol, is_active, display_order,
-                      //        created_at, updated_at, translated_name, language_id}
+$dto->displayName()    // string — translatedName ?? name (best available name)
+$dto->jsonSerialize()  // array{id, code, name, symbol, is_active, display_order,
+                       //        created_at, updated_at, translated_name, language_id}
 ```
 
 ### CurrencyTranslationDTO
@@ -213,9 +212,9 @@ $dto->translatedName  // string|null — null = no translation row yet
 $dto->createdAt       // string|null — null = no translation row yet
 $dto->updatedAt       // string|null
 
-$dto->hasTranslation() // bool — ($translatedName !== null)
-$dto->toArray()        // array{id, language_id, language_code, language_name,
-                       //        translated_name, has_translation, created_at, updated_at}
+$dto->hasTranslation()  // bool — ($translatedName !== null)
+$dto->jsonSerialize()   // array{id, language_id, language_code, language_name,
+                        //        translated_name, has_translation, created_at, updated_at}
 ```
 
 ---

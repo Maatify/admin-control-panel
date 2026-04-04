@@ -79,20 +79,36 @@
             inactiveText: 'Inactive',
             buttonClass: 'toggle-status-btn',
             dataAttribute: 'data-currency-id'
-        });
+        }).replace('data-currency-id', `data-current-is-active="${value ? '1' : '0'}" data-currency-id`);
     };
 
     const actionsRenderer = (value, row) => {
         const canUpdate = window.currenciesCapabilities?.can_update ?? false;
         const canUpdateSort = window.currenciesCapabilities?.can_update_sort ?? false;
+        const canViewTranslations = window.currenciesCapabilities?.can_view_currency_translations ?? false;
 
-        const hasAnyAction = canUpdate || canUpdateSort;
+        const hasAnyAction = canUpdate || canUpdateSort || canViewTranslations;
 
         if (!hasAnyAction) {
             return '<span class="text-gray-400 text-xs">No actions</span>';
         }
 
         const actions = [];
+
+        // Translations Button
+        if (canViewTranslations) {
+            actions.push(AdminUIComponents.buildActionButton({
+                cssClass: 'view-currency-translations-btn',
+                icon: AdminUIComponents.SVGIcons.link,
+                text: 'Translations',
+                color: 'purple',
+                entityId: row.id,
+                title: 'View currency translations',
+                dataAttributes: {
+                    'currency-id': row.id
+                }
+            }));
+        }
 
         // Edit Button (combines multiple fields for Currency unlike Languages)
         if (canUpdate) {
@@ -207,7 +223,7 @@
         if (perPageNumber !== null) currentPerPage = perPageNumber;
 
         const params = buildQueryParams();
-        const result = await ApiHandler.call('/api/currencies/query', params, 'Query Currencies');
+        const result = await ApiHandler.call('currencies/query', params, 'Query Currencies');
 
         if (!result.success) {
             const container = document.getElementById('table-container');
@@ -265,6 +281,29 @@
     // ========================================================================
     // Initialization & Event Listeners
     // ========================================================================
+
+    function setupActionDelegation() {
+        if (typeof window.CurrenciesHelpers?.setupButtonHandler === 'function') {
+            window.CurrenciesHelpers.setupButtonHandler(
+                '.view-currency-translations-btn',
+                async (currencyId) => {
+                    window.location.assign(`/currencies/${currencyId}/translations`);
+                }
+            );
+        } else {
+            // Fallback delegation
+            document.addEventListener('click', (e) => {
+                const btn = e.target.closest('.view-currency-translations-btn');
+                if (btn) {
+                    e.preventDefault();
+                    const currencyId = btn.getAttribute('data-entity-id');
+                    if (currencyId) {
+                        window.location.assign(`/currencies/${currencyId}/translations`);
+                    }
+                }
+            });
+        }
+    }
 
     function setupSearchAndFilters() {
         const globalSearchInput = document.getElementById('currencies-search');
@@ -325,6 +364,7 @@
 
     function init() {
         setupSearchAndFilters();
+        setupActionDelegation();
         loadCurrencies();
 
         const btnCreate = document.getElementById('btn-create-currency');

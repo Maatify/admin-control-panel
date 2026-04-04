@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace Maatify\Currency\DTO;
 
-use InvalidArgumentException;
+use JsonSerializable;
+use Maatify\Currency\Exception\CurrencyInvalidArgumentException;
 
 /**
  * Immutable read-model for a single currency row.
+ *
+ * Implements JsonSerializable — json_encode($dto) and json_encode($list)
+ * both work directly without a manual .toArray() call in the controller.
  *
  * ── Translation fields ──────────────────────────────────────────────────
  *
@@ -18,11 +22,8 @@ use InvalidArgumentException;
  *                           $translatedName is ALWAYS a non-null string —
  *                           either the actual translation or the base name
  *                           as fallback. No null-check required by the caller.
- *
- *  To know whether a real translation row exists (not just the fallback),
- *  use CurrencyQueryReaderInterface::findTranslation() explicitly.
  */
-final class CurrencyDTO
+final class CurrencyDTO implements JsonSerializable
 {
     public function __construct(
         public readonly int     $id,
@@ -64,20 +65,13 @@ final class CurrencyDTO
     //  Convenience
     // ------------------------------------------------------------------ //
 
-    /**
-     * The effective display name for the current locale.
-     *
-     * When a languageId was provided at query time this always returns the
-     * translated name (real translation or COALESCE fallback — both non-null).
-     * When no language context was requested it returns the base name.
-     */
     public function displayName(): string
     {
         return $this->translatedName ?? $this->name;
     }
 
     // ------------------------------------------------------------------ //
-    //  Serialisation
+    //  Serialisation — single source of truth for the JSON shape
     // ------------------------------------------------------------------ //
 
     /**
@@ -94,7 +88,7 @@ final class CurrencyDTO
      *     language_id:     int|null
      * }
      */
-    public function toArray(): array
+    public function jsonSerialize(): array
     {
         return [
             'id'              => $this->id,
@@ -114,74 +108,49 @@ final class CurrencyDTO
     //  Private — type-safe row casting helpers
     // ------------------------------------------------------------------ //
 
-    /**
-     * Narrows mixed → int.
-     * Accepts int or any numeric-string (as returned by MySQL PDO drivers).
-     */
     private static function int(mixed $value): int
     {
         if (is_int($value)) {
             return $value;
         }
-
         if (is_numeric($value)) {
             return (int) $value;
         }
-
-        throw new InvalidArgumentException(
-            sprintf('Expected numeric value, got %s.', get_debug_type($value)),
-        );
+        throw CurrencyInvalidArgumentException::unexpectedType('int field', $value);
     }
 
-    /** Narrows mixed → string. */
     private static function string(mixed $value): string
     {
         if (is_string($value)) {
             return $value;
         }
-
-        throw new InvalidArgumentException(
-            sprintf('Expected string value, got %s.', get_debug_type($value)),
-        );
+        throw CurrencyInvalidArgumentException::unexpectedType('string field', $value);
     }
 
-    /**
-     * Narrows mixed → bool.
-     * MySQL TINYINT(1) is returned as '0'/'1' (string) or 0/1 (int) depending
-     * on the PDO driver / emulation mode — both are handled here.
-     */
     private static function bool(mixed $value): bool
     {
         if (is_bool($value)) {
             return $value;
         }
-
         if (is_int($value) || is_string($value)) {
             return (bool) $value;
         }
-
-        throw new InvalidArgumentException(
-            sprintf('Expected bool-castable value, got %s.', get_debug_type($value)),
-        );
+        throw CurrencyInvalidArgumentException::unexpectedType('bool field', $value);
     }
 
-    /** Narrows mixed → string|null. */
     private static function nullableString(mixed $value): ?string
     {
         if ($value === null) {
             return null;
         }
-
         return self::string($value);
     }
 
-    /** Narrows mixed → int|null. */
     private static function nullableInt(mixed $value): ?int
     {
         if ($value === null) {
             return null;
         }
-
         return self::int($value);
     }
 }

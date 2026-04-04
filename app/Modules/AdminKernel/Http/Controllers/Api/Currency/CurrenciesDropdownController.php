@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Http\Controllers\Api\Currency;
 
 use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
+use Maatify\Currency\DTO\CurrencyDTO;
 use Maatify\Currency\Service\CurrencyQueryService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -29,11 +30,12 @@ final readonly class CurrenciesDropdownController
 
         $list = $this->queryService->activeList($languageId);
 
-        $data = array_map(static fn($dto) => $dto->toArray(), $list);
 
-        /** @var array<string, mixed> $responsePayload */
-        $responsePayload = $data;
-
-        return $this->json->data($response, $responsePayload);
+        return $this->json->data(
+            $response,
+            [
+                'data' => $list
+            ]
+        );
     }
 }

@@ -25,13 +25,8 @@ final readonly class CurrencyTranslationsQueryController
         $currencyId = (int) $args['currency_id'];
 
         // Translations query for currency does not have a paginated service method, only `listTranslations`
-        $list = $this->queryService->listTranslations($currencyId);
+        $list = $this->queryService->listTranslationsPaginated($currencyId);
 
-        $data = array_map(static fn($dto) => $dto->toArray(), $list);
-
-        /** @var array<string, mixed> $responsePayload */
-        $responsePayload = $data;
-
-        return $this->json->data($response, $responsePayload);
+        return $this->json->data($response, $list);
     }
 }

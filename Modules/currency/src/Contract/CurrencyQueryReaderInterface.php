@@ -22,10 +22,11 @@ use Maatify\Currency\DTO\CurrencyTranslationDTO;
  *
  * ── Translation listing (admin) ──────────────────────────────────────────
  *
- *  listTranslationsForCurrency() and its paginated variant LEFT JOIN the
- *  `languages` table so every active language is represented, including
- *  those without a translation row. The DTO's $translatedName is null for
- *  untranslated languages — callers use this to render "Add translation".
+ *  listTranslationsForCurrencyPaginated() LEFT JOINs the `languages` table
+ *  so every active language is represented, including those without a
+ *  translation row. The DTO's $translatedName is null for untranslated
+ *  languages — callers use this to render "Add translation".
+ *  All admin translation queries use the paginated form.
  */
 interface CurrencyQueryReaderInterface
 {
@@ -85,19 +86,14 @@ interface CurrencyQueryReaderInterface
      * Returns ALL active languages LEFT JOINed with the translation table.
      * Languages without a translation row have $dto->translatedName === null.
      *
-     * @return list<CurrencyTranslationDTO>
-     */
-    public function listTranslationsForCurrency(int $currencyId): array;
-
-    /**
-     * Paginated, searchable, filterable version of listTranslationsForCurrency().
+     * Paginated, searchable, filterable — standard admin query pattern.
      *
      * columnFilters supported keys:
-     *   language_id   (int)    — exact match
-     *   language_code (string) — LIKE
-     *   language_name (string) — LIKE
-     *   name          (string) — LIKE on translated name
-     *   has_translation ('0'|'1') — filter by whether translation exists
+     *   language_id      (int)    — exact match
+     *   language_code    (string) — LIKE
+     *   language_name    (string) — LIKE
+     *   name             (string) — LIKE on translated name
+     *   has_translation  ('0'|'1') — filter by whether translation row exists
      *
      * @param  array<string, int|string> $columnFilters
      * @return array{

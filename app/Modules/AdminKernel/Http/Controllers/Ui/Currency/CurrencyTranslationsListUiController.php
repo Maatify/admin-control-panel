@@ -71,7 +71,7 @@ final readonly class CurrencyTranslationsListUiController
         ];
 
         return $this->view->render($response, 'pages/currencies/currency_translations.twig', [
-            'currency'     => $currency->toArray(),
+            'currency'     => $currency->jsonSerialize(),
             'languages'    => $languagesData,
             'capabilities' => $capabilities,
         ]);

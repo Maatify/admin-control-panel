@@ -15,8 +15,10 @@ final class CurrencyListCapabilities
             searchableColumns: ['name', 'code', 'symbol'],
             supportsColumnFilters: true,
             filterableColumns: [
-                'is_active' => 'bool',
-                'code' => 'string'
+                'id' => 'id',
+                'name' => 'name',
+                'code' => 'code',
+                'is_active' => 'is_active',
             ],
             supportsDateFilter: false,
             dateColumn: null

@@ -72,13 +72,7 @@ final readonly class CurrenciesQueryController
             languageId: $languageId
         );
 
-        // Map DTOs to array
-        $result['data'] = array_map(static fn($dto) => $dto->toArray(), $result['data']);
-
-        /** @var array<string, mixed> $responsePayload */
-        $responsePayload = $result;
-
         // 6) Return JSON
-        return $this->json->data($response, $responsePayload);
+        return $this->json->data($response, $result);
     }
 }
