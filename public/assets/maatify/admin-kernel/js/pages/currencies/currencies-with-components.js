@@ -79,7 +79,7 @@
             inactiveText: 'Inactive',
             buttonClass: 'toggle-status-btn',
             dataAttribute: 'data-currency-id'
-        });
+        }).replace('data-currency-id', `data-current-is-active="${value ? '1' : '0'}" data-currency-id`);
     };
 
     const actionsRenderer = (value, row) => {
@@ -207,7 +207,7 @@
         if (perPageNumber !== null) currentPerPage = perPageNumber;
 
         const params = buildQueryParams();
-        const result = await ApiHandler.call('/api/currencies/query', params, 'Query Currencies');
+        const result = await ApiHandler.call('currencies/query', params, 'Query Currencies');
 
         if (!result.success) {
             const container = document.getElementById('table-container');

@@ -27,8 +27,8 @@
         const btn = document.querySelector(`.toggle-status-btn[data-currency-id="${currencyId}"]`);
         if (!btn) return;
 
-        // Determine current status based on button classes (set by AdminUIComponents)
-        const isCurrentlyActive = btn.classList.contains('bg-green-100') || btn.classList.contains('text-green-800');
+        // Determine current status explicitly using data attributes
+        const isCurrentlyActive = btn.getAttribute('data-current-is-active') === '1' || btn.getAttribute('data-current-is-active') === 'true';
         const newStatus = !isCurrentlyActive;
 
         const payload = {
@@ -36,7 +36,7 @@
             is_active: newStatus
         };
 
-        const result = await ApiHandler.call('/api/currencies/set-active', payload, 'Toggle Currency Status');
+        const result = await ApiHandler.call('currencies/set-active', payload, 'Toggle Currency Status');
 
         if (result.success) {
             ApiHandler.showAlert('success', 'Currency status updated successfully');
