@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const capabilities = window.currencyTranslationsCapabilities || {};
 
     const currencyId = context.currency_id;
-    const languages = context.languages || [];
 
     console.log('🚀 Context Currency ID:', currencyId);
 
@@ -51,34 +50,31 @@ document.addEventListener('DOMContentLoaded', () => {
             const actions = [];
 
             if (capabilities.can_upsert) {
-                actions.push(AdminUIComponents.buildActionButton({
-                    cssClass: 'btn-edit-translation',
-                    icon: AdminUIComponents.SVGIcons.edit,
-                    text: 'Edit',
-                    color: 'blue',
-                    entityId: row.language_id,
-                    title: 'Edit translation',
-                    dataAttributes: {
-                        'language-id': row.language_id,
-                        'language-name': row.language_name,
-                        'language-code': row.language_code,
-                        'translated-name': row.translated_name || ''
-                    }
-                }));
+                const safeValue = (row.translated_name || '').replace(/"/g, '&quot;');
+                actions.push(`
+                    <button class="btn-edit-translation text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 mr-2"
+                            title="Edit"
+                            data-language-id="${row.language_id}"
+                            data-language-name="${row.language_name}"
+                            data-language-code="${row.language_code}"
+                            data-translated-name="${safeValue}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                    </button>
+                `);
             }
 
             if (capabilities.can_delete && row.has_translation) {
-                actions.push(AdminUIComponents.buildActionButton({
-                    cssClass: 'btn-delete-translation',
-                    icon: AdminUIComponents.SVGIcons.x,
-                    text: 'Delete',
-                    color: 'red',
-                    entityId: row.language_id,
-                    title: 'Delete translation',
-                    dataAttributes: {
-                        'language-id': row.language_id
-                    }
-                }));
+                actions.push(`
+                    <button class="btn-delete-translation text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                            title="Delete"
+                            data-language-id="${row.language_id}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                `);
             }
 
             if (actions.length === 0) {
@@ -89,162 +85,149 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ========================================================================
-    // 3. Data Loading Logic
-    // ========================================================================
+    const containerId = 'translations-table-container';
+    const apiUrl = `/api/currencies/${currencyId}/translations/query`;
+
+    const getFilters = () => {
+        const filters = {};
+
+        const filterLanguageName = document.getElementById('filter-language-name')?.value?.trim();
+        if (filterLanguageName) filters.language_name = filterLanguageName;
+
+        const filterLanguageCode = document.getElementById('filter-language-code')?.value?.trim();
+        if (filterLanguageCode) filters.language_code = filterLanguageCode;
+
+        const filterTranslatedName = document.getElementById('filter-translated-name')?.value?.trim();
+        if (filterTranslatedName) filters.name = filterTranslatedName;
+
+        return filters;
+    };
+
+    const getPaginationInfo = (pagination) => {
+        const { page = 1, per_page = 20, total = 0, filtered = total } = pagination;
+        const displayCount = filtered !== undefined ? filtered : total;
+        const startItem = displayCount === 0 ? 0 : (page - 1) * per_page + 1;
+        const endItem = Math.min(page * per_page, displayCount);
+
+        let infoText = \`<span>\${startItem} to \${endItem}</span> of <span>\${displayCount}</span>\`;
+
+        if (typeof filtered !== 'undefined' && filtered !== total) {
+            infoText += \` <span class="text-gray-500 dark:text-gray-400">(filtered from \${total} total)</span>\`;
+        }
+
+        return { total: displayCount, info: infoText };
+    };
 
     let currentPage = 1;
     let currentPerPage = 20;
 
-    function buildQueryParams() {
+    const loadTable = () => {
+        const filters = getFilters();
+        const globalSearch = document.getElementById('translations-search-global')?.value?.trim() || '';
+
         const params = {
             page: currentPage,
             per_page: currentPerPage
         };
 
-        const globalSearch = document.getElementById('translations-search-global')?.value?.trim();
-        const columnFilters = {};
+        const search = {};
+        if (globalSearch) search.global = globalSearch;
+        if (Object.keys(filters).length > 0) search.columns = filters;
 
-        const filterLanguageName = document.getElementById('filter-language-name')?.value?.trim();
-        if (filterLanguageName) columnFilters.language_name = filterLanguageName;
-
-        const filterLanguageCode = document.getElementById('filter-language-code')?.value?.trim();
-        if (filterLanguageCode) columnFilters.language_code = filterLanguageCode;
-
-        const filterTranslatedName = document.getElementById('filter-translated-name')?.value?.trim();
-        if (filterTranslatedName) columnFilters.name = filterTranslatedName;
-
-        if (globalSearch || Object.keys(columnFilters).length > 0) {
-            params.search = {};
-            if (globalSearch) params.search.global = globalSearch;
-            if (Object.keys(columnFilters).length > 0) params.search.columns = columnFilters;
+        if (Object.keys(search).length > 0) {
+            params.search = search;
         }
 
-        return params;
-    }
-
-    async function loadTable(pageNumber = null, perPageNumber = null) {
-        if (pageNumber !== null) currentPage = pageNumber;
-        if (perPageNumber !== null) currentPerPage = perPageNumber;
-
-        const params = buildQueryParams();
-        const endpoint = `/api/currencies/${currencyId}/translations/query`;
-
-        const result = await ApiHandler.call(endpoint, params, 'Query Translations');
-
-        if (!result.success) {
-            const container = document.getElementById('translations-table-container');
-            if (container) {
-                container.innerHTML = `
-                    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
-                        <strong class="font-bold">Error!</strong>
-                        <span class="block sm:inline">${result.error || 'Failed to load translations.'}</span>
-                    </div>
-                `;
-            }
-            return;
-        }
-
-        // Handle array response (since translations query is not paginated natively, backend returns array directly, but our query controller returns data envelope)
-        const data = result.data || {};
-        // If data is an array directly (as per contract `[ {...} ]`)
-        const items = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);
-        const paginationInfo = data.pagination || {
-            page: currentPage,
-            per_page: currentPerPage,
-            total: items.length
-        };
-
-        // Render Table inside 'translations-table-container'
-        const container = document.getElementById('translations-table-container');
+        const container = document.getElementById(containerId);
         if (!container) return;
 
-        // Temporary ID switch for createTable
-        const originalId = container.id;
+        const originalTableContainer = document.getElementById('table-container');
+        let tempId = null;
+
+        if (originalTableContainer && originalTableContainer !== container) {
+            tempId = 'table-container-original-' + Date.now();
+            originalTableContainer.id = tempId;
+        }
+
+        const originalContainerId = container.id;
         container.id = 'table-container';
 
-        try {
-            if (typeof createTable === 'function') {
-                createTable(
-                    items,
-                    headers,
-                    rowKeys,
-                    paginationInfo,
-                    "",
-                    false,
-                    'language_id',
-                    null,
-                    customRenderers
-                );
-            } else {
-                console.error("❌ createTable function not found");
-            }
-        } finally {
-            // Restore ID
-            container.id = originalId;
-        }
-    }
+        createTable(
+            apiUrl,
+            params,
+            headers,
+            rowKeys,
+            false,
+            'id',
+            null,
+            customRenderers,
+            null,
+            getPaginationInfo
+        ).then(() => {
+             container.id = originalContainerId;
+             if (tempId && originalTableContainer) originalTableContainer.id = 'table-container';
+        }).catch(err => {
+             console.error("Table creation failed", err);
+             container.id = originalContainerId;
+             if (tempId && originalTableContainer) originalTableContainer.id = 'table-container';
+        });
+    };
+
+    loadTable();
 
     // ========================================================================
     // 4. Setup Filters & Events
     // ========================================================================
 
-    function setupSearchAndFilters() {
-        const globalSearchInput = document.getElementById('translations-search-global');
-        const searchBtn = document.getElementById('btn-search-global');
-        const clearBtn = document.getElementById('btn-clear-search');
-        const filterForm = document.getElementById('translations-filter-form');
-        const resetBtn = document.getElementById('btn-reset-filters');
+    const filterForm = document.getElementById('translations-filter-form');
+    if (filterForm) {
+        filterForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            currentPage = 1;
+            loadTable();
+        });
 
-        let searchTimeout;
-        if (globalSearchInput) {
-            globalSearchInput.addEventListener('input', () => {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
-                    currentPage = 1;
-                    loadTable();
-                }, 500);
-            });
-            globalSearchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    currentPage = 1;
-                    loadTable();
-                }
-            });
-        }
+        document.getElementById('btn-reset-filters')?.addEventListener('click', () => {
+            filterForm.reset();
+            currentPage = 1;
+            loadTable();
+        });
+    }
 
-        if (searchBtn) {
-            searchBtn.addEventListener('click', () => {
-                currentPage = 1;
-                loadTable();
-            });
-        }
+    document.getElementById('btn-search-global')?.addEventListener('click', () => {
+        currentPage = 1;
+        loadTable();
+    });
 
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => {
-                if (globalSearchInput) globalSearchInput.value = '';
-                currentPage = 1;
-                loadTable();
-            });
-        }
+    document.getElementById('btn-clear-search')?.addEventListener('click', () => {
+        const searchInput = document.getElementById('translations-search-global');
+        if (searchInput) searchInput.value = '';
+        currentPage = 1;
+        loadTable();
+    });
 
-        if (filterForm) {
-            filterForm.addEventListener('submit', (e) => {
+    const globalSearchInput = document.getElementById('translations-search-global');
+    if (globalSearchInput) {
+        globalSearchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
                 e.preventDefault();
                 currentPage = 1;
                 loadTable();
-            });
-        }
-
-        if (resetBtn) {
-            resetBtn.addEventListener('click', () => {
-                if (filterForm) filterForm.reset();
-                currentPage = 1;
-                loadTable();
-            });
-        }
+            }
+        });
     }
+
+    document.addEventListener('tableAction', (e) => {
+        const { action, value } = e.detail;
+        if (action === 'pageChange') {
+            currentPage = value;
+            loadTable();
+        } else if (action === 'perPageChange') {
+            currentPerPage = value;
+            currentPage = 1;
+            loadTable();
+        }
+    });
 
     // ========================================================================
     // 5. Actions & Modals (Delegation)
@@ -257,84 +240,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalTranslationValue = document.getElementById('edit-translation-value');
     const btnSaveTranslation = document.getElementById('btn-save-translation');
 
-    function openEditModal(languageId, languageName, languageCode, translatedName) {
-        if (!modal) return;
-
-        modalLanguageId.value = languageId;
-        modalCurrencyDisplay.textContent = context.currency_code;
-        modalLanguageNameDisplay.textContent = `${languageName} (${languageCode})`;
-        modalTranslationValue.value = translatedName;
-
-        modal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeEditModal() {
-        if (!modal) return;
-        modal.classList.add('hidden');
-        document.body.style.overflow = '';
-    }
-
-    // Close handlers
-    if (modal) {
-        modal.querySelectorAll('.close-modal').forEach(btn => {
-            btn.addEventListener('click', closeEditModal);
-        });
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeEditModal();
-        });
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
-                closeEditModal();
-            }
-        });
-    }
-
-    // Save Action
-    if (btnSaveTranslation) {
-        btnSaveTranslation.addEventListener('click', async () => {
-            const languageId = parseInt(modalLanguageId.value, 10);
-            const value = modalTranslationValue.value.trim();
-
-            if (!value) {
-                ApiHandler.showAlert('warning', 'Translation value is required.');
-                return;
-            }
-
-            const payload = {
-                language_id: languageId,
-                translated_name: value
-            };
-
-            const endpoint = `/api/currencies/${currencyId}/translations/upsert`;
-            const result = await ApiHandler.call(endpoint, payload, 'Upsert Translation');
-
-            if (result.success) {
-                ApiHandler.showAlert('success', 'Translation saved successfully.');
-                closeEditModal();
-                loadTable();
-            }
-        });
-    }
-
-    // Delete Action
-    async function deleteTranslation(languageId) {
-        if (!confirm('Are you sure you want to delete this translation?')) return;
-
-        const payload = {
-            language_id: parseInt(languageId, 10)
-        };
-
-        const endpoint = `/api/currencies/${currencyId}/translations/delete`;
-        const result = await ApiHandler.call(endpoint, payload, 'Delete Translation');
-
-        if (result.success) {
-            ApiHandler.showAlert('success', 'Translation deleted successfully.');
-            loadTable();
-        }
-    }
-
-    // Event Delegation
     document.addEventListener('click', (e) => {
         const editBtn = e.target.closest('.btn-edit-translation');
         if (editBtn) {
@@ -349,31 +254,96 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const deleteBtn = e.target.closest('.btn-delete-translation');
         if (deleteBtn) {
-            deleteTranslation(deleteBtn.getAttribute('data-language-id'));
+            handleDelete(deleteBtn.getAttribute('data-language-id'));
             return;
         }
     });
 
-    // ========================================================================
-    // 6. Global Exposes & Init
-    // ========================================================================
+    function openEditModal(languageId, languageName, languageCode, translatedName) {
+        if (!modal) return;
 
-    document.addEventListener('tableAction', (e) => {
-        const { action, value } = e.detail;
-        if (action === 'changePage') {
-            currentPage = value;
-            loadTable();
-        } else if (action === 'changePerPage') {
-            currentPerPage = value;
-            currentPage = 1;
-            loadTable();
+        modalLanguageId.value = languageId;
+        modalCurrencyDisplay.textContent = context.currency_code;
+        modalLanguageNameDisplay.textContent = \`\${languageName} (\${languageCode})\`;
+        modalTranslationValue.value = translatedName;
+
+        modal.classList.remove('hidden');
+    }
+
+    function closeEditModal() {
+        if (!modal) return;
+        modal.classList.add('hidden');
+    }
+
+    if (modal) {
+        modal.querySelectorAll('.close-modal').forEach(btn => {
+            btn.addEventListener('click', closeEditModal);
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeEditModal();
+        });
+    }
+
+    if (btnSaveTranslation) {
+        btnSaveTranslation.addEventListener('click', () => {
+            const languageId = modalLanguageId.value;
+            const newValue = modalTranslationValue.value;
+
+            if (newValue.trim() === '') {
+                ApiHandler.showAlert('warning', "Value cannot be empty. Use delete to remove translation.");
+                return;
+            }
+
+            upsertTranslation(languageId, newValue);
+        });
+    }
+
+    function handleDelete(languageId) {
+        if (confirm("Are you sure you want to delete this translation?")) {
+            deleteTranslation(languageId);
         }
-    });
+    }
 
-    window.reloadCurrenciesTable = () => loadTable(currentPage, currentPerPage);
+    async function upsertTranslation(languageId, value) {
+        const endpoint = \`/api/currencies/\${currencyId}/translations/upsert\`;
+        const payload = {
+            language_id: parseInt(languageId, 10),
+            translated_name: value
+        };
 
-    // Run
-    setupSearchAndFilters();
-    loadTable();
+        try {
+            const result = await ApiHandler.call(endpoint, payload, 'Upsert Translation');
+            if (result.success) {
+                ApiHandler.showAlert('success', 'Translation saved successfully');
+                closeEditModal();
+                loadTable();
+            } else {
+                ApiHandler.showAlert('danger', result.error || 'Failed to save translation');
+            }
+        } catch (error) {
+            console.error('Upsert error:', error);
+            ApiHandler.showAlert('danger', 'An error occurred while saving');
+        }
+    }
 
+    async function deleteTranslation(languageId) {
+        const endpoint = \`/api/currencies/\${currencyId}/translations/delete\`;
+        const payload = {
+            language_id: parseInt(languageId, 10)
+        };
+
+        try {
+            const result = await ApiHandler.call(endpoint, payload, 'Delete Translation');
+            if (result.success) {
+                ApiHandler.showAlert('success', 'Translation deleted successfully');
+                loadTable();
+            } else {
+                ApiHandler.showAlert('danger', result.error || 'Failed to delete translation');
+            }
+        } catch (error) {
+            console.error('Delete error:', error);
+            ApiHandler.showAlert('danger', 'An error occurred while deleting');
+        }
+    }
 });

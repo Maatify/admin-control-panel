@@ -141,6 +141,34 @@
     const rows = ['id', 'name', 'code', 'symbol', 'display_order', 'is_active', 'actions'];
 
     // ========================================================================
+    // Pagination Info Callback
+    // ========================================================================
+
+    function getCurrenciesPaginationInfo(pagination, params) {
+        console.log('🎯 getCurrenciesPaginationInfo called with:', pagination, params);
+
+        const { page = 1, per_page = 20, total = 0, filtered = total } = pagination;
+
+        const displayCount = filtered || total;
+        const startItem = displayCount === 0 ? 0 : (page - 1) * per_page + 1;
+        const endItem = Math.min(page * per_page, displayCount);
+
+        let infoText = \`<span>\${startItem} to \${endItem}</span> of <span>\${displayCount}</span>\`;
+
+        if (filtered && filtered !== total) {
+            infoText += \` <span class="text-gray-500">(filtered from \${total} total)</span>\`;
+        }
+
+        const result = {
+            total: displayCount,
+            info: infoText
+        };
+
+        console.log('📊 Pagination info:', result);
+        return result;
+    }
+
+    // ========================================================================
     // Data Loading
     // ========================================================================
 
@@ -202,28 +230,35 @@
             total: items.length
         };
 
-        if (typeof createTable === 'function') {
-            createTable(
-                items,
-                headers,
-                rows,
-                paginationInfo,
-                "",
-                false,
-                'id',
-                null,
-                {
-                    id: idRenderer,
-                    name: nameRenderer,
-                    code: codeRenderer,
-                    symbol: symbolRenderer,
-                    display_order: sortRenderer,
-                    is_active: statusRenderer,
-                    actions: actionsRenderer
-                }
-            );
+        if (typeof TableComponent === 'function') {
+            try {
+                TableComponent(
+                    items,
+                    headers,
+                    rows,
+                    paginationInfo,
+                    "",
+                    false,
+                    'id',
+                    null,
+                    {
+                        id: idRenderer,
+                        name: nameRenderer,
+                        code: codeRenderer,
+                        symbol: symbolRenderer,
+                        display_order: sortRenderer,
+                        is_active: statusRenderer,
+                        actions: actionsRenderer
+                    },
+                    null,
+                    getCurrenciesPaginationInfo
+                );
+            } catch (error) {
+                console.error("❌ TABLE ERROR:", error);
+                ApiHandler.showAlert('danger', 'Failed to render table: ' + error.message);
+            }
         } else {
-            console.error("❌ createTable function not found from data_table.js");
+            console.error("❌ TableComponent not found");
         }
     }
 
@@ -306,17 +341,16 @@
     // Exports
     // ========================================================================
 
-    document.addEventListener('tableAction', (e) => {
-        const { action, value } = e.detail;
-        if (action === 'changePage') {
-            currentPage = value;
-            loadCurrencies();
-        } else if (action === 'changePerPage') {
-            currentPerPage = value;
-            currentPage = 1;
-            loadCurrencies();
-        }
-    });
+    window.changePage = function(page) {
+        console.log('📄 changePage called:', page);
+        loadCurrencies(page, null);
+    };
+
+    window.changePerPage = function(perPage) {
+        console.log('📝 changePerPage called:', perPage);
+        currentPage = 1;
+        loadCurrencies(1, perPage);
+    };
 
     window.reloadCurrenciesTable = () => loadCurrencies(currentPage, currentPerPage);
 
