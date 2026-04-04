@@ -103,7 +103,10 @@
                 text: 'Translations',
                 color: 'purple',
                 entityId: row.id,
-                title: 'View currency translations'
+                title: 'View currency translations',
+                dataAttributes: {
+                    'currency-id': row.id
+                }
             }));
         }
 
