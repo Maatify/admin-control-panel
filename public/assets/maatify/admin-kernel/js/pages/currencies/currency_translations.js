@@ -109,10 +109,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const startItem = displayCount === 0 ? 0 : (page - 1) * per_page + 1;
         const endItem = Math.min(page * per_page, displayCount);
 
-        let infoText = \`<span>\${startItem} to \${endItem}</span> of <span>\${displayCount}</span>\`;
+        let infoText = `<span>${startItem} to ${endItem}</span> of <span>${displayCount}</span>`;
 
         if (typeof filtered !== 'undefined' && filtered !== total) {
-            infoText += \` <span class="text-gray-500 dark:text-gray-400">(filtered from \${total} total)</span>\`;
+            infoText += ` <span class="text-gray-500 dark:text-gray-400">(filtered from ${total} total)</span>`;
         }
 
         return { total: displayCount, info: infoText };
@@ -264,7 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         modalLanguageId.value = languageId;
         modalCurrencyDisplay.textContent = context.currency_code;
-        modalLanguageNameDisplay.textContent = \`\${languageName} (\${languageCode})\`;
+        modalLanguageNameDisplay.textContent = `${languageName} (${languageCode})`;
         modalTranslationValue.value = translatedName;
 
         modal.classList.remove('hidden');
@@ -306,7 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function upsertTranslation(languageId, value) {
-        const endpoint = \`/api/currencies/\${currencyId}/translations/upsert\`;
+        const endpoint = `/api/currencies/${currencyId}/translations/upsert`;
         const payload = {
             language_id: parseInt(languageId, 10),
             translated_name: value
@@ -328,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function deleteTranslation(languageId) {
-        const endpoint = \`/api/currencies/\${currencyId}/translations/delete\`;
+        const endpoint = `/api/currencies/${currencyId}/translations/delete`;
         const payload = {
             language_id: parseInt(languageId, 10)
         };

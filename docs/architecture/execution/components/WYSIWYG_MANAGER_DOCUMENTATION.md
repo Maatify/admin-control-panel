@@ -47,8 +47,8 @@ To opt into the system, a field **MUST** be a `<textarea>` and include both the 
     <label for="trans-log-desc">Internal Logs</label>
     <textarea id="trans-log-desc"
               class="js-wysiwyg-editor"
-              data-field="log_description"
-              name="log_description">{{ translation.log_description|raw }}</textarea>
+              data-field="long_description"
+              name="long_description">{{ translation.long_description|raw }}</textarea>
 </div>
 ```
 
@@ -92,8 +92,8 @@ extractFormData: function() {
         if (wysiwygData.details && wysiwygData.details.trim()) {
             payload.details = wysiwygData.details.trim();
         }
-        if (wysiwygData.log_description && wysiwygData.log_description.trim()) {
-            payload.log_description = wysiwygData.log_description.trim();
+        if (wysiwygData.long_description && wysiwygData.long_description.trim()) {
+            payload.long_description = wysiwygData.long_description.trim();
         }
     }
     return payload;
