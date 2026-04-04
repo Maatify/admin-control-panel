@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Maatify\Currency\Bootstrap;
 
+use DI\Container;
+use DI\ContainerBuilder;
 use Maatify\Currency\Contract\CurrencyCommandRepositoryInterface;
 use Maatify\Currency\Contract\CurrencyQueryReaderInterface;
-use Maatify\Currency\Exception\CurrencyPersistenceException;
 use Maatify\Currency\Infrastructure\Repository\PdoCurrencyCommandRepository;
 use Maatify\Currency\Infrastructure\Repository\PdoCurrencyQueryReader;
 use Maatify\Currency\Service\CurrencyCommandService;
@@ -15,93 +16,100 @@ use PDO;
 use Psr\Container\ContainerInterface;
 
 /**
- * PHP-DI definitions for the Currencies module.
+ * Registers all Currencies module service bindings
+ * into a DI ContainerBuilder.
  *
- * Usage in your Slim 4 bootstrap:
+ * --------------------------------------------------------------------------
+ * PURPOSE
+ * --------------------------------------------------------------------------
+ * This class acts as the Composition Root adapter for the
+ * Currencies module.
  *
- *   $builder = new \DI\ContainerBuilder();
- *   $builder->addDefinitions(CurrenciesBindings::definitions());
- *   $container = $builder->build();
+ * It defines how Currency contracts (interfaces) are mapped
+ * to their infrastructure implementations (PDO/MySQL repositories).
  *
- * Prerequisites:
- *   • A PDO::class entry registered in the container.
- *   • PDO configured with PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
- *     so all DB errors surface as PDOException rather than silent failures.
+ * --------------------------------------------------------------------------
+ * DESIGN PRINCIPLES
+ * --------------------------------------------------------------------------
+ * - The module remains container-agnostic.
+ * - No dependency on any host kernel.
+ * - Only relies on external contracts such as PDO and languages table.
+ * - Safe for extraction as a standalone library.
+ *
+ * --------------------------------------------------------------------------
+ * HOST CUSTOMIZATION
+ * --------------------------------------------------------------------------
+ * A host application MAY:
+ *
+ * - Override any binding after calling register()
+ * - Replace repositories with custom implementations
+ * - Swap the persistence layer entirely
+ *
+ * Example:
+ *
+ *   CurrenciesBindings::register($builder);
+ *   $builder->addDefinitions([
+ *       CurrencyQueryReaderInterface::class => MyCustomQueryReader::class,
+ *   ]);
+ *
+ * --------------------------------------------------------------------------
+ * IMPORTANT
+ * --------------------------------------------------------------------------
+ * This class contains NO business logic.
+ * It is strictly responsible for dependency wiring.
+ *
+ * REQUIREMENTS:
+ * The host application must provide:
+ * - PDO binding
+ * - `languages` table in the same database (kernel-grade dependency)
  */
 final class CurrenciesBindings
 {
     /**
-     * @return array<string, callable(ContainerInterface): object>
+     * @param ContainerBuilder<Container> $builder
      */
-    public static function definitions(): array
+    public static function register(ContainerBuilder $builder): void
     {
-        return [
+        $builder->addDefinitions([
 
             // --- Infrastructure -----------------------------------------
 
-            CurrencyQueryReaderInterface::class =>
-                static function (ContainerInterface $c): PdoCurrencyQueryReader {
-                    return new PdoCurrencyQueryReader(self::getPdo($c));
-                },
+            CurrencyQueryReaderInterface::class => static function (ContainerInterface $c): PdoCurrencyQueryReader {
+                /** @var PDO $pdo */
+                $pdo = $c->get(PDO::class);
 
-            CurrencyCommandRepositoryInterface::class =>
-                static function (ContainerInterface $c): PdoCurrencyCommandRepository {
-                    $queryReader = $c->get(CurrencyQueryReaderInterface::class);
-                    if (!$queryReader instanceof CurrencyQueryReaderInterface) {
-                        throw CurrencyPersistenceException::containerTypeMismatch(
-                            CurrencyQueryReaderInterface::class,
-                        );
-                    }
-                    return new PdoCurrencyCommandRepository(self::getPdo($c), $queryReader);
-                },
+                return new PdoCurrencyQueryReader($pdo);
+            },
+
+            CurrencyCommandRepositoryInterface::class => static function (ContainerInterface $c): PdoCurrencyCommandRepository {
+                /** @var PDO $pdo */
+                $pdo = $c->get(PDO::class);
+
+                /** @var CurrencyQueryReaderInterface $queryReader */
+                $queryReader = $c->get(CurrencyQueryReaderInterface::class);
+
+                return new PdoCurrencyCommandRepository($pdo, $queryReader);
+            },
 
             // --- Services -----------------------------------------------
 
-            CurrencyQueryService::class =>
-                static function (ContainerInterface $c): CurrencyQueryService {
-                    $reader = $c->get(CurrencyQueryReaderInterface::class);
-                    if (!$reader instanceof CurrencyQueryReaderInterface) {
-                        throw CurrencyPersistenceException::containerTypeMismatch(
-                            CurrencyQueryReaderInterface::class,
-                        );
-                    }
+            CurrencyQueryService::class => static function (ContainerInterface $c): CurrencyQueryService {
+                /** @var CurrencyQueryReaderInterface $reader */
+                $reader = $c->get(CurrencyQueryReaderInterface::class);
 
-                    return new CurrencyQueryService($reader);
-                },
+                return new CurrencyQueryService($reader);
+            },
 
-            CurrencyCommandService::class =>
-                static function (ContainerInterface $c): CurrencyCommandService {
-                    $commandRepo = $c->get(CurrencyCommandRepositoryInterface::class);
-                    if (!$commandRepo instanceof CurrencyCommandRepositoryInterface) {
-                        throw CurrencyPersistenceException::containerTypeMismatch(
-                            CurrencyCommandRepositoryInterface::class,
-                        );
-                    }
+            CurrencyCommandService::class => static function (ContainerInterface $c): CurrencyCommandService {
+                /** @var CurrencyCommandRepositoryInterface $commandRepo */
+                $commandRepo = $c->get(CurrencyCommandRepositoryInterface::class);
 
-                    $queryReader = $c->get(CurrencyQueryReaderInterface::class);
-                    if (!$queryReader instanceof CurrencyQueryReaderInterface) {
-                        throw CurrencyPersistenceException::containerTypeMismatch(
-                            CurrencyQueryReaderInterface::class,
-                        );
-                    }
+                /** @var CurrencyQueryReaderInterface $queryReader */
+                $queryReader = $c->get(CurrencyQueryReaderInterface::class);
 
-                    return new CurrencyCommandService($commandRepo, $queryReader);
-                },
+                return new CurrencyCommandService($commandRepo, $queryReader);
+            },
 
-        ];
-    }
-
-    // ------------------------------------------------------------------ //
-    //  Private helper
-    // ------------------------------------------------------------------ //
-
-    private static function getPdo(ContainerInterface $c): PDO
-    {
-        $pdo = $c->get(PDO::class);
-        if (!$pdo instanceof PDO) {
-            throw CurrencyPersistenceException::containerTypeMismatch(PDO::class);
-        }
-
-        return $pdo;
+        ]);
     }
 }
