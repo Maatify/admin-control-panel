@@ -96,6 +96,14 @@ class DefaultNavigationProvider implements NavigationProviderInterface
                 </svg>'
                     ),
 
+                    new NavigationItemDTO(
+                        'Currencies',
+                        '/currencies',
+                        '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m0-12c-1.657 0-3 1.343-3 3h6c0-1.657-1.343-3-3-3zm0 12c1.657 0 3-1.343 3-3H9c0 1.657 1.343 3 3 3z" />
+    </svg>'
+                    ),
+
                     // 🌐 Translations (I18n Group)
                     new NavigationItemDTO(
                         'Translations',

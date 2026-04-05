@@ -8,6 +8,7 @@ use Maatify\AdminKernel\Http\Routes\Ui\Features\ActivityLogsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\AdminsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\AppSettingsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\ContentDocumentsUiRoutes;
+use Maatify\AdminKernel\Http\Routes\Ui\Features\CurrenciesUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\DashboardUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\I18nUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\LanguagesUiRoutes;
@@ -54,6 +55,8 @@ final class UiProtectedRoutes
             TelemetryUiRoutes::register($protectedGroup);
 
             LogoutUiRoutes::register($protectedGroup);
+
+            CurrenciesUiRoutes::register($protectedGroup);
 
         })
             // NOTE [Slim Middleware Order]:

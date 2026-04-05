@@ -18,6 +18,7 @@
     <li><a href="settings/content-documents.php">Content Documents</a></li>
     <li><a href="settings/app-settings.php">App Settings</a></li>
     <li><a href="languages.php">Languages</a></li>
+    <li><a href="currencies.php">Currencies</a></li>
 </ul>
 
 <h2>RBAC (Role-Based Access Control)</h2>

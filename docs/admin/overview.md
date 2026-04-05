@@ -49,6 +49,10 @@ Understand how access control works and how to assign the right capabilities to 
 * Roles → [docs/admin/rbac/roles.md](rbac/roles.md)
 * Permissions → [docs/admin/rbac/permissions.md](rbac/permissions.md)
 
+### 🌍 Localization
+Manage localized content and regional settings such as currencies.
+* Currencies → [docs/admin/localization/currencies.md](localization/currencies.md)
+
 ### 🌍 Languages
 Manage the languages supported by the platform.
 * Languages → [docs/admin/languages.md](languages.md)
