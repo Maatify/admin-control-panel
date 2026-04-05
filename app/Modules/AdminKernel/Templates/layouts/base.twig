@@ -357,13 +357,13 @@
 <!-- Alert Container -->
 <div id="alert-container" class="absolute top-0 left-0 z-99999"></div>
 
-<nav class="sidebar fixed top-0 left-0 h-full w-[18%] bg-white dark:bg-gray-800 text-main dark:text-gray-100 flex flex-col pt-5 transition-[width] transition-all duration-300 shadow-md dark:shadow-gray-900/50 z-[1111] [&.collapsed]:w-[5%] [&.collapsed_.li-text]:hidden [&.collapsed_.arrow-icon]:hidden [&.collapsed_.logo]:text-base min-w-[50px]">
+<nav class="sidebar fixed top-0 left-0 h-full w-[18%] bg-white dark:bg-gray-800 text-main dark:text-gray-100 flex flex-col pt-5 transition-[width] transition-all duration-300 shadow-md dark:shadow-gray-900/50 z-[1111] [&.collapsed]:w-[5%] [&.collapsed_.sidebar_footer_a_span]:hidden [&.collapsed_.li-text]:hidden [&.collapsed_.arrow-icon]:hidden [&.collapsed_.logo]:text-base min-w-[50px]">
 	{% block sidebar_header %}
-		<div class="logo text-center text-xl font-bold whitespace-nowrap flex items-center justify-center gap-2 dark:text-gray-100">
+		<div class="logo text-center text-xl font-bold whitespace-nowrap flex items-center gap-2 justify-center  dark:text-gray-100">
 			<img
-					src="{{ ui.logoUrl ?? asset('assets/maatify/admin-kernel/images/logo-small.png') }}"
+					src="{{ ui.logoUrl ?? asset('assets/maatify/admin-kernel/images/maatify_icon.svg') }}"
 					alt="{{ ui.appName }}"
-					class="w-12 h-12 mb-[-10px] mr-2"
+					class="size-6   -mt-1"
 			/>
 
 			<span>{{ ui.appName }}</span>
@@ -374,7 +374,8 @@
 	{{ nav.render(nav_items) }}
 
 	{% block sidebar_footer %}
-		<div class="mt-auto px-4 py-4 border-t justify-start flex items-end gap-2 border-gray-200 dark:border-gray-700">
+		<div class="mt-auto px-4 py-4 border-t justify-start sidebar_footer flex items-end gap-2 border-gray-200 dark:border-gray-700">
+			<a href="how-to-use/en/index.php" target="_blank" class="flex gap-2 bg-gradient-to-l via-blue-400 from-blue-200 to-blue-600 bg-clip-text text-transparent hover:to-blue-500 hover:from-blue-100 hover:via-blue-300 transition-all duration-300">
 			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" color="currentColor" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600 size-6">
     <path d="M12 22L10 16H2L4 22H12ZM12 22H16" />
     <path d="M12 13V12.5C12 10.6144 12 9.67157 11.4142 9.08579C10.8284 8.5 9.88562 8.5 8 8.5C6.11438 8.5 5.17157 8.5 4.58579 9.08579C4 9.67157 4 10.6144 4 12.5V13" />
@@ -382,9 +383,8 @@
     <path d="M10 4C10 5.10457 9.10457 6 8 6C6.89543 6 6 5.10457 6 4C6 2.89543 6.89543 2 8 2C9.10457 2 10 2.89543 10 4Z" />
     <path d="M14 17.5H20C21.1046 17.5 22 18.3954 22 19.5V20C22 21.1046 21.1046 22 20 22H19" />
 </svg>
-			<a href="how-to-use/en/index.php" target="_blank" class="flex gap-2 bg-gradient-to-l via-blue-400 from-blue-200 to-blue-600 bg-clip-text text-transparent hover:to-blue-500 hover:from-blue-100 hover:via-blue-300 transition-all duration-300">
 		
-			Help Center
+		<span>	Help Center</a>
 			</a>
 		</div>
 	{% endblock %}
@@ -395,10 +395,13 @@
 </main>
 
 {% block content_footer %}
-	<footer class="bg-white dark:bg-gray-800 text-center py-4 text-gray-600 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700">
+	<footer class="bg-white dark:bg-gray-800 font-extralight text-md tracking-widest  text-center py-4 text-blue-600 dark:text-blue-500 border-t border-gray-100 dark:border-gray-700 sticky bottom-0 left-0 right-0">
 		&copy;
-		{{ "now"|date("Y") }} MAATIFY |
-		Admin Control Panel
+		{{ "now"|date("Y") }}
+		MAADMIN |
+		 A
+		<a href="https://maatify.dev" target="_blank" class="bg-gradient-to-l via-blue-400 from-blue-200 to-blue-600 bg-clip-text text-transparent hover:to-blue-500 hover:from-blue-100 hover:via-blue-300 transition-all duration-300"> MAATIFY </a>
+	PRODUCT
 	</footer>
 {% endblock %}
 
