@@ -7,7 +7,7 @@
 {% block content %}
     <!-- Page Header + Breadcrumb -->
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">🌍 Languages Management</h2>
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100"> Languages Management</h2>
 
         <nav>
             <ol class="flex items-center gap-1.5">
@@ -80,7 +80,7 @@
                         {# ID Filter - NEW #}
                         <div>
                             <label for="filter-id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                🆔 Language ID
+                                 Language ID
                             </label>
                             <input
                                     type="number"
@@ -93,7 +93,7 @@
 
                         <div>
                             <label for="filter-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                📝 Language Name
+                                 Language Name
                             </label>
                             <input
                                     type="text"
@@ -104,7 +104,7 @@
                         </div>
                         <div>
                             <label for="filter-code" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                🏷️ Language Code
+                                 Language Code
                             </label>
                             <input
                                     type="text"
@@ -116,7 +116,7 @@
                         </div>
                         <div>
                             <label for="filter-direction" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                ↔️ Text Direction
+                                 Text Direction
                             </label>
                             <select
                                     id="filter-direction"
@@ -130,7 +130,7 @@
 
                         <div>
                             <label for="filter-status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                📊 Status
+                                 Status
                             </label>
                             <select
                                     id="filter-status"
@@ -147,22 +147,18 @@
                     <div class="flex flex-wrap gap-3 pt-4">
                         <button
                                 type="submit"
-                                class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+                                class="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
+                            
                             Search
                         </button>
 
                         <button
                                 type="button"
                                 id="languages-reset-filters"
-                                class="px-6 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium flex items-center gap-2"
+                                class="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium flex items-center gap-2"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
+                            
                             Reset
                         </button>
 
@@ -171,7 +167,7 @@
                             <button
                                     type="button"
                                     id="btn-create-language"
-                                    class="ml-auto px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
+                                    class="ml-auto px-3 py-1 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -190,26 +186,24 @@
             {# Global Search Bar (Above Table) #}
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4">
                 <div class="flex items-center gap-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
+                   
                     <input
                             type="text"
                             id="languages-search"
                             class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400"
-                            placeholder="🔍 Quick search by name or code (e.g., English, ar, French...)"
+                            placeholder=" Quick search by name or code (e.g., English, ar, French...)"
                     />
                     <button
                             type="button"
                             id="languages-search-btn"
-                            class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                            class="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium"
                     >
                         Search
                     </button>
                     <button
                             type="button"
                             id="languages-clear-search"
-                            class="px-6 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
+                            class="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
                     >
                         Clear
                     </button>

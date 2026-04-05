@@ -312,16 +312,16 @@
 
         filterContainer.innerHTML = `
             <div class="flex gap-4 items-center flex-wrap">
+            <div class="flex gap-2">
+                <span data-allowed="all" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 dark:hover:bg-blue-500 hover:text-white transition-colors duration-200 ${currentAllowedFilter === 'all' ? 'bg-blue-600 dark:bg-blue-500 text-white' : ''}">All</span>
+                <span data-allowed="1"   class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 dark:hover:bg-blue-500 hover:text-white transition-colors duration-200 ${currentAllowedFilter === '1'   ? 'bg-blue-600 dark:bg-blue-500 text-white' : ''}">Allowed</span>
+                <span data-allowed="0"   class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 dark:hover:bg-blue-500 hover:text-white transition-colors duration-200 ${currentAllowedFilter === '0'   ? 'bg-blue-600 dark:bg-blue-500 text-white' : ''}">Denied</span>
+            </div>
                 <div class="w-64">
                     <input id="dir-global-search"
                         class="w-full border dark:border-gray-600 rounded-lg px-3 py-1 text-sm transition-colors duration-200 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 outline-none"
                         placeholder="Search direct permissions..."
                         value="${currentGlobalSearch}" />
-                </div>
-                <div class="flex gap-2">
-                    <span data-allowed="all" class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 dark:hover:bg-blue-500 hover:text-white transition-colors duration-200 ${currentAllowedFilter === 'all' ? 'bg-blue-600 dark:bg-blue-500 text-white' : ''}">All</span>
-                    <span data-allowed="1"   class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 dark:hover:bg-blue-500 hover:text-white transition-colors duration-200 ${currentAllowedFilter === '1'   ? 'bg-blue-600 dark:bg-blue-500 text-white' : ''}">Allowed</span>
-                    <span data-allowed="0"   class="cursor-pointer text-sm px-2 py-1 rounded-lg hover:bg-blue-400 dark:hover:bg-blue-500 hover:text-white transition-colors duration-200 ${currentAllowedFilter === '0'   ? 'bg-blue-600 dark:bg-blue-500 text-white' : ''}">Denied</span>
                 </div>
             </div>
         `;
