@@ -357,7 +357,7 @@
 <!-- Alert Container -->
 <div id="alert-container" class="absolute top-0 left-0 z-99999"></div>
 
-<nav class="sidebar fixed top-0 left-0 h-full w-[18%] bg-white dark:bg-gray-800 text-main dark:text-gray-100 flex flex-col py-5 transition-[width] transition-all duration-300 shadow-md dark:shadow-gray-900/50 z-[1111] [&.collapsed]:w-[5%] [&.collapsed_.li-text]:hidden [&.collapsed_.arrow-icon]:hidden [&.collapsed_.logo]:text-base min-w-[50px]">
+<nav class="sidebar fixed top-0 left-0 h-full w-[18%] bg-white dark:bg-gray-800 text-main dark:text-gray-100 flex flex-col pt-5 transition-[width] transition-all duration-300 shadow-md dark:shadow-gray-900/50 z-[1111] [&.collapsed]:w-[5%] [&.collapsed_.li-text]:hidden [&.collapsed_.arrow-icon]:hidden [&.collapsed_.logo]:text-base min-w-[50px]">
 	{% block sidebar_header %}
 		<div class="logo text-center text-xl font-bold whitespace-nowrap flex items-center justify-center gap-2 dark:text-gray-100">
 			<img
@@ -373,10 +373,25 @@
 
 	{{ nav.render(nav_items) }}
 
-	{% block sidebar_footer %}{% endblock %}
+	{% block sidebar_footer %}
+		<div class="mt-auto px-4 py-4 border-t justify-start flex items-end gap-2 border-gray-200 dark:border-gray-700">
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" color="currentColor" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600 size-6">
+    <path d="M12 22L10 16H2L4 22H12ZM12 22H16" />
+    <path d="M12 13V12.5C12 10.6144 12 9.67157 11.4142 9.08579C10.8284 8.5 9.88562 8.5 8 8.5C6.11438 8.5 5.17157 8.5 4.58579 9.08579C4 9.67157 4 10.6144 4 12.5V13" />
+    <path d="M19 13C19 14.1046 18.1046 15 17 15C15.8954 15 15 14.1046 15 13C15 11.8954 15.8954 11 17 11C18.1046 11 19 11.8954 19 13Z" />
+    <path d="M10 4C10 5.10457 9.10457 6 8 6C6.89543 6 6 5.10457 6 4C6 2.89543 6.89543 2 8 2C9.10457 2 10 2.89543 10 4Z" />
+    <path d="M14 17.5H20C21.1046 17.5 22 18.3954 22 19.5V20C22 21.1046 21.1046 22 20 22H19" />
+</svg>
+			<a href="how-to-use/en/index.php" class="flex gap-2 bg-gradient-to-l via-blue-400 from-blue-200 to-blue-600 bg-clip-text text-transparent hover:to-blue-500 hover:from-blue-100 hover:via-blue-300 transition-all duration-300">
+		
+			Help Center
+			</a>
+		</div>
+	{% endblock %}
 </nav>
 
-<main class="page-content flex-1 p-6 sm:p-6 mt-12 text-gray-600 dark:text-gray-300 w-[82%] [&.collapsed]:w-[92%] sm:[&.collapsed]:w-[95%] ml-[18%] [&.collapsed]:ml-[8%] sm:[&.collapsed]:ml-[5%] transition-all duration-300"> {% block content %}{% endblock %}
+<main class="page-content flex-1 p-6 sm:p-6 mt-12 text-gray-600 dark:text-gray-300 w-[82%] [&.collapsed]:w-[92%] sm:[&.collapsed]:w-[95%] ml-[18%] [&.collapsed]:ml-[8%] sm:[&.collapsed]:ml-[5%] transition-all duration-300"> 
+{% block content %}{% endblock %}
 </main>
 
 {% block content_footer %}
