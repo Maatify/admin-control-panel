@@ -202,14 +202,14 @@ function TableComponent(data, columns, rowNames, paginationData, actions = "", w
     container.innerHTML = `
     <div class="table-container bg-white dark:bg-gray-800 rounded-lg p-4 shadow-lg border border-gray-100 dark:border-gray-700">
         <div class="tableHeader flex flex-wrap justify-between items-center mb-4 gap-4">
+        <!-- Optional: Container for custom filters (controlled by parent page) -->
+        <div id="table-custom-filters" class="flex-1 flex justify-start"></div>
             <div class="flex gap-2">
                 <button class="text-sm px-3 py-1 bg-white dark:bg-gray-700 hover:bg-blue-400 dark:hover:bg-blue-500 hover:text-white transition-all text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600 rounded-2xl" id="export-csv">CSV</button>
                 <button class="text-sm px-3 py-1 bg-white dark:bg-gray-700 hover:bg-blue-400 dark:hover:bg-blue-500 hover:text-white transition-all text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600 rounded-2xl" id="export-excel">Excel</button>
                 <button class="text-sm px-3 py-1 bg-white dark:bg-gray-700 hover:bg-blue-400 dark:hover:bg-blue-500 hover:text-white transition-all text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600 rounded-2xl" id="export-pdf">PDF</button>
             </div>
             
-            <!-- Optional: Container for custom filters (controlled by parent page) -->
-            <div id="table-custom-filters" class="flex-1 flex justify-start"></div>
         </div>
         <div class="overflow-x-auto">
             <table class="min-w-full">
