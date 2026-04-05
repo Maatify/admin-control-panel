@@ -1,568 +1,511 @@
 {% import "macros/navigation.twig" as nav %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-	{% block head_meta %}
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>
-			{% block title %}
-				{{ ui.appName }}
-			{% endblock %}
-		</title>
-	{% endblock %}
+	<head>
+		{% block head_meta %}
+			<meta charset="UTF-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1.0">
+			<title>
+				{% block title %}
+					{{ ui.appName }}
+				{% endblock %}
+			</title>
+		{% endblock %}
 
-	{% block head_assets %}
-		<!-- 🎨 Tailwind CSS v3 with Dark Mode Support -->
-		<script src="https://cdn.tailwindcss.com"></script>
-		<script>
-			tailwind.config = {
-				darkMode: 'class'
-			}
-		</script>
-
-		<link rel="preconnect" href="https://fonts.googleapis.com">
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-		<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100..900;1,100..900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap"
-			  rel="stylesheet">
-		<link rel="stylesheet" href="{{ asset('assets/maatify/admin-kernel/css/style.css') }}">
-
-		<style>
-		*{
-			transition: all 0.3s ease-in-out !important;
-		}
-			/* Sidebar Collapsed Logic */
-			.sidebar.collapsed > ul {
-				padding-left: 0 !important;
-				padding-right: 0 !important;
-			}
-
-			.sidebar.collapsed > ul > li {
-				position: relative;
-			}
-
-			.sidebar.collapsed > ul > li > div,
-			.sidebar.collapsed > ul > li > div > a {
-				justify-content: center;
-			}
-
-			.sidebar.collapsed > ul > li > div > button,
-			.sidebar.collapsed > ul > li > div > .arrow {
-				display: none;
-			}
-
-			/* Ensure ONLY the top-level children are hidden in collapsed mode unless hovered */
-			.sidebar.collapsed > ul > li > .nav-children {
-				display: none !important;
-			}
-
-	
-		/* Hover Effect: Show Item Name */
-		.sidebar.collapsed > ul > li:hover > div > a .li-name,
-		.sidebar.collapsed > ul > li:hover > div .li-name {
-			position: absolute;
-			display: flex !important; /* Changed to flex for vertical centering if needed */
-			align-items: center;
-			top: 0;
-			left: 100%;
-			background: var(--bg-primary, #ffffff);
-			padding: 12px 15px;
-			border: 1px solid var(--border-color, #e5e7eb);
-			border-radius: 8px;
-			color: var(--text-primary, #374151);
-			width: 220px;
-			z-index: 100;
-			box-shadow: 4px 4px 10px rgba(0,0,0,0.1);
-			white-space: normal;
-			min-height: 100%; /* Ensure it covers the full height of the parent LI */
-		}
-		
-		/* Ensure the parent div itself shows the tooltip when it doesn't have a link */
-		.sidebar.collapsed > ul > li > div:not(:has(a)):hover .li-name {
-			position: absolute;
-			display: flex !important;
-			align-items: center;
-			top: 0;
-			left: 100%;
-			background: var(--bg-primary, #ffffff);
-			padding: 12px 15px;
-			border: 1px solid var(--border-color, #e5e7eb);
-			border-radius: 8px;
-			color: var(--text-primary, #374151);
-			width: 220px;
-			z-index: 100;
-			box-shadow: 4px 4px 10px rgba(0,0,0,0.1);
-			white-space: normal;
-		}
-		 .sidebar.collapsed > ul > li > div:not(:has(a)) {
-
-& .li-name{
-				gap: 10px;
+		{% block head_assets %}
+			<!-- 🎨 Tailwind CSS v3 with Dark Mode Support -->
+			<script src="https://cdn.tailwindcss.com"></script>
+			<script>
+				tailwind.config = {
+darkMode: 'class'
 }
-			&>div{
-			width: fit-content;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-		 }
-		}
-		 .sidebar.collapsed > ul > li > div:not(:has(a)) span.li-name{
-			display: none;
-		 }
+			</script>
 
-		.dark .sidebar.collapsed > ul > li:hover > div > a .li-name,
-		.dark .sidebar.collapsed > ul > li:hover > div .li-name,
-		.dark .sidebar.collapsed > ul > li > div:not(:has(a)):hover .li-name {
-			background: #1f2937;
-			border-color: #374151;
-			color: #f3f4f6;
-		}
+			<link rel="preconnect" href="https://fonts.googleapis.com">
+			<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+			<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100..900;1,100..900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
+			<link rel="stylesheet" href="{{ asset('assets/maatify/admin-kernel/css/style.css') }}">
 
-			/* Connect Item Name with Children Popup */
-			.sidebar.collapsed > ul > li:has(.nav-children):hover > div > a .li-name,
-			.sidebar.collapsed > ul > li:has(.nav-children):hover > div .li-name {
-				border-bottom: none;
-				border-bottom-left-radius: 0;
-				border-bottom-right-radius: 0;
-			}
+			<link rel="shortcut icon" href="{{ asset('assets/maatify/admin-kernel/images/maatify_icon.svg') }}" type="image/x-icon">
+			<style>
+				* {
+					transition: all 0.3s ease-in-out !important;
+				}
+				/* Sidebar Collapsed Logic */
+				.sidebar.collapsed > ul {
+					padding-left: 0 !important;
+					padding-right: 0 !important;
+				}
 
-			/* Hover Effect: Show Children (The Popup) */
-			.sidebar.collapsed > ul > li:hover > .nav-children {
-				display: block !important;
-				position: absolute;
-				left: 100%;
-				top: 100%; /* Changed from 44px to 100% to attach to bottom of LI */
-				width: 220px;
-				background: var(--bg-primary, #ffffff);
-				border: 1px solid var(--border-color, #e5e7eb);
-				border-top: none;
-				border-radius: 0 0 8px 8px;
-				padding: 10px;
-				box-shadow: 4px 4px 10px rgba(0,0,0,0.1);
-				max-height: 80vh !important; /* Allow expansion but prevent overflow off-screen */
-				overflow-y: auto !important;
-				z-index: 99;
-			}
+				.sidebar.collapsed > ul > li {
+					position: relative;
+				}
 
-			.dark .sidebar.collapsed > ul > li:hover > .nav-children {
-				background: #1f2937;
-				border-color: #374151;
-			}
+				.sidebar.collapsed > ul > li > div,
+				.sidebar.collapsed > ul > li > div > a {
+					justify-content: center;
+				}
 
-			/* Reset styles for children inside the popup */
-			.sidebar.collapsed .nav-children .li-name,
-			.sidebar.collapsed .nav-children span {
-				display: inline-block !important;
-				position: static !important;
-				background: transparent !important;
-				border: none !important;
-				box-shadow: none !important;
-				width: auto !important;
-				padding: 0 !important;
-				color: inherit !important;
-				min-height: auto !important; /* Reset min-height for children */
-			}
+				.sidebar.collapsed > ul > li > div > button,
+				.sidebar.collapsed > ul > li > div > .arrow {
+					display: none;
+				}
 
-			.sidebar.collapsed .nav-children ul {
-				margin-left: 0 !important;
-			}
+				/* Ensure ONLY the top-level children are hidden in collapsed mode unless hovered */
+				.sidebar.collapsed > ul > li > .nav-children {
+					display: none !important;
+				}
 
-			/* ---------------------------------------------------------
+
+				/* Hover Effect: Show Item Name */
+				.sidebar.collapsed > ul > li:hover > div > a .li-name,
+				.sidebar.collapsed > ul > li:hover > div .li-name {
+					position: absolute;
+					display: flex !important; /* Changed to flex for vertical centering if needed */
+					align-items: center;
+					top: 0;
+					left: 100%;
+					background: var(--bg-primary, #ffffff);
+					padding: 12px 15px;
+					border: 1px solid var(--border-color, #e5e7eb);
+					border-radius: 8px;
+					color: var(--text-primary, #374151);
+					width: 220px;
+					z-index: 100;
+					box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
+					white-space: normal;
+					min-height: 100%; /* Ensure it covers the full height of the parent LI */
+				}
+
+				/* Ensure the parent div itself shows the tooltip when it doesn't have a link */
+				.sidebar.collapsed > ul > li > div:not(:has(a)):hover .li-name {
+					position: absolute;
+					display: flex !important;
+					align-items: center;
+					top: 0;
+					left: 100%;
+					background: var(--bg-primary, #ffffff);
+					padding: 12px 15px;
+					border: 1px solid var(--border-color, #e5e7eb);
+					border-radius: 8px;
+					color: var(--text-primary, #374151);
+					width: 220px;
+					z-index: 100;
+					box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
+					white-space: normal;
+				}
+				.sidebar.collapsed > ul > li > div:not(:has(a)) {
+
+					& .li-name {
+						gap: 10px;
+					}
+					& > div {
+						width: fit-content;
+						display: flex;
+						align-items: center;
+						justify-content: center;
+					}
+				}
+				.sidebar.collapsed > ul > li > div:not(:has(a)) span.li-name {
+					display: none;
+				}
+
+				.dark .sidebar.collapsed > ul > li:hover > div > a .li-name,
+				.dark .sidebar.collapsed > ul > li:hover > div .li-name,
+				.dark .sidebar.collapsed > ul > li > div:not(:has(a)):hover .li-name {
+					background: #1f2937;
+					border-color: #374151;
+					color: #f3f4f6;
+				}
+
+				/* Connect Item Name with Children Popup */
+				.sidebar.collapsed > ul > li:has(.nav-children):hover > div > a .li-name,
+				.sidebar.collapsed > ul > li:has(.nav-children):hover > div .li-name {
+					border-bottom: none;
+					border-bottom-left-radius: 0;
+					border-bottom-right-radius: 0;
+				}
+
+				/* Hover Effect: Show Children (The Popup) */
+				.sidebar.collapsed > ul > li:hover > .nav-children {
+					display: block !important;
+					position: absolute;
+					left: 100%;
+					top: 100%; /* Changed from 44px to 100% to attach to bottom of LI */
+					width: 220px;
+					background: var(--bg-primary, #ffffff);
+					border: 1px solid var(--border-color, #e5e7eb);
+					border-top: none;
+					border-radius: 0 0 8px 8px;
+					padding: 10px;
+					box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
+					max-height: 80vh !important; /* Allow expansion but prevent overflow off-screen */
+					overflow-y: auto !important;
+					z-index: 99;
+				}
+
+				.dark .sidebar.collapsed > ul > li:hover > .nav-children {
+					background: #1f2937;
+					border-color: #374151;
+				}
+
+				/* Reset styles for children inside the popup */
+				.sidebar.collapsed .nav-children .li-name,
+				.sidebar.collapsed .nav-children span {
+					display: inline-block !important;
+					position: static !important;
+					background: transparent !important;
+					border: none !important;
+					box-shadow: none !important;
+					width: auto !important;
+					padding: 0 !important;
+					color: inherit !important;
+					min-height: auto !important; /* Reset min-height for children */
+				}
+
+				.sidebar.collapsed .nav-children ul {
+					margin-left: 0 !important;
+				}
+
+				/* ---------------------------------------------------------
 			   NESTED CHILDREN SUPPORT (Children of Children)
 			   --------------------------------------------------------- */
 
-			/* Ensure nested children behave as a normal accordion inside the popup */
-			.sidebar.collapsed .nav-children .nav-children {
-				position: static !important;
-				box-shadow: none !important;
-				border: none !important;
-				background: transparent !important;
-				padding-left: 12px !important; /* Indent nested items */
-				width: 100% !important;
-				/* We do NOT force display here. We let the JS toggle the 'hidden' class and max-height. */
-			}
-
-			/* Ensure the arrow/toggle button is visible for items inside the popup */
-			.sidebar.collapsed .nav-children button,
-			.sidebar.collapsed .nav-children .arrow {
-				display: block !important;
-			}
-
-		</style>
-
-		<!-- 🌓 Dark Mode Initialization (Must run before page renders) -->
-		<script src="{{ asset('assets/maatify/admin-kernel/js/error_normalizer.js') }}"></script>
-		<script>
-			// Initialize dark mode based on localStorage or system preference
-			(function() {
-				const theme = localStorage.getItem('theme');
-				const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-				if (theme === 'dark' || (!theme && systemPrefersDark)) {
-					document.documentElement.classList.add('dark');
-				} else {
-					document.documentElement.classList.remove('dark');
+				/* Ensure nested children behave as a normal accordion inside the popup */
+				.sidebar.collapsed .nav-children .nav-children {
+					position: static !important;
+					box-shadow: none !important;
+					border: none !important;
+					background: transparent !important;
+					padding-left: 12px !important; /* Indent nested items */
+					width: 100% !important;
+					/* We do NOT force display here. We let the JS toggle the 'hidden' class and max-height. */
 				}
-			})();
-		</script>
-	{% endblock %}
 
-</head>
+				/* Ensure the arrow/toggle button is visible for items inside the popup */
+				.sidebar.collapsed .nav-children button,
+				.sidebar.collapsed .nav-children .arrow {
+					display: block !important;
+				}
+			</style>
 
-<body class="bg-blue-50/15 dark:bg-gray-900 flex flex-col min-h-screen transition-colors duration-200">
-{% block page_header %}
-	<header class="header-section fixed top-0 right-0 z-[1] w-[82%] [&.collapsed]:w-[95%] max-w-[calc(100%-50px)] bg-white dark:bg-gray-800 h-16 px-4 shadow-blue-200/40 dark:shadow-gray-900/40 shadow-sm mb-5 transition-all duration-300 flex items-center justify-between">
-		<div class="flex w-[40%] items-center">
-				<span class="p-1 mr-3 rounded-md flex items-center justify-center cursor-pointer border border-gray-100 dark:border-gray-700 dark:hover:bg-gray-700">
-					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-						 class="size-6 cursor-pointer m-[2px] stroke-gray-500 dark:stroke-gray-400" onclick="toggleSidebar()">
-						<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h16.5"/>
-					</svg>
-				</span>
+			<!-- 🌓 Dark Mode Initialization (Must run before page renders) -->
+			<script src="{{ asset('assets/maatify/admin-kernel/js/error_normalizer.js') }}"></script>
+			<script>
+				// Initialize dark mode based on localStorage or system preference
+(function () {
+const theme = localStorage.getItem('theme');
+const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-			<input type="search" placeholder="Search or type command..." aria-label="Search"
-				   class="border border-gray-100 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-main/50 text-sm w-full"/>
-		</div>
-	
+if (theme === 'dark' || (! theme && systemPrefersDark)) {
+document.documentElement.classList.add('dark');
+} else {
+document.documentElement.classList.remove('dark');
+}
+})();
+			</script>
+		{% endblock %}
 
-		<!-- 🌓 Dark Mode Toggle Button -->
-		<button
-				onclick="toggleDarkMode()"
-				class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
-				aria-label="Toggle Dark Mode"
-				title="Toggle Dark Mode"
-		>
-			<!-- Sun Icon (shown in dark mode) -->
-			<svg
-					class="w-5 h-5 text-gray-600 dark:text-yellow-400 hidden dark:block"
-					xmlns="http://www.w3.org/2000/svg"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-			>
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364 6.364l-1.414-1.414M6.05 6.05L4.636 4.636m12.728 0l-1.414 1.414M6.05 17.95l-1.414 1.414M12 8a4 4 0 100 8 4 4 0 000-8z" />
-			</svg>
-			<!-- Moon Icon (shown in light mode) -->
-			<svg
-					class="w-5 h-5 text-gray-600 block dark:hidden"
-					xmlns="http://www.w3.org/2000/svg"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-			>
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-			</svg>
-		</button>
-		</div>
+	</head>
 
-		{#
-		current_admin is injected globally via TwigAdminContextMiddleware
-        Source: AdminContext (session snapshot, UI-only)
-		#}
-		<div class="relative" id="adminDropdown">
-			<button
-					type="button"
-					onclick="toggleAdminDropdown()"
-					class="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-			>
-				{% if current_admin.avatar_url %}
-					<img
-							src="{{ current_admin.avatar_url }}"
-							alt="Avatar"
-							class="w-9 h-9 rounded-full object-cover border border-gray-200 dark:border-gray-600"
-					>
-				{% else %}
-					<div class="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-						<svg xmlns="http://www.w3.org/2000/svg"
-							 class="w-5 h-5 text-blue-600 dark:text-blue-400"
-							 fill="none" viewBox="0 0 24 24" stroke="currentColor">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-								  d="M15.75 6a3.75 3.75 0 1 1-7.5 0M4.5 20.1a7.5 7.5 0 0 1 15 0"/>
+	<body class="bg-blue-50/15 dark:bg-gray-900 flex flex-col min-h-screen transition-colors duration-200">
+		{% block page_header %}
+			<header class="header-section fixed top-0 right-0 z-[1] w-[82%] [&.collapsed]:w-[95%] max-w-[calc(100%-50px)] bg-white dark:bg-gray-800 h-16 px-4 shadow-blue-200/40 dark:shadow-gray-900/40 shadow-sm mb-5 transition-all duration-300 flex items-center justify-between">
+				<div class="flex w-[40%] items-center">
+					<span class="p-1 mr-3 rounded-md flex items-center justify-center cursor-pointer border border-gray-100 dark:border-gray-700 dark:hover:bg-gray-700">
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 cursor-pointer m-[2px] stroke-gray-500 dark:stroke-gray-400" onclick="toggleSidebar()">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h16.5"/>
 						</svg>
-					</div>
-				{% endif %}
+					</span>
 
-				<span class="text-sm font-medium text-gray-700 dark:text-gray-200">
-            {{ current_admin.display_name }}
-        </span>
+					<input type="search" placeholder="Search or type command..." aria-label="Search" class="border border-gray-100 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-main/50 text-sm w-full"/>
+				</div>
 
-				<svg class="w-4 h-4 text-gray-400 dark:text-gray-500"
-					 xmlns="http://www.w3.org/2000/svg"
-					 fill="none" viewBox="0 0 24 24" stroke="currentColor">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-						  d="m19 9-7 7-7-7"/>
-				</svg>
-			</button>
 
-			<!-- Dropdown -->
-			<div
-					id="adminDropdownMenu"
-					class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50"
-			>
-				<a
-						href="/profile"
-						class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-				>
-					<svg
-							xmlns="http://www.w3.org/2000/svg"
-							class="w-5 h-5 text-gray-500 dark:text-gray-400"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							aria-hidden="true"
-					>
-						<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="1.8"
-								d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.118a7.5 7.5 0 0 1 15 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.5-1.632Z"
-						/>
+				<!-- 🌓 Dark Mode Toggle Button -->
+				<button
+					onclick="toggleDarkMode()" class="relative p-2 w-10 h-10 rounded-lg hover:bg-surface-high transition-all duration-300 overflow-hidden cursor-pointer" aria-label="Toggle Dark Mode" title="Toggle Dark Mode">
+					<!-- Sun Icon (shown in dark mode) -->
+					<svg class="absolute inset-0 m-auto size-5 text-yellow-400 transition-all duration-500 -rotate-90 scale-0 dark:-rotate-0 dark:scale-100" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364 6.364l-1.414-1.414M6.05 6.05L4.636 4.636m12.728 0l-1.414 1.414M6.05 17.95l-1.414 1.414M12 8a4 4 0 100 8 4 4 0 000-8z"/>
 					</svg>
+					<!-- Moon Icon (shown in light mode) -->
+					<svg class="absolute inset-0 m-auto size-5 text-on-surface transition-all duration-500 rotate-0 scale-100 dark:rotate-90 dark:scale-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+					</svg>
+				</div>
 
-					<span>Profile</span>
-				</a>
+				{#
+						current_admin is injected globally via TwigAdminContextMiddleware
+				        Source: AdminContext (session snapshot, UI-only)
+						#}
+				<div class="relative" id="adminDropdown">
+					<button type="button" onclick="toggleAdminDropdown()" class="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+						{% if current_admin.avatar_url %}
+							<img src="{{ current_admin.avatar_url }}" alt="Avatar" class="w-9 h-9 rounded-full object-cover border border-gray-200 dark:border-gray-600">
+						{% else %}
+							<div class="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+								<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" viewbox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.75 6a3.75 3.75 0 1 1-7.5 0M4.5 20.1a7.5 7.5 0 0 1 15 0"/>
+								</svg>
+							</div>
+						{% endif %}
 
-				<form method="post" action="/logout">
-					<button
-							type="submit"
-							class="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition"
-					>
-						<svg
-								xmlns="http://www.w3.org/2000/svg"
-								class="w-5 h-5 text-red-500 dark:text-red-400"
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-								aria-hidden="true"
-						>
-							<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M20 12H8m12 0-4 4m4-4-4-4M9 4H7a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h2"
-							/>
+						<span class="text-sm font-medium text-gray-700 dark:text-gray-200">
+							{{ current_admin.display_name }}
+						</span>
+
+						<svg class="w-4 h-4 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/>
 						</svg>
-
-						<span>Logout</span>
 					</button>
-				</form>
 
-			</div>
-		</div>
+					<!-- Dropdown -->
+					<div id="adminDropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
+						<a href="/profile" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+							<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewbox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.118a7.5 7.5 0 0 1 15 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.5-1.632Z"/>
+							</svg>
 
+							<span>Profile</span>
+						</a>
 
-	</header>
-{% endblock %}
+						<form method="post" action="/logout">
+							<button type="submit" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
+								<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-500 dark:text-red-400" fill="none" viewbox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H8m12 0-4 4m4-4-4-4M9 4H7a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h2"/>
+								</svg>
 
-<!-- Alert Container -->
-<div id="alert-container" class="absolute top-0 left-0 z-99999"></div>
+								<span>Logout</span>
+							</button>
+						</form>
 
-<nav class="sidebar fixed top-0 left-0 h-full w-[18%] bg-white dark:bg-gray-800 text-main dark:text-gray-100 flex flex-col pt-5 transition-[width] transition-all duration-300 shadow-md dark:shadow-gray-900/50 z-[1111] [&.collapsed]:w-[5%] [&.collapsed_.li-text]:hidden [&.collapsed_.arrow-icon]:hidden [&.collapsed_.logo]:text-base min-w-[50px]">
-	{% block sidebar_header %}
-		<div class="logo text-center text-xl font-bold whitespace-nowrap flex items-center justify-center gap-2 dark:text-gray-100">
-			<img
-					src="{{ ui.logoUrl ?? asset('assets/maatify/admin-kernel/images/logo-small.png') }}"
-					alt="{{ ui.appName }}"
-					class="w-12 h-12 mb-[-10px] mr-2"
-			/>
-
-			<span>{{ ui.appName }}</span>
-			<hr class="mt-6 mb-5 border-gray-200 dark:border-gray-700"/>
-		</div>
-	{% endblock %}
-
-	{{ nav.render(nav_items) }}
-
-	{% block sidebar_footer %}
-		<div class="mt-auto px-4 py-4 border-t justify-start flex items-end gap-2 border-gray-200 dark:border-gray-700">
-			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" color="currentColor" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600 size-6">
-    <path d="M12 22L10 16H2L4 22H12ZM12 22H16" />
-    <path d="M12 13V12.5C12 10.6144 12 9.67157 11.4142 9.08579C10.8284 8.5 9.88562 8.5 8 8.5C6.11438 8.5 5.17157 8.5 4.58579 9.08579C4 9.67157 4 10.6144 4 12.5V13" />
-    <path d="M19 13C19 14.1046 18.1046 15 17 15C15.8954 15 15 14.1046 15 13C15 11.8954 15.8954 11 17 11C18.1046 11 19 11.8954 19 13Z" />
-    <path d="M10 4C10 5.10457 9.10457 6 8 6C6.89543 6 6 5.10457 6 4C6 2.89543 6.89543 2 8 2C9.10457 2 10 2.89543 10 4Z" />
-    <path d="M14 17.5H20C21.1046 17.5 22 18.3954 22 19.5V20C22 21.1046 21.1046 22 20 22H19" />
-</svg>
-			<a href="how-to-use/en/index.php" target="_blank" class="flex gap-2 bg-gradient-to-l via-blue-400 from-blue-200 to-blue-600 bg-clip-text text-transparent hover:to-blue-500 hover:from-blue-100 hover:via-blue-300 transition-all duration-300">
-		
-			Help Center
-			</a>
-		</div>
-	{% endblock %}
-</nav>
-
-<main class="page-content flex-1 p-6 sm:p-6 mt-12 text-gray-600 dark:text-gray-300 w-[82%] [&.collapsed]:w-[92%] sm:[&.collapsed]:w-[95%] ml-[18%] [&.collapsed]:ml-[8%] sm:[&.collapsed]:ml-[5%] transition-all duration-300"> 
-{% block content %}{% endblock %}
-</main>
-
-{% block content_footer %}
-	<footer class="bg-white dark:bg-gray-800 text-center py-4 text-gray-600 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700">
-		&copy;
-		{{ "now"|date("Y") }} MAATIFY |
-		Admin Control Panel
-	</footer>
-{% endblock %}
-
-{% block body_scripts %}
-	{% block scripts %}{% endblock %}
+					</div>
+				</div>
 
 
-	<script>
+			</header>
+		{% endblock %}
 
-	function toggleSidebar() {
-		const sidebar = document.querySelector(".sidebar");
-		const isCollapsed = sidebar.classList.toggle("collapsed");
-		
-		document.querySelector(".page-content").classList.toggle("collapsed");
-		document.querySelector(".header-section ").classList.toggle("collapsed");
-		document.querySelector(".logo span").classList.toggle("hidden");
+		<!-- Alert Container -->
+		<div id="alert-container" class="absolute top-0 left-0 z-99999"></div>
 
-		if (isCollapsed) {
-			document.querySelector(".sidebar").querySelectorAll("a").forEach(link => {
-				link.querySelector("span").classList.add("hidden");
-			});
-			// Save collapsed state to localStorage
-			localStorage.setItem('sidebarCollapsed', 'true');
-		} else {
-			document.querySelector(".sidebar").querySelectorAll("a").forEach(link => {
-				link.querySelector("span").classList.remove("hidden");
-			});
-			// Save expanded state to localStorage
-			localStorage.setItem('sidebarCollapsed', 'false');
-		}
-	}
-	
-	// Initialize sidebar state from localStorage on page load
-	(function() {
-		const sidebarCollapsed = localStorage.getItem('sidebarCollapsed');
-		
-		if (sidebarCollapsed === 'true') {
-			// Apply collapsed state
-			document.querySelector(".sidebar").classList.add("collapsed");
-			document.querySelector(".page-content").classList.add("collapsed");
-			document.querySelector(".header-section").classList.add("collapsed");
-			document.querySelector(".logo span").classList.add("hidden");
-			
-			document.querySelector(".sidebar").querySelectorAll("a").forEach(link => {
-				if (link.querySelector("span")) {
-					link.querySelector("span").classList.add("hidden");
-				}
-			});
-		}
-	})();
+		<nav class="sidebar fixed top-0 left-0 h-full w-[18%] bg-white dark:bg-gray-800 text-main dark:text-gray-100 flex flex-col pt-5 transition-[width] transition-all duration-300 shadow-md dark:shadow-gray-900/50 z-[1111] [&.collapsed]:w-[5%] [&.collapsed_.sidebar_footer_a_span]:hidden [&.collapsed_.li-text]:hidden [&.collapsed_.arrow-icon]:hidden [&.collapsed_.logo]:text-base min-w-[50px]">
+			{% block sidebar_header %}
+				<div
+					class="logo text-center text-xl font-bold whitespace-nowrap flex items-center gap-2 justify-center  dark:text-gray-100">
 
-		// 🌓 Dark Mode Toggle Function
-		function toggleDarkMode() {
-			const html = document.documentElement;
-			const isDark = html.classList.contains('dark');
 
-			if (isDark) {
-				html.classList.remove('dark');
-				localStorage.setItem('theme', 'light');
-			} else {
-				html.classList.add('dark');
-				localStorage.setItem('theme', 'dark');
-			}
-		}
+					<!-- MAATIFY Logo -->
 
-		function setActiveNavItem() {
-			const currentPath = window.location.pathname;
+					<svg class="size-6 text-black  dark:text-white ml-2 transition-all duration-300" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 316.93668 320.99997">
+						<path fill="currentColor" d="M158.46835,0c11.25241,13.81162,19.1,28.89721,27.00165,44.76068l4.32883,8.59475q7.04928,14.01414,14.04822,28.05324,4.89216,9.76068,9.78653,19.5203,10.23719,20.429,20.44113,40.87453Q247.171,168.03145,260.35123,194.217q10.11135,20.1331,20.17129,40.29189,4.83673,9.67023,9.69657,19.32884,6.77655,13.47816,13.48312,26.99066c1.34866,2.66626,2.69733,5.33252,4.08685,8.07959,5.70642,11.54687,9.14762,19.02267,9.14762,32.092H0a391.98254,391.98254,0,0,1,22.41258-53.93881l4.30727-8.63791q7.00422-14.03091,14.05592-28.03787,4.88915-9.771,9.77475-19.54386,10.21635-20.42318,20.46285-40.83113,13.15629-26.20866,26.262-52.44252,10.076-20.15036,20.17183-40.29082,4.84623-9.673,9.68648-19.349,6.74331-13.47348,13.51117-26.93457l4.06192-8.12944C153.93988,4.52846,153.93988,4.52846,158.46835,0Zm-4.06329,65.01266-4.26865,8.97474c-24.94435,52.35882-49.98852,104.542-77.48922,155.6203Q62.39344,248.66556,52.5688,267.92328c-1.55562,3.05365-3.11127,6.1073-4.714,9.25348-3.69931,7.17682-3.69931,7.17682-3.15857,15.38019H272.24051c-2.68176-8.04532-5.36353-16.09064-8.12659-24.37973H85.32912l73.13923-146.27849,44.6962,89.39241c-29.71283.5079-29.71283.5079-39.01889.47815-8.68072.14961-8.68072.14961-21.93045,3.58514l-12.18985,24.37975H247.86075c-27.52457-58.7191-56.13471-116.816-85.3291-174.72153Z"></path>
+					</svg>
 
-			const navLinks = document.querySelectorAll('nav a');
 
-			navLinks.forEach(link => {
-				link.parentElement.classList.remove('bg-blue-300/40');
-				link.parentElement.classList.remove('dark:bg-blue-900/40');
-			});
+					<span>{{ ui.appName }}</span>
+					<hr class="mt-6 mb-5 border-gray-200 dark:border-gray-700"/>
+				</div>
+			{% endblock %}
 
-			navLinks.forEach(link => {
-				const linkPath = link.getAttribute('href');
+			{{ nav.render(nav_items) }}
 
-				if (linkPath === currentPath) {
-					link.parentElement.classList.add('bg-blue-300/40');
-					link.parentElement.classList.add('rounded-md');
-					link.parentElement.classList.add('dark:bg-blue-900/40');
-				} else if (currentPath.startsWith(linkPath) && linkPath !== '/') {
-					link.parentElement.classList.add('bg-blue-300/40');
-					link.parentElement.classList.add('dark:bg-blue-900/40');
-				}
-			});
-		}
+			{% block sidebar_footer %}
+				<div class="mt-auto px-4 py-4 border-t justify-start sidebar_footer flex items-end gap-2 border-gray-200 dark:border-gray-700">
+					<a href="how-to-use/en/index.php" target="_blank" class="flex gap-2 bg-gradient-to-l via-blue-400 from-blue-200 to-blue-600 bg-clip-text text-transparent hover:to-blue-500 hover:from-blue-100 hover:via-blue-300 transition-all duration-300">
+						<svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24" width="24" height="24" color="currentColor" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600 size-6">
+							<path d="M12 22L10 16H2L4 22H12ZM12 22H16"/>
+							<path d="M12 13V12.5C12 10.6144 12 9.67157 11.4142 9.08579C10.8284 8.5 9.88562 8.5 8 8.5C6.11438 8.5 5.17157 8.5 4.58579 9.08579C4 9.67157 4 10.6144 4 12.5V13"/>
+							<path d="M19 13C19 14.1046 18.1046 15 17 15C15.8954 15 15 14.1046 15 13C15 11.8954 15.8954 11 17 11C18.1046 11 19 11.8954 19 13Z"/>
+							<path d="M10 4C10 5.10457 9.10457 6 8 6C6.89543 6 6 5.10457 6 4C6 2.89543 6.89543 2 8 2C9.10457 2 10 2.89543 10 4Z"/>
+							<path d="M14 17.5H20C21.1046 17.5 22 18.3954 22 19.5V20C22 21.1046 21.1046 22 20 22H19"/>
+						</svg>
 
-		document.addEventListener('DOMContentLoaded', setActiveNavItem);
+						<span>
+							Help Center</a>
+					</a>
+				</div>
+			{% endblock %}
+		</nav>
 
-		function toggleAdminDropdown() {
-			document
-					.getElementById('adminDropdownMenu')
-					.classList.toggle('hidden');
-		}
+		<main class="page-content flex-1 p-6 sm:p-6 mt-12 text-gray-600 dark:text-gray-300 w-[82%] [&.collapsed]:w-[92%] sm:[&.collapsed]:w-[95%] ml-[18%] [&.collapsed]:ml-[8%] sm:[&.collapsed]:ml-[5%] transition-all duration-300"> {% block content %}{% endblock %}
+			</main>
 
-		document.addEventListener('click', function (event) {
-			const dropdown = document.getElementById('adminDropdown');
-			const menu = document.getElementById('adminDropdownMenu');
+			{% block content_footer %}
+				<footer class="bg-white dark:bg-gray-800 font-extralight text-md tracking-widest  text-center py-4 text-blue-600 dark:text-blue-500 border-t border-gray-100 dark:border-gray-700 sticky bottom-0 left-0 right-0">
+					&copy;
+					{{ "now"|date("Y") }}
+					MAAdmin |
+							 A
+					<a href="https://maatify.dev" target="_blank" class="bg-gradient-to-l dark:via-blue-300 via-blue-700 dark:from-blue-200 from-blue-400 dark:to-blue-600 to-blue-950 bg-clip-text text-transparent hover:to-blue-500 hover:from-blue-100 hover:via-blue-300 transition-all duration-300">
+						MAATIFY
+					</a>
+					Product
+				</footer>
+			{% endblock %}
 
-			if (!dropdown.contains(event.target)) {
-				menu.classList.add('hidden');
-			}
-		});
+			{% block body_scripts %}
+				{% block scripts %}{% endblock %}
 
-		// Adjust Sidebar Popup Position on Hover
-		document.addEventListener('DOMContentLoaded', () => {
-			const sidebarItems = document.querySelectorAll('.sidebar > ul > li');
 
-			sidebarItems.forEach(item => {
-				item.addEventListener('mouseenter', function() {
-					const sidebar = document.querySelector('.sidebar');
-					if (!sidebar.classList.contains('collapsed')) return;
+				<script>
 
-					const children = this.querySelector('.nav-children');
-					if (!children) return;
+					function toggleSidebar() {
+const sidebar = document.querySelector(".sidebar");
+const isCollapsed = sidebar.classList.toggle("collapsed");
 
-					// Ensure it's visible for measurement
-					let rect = children.getBoundingClientRect();
-					if (rect.height === 0) {
-						children.style.display = 'block';
-						rect = children.getBoundingClientRect();
-						children.style.display = '';
-					}
+document.querySelector(".page-content").classList.toggle("collapsed");
+document.querySelector(".header-section ").classList.toggle("collapsed");
+document.querySelector(".logo span").classList.toggle("hidden");
 
-					const viewportHeight = window.innerHeight;
-					const itemRect = this.getBoundingClientRect();
+if (isCollapsed) {
+document.querySelector(".sidebar").querySelectorAll("a").forEach(link => {
+link.querySelector("span").classList.add("hidden");
+});
+// Save collapsed state to localStorage
+localStorage.setItem('sidebarCollapsed', 'true');
+} else {
+document.querySelector(".sidebar").querySelectorAll("a").forEach(link => {
+link.querySelector("span").classList.remove("hidden");
+});
+// Save expanded state to localStorage
+localStorage.setItem('sidebarCollapsed', 'false');
+}
+}
 
-					// Check if the menu overflows the bottom of the screen
-					if (rect.bottom > viewportHeight) {
-						const overflow = rect.bottom - viewportHeight;
-						// Calculate new top based on 100% (itemRect.height) minus overflow
-						// But we are modifying style.top which overrides CSS.
-						// CSS is 100%.
-						// We need to shift it UP.
-						// Current top relative to LI is itemRect.height.
-						// We want to shift it up by 'overflow' + padding.
+// Initialize sidebar state from localStorage on page load
+(function () {
+const sidebarCollapsed = localStorage.getItem('sidebarCollapsed');
 
-						let newTop = itemRect.height - overflow - 10;
+if (sidebarCollapsed === 'true') { // Apply collapsed state
+document.querySelector(".sidebar").classList.add("collapsed");
+document.querySelector(".page-content").classList.add("collapsed");
+document.querySelector(".header-section").classList.add("collapsed");
+document.querySelector(".logo span").classList.add("hidden");
 
-						// Prevent top from going off-screen
-						if (itemRect.top + newTop < 10) {
-							newTop = -itemRect.top + 10;
-							children.style.maxHeight = (viewportHeight - 20) + 'px';
-							children.style.overflowY = 'auto';
-						}
+document.querySelector(".sidebar").querySelectorAll("a").forEach(link => {
+if (link.querySelector("span")) {
+link.querySelector("span").classList.add("hidden");
+}
+});
+}
+})();
 
-						children.style.top = newTop + 'px';
-					}
-				});
+// 🌓 Dark Mode Toggle Function
+function toggleDarkMode() {
+const html = document.documentElement;
+const isDark = html.classList.contains('dark');
 
-				item.addEventListener('mouseleave', function() {
-					const children = this.querySelector('.nav-children');
-					if (children) {
-						children.style.top = '';
-						children.style.maxHeight = '';
-						children.style.display = '';
-					}
-				});
-			});
-		});
-	</script>
-{% endblock %}
+if (isDark) {
+html.classList.remove('dark');
+localStorage.setItem('theme', 'light');
+} else {
+html.classList.add('dark');
+localStorage.setItem('theme', 'dark');
+}
+}
 
-</body>
-</html>
+function setActiveNavItem() {
+const currentPath = window.location.pathname;
+
+const navLinks = document.querySelectorAll('nav a');
+
+navLinks.forEach(link => {
+link.parentElement.classList.remove('bg-blue-300/40');
+link.parentElement.classList.remove('dark:bg-blue-900/40');
+});
+
+navLinks.forEach(link => {
+const linkPath = link.getAttribute('href');
+
+if (linkPath === currentPath) {
+link.parentElement.classList.add('bg-blue-300/40');
+link.parentElement.classList.add('rounded-md');
+link.parentElement.classList.add('dark:bg-blue-900/40');
+} else if (currentPath.startsWith(linkPath) && linkPath !== '/') {
+link.parentElement.classList.add('bg-blue-300/40');
+link.parentElement.classList.add('dark:bg-blue-900/40');
+}
+});
+}
+
+document.addEventListener('DOMContentLoaded', setActiveNavItem);
+
+function toggleAdminDropdown() {
+document.getElementById('adminDropdownMenu').classList.toggle('hidden');
+}
+
+document.addEventListener('click', function (event) {
+const dropdown = document.getElementById('adminDropdown');
+const menu = document.getElementById('adminDropdownMenu');
+
+if (! dropdown.contains(event.target)) {
+menu.classList.add('hidden');
+}
+});
+
+// Adjust Sidebar Popup Position on Hover
+document.addEventListener('DOMContentLoaded', () => {
+const sidebarItems = document.querySelectorAll('.sidebar > ul > li');
+
+sidebarItems.forEach(item => {
+item.addEventListener('mouseenter', function () {
+const sidebar = document.querySelector('.sidebar');
+if (! sidebar.classList.contains('collapsed')) 
+return;
+
+
+const children = this.querySelector('.nav-children');
+if (! children) 
+return;
+
+
+// Ensure it's visible for measurement
+let rect = children.getBoundingClientRect();
+if (rect.height === 0) {
+children.style.display = 'block';
+rect = children.getBoundingClientRect();
+children.style.display = '';
+}
+
+const viewportHeight = window.innerHeight;
+const itemRect = this.getBoundingClientRect();
+
+// Check if the menu overflows the bottom of the screen
+if (rect.bottom > viewportHeight) {
+const overflow = rect.bottom - viewportHeight;
+// Calculate new top based on 100% (itemRect.height) minus overflow
+// But we are modifying style.top which overrides CSS.
+// CSS is 100%.
+// We need to shift it UP.
+// Current top relative to LI is itemRect.height.
+// We want to shift it up by 'overflow' + padding.
+
+let newTop = itemRect.height - overflow - 10;
+
+// Prevent top from going off-screen
+if (itemRect.top + newTop < 10) {
+newTop = - itemRect.top + 10;
+children.style.maxHeight = (viewportHeight - 20) + 'px';
+children.style.overflowY = 'auto';
+}
+
+children.style.top = newTop + 'px';
+}
+});
+
+item.addEventListener('mouseleave', function () {
+const children = this.querySelector('.nav-children');
+if (children) {
+children.style.top = '';
+children.style.maxHeight = '';
+children.style.display = '';
+}
+});
+});
+});
+				</script>
+			{% endblock %}
+
+		</body>
+	</html>
