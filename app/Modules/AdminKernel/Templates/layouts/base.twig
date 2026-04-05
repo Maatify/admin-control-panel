@@ -227,33 +227,16 @@
 	
 
 		<!-- 🌓 Dark Mode Toggle Button -->
-		<button
-				onclick="toggleDarkMode()"
-				class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
-				aria-label="Toggle Dark Mode"
-				title="Toggle Dark Mode"
-		>
-			<!-- Sun Icon (shown in dark mode) -->
-			<svg
-					class="w-5 h-5 text-gray-600 dark:text-yellow-400 hidden dark:block"
-					xmlns="http://www.w3.org/2000/svg"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-			>
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364 6.364l-1.414-1.414M6.05 6.05L4.636 4.636m12.728 0l-1.414 1.414M6.05 17.95l-1.414 1.414M12 8a4 4 0 100 8 4 4 0 000-8z" />
-			</svg>
-			<!-- Moon Icon (shown in light mode) -->
-			<svg
-					class="w-5 h-5 text-gray-600 block dark:hidden"
-					xmlns="http://www.w3.org/2000/svg"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-			>
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-			</svg>
-		</button>
+				<button
+					onclick="toggleDarkMode()" class="relative p-2 w-10 h-10 rounded-lg hover:bg-surface-high transition-all duration-300 overflow-hidden cursor-pointer" aria-label="Toggle Dark Mode" title="Toggle Dark Mode">
+					<!-- Sun Icon (shown in dark mode) -->
+					<svg class="absolute inset-0 m-auto size-5 text-yellow-400 transition-all duration-500 -rotate-90 scale-0 dark:-rotate-0 dark:scale-100" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364 6.364l-1.414-1.414M6.05 6.05L4.636 4.636m12.728 0l-1.414 1.414M6.05 17.95l-1.414 1.414M12 8a4 4 0 100 8 4 4 0 000-8z"/>
+					</svg>
+					<!-- Moon Icon (shown in light mode) -->
+					<svg class="absolute inset-0 m-auto size-5 text-on-surface transition-all duration-500 rotate-0 scale-100 dark:rotate-90 dark:scale-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+					</svg>
 		</div>
 
 		{#
@@ -361,12 +344,19 @@
 <nav class="sidebar fixed top-0 left-0 h-full w-[18%] bg-white dark:bg-gray-800 text-main dark:text-gray-100 flex flex-col pt-5 transition-[width] transition-all duration-300 shadow-md dark:shadow-gray-900/50 z-[1111] [&.collapsed]:w-[5%] [&.collapsed_.sidebar_footer_a_span]:hidden [&.collapsed_.li-text]:hidden [&.collapsed_.arrow-icon]:hidden [&.collapsed_.logo]:text-base min-w-[50px]">
 	{% block sidebar_header %}
 		<div class="logo text-center text-xl font-bold whitespace-nowrap flex items-center gap-2 justify-center  dark:text-gray-100">
+			
+			<span class="block relative -mt-1 size-6">
 			<img
 					src="{{ ui.logoUrl ?? asset('assets/maatify/admin-kernel/images/maatify_icon.svg') }}"
 					alt="{{ ui.appName }}"
-					class="size-6   -mt-1"
+					class="size-6  absolute top-0 left-0  opacity-0   dark:opacity-100 transition-all duration-300"
 			/>
-
+			<img
+					src="{{ ui.logoUrl ?? asset('assets/maatify/admin-kernel/images/maatify_icon.png') }}"
+					alt="{{ ui.appName }}"
+					class="size-6   absolute top-0 left-0  opacity-100 dark:opacity-0  transition-all duration-300"
+			/>
+			</span>	
 			<span>{{ ui.appName }}</span>
 			<hr class="mt-6 mb-5 border-gray-200 dark:border-gray-700"/>
 		</div>
@@ -399,10 +389,10 @@
 	<footer class="bg-white dark:bg-gray-800 font-extralight text-md tracking-widest  text-center py-4 text-blue-600 dark:text-blue-500 border-t border-gray-100 dark:border-gray-700 sticky bottom-0 left-0 right-0">
 		&copy;
 		{{ "now"|date("Y") }}
-		MAADMIN |
+		MAAdmin |
 		 A
-		<a href="https://maatify.dev" target="_blank" class="bg-gradient-to-l via-blue-300 from-blue-200 to-blue-600 bg-clip-text text-transparent hover:to-blue-500 hover:from-blue-100 hover:via-blue-300 transition-all duration-300"> MAATIFY </a>
-	PRODUCT
+		<a href="https://maatify.dev" target="_blank" class="bg-gradient-to-l dark:via-blue-300 via-blue-700 dark:from-blue-200 from-blue-400 dark:to-blue-600 to-blue-950 bg-clip-text text-transparent hover:to-blue-500 hover:from-blue-100 hover:via-blue-300 transition-all duration-300"> MAATIFY </a>
+	Product
 	</footer>
 {% endblock %}
 
