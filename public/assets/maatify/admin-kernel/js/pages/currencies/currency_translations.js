@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "Language Id",
     "Language Name",
     "Translated Name",
-    "Status",
+    "Has Translation",
     "Actions",
   ];
   const rowKeys = [
@@ -78,6 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">Untranslated</span>`;
     },
+    
     actions: (value, row) => {
       const actions = [];
 
@@ -126,16 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const getFilters = () => {
     const filters = {};
 
-    const filterLanguageName = document
-      .getElementById("filter-language-name")
-      ?.value?.trim();
-    if (filterLanguageName) filters.language_name = filterLanguageName;
-
-    const filterLanguageCode = document
-      .getElementById("filter-language-code")
-      ?.value?.trim();
-    if (filterLanguageCode) filters.language_code = filterLanguageCode;
-
+    
     const filterTranslatedName = document
       .getElementById("filter-translated-name")
       ?.value?.trim();
@@ -148,6 +140,12 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    const filterHasTranslation = document.getElementById("filter-has-translation")?.value;
+    if (filterHasTranslation !== "" && filterHasTranslation !== undefined) {
+      filters.has_translation = filterHasTranslation;
+    }
+
+    
     return filters;
   };
 
@@ -282,6 +280,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  document
+    .getElementById("filter-has-translation")
+    ?.addEventListener("change", () => {
+      currentPage = 1;
+      loadTable();
+    });
+
   document.addEventListener("tableAction", (e) => {
     const { action, value } = e.detail;
     if (action === "pageChange") {
@@ -319,6 +324,7 @@ document.addEventListener("DOMContentLoaded", () => {
           currentPage = 1;
           loadTable();
         },
+        
       });
     } else {
       console.warn("⚠️ No languages found in context.");
