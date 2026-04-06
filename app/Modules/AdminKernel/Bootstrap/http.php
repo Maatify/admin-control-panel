@@ -11,6 +11,7 @@ use Maatify\AdminKernel\Domain\Exception\PermissionDeniedException;
 use Maatify\Exceptions\Contracts\ApiAwareExceptionInterface;
 use Maatify\Exceptions\Exception\MaatifyException;
 use Maatify\I18n\Exception\DomainNotAllowedException;
+use Maatify\PsrLogger\LoggerFactory;
 use Maatify\Validation\Exceptions\ValidationFailedException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -22,6 +23,9 @@ use Slim\Exception\HttpNotFoundException;
 use Slim\Exception\HttpUnauthorizedException;
 
 return function (App $app): void {
+
+    $logger = LoggerFactory::create('app/errors');
+
     // Helper to format consistent unified JSON response
     $unifiedJsonError = function (
         int $status,
@@ -254,7 +258,19 @@ return function (App $app): void {
         function (
             ServerRequestInterface $request,
             MaatifyException $exception
-        ) use ($unifiedJsonError): ResponseInterface {
+        ) use ($unifiedJsonError, $logger): ResponseInterface {
+
+
+            $previous = $exception->getPrevious();
+
+            $logger->error('Handled Maatify exception', [
+                'outer_exception_class' => get_class($exception),
+                'outer_exception_message' => $exception->getMessage(),
+                'previous_exception_class' => $previous ? get_class($previous) : null,
+                'previous_exception_message' => $previous ? $previous->getMessage() : null,
+                'previous_trace' => $previous ? $previous->getTraceAsString() : null,
+            ]);
+
             return $unifiedJsonError(
                 $exception->getHttpStatus(),
                 $exception->getErrorCode()->getValue(),
