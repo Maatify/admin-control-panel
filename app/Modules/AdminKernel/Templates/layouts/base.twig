@@ -221,66 +221,67 @@ document.documentElement.classList.remove('dark');
 				</div>
 
 
-				<!-- 🌓 Dark Mode Toggle Button -->
-				<button
-					onclick="toggleDarkMode()" class="relative p-2 w-10 h-10 rounded-lg hover:bg-surface-high transition-all duration-300 overflow-hidden cursor-pointer" aria-label="Toggle Dark Mode" title="Toggle Dark Mode">
-					<!-- Sun Icon (shown in dark mode) -->
-					<svg class="absolute inset-0 m-auto size-5 text-yellow-400 transition-all duration-500 -rotate-90 scale-0 dark:-rotate-0 dark:scale-100" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364 6.364l-1.414-1.414M6.05 6.05L4.636 4.636m12.728 0l-1.414 1.414M6.05 17.95l-1.414 1.414M12 8a4 4 0 100 8 4 4 0 000-8z"/>
-					</svg>
-					<!-- Moon Icon (shown in light mode) -->
-					<svg class="absolute inset-0 m-auto size-5 text-on-surface transition-all duration-500 rotate-0 scale-100 dark:rotate-90 dark:scale-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-					</svg>
-				</div>
-
-				{#
-						current_admin is injected globally via TwigAdminContextMiddleware
-				        Source: AdminContext (session snapshot, UI-only)
-						#}
-				<div class="relative" id="adminDropdown">
-					<button type="button" onclick="toggleAdminDropdown()" class="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-						{% if current_admin.avatar_url %}
-							<img src="{{ current_admin.avatar_url }}" alt="Avatar" class="w-9 h-9 rounded-full object-cover border border-gray-200 dark:border-gray-600">
-						{% else %}
-							<div class="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-								<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" viewbox="0 0 24 24" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.75 6a3.75 3.75 0 1 1-7.5 0M4.5 20.1a7.5 7.5 0 0 1 15 0"/>
-								</svg>
-							</div>
-						{% endif %}
-
-						<span class="text-sm font-medium text-gray-700 dark:text-gray-200">
-							{{ current_admin.display_name }}
-						</span>
-
-						<svg class="w-4 h-4 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke="currentColor">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/>
+				{# <div class="flex items-center gap-4"> #}
+					<!-- 🌓 Dark Mode Toggle Button -->
+					<button onclick="toggleDarkMode()" class="relative p-2 w-10 h-10 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 overflow-hidden cursor-pointer" aria-label="Toggle Dark Mode" title="Toggle Dark Mode">
+						<!-- Sun Icon (shown in dark mode) -->
+						<svg class="absolute inset-0 m-auto size-5 text-yellow-500 transition-all duration-500 -rotate-90 scale-0 dark:-rotate-0 dark:scale-100" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364 6.364l-1.414-1.414M6.05 6.05L4.636 4.636m12.728 0l-1.414 1.414M6.05 17.95l-1.414 1.414M12 8a4 4 0 100 8 4 4 0 000-8z"/>
+						</svg>
+						<!-- Moon Icon (shown in light mode) -->
+						<svg class="absolute inset-0 m-auto size-5 text-gray-600 transition-all duration-500 rotate-0 scale-100 dark:rotate-90 dark:scale-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
 						</svg>
 					</button>
 
-					<!-- Dropdown -->
-					<div id="adminDropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
-						<a href="/profile" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-							<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewbox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.118a7.5 7.5 0 0 1 15 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.5-1.632Z"/>
+					{#
+							current_admin is injected globally via TwigAdminContextMiddleware
+							Source: AdminContext (session snapshot, UI-only)
+							#}
+					<div class="relative" id="adminDropdown">
+						<button type="button" onclick="toggleAdminDropdown(event)" class="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+							{% if current_admin.avatar_url %}
+								<img src="{{ current_admin.avatar_url }}" alt="Avatar" class="w-9 h-9 rounded-full object-cover border border-gray-200 dark:border-gray-600">
+							{% else %}
+								<div class="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+									<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" viewbox="0 0 24 24" stroke="currentColor">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.75 6a3.75 3.75 0 1 1-7.5 0M4.5 20.1a7.5 7.5 0 0 1 15 0"/>
+									</svg>
+								</div>
+							{% endif %}
+
+							<span class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:inline">
+								{{ current_admin.display_name }}
+							</span>
+
+							<svg class="w-4 h-4 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/>
 							</svg>
+						</button>
 
-							<span>Profile</span>
-						</a>
-
-						<form method="post" action="/logout">
-							<button type="submit" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
-								<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-500 dark:text-red-400" fill="none" viewbox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H8m12 0-4 4m4-4-4-4M9 4H7a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h2"/>
+						<!-- Dropdown -->
+						<div id="adminDropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
+							<a href="/profile" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+								<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewbox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.118a7.5 7.5 0 0 1 15 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.5-1.632Z"/>
 								</svg>
 
-								<span>Logout</span>
-							</button>
-						</form>
+								<span>Profile</span>
+							</a>
 
+							<form method="post" action="/logout">
+								<button type="submit" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
+									<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-500 dark:text-red-400" fill="none" viewbox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H8m12 0-4 4m4-4-4-4M9 4H7a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h2"/>
+									</svg>
+
+									<span>Logout</span>
+								</button>
+							</form>
+
+						</div>
 					</div>
-				</div>
+				{# </div> #}
 
 
 			</header>
@@ -435,17 +436,19 @@ link.parentElement.classList.add('dark:bg-blue-900/40');
 
 document.addEventListener('DOMContentLoaded', setActiveNavItem);
 
-function toggleAdminDropdown() {
-document.getElementById('adminDropdownMenu').classList.toggle('hidden');
+function toggleAdminDropdown(event) {
+    if (event) event.stopPropagation();
+    const menu = document.getElementById('adminDropdownMenu');
+    if (menu) menu.classList.toggle('hidden');
 }
 
 document.addEventListener('click', function (event) {
-const dropdown = document.getElementById('adminDropdown');
-const menu = document.getElementById('adminDropdownMenu');
+    const dropdown = document.getElementById('adminDropdown');
+    const menu = document.getElementById('adminDropdownMenu');
 
-if (! dropdown.contains(event.target)) {
-menu.classList.add('hidden');
-}
+    if (dropdown && menu && !dropdown.contains(event.target)) {
+        menu.classList.add('hidden');
+    }
 });
 
 // Adjust Sidebar Popup Position on Hover
