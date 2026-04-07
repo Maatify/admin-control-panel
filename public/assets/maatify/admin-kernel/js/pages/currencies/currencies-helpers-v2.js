@@ -80,6 +80,59 @@
         });
     }
 
+    function bindResetPageReload(config) {
+        const cfg = config || {};
+        const resetPage = cfg.resetPage || 1;
+        const setPage = typeof cfg.setPage === 'function' ? cfg.setPage : function() {};
+        const reload = typeof cfg.reload === 'function' ? cfg.reload : function() {};
+        const beforeReload = typeof cfg.beforeReload === 'function' ? cfg.beforeReload : null;
+
+        const trigger = function(event) {
+            if (event && typeof event.preventDefault === 'function' && cfg.preventDefault) {
+                event.preventDefault();
+            }
+
+            setPage(resetPage, event);
+            if (beforeReload) beforeReload(event);
+            return reload(event);
+        };
+
+        if (typeof cfg.bind === 'function') cfg.bind(trigger);
+        return trigger;
+    }
+
+    function bindTableActionState(config) {
+        const cfg = config || {};
+        const target = cfg.target || document;
+        const eventName = cfg.eventName || 'tableAction';
+        const getParams = typeof cfg.getParams === 'function' ? cfg.getParams : function() { return {}; };
+        const getState = typeof cfg.getState === 'function' ? cfg.getState : function() { return {}; };
+        const setState = typeof cfg.setState === 'function' ? cfg.setState : function() {};
+        const reload = typeof cfg.reload === 'function' ? cfg.reload : function() {};
+        const applyOptions = cfg.applyOptions || {};
+
+        const handler = function(event) {
+            const detail = (event && event.detail) || {};
+            const next = Bridge.Table.applyActionParams(
+                getParams(),
+                { action: detail.action, value: detail.value },
+                null,
+                applyOptions
+            );
+
+            const state = getState() || {};
+            setState({
+                page: next.page ?? state.page,
+                perPage: next.per_page ?? state.perPage
+            }, detail, next, event);
+
+            return reload(detail, next, event);
+        };
+
+        target.addEventListener(eventName, handler);
+        return handler;
+    }
+
     function isValidCurrencyCode(code) {
         return /^[A-Z]{3}$/i.test(code || '');
     }
@@ -96,6 +149,8 @@
         setupModalCloseHandlers,
         clearFormInputs,
         setFormDisabled,
+        bindResetPageReload,
+        bindTableActionState,
         isValidCurrencyCode,
         isNonEmpty
     };

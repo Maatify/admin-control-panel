@@ -13,6 +13,7 @@
     }
 
     const Bridge = window.AdminPageBridge;
+    const Helpers = window.CurrenciesHelpersV2;
 
     let currentPage = 1;
     let currentPerPage = 20;
@@ -198,59 +199,69 @@
     }
 
     function setupSearchAndFilters() {
+        const resetPageAndReload = Helpers?.bindResetPageReload
+            ? Helpers.bindResetPageReload({
+                setPage: function(page) { currentPage = page; },
+                reload: function() { return loadCurrencies(); }
+            })
+            : function() {
+                currentPage = 1;
+                return loadCurrencies();
+            };
+
         Bridge.Events.bindDebouncedInput({
             input: '#currencies-search',
             delay: 500,
             eventName: 'input',
-            onFire: function() {
-                currentPage = 1;
-                loadCurrencies();
-            }
+            onFire: resetPageAndReload
         });
 
         const globalSearchInput = document.getElementById('currencies-search');
         if (globalSearchInput) {
             globalSearchInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
-                    e.preventDefault();
-                    currentPage = 1;
-                    loadCurrencies();
+                    resetPageAndReload(e);
                 }
             });
         }
 
         const searchBtn = document.getElementById('currencies-search-btn');
-        if (searchBtn) searchBtn.addEventListener('click', function() { currentPage = 1; loadCurrencies(); });
+        if (searchBtn) searchBtn.addEventListener('click', resetPageAndReload);
 
         const clearBtn = document.getElementById('currencies-clear-search');
         if (clearBtn) {
             clearBtn.addEventListener('click', function() {
                 if (globalSearchInput) globalSearchInput.value = '';
-                currentPage = 1;
-                loadCurrencies();
+                resetPageAndReload();
             });
         }
 
         Bridge.Events.bindFilterForm({
             form: '#currencies-filter-form',
             resetButton: '#currencies-reset-filters',
-            onSubmit: function() {
-                currentPage = 1;
-                loadCurrencies();
-            },
-            onReset: function() {
-                currentPage = 1;
-                loadCurrencies();
-            }
+            onSubmit: resetPageAndReload,
+            onReset: resetPageAndReload
         });
 
-        document.addEventListener('tableAction', function(e) {
-            const detail = e.detail || {};
-            const next = Bridge.Table.applyActionParams(buildQueryParams(), { action: detail.action, value: detail.value });
-            currentPage = next.page ?? currentPage;
-            currentPerPage = next.per_page ?? currentPerPage;
-            loadCurrencies(currentPage, currentPerPage);
-        });
+        if (Helpers?.bindTableActionState) {
+            Helpers.bindTableActionState({
+                getParams: buildQueryParams,
+                getState: function() { return { page: currentPage, perPage: currentPerPage }; },
+                setState: function(state) {
+                    currentPage = state.page ?? currentPage;
+                    currentPerPage = state.perPage ?? currentPerPage;
+                },
+                reload: function() { return loadCurrencies(currentPage, currentPerPage); }
+            });
+        } else {
+            document.addEventListener('tableAction', function(e) {
+                const detail = e.detail || {};
+                const next = Bridge.Table.applyActionParams(buildQueryParams(), { action: detail.action, value: detail.value });
+                currentPage = next.page ?? currentPage;
+                currentPerPage = next.per_page ?? currentPerPage;
+                loadCurrencies(currentPage, currentPerPage);
+            });
+        }
     }
 
     function init() {

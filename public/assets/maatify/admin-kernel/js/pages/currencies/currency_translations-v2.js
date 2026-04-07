@@ -12,6 +12,7 @@
     }
 
     const Bridge = window.AdminPageBridge;
+    const Helpers = window.CurrenciesHelpersV2;
     let languageSelect;
 
     if (!window.currencyTranslationsContext) {
@@ -169,10 +170,7 @@
 
       languageSelect = Select2('#translation-filter-language-id', options, {
         defaultValue: null,
-        onChange: function() {
-          currentPage = 1;
-          loadTable();
-        }
+        onChange: resetPageAndReload
       });
     }
 
@@ -182,6 +180,15 @@
     const modalLanguageNameDisplay = document.getElementById('edit-language-name-display');
     const modalTranslationValue = document.getElementById('edit-translation-value');
     const btnSaveTranslation = document.getElementById('btn-save-translation');
+    const resetPageAndReload = Helpers?.bindResetPageReload
+      ? Helpers.bindResetPageReload({
+        setPage: function(page) { currentPage = page; },
+        reload: function() { return loadTable(); }
+      })
+      : function() {
+        currentPage = 1;
+        return loadTable();
+      };
 
     function openEditModal(languageId, languageName, languageCode, translatedName) {
       if (!modal) return;
@@ -256,26 +263,19 @@
     Bridge.Events.bindFilterForm({
       form: '#translations-filter-form',
       resetButton: '#btn-reset-filters',
-      onSubmit: function() {
-        currentPage = 1;
-        loadTable();
-      },
+      onSubmit: resetPageAndReload,
       onReset: function() {
-        currentPage = 1;
         if (languageSelect) {
           languageSelect.destroy();
           initLanguageDropdown();
         }
-        loadTable();
+        resetPageAndReload();
       }
     });
 
     const searchBtn = document.getElementById('btn-search-global');
     if (searchBtn) {
-      searchBtn.addEventListener('click', function() {
-        currentPage = 1;
-        loadTable();
-      });
+      searchBtn.addEventListener('click', resetPageAndReload);
     }
 
     const clearBtn = document.getElementById('btn-clear-search');
@@ -283,8 +283,7 @@
       clearBtn.addEventListener('click', function() {
         const input = document.getElementById('translations-search-global');
         if (input) input.value = '';
-        currentPage = 1;
-        loadTable();
+        resetPageAndReload();
       });
     }
 
@@ -292,38 +291,42 @@
       input: '#translations-search-global',
       delay: 400,
       eventName: 'input',
-      onFire: function() {
-        currentPage = 1;
-        loadTable();
-      }
+      onFire: resetPageAndReload
     });
 
     const globalSearchInput = document.getElementById('translations-search-global');
     if (globalSearchInput) {
       globalSearchInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
-          e.preventDefault();
-          currentPage = 1;
-          loadTable();
+          resetPageAndReload(e);
         }
       });
     }
 
     const hasTranslationSelect = document.getElementById('filter-has-translation');
     if (hasTranslationSelect) {
-      hasTranslationSelect.addEventListener('change', function() {
-        currentPage = 1;
+      hasTranslationSelect.addEventListener('change', resetPageAndReload);
+    }
+
+    if (Helpers?.bindTableActionState) {
+      Helpers.bindTableActionState({
+        getParams: buildParams,
+        getState: function() { return { page: currentPage, perPage: currentPerPage }; },
+        setState: function(state) {
+          currentPage = state.page ?? currentPage;
+          currentPerPage = state.perPage ?? currentPerPage;
+        },
+        reload: function() { return loadTable(); }
+      });
+    } else {
+      document.addEventListener('tableAction', function(e) {
+        const detail = e.detail || {};
+        const next = Bridge.Table.applyActionParams(buildParams(), { action: detail.action, value: detail.value });
+        currentPage = next.page ?? currentPage;
+        currentPerPage = next.per_page ?? currentPerPage;
         loadTable();
       });
     }
-
-    document.addEventListener('tableAction', function(e) {
-      const detail = e.detail || {};
-      const next = Bridge.Table.applyActionParams(buildParams(), { action: detail.action, value: detail.value });
-      currentPage = next.page ?? currentPage;
-      currentPerPage = next.per_page ?? currentPerPage;
-      loadTable();
-    });
 
     initLanguageDropdown();
     loadTable();
