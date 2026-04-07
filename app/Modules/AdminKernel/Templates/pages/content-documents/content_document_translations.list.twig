@@ -283,15 +283,9 @@
 
     {# ✨ Project-wide reusable UI components library #}
     <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-page-bridge.js') }}"></script>
 
-    {#
-
-    TODO create js file View content_document_translation_list.js within path public/assets/maatify/admin-kernel/js/pages/content_document/
-
-    TODO CHECK 1.  public/assets/maatify/admin-kernel/js/pages/i18n/i18n_scope_domain_translations.js
-    TODO CHECK 2.  public/assets/maatify/admin-kernel/js/pages/content_document/content_document_versions_list.js
-
-    #}
-    <!-- Page Specific -->
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/content_document/content_document_translation_list.js') }}"></script>
+    <!-- Page Specific (v2-only: helpers → page module) -->
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/content_document/content_document_helpers-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/content_document/content_document_translation_list-v2.js') }}"></script>
 {% endblock %}
