@@ -46,6 +46,57 @@
         return [value];
     }
 
+    function safeClone(value) {
+        if (value === null || value === undefined) return {};
+        try {
+            return JSON.parse(JSON.stringify(value));
+        } catch (error) {
+            warn('action:failure', {
+                action: 'safe-clone',
+                reason: 'json-clone-failed',
+                error: error?.message
+            });
+            return Object.assign({}, value);
+        }
+    }
+
+    function cleanObjectDeep(value, options = {}) {
+        const trimStrings = options.trimStrings !== false;
+        const removeEmptyObjects = options.removeEmptyObjects !== false;
+        const removeEmptyArrays = options.removeEmptyArrays !== false;
+
+        if (Array.isArray(value)) {
+            const cleanedArray = value
+                .map((item) => cleanObjectDeep(item, options))
+                .filter((item) => item !== undefined);
+
+            if (!cleanedArray.length && removeEmptyArrays) return undefined;
+            return cleanedArray;
+        }
+
+        if (value && typeof value === 'object') {
+            const out = {};
+            Object.keys(value).forEach((key) => {
+                const cleaned = cleanObjectDeep(value[key], options);
+                if (cleaned !== undefined) {
+                    out[key] = cleaned;
+                }
+            });
+
+            if (!Object.keys(out).length && removeEmptyObjects) return undefined;
+            return out;
+        }
+
+        if (value === null || value === undefined) return undefined;
+        if (typeof value === 'string') {
+            const next = trimStrings ? value.trim() : value;
+            if (next === '') return undefined;
+            return next;
+        }
+
+        return value;
+    }
+
     function detectContentTypeFromRaw(rawBody) {
         if (typeof rawBody !== 'string') return 'unknown';
         const trimmed = rawBody.trim();
@@ -427,6 +478,116 @@
                 data: result.data,
                 raw: result
             };
+        },
+
+        async runMutation(config = {}) {
+            const {
+                endpoint,
+                payload = {},
+                operation = 'Mutation',
+                method = 'POST',
+                confirmMessage,
+                confirmOptions = {},
+                confirm,
+                showErrorMessage = true,
+                successMessage,
+                reloadHandler,
+                modal,
+                modalOptions = {},
+                onSuccess,
+                onFailure,
+                afterFinally
+            } = config;
+
+            log('mutation:start', {
+                operation,
+                endpoint,
+                method,
+                payload,
+                hasConfirm: !!(confirmMessage || confirm),
+                hasReloadHandler: !!reloadHandler,
+                hasModal: !!modal
+            });
+
+            let shouldProceed = true;
+            if (confirmMessage || confirm) {
+                if (typeof confirm === 'function') {
+                    shouldProceed = await confirm(config);
+                } else {
+                    shouldProceed = await UI.confirm(confirmMessage || 'Are you sure?', confirmOptions);
+                }
+
+                log('mutation:confirm', {
+                    operation,
+                    confirmed: !!shouldProceed
+                });
+            }
+
+            if (!shouldProceed) {
+                const cancelled = { success: false, cancelled: true, operation };
+                log('mutation:failure', cancelled);
+                if (typeof afterFinally === 'function') {
+                    await afterFinally(cancelled);
+                    log('mutation:finally', { operation, branch: 'cancelled' });
+                }
+                return cancelled;
+            }
+
+            try {
+                const result = await this.execute({
+                    endpoint,
+                    payload,
+                    operation,
+                    method,
+                    showSuccessMessage: successMessage,
+                    showErrorMessage
+                });
+
+                if (result.success) {
+                    if (modal) {
+                        Modal.close(modal, modalOptions);
+                    }
+
+                    if (reloadHandler) {
+                        Table.reload(reloadHandler);
+                    }
+
+                    if (typeof onSuccess === 'function') {
+                        log('callback:received', { callback: 'onSuccess', action: operation });
+                        onSuccess(result);
+                    }
+
+                    log('mutation:success', {
+                        operation,
+                        endpoint,
+                        method,
+                        result
+                    });
+                    return result;
+                }
+
+                if (typeof onFailure === 'function') {
+                    log('callback:received', { callback: 'onFailure', action: operation });
+                    onFailure(result);
+                }
+
+                log('mutation:failure', {
+                    operation,
+                    endpoint,
+                    method,
+                    result
+                });
+                return result;
+            } finally {
+                if (typeof afterFinally === 'function') {
+                    await afterFinally();
+                }
+                log('mutation:finally', {
+                    operation,
+                    endpoint,
+                    method
+                });
+            }
         }
     };
 
@@ -475,6 +636,55 @@
     };
 
     const Table = {
+        applyActionParams(baseParams, actionInput, value, options = {}) {
+            const {
+                resetPageOnPerPageChange = true,
+                cleanEmpty = true,
+                actionHandlers = {}
+            } = options;
+
+            const params = safeClone(baseParams || {});
+            const rawActions = Array.isArray(actionInput) ? actionInput : [actionInput];
+            const actions = rawActions.map((item) => {
+                if (typeof item === 'string') return { action: item, value };
+                return item || {};
+            });
+
+            log('table:apply-action-params', {
+                input: baseParams,
+                actions,
+                options: {
+                    resetPageOnPerPageChange,
+                    cleanEmpty,
+                    actionHandlerKeys: Object.keys(actionHandlers || {})
+                }
+            });
+
+            actions.forEach((item) => {
+                const actionName = item.action;
+                const actionValue = item.value;
+
+                if (actionName === 'pageChange') {
+                    params.page = actionValue;
+                    return;
+                }
+
+                if (actionName === 'perPageChange') {
+                    params.per_page = actionValue;
+                    if (resetPageOnPerPageChange) params.page = 1;
+                    return;
+                }
+
+                if (actionHandlers && typeof actionHandlers[actionName] === 'function') {
+                    actionHandlers[actionName](params, actionValue, item);
+                }
+            });
+
+            const output = cleanEmpty ? (cleanObjectDeep(params) || {}) : params;
+            log('table:apply-action-params', { output });
+            return output;
+        },
+
         reload(handler) {
             const explicitCandidates = toArray(handler);
 
@@ -638,6 +848,181 @@
 
         onClick(selector, handler, root) {
             return this.on('click', selector, handler, root);
+        },
+
+        bindFilterForm(config = {}) {
+            const {
+                form,
+                root,
+                resetButton,
+                omitEmpty = true,
+                fields = null,
+                collect,
+                onSubmit,
+                onReset,
+                preventDefault = true
+            } = config;
+
+            const scope = root || document;
+            const formEl = DOM.el(form, false, { root: scope }) || (form && form.nodeType === 1 ? form : null);
+            if (!formEl) {
+                warn('filters:bind', { reason: 'form-not-found', form });
+                return { unbind: function noop() {} };
+            }
+
+            const collectPayload = function() {
+                if (typeof collect === 'function') {
+                    return collect(formEl);
+                }
+
+                // Explicit field map
+                if (fields && typeof fields === 'object') {
+                    return Form.collect(fields, { root: formEl, includeEmpty: !omitEmpty });
+                }
+
+                // Generic from form controls
+                const payload = {};
+                const formData = new FormData(formEl);
+
+                formData.forEach((v, k) => {
+                    if (payload[k] === undefined) {
+                        payload[k] = v;
+                        return;
+                    }
+
+                    if (!Array.isArray(payload[k])) {
+                        payload[k] = [payload[k]];
+                    }
+                    payload[k].push(v);
+                });
+
+                // ensure unchecked checkboxes default false if name exists
+                formEl.querySelectorAll('input[type="checkbox"][name]').forEach((input) => {
+                    if (!Object.prototype.hasOwnProperty.call(payload, input.name)) {
+                        payload[input.name] = false;
+                    } else {
+                        payload[input.name] = normalizeBool(payload[input.name], false);
+                    }
+                });
+
+                if (!omitEmpty) return payload;
+                return cleanObjectDeep(payload) || {};
+            };
+
+            log('filters:bind', {
+                form: formEl.id || '(anonymous-form)',
+                hasResetButton: !!resetButton,
+                omitEmpty,
+                hasCustomCollect: typeof collect === 'function'
+            });
+
+            const submitListener = function(event) {
+                if (preventDefault && event && typeof event.preventDefault === 'function') {
+                    event.preventDefault();
+                }
+                const payload = collectPayload();
+
+                log('filters:submit', {
+                    form: formEl.id || '(anonymous-form)',
+                    payload
+                });
+
+                if (typeof onSubmit === 'function') {
+                    onSubmit(payload, { event, form: formEl });
+                }
+            };
+
+            formEl.addEventListener('submit', submitListener);
+
+            let resetTarget = null;
+            let resetListener = null;
+            if (resetButton) {
+                resetTarget = DOM.el(resetButton, false, { root: scope }) || resetButton;
+                if (resetTarget && typeof resetTarget.addEventListener === 'function') {
+                    resetListener = function(event) {
+                        if (preventDefault && event && typeof event.preventDefault === 'function') {
+                            event.preventDefault();
+                        }
+
+                        if (typeof formEl.reset === 'function') {
+                            formEl.reset();
+                        }
+
+                        const payload = collectPayload();
+                        log('filters:reset', {
+                            form: formEl.id || '(anonymous-form)',
+                            payload
+                        });
+
+                        if (typeof onReset === 'function') {
+                            onReset(payload, { event, form: formEl });
+                        }
+                    };
+                    resetTarget.addEventListener('click', resetListener);
+                }
+            }
+
+            return {
+                collect: collectPayload,
+                unbind: function unbind() {
+                    formEl.removeEventListener('submit', submitListener);
+                    if (resetTarget && resetListener) {
+                        resetTarget.removeEventListener('click', resetListener);
+                    }
+                }
+            };
+        },
+
+        bindDebouncedInput(config = {}) {
+            const {
+                input,
+                root,
+                delay = 500,
+                eventName = 'input',
+                onFire,
+                transform
+            } = config;
+
+            const scope = root || document;
+            const inputEl = DOM.el(input, false, { root: scope }) || (input && input.nodeType === 1 ? input : null);
+            if (!inputEl) {
+                warn('input:debounced-bind', { reason: 'input-not-found', input });
+                return { unbind: function noop() {} };
+            }
+
+            let timeoutId = null;
+            log('input:debounced-bind', {
+                input: inputEl.id || inputEl.name || '(anonymous-input)',
+                delay,
+                eventName
+            });
+
+            const listener = function(event) {
+                const rawValue = event?.target?.value;
+                const nextValue = typeof transform === 'function' ? transform(rawValue, event, inputEl) : rawValue;
+
+                if (timeoutId) clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => {
+                    log('input:debounced-fire', {
+                        input: inputEl.id || inputEl.name || '(anonymous-input)',
+                        delay,
+                        value: nextValue
+                    });
+
+                    if (typeof onFire === 'function') {
+                        onFire(nextValue, { event, input: inputEl, rawValue });
+                    }
+                }, delay);
+            };
+
+            inputEl.addEventListener(eventName, listener);
+
+            return {
+                unbind: function unbind() {
+                    if (timeoutId) clearTimeout(timeoutId);
+                    inputEl.removeEventListener(eventName, listener);
+                }
+            };
         }
     };
 

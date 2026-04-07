@@ -28,6 +28,12 @@ Main namespaces:
 - `AdminPageBridge.Form`
 - `AdminPageBridge.Events`
 
+New high-value shared methods:
+- `AdminPageBridge.Table.applyActionParams(...)`
+- `AdminPageBridge.Events.bindFilterForm(...)`
+- `AdminPageBridge.Events.bindDebouncedInput(...)`
+- `AdminPageBridge.API.runMutation(...)`
+
 ## Logging contract (guaranteed)
 
 All bridge lifecycle and operations log with prefix:
@@ -134,6 +140,28 @@ AdminPageBridge.Table.reload();
 
 The preferred pattern is explicit handler usage. Heuristic global-name fallback exists only for legacy convenience.
 
+### 5.1) Table action params helper
+
+Purpose:
+- Standardize repetitive `tableAction` handling (`pageChange`, `perPageChange`) and empty-value cleanup.
+
+```javascript
+document.addEventListener('tableAction', (e) => {
+  const { action, value, currentParams } = e.detail;
+
+  const nextParams = AdminPageBridge.Table.applyActionParams(
+    currentParams,
+    { action, value },
+    null,
+    { cleanEmpty: true }
+  );
+
+  loadWithParams(nextParams);
+});
+```
+
+Replaces repeated code blocks that clone params, switch action types, and remove empty `search`/`date` values.
+
 ### 6) Event delegation helpers
 
 ```javascript
@@ -145,6 +173,77 @@ const unbind = AdminPageBridge.Events.onClick('.edit-btn', (event, button) => {
 // later
 unbind();
 ```
+
+### 6.1) Filter form binding helper
+
+Purpose:
+- Standardize filter form submit/reset wiring and payload collection.
+
+```javascript
+const binding = AdminPageBridge.Events.bindFilterForm({
+  form: '#admins-search-form',
+  resetButton: '#btn-reset',
+  // optional explicit field map
+  fields: {
+    id: '#filter-admin-id',
+    email: '#filter-email',
+    active: { selector: '#filter-active', type: 'checked' }
+  },
+  omitEmpty: true,
+  onSubmit: (payload) => loadAdminsWithParams({ page: 1, per_page: 25, search: { columns: payload } }),
+  onReset: () => loadAdminsWithParams({ page: 1, per_page: 25 })
+});
+```
+
+Non-goals:
+- It does not impose any fixed backend query contract.
+- It does not assume fixed field names.
+
+### 6.2) Debounced input binding helper
+
+Purpose:
+- Standardize search input debounce behavior without embedding search domain logic.
+
+```javascript
+const debounced = AdminPageBridge.Events.bindDebouncedInput({
+  input: '#admins-global-search',
+  delay: 1000,
+  onFire: (value) => runGlobalSearch(value)
+});
+```
+
+What it replaces:
+- Repetitive timeout management and repeated `keyup`/`input` debounce wiring per page.
+
+### 6.3) Mutation workflow helper
+
+Purpose:
+- Standardize repeated mutation flow:
+  - optional confirm
+  - execute through bridge API (real `ApiHandler.call` underneath)
+  - optional modal close/reset
+  - optional table reload
+  - optional callbacks
+
+```javascript
+await AdminPageBridge.API.runMutation({
+  operation: 'Toggle Status',
+  endpoint: 'items/set-active',
+  method: 'POST',
+  payload: { id: 10, is_active: false },
+  confirmMessage: 'Are you sure?',
+  successMessage: 'Status updated',
+  reloadHandler: 'reloadItemsTable',
+  modal: '#edit-item-modal',
+  modalOptions: { resetForm: true },
+  onSuccess: (result) => console.log('done', result),
+  onFailure: (result) => console.log('failed', result),
+  afterFinally: () => console.log('cleanup')
+});
+```
+
+Compatibility note:
+- `runMutation` delegates execution to `AdminPageBridge.API.execute`, which already wraps the real shared `ApiHandler.call` contract.
 
 ## What to avoid
 
