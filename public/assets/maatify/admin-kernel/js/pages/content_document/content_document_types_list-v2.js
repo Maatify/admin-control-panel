@@ -146,7 +146,10 @@
         const searchInput = document.getElementById('content-document-types-search');
         if (searchInput) {
             searchInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') resetPageAndReload(e);
+                if (e.key !== 'Enter') return;
+                if (e.target && e.target.closest('form')) return;
+                e.preventDefault();
+                resetPageAndReload(e);
             });
         }
 

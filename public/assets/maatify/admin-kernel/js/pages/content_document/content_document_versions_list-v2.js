@@ -194,7 +194,10 @@
         const searchInput = document.getElementById('content-document-versions-search');
         if (searchInput) {
             searchInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') resetPageAndReload(e);
+                if (e.key !== 'Enter') return;
+                if (e.target && e.target.closest('form')) return;
+                e.preventDefault();
+                resetPageAndReload(e);
             });
         }
 
@@ -243,7 +246,7 @@
             Bridge.Modal.open(modal);
 
             const submitBtn = modal.querySelector('button[type="submit"]');
-            submitBtn.addEventListener('click', function(e) {
+            const submitCreate = function(e) {
                 e.preventDefault();
 
                 const version = Bridge.DOM.value(modal.querySelector('input[name="version"]'), '').trim();
@@ -270,7 +273,11 @@
                     },
                     onSuccess: function() { modal.remove(); }
                 });
-            });
+            };
+
+            const formEl = modal.querySelector('#create-version-form-v2');
+            if (formEl) formEl.addEventListener('submit', submitCreate);
+            submitBtn.addEventListener('click', submitCreate);
         }
 
         const createBtn = document.getElementById('btn-create-content-document-version');
