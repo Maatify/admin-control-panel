@@ -171,6 +171,8 @@
         const data = result.data || {};
         const items = Array.isArray(data.data) ? data.data : [];
         const paginationInfo = data.pagination || { page: params.page, per_page: params.per_page, total: items.length };
+        currentPage = Bridge.normalizeInt(paginationInfo.page, currentPage) || currentPage;
+        currentPerPage = Bridge.normalizeInt(paginationInfo.per_page, currentPerPage) || currentPerPage;
 
         try {
             TableComponent(items, headers, rows, paginationInfo, '', false, 'id', null, {
@@ -245,8 +247,8 @@
         document.addEventListener('tableAction', function(e) {
             const detail = e.detail || {};
             const next = Bridge.Table.applyActionParams(buildQueryParams(), { action: detail.action, value: detail.value });
-            currentPage = next.page || 1;
-            currentPerPage = next.per_page || currentPerPage;
+            currentPage = next.page ?? currentPage;
+            currentPerPage = next.per_page ?? currentPerPage;
             loadCurrencies(currentPage, currentPerPage);
         });
     }

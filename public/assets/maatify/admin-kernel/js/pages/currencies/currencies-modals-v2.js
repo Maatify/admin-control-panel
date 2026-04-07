@@ -14,6 +14,11 @@
 
     const Bridge = window.AdminPageBridge;
     const Helpers = window.CurrenciesHelpersV2;
+    const reloadCurrenciesTableV2 = function() {
+        if (typeof window.reloadCurrenciesTableV2 === 'function') {
+            return window.reloadCurrenciesTableV2();
+        }
+    };
 
     Helpers.setupModalCloseHandlers();
 
@@ -61,7 +66,7 @@
                 successMessage: 'Currency created successfully.',
                 modal: '#currency-modal',
                 modalOptions: { resetForm: true },
-                reloadHandler: window.reloadCurrenciesTable || 'reloadCurrenciesTable'
+                reloadHandler: reloadCurrenciesTableV2
             });
         });
 
@@ -98,7 +103,7 @@
                 successMessage: 'Currency updated successfully.',
                 modal: '#currency-modal',
                 modalOptions: { resetForm: true },
-                reloadHandler: window.reloadCurrenciesTable || 'reloadCurrenciesTable'
+                reloadHandler: reloadCurrenciesTableV2
             });
         });
 
@@ -128,7 +133,7 @@
                 payload,
                 successMessage: 'Sort order updated successfully.',
                 modal: '#sort-modal',
-                reloadHandler: window.reloadCurrenciesTable || 'reloadCurrenciesTable'
+                reloadHandler: reloadCurrenciesTableV2
             });
         });
     }

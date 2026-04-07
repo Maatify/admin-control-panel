@@ -65,6 +65,9 @@
     const containerId = 'translations-table-container';
     let currentPage = 1;
     let currentPerPage = 20;
+    const reloadCurrencyTranslationsTableV2 = function() {
+      return loadTable();
+    };
 
     function getFilters() {
       const filters = {};
@@ -221,7 +224,7 @@
         payload: { language_id: Bridge.normalizeInt(languageId, 0) },
         confirmMessage: 'Are you sure you want to delete this translation?',
         successMessage: 'Translation deleted successfully',
-        reloadHandler: loadTable
+        reloadHandler: reloadCurrencyTranslationsTableV2
       });
     });
 
@@ -244,7 +247,7 @@
           method: 'POST',
           payload,
           successMessage: 'Translation saved successfully',
-          reloadHandler: loadTable,
+          reloadHandler: reloadCurrencyTranslationsTableV2,
           modal
         });
       });
@@ -317,16 +320,17 @@
     document.addEventListener('tableAction', function(e) {
       const detail = e.detail || {};
       const next = Bridge.Table.applyActionParams(buildParams(), { action: detail.action, value: detail.value });
-      currentPage = next.page || 1;
-      currentPerPage = next.per_page || currentPerPage;
+      currentPage = next.page ?? currentPage;
+      currentPerPage = next.per_page ?? currentPerPage;
       loadTable();
     });
 
     initLanguageDropdown();
     loadTable();
 
+    window.reloadCurrencyTranslationsTableV2 = reloadCurrencyTranslationsTableV2;
     window.CurrencyTranslationsV2 = {
-      reload: loadTable
+      reload: reloadCurrencyTranslationsTableV2
     };
   });
 })();

@@ -14,6 +14,11 @@
 
     const Bridge = window.AdminPageBridge;
     const Helpers = window.CurrenciesHelpersV2;
+    const reloadCurrenciesTableV2 = function() {
+        if (typeof window.reloadCurrenciesTableV2 === 'function') {
+            return window.reloadCurrenciesTableV2();
+        }
+    };
 
     async function toggleStatus(currencyId) {
         const btn = document.querySelector('.toggle-status-btn[data-currency-id="' + currencyId + '"]');
@@ -31,7 +36,7 @@
             method: 'POST',
             payload,
             successMessage: 'Currency status updated successfully',
-            reloadHandler: window.reloadCurrenciesTable || 'reloadCurrenciesTable'
+            reloadHandler: reloadCurrenciesTableV2
         });
     }
 
