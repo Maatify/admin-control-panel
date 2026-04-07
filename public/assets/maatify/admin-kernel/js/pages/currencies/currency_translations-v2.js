@@ -114,32 +114,10 @@
       return params;
     }
 
-    function withTableContainerTarget(run) {
-      const container = document.getElementById(containerId);
-      if (!container) return Promise.resolve();
-
-      const original = document.getElementById('table-container');
-      let tempId = null;
-      if (original && original !== container) {
-        tempId = 'table-container-original-' + Date.now();
-        original.id = tempId;
-      }
-
-      const containerOriginalId = container.id;
-      container.id = 'table-container';
-
-      const finish = function() {
-        container.id = containerOriginalId;
-        if (tempId && original) original.id = 'table-container';
-      };
-
-      return Promise.resolve(run()).finally(finish);
-    }
-
     function loadTable() {
       const params = buildParams();
 
-      return withTableContainerTarget(function() {
+      return Bridge.Table.withTargetContainer(containerId, function() {
         return createTable(
           apiUrl,
           params,
@@ -308,25 +286,15 @@
       hasTranslationSelect.addEventListener('change', resetPageAndReload);
     }
 
-    if (Helpers?.bindTableActionState) {
-      Helpers.bindTableActionState({
-        getParams: buildParams,
-        getState: function() { return { page: currentPage, perPage: currentPerPage }; },
-        setState: function(state) {
-          currentPage = state.page ?? currentPage;
-          currentPerPage = state.perPage ?? currentPerPage;
-        },
-        reload: function() { return loadTable(); }
-      });
-    } else {
-      document.addEventListener('tableAction', function(e) {
-        const detail = e.detail || {};
-        const next = Bridge.Table.applyActionParams(buildParams(), { action: detail.action, value: detail.value });
-        currentPage = next.page ?? currentPage;
-        currentPerPage = next.per_page ?? currentPerPage;
-        loadTable();
-      });
-    }
+    Helpers.bindTableActionState({
+      getParams: buildParams,
+      getState: function() { return { page: currentPage, perPage: currentPerPage }; },
+      setState: function(state) {
+        currentPage = state.page ?? currentPage;
+        currentPerPage = state.perPage ?? currentPerPage;
+      },
+      reload: function() { return loadTable(); }
+    });
 
     initLanguageDropdown();
     loadTable();
