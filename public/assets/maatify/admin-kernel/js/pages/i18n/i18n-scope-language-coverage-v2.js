@@ -108,7 +108,6 @@
         });
 
         if (!result.success) {
-            Bridge.UI.error(result.error || 'Failed to load scope language coverage');
             renderError(container, result.error || 'Failed to load scope language coverage');
             return;
         }

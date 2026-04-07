@@ -115,7 +115,6 @@
         });
 
         if (!result.success) {
-            Bridge.UI.error(result.error || 'Failed to load coverage');
             renderError(container, result.error || 'Failed to load coverage');
             return;
         }
