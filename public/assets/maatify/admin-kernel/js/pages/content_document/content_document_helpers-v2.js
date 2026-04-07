@@ -15,67 +15,59 @@
     const Bridge = window.AdminPageBridge;
 
     function withTableContainerTarget(containerId, run) {
-        const container = document.getElementById(containerId);
-        if (!container) return Promise.resolve();
-
-        const original = document.getElementById('table-container');
-        let tempId = null;
-
-        if (original && original !== container) {
-            tempId = 'table-container-original-' + Date.now();
-            original.id = tempId;
-        }
-
-        const originalContainerId = container.id;
-        container.id = 'table-container';
-
-        const finish = function() {
-            container.id = originalContainerId;
-            if (tempId && original) original.id = 'table-container';
-        };
-
-        return Promise.resolve(run()).finally(finish);
+        return Bridge.Table.withTargetContainer(containerId, function() {
+            return Promise.resolve(typeof run === 'function' ? run() : undefined);
+        });
     }
 
     function createResetPageReload(config) {
         const cfg = config || {};
-        const setPage = typeof cfg.setPage === 'function' ? cfg.setPage : function() {};
         const reload = typeof cfg.reload === 'function' ? cfg.reload : function() {};
-        const resetPage = cfg.resetPage ?? 1;
 
-        return function(event) {
-            if (event && typeof event.preventDefault === 'function' && cfg.preventDefault) {
-                event.preventDefault();
+        return Bridge.Events.createResetReload({
+            setPage: cfg.setPage,
+            resetPage: cfg.resetPage ?? 1,
+            preventDefault: !!cfg.preventDefault,
+            reload: function() {
+                return reload.apply(null, arguments);
             }
-            setPage(resetPage, event);
-            return reload(event);
-        };
+        });
     }
 
     function bindTableActionState(config) {
         const cfg = config || {};
-        const target = cfg.target || document;
-        const eventName = cfg.eventName || 'tableAction';
-        const buildParams = typeof cfg.buildParams === 'function' ? cfg.buildParams : function() { return {}; };
+        const getParams = typeof cfg.buildParams === 'function' ? cfg.buildParams : function() { return {}; };
         const getState = typeof cfg.getState === 'function' ? cfg.getState : function() { return {}; };
         const setState = typeof cfg.setState === 'function' ? cfg.setState : function() {};
         const reload = typeof cfg.reload === 'function' ? cfg.reload : function() {};
 
-        const handler = function(event) {
-            const detail = (event && event.detail) || {};
-            const next = Bridge.Table.applyActionParams(buildParams(), { action: detail.action, value: detail.value });
-            const state = getState() || {};
+        let lastContext = null;
+        const unbind = Bridge.Table.bindActionState({
+            root: cfg.target || document,
+            eventName: cfg.eventName || 'tableAction',
+            getState: getParams,
+            setState: function(next, detail, event) {
+                const state = getState() || {};
+                const normalized = {
+                    page: next.page ?? state.page,
+                    perPage: next.per_page ?? state.perPage
+                };
 
-            setState({
-                page: next.page ?? state.page,
-                perPage: next.per_page ?? state.perPage
-            }, detail, next, event);
+                lastContext = {
+                    detail,
+                    next,
+                    event
+                };
 
-            return reload(detail, next, event);
-        };
+                setState(normalized, detail, next, event);
+            },
+            reload: function() {
+                if (!lastContext) return reload({}, {}, null);
+                return reload(lastContext.detail, lastContext.next, lastContext.event);
+            }
+        });
 
-        target.addEventListener(eventName, handler);
-        return handler;
+        return unbind;
     }
 
     function wireModalDismiss(modalEl) {
