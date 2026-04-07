@@ -685,6 +685,93 @@
             return output;
         },
 
+        bindActionState(config = {}) {
+            const {
+                eventName = 'tableAction',
+                root = document,
+                getState,
+                setState,
+                actionHandlers = {},
+                applyOptions = {},
+                reload,
+                onBeforeReload
+            } = config;
+
+            const scope = root || document;
+            if (!scope || typeof scope.addEventListener !== 'function') {
+                warn('table:bind-action-state', { reason: 'invalid-scope', eventName });
+                return function noop() {};
+            }
+
+            if (typeof setState !== 'function') {
+                warn('table:bind-action-state', { reason: 'missing-set-state', eventName });
+                return function noop() {};
+            }
+
+            log('bind', {
+                action: 'table:bind-action-state',
+                eventName
+            });
+
+            const listener = (event) => {
+                const detail = (event && event.detail) || {};
+                const stateFromDetail = detail.currentParams;
+                const sourceState = stateFromDetail !== undefined
+                    ? stateFromDetail
+                    : (typeof getState === 'function' ? getState(detail, event) : {});
+
+                const nextState = Table.applyActionParams(
+                    sourceState || {},
+                    detail.action,
+                    detail.value,
+                    Object.assign({}, applyOptions, { actionHandlers })
+                );
+
+                setState(nextState, detail, event);
+                if (typeof onBeforeReload === 'function') onBeforeReload(nextState, detail, event);
+                Table.reload(reload);
+            };
+
+            scope.addEventListener(eventName, listener);
+
+            return function unbind() {
+                scope.removeEventListener(eventName, listener);
+                log('bind', {
+                    action: 'table:bind-action-state',
+                    eventName,
+                    state: 'removed'
+                });
+            };
+        },
+
+        withTargetContainer(containerId, run) {
+            const targetId = normalizeEmpty(containerId, 'table-container');
+            const callback = typeof run === 'function' ? run : function noop() {};
+            const defaultContainer = document.getElementById('table-container');
+            const targetContainer = document.getElementById(targetId);
+
+            if (!targetContainer || targetId === 'table-container') {
+                return callback();
+            }
+
+            const originalDefaultId = defaultContainer ? defaultContainer.id : null;
+            const originalTargetId = targetContainer.id;
+            const swappedPlaceholder = '__admin-page-bridge-table-container-original__';
+
+            try {
+                if (defaultContainer && defaultContainer !== targetContainer) {
+                    defaultContainer.id = swappedPlaceholder;
+                }
+                targetContainer.id = 'table-container';
+                return callback(targetContainer);
+            } finally {
+                targetContainer.id = originalTargetId;
+                if (defaultContainer && defaultContainer !== targetContainer) {
+                    defaultContainer.id = originalDefaultId || 'table-container';
+                }
+            }
+        },
+
         reload(handler) {
             const explicitCandidates = toArray(handler);
 
@@ -848,6 +935,27 @@
 
         onClick(selector, handler, root) {
             return this.on('click', selector, handler, root);
+        },
+
+        createResetReload(config = {}) {
+            const {
+                setPage,
+                reload,
+                resetPage = 1,
+                preventDefault = true
+            } = config;
+
+            return function handleResetReload(event) {
+                if (preventDefault && event && typeof event.preventDefault === 'function') {
+                    event.preventDefault();
+                }
+
+                if (typeof setPage === 'function') {
+                    setPage(resetPage, event);
+                }
+
+                Table.reload(reload);
+            };
         },
 
         bindFilterForm(config = {}) {

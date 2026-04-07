@@ -30,7 +30,10 @@ Main namespaces:
 
 New high-value shared methods:
 - `AdminPageBridge.Table.applyActionParams(...)`
+- `AdminPageBridge.Table.bindActionState(...)`
+- `AdminPageBridge.Table.withTargetContainer(...)`
 - `AdminPageBridge.Events.bindFilterForm(...)`
+- `AdminPageBridge.Events.createResetReload(...)`
 - `AdminPageBridge.Events.bindDebouncedInput(...)`
 - `AdminPageBridge.API.runMutation(...)`
 
@@ -162,6 +165,39 @@ document.addEventListener('tableAction', (e) => {
 
 Replaces repeated code blocks that clone params, switch action types, and remove empty `search`/`date` values.
 
+### 5.2) Table action-state binding helper
+
+Purpose:
+- Centralize repetitive `tableAction` listeners that update state and reload table data.
+
+```javascript
+const unbindTableAction = AdminPageBridge.Table.bindActionState({
+  getState: () => currentParams,
+  setState: (next) => { currentParams = next; },
+  reload: reloadTableData
+});
+```
+
+Behavior notes:
+- Uses `detail.currentParams` when provided; otherwise falls back to `getState()`.
+- Applies actions through `Table.applyActionParams(...)`.
+- Calls `setState(nextState)` then reloads via `Table.reload(...)`.
+
+### 5.3) Table container target helper
+
+Purpose:
+- Run code against a temporary `#table-container` target and restore IDs safely.
+
+```javascript
+AdminPageBridge.Table.withTargetContainer('i18n-table-container', () => {
+  renderOrReloadTable();
+});
+```
+
+Behavior notes:
+- If target does not exist, callback still runs without ID swapping.
+- If target exists, bridge temporarily assigns it `id="table-container"` and restores IDs in `finally`.
+
 ### 6) Event delegation helpers
 
 ```javascript
@@ -198,6 +234,21 @@ const binding = AdminPageBridge.Events.bindFilterForm({
 Non-goals:
 - It does not impose any fixed backend query contract.
 - It does not assume fixed field names.
+
+### 6.1.1) Reset-page then reload trigger helper
+
+Purpose:
+- Reuse a single handler factory for “set page to 1 then reload”.
+
+```javascript
+const resetAndReload = AdminPageBridge.Events.createResetReload({
+  setPage: (page) => { currentParams.page = page; },
+  reload: reloadTableData,
+  resetPage: 1
+});
+
+document.getElementById('btn-reset').addEventListener('click', resetAndReload);
+```
 
 ### 6.2) Debounced input binding helper
 
