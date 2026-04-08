@@ -15,7 +15,7 @@
         const capabilities = window.contentDocumentTypesCapabilities || {};
         const api = window.contentDocumentTypesApi || {};
 
-        const tableContainerId = 'content-document-types-table-container';
+        const tableContainerId = window.contentDocumentTypesTableContainerId || 'content-document-types-table-container';
         const filterFormSelector = '#content-document-types-filter-form';
         const searchSelector = '#content-document-types-search';
 

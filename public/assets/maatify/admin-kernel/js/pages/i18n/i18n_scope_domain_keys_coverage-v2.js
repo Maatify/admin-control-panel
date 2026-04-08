@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const domainId = context.domain_id;
     const languages = context.languages || [];
 
-    const containerId = 'keys-coverage-table-container';
+    const containerId = window.i18nScopeDomainKeysCoverageTableContainerId || 'keys-coverage-table-container';
     const apiUrl = `/api/i18n/scopes/${scopeId}/domains/${domainId}/keys/query`;
 
     let currentPage = 1;

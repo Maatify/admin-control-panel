@@ -17,6 +17,7 @@
             domain_code: "{{ domain.code }}",
             languages: {{ languages|json_encode|raw }},
         };
+        window.i18nScopeDomainKeysCoverageTableContainerId = 'keys-coverage-table-container';
         console.log('🌍 Scope Domain Keys Context:', window.i18nScopeDomainKeysContext);
     </script>
 

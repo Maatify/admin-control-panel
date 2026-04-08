@@ -18,7 +18,7 @@
 
     const Bridge = window.AdminPageBridge;
     const context = window.scopeLanguageContext;
-    const containerId = 'domain-coverage-container';
+    const containerId = window.scopeLanguageCoverageContainerId || 'domain-coverage-container';
 
     function escapeHtml(text) {
         if (text === null || text === undefined) return '';

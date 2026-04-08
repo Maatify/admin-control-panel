@@ -25,6 +25,7 @@
             can_upsert: {{ capabilities.can_upsert ? 'true' : 'false' }},
             can_delete: {{ capabilities.can_delete ? 'true' : 'false' }}
         };
+        window.currencyTranslationsTableContainerId = 'translations-table-container';
 
         console.log('🌍 Currency Translations Context:', window.currencyTranslationsContext);
         console.log('🔐 Capabilities:', window.currencyTranslationsCapabilities);

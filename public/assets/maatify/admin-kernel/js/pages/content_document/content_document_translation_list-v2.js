@@ -17,7 +17,7 @@
         const apiEndpoints = window.contentDocumentTranslationsApi || {};
         const typeId = window.typeId;
         const documentId = window.documentId;
-        const tableContainerId = 'content-document-versions-table-container';
+        const tableContainerId = window.contentDocumentTranslationsTableContainerId || 'content-document-versions-table-container';
 
         if (!typeId || !documentId) {
             console.error('❌ Missing required context (typeId/documentId).');

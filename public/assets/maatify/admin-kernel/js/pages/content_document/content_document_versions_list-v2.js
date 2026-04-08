@@ -21,7 +21,7 @@
             return;
         }
 
-        const tableContainerId = 'content-document-versions-table-container';
+        const tableContainerId = window.contentDocumentVersionsTableContainerId || 'content-document-versions-table-container';
         let currentPage = 1;
         let currentPerPage = 25;
 

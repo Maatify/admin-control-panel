@@ -63,7 +63,7 @@
       }
     };
 
-    const containerId = 'translations-table-container';
+    const containerId = window.currencyTranslationsTableContainerId || 'translations-table-container';
     let currentPage = 1;
     let currentPerPage = 20;
     const reloadCurrencyTranslationsTableV2 = function() {
