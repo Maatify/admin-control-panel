@@ -101,7 +101,9 @@
 
     function bindTableActionState(config) {
         const cfg = config || {};
-        const getParams = typeof cfg.getParams === 'function' ? cfg.getParams : function() { return {}; };
+        const getParams = typeof cfg.getParams === 'function'
+            ? cfg.getParams
+            : (typeof cfg.buildParams === 'function' ? cfg.buildParams : function() { return {}; });
         const getState = typeof cfg.getState === 'function' ? cfg.getState : function() { return {}; };
         const setState = typeof cfg.setState === 'function' ? cfg.setState : function() {};
         const reload = typeof cfg.reload === 'function' ? cfg.reload : function() {};

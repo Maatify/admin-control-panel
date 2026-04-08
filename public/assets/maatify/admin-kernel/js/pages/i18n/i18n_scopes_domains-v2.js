@@ -421,25 +421,42 @@
         });
 
         // Listen for table events (pagination)
-        document.addEventListener('tableAction', (e) => {
-            const detail = e.detail || {};
-            if (detail.tableContainerId && detail.tableContainerId !== tableContainerId) {
-                return;
-            }
+        if (Bridge?.Table?.bindActionState) {
+            Bridge.Table.bindActionState({
+                sourceContainerId: tableContainerId,
+                getState: function() {
+                    return buildQueryParams();
+                },
+                setState: function(state) {
+                    currentPage = state.page ?? currentPage;
+                    currentPerPage = state.per_page ?? currentPerPage;
+                },
+                reload: function() {
+                    return loadDomains(currentPage, currentPerPage);
+                }
+            });
+        } else {
+            // Legacy fallback when bridge is unavailable
+            document.addEventListener('tableAction', (e) => {
+                const detail = e.detail || {};
+                if (detail.tableContainerId && detail.tableContainerId !== tableContainerId) {
+                    return;
+                }
 
-            // When source metadata is missing (older table runtime), only react if this
-            // page currently has an active domains table container in the DOM.
-            if (!detail.tableContainerId && !document.getElementById(tableContainerId)) {
-                return;
-            }
+                // When source metadata is missing (older table runtime), only react if this
+                // page currently has an active domains table container in the DOM.
+                if (!detail.tableContainerId && !document.getElementById(tableContainerId)) {
+                    return;
+                }
 
-            const { action, value } = detail;
-            if (action === 'pageChange') {
-                loadDomains(value);
-            } else if (action === 'perPageChange') {
-                loadDomains(1, value);
-            }
-        });
+                const { action, value } = detail;
+                if (action === 'pageChange') {
+                    loadDomains(value);
+                } else if (action === 'perPageChange') {
+                    loadDomains(1, value);
+                }
+            });
+        }
 
         // Filter Form Listeners
         const filterForm = document.getElementById('scope-domains-filter-form');
@@ -505,10 +522,11 @@
         setupEventDelegation();
         loadDomains();
 
-        // Export reload function
-        window.reloadScopeDomainsTable = function() {
+        // Export reload function (v2 canonical + legacy alias)
+        window.reloadScopeDomainsTableV2 = function() {
             loadDomains(currentPage, currentPerPage);
         };
+        window.reloadScopeDomainsTable = window.reloadScopeDomainsTableV2;
 
         console.log('✅ I18n Scope Domains Module initialized');
     }
