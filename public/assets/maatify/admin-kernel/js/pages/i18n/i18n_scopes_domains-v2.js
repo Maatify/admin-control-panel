@@ -40,6 +40,7 @@
     }
 
     console.log('✅ Dependencies loaded: AdminUIComponents, ApiHandler');
+    const Bridge = window.AdminPageBridge || null;
 
     // ========================================================================
     // STATE & CONFIGURATION
@@ -48,6 +49,7 @@
     let currentPage = 1;
     let currentPerPage = 25;
     const scopeId = window.scopeDetailsId;
+    const tableContainerId = window.scopeDetailsDomainsTableContainerId || 'domains-table-container';
 
     const headers = ['ID', 'Code', 'Name', 'Description', 'Active', 'Assigned', 'Actions'];
     const rows = ['id', 'code', 'name', 'description', 'is_active', 'assigned', 'actions'];
@@ -231,9 +233,9 @@
 
         const result = await ApiHandler.call(endpoint, params, 'Query Scope Domains');
 
-        const container = document.getElementById('domains-table-container');
+        const container = document.getElementById(tableContainerId);
         if (!container) {
-            console.error('❌ domains-table-container not found');
+            console.error(`❌ ${tableContainerId} not found`);
             return;
         }
 
@@ -251,22 +253,14 @@
             total: domains.length
         };
 
+        const tableRenderer = (typeof TableComponent === 'function')
+            ? TableComponent
+            : (typeof window.TableComponent === 'function' ? window.TableComponent : null);
+
         // Render table
-        if (typeof TableComponent === 'function') {
-            // Hijack the global table-container ID temporarily for TableComponent
-            // This is a workaround because TableComponent hardcodes #table-container
-            const originalTableContainer = document.getElementById('table-container');
-            const tempId = 'table-container-original-' + Date.now();
-            if (originalTableContainer && originalTableContainer !== container) {
-                originalTableContainer.id = tempId;
-            }
-
-            // Ensure our container has the right ID for TableComponent
-            const originalContainerId = container.id;
-            container.id = 'table-container';
-
-            try {
-                TableComponent(
+        if (tableRenderer) {
+            const render = function() {
+                tableRenderer(
                     domains,
                     headers,
                     rows,
@@ -287,18 +281,39 @@
                     null,
                     getPaginationInfo
                 );
+            };
+
+            try {
+                if (Bridge?.Table?.withTargetContainer) {
+                    Bridge.Table.withTargetContainer(tableContainerId, render);
+                } else {
+                    // Legacy fallback when bridge is unavailable
+                    const originalTableContainer = document.getElementById('table-container');
+                    const tempId = 'table-container-original-' + Date.now();
+                    if (originalTableContainer && originalTableContainer !== container) {
+                        originalTableContainer.id = tempId;
+                    }
+
+                    const originalContainerId = container.id;
+                    container.id = 'table-container';
+                    try {
+                        render();
+                    } finally {
+                        container.id = originalContainerId;
+                        if (originalTableContainer && originalTableContainer !== container) {
+                            originalTableContainer.id = 'table-container';
+                        }
+                    }
+                }
             } catch (error) {
                 console.error('❌ TABLE ERROR:', error);
                 ApiHandler.showAlert('danger', 'Failed to render table: ' + error.message);
-            } finally {
-                // Restore IDs
-                container.id = originalContainerId;
-                if (originalTableContainer && originalTableContainer !== container) {
-                    originalTableContainer.id = 'table-container';
-                }
             }
         } else {
             console.error('❌ TableComponent not found');
+            renderErrorState(container, {
+                error: 'Table runtime is unavailable. Please refresh the page and try again.'
+            });
         }
     }
 
@@ -407,12 +422,18 @@
 
         // Listen for table events (pagination)
         document.addEventListener('tableAction', (e) => {
-            // Ensure this event is for us (check if target is inside our container)
-            // Note: Since we hijack table-container ID, we need to be careful.
-            // But since we only have one table active at a time usually, this is okay.
-            // A better way is to check if the event originated from our wrapper.
-            
-            const { action, value } = e.detail;
+            const detail = e.detail || {};
+            if (detail.tableContainerId && detail.tableContainerId !== tableContainerId) {
+                return;
+            }
+
+            // When source metadata is missing (older table runtime), only react if this
+            // page currently has an active domains table container in the DOM.
+            if (!detail.tableContainerId && !document.getElementById(tableContainerId)) {
+                return;
+            }
+
+            const { action, value } = detail;
             if (action === 'pageChange') {
                 loadDomains(value);
             } else if (action === 'perPageChange') {
