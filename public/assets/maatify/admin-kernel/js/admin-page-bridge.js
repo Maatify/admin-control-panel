@@ -207,6 +207,32 @@
             return normalizeEmpty(element.value, defaultValue);
         },
 
+        setValue(selectorOrElement, value = '', options = {}) {
+            const element = this.el(selectorOrElement, false, options);
+            if (!element) return false;
+
+            if (element.type === 'checkbox') {
+                element.checked = normalizeBool(value, false);
+                return true;
+            }
+
+            if (element.tagName === 'SELECT' && element.multiple && Array.isArray(value)) {
+                const selected = new Set(value.map((v) => String(v)));
+                Array.from(element.options || []).forEach((option) => {
+                    option.selected = selected.has(String(option.value));
+                });
+                return true;
+            }
+
+            if (value === null || value === undefined) {
+                element.value = '';
+                return true;
+            }
+
+            element.value = typeof value === 'string' ? value : String(value);
+            return true;
+        },
+
         checked(selectorOrElement, defaultValue = false, options = {}) {
             const element = this.el(selectorOrElement, false, options);
             if (!element) return defaultValue;

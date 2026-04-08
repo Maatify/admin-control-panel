@@ -66,11 +66,14 @@ const roleId = AdminPageBridge.DOM.int('#role-id');
 const displayName = AdminPageBridge.DOM.value('#display-name', '');
 const isEnabledByValue = AdminPageBridge.DOM.bool('#is-enabled-input', false);
 const isChecked = AdminPageBridge.DOM.checked('#is-active-checkbox', false);
+AdminPageBridge.DOM.setValue('#display-name', 'Support Agent');
+AdminPageBridge.DOM.setValue('#is-active-checkbox', true);
 ```
 
 `DOM.bool()` vs `DOM.checked()`:
 - `DOM.checked()` reads the checkbox `.checked` state directly (`true/false`).
 - `DOM.bool()` reads an element value and normalizes string/number forms such as `"1"`, `"true"`, `"yes"`, `1`.
+- `DOM.setValue()` writes values safely for inputs/textarea/select and supports checkbox normalization and multi-select arrays.
 
 Both DOM helpers support scoped lookup via options:
 
