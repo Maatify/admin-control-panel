@@ -6,6 +6,21 @@
 
 ---
 
+## 🧭 **Authority Alignment (Reinforcement Only)**
+
+This document reinforces standards language. It does not replace policy ownership.
+
+Primary authority remains:
+- `UI_EXECUTION_RULES.md` for startup order, anti-guessing, and classification
+- `TWIG_TEMPLATE_STANDARDS.md` for Twig mounting contract details
+
+Terminology guard:
+- "Standard" means default-priority path validated by runtime-first authority.
+- Transitional/compatibility/legacy patterns may exist, but are not equal starting options.
+- `*-v2.js` naming alone does not grant default-priority status.
+
+---
+
 ## 🎯 **Purpose**
 
 This document defines **mandatory standards** for any new feature in the system, based on best practices from the `languages_list` implementation.
@@ -63,7 +78,7 @@ Use when the feature is read-only with filtering, or has at most 1–2 simple ac
 |---------|-----------|----------------|---------|
 | A — Simple | Template + JS | `{feature}.twig` + `{feature}.js` | `sessions.twig` + `sessions.js` |
 | B — Modular | Template | `{feature}_list.twig` | `languages_list.twig` |
-| B — Modular | Core JS | `{feature}-core.js` or `{feature}-with-components.js` | `languages-with-components.js` |
+| B — Modular | Core JS | `{feature}-core.js` / `{feature}-with-components.js` / runtime `*-v2.js` equivalent | `languages-with-components-v2.js` |
 | B — Modular | Modals | `{feature}-modals.js` | `languages-modals.js` |
 | B — Modular | Actions | `{feature}-actions.js` | `languages-actions.js` |
 | B — Modular | Helpers | `{feature}-helpers.js` | `languages-helpers.js` |

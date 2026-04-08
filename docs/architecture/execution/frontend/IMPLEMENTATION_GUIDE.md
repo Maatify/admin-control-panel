@@ -6,6 +6,25 @@
 
 ---
 
+## Runtime-First Startup Reminder (Mandatory)
+
+Before using this guide's implementation phases, complete this runtime-first read order:
+
+1. `public/assets/maatify/admin-kernel/js/admin-page-bridge.js`
+2. `public/assets/maatify/admin-kernel/js/ADMIN_PAGE_BRIDGE_USAGE.md`
+3. target feature-family `*-v2.js` files under `public/assets/maatify/admin-kernel/js/pages/**`
+4. mounted Twig page contract under `app/Modules/AdminKernel/Templates/pages/**`
+
+This guide reinforces approved authority. It does not replace policy ownership in:
+- `UI_EXECUTION_RULES.md`
+- `TWIG_TEMPLATE_STANDARDS.md`
+
+Example-priority reminder:
+- Prefer current mounted runtime examples first.
+- Treat older non-v2 examples as transitional/legacy reference unless classification says otherwise.
+
+---
+
 ## 📖 Overview
 
 This guide walks you through creating a **complete admin CRUD feature** following established best practices. By following these steps, you'll create code that:
