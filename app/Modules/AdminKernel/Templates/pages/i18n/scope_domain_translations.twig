@@ -22,6 +22,7 @@
             can_upsert: {{ capabilities.can_upsert ? 'true' : 'false' }},
             can_delete: {{ capabilities.can_delete ? 'true' : 'false' }}
         };
+        window.scopeDomainTranslationsTableContainerId = 'translations-table-container';
 
         console.log('🌍 Scope Domain Translations Context:', window.i18nScopeDomainTranslationsContext);
         console.log('🔐 Capabilities:', window.ScopeDomainTranslationsCapabilities);
@@ -334,6 +335,10 @@
     {# ✨ Project-wide reusable UI components library #}
     <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
 
-    {# 🌐 Translations modular scripts #}
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n_scope_domain_translations.js') }}"></script>
+    {# 🧩 V2 bridge + i18n helper #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-page-bridge.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n-helpers-v2.js') }}"></script>
+
+    {# 🌐 Translations v2 script #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n_scope_domain_translations-v2.js') }}"></script>
 {% endblock %}
