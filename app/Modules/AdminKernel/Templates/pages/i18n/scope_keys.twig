@@ -326,6 +326,10 @@
     {# ✨ Project-wide reusable UI components library #}
     <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
 
-    {# 🌐 Scope Keys modular scripts #}
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n_scope_keys.js') }}"></script>
+    {# 🧩 V2 bridge + i18n helper #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-page-bridge.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n-helpers-v2.js') }}"></script>
+
+    {# 🌐 Scope Keys v2 script #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n_scope_keys-v2.js') }}"></script>
 {% endblock %}
