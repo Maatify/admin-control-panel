@@ -92,6 +92,7 @@
     window.I18nHelpersV2 = {
         withTableContainerTarget,
         createResetPageReload,
+        bindResetPageReload: createResetPageReload,
         bindTableActionState,
         wireModalDismiss
     };

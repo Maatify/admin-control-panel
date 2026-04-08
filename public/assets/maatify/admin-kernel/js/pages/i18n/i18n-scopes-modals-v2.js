@@ -23,6 +23,7 @@
     }
 
     const Bridge = window.AdminPageBridge;
+    const Helpers = window.I18nHelpersV2 || null;
     const ApiHandler = {
         call: function(endpoint, payload, operation) {
             return Bridge.API.execute({
@@ -588,6 +589,15 @@
     // ========================================================================
 
     function setupModalCloseHandlers() {
+        if (Helpers?.wireModalDismiss) {
+            Helpers.wireModalDismiss('#create-scope-modal');
+            Helpers.wireModalDismiss('#change-code-modal');
+            Helpers.wireModalDismiss('#update-metadata-modal');
+            Helpers.wireModalDismiss('#update-sort-modal');
+            console.log('✅ Modal close handlers setup complete');
+            return;
+        }
+
         document.querySelectorAll('.close-modal').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const modal = e.target.closest('.fixed');

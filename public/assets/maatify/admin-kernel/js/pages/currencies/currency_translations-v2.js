@@ -182,7 +182,9 @@
       Bridge.Modal.close(modal);
     }
 
-    if (modal) {
+    if (Helpers?.setupModalCloseHandlers) {
+      Helpers.setupModalCloseHandlers();
+    } else if (modal) {
       modal.querySelectorAll('.close-modal').forEach(function(btn) {
         btn.addEventListener('click', closeEditModal);
       });

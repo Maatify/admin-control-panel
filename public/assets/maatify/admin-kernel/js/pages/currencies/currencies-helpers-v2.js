@@ -148,6 +148,7 @@
         setupModalCloseHandlers,
         clearFormInputs,
         setFormDisabled,
+        createResetPageReload: bindResetPageReload,
         bindResetPageReload,
         bindTableActionState,
         isValidCurrencyCode,

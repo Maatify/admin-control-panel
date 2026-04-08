@@ -118,6 +118,7 @@
         hideElement,
         toggleElement,
         createResetPageReload: I18nHelpers.createResetPageReload,
+        bindResetPageReload: I18nHelpers.createResetPageReload,
         bindTableActionState: I18nHelpers.bindTableActionState,
         withTableContainerTarget: I18nHelpers.withTableContainerTarget,
         wireModalDismiss: I18nHelpers.wireModalDismiss

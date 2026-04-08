@@ -91,6 +91,7 @@
     window.ContentDocumentHelpersV2 = {
         withTableContainerTarget,
         createResetPageReload,
+        bindResetPageReload: createResetPageReload,
         bindTableActionState,
         wireModalDismiss
     };
