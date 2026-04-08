@@ -251,8 +251,12 @@
             total: domains.length
         };
 
+        const tableRenderer = (typeof TableComponent === 'function')
+            ? TableComponent
+            : (typeof window.TableComponent === 'function' ? window.TableComponent : null);
+
         // Render table
-        if (typeof TableComponent === 'function') {
+        if (tableRenderer) {
             // Hijack the global table-container ID temporarily for TableComponent
             // This is a workaround because TableComponent hardcodes #table-container
             const originalTableContainer = document.getElementById('table-container');
@@ -266,7 +270,7 @@
             container.id = 'table-container';
 
             try {
-                TableComponent(
+                tableRenderer(
                     domains,
                     headers,
                     rows,
@@ -299,6 +303,9 @@
             }
         } else {
             console.error('❌ TableComponent not found');
+            renderErrorState(container, {
+                error: 'Table runtime is unavailable. Please refresh the page and try again.'
+            });
         }
     }
 
