@@ -171,15 +171,14 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        const searchInput = document.getElementById('keys-search-global');
-        if (searchInput) {
-            searchInput.addEventListener('keypress', function(event) {
-                if (event.key !== 'Enter') return;
-                if (event.target && event.target.closest('form')) return;
-                event.preventDefault();
-                resetPageAndReload(event);
-            });
-        }
+        Bridge.Events.bindEnterAction({
+            input: '#keys-search-global',
+            onEnter: function(_, ctx) {
+                resetPageAndReload(ctx.event);
+            },
+            ignoreInsideForm: true,
+            preventDefault: true
+        });
 
         Helpers.bindTableActionState({
             getState: function() { return { page: currentPage, perPage: currentPerPage }; },
@@ -188,6 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentPerPage = state.perPage ?? currentPerPage;
             },
             buildParams: buildParams,
+            sourceContainerId: containerId,
             reload: loadTable
         });
     }

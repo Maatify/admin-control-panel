@@ -143,15 +143,16 @@
         const searchBtn = document.getElementById('content-document-types-search-btn');
         if (searchBtn) searchBtn.addEventListener('click', resetPageAndReload);
 
+        Bridge.Events.bindEnterAction({
+            input: '#content-document-types-search',
+            onEnter: function(_, ctx) {
+                resetPageAndReload(ctx.event);
+            },
+            ignoreInsideForm: true,
+            preventDefault: true
+        });
+
         const searchInput = document.getElementById('content-document-types-search');
-        if (searchInput) {
-            searchInput.addEventListener('keypress', function(e) {
-                if (e.key !== 'Enter') return;
-                if (e.target && e.target.closest('form')) return;
-                e.preventDefault();
-                resetPageAndReload(e);
-            });
-        }
 
         const clearBtn = document.getElementById('content-document-types-clear-search');
         if (clearBtn) {
@@ -163,6 +164,7 @@
 
         Helpers.bindTableActionState({
             buildParams,
+            sourceContainerId: tableContainerId,
             getState: function() { return { page: currentPage, perPage: currentPerPage }; },
             setState: function(state) {
                 currentPage = state.page ?? currentPage;

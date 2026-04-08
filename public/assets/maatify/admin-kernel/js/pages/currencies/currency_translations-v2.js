@@ -272,14 +272,14 @@
       onFire: resetPageAndReload
     });
 
-    const globalSearchInput = document.getElementById('translations-search-global');
-    if (globalSearchInput) {
-      globalSearchInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-          resetPageAndReload(e);
-        }
-      });
-    }
+    Bridge.Events.bindEnterAction({
+      input: '#translations-search-global',
+      onEnter: function(_, ctx) {
+        resetPageAndReload(ctx.event);
+      },
+      ignoreInsideForm: false,
+      preventDefault: true
+    });
 
     const hasTranslationSelect = document.getElementById('filter-has-translation');
     if (hasTranslationSelect) {
@@ -288,6 +288,7 @@
 
     Helpers.bindTableActionState({
       getParams: buildParams,
+      sourceContainerId: containerId,
       getState: function() { return { page: currentPage, perPage: currentPerPage }; },
       setState: function(state) {
         currentPage = state.page ?? currentPage;

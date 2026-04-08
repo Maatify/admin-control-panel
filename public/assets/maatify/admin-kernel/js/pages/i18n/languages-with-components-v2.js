@@ -322,15 +322,14 @@
         const searchButton = document.getElementById('languages-search-btn');
         if (searchButton) searchButton.addEventListener('click', resetPageAndReload);
 
-        const globalSearchInput = document.getElementById('languages-search');
-        if (globalSearchInput) {
-            globalSearchInput.addEventListener('keypress', function(e) {
-                if (e.key !== 'Enter') return;
-                if (e.target && e.target.closest('form')) return;
-                e.preventDefault();
-                resetPageAndReload(e);
-            });
-        }
+        Bridge.Events.bindEnterAction({
+            input: '#languages-search',
+            onEnter: function(_, ctx) {
+                resetPageAndReload(ctx.event);
+            },
+            ignoreInsideForm: true,
+            preventDefault: true
+        });
 
         const clearButton = document.getElementById('languages-clear-search');
         if (clearButton) {
@@ -349,6 +348,7 @@
 
         Helpers.bindTableActionState({
             buildParams: buildQueryParams,
+            sourceContainerId: 'table-container',
             getState: function() { return { page: currentPage, perPage: currentPerPage }; },
             setState: function(state) {
                 currentPage = state.page ?? currentPage;

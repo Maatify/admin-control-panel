@@ -45,6 +45,8 @@
         const unbind = Bridge.Table.bindActionState({
             root: cfg.target || document,
             eventName: cfg.eventName || 'tableAction',
+            sourceContainerId: cfg.sourceContainerId,
+            sourceFilter: cfg.sourceFilter,
             getState: getParams,
             setState: function(next, detail, event) {
                 const state = getState() || {};

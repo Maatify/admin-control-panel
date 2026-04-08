@@ -390,15 +390,14 @@
             });
         }
 
-        const searchInput = document.getElementById('scopes-search');
-        if (searchInput) {
-            searchInput.addEventListener('keypress', function(e) {
-                if (e.key !== 'Enter') return;
-                if (e.target && e.target.closest('form')) return;
-                e.preventDefault();
-                resetPageAndReload(e);
-            });
-        }
+        Bridge.Events.bindEnterAction({
+            input: '#scopes-search',
+            onEnter: function(_, ctx) {
+                resetPageAndReload(ctx.event);
+            },
+            ignoreInsideForm: true,
+            preventDefault: true
+        });
 
         Bridge.Events.bindFilterForm({
             form: '#scopes-filter-form',
@@ -412,6 +411,7 @@
 
         Helpers.bindTableActionState({
             buildParams: buildQueryParams,
+            sourceContainerId: 'table-container',
             getState: function() { return { page: currentPage, perPage: currentPerPage }; },
             setState: function(state) {
                 currentPage = state.page ?? currentPage;

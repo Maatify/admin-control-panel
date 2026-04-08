@@ -110,6 +110,8 @@
         return Bridge.Table.bindActionState({
             root: cfg.target || document,
             eventName: cfg.eventName || 'tableAction',
+            sourceContainerId: cfg.sourceContainerId,
+            sourceFilter: cfg.sourceFilter,
             getState: getParams,
             applyOptions: cfg.applyOptions || {},
             setState: function(next, detail, event) {

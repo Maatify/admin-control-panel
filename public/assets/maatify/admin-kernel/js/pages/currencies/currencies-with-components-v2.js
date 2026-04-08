@@ -216,14 +216,16 @@
             onFire: resetPageAndReload
         });
 
+        Bridge.Events.bindEnterAction({
+            input: '#currencies-search',
+            onEnter: function(_, ctx) {
+                resetPageAndReload(ctx.event);
+            },
+            ignoreInsideForm: false,
+            preventDefault: true
+        });
+
         const globalSearchInput = document.getElementById('currencies-search');
-        if (globalSearchInput) {
-            globalSearchInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    resetPageAndReload(e);
-                }
-            });
-        }
 
         const searchBtn = document.getElementById('currencies-search-btn');
         if (searchBtn) searchBtn.addEventListener('click', resetPageAndReload);
@@ -246,6 +248,7 @@
         if (Helpers?.bindTableActionState) {
             Helpers.bindTableActionState({
                 getParams: buildQueryParams,
+                sourceContainerId: 'table-container',
                 getState: function() { return { page: currentPage, perPage: currentPerPage }; },
                 setState: function(state) {
                     currentPage = state.page ?? currentPage;
