@@ -163,7 +163,7 @@ In the rare case of a genuine conflict:
 
 2. **Execution rules always apply** for implementation decisions:
    - Which JS pattern to use
-   - How to call ApiHandler.call()
+   - How API calls are orchestrated in the active runtime path (bridge/helper vs legacy direct handlers)
    - Where capabilities go in Twig
    - How pagination works
 
@@ -229,7 +229,9 @@ You MUST explicitly select a physical reference file as your Source of Truth. Yo
 Before outputting any code, you MUST output a block titled **`EVIDENCE OF DESIGN ALIGNMENT`**. This block must state the physical reference file used, the outcome of the Conflict Matrix evaluation, and the exact classification of any discrepancies (CONFLICT, REALITY OVERRIDE, or ACCEPTABLE VARIATION). Outputting code without this block is a critical failure.
 
 **Step 1 — Pattern**
-Read `IMPLEMENTATION_CHECKLIST.md` → Step 1. Choose: A / B / C / D.
+Read `IMPLEMENTATION_CHECKLIST.md` and identify the active runtime path:
+- v2-active pages: use bridge-first orchestration + family helper seam.
+- legacy/hybrid pages: follow legacy pattern only when that runtime is still the real active path.
 
 **Step 2 — Twig Structure**
 Read `TWIG_TEMPLATE_STANDARDS.md`. Confirm block structure and script loading order.
@@ -239,11 +241,15 @@ Read `JS_PATTERNS_REFERENCE.md`. Use the copy-ready template for the chosen patt
 
 **Step 4 — Table Mechanism**
 Read `DATA_TABLE_DOCUMENTATION.md` → Section 3.
-Choose: `createTable()` / `ApiHandler.call() + TableComponent()` / manual GET render.
+Choose the mechanism that matches the active runtime path:
+- v2-active: bridge table orchestration path (`AdminPageBridge.Table.*`) with scoped `tableAction` handling.
+- legacy/hybrid: `createTable()` / `ApiHandler.call() + TableComponent()` / manual GET render, as required by reality and contract.
 
 **Step 5 — API Signature**
 Read `API_HANDLER_DOCUMENTATION.md`.
-Confirm: `ApiHandler.call(endpoint, payload, 'Label', method?)` — 4 parameters.
+Confirm API execution path for the active runtime:
+- v2-active: prefer `AdminPageBridge.API.execute(...)` / `AdminPageBridge.API.runMutation(...)`.
+- legacy/hybrid: `ApiHandler.call(endpoint, payload, 'Label', method?)` — 4 parameters.
 
 **Step 6 — Mistake Check**
 Read `COMMON_MISTAKES.md`. Verify none of the 12 mistakes appear in the planned implementation.
@@ -274,7 +280,10 @@ Answer: ___
 
 **Q2 — Pattern**
 Which JS pattern applies to this feature?
-Must be one of: A / B / C / D
+Must classify runtime path first:
+- `v2 bridge-first` (default in v2-active families)
+- `legacy/hybrid` (only when confirmed by reality)
+If `legacy/hybrid`, then select A / B / C / D as needed.
 Source: `IMPLEMENTATION_CHECKLIST.md` → Step 1
 
 Answer: ___
@@ -284,9 +293,10 @@ Answer: ___
 **Q3 — Table Mechanism**
 Which table mechanism will be used?
 Must be exactly one of:
-- `createTable()` — POST paginated endpoint
-- `ApiHandler.call() + TableComponent()` — POST with custom error handling
-- `ApiHandler.call(..., 'GET') + manual HTML` — GET non-paginated endpoint
+- `AdminPageBridge.Table` orchestration path (v2-active runtime, scoped table handling)
+- `createTable()` — POST paginated endpoint (legacy/hybrid runtime)
+- `ApiHandler.call() + TableComponent()` — POST with custom error handling (legacy/hybrid runtime)
+- `ApiHandler.call(..., 'GET') + manual HTML` — GET non-paginated endpoint (legacy/hybrid runtime)
 
 Source: `DATA_TABLE_DOCUMENTATION.md` → Section 3
 
@@ -297,6 +307,7 @@ Answer: ___
 **Q4 — Alert Function**
 Which alert function will be used?
 Must be exactly one of:
+- `AdminPageBridge.UI.success/error/warning/info` — preferred in v2-active runtime
 - `showAlert('s'/'w'/'d', msg)` — when api_handler.js is NOT in the script list
 - `ApiHandler.showAlert('success'/'danger'/'warning'/'info', msg)` — when api_handler.js IS loaded
 
@@ -334,8 +345,8 @@ Answer: ___
 **Q8 — Table Reload After Mutation**
 How does the table refresh after a successful mutation?
 Must reference:
-- `window.reload{Feature}Table?.()` called in the actions module
-- `window.reload{Feature}Table = () => load{Feature}(currentPage, currentPerPage)` exported from core module
+- v2-active path: bridge/family-helper reload orchestration (`AdminPageBridge.Table.reload(...)`) and project reload hook conventions.
+- legacy/hybrid path: `window.reload{Feature}Table?.()` called in actions + `window.reload{Feature}Table = () => load{Feature}(currentPage, currentPerPage)` exported from core module.
 
 Answer: ___
 
@@ -512,25 +523,23 @@ If a contract exists in `docs/API/`:
 
 #### 11. JavaScript Architecture
 
-| Pattern | When | Files |
-|---------|------|-------|
-| A — Simple Monolith | Read-only, ≤2 actions, <400 lines | 1 file |
-| B — Modular | CRUD, modals, multiple actions | `-core.js`, `-modals.js`, `-actions.js`, `-helpers.js` |
-| C — GET Static List | Flat array, no pagination, GET endpoint | 1 IIFE file |
-| D — Context-Driven | Needs parent IDs from route | 1 file + context object |
-
-- Pattern B modules MUST be wrapped in IIFE: `(function() { 'use strict'; ... })()`.
-- Pattern A is VALID — NOT deprecated.
+- v2-active baseline: bridge-first orchestration is canonical.
+- Use a family-local helper seam for feature logic and table/state orchestration.
+- Choose smallest-safe-v2-shape by complexity (do not force `core/modals/actions` split by default).
+- Legacy A/B/C/D patterns remain compatibility paths for confirmed legacy/hybrid runtimes; they are not equal-default guidance for v2-active pages.
 
 #### 12. API Integration
-- ALL API calls MUST use `ApiHandler.call(endpoint, payload, 'Label', method?)`.
+- v2-active runtime: prefer `AdminPageBridge.API.execute(...)` and `AdminPageBridge.API.runMutation(...)`.
+- legacy/hybrid runtime: `ApiHandler.call(endpoint, payload, 'Label', method?)` remains valid.
 - MUST NOT use `fetch()` / `axios` for JSON APIs.
 - MUST NOT prepend `/api/` to endpoints.
 
 #### 13. Table System
-- POST paginated → `createTable()`.
-- POST + custom error → `ApiHandler.call() + TableComponent()`.
-- GET non-paginated → `ApiHandler.call(..., 'GET')` + manual HTML. `createTable()` FORBIDDEN.
+- v2-active runtime: use `AdminPageBridge.Table` orchestration (`applyActionParams`, `bindActionState`, `withTargetContainer`, `reload`) with scoped `tableAction` handling.
+- legacy/hybrid runtime:
+  - POST paginated → `createTable()`.
+  - POST + custom error → `ApiHandler.call() + TableComponent()`.
+  - GET non-paginated → `ApiHandler.call(..., 'GET')` + manual HTML. `createTable()` FORBIDDEN.
 - If a new UI feature is requested to mimic a standard system table but the target backend endpoint is non-paginated, the agent MUST detect this mismatch and MUST NOT silently downgrade the UI to a manual HTML render. The agent MUST STOP execution and report the mismatch clearly before any further action.
 - Pagination → `document.addEventListener('tableAction', ...)`.
 - `window.changePage()` / `window.changePerPage()` — NOT called by `data_table.js`. Do NOT rely on them.
@@ -546,22 +555,27 @@ If a contract exists in `docs/API/`:
 - MUST NOT render actions if capability is `false`.
 
 #### 16. UI State Sync
-- After mutation: `window.reload{Feature}Table?.()`.
-- `window.reload{Feature}Table` MUST be exported from core module.
+- v2-active runtime: use bridge/family-helper reload orchestration; keep project reload hook conventions.
+- legacy/hybrid runtime: after mutation use `window.reload{Feature}Table?.()` and export `window.reload{Feature}Table` from core module.
 - Manual DOM patching FORBIDDEN.
 
 #### 17. Alert System
-- Pattern A: `showAlert('s'/'w'/'d', msg)`.
-- Pattern B/C/D: `ApiHandler.showAlert('success'/'danger'/'warning'/'info', msg)`.
+- v2-active runtime: use `AdminPageBridge.UI.success/error/warning/info`.
+- legacy/hybrid runtime:
+  - Pattern A: `showAlert('s'/'w'/'d', msg)`.
+  - Pattern B/C/D: `ApiHandler.showAlert('success'/'danger'/'warning'/'info', msg)`.
 - Native `alert()` FORBIDDEN.
 
 #### 18. Twig Structure
 - `{% block scripts %}` — JS file tags ONLY.
 - Inline `<script>` for capabilities/context — inside `{% block content %}`.
-- Table container — exactly `<div id="table-container">`.
+- Table container contract is two-tier:
+  - Default/simple: `<div id="table-container">`
+  - Non-default/scoped: explicit runtime container global from Twig consumed by JS
 
 #### 19. XSS Protection
-- `escapeHtml()` MUST be defined and used in every renderer.
+- v2-active runtime: use `AdminPageBridge.Text.escapeHtml(...)`.
+- legacy/hybrid runtime: local `escapeHtml()` helper is valid.
 
 #### 20. File Upload Architecture
 - No Base64 in JSON payloads.
