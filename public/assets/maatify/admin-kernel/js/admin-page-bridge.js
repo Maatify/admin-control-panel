@@ -794,20 +794,25 @@
                 }
             }
 
-            try {
-                if (defaultContainer && defaultContainer !== targetContainer) {
-                    defaultContainer.id = swappedPlaceholder;
-                }
-                targetContainer.id = 'table-container';
-                const output = callback(targetContainer);
-                if (output && typeof output.then === 'function' && typeof output.finally === 'function') {
-                    return output.finally(restoreIds);
-                }
-                restoreIds();
-                return output;
-            } finally {
-                restoreIds();
+            if (defaultContainer && defaultContainer !== targetContainer) {
+                defaultContainer.id = swappedPlaceholder;
             }
+            targetContainer.id = 'table-container';
+
+            let output;
+            try {
+                output = callback(targetContainer);
+            } catch (error) {
+                restoreIds();
+                throw error;
+            }
+
+            if (output && typeof output.then === 'function' && typeof output.finally === 'function') {
+                return output.finally(restoreIds);
+            }
+
+            restoreIds();
+            return output;
         },
 
         reload(handler) {
