@@ -241,15 +241,13 @@ Read `JS_PATTERNS_REFERENCE.md`. Use the copy-ready template for the chosen patt
 
 **Step 4 — Table Mechanism**
 Read `DATA_TABLE_DOCUMENTATION.md` → Section 3.
-Choose the mechanism that matches the active runtime path:
-- v2-active: bridge table orchestration path (`AdminPageBridge.Table.*`) with scoped `tableAction` handling.
-- legacy/hybrid: `createTable()` / `ApiHandler.call() + TableComponent()` / manual GET render, as required by reality and contract.
+Choose the mechanism that matches the active runtime path and feature contract.
+Use the canonical table decision policy from `DATA_TABLE_DOCUMENTATION.md`; do not invent alternative paths.
 
 **Step 5 — API Signature**
 Read `API_HANDLER_DOCUMENTATION.md`.
-Confirm API execution path for the active runtime:
-- v2-active: prefer `AdminPageBridge.API.execute(...)` / `AdminPageBridge.API.runMutation(...)`.
-- legacy/hybrid: `ApiHandler.call(endpoint, payload, 'Label', method?)` — 4 parameters.
+Confirm API execution path for the active runtime using canonical frontend rules.
+Do not mix bridge-first and legacy API paths in the same flow unless compatibility requires it.
 
 **Step 6 — Mistake Check**
 Read `COMMON_MISTAKES.md`. Verify none of the 12 mistakes appear in the planned implementation.
@@ -280,10 +278,7 @@ Answer: ___
 
 **Q2 — Pattern**
 Which JS pattern applies to this feature?
-Must classify runtime path first:
-- `v2 bridge-first` (default in v2-active families)
-- `legacy/hybrid` (only when confirmed by reality)
-If `legacy/hybrid`, then select A / B / C / D as needed.
+Must classify runtime path first (`v2 bridge-first` vs `legacy/hybrid`) and answer consistently with `IMPLEMENTATION_CHECKLIST.md`.
 Source: `IMPLEMENTATION_CHECKLIST.md` → Step 1
 
 Answer: ___
@@ -292,11 +287,7 @@ Answer: ___
 
 **Q3 — Table Mechanism**
 Which table mechanism will be used?
-Must be exactly one of:
-- `AdminPageBridge.Table` orchestration path (v2-active runtime, scoped table handling)
-- `createTable()` — POST paginated endpoint (legacy/hybrid runtime)
-- `ApiHandler.call() + TableComponent()` — POST with custom error handling (legacy/hybrid runtime)
-- `ApiHandler.call(..., 'GET') + manual HTML` — GET non-paginated endpoint (legacy/hybrid runtime)
+Must match the canonical decision policy in `DATA_TABLE_DOCUMENTATION.md` and the selected runtime path.
 
 Source: `DATA_TABLE_DOCUMENTATION.md` → Section 3
 
@@ -306,10 +297,7 @@ Answer: ___
 
 **Q4 — Alert Function**
 Which alert function will be used?
-Must be exactly one of:
-- `AdminPageBridge.UI.success/error/warning/info` — preferred in v2-active runtime
-- `showAlert('s'/'w'/'d', msg)` — when api_handler.js is NOT in the script list
-- `ApiHandler.showAlert('success'/'danger'/'warning'/'info', msg)` — when api_handler.js IS loaded
+Must match the selected runtime path and script stack (bridge-first vs legacy/hybrid) exactly.
 
 Source: `IMPLEMENTATION_CHECKLIST.md` → Step 3
 
@@ -345,8 +333,7 @@ Answer: ___
 **Q8 — Table Reload After Mutation**
 How does the table refresh after a successful mutation?
 Must reference:
-- v2-active path: bridge/family-helper reload orchestration (`AdminPageBridge.Table.reload(...)`) and project reload hook conventions.
-- legacy/hybrid path: `window.reload{Feature}Table?.()` called in actions + `window.reload{Feature}Table = () => load{Feature}(currentPage, currentPerPage)` exported from core module.
+- the runtime-consistent reload path (bridge/helper orchestration in v2-active flows, legacy reload hook export/call in legacy-hybrid flows).
 
 Answer: ___
 
@@ -523,23 +510,19 @@ If a contract exists in `docs/API/`:
 
 #### 11. JavaScript Architecture
 
-- v2-active baseline: bridge-first orchestration is canonical.
-- Use a family-local helper seam for feature logic and table/state orchestration.
-- Choose smallest-safe-v2-shape by complexity (do not force `core/modals/actions` split by default).
-- Legacy A/B/C/D patterns remain compatibility paths for confirmed legacy/hybrid runtimes; they are not equal-default guidance for v2-active pages.
+- Enforce canonical architecture from `UI_EXECUTION_RULES.md`:
+  - v2-active baseline is bridge-first + family helper seam + smallest-safe-v2-shape.
+  - legacy A/B/C/D are compatibility paths only when legacy/hybrid runtime is confirmed.
 
 #### 12. API Integration
-- v2-active runtime: prefer `AdminPageBridge.API.execute(...)` and `AdminPageBridge.API.runMutation(...)`.
-- legacy/hybrid runtime: `ApiHandler.call(endpoint, payload, 'Label', method?)` remains valid.
+- Enforce canonical API path from `UI_EXECUTION_RULES.md`:
+  - v2-active: bridge API wrappers.
+  - legacy/hybrid: legacy handler path.
 - MUST NOT use `fetch()` / `axios` for JSON APIs.
 - MUST NOT prepend `/api/` to endpoints.
 
 #### 13. Table System
-- v2-active runtime: use `AdminPageBridge.Table` orchestration (`applyActionParams`, `bindActionState`, `withTargetContainer`, `reload`) with scoped `tableAction` handling.
-- legacy/hybrid runtime:
-  - POST paginated → `createTable()`.
-  - POST + custom error → `ApiHandler.call() + TableComponent()`.
-  - GET non-paginated → `ApiHandler.call(..., 'GET')` + manual HTML. `createTable()` FORBIDDEN.
+- Enforce canonical table orchestration from `DATA_TABLE_DOCUMENTATION.md` and `UI_EXECUTION_RULES.md` according to runtime path.
 - If a new UI feature is requested to mimic a standard system table but the target backend endpoint is non-paginated, the agent MUST detect this mismatch and MUST NOT silently downgrade the UI to a manual HTML render. The agent MUST STOP execution and report the mismatch clearly before any further action.
 - Pagination → `document.addEventListener('tableAction', ...)`.
 - `window.changePage()` / `window.changePerPage()` — NOT called by `data_table.js`. Do NOT rely on them.
@@ -555,27 +538,20 @@ If a contract exists in `docs/API/`:
 - MUST NOT render actions if capability is `false`.
 
 #### 16. UI State Sync
-- v2-active runtime: use bridge/family-helper reload orchestration; keep project reload hook conventions.
-- legacy/hybrid runtime: after mutation use `window.reload{Feature}Table?.()` and export `window.reload{Feature}Table` from core module.
+- Reload behavior MUST follow canonical runtime path rules (bridge/helper orchestration in v2-active flows; explicit reload hook export/call in legacy/hybrid flows).
 - Manual DOM patching FORBIDDEN.
 
 #### 17. Alert System
-- v2-active runtime: use `AdminPageBridge.UI.success/error/warning/info`.
-- legacy/hybrid runtime:
-  - Pattern A: `showAlert('s'/'w'/'d', msg)`.
-  - Pattern B/C/D: `ApiHandler.showAlert('success'/'danger'/'warning'/'info', msg)`.
+- Alert path MUST follow canonical runtime path rules from `UI_EXECUTION_RULES.md` (bridge UI in v2-active, legacy alert path only where required).
 - Native `alert()` FORBIDDEN.
 
 #### 18. Twig Structure
 - `{% block scripts %}` — JS file tags ONLY.
 - Inline `<script>` for capabilities/context — inside `{% block content %}`.
-- Table container contract is two-tier:
-  - Default/simple: `<div id="table-container">`
-  - Non-default/scoped: explicit runtime container global from Twig consumed by JS
+- Table container contract MUST follow the two-tier policy defined in `TWIG_TEMPLATE_STANDARDS.md`.
 
 #### 19. XSS Protection
-- v2-active runtime: use `AdminPageBridge.Text.escapeHtml(...)`.
-- legacy/hybrid runtime: local `escapeHtml()` helper is valid.
+- XSS escaping MUST follow canonical runtime path rules (`UI_EXECUTION_RULES.md`).
 
 #### 20. File Upload Architecture
 - No Base64 in JSON payloads.

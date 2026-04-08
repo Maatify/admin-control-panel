@@ -53,6 +53,22 @@ In the entry module:
 - Escape all user-sourced text with `Bridge.Text.escapeHtml`.
 - Export a `window.reload{Feature}Table` hook for mutation flows.
 
+Compact v2 mini example:
+```javascript
+const Bridge = window.AdminPageBridge;
+const Helper = window.RolesHelper;
+const tableContainerId = window.rolesTableContainerId || 'table-container';
+
+window.reloadRolesTable = () => loadRoles();
+
+async function loadRoles() {
+  const result = await Bridge.API.execute({ endpoint: 'roles/query', payload: {}, operation: 'Load Roles' });
+  if (!result.success) return;
+  Bridge.Table.withTargetContainer(tableContainerId, () => createTable('roles/query', {}, headers, rows));
+}
+```
+For a fuller template, use `JS_PATTERNS_REFERENCE.md`.
+
 ---
 
 ## 5) Pagination and event scoping

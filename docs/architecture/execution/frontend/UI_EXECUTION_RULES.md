@@ -49,6 +49,7 @@ In `{% block scripts %}`:
   - `I18nHelpersV2.withTableContainerTarget(...)`
   - `I18nHelpersV2.bindTableActionState(...)`
   - `I18nHelpersV2.createResetPageReload(...)`
+- Note: helper names above are illustrative examples of the required family-local helper pattern; use the equivalent helper names for the active feature family.
 - Avoid broad unscoped `document.addEventListener('tableAction', ...)` in new/edited v2 pages.
 
 ---

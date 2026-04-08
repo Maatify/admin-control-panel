@@ -37,6 +37,17 @@ Do not bypass bridge/helper seam in new/edited v2 pages when scoped orchestratio
 - `tableAction` payload includes source metadata (`tableContainerId`).
 - Canonical handling for v2 pages is scoped binding via helper/bridge (`bindTableActionState` + source container filtering), not broad global listeners.
 
+Example (scoped listener):
+```javascript
+document.addEventListener('tableAction', (event) => {
+  const { action, value, tableContainerId } = event.detail || {};
+  if (tableContainerId !== state.tableContainerId) return;
+  if (action === 'pageChange') state.page = value;
+  if (action === 'perPageChange') { state.per_page = value; state.page = 1; }
+  reloadTable();
+});
+```
+
 ---
 
 ## 5. Container Contract Alignment
@@ -45,6 +56,13 @@ Do not bypass bridge/helper seam in new/edited v2 pages when scoped orchestratio
 - Tier B (non-default): Twig injects explicit container-id global; page module uses helper-targeting wrapper.
 
 This must be aligned with Twig standards and UI execution rules.
+
+Example (non-default container targeting):
+```javascript
+AdminPageBridge.Table.withTargetContainer(window.rolesTableContainerId, () => {
+  createTable('roles/query', params, headers, rows, false, 'id');
+});
+```
 
 ---
 
