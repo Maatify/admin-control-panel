@@ -557,6 +557,10 @@
         loadLanguages(1, perPage);
     };
 
+    window.reloadLanguagesTableV2 = function() {
+        return loadLanguages(currentPage, currentPerPage);
+    };
+
     window.languagesDebugV2 = {
         loadLanguages: loadLanguages,
         buildQueryParams: buildQueryParams

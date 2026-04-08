@@ -256,15 +256,22 @@
                 },
                 reload: function() { return loadCurrencies(currentPage, currentPerPage); }
             });
-        } else {
-            document.addEventListener('tableAction', function(e) {
-                const detail = e.detail || {};
-                const next = Bridge.Table.applyActionParams(buildQueryParams(), { action: detail.action, value: detail.value });
+            return;
+        }
+
+        Bridge.Table.bindActionState({
+            sourceContainerId: 'table-container',
+            getState: function() {
+                return buildQueryParams();
+            },
+            setState: function(next) {
                 currentPage = next.page ?? currentPage;
                 currentPerPage = next.per_page ?? currentPerPage;
-                loadCurrencies(currentPage, currentPerPage);
-            });
-        }
+            },
+            reload: function() {
+                return loadCurrencies(currentPage, currentPerPage);
+            }
+        });
     }
 
     function init() {

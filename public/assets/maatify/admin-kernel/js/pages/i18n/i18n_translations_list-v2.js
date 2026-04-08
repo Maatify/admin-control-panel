@@ -424,8 +424,9 @@
         bindEvents();
         loadTranslations();
 
-        window.reloadTranslationsTable = function() {
+        window.reloadLanguageTranslationsTableV2 = function() {
             return loadTranslations();
         };
+        window.reloadTranslationsTable = window.reloadLanguageTranslationsTableV2;
     });
 })();
