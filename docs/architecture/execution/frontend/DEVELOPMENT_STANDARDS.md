@@ -150,6 +150,8 @@ Use when the feature is read-only with filtering, or has at most 1–2 simple ac
 
 ### ✅ **Required Structure**
 
+> Authority re-anchor: for contradiction-sensitive Twig mount rules, `TWIG_TEMPLATE_STANDARDS.md` is authoritative. This section is reinforcement only and must follow that ownership.
+
 ```twig
 {% extends "layouts/base.twig" %}
 
@@ -159,7 +161,29 @@ Use when the feature is read-only with filtering, or has at most 1–2 simple ac
 
 {% block content %}
     {# ============================================================
-       1️⃣ Page Header + Breadcrumb
+       1️⃣ Capabilities Injection (MANDATORY)
+       - MUST be first element inside {% block content %}
+       ============================================================ #}
+    {#
+       📌 CRITICAL RULES:
+       - Twig MUST NOT check permissions by name
+       - JavaScript MUST NOT infer authorization
+       - Backend capabilities are the single UI contract
+       - API authorization is always enforced server-side
+    #}
+    <script>
+        window.{feature}Capabilities = {
+            can_create        : {{ capabilities.can_create         ?? false ? 'true' : 'false' }},
+            can_update        : {{ capabilities.can_update         ?? false ? 'true' : 'false' }},
+            can_delete        : {{ capabilities.can_delete         ?? false ? 'true' : 'false' }},
+            // Add all relevant capabilities here
+        };
+
+        console.log('🔐 {Feature} Capabilities Injected:', window.{feature}Capabilities);
+    </script>
+
+    {# ============================================================
+       2️⃣ Page Header + Breadcrumb
        ============================================================ #}
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
         <h2 class="text-xl font-semibold text-gray-800">
@@ -179,27 +203,6 @@ Use when the feature is read-only with filtering, or has at most 1–2 simple ac
             </ol>
         </nav>
     </div>
-
-    {# ============================================================
-       2️⃣ Capabilities Injection (MANDATORY)
-       ============================================================ #}
-    {# 
-       📌 CRITICAL RULES:
-       - Twig MUST NOT check permissions by name
-       - JavaScript MUST NOT infer authorization
-       - Backend capabilities are the single UI contract
-       - API authorization is always enforced server-side
-    #}
-    <script>
-        window.{feature}Capabilities = {
-            can_create        : {{ capabilities.can_create         ?? false ? 'true' : 'false' }},
-            can_update        : {{ capabilities.can_update         ?? false ? 'true' : 'false' }},
-            can_delete        : {{ capabilities.can_delete         ?? false ? 'true' : 'false' }},
-            // Add all relevant capabilities here
-        };
-        
-        console.log('🔐 {Feature} Capabilities Injected:', window.{feature}Capabilities);
-    </script>
 
     {# ============================================================
        3️⃣ Search & Filters Section
@@ -236,7 +239,7 @@ Use when the feature is read-only with filtering, or has at most 1–2 simple ac
                 </button>
 
                 {# ✅ Capability-based button visibility #}
-                {% if capabilities.can_create %}
+                {% if capabilities.can_create ?? false %}
                     <button type="button" id="btn-create-{feature}"
                             class="ml-auto px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2">
                         <svg>...</svg>
@@ -1365,7 +1368,7 @@ return $twig->render('feature_list.twig', [
 </script>
 
 {# ✅ CORRECT: Show/hide UI based on capability #}
-{% if capabilities.can_create %}
+{% if capabilities.can_create ?? false %}
     <button id="btn-create">Create</button>
 {% endif %}
 
