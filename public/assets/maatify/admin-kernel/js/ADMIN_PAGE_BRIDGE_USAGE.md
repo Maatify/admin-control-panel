@@ -199,7 +199,9 @@ AdminPageBridge.Table.withTargetContainer('i18n-table-container', () => {
 
 Behavior notes:
 - If target does not exist, callback still runs without ID swapping.
-- If target exists, bridge temporarily assigns it `id="table-container"` and restores IDs in `finally`.
+- If target exists, bridge temporarily assigns it `id="table-container"`.
+- For synchronous callbacks, IDs are restored immediately after callback return.
+- For Promise-like callbacks, IDs are restored in `finally(...)` after async work completes.
 
 ### 6) Event delegation helpers
 

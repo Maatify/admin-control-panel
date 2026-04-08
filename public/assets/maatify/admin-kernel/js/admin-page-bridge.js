@@ -783,18 +783,30 @@
             const originalDefaultId = defaultContainer ? defaultContainer.id : null;
             const originalTargetId = targetContainer.id;
             const swappedPlaceholder = '__admin-page-bridge-table-container-original__';
+            let restored = false;
+
+            function restoreIds() {
+                if (restored) return;
+                restored = true;
+                targetContainer.id = originalTargetId;
+                if (defaultContainer && defaultContainer !== targetContainer) {
+                    defaultContainer.id = originalDefaultId || 'table-container';
+                }
+            }
 
             try {
                 if (defaultContainer && defaultContainer !== targetContainer) {
                     defaultContainer.id = swappedPlaceholder;
                 }
                 targetContainer.id = 'table-container';
-                return callback(targetContainer);
-            } finally {
-                targetContainer.id = originalTargetId;
-                if (defaultContainer && defaultContainer !== targetContainer) {
-                    defaultContainer.id = originalDefaultId || 'table-container';
+                const output = callback(targetContainer);
+                if (output && typeof output.then === 'function' && typeof output.finally === 'function') {
+                    return output.finally(restoreIds);
                 }
+                restoreIds();
+                return output;
+            } finally {
+                restoreIds();
             }
         },
 
