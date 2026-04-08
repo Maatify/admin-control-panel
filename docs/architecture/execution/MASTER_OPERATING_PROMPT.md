@@ -215,6 +215,28 @@ Do NOT include this classification in final output.
 
 ### PHASE 1.5 — DESIGN ALIGNMENT (UI/FRONTEND ONLY)
 
+### UI FRONTEND PRE-READ GATE (MANDATORY)
+
+Before any UI implementation choice, the executor MUST complete this runtime pre-read sequence:
+
+1. `public/assets/maatify/admin-kernel/js/admin-page-bridge.js`
+2. `public/assets/maatify/admin-kernel/js/ADMIN_PAGE_BRIDGE_USAGE.md`
+3. target `*-v2.js` files under `public/assets/maatify/admin-kernel/js/pages/**`
+4. mounted Twig page(s) under `app/Modules/AdminKernel/Templates/pages/**`
+
+Then the executor MUST read UI authority docs in this order:
+
+1. `docs/architecture/execution/frontend/UI_EXECUTION_RULES.md`
+2. `docs/architecture/execution/frontend/TWIG_TEMPLATE_STANDARDS.md`
+
+Skipping this gate is a process violation for UI execution work.
+
+### UI Authority Boundary (Concise)
+
+- `UI_EXECUTION_RULES.md` is the policy authority.
+- `TWIG_TEMPLATE_STANDARDS.md` is the Twig mounting authority.
+- `MASTER_OPERATING_PROMPT.md` enforces sequence and cross-references; it does not duplicate detailed frontend policy.
+
 Complete these steps in order before writing any code:
 
 **Step 0 — API Contract (MANDATORY FIRST)**

@@ -4,9 +4,24 @@
 
 ---
 
+## Step -1 — Runtime-First Pre-Read Gate
+
+Complete before Step 0:
+
+- [ ] Read `public/assets/maatify/admin-kernel/js/admin-page-bridge.js`
+- [ ] Read `public/assets/maatify/admin-kernel/js/ADMIN_PAGE_BRIDGE_USAGE.md`
+- [ ] Read target feature-family `*-v2.js` files under `public/assets/maatify/admin-kernel/js/pages/**`
+- [ ] Read mounted Twig page contract under `app/Modules/AdminKernel/Templates/pages/**`
+- [ ] Confirm default-priority path and classification from `UI_EXECUTION_RULES.md`
+
+If this gate is incomplete, do not continue.
+
+---
+
 ## Step 0 — Reference File Selection & Matrix Check
 
 - [ ] Selected Canonical Reference File: `{filepath}`
+- [ ] Path classification selected: Official / Transitional / Compatibility-Only / Legacy
 - [ ] Performed Conflict Matrix against System Rules. Result: `{PASS / STOP}`
 - [ ] Confirmed 3rd-party dependencies (if any) are abstracted to AdminKernel.
 
@@ -67,6 +82,7 @@ Run through every item before submitting. A single unchecked item can cause a si
 
 - [ ] Every modular file is wrapped in an IIFE: `(function() { 'use strict'; ... })()`
 - [ ] Prerequisites check (`AdminUIComponents`, `ApiHandler`, context object) is the first thing in every module
+- [ ] `*-v2.js` presence was reviewed, but default priority was not assumed from filename alone
 - [ ] `escapeHtml()` is defined and used in every renderer that outputs API data
 - [ ] `ApiHandler.showAlert()` is used — not the bare `showAlert()`
 - [ ] `ApiHandler.call(endpoint, payload, 'Descriptive Name', method?)` — 3rd param is a readable label

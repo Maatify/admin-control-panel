@@ -4,14 +4,30 @@
 
 ---
 
+## Runtime Priority and Authority Boundary
+
+This file is a reinforcement reference for JS patterns. It does not override policy ownership.
+
+Before selecting any pattern here, executors MUST complete the runtime-first read path and apply classification/default-priority rules from:
+- `docs/architecture/execution/frontend/UI_EXECUTION_RULES.md`
+- `docs/architecture/execution/frontend/TWIG_TEMPLATE_STANDARDS.md`
+
+Filename warning:
+- `*-v2.js` indicates active runtime surface and MUST be reviewed.
+- `*-v2.js` does NOT automatically mean default-priority standard by filename alone.
+
+Use this file to map implementation shape after authority checks are complete.
+
+---
+
 ## Overview — Four Patterns
 
 | Pattern | When to Use | Real Example |
 |---------|-------------|--------------|
-| **A — Simple Monolith** | Read-only list, basic filtering, 1–2 actions | `sessions.js`, `permissions.js` |
-| **B — Modular + ApiHandler** | Full CRUD, modals, multiple actions per row | `languages-*.js`, `i18n-scopes-*.js`, `i18n-domains-*.js` |
-| **C — GET Static List** | Display flat array, no pagination, report-only | `i18n-scope-coverage.js`, `i18n-scope-language-coverage.js` |
-| **D — Context-Driven** | Page needs parent IDs injected from Twig | `i18n_scope_domain_translations.js`, `i18n_scope_domain_keys_coverage.js` |
+| **A — Simple Monolith** | Read-only list, basic filtering, 1–2 actions | `sessions.js`, `permissions.js` *(legacy reference)* |
+| **B — Modular + ApiHandler** | Full CRUD, modals, multiple actions per row | `languages-with-components-v2.js`, `i18n-domains-core-v2.js`, `currencies-with-components-v2.js` |
+| **C — GET Static List** | Display flat array, no pagination, report-only | `i18n-scope-coverage-v2.js`, `i18n-scope-language-coverage-v2.js` |
+| **D — Context-Driven** | Page needs parent IDs injected from Twig | `i18n_scope_domain_translations-v2.js`, `i18n_scope_domain_keys_coverage-v2.js` |
 
 ---
 

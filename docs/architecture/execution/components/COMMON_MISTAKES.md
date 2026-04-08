@@ -2,6 +2,8 @@
 ## Real Mistakes — Real Fixes
 > Every mistake listed here occurred in actual production code.
 
+> Scope note: this file catalogs recurring implementation errors. It does **not** define startup/mount authority. For runtime-first startup decisions, defer to `UI_EXECUTION_RULES.md` and `TWIG_TEMPLATE_STANDARDS.md`.
+
 ---
 
 ## Quick Reference

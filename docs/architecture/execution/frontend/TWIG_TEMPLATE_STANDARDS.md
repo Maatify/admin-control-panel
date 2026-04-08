@@ -4,6 +4,58 @@
 
 ---
 
+## Twig Runtime Mounting Contract (Authority)
+
+This file is the authority for Twig-side runtime mounting behavior.
+
+Twig mounting MUST be treated as a runtime contract, not optional template decoration.
+
+### Mandatory Twig Contract Elements
+- Capability flags injected into `window.{feature}Capabilities` from server-computed values
+- Runtime context injected into `window.{feature}Context` (or scalar `window.{feature}Id` where appropriate)
+- Mounted container target injected as `window.{feature}TableContainerId` when the runtime uses a non-default table/container target
+- Explicit contract guards:
+  - Twig MUST NOT check permission names directly
+  - JavaScript MUST NOT infer authorization
+
+### Real Mounted Contract Example (Concise)
+```twig
+<script>
+    window.languageTranslationsCapabilities = {
+        can_upsert : {{ capabilities.can_upsert ?? false ? 'true' : 'false' }},
+        can_delete : {{ capabilities.can_delete ?? false ? 'true' : 'false' }}
+    };
+
+    window.languageTranslationsContext = {
+        language_id: {{ language.id }}
+    };
+
+    window.languageTranslationsTableContainerId = 'translations-table-container';
+</script>
+```
+
+This is a representative runtime-contract pattern for mounted, context-driven Twig pages.
+
+### Script-Order Mounting Convention (Twig Context)
+
+When Twig mounts bridge-first runtime pages, script loading MUST stay dependency-aware:
+
+1. shared infrastructure scripts
+2. `admin-page-bridge.js`
+3. target family `*-v2.js` runtime modules for that page
+
+Do not infer runtime behavior before verifying actual mounted script order in the target Twig page.
+
+### Authority Boundary Handoff
+
+Startup policy, anti-guessing startup enforcement, and classification ownership are defined in:
+
+`docs/architecture/execution/frontend/UI_EXECUTION_RULES.md`
+
+This file must not duplicate those policy sections.
+
+---
+
 ## 1. Base Layout
 
 Every template MUST extend:

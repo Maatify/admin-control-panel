@@ -2,6 +2,8 @@
 ## data_table.js — Complete Reference
 > Extracted from the actual data_table.js source code.
 
+> Boundary: this reference defines table API/render behavior only. It does not override page startup order, capability bootstrap rules, or Twig mount requirements defined in frontend authority docs.
+
 ---
 
 ## Two Functions, One Constraint
