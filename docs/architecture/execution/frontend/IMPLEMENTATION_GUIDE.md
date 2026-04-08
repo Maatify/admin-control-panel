@@ -48,9 +48,9 @@ In the entry module:
 
 - Validate `AdminPageBridge` and required helper existence.
 - Store page state (`page`, `perPage`, filters, container id).
-- Use `Bridge.API` for data and mutations.
-- Use `Bridge.Table` for rendering and pagination wiring.
-- Escape all user-sourced text with `Bridge.Text.escape`.
+- Use `Bridge.API.execute` / `Bridge.API.runMutation` for data and mutations.
+- Use `Bridge.Table` helpers (`bindActionState`, `withTargetContainer`, `reload`) for table lifecycle wiring.
+- Escape all user-sourced text with `Bridge.Text.escapeHtml`.
 - Export a `window.reload{Feature}Table` hook for mutation flows.
 
 ---
@@ -69,7 +69,7 @@ This is required on pages with more than one interactive table.
 
 ## 6) API usage rules
 
-- Prefer bridge API wrappers (`Bridge.API.post/get/...`) for standard calls
+- Prefer bridge API wrappers (`Bridge.API.execute` / `Bridge.API.runMutation`) for standard calls
 - Do not prepend `/api/` manually when using project API helpers
 - Only bypass helper wrappers when technically required (example: multipart upload edge cases)
 

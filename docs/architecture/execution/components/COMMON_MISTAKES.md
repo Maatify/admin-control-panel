@@ -64,7 +64,7 @@ Do not assume every page must use `#table-container`; instead, keep the JS and T
 showAlert('s', 'Saved');
 
 // CORRECT: use bridge/UI layer used by the page
-Bridge.UI.alert('success', 'Saved');
+Bridge.UI.success('Saved');
 ```
 
 If a legacy page still uses `ApiHandler.showAlert`, keep it consistent for that page until migration.
@@ -98,10 +98,20 @@ Always scope events on multi-table pages.
 
 ```javascript
 // WRONG
-Bridge.API.post('/api/roles/query', params, 'Query roles');
+Bridge.API.execute({
+  endpoint: '/api/roles/query',
+  payload: params,
+  operation: 'Query roles',
+  method: 'POST'
+});
 
 // CORRECT
-Bridge.API.post('roles/query', params, 'Query roles');
+Bridge.API.execute({
+  endpoint: 'roles/query',
+  payload: params,
+  operation: 'Query roles',
+  method: 'POST'
+});
 ```
 
 Project API helpers manage base prefixing.
@@ -115,7 +125,12 @@ Project API helpers manage base prefixing.
 const response = await fetch('/api/roles/update', { method: 'POST', body: ... });
 
 // CORRECT
-const result = await Bridge.API.post('roles/update', payload, 'Update role');
+const result = await Bridge.API.execute({
+  endpoint: 'roles/update',
+  payload,
+  operation: 'Update role',
+  method: 'POST'
+});
 ```
 
 Use direct `fetch` only for constrained edge cases (for example multipart uploads), then normalize handling.
@@ -129,7 +144,7 @@ Use direct `fetch` only for constrained edge cases (for example multipart upload
 const nameCell = (value) => `<span>${value}</span>`;
 
 // CORRECT
-const nameCell = (value) => `<span>${Bridge.Text.escape(value ?? '')}</span>`;
+const nameCell = (value) => `<span>${Bridge.Text.escapeHtml(value ?? '')}</span>`;
 ```
 
 Any user-sourced text must be escaped.
@@ -141,17 +156,27 @@ Any user-sourced text must be escaped.
 ```javascript
 // WRONG: no cross-module refresh hook
 async function updateRole(payload) {
-  const result = await Bridge.API.post('roles/update', payload, 'Update role');
-  if (result.success) Bridge.UI.alert('success', 'Updated');
+  const result = await Bridge.API.execute({
+    endpoint: 'roles/update',
+    payload,
+    operation: 'Update role',
+    method: 'POST'
+  });
+  if (result.success) Bridge.UI.success('Updated');
 }
 
 // CORRECT
 window.reloadRolesTable = () => loadTable();
 
 async function updateRole(payload) {
-  const result = await Bridge.API.post('roles/update', payload, 'Update role');
+  const result = await Bridge.API.execute({
+    endpoint: 'roles/update',
+    payload,
+    operation: 'Update role',
+    method: 'POST'
+  });
   if (result.success) {
-    Bridge.UI.alert('success', 'Updated');
+    Bridge.UI.success('Updated');
     window.reloadRolesTable?.();
   }
 }

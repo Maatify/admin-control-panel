@@ -12,7 +12,7 @@ Use this for almost every new page:
 - Entry module initializes `AdminPageBridge`
 - API calls go through `Bridge.API`
 - Table lifecycle goes through `Bridge.Table`
-- User-provided content is escaped via `Bridge.Text.escape`
+- User-provided content is escaped via `Bridge.Text.escapeHtml`
 - Feature-specific logic is delegated to a family helper (`window.{Family}Helper`)
 
 ### Minimal template
@@ -36,24 +36,34 @@ Use this for almost every new page:
     };
 
     function renderName(value) {
-        return `<span>${Bridge.Text.escape(value ?? '')}</span>`;
+        return `<span>${Bridge.Text.escapeHtml(value ?? '')}</span>`;
     }
 
     async function loadTable() {
         const params = Helper.buildQueryParams(state);
-        const response = await Bridge.API.post('roles/query', params, 'Load roles');
+        const response = await Bridge.API.execute({
+            endpoint: 'roles/query',
+            payload: params,
+            operation: 'Load roles',
+            method: 'POST',
+            showErrorMessage: true
+        });
         if (!response.success) return;
 
-        Bridge.Table.render({
-            containerId: state.tableContainerId,
-            headers: ['ID', 'Name', 'Status', 'Actions'],
-            rows: ['id', 'name', 'is_active', 'actions'],
-            data: response.data,
-            renderers: {
-                name: renderName,
-                actions: (value, row) => Helper.renderActions(row)
-            },
-            pagination: response.pagination
+        Bridge.Table.withTargetContainer(state.tableContainerId, () => {
+            createTable(
+                'roles/query',
+                params,
+                ['ID', 'Name', 'Status', 'Actions'],
+                ['id', 'name', 'is_active', 'actions'],
+                false,
+                'id',
+                null,
+                {
+                    name: renderName,
+                    actions: (value, row) => Helper.renderActions(row)
+                }
+            );
         });
     }
 
