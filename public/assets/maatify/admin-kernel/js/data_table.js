@@ -249,11 +249,12 @@ function TableComponent(data, columns, rowNames, paginationData, actions = "", w
      * Emits custom event with action type and value
      */
     function triggerTableEvent(action, value) {
+        const sourceContainerId = container && container.id ? container.id : null;
         const event = new CustomEvent('tableAction', {
-            detail: { action, value, currentParams: paramsDefault }
+            detail: { action, value, currentParams: paramsDefault, tableContainerId: sourceContainerId }
         });
         document.dispatchEvent(event);
-        console.log("🔔 Table Event:", action, value);
+        console.log("🔔 Table Event:", action, value, sourceContainerId);
     }
 
     // Pagination

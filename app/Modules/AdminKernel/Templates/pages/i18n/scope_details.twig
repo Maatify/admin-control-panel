@@ -16,6 +16,7 @@
         };
 
         window.scopeDetailsId = {{ scope.id }};
+        window.scopeDetailsDomainsTableContainerId = 'domains-table-container';
         console.log('🌍 Scope Details Capabilities:', window.scopeDetailsCapabilities);
         console.log('🎯 Scope ID:', window.scopeDetailsId);
     </script>
@@ -233,8 +234,9 @@
 
     {# ✨ Project-wide reusable UI components library #}
     <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-page-bridge.js') }}"></script>
 
-    {# 🌐 Scope Domains modular scripts #}
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n_scopes_domains.js') }}"></script>
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n-scope-coverage.js') }}"></script>
+    {# 🌐 Scope Details scripts (domains v2 + coverage v2) #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n_scopes_domains-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n-scope-coverage-v2.js') }}"></script>
 {% endblock %}
