@@ -9,6 +9,72 @@
 - **Reference Cloning Priority:** Before generating UI code, the agent MUST explicitly state which physical file acts as the Source of Truth. Generative coding from scratch is forbidden; the agent must clone and mutate the verified reference.
 - **3rd-Party Abstraction Rule:** Any 3rd-party UI library (WYSIWYG, DatePicker, Chart) MUST be wrapped in a global `AdminKernel.*` manager. Direct initialization (`new Plugin()`) inside page-specific logic is FORBIDDEN.
 
+## Frontend Runtime-First Entry Rule (Mandatory)
+
+Before applying any UI pattern, checklist, or component guidance, executors MUST start from verified runtime reality in this exact order:
+
+1. `public/assets/maatify/admin-kernel/js/admin-page-bridge.js`
+2. `public/assets/maatify/admin-kernel/js/ADMIN_PAGE_BRIDGE_USAGE.md`
+3. Target `*-v2.js` files for the feature under `public/assets/maatify/admin-kernel/js/pages/**`
+4. Mounted Twig page(s) under `app/Modules/AdminKernel/Templates/pages/**`
+
+This order is mandatory for execution accuracy. Executors MUST NOT start from scattered old files, raw globals, or generic pattern templates before this runtime-first path is completed.
+
+### Orientation Note (Non-Catalog)
+`AdminPageBridge` is the first shared runtime surface for startup understanding (for example, shared helpers such as `AdminPageBridge.Text.escapeHtml(...)`).
+This note is orientation-only; detailed pattern catalogs and Twig mounting details are owned by their dedicated authority files.
+
+---
+
+## Anti-Guessing Startup Policy (Mandatory)
+
+Executors MUST NOT:
+- start from legacy or raw-global paths first,
+- infer page behavior before reading Bridge + target `*-v2.js` + mounted Twig runtime reality,
+- treat historical examples as equal default starting options.
+
+Executors MUST:
+- resolve startup behavior from runtime-first evidence,
+- classify non-default paths explicitly before using them.
+
+---
+
+## Frontend Classification and Default-Priority Policy (Authority)
+
+All frontend execution paths MUST be classified as one of:
+
+- **Official / Active Standard**
+- **Transitional**
+- **Compatibility-Only**
+- **Legacy Starting Path**
+
+### Default-Priority Rule
+The **Official / Active Standard** is the mandatory default-priority starting path.
+
+Any startup path outside Official / Active Standard requires explicit, classification-aware justification.
+Presence in the repository does not grant equal startup priority.
+
+### Mandatory Filename Guard (`*-v2.js`)
+`*-v2.js` files are part of runtime reality and MUST be reviewed in the startup path.
+However, executors MUST NOT assume “standard/default” status from the `-v2` filename alone.
+Priority is determined by classification and real mounted usage, not filename.
+
+### Legacy Demotion Rule
+Transitional, compatibility-only, and legacy patterns may remain documented for maintenance/history/interop.
+They are not equal starting guidance and MUST NOT displace the official default path.
+
+---
+
+## Twig Mounting Authority Handoff
+
+This file owns startup policy, anti-guessing policy, and classification policy.
+
+Detailed Twig mounting contract ownership (capabilities/context/container injection and Twig script-order mounting conventions) belongs to:
+
+`docs/architecture/execution/frontend/TWIG_TEMPLATE_STANDARDS.md`
+
+Do NOT duplicate full Twig mounting blocks in this file.
+
 ## 1.1 UI Controller Rules
 - A UI Controller MUST use `__invoke(Request $request, Response $response): Response` for single-action views.
 - A UI Controller MUST use specific action methods (e.g., `index`, `profile`) ONLY when grouping related read-only views for a single entity type.
