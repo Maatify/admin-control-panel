@@ -9,6 +9,7 @@
 - [ ] Selected Canonical Reference File: `{filepath}`
 - [ ] Performed Conflict Matrix against System Rules. Result: `{PASS / STOP}`
 - [ ] Confirmed 3rd-party dependencies (if any) are abstracted to AdminKernel.
+- [ ] Frontend startup sequence followed: `admin-page-bridge.js` + `ADMIN_PAGE_BRIDGE_USAGE.md` → active `*-v2.js` runtime files → Twig mounts → execution docs
 
 ---
 
@@ -59,7 +60,7 @@ Run through every item before submitting. A single unchecked item can cause a si
 - [ ] Capabilities use `window.` — `const` and `let` are not used
 - [ ] Inline `<script>` tags (capabilities, context) are inside `{% block content %}`, not `{% block scripts %}`
 - [ ] `{% block scripts %}` contains only `<script src="...">` file tags
-- [ ] `<div id="table-container" class="w-full"></div>` is present in the HTML
+- [ ] Raw mode uses `id="table-container"` OR bridge mode uses feature container with `AdminPageBridge.Table.withTargetContainer(...)`
 - [ ] Script loading order is correct: `api_handler → callback_handler → data_table → feature files`
 - [ ] `error_normalizer.js` is NOT loaded in the template (already in base)
 
@@ -72,9 +73,9 @@ Run through every item before submitting. A single unchecked item can cause a si
 - [ ] `ApiHandler.call(endpoint, payload, 'Descriptive Name', method?)` — 3rd param is a readable label
 - [ ] Endpoint string does not start with `/api/`
 - [ ] Button data attributes use `data-{feature}-id`, not `data-entity-id`
-- [ ] `document.addEventListener('tableAction', ...)` handles both `pageChange` and `perPageChange`
-- [ ] `window.reload{Feature}Table` is exported from the core module
-- [ ] Actions module calls `window.reload{Feature}Table?.()` after every successful mutation
+- [ ] Bridge-first table state uses `AdminPageBridge.Table.bindActionState(...)` (or family helper that delegates to it)
+- [ ] Canonical `window.reload{Feature}TableV2` is exported
+- [ ] Legacy `window.reload{Feature}Table` alias is retained only when compatibility needs exist
 - [ ] DOMContentLoaded check uses `if (document.readyState === 'loading') { ... } else { init(); }`
 
 ### JavaScript Checks — Pattern A
@@ -98,7 +99,7 @@ Run through every item before submitting. A single unchecked item can cause a si
 
 ### Table does not render
 ```
-1. Confirm <div id="table-container"> exists in the HTML
+1. Confirm table container strategy matches runtime mode (raw `table-container` OR bridge target container)
 2. Confirm api_handler.js or callback_handler.js loads before data_table.js
 3. Open browser console — look for red errors
 4. Check Network tab — does the API return 200?
@@ -124,7 +125,7 @@ Run through every item before submitting. A single unchecked item can cause a si
 
 ### Pagination buttons do nothing
 ```
-1. Confirm document.addEventListener('tableAction', ...) exists in the module
+1. Confirm `AdminPageBridge.Table.bindActionState(...)` (or family wrapper) is wired once
 2. Confirm the handler checks action === 'pageChange' (exact string)
 3. Confirm the load function is called inside the handler
 4. Confirm currentPage is updated before calling the load function

@@ -1,6 +1,7 @@
 # COMMON_MISTAKES.md
 ## Real Mistakes — Real Fixes
 > Every mistake listed here occurred in actual production code.
+> For new frontend implementation defaults, prefer bridge-first v2 runtime patterns; raw fixes here are compatibility-level unless noted.
 
 ---
 
@@ -69,11 +70,14 @@ Assuming standard HTML attributes (like `class` or `dir`) will map automatically
 <div id="my-container"></div>
 <div id="table"></div>
 
-<!-- CORRECT — must be exactly this -->
+<!-- CORRECT — raw data_table.js mode -->
 <div id="table-container" class="w-full"></div>
+
+<!-- CORRECT — bridge v2 mode -->
+<div id="feature-table-container" class="w-full"></div>
 ```
 
-`data_table.js` contains `document.querySelector("#table-container")` hardcoded in every render function. Any other id returns `null` — the table silently never renders.
+`data_table.js` is hardcoded to `#table-container` in raw mode. Bridge-era pages can use non-default container ids only when rendering through `AdminPageBridge.Table.withTargetContainer(...)`.
 
 ---
 
@@ -167,6 +171,18 @@ document.addEventListener('DOMContentLoaded', () => { loadData(); });
 ---
 
 ## Mistake #6 — No tableAction Listener
+
+Preferred fix (bridge-first):
+```javascript
+AdminPageBridge.Table.bindActionState({
+  sourceContainerId: 'feature-table-container',
+  getState: () => params,
+  setState: (next) => { params = next; },
+  reload: reloadTableData
+});
+```
+
+Compatibility fix (raw):
 
 ```javascript
 // WRONG — exporting window.changePage has no effect

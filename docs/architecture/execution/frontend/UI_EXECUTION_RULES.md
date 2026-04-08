@@ -1,7 +1,8 @@
 # UI Execution Rules
 
 > Last updated to reflect verified production behavior.
-> All rules in this document align with actual code in sessions.twig, languages_list.twig, scope_details.twig, and corresponding JS modules.
+> Frontend canonical owner: this file defines the default frontend execution model.
+> Default starting path is runtime-first: Bridge entry points → active v2 files → Twig mounts → docs alignment.
 
 ---
 
@@ -66,7 +67,8 @@ This fails silently if `capabilities` is null or a PHP object without proper JSO
 
 {% block scripts %}
     <script src="{{ asset('...api_handler.js') }}"></script>
-    <script src="{{ asset('...{feature}-core.js') }}"></script>
+    <script src="{{ asset('...admin-page-bridge.js') }}"></script>
+    <script src="{{ asset('...{feature}-core-v2.js') }}"></script>
 {% endblock %}
 ```
 
@@ -75,8 +77,9 @@ This fails silently if `capabilities` is null or a PHP object without proper JSO
 - Multiple parent IDs: `window.{feature}Context = { scope_id: {{ scope.id }}, domain_id: {{ domain.id }} };`
 
 ### Table Container
-- The HTML MUST contain `<div id="table-container" class="w-full"></div>`.
-- Any other id silently breaks `data_table.js` — `#table-container` is hardcoded in every render function.
+- Raw `data_table.js` writes to `#table-container`.
+- For bridge-era pages with feature-specific containers, use `AdminPageBridge.Table.withTargetContainer(...)`.
+- Do NOT implement manual DOM id swapping when bridge helper is available.
 
 ---
 
@@ -90,9 +93,9 @@ Valid and supported for read-only features or features with at most 2 actions. N
 ### Pattern B — Modular
 Required for features with CRUD, modals, or multiple action buttons per row.
 - `{feature}-helpers.js` — utilities + `setupButtonHandler`
-- `{feature}-core.js` — table rendering + data loading
-- `{feature}-modals.js` — modal HTML + open/close
-- `{feature}-actions.js` — API calls + button event handlers
+- `{feature}-core-v2.js` or `{feature}-with-components-v2.js` — table rendering + data loading
+- `{feature}-modals-v2.js` — modal HTML + open/close
+- `{feature}-actions-v2.js` — API calls + button event handlers
 
 Every modular file MUST be wrapped in an IIFE:
 ```javascript
@@ -165,6 +168,8 @@ document.addEventListener('tableAction', (e) => {
 ```
 
 `window.changePage()` and `window.changePerPage()` are NOT called by `data_table.js` and MUST NOT be relied on for pagination. Export them only for backward compatibility if an existing integration requires them.
+
+**Bridge-first default:** use `AdminPageBridge.Table.bindActionState(...)` (directly or via family helpers) as the primary pattern for tableAction state wiring. Direct raw listeners remain compatibility-only.
 
 ### Custom Renderers
 MUST be passed as an object of functions:

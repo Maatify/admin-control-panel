@@ -1,6 +1,7 @@
 # TWIG_TEMPLATE_STANDARDS.md
 ## Source of Truth — Twig Template Patterns
-> Extracted directly from production code. Every rule has a real file reference.
+> Canonical owner for Twig mounting rules.
+> Default frontend mounting model is bridge-first v2.
 
 ---
 
@@ -105,9 +106,10 @@ Every template MUST extend:
 
     {# ================================================================
        STEP 4: Table Container
-       - id MUST be exactly "table-container" — no exceptions
+       - Raw mode: id="table-container"
+       - Bridge v2 mode: feature-specific container id is allowed
        ================================================================ #}
-    <div id="table-container" class="w-full"></div>
+    <div id="{feature}-table-container" class="w-full"></div>
 
 {% endblock %}
 
@@ -117,9 +119,11 @@ Every template MUST extend:
     <script src="{{ asset('assets/maatify/admin-kernel/js/callback_handler.js') }}"></script>
     <script src="{{ asset('assets/maatify/admin-kernel/js/data_table.js') }}"></script>
     <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/{path}/{feature}-core.js') }}"></script>
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/{path}/{feature}-modals.js') }}"></script>
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/{path}/{feature}-actions.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-page-bridge.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/{path}/{feature}-helpers-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/{path}/{feature}-core-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/{path}/{feature}-modals-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/{path}/{feature}-actions-v2.js') }}"></script>
 {% endblock %}
 ```
 
@@ -221,11 +225,12 @@ All context injection MUST be in the same `<script>` tag as capabilities, inside
     <script src="{{ asset('assets/maatify/admin-kernel/js/select2.js') }}"></script>
     <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
 
-    {# 3. Feature modules — must be in this exact order #}
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/{path}/{feature}-helpers.js') }}"></script>
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/{path}/{feature}-core.js') }}"></script>
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/{path}/{feature}-modals.js') }}"></script>
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/{path}/{feature}-actions.js') }}"></script>
+    {# 3. Bridge runtime + feature modules (default order) #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-page-bridge.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/{path}/{feature}-helpers-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/{path}/{feature}-core-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/{path}/{feature}-modals-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/{path}/{feature}-actions-v2.js') }}"></script>
 {% endblock %}
 ```
 
@@ -237,25 +242,28 @@ All context injection MUST be in the same `<script>` tag as capabilities, inside
 | `callback_handler.js` | nothing |
 | `data_table.js` | `callback_handler.js` (alert fallback) |
 | `admin-ui-components.js` | nothing |
-| `{feature}-core.js` | `api_handler.js` + `data_table.js` + `admin-ui-components.js` |
-| `{feature}-modals.js` | `{feature}-helpers.js` |
-| `{feature}-actions.js` | `api_handler.js` + `{feature}-modals.js` |
+| `{feature}-core-v2.js` | `admin-page-bridge.js` + infra scripts |
+| `{feature}-modals-v2.js` | `admin-page-bridge.js` + `{feature}-helpers-v2.js` |
+| `{feature}-actions-v2.js` | `admin-page-bridge.js` + `{feature}-modals-v2.js` |
 
 ---
 
-## 6. The table-container Rule
+## 6. Table Container Rule (Raw vs Bridge)
 
 ```html
-<!-- CORRECT — id must be exactly this string -->
+<!-- RAW data_table.js mode -->
 <div id="table-container" class="w-full"></div>
 
-<!-- WRONG — any other id silently breaks the table -->
+<!-- Bridge v2 mode -->
+<div id="feature-table-container" class="w-full"></div>
+
+<!-- WRONG without bridge targeting -->
 <div id="sessions-table"></div>
 <div id="my-container"></div>
 <div id="table"></div>
 ```
 
-`data_table.js` is hardcoded to `document.querySelector("#table-container")` everywhere. Any other id returns `null` and the table never renders — with no visible error.
+`data_table.js` is hardcoded to `#table-container` in raw mode. Bridge-era pages with non-default ids must render through `AdminPageBridge.Table.withTargetContainer(...)`.
 
 ---
 

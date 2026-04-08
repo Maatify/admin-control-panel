@@ -1,17 +1,21 @@
 # JS_PATTERNS_REFERENCE.md
 ## Source of Truth — JavaScript Patterns
-> Extracted from production code. Every example references a real file.
+> Canonical owner for frontend JS implementation examples.
+> Default examples in this file must follow bridge-first v2 runtime entry points.
 
 ---
 
 ## Overview — Four Patterns
 
+> Note: legacy non-v2 snippets in this file are compatibility references only.
+> For new frontend execution defaults, follow bridge-first v2 examples and naming.
+
 | Pattern | When to Use | Real Example |
 |---------|-------------|--------------|
-| **A — Simple Monolith** | Read-only list, basic filtering, 1–2 actions | `sessions.js`, `permissions.js` |
-| **B — Modular + ApiHandler** | Full CRUD, modals, multiple actions per row | `languages-*.js`, `i18n-scopes-*.js`, `i18n-domains-*.js` |
-| **C — GET Static List** | Display flat array, no pagination, report-only | `i18n-scope-coverage.js`, `i18n-scope-language-coverage.js` |
-| **D — Context-Driven** | Page needs parent IDs injected from Twig | `i18n_scope_domain_translations.js`, `i18n_scope_domain_keys_coverage.js` |
+| **A — Simple Monolith (Compatibility)** | Read-only list, basic filtering, 1–2 actions | `sessions.js`, `permissions.js` |
+| **B — Bridge-first v2 Modular (Default)** | Full CRUD, modals, multiple actions per row | `languages-*-v2.js`, `i18n-*-v2.js`, `currencies-*-v2.js` |
+| **C — GET Static List (v2)** | Display flat array, no pagination, report-only | `i18n-scope-coverage-v2.js`, `i18n-scope-language-coverage-v2.js` |
+| **D — Context-Driven (v2)** | Page needs parent IDs injected from Twig | `i18n_scope_domain_translations-v2.js`, `i18n_scope_domain_keys_coverage-v2.js` |
 
 ---
 
@@ -156,7 +160,7 @@ showAlert('d', 'Error message');     // d = danger
 
 ---
 
-## Pattern B — Modular + ApiHandler
+## Pattern B — Bridge-first v2 Modular (Default)
 
 ### When to Use
 - Full CRUD (create / update / delete / toggle status)
@@ -165,11 +169,16 @@ showAlert('d', 'Error message');     // d = danger
 
 ### File Structure
 ```
-{feature}-helpers.js     — utilities + setupButtonHandler
-{feature}-core.js        — table rendering + data loading (main file)
-{feature}-modals.js      — modal HTML + open/close logic
-{feature}-actions.js     — API calls + button event handlers
+{feature}-helpers-v2.js            — family/local bridge helpers
+{feature}-core-v2.js or {feature}-with-components-v2.js
+{feature}-modals-v2.js
+{feature}-actions-v2.js
 ```
+
+### Bridge-first orchestration defaults
+- Pagination/state: `AdminPageBridge.Table.bindActionState(...)` (or family helper wrappers).
+- Non-default table containers: `AdminPageBridge.Table.withTargetContainer(...)`.
+- Mutation workflows: `AdminPageBridge.API.runMutation(...)` where behavior matches.
 
 ### {feature}-core.js Template
 ```javascript

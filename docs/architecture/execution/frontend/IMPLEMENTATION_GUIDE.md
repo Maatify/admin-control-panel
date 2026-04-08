@@ -2,7 +2,7 @@
 
 **Project:** `maatify/admin-control-panel`  
 **Purpose:** Step-by-step guide to implement a new admin feature correctly from the first time  
-**Based On:** Languages & Scopes implementations (proven patterns)
+**Based On:** Bridge-first v2 runtime implementations (Languages, Scopes, Currencies)
 
 ---
 
@@ -15,6 +15,8 @@ This guide walks you through creating a **complete admin CRUD feature** followin
 ✅ Is easy to maintain and extend  
 ✅ Passes code review quickly  
 
+> Note: if legacy non-v2 snippets appear later in historical examples, treat them as compatibility references only. New implementation defaults are bridge-first v2.
+
 **Estimated time:** 4-6 hours for a complete feature
 
 ---
@@ -25,9 +27,9 @@ By the end of this guide, you'll have:
 
 ```
 ✅ Twig template with proper layout
-✅ Core JavaScript module (table + data loading)
-✅ Modals JavaScript module (all forms)
-✅ Actions JavaScript module (button handlers)
+✅ Core JavaScript v2 module (table + data loading)
+✅ Modals JavaScript v2 module (all forms)
+✅ Actions JavaScript v2 module (button handlers)
 ✅ Proper error handling
 ✅ Dark mode support
 ✅ Capability-based UI
@@ -39,6 +41,10 @@ By the end of this guide, you'll have:
 
 Before starting:
 
+- [ ] Read `public/assets/maatify/admin-kernel/js/admin-page-bridge.js` first
+- [ ] Read `public/assets/maatify/admin-kernel/js/ADMIN_PAGE_BRIDGE_USAGE.md` first
+- [ ] Review active `*-v2.js` files for the target family
+- [ ] Review Twig mounts under `app/Modules/AdminKernel/Templates/pages/**`
 - [ ] Read **IMPLEMENTATION_CHECKLIST.md** — choose your pattern first
 - [ ] Read **TWIG_TEMPLATE_STANDARDS.md** — Twig structure rules
 - [ ] Read **JS_PATTERNS_REFERENCE.md** — copy the right template
@@ -64,20 +70,20 @@ Before starting:
 4. Add search bar
 5. Add table container
 
-### Phase 3: Core JavaScript (1.5 hours)
+### Phase 3: Core JavaScript v2 (1.5 hours)
 1. Setup module structure
 2. Create custom renderers
 3. Implement data loading
 4. Add search & filters
 5. Export functions
 
-### Phase 4: Modals JavaScript (1.5 hours)
+### Phase 4: Modals JavaScript v2 (1.5 hours)
 1. Create modal HTML
 2. Inject modals into DOM
 3. Setup form handlers
 4. Add validation & errors
 
-### Phase 5: Actions JavaScript (1 hour)
+### Phase 5: Actions JavaScript v2 (1 hour)
 1. Setup event delegation
 2. Implement action handlers
 3. Connect to modals
@@ -102,9 +108,9 @@ Entity: Role
 Endpoint Prefix: /api/roles/
 Twig File: roles_list.twig
 JS Files:
-  - roles-core.js
-  - roles-modals.js
-  - roles-actions.js
+  - roles-core-v2.js
+  - roles-modals-v2.js
+  - roles-actions-v2.js
 ```
 
 ### Step 1.2: List API Endpoints

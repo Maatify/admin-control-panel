@@ -35,6 +35,23 @@ All documents live under `docs/architecture/execution/`. You MUST read the relev
 
 ---
 
+## FRONTEND EXECUTOR STARTING PATH (MANDATORY)
+
+For frontend execution, the starting sequence is:
+
+1. Read runtime entry points first:
+   - `public/assets/maatify/admin-kernel/js/admin-page-bridge.js`
+   - `public/assets/maatify/admin-kernel/js/ADMIN_PAGE_BRIDGE_USAGE.md`
+2. Read active runtime implementation:
+   - all `*-v2.js` files under `public/assets/maatify/admin-kernel/js/pages/**`
+3. Read Twig mounting layer:
+   - `app/Modules/AdminKernel/Templates/pages/**` (especially templates mounting `admin-page-bridge.js`)
+4. Only then read `docs/architecture/execution/**` for rule alignment.
+
+This does NOT replace backend governance. Backend authority files remain authoritative for backend implementation behavior.
+
+---
+
 ## FEATURE API CONTRACTS (MANDATORY)
 
 Feature contracts live under `docs/API/`.

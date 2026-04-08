@@ -9,6 +9,10 @@
 Both functions write exclusively to `document.querySelector("#table-container")`.
 The HTML **must** contain `<div id="table-container"></div>` — no other id works.
 
+Bridge-era clarification:
+- This constraint applies to **raw data_table.js usage**.
+- For bridge-first v2 pages that use feature-specific containers, use `AdminPageBridge.Table.withTargetContainer(containerId, run)` as the adapter layer.
+
 ---
 
 ## 1. createTable() — All-in-One
@@ -97,7 +101,7 @@ document.dispatchEvent(new CustomEvent('tableAction', {
 }));
 ```
 
-**Required in your feature module:**
+**Required in your feature module (raw mode):**
 ```javascript
 document.addEventListener('tableAction', (e) => {
     const { action, value } = e.detail;
@@ -105,6 +109,9 @@ document.addEventListener('tableAction', (e) => {
     if (action === 'perPageChange') { currentPerPage = value; currentPage = 1; loadData(); }
 });
 ```
+
+Bridge-first default:
+- Prefer `AdminPageBridge.Table.bindActionState(...)` (or family helper wrappers) to centralize tableAction handling.
 
 ---
 

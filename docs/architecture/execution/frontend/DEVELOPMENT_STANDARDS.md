@@ -1,8 +1,9 @@
 # 📘 Development Standards Guide
 ## Professional Development Standards for Admin Dashboard System
 
-> **Last Updated:** February 2026  
-> **Based On:** languages_list implementation (Production-Ready Standard)
+> **Last Updated:** February 2026
+> **Default Model:** Bridge-first v2 runtime entry path
+> **Canonical Rule Owner:** `UI_EXECUTION_RULES.md` (this file provides standards context and references)
 
 ---
 
@@ -28,19 +29,19 @@ This document defines **mandatory standards** for any new feature in the system,
 
 ## 1️⃣ **File Structure Standards**
 
-### ✅ **Pattern B — Modular (Full CRUD features)**
+### ✅ **Pattern B — Bridge-first v2 Modular (Full CRUD features)**
 
 Use when the feature has CRUD operations, modals, or multiple action buttons per row.
 
 ```
 📁 Feature Name (e.g., languages)
-├── 📄 languages_list.twig               # UI template
+├── 📄 languages_list.twig               # UI template (mounts bridge first)
 └── 📁 Modular JavaScript Files:
-    ├── 📄 languages-helpers.js           # Utility functions + setupButtonHandler
-    ├── 📄 languages-with-components.js   # Main: table rendering + data loading
-    ├── 📄 languages-modals.js            # Modal HTML + open/close logic
-    ├── 📄 languages-actions.js           # API calls + button event handlers
-    └── 📄 languages-fallback.js          # Feature-specific extra logic (optional)
+    ├── 📄 languages-helpers-v2.js           # Bridge/family helpers
+    ├── 📄 languages-with-components-v2.js   # Main: table rendering + data loading
+    ├── 📄 languages-modals-v2.js            # Modal HTML + open/close logic
+    ├── 📄 languages-actions-v2.js           # API calls + button event handlers
+    └── 📄 languages-fallback-v2.js          # Feature-specific extra logic (optional)
 ```
 
 ### ✅ **Pattern A — Simple Monolith (Read-only or minimal actions)**
@@ -63,10 +64,10 @@ Use when the feature is read-only with filtering, or has at most 1–2 simple ac
 |---------|-----------|----------------|---------|
 | A — Simple | Template + JS | `{feature}.twig` + `{feature}.js` | `sessions.twig` + `sessions.js` |
 | B — Modular | Template | `{feature}_list.twig` | `languages_list.twig` |
-| B — Modular | Core JS | `{feature}-core.js` or `{feature}-with-components.js` | `languages-with-components.js` |
-| B — Modular | Modals | `{feature}-modals.js` | `languages-modals.js` |
-| B — Modular | Actions | `{feature}-actions.js` | `languages-actions.js` |
-| B — Modular | Helpers | `{feature}-helpers.js` | `languages-helpers.js` |
+| B — Modular | Core JS | `{feature}-core-v2.js` or `{feature}-with-components-v2.js` | `languages-with-components-v2.js` |
+| B — Modular | Modals | `{feature}-modals-v2.js` | `languages-modals-v2.js` |
+| B — Modular | Actions | `{feature}-actions-v2.js` | `languages-actions-v2.js` |
+| B — Modular | Helpers | `{feature}-helpers-v2.js` | `languages-helpers-v2.js` |
 
 ---
 
