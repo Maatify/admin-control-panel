@@ -493,8 +493,9 @@
             loadDomainsDropdown();
         }
 
-        window.reloadScopeKeysTable = function() {
+        window.reloadScopeKeysTableV2 = function() {
             return loadKeys();
         };
+        window.reloadScopeKeysTable = window.reloadScopeKeysTableV2;
     });
 })();
