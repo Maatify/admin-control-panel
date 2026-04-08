@@ -20,15 +20,7 @@
     const scopeId = window.scopeDetailsId;
     const containerId = 'scope-coverage-container';
 
-    function escapeHtml(text) {
-        if (text === null || text === undefined) return '';
-        return String(text)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
-    }
+    const escapeHtml = Bridge.Text.escapeHtml;
 
     function renderError(container, error) {
         container.innerHTML = `

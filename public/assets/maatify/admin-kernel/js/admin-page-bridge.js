@@ -137,6 +137,18 @@
         return value;
     }
 
+    const Text = {
+        escapeHtml(text) {
+            if (text === null || text === undefined) return '';
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    };
+
     function resolveAlertType(type) {
         if (!type) return 'info';
         if (TYPE_BY_PREFIX[type]) return TYPE_BY_PREFIX[type];
@@ -1291,6 +1303,7 @@
         Table,
         Form,
         Events,
+        Text,
 
         normalizeInt,
         normalizeBool,

@@ -35,15 +35,7 @@
         const headers = ['ID', 'Scope', 'Domain', 'Key Segment', 'Value', 'Last Updated', 'Actions'];
         const rows = ['key_id', 'scope', 'domain', 'key_part', 'value', 'updated_at', 'actions'];
 
-        function escapeHtml(text) {
-            if (text === null || text === undefined) return '';
-            return String(text)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
+        const escapeHtml = Bridge.Text.escapeHtml;
 
         const customRenderers = {
             key_id: function(value) {

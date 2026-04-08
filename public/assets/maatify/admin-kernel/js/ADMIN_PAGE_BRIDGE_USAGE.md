@@ -27,6 +27,7 @@ Main namespaces:
 - `AdminPageBridge.Table`
 - `AdminPageBridge.Form`
 - `AdminPageBridge.Events`
+- `AdminPageBridge.Text`
 
 New high-value shared methods:
 - `AdminPageBridge.Table.applyActionParams(...)`
@@ -95,6 +96,16 @@ const payload = AdminPageBridge.Form.collect({
 
 const cleanPayload = AdminPageBridge.Form.omitEmpty(payload);
 ```
+
+### 2.1) Text helpers
+
+```javascript
+const safeName = AdminPageBridge.Text.escapeHtml(userInputName);
+```
+
+`Text.escapeHtml(...)` matches the shared page-safe escaping contract used by renderer templates:
+- escapes `&`, `<`, `>`, `"`, and `'`
+- returns `''` for `null`/`undefined`
 
 ### 3) API execution wrapper
 

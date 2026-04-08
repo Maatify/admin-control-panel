@@ -30,15 +30,7 @@
         const headers = ['ID', 'Domain', 'Key Part', 'Description', 'Actions'];
         const rows = ['id', 'domain', 'key_part', 'description', 'actions'];
 
-        function escapeHtml(text) {
-            if (text === null || text === undefined) return '';
-            return String(text)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
+        const escapeHtml = Bridge.Text.escapeHtml;
 
         function idRenderer(value) {
             return `<span class="font-mono text-gray-600 dark:text-gray-400">${escapeHtml(value)}</span>`;

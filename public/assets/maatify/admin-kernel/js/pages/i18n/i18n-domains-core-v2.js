@@ -21,15 +21,7 @@
     const rows = ['id', 'code', 'name', 'description', 'is_active', 'sort_order', 'actions'];
     const capabilities = window.i18nDomainsCapabilities || {};
 
-    function escapeHtml(text) {
-        if (text === null || text === undefined) return '';
-        return String(text)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
-    }
+    const escapeHtml = Bridge.Text.escapeHtml;
 
     const renderers = {
         id: function(value) {
