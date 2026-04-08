@@ -26,6 +26,18 @@ return function (App $app): void {
 
     $logger = LoggerFactory::create('app/errors');
 
+    $logException = function (Throwable $exception, string $label) use ($logger): void {
+        $previous = $exception->getPrevious();
+
+        $logger->error($label, [
+            'outer_exception_class' => get_class($exception),
+            'outer_exception_message' => $exception->getMessage(),
+            'previous_exception_class' => $previous ? get_class($previous) : null,
+            'previous_exception_message' => $previous?->getMessage(),
+            'previous_trace' => $previous?->getTraceAsString(),
+        ]);
+    };
+
     // Helper to format consistent unified JSON response
     $unifiedJsonError = function (
         int $status,
@@ -61,7 +73,7 @@ return function (App $app): void {
     $app->addBodyParsingMiddleware();
 
     $errorMiddleware = $app->addErrorMiddleware(
-        true,   // displayErrorDetails (dev only)
+        false,   // displayErrorDetails (true dev only)
         false,  // logErrors
         false   // logErrorDetails
     );
@@ -258,18 +270,9 @@ return function (App $app): void {
         function (
             ServerRequestInterface $request,
             MaatifyException $exception
-        ) use ($unifiedJsonError, $logger): ResponseInterface {
+        ) use ($unifiedJsonError, $logException): ResponseInterface {
 
-
-            $previous = $exception->getPrevious();
-
-            $logger->error('Handled Maatify exception', [
-                'outer_exception_class' => get_class($exception),
-                'outer_exception_message' => $exception->getMessage(),
-                'previous_exception_class' => $previous ? get_class($previous) : null,
-                'previous_exception_message' => $previous ? $previous->getMessage() : null,
-                'previous_trace' => $previous ? $previous->getTraceAsString() : null,
-            ]);
+            $logException($exception, 'Handled Maatify exception');
 
             return $unifiedJsonError(
                 $exception->getHttpStatus(),
@@ -290,7 +293,9 @@ return function (App $app): void {
             ServerRequestInterface $request,
             Throwable $exception,
             bool $displayErrorDetails
-        ) use ($unifiedJsonError): ResponseInterface {
+        ) use ($unifiedJsonError, $logException): ResponseInterface {
+
+            $logException($exception, 'Handled throwable exception');
 
             try {
                 /** @var RequestContext|null $context */
@@ -355,7 +360,8 @@ return function (App $app): void {
                 $message,
                 $meta
             );
-        }
+        },
+        true // 🔥 VERY IMPORTANT — handle subclasses
     );
 
 };

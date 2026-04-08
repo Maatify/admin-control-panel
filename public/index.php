@@ -8,10 +8,14 @@ use Maatify\AdminKernel\Kernel\AdminKernel;
 use Maatify\AdminKernel\Kernel\KernelOptions;
 use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
 use Dotenv\Dotenv;
+//use Maatify\PsrLogger\LoggerFactory;
 
 // 1️⃣ Load ENV (HOST responsibility)
 $dotenv = Dotenv::createImmutable(__DIR__ . '/../');
 $dotenv->safeLoad();
+
+//$logger = LoggerFactory::create('app/errors');
+//$logger->alert('access');
 
 // 2️⃣ Build Runtime Config DTO
 $runtimeConfig = AdminRuntimeConfigDTO::fromArray($_ENV);
