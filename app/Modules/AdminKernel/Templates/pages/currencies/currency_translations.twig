@@ -25,6 +25,7 @@
             can_upsert: {{ capabilities.can_upsert ? 'true' : 'false' }},
             can_delete: {{ capabilities.can_delete ? 'true' : 'false' }}
         };
+        window.currencyTranslationsTableContainerId = 'translations-table-container';
 
         console.log('🌍 Currency Translations Context:', window.currencyTranslationsContext);
         console.log('🔐 Capabilities:', window.currencyTranslationsCapabilities);
@@ -300,6 +301,10 @@
     {# ✨ Project-wide reusable UI components library #}
     <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
 
-    {# 🌐 Translations modular scripts #}
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/currencies/currency_translations.js') }}"></script>
+    {# 🧩 V2 bridge (page-scoped) #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-page-bridge.js') }}"></script>
+
+    {# 💱 Currency translations v2 scripts (helpers → page module) #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/currencies/currencies-helpers-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/currencies/currency_translations-v2.js') }}"></script>
 {% endblock %}

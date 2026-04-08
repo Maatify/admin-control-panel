@@ -211,8 +211,12 @@
     {# ✨ Project-wide reusable UI components library #}
     <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
 
-    {# 🌐 Scopes modular scripts #}
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n-scopes-core.js') }}"></script>
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n-scopes-modals.js') }}"></script>
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n-scopes-actions.js') }}"></script>
+    {# 🧩 V2 bridge (page-scoped) #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-page-bridge.js') }}"></script>
+
+    {# 🌐 Scopes v2 scripts (shared helper → core → modals → actions) #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n-helpers-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n-scopes-core-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n-scopes-modals-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n-scopes-actions-v2.js') }}"></script>
 {% endblock %}

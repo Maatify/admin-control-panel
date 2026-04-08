@@ -275,11 +275,12 @@
     {# ✨ Project-wide reusable UI components library #}
     <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
 
-    {# Currencies-specific helpers #}
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/currencies/currencies-helpers.js') }}"></script>
+    {# 🧩 V2 bridge (page-scoped) #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-page-bridge.js') }}"></script>
 
-    {# Currencies management scripts #}
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/currencies/currencies-with-components.js') }}"></script>
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/currencies/currencies-modals.js') }}"></script>
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/currencies/currencies-actions.js') }}"></script>
+    {# 💱 Currencies v2 scripts (helpers → core → modals → actions) #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/currencies/currencies-helpers-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/currencies/currencies-with-components-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/currencies/currencies-modals-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/currencies/currencies-actions-v2.js') }}"></script>
 {% endblock %}

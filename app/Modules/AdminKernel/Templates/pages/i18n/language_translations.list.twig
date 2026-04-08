@@ -299,6 +299,12 @@
             can_delete : {{ capabilities.can_delete ?? false ? 'true' : 'false' }}
         };
 
+        window.languageTranslationsContext = {
+            language_id: {{ language.id }}
+        };
+
+        window.languageTranslationsTableContainerId = 'translations-table-container';
+
         console.log('🔐 Language Translations Capabilities:', window.languageTranslationsCapabilities);
     </script>
 
@@ -319,6 +325,10 @@
     {# ✨ Project-wide reusable UI components library #}
     <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
 
-    {# 🌐 Translations List modular scripts #}
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n_translations_list.js') }}"></script>
+    {# 🧩 V2 bridge + i18n helper #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-page-bridge.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n-helpers-v2.js') }}"></script>
+
+    {# 🌐 Translations List v2 script #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n_translations_list-v2.js') }}"></script>
 {% endblock %}

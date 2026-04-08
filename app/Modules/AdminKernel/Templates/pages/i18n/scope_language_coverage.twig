@@ -11,6 +11,7 @@
             language_id: {{ language.id }},
             language_code: "{{ language.code }}"
         };
+        window.scopeLanguageCoverageContainerId = 'domain-coverage-container';
     </script>
 
     {# ===================================================================
@@ -128,5 +129,6 @@
 {% block scripts %}
     {# Shared infrastructure scripts #}
     <script src="{{ asset('assets/maatify/admin-kernel/js/api_handler.js') }}"></script>
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n-scope-language-coverage.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-page-bridge.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/i18n/i18n-scope-language-coverage-v2.js') }}"></script>
 {% endblock %}
