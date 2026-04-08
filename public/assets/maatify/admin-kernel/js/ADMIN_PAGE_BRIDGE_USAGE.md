@@ -175,6 +175,8 @@ Purpose:
 
 ```javascript
 const unbindTableAction = AdminPageBridge.Table.bindActionState({
+  sourceContainerId: 'content-document-types-table-container', // optional
+  // sourceFilter: (detail, event) => detail.tableContainerId === 'content-document-types-table-container',
   getState: () => currentParams,
   setState: (next) => { currentParams = next; },
   reload: reloadTableData
@@ -185,6 +187,8 @@ Behavior notes:
 - Uses `detail.currentParams` when provided; otherwise falls back to `getState()`.
 - Applies actions through `Table.applyActionParams(...)`.
 - Calls `setState(nextState)` then reloads via `Table.reload(...)`.
+- Optional `sourceContainerId` filters events by `detail.tableContainerId` before state mutation.
+- Optional `sourceFilter(detail, event)` allows custom source gating logic.
 
 ### 5.3) Table container target helper
 
@@ -271,7 +275,30 @@ const debounced = AdminPageBridge.Events.bindDebouncedInput({
 What it replaces:
 - Repetitive timeout management and repeated `keyup`/`input` debounce wiring per page.
 
-### 6.3) Mutation workflow helper
+### 6.3) Enter-to-action binding helper
+
+Purpose:
+- Standardize Enter-triggered actions with optional form-awareness guard.
+
+```javascript
+const enterBinding = AdminPageBridge.Events.bindEnterAction({
+  input: '#admins-global-search',
+  onEnter: () => runGlobalSearch(),
+  ignoreInsideForm: true,
+  preventDefault: true
+});
+
+// later
+enterBinding.unbind();
+```
+
+Behavior notes:
+- Fires only when key is `Enter`.
+- Can ignore Enter events from inside forms (`ignoreInsideForm`).
+- Supports optional `predicate(event, inputEl)` for custom conditions.
+- Returns `{ unbind() }` like other bridge event bindings.
+
+### 6.4) Mutation workflow helper
 
 Purpose:
 - Standardize repeated mutation flow:

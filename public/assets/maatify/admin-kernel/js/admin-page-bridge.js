@@ -715,6 +715,8 @@
             const {
                 eventName = 'tableAction',
                 root = document,
+                sourceContainerId = null,
+                sourceFilter = null,
                 getState,
                 setState,
                 actionHandlers = {},
@@ -741,6 +743,42 @@
 
             const listener = (event) => {
                 const detail = (event && event.detail) || {};
+                const sourceContainer = detail.tableContainerId ?? null;
+
+                if (sourceContainerId !== null && sourceContainerId !== undefined) {
+                    if (!sourceContainer || sourceContainer !== sourceContainerId) {
+                        log('table:bind-action-state:skip', {
+                            reason: 'source-container-mismatch',
+                            expected: sourceContainerId,
+                            received: sourceContainer,
+                            eventName
+                        });
+                        return;
+                    }
+                }
+
+                if (typeof sourceFilter === 'function') {
+                    let allowed = false;
+                    try {
+                        allowed = !!sourceFilter(detail, event);
+                    } catch (error) {
+                        errorLog('table:bind-action-state:filter-error', {
+                            eventName,
+                            error: error?.message || error
+                        });
+                        return;
+                    }
+
+                    if (!allowed) {
+                        log('table:bind-action-state:skip', {
+                            reason: 'source-filter',
+                            eventName,
+                            detail
+                        });
+                        return;
+                    }
+                }
+
                 const stateFromDetail = detail.currentParams;
                 const sourceState = stateFromDetail !== undefined
                     ? stateFromDetail
@@ -1171,6 +1209,73 @@
             return {
                 unbind: function unbind() {
                     if (timeoutId) clearTimeout(timeoutId);
+                    inputEl.removeEventListener(eventName, listener);
+                }
+            };
+        },
+
+        bindEnterAction(config = {}) {
+            const {
+                input,
+                root,
+                onEnter,
+                eventName = 'keypress',
+                preventDefault = true,
+                ignoreInsideForm = true,
+                stopPropagation = false,
+                predicate
+            } = config;
+
+            const scope = root || document;
+            const inputEl = DOM.el(input, false, { root: scope }) || (input && input.nodeType === 1 ? input : null);
+            if (!inputEl) {
+                warn('input:enter-bind', { reason: 'input-not-found', input });
+                return { unbind: function noop() {} };
+            }
+
+            log('input:enter-bind', {
+                input: inputEl.id || inputEl.name || '(anonymous-input)',
+                eventName,
+                preventDefault,
+                ignoreInsideForm,
+                stopPropagation
+            });
+
+            const listener = function(event) {
+                if (!event || event.key !== 'Enter') return;
+                if (ignoreInsideForm && event.target && event.target.closest('form')) return;
+
+                if (typeof predicate === 'function') {
+                    let passes = false;
+                    try {
+                        passes = !!predicate(event, inputEl);
+                    } catch (error) {
+                        errorLog('input:enter-bind:predicate-error', {
+                            input: inputEl.id || inputEl.name || '(anonymous-input)',
+                            error: error?.message || error
+                        });
+                        return;
+                    }
+                    if (!passes) return;
+                }
+
+                if (preventDefault && typeof event.preventDefault === 'function') event.preventDefault();
+                if (stopPropagation && typeof event.stopPropagation === 'function') event.stopPropagation();
+
+                log('input:enter-fire', {
+                    input: inputEl.id || inputEl.name || '(anonymous-input)',
+                    value: inputEl.value
+                });
+
+                if (typeof onEnter === 'function') {
+                    onEnter(inputEl.value, { event, input: inputEl });
+                }
+            };
+
+            inputEl.addEventListener(eventName, listener);
+
+            return {
+                unbind: function unbind() {
                     inputEl.removeEventListener(eventName, listener);
                 }
             };
