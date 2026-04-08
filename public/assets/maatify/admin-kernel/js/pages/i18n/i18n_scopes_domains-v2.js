@@ -287,7 +287,23 @@
                 if (Bridge?.Table?.withTargetContainer) {
                     Bridge.Table.withTargetContainer(tableContainerId, render);
                 } else {
-                    render();
+                    // Legacy fallback when bridge is unavailable
+                    const originalTableContainer = document.getElementById('table-container');
+                    const tempId = 'table-container-original-' + Date.now();
+                    if (originalTableContainer && originalTableContainer !== container) {
+                        originalTableContainer.id = tempId;
+                    }
+
+                    const originalContainerId = container.id;
+                    container.id = 'table-container';
+                    try {
+                        render();
+                    } finally {
+                        container.id = originalContainerId;
+                        if (originalTableContainer && originalTableContainer !== container) {
+                            originalTableContainer.id = 'table-container';
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('❌ TABLE ERROR:', error);
@@ -417,6 +433,27 @@
                 },
                 reload: function() {
                     return loadDomains(currentPage, currentPerPage);
+                }
+            });
+        } else {
+            // Legacy fallback when bridge is unavailable
+            document.addEventListener('tableAction', (e) => {
+                const detail = e.detail || {};
+                if (detail.tableContainerId && detail.tableContainerId !== tableContainerId) {
+                    return;
+                }
+
+                // When source metadata is missing (older table runtime), only react if this
+                // page currently has an active domains table container in the DOM.
+                if (!detail.tableContainerId && !document.getElementById(tableContainerId)) {
+                    return;
+                }
+
+                const { action, value } = detail;
+                if (action === 'pageChange') {
+                    loadDomains(value);
+                } else if (action === 'perPageChange') {
+                    loadDomains(1, value);
                 }
             });
         }
