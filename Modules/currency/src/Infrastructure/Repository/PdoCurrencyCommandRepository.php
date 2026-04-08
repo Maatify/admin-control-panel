@@ -222,16 +222,17 @@ final class PdoCurrencyCommandRepository implements CurrencyCommandRepositoryInt
     {
         // Row alias syntax (MySQL 8.0.19+) — VALUES() is deprecated since 8.0.20.
         $stmt = $this->prepareOrFail(
-            'INSERT INTO `currency_translations` (`currency_id`, `language_id`, `name`)
-             VALUES (:currency_id, :language_id, :name) AS new_row
-             ON DUPLICATE KEY UPDATE `name` = new_row.`name`',
+            'INSERT INTO `currency_translations` (`currency_id`, `language_id`, `name`) 
+                VALUES (:currency_id, :language_id, :insert_name) 
+                ON DUPLICATE KEY UPDATE `name` = :update_name',
         );
 
         try {
             $stmt->execute([
                 ':currency_id' => $command->currencyId,
                 ':language_id' => $command->languageId,
-                ':name'        => $command->translatedName,
+                ':insert_name' => $command->translatedName,
+                ':update_name' => $command->translatedName,
             ]);
         } catch (\PDOException $e) {
             // MySQL 1452: FK violation on language_id — language does not exist.
