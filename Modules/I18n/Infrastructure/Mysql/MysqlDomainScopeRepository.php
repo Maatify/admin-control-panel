@@ -31,7 +31,6 @@ final readonly class MysqlDomainScopeRepository implements DomainScopeRepository
             'SELECT 1 FROM i18n_domain_scopes
              WHERE scope_code = :scope
                AND domain_code = :domain
-               AND is_active = 1
              LIMIT 1'
         );
 
@@ -53,7 +52,6 @@ final readonly class MysqlDomainScopeRepository implements DomainScopeRepository
             'SELECT domain_code
              FROM i18n_domain_scopes
              WHERE scope_code = :scope
-               AND is_active = 1
              ORDER BY domain_code ASC'
         );
 
