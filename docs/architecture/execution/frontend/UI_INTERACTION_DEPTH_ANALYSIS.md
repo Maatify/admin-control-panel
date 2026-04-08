@@ -1,5 +1,13 @@
 # UI Interaction Depth Analysis
 
+## Authority & Startup Guardrails
+
+- This document is **analysis-only** for interaction depth and dependency shape.
+- Runtime startup order, capability hydration timing, and mount sequencing are governed by:
+  - `docs/architecture/execution/frontend/UI_EXECUTION_RULES.md`
+  - `docs/architecture/execution/frontend/TWIG_TEMPLATE_STANDARDS.md`
+- If an example in this file appears to conflict with startup behavior, treat the execution rules and Twig standards as authoritative.
+
 ## 1. Hierarchical Route Structure
 Observed API route definitions reveal varying levels of structural nesting.
 
