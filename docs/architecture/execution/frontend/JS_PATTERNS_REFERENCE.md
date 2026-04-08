@@ -180,7 +180,7 @@ showAlert('d', 'Error message');     // d = danger
 - Non-default table containers: `AdminPageBridge.Table.withTargetContainer(...)`.
 - Mutation workflows: `AdminPageBridge.API.runMutation(...)` where behavior matches.
 
-### {feature}-core.js Template
+### {feature}-core-v2.js Template
 ```javascript
 (function() {
     'use strict';
@@ -373,7 +373,8 @@ showAlert('d', 'Error message');     // d = danger
         });
 
         // Export reload function for use by actions module
-        window.reload{Feature}Table = () => load{Feature}(currentPage, currentPerPage);
+        window.reload{Feature}TableV2 = () => load{Feature}(currentPage, currentPerPage);
+        window.reload{Feature}Table = window.reload{Feature}TableV2; // compatibility alias if needed
 
         load{Feature}();
     }
@@ -387,7 +388,7 @@ showAlert('d', 'Error message');     // d = danger
 })();
 ```
 
-### {feature}-actions.js Template
+### {feature}-actions-v2.js Template
 ```javascript
 (function() {
     'use strict';
@@ -440,7 +441,7 @@ showAlert('d', 'Error message');     // d = danger
 
         if (result.success) {
             ApiHandler.showAlert('success', `Status updated successfully`);
-            window.reload{Feature}Table?.();
+            window.reload{Feature}TableV2?.();
         }
     }
 
@@ -490,10 +491,11 @@ ApiHandler.showAlert('info',    'Processing...');
     <script src="{{ asset('assets/maatify/admin-kernel/js/data_table.js') }}"></script>
     <script src="{{ asset('assets/maatify/admin-kernel/js/select2.js') }}"></script>
     <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/{path}/{feature}-helpers.js') }}"></script>
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/{path}/{feature}-core.js') }}"></script>
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/{path}/{feature}-modals.js') }}"></script>
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/{path}/{feature}-actions.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-page-bridge.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/{path}/{feature}-helpers-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/{path}/{feature}-core-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/{path}/{feature}-modals-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/{path}/{feature}-actions-v2.js') }}"></script>
 {% endblock %}
 ```
 
@@ -774,16 +776,17 @@ const nameRenderer = (value, row) => `<span>${value}</span>`;              // WR
 
 ---
 
-## window.reload{Feature}Table — Export Pattern
+## window.reload{Feature}TableV2 — Export Pattern
 
 ```javascript
 // In core module — export after init
-window.reload{Feature}Table = () => load{Feature}(currentPage, currentPerPage);
+window.reload{Feature}TableV2 = () => load{Feature}(currentPage, currentPerPage);
+window.reload{Feature}Table = window.reload{Feature}TableV2; // compatibility alias
 
 // In actions module — call after every successful mutation
 if (result.success) {
     ApiHandler.showAlert('success', 'Done!');
-    window.reload{Feature}Table?.();   // optional chaining for safety
+    window.reload{Feature}TableV2?.();   // optional chaining for safety
 }
 ```
 

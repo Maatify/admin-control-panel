@@ -421,9 +421,11 @@ const rowNames = ['id', 'name', 'description', 'is_active', 'actions'];
     <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
 
     {# Feature-specific scripts - ORDER MATTERS! #}
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/roles-core.js') }}"></script>
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/roles-modals.js') }}"></script>
-    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/roles-actions.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-page-bridge.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/roles-helpers-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/roles-core-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/roles-modals-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/roles-actions-v2.js') }}"></script>
 {% endblock %}
 ```
 
@@ -445,7 +447,7 @@ const rowNames = ['id', 'name', 'description', 'is_active', 'actions'];
 
 ### Step 3.1: Create File Structure
 
-**File:** `assets/js/pages/roles-core.js`
+**File:** `assets/js/pages/roles-core-v2.js`
 
 ```javascript
 /**
@@ -823,7 +825,7 @@ const rowNames = ['id', 'name', 'description', 'is_active', 'actions'];
 - [ ] Error handling shows user-friendly messages with rawBody details
 - [ ] Search & filters reset currentPage to 1
 - [ ] `tableAction` event listener handles pageChange and perPageChange
-- [ ] `window.reload{Feature}Table` exported
+- [ ] `window.reload{Feature}TableV2` exported (legacy alias optional)
 - [ ] IIFE wraps the entire module
 - [ ] Init uses `document.readyState === 'loading'` check
 
@@ -833,7 +835,7 @@ const rowNames = ['id', 'name', 'description', 'is_active', 'actions'];
 
 ### Step 4.1: File Structure
 
-**File:** `assets/js/pages/roles-modals.js`
+**File:** `assets/js/pages/roles-modals-v2.js`
 
 ```javascript
 /**
@@ -1076,7 +1078,7 @@ const rowNames = ['id', 'name', 'description', 'is_active', 'actions'];
 
 ### Step 5.1: File Structure
 
-**File:** `assets/js/pages/roles-actions.js`
+**File:** `assets/js/pages/roles-actions-v2.js`
 
 ```javascript
 /**
@@ -1316,7 +1318,7 @@ Before submitting for review:
 - [ ] `ApiHandler.call()` used — no raw `fetch()` calls
 - [ ] `ApiHandler.showAlert()` used for alerts in Pattern B/C/D
 - [ ] `document.addEventListener('tableAction', ...)` handles pagination
-- [ ] `window.reload{Feature}Table?.()` called after every mutation
+- [ ] `window.reload{Feature}TableV2?.()` called after every mutation
 - [ ] Button attributes use `data-{feature}-id`, not `data-entity-id`
 
 **Step 4 — Run IMPLEMENTATION_CHECKLIST.md self-check**

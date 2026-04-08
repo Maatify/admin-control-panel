@@ -11,6 +11,8 @@
 
 This document defines **mandatory standards** for any new feature in the system, based on best practices from the `languages_list` implementation.
 
+> Compatibility note: unsuffixed file names that appear in historical examples inside this document are legacy references. For new implementation defaults, use the `-v2` equivalents and bridge-first orchestration.
+
 ---
 
 ## 📋 **Table of Contents**

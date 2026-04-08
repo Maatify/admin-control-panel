@@ -17,7 +17,7 @@
 
 ```
 Does the feature need full CRUD, modals, or multiple action buttons per row?
-├── Yes → Pattern B (Modular + ApiHandler)
+├── Yes → Pattern B (Bridge-first v2 Modular)
 └── No  → Is it read-only with filtering?
            ├── Yes + POST paginated endpoint    → Pattern A (Simple Monolith)
            ├── Yes + GET flat array endpoint    → Pattern C (GET Static List)
@@ -157,10 +157,10 @@ If it is undefined, check that your template extends layouts/base.twig.
 |-----------------|---------------|
 | Flat list, simple monolith | `sessions.twig` |
 | Flat list, full modular | `languages_list.twig` + `languages-with-components.js` |
-| Modular actions module | `i18n-scopes-actions.js`, `i18n-domains-actions.js` |
+| Modular actions module | `i18n-scopes-actions-v2.js`, `i18n-domains-actions-v2.js` |
 | Nested page — single parent ID | `scope_details.twig` + `i18n-scope-coverage.js` |
 | Nested page — context object | `scope_domain_translations.twig` + `i18n_scope_domain_translations.js` |
 | GET static list render | `i18n-scope-coverage.js`, `i18n-scope-language-coverage.js` |
-| Helpers module | `languages-helpers.js` |
-| Modals module | `languages-modals.js`, `i18n-scopes-modals.js` |
+| Helpers module | `languages-helpers-v2.js` |
+| Modals module | `languages-modals-v2.js`, `i18n-scopes-modals-v2.js` |
 | Select2 usage | `i18n_scope_domain_translations.js`, `i18n_scope_domain_keys_coverage.js` |

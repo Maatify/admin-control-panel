@@ -92,7 +92,7 @@ Valid and supported for read-only features or features with at most 2 actions. N
 
 ### Pattern B — Modular
 Required for features with CRUD, modals, or multiple action buttons per row.
-- `{feature}-helpers.js` — utilities + `setupButtonHandler`
+- `{feature}-helpers-v2.js` — utilities + bridge-aware helper wrappers
 - `{feature}-core-v2.js` or `{feature}-with-components-v2.js` — table rendering + data loading
 - `{feature}-modals-v2.js` — modal HTML + open/close
 - `{feature}-actions-v2.js` — API calls + button event handlers
@@ -182,7 +182,7 @@ Inline HTML generation inside table configuration is FORBIDDEN. Raw HTML strings
 
 ## 6. Shared UI Components Rules
 - UI rendering MUST use `AdminUIComponents` utilities (e.g., `renderStatusBadge`, `renderCodeBadge`).
-- Inspect real usage in `languages-with-components.js`, `i18n-domains-core.js`, `i18n-scopes-core.js` to verify exact function signatures before use. DO NOT assume parameters.
+- Inspect real usage in `languages-with-components-v2.js`, `i18n-domains-core-v2.js`, `i18n-scopes-core-v2.js` to verify exact function signatures before use. DO NOT assume parameters.
 - The agent MUST NOT invoke any function or object property from a shared JS or PHP library without first inspecting the actual file contents before usage to definitively verify its exact filename, object name, and method signature.
 - `AdminUIComponents.buildActionButton(...)` and `AdminUIComponents.SVGIcons` MUST be used for all action buttons. Raw HTML string concatenation for buttons is FORBIDDEN.
 
@@ -190,7 +190,7 @@ Inline HTML generation inside table configuration is FORBIDDEN. Raw HTML strings
 
 ## 7. JavaScript Event, Modal & Form Rules
 - Inline `onclick` handlers are STRICTLY FORBIDDEN.
-- All DOM event delegation MUST use `setupButtonHandler(selector, handler)` defined locally inside the IIFE, following the pattern in `i18n-scopes-actions.js` and `i18n-domains-actions.js`.
+- All DOM event delegation MUST use bridge-aware handlers (`Bridge.Events.onClick(...)` or family `setupButtonHandler(...)`) following v2 module patterns.
 - **Data Attribute Standard:** All action buttons referencing a database record MUST use `data-{feature}-id="{id}"`. The attribute name MUST match the feature name exactly:
   - `data-language-id` for languages
   - `data-domain-id` for i18n domains
@@ -231,8 +231,8 @@ Inline HTML generation inside table configuration is FORBIDDEN. Raw HTML strings
 ## 10. UI State Synchronization & Lifecycle Rules
 - UI MUST NOT simulate state locally. UI MUST rely ONLY on API responses.
 - After ANY successful mutation (create/update/delete/toggle):
-  - Call `window.reload{Feature}Table?.()` to refresh the table.
-  - `window.reload{Feature}Table` MUST be exported by the core module.
+  - Call canonical `window.reload{Feature}TableV2?.()` to refresh the table.
+  - Keep `window.reload{Feature}Table` alias only when compatibility requires it.
 - Manual DOM patching is FORBIDDEN.
 - UI interaction route names MUST end with `.ui` or `.view`.
 - Data query endpoint paths MUST end with `/query`.
