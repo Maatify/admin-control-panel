@@ -32,8 +32,14 @@ return function (App $app): void {
         $logger->error($label, [
             'outer_exception_class' => get_class($exception),
             'outer_exception_message' => $exception->getMessage(),
+            'outer_file' => $exception->getFile(),
+            'outer_line' => $exception->getLine(),
+            'outer_trace' => $exception->getTraceAsString(),
+
             'previous_exception_class' => $previous ? get_class($previous) : null,
             'previous_exception_message' => $previous?->getMessage(),
+            'previous_file' => $previous?->getFile(),
+            'previous_line' => $previous?->getLine(),
             'previous_trace' => $previous?->getTraceAsString(),
         ]);
     };
