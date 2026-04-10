@@ -15,6 +15,10 @@ class DefaultNavigationProvider implements NavigationProviderInterface
     public function getNavigationItems(): array
     {
         return [
+            // ##########################################################
+            // ############### The main navigation items ################
+            // ##########################################################
+
             new NavigationItemDTO(
                 'Dashboard',
                 '/dashboard',
@@ -30,16 +34,26 @@ class DefaultNavigationProvider implements NavigationProviderInterface
                 '/sessions',
                 '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z"/></svg>'
             ),
-//            new NavigationItemDTO(
-//                'Telemetry',
-//                '/telemetry',
-//                '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25m-18 0A2.25 2.25 0 0 0 5.25 16.5h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5A2.25 2.25 0 0 1 5.25 4.5h13.5A2.25 2.25 0 0 1 21 6.75v7.5m-9-6h.008v.008H12V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.008v.008H12v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>'
-//            ),
-//            new NavigationItemDTO(
-//                'activity-logs',
-//                '/activity-logs',
-//                '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>'
-//            ),
+
+            // ##########################################################
+            // ############ Put Your Navigation Items Here ##############
+            // ##########################################################
+
+            // new NavigationItemDTO(
+            //             'Product',
+            //             '/products',
+            //             '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+            //                 <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25V6.75L16.5 3.75H7.5A2.25 2.25 0 0 0 5.25 6v12A2.25 2.25 0 0 0 7.5 20.25h4.5" />
+            //                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 3.75V6a.75.75 0 0 0 .75.75h2.25" />
+            //                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 9.75h6M9 12.75h6M9 15.75h3.75" />
+            //                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 18.75h6" />
+            //             </svg>'
+            // ),
+
+            // ##########################################################
+            // ################ The main navigation items ###############
+            // ##########################################################
+
             new NavigationItemDTO(
                 'Settings',
                 '/settings',
@@ -50,28 +64,28 @@ class DefaultNavigationProvider implements NavigationProviderInterface
                         'Content Document',
                         '/content-document-types',
                         '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25V6.75L16.5 3.75H7.5A2.25 2.25 0 0 0 5.25 6v12A2.25 2.25 0 0 0 7.5 20.25h4.5" />
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 3.75V6a.75.75 0 0 0 .75.75h2.25" />
-        <path stroke-linecap="round" stroke-linejoin="round" d="M9 9.75h6M9 12.75h6M9 15.75h3.75" />
-        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 18.75h6" />
-    </svg>'
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25V6.75L16.5 3.75H7.5A2.25 2.25 0 0 0 5.25 6v12A2.25 2.25 0 0 0 7.5 20.25h4.5" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 3.75V6a.75.75 0 0 0 .75.75h2.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 9.75h6M9 12.75h6M9 15.75h3.75" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 18.75h6" />
+                        </svg>'
                     ),
 
                     new NavigationItemDTO(
                         'App Settings',
                         '/app-settings',
                         '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0 0 15 0m-15 0a7.5 7.5 0 1 1 15 0m-15 0H3m16.5 0H21m-1.5 0H12m-8.457 3.077 1.41-.513m14.095-5.13 1.41-.513M5.106 17.785l1.15-.964m11.49-9.642 1.149-.964M7.501 19.795l.75-1.3m7.5-12.99.75-1.3" />
-</svg>'
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0 0 15 0m-15 0a7.5 7.5 0 1 1 15 0m-15 0H3m16.5 0H21m-1.5 0H12m-8.457 3.077 1.41-.513m14.095-5.13 1.41-.513M5.106 17.785l1.15-.964m11.49-9.642 1.149-.964M7.501 19.795l.75-1.3m7.5-12.99.75-1.3" />
+                        </svg>'
                     ),
 
                     new NavigationItemDTO(
                         'RBAC',
                         null,
                         '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3l7.5 4.5v4.875c0 4.59-3.06 8.64-7.5 9.75-4.44-1.11-7.5-5.16-7.5-9.75V7.5L12 3z" />
-        <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 12.75v-1.5a2.25 2.25 0 1 1 4.5 0v1.5m-4.5 0h4.5v2.25h-4.5v-2.25z" />
-    </svg>',
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3l7.5 4.5v4.875c0 4.59-3.06 8.64-7.5 9.75-4.44-1.11-7.5-5.16-7.5-9.75V7.5L12 3z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 12.75v-1.5a2.25 2.25 0 1 1 4.5 0v1.5m-4.5 0h4.5v2.25h-4.5v-2.25z" />
+                        </svg>',
                         [
 
                             new NavigationItemDTO(
@@ -92,16 +106,16 @@ class DefaultNavigationProvider implements NavigationProviderInterface
                         'Languages',
                         '/languages',
                         '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 21l5.25-11.25M10.5 21L6 9.75M10.5 21h3.75M6 9.75h12M9.75 3h4.5M12 3v6.75" />
-                </svg>'
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 21l5.25-11.25M10.5 21L6 9.75M10.5 21h3.75M6 9.75h12M9.75 3h4.5M12 3v6.75" />
+                        </svg>'
                     ),
 
                     new NavigationItemDTO(
                         'Currencies',
                         '/currencies',
                         '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m0-12c-1.657 0-3 1.343-3 3h6c0-1.657-1.343-3-3-3zm0 12c1.657 0 3-1.343 3-3H9c0 1.657 1.343 3 3 3z" />
-    </svg>'
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m0-12c-1.657 0-3 1.343-3 3h6c0-1.657-1.343-3-3-3zm0 12c1.657 0 3-1.343 3-3H9c0 1.657 1.343 3 3 3z" />
+                        </svg>'
                     ),
 
                     // 🌐 Translations (I18n Group)
@@ -109,22 +123,22 @@ class DefaultNavigationProvider implements NavigationProviderInterface
                         'Translations',
                         null,
                         '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 21l5.25-11.25M10.5 21L6 9.75M10.5 21h3.75M6 9.75h12M9.75 3h4.5M12 3v6.75" />
-    </svg>',
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 21l5.25-11.25M10.5 21L6 9.75M10.5 21h3.75M6 9.75h12M9.75 3h4.5M12 3v6.75" />
+                        </svg>',
                         [
                             new NavigationItemDTO(
                                 'Scopes',
                                 '/i18n/scopes',
                                 '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 6.75h15M4.5 12h15M4.5 17.25h15" />
-            </svg>'
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 6.75h15M4.5 12h15M4.5 17.25h15" />
+                                </svg>'
                             ),
                             new NavigationItemDTO(
                                 'Domains',
                                 '/i18n/domains',
                                 '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3h16.5v16.5H3.75z" />
-            </svg>'
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3h16.5v16.5H3.75z" />
+                                </svg>'
                             ),
                         ]
                     ),
