@@ -10,7 +10,7 @@ use Maatify\Storage\Adapters\DOSpacesStorageAdapter;
 use Maatify\Storage\Adapters\LocalStorageAdapter;
 use Maatify\Storage\Config\StorageConfig;
 use Maatify\Storage\Contracts\StorageAdapterInterface;
-use RuntimeException;
+use Maatify\Storage\Exceptions\ConfigurationException;
 
 final class StorageAdapterFactory
 {
@@ -19,7 +19,7 @@ final class StorageAdapterFactory
         return match ($config->driver) {
             'local'     => self::createLocalAdapter($paths, $config),
             'do_spaces' => self::createDOSpacesAdapter($config),
-            default     => throw new RuntimeException("Unsupported storage driver: [{$config->driver}]"),
+            default     => throw ConfigurationException::unsupportedDriver($config->driver),
         };
     }
 
@@ -36,7 +36,7 @@ final class StorageAdapterFactory
     private static function createDOSpacesAdapter(StorageConfig $config): DOSpacesStorageAdapter
     {
         $spaces = $config->doSpaces
-                  ?? throw new RuntimeException('DOSpacesConfig is required when driver is do_spaces');
+                  ?? throw ConfigurationException::missingAdapterConfig('do_spaces');
 
         $client = new S3Client([
             'version'                 => 'latest',

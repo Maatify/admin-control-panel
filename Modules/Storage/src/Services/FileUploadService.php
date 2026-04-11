@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Maatify\Storage\Services;
 
 use Maatify\Storage\Contracts\StorageAdapterInterface;
+use Maatify\Storage\Exceptions\FileUploadException;
+use Maatify\Storage\Exceptions\InvalidFileException;
 use Psr\Http\Message\UploadedFileInterface;
-use RuntimeException;
 
 final class FileUploadService
 {
@@ -41,7 +42,7 @@ final class FileUploadService
     private function assertNoUploadError(UploadedFileInterface $file): void
     {
         if ($file->getError() !== UPLOAD_ERR_OK) {
-            throw new RuntimeException('File upload error code: ' . $file->getError());
+            throw FileUploadException::fromErrorCode($file->getError());
         }
     }
 
@@ -50,15 +51,13 @@ final class FileUploadService
         $originalFilename = $file->getClientFilename();
 
         if (!$originalFilename) {
-            throw new RuntimeException('Invalid file name provided by client.');
+            throw InvalidFileException::missingFilename();
         }
 
         $extension = strtolower(pathinfo($originalFilename, PATHINFO_EXTENSION));
 
         if (!in_array($extension, self::ALLOWED_EXTENSIONS, true)) {
-            throw new RuntimeException(
-                'Invalid file extension. Allowed: ' . implode(', ', self::ALLOWED_EXTENSIONS)
-            );
+            throw InvalidFileException::unsupportedExtension($extension, self::ALLOWED_EXTENSIONS);
         }
 
         return $extension;

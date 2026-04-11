@@ -6,8 +6,8 @@ namespace Maatify\Storage\Adapters;
 
 use Aws\S3\S3Client;
 use Maatify\Storage\Contracts\StorageAdapterInterface;
+use Maatify\Storage\Exceptions\FileUploadException;
 use Psr\Http\Message\UploadedFileInterface;
-use RuntimeException;
 
 final class DOSpacesStorageAdapter implements StorageAdapterInterface
 {
@@ -24,7 +24,7 @@ final class DOSpacesStorageAdapter implements StorageAdapterInterface
         $stream = $file->getStream()->detach();
 
         if (!is_resource($stream)) {
-            throw new RuntimeException('Could not read uploaded file stream.');
+            throw FileUploadException::unreadableStream();
         }
 
         $this->client->putObject([

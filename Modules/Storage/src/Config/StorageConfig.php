@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Maatify\Storage\Config;
 
+use Maatify\Storage\Exceptions\ConfigurationException;
+
 final class StorageConfig
 {
     public function __construct(
@@ -31,12 +33,12 @@ final class StorageConfig
                 : null,
             doSpaces: $driver === 'do_spaces'
                 ? new DOSpacesConfig(
-                    key:      $env['DO_SPACES_KEY']      ?? throw new \RuntimeException('Missing DO_SPACES_KEY'),
-                    secret:   $env['DO_SPACES_SECRET']   ?? throw new \RuntimeException('Missing DO_SPACES_SECRET'),
-                    endpoint: $env['DO_SPACES_ENDPOINT'] ?? throw new \RuntimeException('Missing DO_SPACES_ENDPOINT'),
-                    bucket:   $env['DO_SPACES_BUCKET']   ?? throw new \RuntimeException('Missing DO_SPACES_BUCKET'),
-                    region:   $env['DO_SPACES_REGION']   ?? throw new \RuntimeException('Missing DO_SPACES_REGION'),
-                    cdnUrl:   $env['DO_SPACES_CDN_URL']  ?? throw new \RuntimeException('Missing DO_SPACES_CDN_URL'),
+                    key:      $env['DO_SPACES_KEY']      ?? throw ConfigurationException::missingEnvVariable('DO_SPACES_KEY'),
+                    secret:   $env['DO_SPACES_SECRET']   ?? throw ConfigurationException::missingEnvVariable('DO_SPACES_SECRET'),
+                    endpoint: $env['DO_SPACES_ENDPOINT'] ?? throw ConfigurationException::missingEnvVariable('DO_SPACES_ENDPOINT'),
+                    bucket:   $env['DO_SPACES_BUCKET']   ?? throw ConfigurationException::missingEnvVariable('DO_SPACES_BUCKET'),
+                    region:   $env['DO_SPACES_REGION']   ?? throw ConfigurationException::missingEnvVariable('DO_SPACES_REGION'),
+                    cdnUrl:   $env['DO_SPACES_CDN_URL']  ?? throw ConfigurationException::missingEnvVariable('DO_SPACES_CDN_URL'),
                     acl:      $env['DO_SPACES_ACL']      ?? 'public-read',
                 )
                 : null,

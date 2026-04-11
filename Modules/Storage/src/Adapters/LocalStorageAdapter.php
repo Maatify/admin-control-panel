@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Maatify\Storage\Adapters;
 
 use Maatify\Storage\Contracts\StorageAdapterInterface;
+use Maatify\Storage\Exceptions\AdapterException;
 use Psr\Http\Message\UploadedFileInterface;
-use RuntimeException;
 
 final class LocalStorageAdapter implements StorageAdapterInterface
 {
@@ -35,14 +35,14 @@ final class LocalStorageAdapter implements StorageAdapterInterface
         $fullPath = $this->basePath . '/' . ltrim($path, '/');
 
         if (file_exists($fullPath) && !unlink($fullPath)) {
-            throw new RuntimeException('Failed to delete file: ' . $fullPath);
+            throw AdapterException::failedToDeleteFile($fullPath);
         }
     }
 
     private function ensureDirectoryExists(string $directory): void
     {
         if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
-            throw new RuntimeException('Failed to create directory: ' . $directory);
+            throw AdapterException::failedToCreateDirectory($directory);
         }
     }
 }
