@@ -25,7 +25,7 @@ final class StorageConfig
 
         return new self(
             driver: $driver,
-            local: isset($env['LOCAL_BASE_PATH'])
+            local: !empty($env['LOCAL_BASE_PATH'])
                 ? new LocalStorageConfig(
                     basePath: $env['LOCAL_BASE_PATH'],
                     baseUrl:  $env['LOCAL_BASE_URL'] ?? '/images',
