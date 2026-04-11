@@ -1,13 +1,13 @@
 vendor/
 .env
 composer.lock
-storage/
+/storage/
 .idea/admin-control-panel.iml
 .gitignore
-.gitignore
-.gitignore
+.idea/
 .idea/modules.xml
 .idea/php.xml
 .idea/phpunit.xml
 .idea/vcs.xml
 .idea/git_toolbox_prj.xml
+.DS_Store

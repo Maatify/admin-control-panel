@@ -2,12 +2,18 @@
 
 declare(strict_types=1);
 
+define('APP_ROOT', dirname(__DIR__));
+
 require __DIR__ . '/../vendor/autoload.php';
 
+use DI\ContainerBuilder;
 use Maatify\AdminKernel\Kernel\AdminKernel;
 use Maatify\AdminKernel\Kernel\KernelOptions;
 use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
 use Dotenv\Dotenv;
+use Maatify\Storage\Bootstrap\StorageBindings;
+use Maatify\Storage\Config\StorageConfig;
+
 //use Maatify\PsrLogger\LoggerFactory;
 
 // 1️⃣ Load ENV (HOST responsibility)
@@ -29,5 +35,16 @@ $options->runtimeConfig = $runtimeConfig;
 // $options->strictInfrastructure = true;
 // $options->routes = fn ($app) => ...;
 
-// 4️⃣ Boot & Run
+// 4️⃣  Register host-specific bindings
+$storageConfig = StorageConfig::fromEnv($_ENV);
+
+$options->builderHook = static function (ContainerBuilder $containerBuilder) use ($storageConfig): void {
+    StorageBindings::register(
+        $containerBuilder,
+        APP_ROOT,
+        $storageConfig,
+    );
+};
+
+// 5️⃣ Boot & Run
 AdminKernel::bootWithOptions($options)->run();

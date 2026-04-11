@@ -1,0 +1,37 @@
+{
+  "name": "maatify/storage",
+  "description": "Pluggable file storage library supporting local and DigitalOcean Spaces",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Maatify",
+      "email": "admin@maatify.dev"
+    }
+  ],
+  "require": {
+    "php": ">=8.2",
+    "psr/http-message": "^2.0",
+    "maatify/shared-common": "^1.0"
+  },
+  "require-dev": {
+    "aws/aws-sdk-php": "^3.0",
+    "phpunit/phpunit": "^11.0"
+  },
+  "suggest": {
+    "aws/aws-sdk-php": "Required to use DOSpacesStorageAdapter"
+  },
+  "autoload": {
+    "psr-4": {
+      "Maatify\\Storage\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Maatify\\Storage\\Tests\\": "tests/"
+    }
+  },
+  "config": {
+    "sort-packages": true
+  }
+}
