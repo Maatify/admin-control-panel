@@ -11,6 +11,7 @@ final class InvalidFileException extends StorageException
         return new self('Invalid file name provided by client.');
     }
 
+    /** @param string[] $allowed */
     public static function unsupportedExtension(string $extension, array $allowed): self
     {
         return new self(
