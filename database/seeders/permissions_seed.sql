@@ -129,4 +129,13 @@ VALUES
     ('sessions.list', 'List Sessions', 'Allows list sessions'),
     ('sessions.revoke', 'Revoke Sessions', 'Allows revoke sessions'),
     ('sessions.view_all', 'View all Sessions', 'Allows view all sessions'),
+    ('currencies.create', 'Create Currencies', 'Allows create currencies'),
+    ('currencies.dropdown', 'Dropdown Currencies', 'Allows dropdown currencies'),
+    ('currencies.list', 'List Currencies', 'Allows list currencies'),
+    ('currencies.set_active', 'Set active Currencies', 'Allows set active currencies'),
+    ('currencies.translations.delete', 'Delete Translations Currencies', 'Allows delete translations currencies'),
+    ('currencies.translations.list', 'List Translations Currencies', 'Allows list translations currencies'),
+    ('currencies.translations.upsert', 'Upsert Translations Currencies', 'Allows upsert translations currencies'),
+    ('currencies.update', 'Update Currencies', 'Allows update currencies'),
+    ('currencies.update_sort', 'Update sort Currencies', 'Allows update sort currencies'),
     ('telemetry.list', 'List Telemetry', 'Allows list telemetry');
