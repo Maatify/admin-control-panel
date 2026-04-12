@@ -14,5 +14,7 @@ final readonly class LanguageDTO
         public ?int $fallbackLanguageId,
         public string $createdAt,
         public ?string $updatedAt,
+        public ?string $icon = null,
+        public ?string $direction = null,
     ) {}
 }
