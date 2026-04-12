@@ -229,7 +229,7 @@ use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Slim\Views\Twig;
-
+use Maatify\AdminKernel\Ui\Config\MediaUrlConfigDTO;
 //use Maatify\AdminKernel\Domain\Contracts\PermissionMapperInterface;
 
 class Container
@@ -417,6 +417,9 @@ class Container
                 $uiConfigDTO = $c->get(UiConfigDTO::class);
                 assert($uiConfigDTO instanceof UiConfigDTO);
 
+                $mediaUrlConfig = $c->get(MediaUrlConfigDTO::class);
+                assert($mediaUrlConfig instanceof MediaUrlConfigDTO);
+
                 $loader = new \Twig\Loader\FilesystemLoader();
 
                 // 1. Host templates (Precedence)
@@ -439,10 +442,47 @@ class Container
                 $twig->getEnvironment()->addGlobal('nav_items', $navProvider->getNavigationItems());
                 $twig->getEnvironment()->addGlobal('ui', $uiConfigDTO);
 
+                $twig->getEnvironment()->addGlobal('media', [
+                    'assets_cdn_url' => $mediaUrlConfig->assetsCdnUrl,
+                    'cdn_image_url'  => $mediaUrlConfig->cdnImageUrl,
+                ]);
+
                 $twig->getEnvironment()->addFunction(new \Twig\TwigFunction('asset', function (string $path) use ($uiConfigDTO, $assetsBaseUrl): string {
                     $base = $assetsBaseUrl ?? $uiConfigDTO->adminAssetBaseUrl;
                     return rtrim($base, '/') . '/' . ltrim($path, '/');
                 }));
+
+                $twig->getEnvironment()->addFunction(new \Twig\TwigFunction(
+                    'cdn_asset',
+                    static function (string $path) use ($mediaUrlConfig): string {
+                        return $mediaUrlConfig->buildAssetUrl($path);
+                    }
+                ));
+
+                $twig->getEnvironment()->addFunction(new \Twig\TwigFunction(
+                    'cdn_image',
+                    static function (string $path) use ($mediaUrlConfig): string {
+                        return $mediaUrlConfig->buildImageUrl($path);
+                    }
+                ));
+
+                $twig->getEnvironment()->addFunction(new \Twig\TwigFunction(
+                    'app_config',
+                    static function () use ($uiConfigDTO, $assetsBaseUrl, $mediaUrlConfig): array {
+                        $adminAssetBaseUrl = rtrim($assetsBaseUrl ?? $uiConfigDTO->adminAssetBaseUrl, '/');
+
+                        return [
+                            'ui' => [
+                                'adminUrl' => $uiConfigDTO->adminUrl,
+                                'adminAssetBaseUrl' => $adminAssetBaseUrl,
+                            ],
+                            'media' => [
+                                'assetsCdnUrl' => $mediaUrlConfig->assetsCdnUrl,
+                                'cdnImageUrl' => $mediaUrlConfig->cdnImageUrl,
+                            ],
+                        ];
+                    }
+                ));
 
                 return $twig;
             },

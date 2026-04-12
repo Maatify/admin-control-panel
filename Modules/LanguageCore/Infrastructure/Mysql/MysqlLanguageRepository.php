@@ -121,20 +121,22 @@ final readonly class MysqlLanguageRepository implements LanguageRepositoryInterf
     public function listActiveForSelect(): LanguageCollectionDTO
     {
         $sql = '
-            SELECT
-                l.id,
-                l.name,
-                l.code,
-                l.is_active,
-                l.fallback_language_id,
-                l.created_at,
-                l.updated_at
-            FROM languages l
-            INNER JOIN language_settings s
-                ON s.language_id = l.id
-            WHERE l.is_active = 1
-            ORDER BY s.sort_order ASC, l.id ASC
-        ';
+        SELECT
+            l.id,
+            l.name,
+            l.code,
+            l.is_active,
+            l.fallback_language_id,
+            l.created_at,
+            l.updated_at,
+            s.icon,
+            s.direction
+        FROM languages l
+        INNER JOIN language_settings s
+            ON s.language_id = l.id
+        WHERE l.is_active = 1
+        ORDER BY s.sort_order ASC, l.id ASC
+    ';
 
         $stmt = $this->pdo->query($sql);
         if (!$stmt instanceof PDOStatement) {
@@ -245,7 +247,12 @@ final readonly class MysqlLanguageRepository implements LanguageRepositoryInterf
         $isActive = $row['is_active'] ?? null;
         $createdAt = $row['created_at'] ?? null;
 
-        if (!is_numeric($id) || !is_string($name) || $name === '' || !is_string($code) || $code === '' || $createdAt === null) {
+        if (
+            !is_numeric($id) ||
+            !is_string($name) || $name === '' ||
+            !is_string($code) || $code === '' ||
+            $createdAt === null
+        ) {
             return null;
         }
 
@@ -275,6 +282,12 @@ final readonly class MysqlLanguageRepository implements LanguageRepositoryInterf
             return null;
         }
 
+        $icon = $row['icon'] ?? null;
+        $iconStr = is_string($icon) && $icon !== '' ? $icon : null;
+
+        $direction = $row['direction'] ?? null;
+        $directionStr = is_string($direction) && $direction !== '' ? $direction : null;
+
         return new LanguageDTO(
             (int) $id,
             $name,
@@ -282,7 +295,9 @@ final readonly class MysqlLanguageRepository implements LanguageRepositoryInterf
             $isActiveBool,
             $fallbackId,
             $createdAtStr,
-            $updatedAtStr
+            $updatedAtStr,
+            $iconStr,
+            $directionStr
         );
     }
 

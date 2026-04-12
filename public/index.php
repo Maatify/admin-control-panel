@@ -2,12 +2,19 @@
 
 declare(strict_types=1);
 
+define('APP_ROOT', dirname(__DIR__));
+
 require __DIR__ . '/../vendor/autoload.php';
 
+use DI\ContainerBuilder;
 use Maatify\AdminKernel\Kernel\AdminKernel;
 use Maatify\AdminKernel\Kernel\KernelOptions;
 use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
 use Dotenv\Dotenv;
+use Maatify\AdminKernel\Ui\Config\MediaUrlConfigDTO;
+use Maatify\Storage\Bootstrap\StorageBindings;
+use Maatify\Storage\Config\StorageConfig;
+
 //use Maatify\PsrLogger\LoggerFactory;
 
 // 1️⃣ Load ENV (HOST responsibility)
@@ -19,6 +26,8 @@ $dotenv->safeLoad();
 
 // 2️⃣ Build Runtime Config DTO
 $runtimeConfig = AdminRuntimeConfigDTO::fromArray($_ENV);
+$storageConfig = StorageConfig::fromEnv($_ENV);
+$mediaUrlConfig = MediaUrlConfigDTO::fromArray($_ENV);
 
 // 3️⃣ Kernel options
 $options = new KernelOptions();
@@ -29,5 +38,18 @@ $options->runtimeConfig = $runtimeConfig;
 // $options->strictInfrastructure = true;
 // $options->routes = fn ($app) => ...;
 
-// 4️⃣ Boot & Run
+// 4️⃣  Register host-specific bindings
+$options->builderHook = static function (ContainerBuilder $containerBuilder) use ($storageConfig, $mediaUrlConfig): void {
+    StorageBindings::register(
+        $containerBuilder,
+        APP_ROOT,
+        $storageConfig,
+    );
+
+    $containerBuilder->addDefinitions([
+        MediaUrlConfigDTO::class => static fn (): MediaUrlConfigDTO => $mediaUrlConfig,
+    ]);
+};
+
+// 5️⃣ Boot & Run
 AdminKernel::bootWithOptions($options)->run();

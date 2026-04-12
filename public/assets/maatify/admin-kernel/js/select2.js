@@ -158,6 +158,12 @@ function Select2(elementOrSelector, data = [], options = {}) {
         }
         // Also update data attribute on container for easy access
         container.dataset.value = item.value;
+
+        // Execute onChange callback if provided
+        if (typeof config.onChange === 'function') {
+            config.onChange(item);
+        }
+
         console.log(item.value);
         close();
     }
