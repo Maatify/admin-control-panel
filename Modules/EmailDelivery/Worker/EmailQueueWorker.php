@@ -100,6 +100,66 @@ final readonly class EmailQueueWorker
         }
     }
 
+    public function processBatchByEntityType(string $entityType, int $limit = 50): void
+    {
+        $this->pdo->beginTransaction();
+
+        try {
+            $sql = <<<'SQL'
+                SELECT
+                    id,
+                    recipient_encrypted, recipient_iv, recipient_tag, recipient_key_id,
+                    payload_encrypted, payload_iv, payload_tag, payload_key_id
+                FROM email_queue
+                WHERE status = 'pending'
+                  AND entity_type = :entity_type
+                  AND scheduled_at <= NOW()
+                ORDER BY priority ASC, id ASC
+                LIMIT :limit
+                FOR UPDATE
+            SQL;
+
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->bindValue(':entity_type', $entityType, PDO::PARAM_STR);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
+
+            /** @var list<EmailQueueRow> $rows */
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if ($rows === []) {
+                $this->pdo->commit();
+                return;
+            }
+
+            $ids = array_map(
+                static fn (array $row): int => (int) $row['id'],
+                $rows
+            );
+
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+
+            $updateSql = <<<SQL
+                UPDATE email_queue
+                SET status = 'processing',
+                    attempts = attempts + 1
+                WHERE id IN ($placeholders)
+            SQL;
+
+            $updateStmt = $this->pdo->prepare($updateSql);
+            $updateStmt->execute($ids);
+
+            $this->pdo->commit();
+        } catch (Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+
+        foreach ($rows as $row) {
+            $this->processRow($row);
+        }
+    }
+
     /**
      * @param EmailQueueRow $row
      */
@@ -189,4 +249,3 @@ final readonly class EmailQueueWorker
         }
     }
 }
-
