@@ -8,8 +8,7 @@ use Maatify\AdminKernel\Application\Security\UiPermissionService;
 use Maatify\AdminKernel\Context\AdminContext;
 use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\Currency\Service\CurrencyQueryService;
-use Maatify\LanguageCore\Contract\LanguageRepositoryInterface;
-use Maatify\LanguageCore\Contract\LanguageSettingsRepositoryInterface;
+use Maatify\LanguageCore\Contract\LanguageContextQueryInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
@@ -20,8 +19,8 @@ final readonly class CurrencyTranslationsListUiController
         private Twig $view,
         private UiPermissionService $uiPermissionService,
         private CurrencyQueryService $currencyQueryService,
-        private LanguageRepositoryInterface $languageRepository,
-        private LanguageSettingsRepositoryInterface $settingsRepository
+        private LanguageContextQueryInterface $languageContextQuery,
+
     ) {
     }
 
@@ -42,28 +41,6 @@ final readonly class CurrencyTranslationsListUiController
             throw new EntityNotFoundException('Currency', $currencyId);
         }
 
-        $languages = $this->languageRepository->listAll();
-        $languagesData = [];
-
-        foreach ($languages->items as $language) {
-            $settings = $this->settingsRepository->getByLanguageId($language->id);
-
-            // Safety rule:
-            // Language without settings MUST NOT appear in UI select
-            if ($settings === null) {
-                continue;
-            }
-
-            $languagesData[] = [
-                'id'         => $language->id,
-                'code'       => $language->code,
-                'name'       => $language->name,
-                'direction'  => $settings->direction->value,
-                'icon'       => $settings->icon,
-                'is_default' => $language->fallbackLanguageId === null,
-            ];
-        }
-
         $capabilities = [
             'can_upsert' => $this->uiPermissionService->hasPermission($adminId, 'currencies.translations.upsert.api'),
             'can_delete' => $this->uiPermissionService->hasPermission($adminId, 'currencies.translations.delete.api'),
@@ -72,7 +49,7 @@ final readonly class CurrencyTranslationsListUiController
 
         return $this->view->render($response, 'pages/currencies/currency_translations.twig', [
             'currency'     => $currency->jsonSerialize(),
-            'languages'    => $languagesData,
+            'languages'    => $this->languageContextQuery->listAllWithContext()->items,
             'capabilities' => $capabilities,
         ]);
     }
