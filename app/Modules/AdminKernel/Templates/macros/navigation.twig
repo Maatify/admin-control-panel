@@ -1,5 +1,5 @@
 {% macro render(items, level = 0) %}
-    <ul class="{{ level == 0 ? 'space-y-2 px-4 mt-5' : 'ml-6 mt-1 space-y-1' }} overflow-y-scroll ">
+    <ul class="{{ level == 0 ? 'space-y-2 px-4 mt-5' : 'ml-6 mt-1 space-y-1' }} overflow-y-scroll [scrollbar-width:thin] [scrollbar-color:theme(colors.gray.900)_theme(colors.gray.800)] [&::-webkit-scrollbar]:w-0 ">
         {% for item in items %}
             <li>
                 {% if item.children %}
