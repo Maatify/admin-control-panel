@@ -7,8 +7,10 @@ namespace Maatify\Currency\Bootstrap;
 use DI\Container;
 use DI\ContainerBuilder;
 use Maatify\Currency\Contract\CurrencyCommandRepositoryInterface;
+use Maatify\Currency\Contract\CurrencyDropdownQueryInterface;
 use Maatify\Currency\Contract\CurrencyQueryReaderInterface;
 use Maatify\Currency\Infrastructure\Repository\PdoCurrencyCommandRepository;
+use Maatify\Currency\Infrastructure\Repository\PdoCurrencyDropdownQuery;
 use Maatify\Currency\Infrastructure\Repository\PdoCurrencyQueryReader;
 use Maatify\Currency\Service\CurrencyCommandService;
 use Maatify\Currency\Service\CurrencyQueryService;
@@ -79,6 +81,13 @@ final class CurrenciesBindings
                 $pdo = $c->get(PDO::class);
 
                 return new PdoCurrencyQueryReader($pdo);
+            },
+
+            CurrencyDropdownQueryInterface::class => static function (ContainerInterface $c): PdoCurrencyDropdownQuery {
+                /** @var PDO $pdo */
+                $pdo = $c->get(PDO::class);
+
+                return new PdoCurrencyDropdownQuery($pdo);
             },
 
             CurrencyCommandRepositoryInterface::class => static function (ContainerInterface $c): PdoCurrencyCommandRepository {
