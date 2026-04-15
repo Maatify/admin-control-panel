@@ -78,6 +78,12 @@ final class LanguageCoreBindings
                 /** @var PDO $pdo */
                 $pdo = $c->get(PDO::class);
                 return new \Maatify\LanguageCore\Infrastructure\Mysql\MysqlLanguageSettingsRepository($pdo);
+            },
+
+            \Maatify\LanguageCore\Contract\LanguageContextQueryInterface::class => function (ContainerInterface $c) {
+                /** @var PDO $pdo */
+                $pdo = $c->get(PDO::class);
+                return new \Maatify\LanguageCore\Infrastructure\Mysql\MysqlLanguageContextQuery($pdo);
             }
 
         ]);
