@@ -8,4 +8,5 @@ enum IdentityTypeEnum: string
 {
     case Admin = 'admin';
     case Email = 'email';
+    case CUSTOMER = 'customer';
 }
