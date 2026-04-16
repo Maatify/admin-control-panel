@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\Currency\Validation;
+namespace Maatify\Currency\Integration\AdminKernel\Support\Validation;
 
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
 
-final class CurrencySetActiveSchema extends AbstractSchema
+final class CurrencyUpdateSortOrderSchema extends AbstractSchema
 {
     protected function rules(): array
     {
@@ -17,8 +17,8 @@ final class CurrencySetActiveSchema extends AbstractSchema
                 v::intType()->min(1),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
-            'is_active' => [
-                v::boolType(),
+            'display_order' => [
+                v::intType()->min(1),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ]
         ];

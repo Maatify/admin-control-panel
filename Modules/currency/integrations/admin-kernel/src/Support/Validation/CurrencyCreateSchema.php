@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\Currency\Validation;
+namespace Maatify\Currency\Integration\AdminKernel\Support\Validation;
 
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Schemas\AbstractSchema;

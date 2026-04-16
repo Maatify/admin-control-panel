@@ -2,17 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Controllers\Api\Currency;
+namespace Maatify\Currency\Integration\AdminKernel\Http\Controllers\Api;
 
-use Maatify\AdminKernel\Domain\Currency\Validation\CurrencySetActiveSchema;
 use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
-use Maatify\Currency\Command\UpdateCurrencyStatusCommand;
+use Maatify\Currency\Integration\AdminKernel\Support\Validation\CurrencyUpdateSortOrderSchema;
 use Maatify\Currency\Service\CurrencyCommandService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-final readonly class CurrenciesSetActiveController
+final readonly class CurrenciesUpdateSortOrderController
 {
     public function __construct(
         private CurrencyCommandService $commandService,
@@ -27,20 +26,17 @@ final readonly class CurrenciesSetActiveController
         $body = (array) $request->getParsedBody();
 
         // 1) Validate request
-        $this->validationGuard->check(new CurrencySetActiveSchema(), $body);
+        $this->validationGuard->check(new CurrencyUpdateSortOrderSchema(), $body);
 
         $id = $body['id'];
-        $isActive = $body['is_active'];
+        $displayOrder = $body['display_order'];
 
-        if (!is_int($id) || !is_bool($isActive)) {
+        if (!is_int($id) || !is_int($displayOrder)) {
             throw new \RuntimeException('Invalid validated payload.');
         }
 
         // 3) Execute service
-        $dto = $this->commandService->updateStatus(new UpdateCurrencyStatusCommand(
-            id: $id,
-            isActive: $isActive
-        ));
+        $this->commandService->reorder($id, $displayOrder);
 
         // 4) Return success using JSON response factory
         return $this->json->success($response);
