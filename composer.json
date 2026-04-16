@@ -52,6 +52,7 @@
       "Maatify\\ContentDocuments\\": "Modules/ContentDocuments",
       "Maatify\\Verification\\": "Modules/Verification",
       "Maatify\\Currency\\": "Modules/currency/src",
+      "Maatify\\Currency\\Integration\\AdminKernel\\": "Modules/currency/integrations/admin-kernel/src/",
       "Maatify\\Storage\\": "Modules/Storage/src"
     }
   },
