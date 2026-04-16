@@ -3,14 +3,30 @@ name: Permission Check
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - '**/*.php'
+      - 'composer.json'
+      - 'composer.lock'
+      - 'phpstan.neon'
+      - 'phpstan.neon.dist'
+      - 'phpunit.xml'
+      - '.github/workflows/**'
   pull_request:
     branches: [ "main" ]
+    paths:
+      - '**/*.php'
+      - 'composer.json'
+      - 'composer.lock'
+      - 'phpstan.neon'
+      - 'phpstan.neon.dist'
+      - 'phpunit.xml'
+      - '.github/workflows/**'
 
 jobs:
   permission-lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
