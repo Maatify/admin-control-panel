@@ -3,8 +3,24 @@ name: admin-control-panel CI
 on:
   push:
     branches: ["**"]
+    paths:
+      - '**/*.php'
+      - 'composer.json'
+      - 'composer.lock'
+      - 'phpstan.neon'
+      - 'phpstan.neon.dist'
+      - 'phpunit.xml'
+      - '.github/workflows/**'
   pull_request:
     branches: ["**"]
+    paths:
+      - '**/*.php'
+      - 'composer.json'
+      - 'composer.lock'
+      - 'phpstan.neon'
+      - 'phpstan.neon.dist'
+      - 'phpunit.xml'
+      - '.github/workflows/**'
 
 jobs:
   quality:
@@ -43,13 +59,13 @@ jobs:
       # 4) Install dependencies
       # -------------------------------------------------
       - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --no-progress
+        run: composer install --no-interaction --prefer-dist --no-progress --optimize-autoloader
 
       # -------------------------------------------------
       # 5) Dump optimized autoload
       # -------------------------------------------------
-      - name: Optimize autoload
-        run: composer dump-autoload --optimize
+      # merged into composer install via --optimize-autoloader
+      # -------------------------------------------------
 
       # -------------------------------------------------
       # 6) Run PHPStan (Level Max)
