@@ -16,8 +16,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Maatify\\Currency\\": "src/",
-      "Maatify\\Currency\\Integration\\AdminKernel\\": "integrations/admin-kernel/src/"
+      "Maatify\\Currency\\": "src/"
     }
   },
   "autoload-dev": {
