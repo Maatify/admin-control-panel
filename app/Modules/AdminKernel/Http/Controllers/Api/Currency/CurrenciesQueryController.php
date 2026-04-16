@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Maatify\Currency\Integration\AdminKernel\Http\Controllers\Api\Translations;
+namespace Maatify\AdminKernel\Http\Controllers\Api\Currency;
 
+use Maatify\AdminKernel\Domain\Currency\List\CurrencyListCapabilities;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
 use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
 use Maatify\AdminKernel\Infrastructure\Query\ListFilterResolver;
-use Maatify\Currency\Integration\AdminKernel\Support\CurrencyTranslationListCapabilities;
 use Maatify\Currency\Service\CurrencyQueryService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Maatify\Validation\Schemas\SharedListQuerySchema;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-final readonly class CurrencyTranslationsQueryController
+final readonly class CurrenciesQueryController
 {
     public function __construct(
         private CurrencyQueryService $queryService,
@@ -24,13 +24,8 @@ final readonly class CurrencyTranslationsQueryController
     ) {
     }
 
-    /**
-     * @param array<string, string> $args
-     */
-    public function __invoke(Request $request, Response $response, array $args): Response
+    public function __invoke(Request $request, Response $response): Response
     {
-        $currencyId = (int) $args['currency_id'];
-
         /** @var array<string, mixed> $body */
         $body = (array) $request->getParsedBody();
 
@@ -49,6 +44,7 @@ final readonly class CurrencyTranslationsQueryController
          *     from?: string,
          *     to?: string
          *   },
+         *   language_id?: int
          * } $validated
          */
         $validated = $body;
@@ -57,20 +53,26 @@ final readonly class CurrencyTranslationsQueryController
         $query = ListQueryDTO::fromArray($validated);
 
         // 3) Capabilities
-        $capabilities = CurrencyTranslationListCapabilities::define();
+        $capabilities = CurrencyListCapabilities::define();
 
         // 4) Resolve filters
         $filters = $this->filterResolver->resolve($query, $capabilities);
 
-        // Translations query for currency does not have a paginated service method, only `listTranslations`
-        $list = $this->queryService->listTranslationsPaginated(
-            currencyId: $currencyId,
+        $languageId = null;
+        if (isset($validated['language_id'])) {
+            $languageId = $validated['language_id'];
+        }
+
+        // 5) Execute service
+        $result = $this->queryService->paginate(
             page: $query->page,
             perPage: $query->perPage,
             globalSearch: $filters->globalSearch,
             columnFilters: $filters->columnFilters,
+            languageId: $languageId
         );
 
-        return $this->json->data($response, $list);
+        // 6) Return JSON
+        return $this->json->data($response, $result);
     }
 }

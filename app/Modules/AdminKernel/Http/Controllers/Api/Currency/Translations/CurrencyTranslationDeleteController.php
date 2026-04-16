@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Maatify\Currency\Integration\AdminKernel\Http\Controllers\Api\Translations;
+namespace Maatify\AdminKernel\Http\Controllers\Api\Currency\Translations;
 
+use Maatify\AdminKernel\Domain\Currency\Validation\CurrencyTranslationDeleteSchema;
 use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
 use Maatify\Currency\Command\DeleteCurrencyTranslationCommand;
-use Maatify\Currency\Integration\AdminKernel\Support\Validation\CurrencyTranslationDeleteSchema;
 use Maatify\Currency\Service\CurrencyCommandService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;

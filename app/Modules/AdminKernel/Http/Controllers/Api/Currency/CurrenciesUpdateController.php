@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Maatify\Currency\Integration\AdminKernel\Http\Controllers\Api;
+namespace Maatify\AdminKernel\Http\Controllers\Api\Currency;
 
+use Maatify\AdminKernel\Domain\Currency\Validation\CurrencyUpdateSchema;
 use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
-use Maatify\Currency\Command\CreateCurrencyCommand;
-use Maatify\Currency\Integration\AdminKernel\Support\Validation\CurrencyCreateSchema;
+use Maatify\Currency\Command\UpdateCurrencyCommand;
 use Maatify\Currency\Service\CurrencyCommandService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-final readonly class CurrenciesCreateController
+final readonly class CurrenciesUpdateController
 {
     public function __construct(
         private CurrencyCommandService $commandService,
@@ -27,34 +27,22 @@ final readonly class CurrenciesCreateController
         $body = (array) $request->getParsedBody();
 
         // 1) Validate request
-        $this->validationGuard->check(new CurrencyCreateSchema(), $body);
+        $this->validationGuard->check(new CurrencyUpdateSchema(), $body);
 
+        $id = $body['id'];
         $code = $body['code'];
         $name = $body['name'];
         $symbol = $body['symbol'];
+        $isActive = $body['is_active'];
+        $displayOrder = $body['display_order'];
 
-        if (!is_string($code) || !is_string($name) || !is_string($symbol)) {
+        if (!is_int($id) || !is_string($code) || !is_string($name) || !is_string($symbol) || !is_bool($isActive) || !is_int($displayOrder)) {
             throw new \RuntimeException('Invalid validated payload.');
         }
 
-        $isActive = true;
-        if (array_key_exists('is_active', $body)) {
-            if (!is_bool($body['is_active'])) {
-                throw new \RuntimeException('Invalid is_active payload.');
-            }
-            $isActive = $body['is_active'];
-        }
-
-        $displayOrder = 0;
-        if (array_key_exists('display_order', $body)) {
-            if (!is_int($body['display_order'])) {
-                throw new \RuntimeException('Invalid display_order payload.');
-            }
-            $displayOrder = $body['display_order'];
-        }
-
         // 3) Execute service
-        $dto = $this->commandService->create(new CreateCurrencyCommand(
+        $dto = $this->commandService->update(new UpdateCurrencyCommand(
+            id: $id,
             code: $code,
             name: $name,
             symbol: $symbol,

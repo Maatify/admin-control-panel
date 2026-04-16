@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Maatify\Currency\Integration\AdminKernel\Http\Controllers\Api;
+namespace Maatify\AdminKernel\Http\Controllers\Api\Currency;
 
 use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
+use Maatify\Currency\DTO\CurrencyDTO;
 use Maatify\Currency\Service\CurrencyQueryService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
