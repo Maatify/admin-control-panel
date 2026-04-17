@@ -19,6 +19,10 @@ use Maatify\ImageProfile\Exception\ImageProfileException;
 /**
  * Contract for generating multiple named image variants from a single source.
  *
+ * EXTENSION SCOPE NOTICE (post-v1 core):
+ * Variant generation is an optional extension concern and is not required
+ * for normal profile validation usage.
+ *
  * Implementations iterate the provided VariantDefinitionCollectionDTO and
  * produce one output file per definition, writing each to $targetDirectory.
  * The resulting collection maps variant names to their ProcessedImageDTO results.

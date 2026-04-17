@@ -13,6 +13,8 @@ A reusable, framework-agnostic image-profile definition and validation package.
 - [Database Schema](#database-schema)
 - [Providers](#providers)
 - [Validation Flow](#validation-flow)
+- [Public Entry Point](#public-entry-point)
+- [Composition Helper](#composition-helper)
 - [Error Handling](#error-handling)
 - [Adapters](#adapters)
 - [Storage](#storage)
@@ -39,6 +41,9 @@ The package is **not** responsible for:
 - image resizing, optimization, or thumbnail generation
 - framework HTTP lifecycle or direct `$_FILES` handling
 - admin UI or CRUD controllers
+
+Optional processing primitives may exist in the package for future extension,
+but they are intentionally **not** part of the stable v1 validation path.
 
 ---
 
@@ -222,6 +227,45 @@ The validator short-circuits only on infrastructure failures (missing profile, m
 
 ---
 
+## Public Entry Point
+
+For most consumers, use `ImageProfileValidationService` as the neutral module boundary.
+
+```php
+use Maatify\ImageProfile\Service\ImageProfileValidationService;
+
+$service = ImageProfileValidationService::compose($provider, $reader);
+
+$result = $service->validateByCode('product_thumbnail', $input);
+```
+
+This service intentionally exposes only profile lookup/list + validation behavior.
+It does not include controller, upload, or storage orchestration.
+
+---
+
+## Composition Helper
+
+Use `ImageProfileComposition` for framework-agnostic wiring guidance.
+
+### Compose from explicit dependencies
+
+```php
+use Maatify\ImageProfile\Bootstrap\ImageProfileComposition;
+
+$service = ImageProfileComposition::fromProvider($provider, $reader);
+```
+
+### Compose from PDO (ready-to-use path)
+
+```php
+use Maatify\ImageProfile\Bootstrap\ImageProfileComposition;
+
+$service = ImageProfileComposition::fromPdo($pdo, 'image_profiles');
+```
+
+---
+
 ## Error Handling
 
 ### Validation errors — returned, never thrown
@@ -353,6 +397,13 @@ $stored = $storage->store(
 ---
 
 ## Extension Strategy
+
+### Processing and variants are extension scope (deferred)
+
+Image processing primitives (resize, optimization, variant generation, preferred output hints)
+are intentionally not part of the stable v1 validation entry path.
+They are optional extension APIs and should not be treated as required dependencies
+for core profile validation consumption.
 
 ### Adding a new provider
 
