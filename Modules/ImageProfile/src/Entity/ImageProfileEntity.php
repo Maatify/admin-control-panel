@@ -32,10 +32,10 @@ use Maatify\ImageProfile\ValueObject\AllowedMimeTypeCollection;
  *  - `minAspectRatio` / `maxAspectRatio` are width÷height ratios (float).
  *    e.g. 16/9 ≈ 1.7778; 1/1 = 1.0; 9/16 = 0.5625.
  *  - `requiresTransparency = true` means only PNG and WebP are accepted.
- *  - `preferredFormat` and `preferredQuality` are advisory — they guide the
- *    processing layer but do NOT affect validation outcomes.
- *  - `variants` defines the named variants to generate after a successful
- *    upload; the validator ignores this field.
+ *  - `preferredFormat` and `preferredQuality` are advisory and extension-scope
+ *    metadata — they guide optional processing but do NOT affect validation.
+ *  - `variants` is extension-scope metadata for optional generation workflows;
+ *    the validator ignores this field.
  *
  * Backward compatibility: all Phase 9 fields have safe defaults so existing
  * construction code that does not supply them continues to work.

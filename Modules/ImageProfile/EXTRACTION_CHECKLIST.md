@@ -128,6 +128,16 @@ a standalone repository. Every item must be verified **green** before release.
 
 ---
 
+## 10.1 Public Validation Entry (consumer-facing)
+
+- [ ] `ImageProfileValidationService` exists as a neutral public entry for
+      profile lookup/list + `validateByCode()`
+- [ ] `ImageProfileComposition` provides framework-agnostic wiring guidance
+      (explicit provider path + ready PDO path)
+- [ ] Core validation usage does not require any processing/variants API
+
+---
+
 ## 11. Schema & Infrastructure
 
 - [ ] `src/Infrastructure/Schema/image_profiles.sql` is present and up to date

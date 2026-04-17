@@ -20,6 +20,12 @@ use Maatify\ImageProfile\Exception\ImageProfileException;
 /**
  * Contract for image processing operations.
  *
+ * EXTENSION SCOPE NOTICE (post-v1 core):
+ * This contract is intentionally optional and is NOT part of the stable
+ * validation-first public path of the library. Consumers that only need
+ * profile-based validation should depend on ImageProfileValidationService
+ * and ignore processing APIs entirely.
+ *
  * Implementations must remain completely separate from validation logic.
  * A processor reads a source file and writes an output file — it does not
  * know about image profiles, upload rules, or validation results.
