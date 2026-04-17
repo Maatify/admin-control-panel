@@ -70,13 +70,15 @@ a standalone repository. Every item must be verified **green** before release.
 
 ## 6. Contract Stability (`ValidationErrorCodeEnum`)
 
-- [ ] All 12 enum cases exist (verified by `ValidationErrorCodeEnumStabilityTest`)
+- [ ] All 15 enum cases exist (verified by `ValidationErrorCodeEnumStabilityTest`)
 - [ ] String values match exactly:
       `profile_not_found`, `profile_inactive`, `file_not_found`,
       `file_not_readable`, `metadata_unreadable`, `mime_not_allowed`,
       `extension_not_allowed`, `width_too_small`, `height_too_small`,
-      `width_too_large`, `height_too_large`, `file_too_large`
+      `width_too_large`, `height_too_large`, `file_too_large`,
+      `aspect_ratio_too_narrow`, `aspect_ratio_too_wide`, `transparency_required`
 - [ ] `ValidationErrorCodeEnum::from()` round-trips all 12 values correctly
+- [ ] `ValidationErrorCodeEnum::from()` round-trips all 15 values correctly
 
 ---
 
@@ -135,6 +137,19 @@ a standalone repository. Every item must be verified **green** before release.
 - [ ] `ImageProfileComposition` provides framework-agnostic wiring guidance
       (explicit provider path + ready PDO path)
 - [ ] Core validation usage does not require any processing/variants API
+
+---
+
+## 10.2 Canonical Consumption Surface
+
+- [ ] Validation-first consumers can rely on `ImageProfileValidationServiceInterface`
+      with `ImageFileInputDTO` → `ImageValidationResultDTO`
+- [ ] Write use-cases use canonical command/input DTOs:
+      `CreateImageProfileRequest`, `UpdateImageProfileRequest`
+- [ ] Write orchestration depends on `ImageProfileRepositoryInterface`
+      and library services, not loose arrays
+- [ ] Processing metadata is optional extension data via
+      `ImageProfileProcessingExtensionDTO`, not canonical validation shape
 
 ---
 

@@ -6,6 +6,7 @@ namespace Maatify\ImageProfile\Service;
 
 use Maatify\ImageProfile\Contract\ImageMetadataReaderInterface;
 use Maatify\ImageProfile\Contract\ImageProfileProviderInterface;
+use Maatify\ImageProfile\Contract\ImageProfileValidationServiceInterface;
 use Maatify\ImageProfile\Contract\ImageProfileValidatorInterface;
 use Maatify\ImageProfile\DTO\ImageFileInputDTO;
 use Maatify\ImageProfile\DTO\ImageProfileCollectionDTO;
@@ -30,7 +31,7 @@ use Maatify\ImageProfile\Validator\ImageProfileValidator;
  *   - storage/CDN orchestration
  *   - image processing / variant generation
  */
-final class ImageProfileValidationService
+final class ImageProfileValidationService implements ImageProfileValidationServiceInterface
 {
     public function __construct(
         private readonly ImageProfileProviderInterface $provider,
