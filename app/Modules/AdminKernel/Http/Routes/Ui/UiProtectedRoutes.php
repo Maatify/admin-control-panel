@@ -11,6 +11,7 @@ use Maatify\AdminKernel\Http\Routes\Ui\Features\ContentDocumentsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\CurrenciesUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\DashboardUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\I18nUiRoutes;
+use Maatify\AdminKernel\Http\Routes\Ui\Features\ImageProfilesUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\LanguagesUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\LogoutUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\PermissionsUiRoutes;
@@ -57,6 +58,7 @@ final class UiProtectedRoutes
             LogoutUiRoutes::register($protectedGroup);
 
             CurrenciesUiRoutes::register($protectedGroup);
+            ImageProfilesUiRoutes::register($protectedGroup);
 
         })
             // NOTE [Slim Middleware Order]:

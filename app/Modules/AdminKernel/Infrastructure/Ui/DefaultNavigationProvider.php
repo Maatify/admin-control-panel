@@ -118,6 +118,14 @@ class DefaultNavigationProvider implements NavigationProviderInterface
                         </svg>'
                     ),
 
+                    new NavigationItemDTO(
+                        'Image Profiles',
+                        '/image-profiles',
+                        '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75L6 12m0 0 3.75 3.75M6 12V3.75m0 8.25h12.75m-12.75 0h12.75m0 0L15 8.25m3.75 3.75L15 15.75M18.75 12V20.25" />
+                        </svg>'
+                    ),
+
                     // 🌐 Translations (I18n Group)
                     new NavigationItemDTO(
                         'Translations',

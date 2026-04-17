@@ -109,6 +109,7 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'currencies.translations.delete.api' => 'currencies.translations.delete',
 
         // Image Profiles
+        'image_profiles.list.ui' => 'image_profiles.list',
         'image_profiles.list.api' => 'image_profiles.list',
         'image_profiles.details.api' => 'image_profiles.details',
         'image_profiles.create.api' => 'image_profiles.create',
