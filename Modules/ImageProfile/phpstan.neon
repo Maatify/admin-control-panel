@@ -1,0 +1,63 @@
+includes:
+    - vendor/phpstan/phpstan/conf/bleedingEdge.neon
+
+parameters:
+
+    # -------------------------------------------------------------------------
+    # Analysis level: 10 (max) — all rules enabled
+    # -------------------------------------------------------------------------
+    level: 10
+
+    # -------------------------------------------------------------------------
+    # Source paths
+    # All five source trees are analysed. Tests are excluded from the main
+    # analysis because they intentionally exercise edge cases (e.g. passing
+    # null where non-null is expected) and have their own relaxed rule set.
+    # -------------------------------------------------------------------------
+    paths:
+        - src
+        - Application
+        - Infrastructure
+        - Adapter
+        - Storage
+
+    # -------------------------------------------------------------------------
+    # Exclusions
+    # -------------------------------------------------------------------------
+    excludePaths:
+        - vendor
+        - tests
+        - build
+
+    # -------------------------------------------------------------------------
+    # Strict behaviour
+    # -------------------------------------------------------------------------
+    strictRules:
+        allRules: true
+
+    checkMissingIterableValueType: true
+    checkGenericClassInNonGenericObjectType: true
+    reportUnmatchedIgnoredErrors: true
+
+    # -------------------------------------------------------------------------
+    # PHP version
+    # Must match the minimum requirement declared in composer.json (8.1).
+    # -------------------------------------------------------------------------
+    phpVersion: 80100
+
+    # -------------------------------------------------------------------------
+    # Bootstrap
+    # Vendor autoloader so PHPStan can resolve class types from dependencies.
+    # -------------------------------------------------------------------------
+    bootstrapFiles:
+        - vendor/autoload.php
+
+    # -------------------------------------------------------------------------
+    # Ignore patterns
+    # Minimal — only suppress what cannot be fixed without breaking the design.
+    # -------------------------------------------------------------------------
+    ignoreErrors:
+        # getMockBuilder() calls inside tests are covered by the separate suite.
+        # S3Client is final in the AWS SDK; the mock is created via reflection
+        # which PHPStan cannot verify — ignored only in the Storage layer.
+        - '#Call to an undefined method Aws\\S3\\S3Client#'

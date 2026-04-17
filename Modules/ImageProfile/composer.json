@@ -1,0 +1,58 @@
+{
+    "name": "maatify/image-profile",
+    "description": "Reusable image-profile definition and validation package — framework-agnostic core.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mohamed Abdulalim",
+            "email": "mohamed@maatify.dev",
+            "homepage": "https://www.maatify.dev",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0",
+        "phpstan/phpstan": "^1.10",
+        "psr/http-message": "^1.1 || ^2.0"
+    },
+    "suggest": {
+        "psr/http-message": "Required to use SlimUploadedFileAdapter (PSR-7 upload objects).",
+        "aws/aws-sdk-php": "Required to use DoSpacesImageStorage (DigitalOcean Spaces / S3)."
+    },
+    "autoload": {
+        "psr-4": {
+            "Maatify\\ImageProfile\\": "src/",
+            "Maatify\\ImageProfile\\Application\\": "Application/",
+            "Maatify\\ImageProfile\\Infrastructure\\": "Infrastructure/",
+            "Maatify\\ImageProfile\\Adapter\\": "Adapter/",
+            "Maatify\\ImageProfile\\Storage\\": "Storage/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Maatify\\ImageProfile\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "keywords": [
+        "maatify",
+        "image",
+        "profile",
+        "validation",
+        "upload"
+    ],
+    "homepage": "https://github.com/Maatify/image-profile",
+    "support": {
+        "source": "https://github.com/Maatify/image-profile",
+        "issues": "https://github.com/Maatify/image-profile/issues"
+    }
+}

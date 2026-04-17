@@ -23,7 +23,9 @@
     "slim/psr7": "^1.8",
     "slim/slim": "^4.15",
     "slim/twig-view": "^3.4",
-    "vlucas/phpdotenv": "^5.5"
+    "vlucas/phpdotenv": "^5.5",
+    "ext-fileinfo": "*",
+    "ext-gd": "*"
   },
 
   "require-dev": {
@@ -52,7 +54,8 @@
       "Maatify\\ContentDocuments\\": "Modules/ContentDocuments",
       "Maatify\\Verification\\": "Modules/Verification",
       "Maatify\\Currency\\": "Modules/currency/src",
-      "Maatify\\Storage\\": "Modules/Storage/src"
+      "Maatify\\Storage\\": "Modules/Storage/src",
+      "Maatify\\ImageProfile\\": "Modules/ImageProfile/src"
     }
   },
 
