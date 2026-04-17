@@ -13,8 +13,7 @@ declare(strict_types=1);
 namespace Maatify\ImageProfile\Application\DTO;
 
 use JsonSerializable;
-use Maatify\ImageProfile\DTO\VariantDefinitionCollectionDTO;
-use Maatify\ImageProfile\Enum\ImageFormatEnum;
+use Maatify\ImageProfile\DTO\ImageProfileProcessingExtensionDTO;
 use Maatify\ImageProfile\ValueObject\AllowedExtensionCollection;
 use Maatify\ImageProfile\ValueObject\AllowedMimeTypeCollection;
 
@@ -24,8 +23,8 @@ use Maatify\ImageProfile\ValueObject\AllowedMimeTypeCollection;
  * `code` is the stable identifier passed separately to the service.
  * It is NOT included here — the code is immutable once created.
  *
- * All Phase 9 fields default to "no constraint / disabled" for
- * backward compatibility with existing callers.
+ * Validation-first core fields are canonical.
+ * Optional processing metadata, if needed, is carried via $processing.
  */
 final readonly class UpdateImageProfileRequest implements JsonSerializable
 {
@@ -39,13 +38,10 @@ final readonly class UpdateImageProfileRequest implements JsonSerializable
         public AllowedExtensionCollection     $allowedExtensions,
         public AllowedMimeTypeCollection      $allowedMimeTypes,
         public ?string                        $notes = null,
-        // Phase 9
         public ?float                         $minAspectRatio = null,
         public ?float                         $maxAspectRatio = null,
         public bool                           $requiresTransparency = false,
-        public ?ImageFormatEnum               $preferredFormat = null,
-        public ?int                           $preferredQuality = null,
-        public VariantDefinitionCollectionDTO $variants = new VariantDefinitionCollectionDTO(),
+        public ?ImageProfileProcessingExtensionDTO $processing = null,
     ) {
     }
 
@@ -65,9 +61,7 @@ final readonly class UpdateImageProfileRequest implements JsonSerializable
             'minAspectRatio'       => $this->minAspectRatio,
             'maxAspectRatio'       => $this->maxAspectRatio,
             'requiresTransparency' => $this->requiresTransparency,
-            'preferredFormat'      => $this->preferredFormat?->value,
-            'preferredQuality'     => $this->preferredQuality,
-            'variants'             => $this->variants,
+            'processing'           => $this->processing,
         ];
     }
 }

@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace Maatify\ImageProfile\Tests\Fixtures;
 
 use Maatify\ImageProfile\DTO\ResizeOptionsDTO;
+use Maatify\ImageProfile\DTO\ImageProfileProcessingExtensionDTO;
 use Maatify\ImageProfile\DTO\VariantDefinitionCollectionDTO;
 use Maatify\ImageProfile\DTO\VariantDefinitionDTO;
 use Maatify\ImageProfile\Entity\ImageProfileEntity;
@@ -301,9 +302,11 @@ final class ImageProfileFixtureFactory
             allowedMimeTypes:  new AllowedMimeTypeCollection(),
             isActive:          true,
             notes:             null,
-            preferredFormat:   ImageFormatEnum::Webp,
-            preferredQuality:  85,
-            variants:          $variants,
+            processing: new ImageProfileProcessingExtensionDTO(
+                preferredFormat: ImageFormatEnum::Webp,
+                preferredQuality: 85,
+                variants: $variants,
+            ),
         );
     }
 }

@@ -21,6 +21,10 @@ use Maatify\ImageProfile\Entity\ImageProfileEntity;
 
 /**
  * Write-side contract for image profile persistence.
+ * Canonical write inputs are library-defined DTOs:
+ *   - {@see CreateImageProfileRequest}
+ *   - {@see UpdateImageProfileRequest}
+ * No loose arrays are part of this contract surface.
  *
  * This interface is intentionally separate from
  * {@see \Maatify\ImageProfile\Contract\ImageProfileProviderInterface},

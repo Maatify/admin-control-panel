@@ -253,9 +253,10 @@ final class ImageProfileValidatorPhase9Test extends TestCase
 
         self::assertNotNull($profile);
         self::assertTrue($profile->hasVariants());
-        self::assertCount(2, $profile->variants);
-        self::assertTrue($profile->variants->hasName('thumbnail'));
-        self::assertTrue($profile->variants->hasName('medium'));
+        self::assertNotNull($profile->processing);
+        self::assertCount(2, $profile->processing->variants);
+        self::assertTrue($profile->processing->variants->hasName('thumbnail'));
+        self::assertTrue($profile->processing->variants->hasName('medium'));
     }
 
     // =========================================================================

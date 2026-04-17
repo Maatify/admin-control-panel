@@ -6,6 +6,7 @@ namespace Maatify\ImageProfile\Bootstrap;
 
 use Maatify\ImageProfile\Contract\ImageMetadataReaderInterface;
 use Maatify\ImageProfile\Contract\ImageProfileProviderInterface;
+use Maatify\ImageProfile\Contract\ImageProfileValidationServiceInterface;
 use Maatify\ImageProfile\Infrastructure\Persistence\PDO\PdoImageProfileProvider;
 use Maatify\ImageProfile\Reader\NativeImageMetadataReader;
 use Maatify\ImageProfile\Service\ImageProfileValidationService;
@@ -26,7 +27,7 @@ final class ImageProfileComposition
     public static function fromProvider(
         ImageProfileProviderInterface $provider,
         ImageMetadataReaderInterface $reader,
-    ): ImageProfileValidationService {
+    ): ImageProfileValidationServiceInterface {
         return ImageProfileValidationService::compose($provider, $reader);
     }
 
@@ -40,7 +41,7 @@ final class ImageProfileComposition
         PDO $pdo,
         string $table = 'image_profiles',
         ?ImageMetadataReaderInterface $reader = null,
-    ): ImageProfileValidationService {
+    ): ImageProfileValidationServiceInterface {
         return self::fromProvider(
             provider: new PdoImageProfileProvider($pdo, $table),
             reader: $reader ?? new NativeImageMetadataReader(),

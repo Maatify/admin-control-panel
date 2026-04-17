@@ -1,5 +1,9 @@
 # ImageProfile Architectural Boundary Summary and Separation Plan
 
+> Status note (final internal boundary pass): processing hints are now isolated as
+> optional extension data (`ImageProfileProcessingExtensionDTO`) instead of being
+> constructor-first canonical profile fields.
+
 ## 1. Boundary Verdict
 - **Verdict:** The direction is **partially correct**. The module has a strong validation-centric core (provider + metadata reader + validator + typed DTO/value objects), but boundary drift has started through phase-9 processing concerns (variants/format/quality/processor contracts) being mixed into core entity and schema.
 - **Boundary drift location:**

@@ -13,8 +13,7 @@ declare(strict_types=1);
 namespace Maatify\ImageProfile\Entity;
 
 use JsonSerializable;
-use Maatify\ImageProfile\DTO\VariantDefinitionCollectionDTO;
-use Maatify\ImageProfile\Enum\ImageFormatEnum;
+use Maatify\ImageProfile\DTO\ImageProfileProcessingExtensionDTO;
 use Maatify\ImageProfile\ValueObject\AllowedExtensionCollection;
 use Maatify\ImageProfile\ValueObject\AllowedMimeTypeCollection;
 
@@ -32,10 +31,8 @@ use Maatify\ImageProfile\ValueObject\AllowedMimeTypeCollection;
  *  - `minAspectRatio` / `maxAspectRatio` are width÷height ratios (float).
  *    e.g. 16/9 ≈ 1.7778; 1/1 = 1.0; 9/16 = 0.5625.
  *  - `requiresTransparency = true` means only PNG and WebP are accepted.
- *  - `preferredFormat` and `preferredQuality` are advisory and extension-scope
- *    metadata — they guide optional processing but do NOT affect validation.
- *  - `variants` is extension-scope metadata for optional generation workflows;
- *    the validator ignores this field.
+ *  - `processing` is optional extension metadata for post-validation workflows;
+ *    validator behavior does not depend on it.
  *
  * Backward compatibility: all Phase 9 fields have safe defaults so existing
  * construction code that does not supply them continues to work.
@@ -72,14 +69,11 @@ final readonly class ImageProfileEntity implements JsonSerializable
         /** If true the uploaded image MUST be PNG or WebP (alpha-capable). */
         public bool                            $requiresTransparency = false,
 
-        /** Advisory preferred output format for the processing layer. */
-        public ?ImageFormatEnum                $preferredFormat = null,
-
-        /** Advisory preferred quality (1–100) for the processing layer. */
-        public ?int                            $preferredQuality = null,
-
-        /** Named variants to generate after a successful upload. */
-        public VariantDefinitionCollectionDTO  $variants = new VariantDefinitionCollectionDTO(),
+        /**
+         * Optional extension metadata for post-validation processing.
+         * Null means "no processing profile attached".
+         */
+        public ?ImageProfileProcessingExtensionDTO $processing = null,
     ) {
     }
 
@@ -109,7 +103,7 @@ final readonly class ImageProfileEntity implements JsonSerializable
 
     public function hasVariants(): bool
     {
-        return count($this->variants) > 0;
+        return $this->processing?->hasVariants() ?? false;
     }
 
     // -------------------------------------------------------------------------
@@ -135,9 +129,7 @@ final readonly class ImageProfileEntity implements JsonSerializable
             'minAspectRatio'      => $this->minAspectRatio,
             'maxAspectRatio'      => $this->maxAspectRatio,
             'requiresTransparency' => $this->requiresTransparency,
-            'preferredFormat'     => $this->preferredFormat?->value,
-            'preferredQuality'    => $this->preferredQuality,
-            'variants'            => $this->variants,
+            'processing'          => $this->processing,
         ];
     }
 }

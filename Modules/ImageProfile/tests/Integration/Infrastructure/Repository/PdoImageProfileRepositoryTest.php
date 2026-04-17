@@ -52,6 +52,12 @@ final class PdoImageProfileRepositoryTest extends TestCase
                 allowed_mime_types  TEXT    DEFAULT NULL,
                 is_active           INTEGER NOT NULL DEFAULT 1,
                 notes               TEXT    DEFAULT NULL,
+                min_aspect_ratio    REAL    DEFAULT NULL,
+                max_aspect_ratio    REAL    DEFAULT NULL,
+                requires_transparency INTEGER NOT NULL DEFAULT 0,
+                preferred_format    TEXT    DEFAULT NULL,
+                preferred_quality   INTEGER DEFAULT NULL,
+                variants            TEXT    DEFAULT NULL,
                 created_at          TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at          TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP
             )

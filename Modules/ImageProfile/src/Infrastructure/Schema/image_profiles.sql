@@ -12,12 +12,12 @@
 --   - `is_active` allows soft-disabling without deleting rows
 --   - created_at / updated_at are managed automatically by the DB engine
 --
--- Phase 9 additions:
---   - min_aspect_ratio / max_aspect_ratio  — width÷height float ratio constraints
---   - requires_transparency                — PNG/WebP-only flag
---   - preferred_format                     — advisory output format (processing layer)
---   - preferred_quality                    — advisory quality (processing layer)
---   - variants                             — JSON array of named resize variant definitions
+-- Extension additions:
+--   - min_aspect_ratio / max_aspect_ratio  — optional validation constraints
+--   - requires_transparency                — optional validation constraint
+--   - preferred_format                     — optional processing extension hint
+--   - preferred_quality                    — optional processing extension hint
+--   - variants                             — optional processing extension definitions
 --
 -- Delimiter format for allowed_extensions and allowed_mime_types:
 --   values are comma-separated (also accepts ; and | as separators)
@@ -59,11 +59,11 @@ CREATE TABLE `image_profiles`
     -- Phase 9: transparency requirement
     `requires_transparency` TINYINT(1)       NOT NULL DEFAULT 0          COMMENT '1 = only PNG/WebP accepted (alpha-channel formats); 0 = no restriction',
 
-    -- Phase 9: advisory processing hints (not enforced by validator)
+    -- Optional processing extension hints (not enforced by validator)
     `preferred_format`      VARCHAR(10)      DEFAULT NULL                COMMENT 'Advisory output format for the processing layer (jpg|png|webp|gif); NULL = keep source',
     `preferred_quality`     TINYINT UNSIGNED DEFAULT NULL                COMMENT 'Advisory quality 1-100 for the processing layer; NULL = processor default',
 
-    -- Phase 9: named variant definitions (JSON array)
+    -- Optional processing extension: named variant definitions (JSON array)
     `variants`              JSON             DEFAULT NULL                COMMENT 'JSON array of named resize variant definitions; NULL = no variants defined',
 
     `created_at`            DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,

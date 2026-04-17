@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maatify\ImageProfile\Infrastructure\Persistence\PDO;
 
 use Maatify\ImageProfile\Contract\ImageProfileProviderInterface;
+use Maatify\ImageProfile\DTO\ImageProfileProcessingExtensionDTO;
 use Maatify\ImageProfile\DTO\ImageProfileCollectionDTO;
 use Maatify\ImageProfile\DTO\VariantDefinitionCollectionDTO;
 use Maatify\ImageProfile\Entity\ImageProfileEntity;
@@ -169,13 +170,27 @@ final class PdoImageProfileProvider implements ImageProfileProviderInterface
             minAspectRatio: isset($row['min_aspect_ratio']) ? (float) $row['min_aspect_ratio'] : null,
             maxAspectRatio: isset($row['max_aspect_ratio']) ? (float) $row['max_aspect_ratio'] : null,
             requiresTransparency: (bool) ($row['requires_transparency'] ?? false),
-            preferredFormat: isset($row['preferred_format'])
-                ? ImageFormatEnum::tryFrom($row['preferred_format'])
-                : null,
-            preferredQuality: isset($row['preferred_quality']) ? (int) $row['preferred_quality'] : null,
-            variants: VariantDefinitionCollectionDTO::fromJsonString(
-                $row['variants'] ?? null,
-            ),
+            processing: $this->mapProcessing($row),
         );
+    }
+
+    /**
+     * @param ImageProfileRow $row
+     */
+    private function mapProcessing(array $row): ?ImageProfileProcessingExtensionDTO
+    {
+        $preferredFormat = isset($row['preferred_format'])
+            ? ImageFormatEnum::tryFrom((string) $row['preferred_format'])
+            : null;
+        $preferredQuality = isset($row['preferred_quality']) ? (int) $row['preferred_quality'] : null;
+        $variants = VariantDefinitionCollectionDTO::fromJsonString($row['variants'] ?? null);
+
+        $processing = new ImageProfileProcessingExtensionDTO(
+            preferredFormat: $preferredFormat,
+            preferredQuality: $preferredQuality,
+            variants: $variants,
+        );
+
+        return $processing->isEmpty() ? null : $processing;
     }
 }

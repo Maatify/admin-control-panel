@@ -15,6 +15,7 @@ A reusable, framework-agnostic image-profile definition and validation package.
 - [Validation Flow](#validation-flow)
 - [Public Entry Point](#public-entry-point)
 - [Composition Helper](#composition-helper)
+- [Canonical Contract Surface](#canonical-contract-surface)
 - [Error Handling](#error-handling)
 - [Adapters](#adapters)
 - [Storage](#storage)
@@ -73,14 +74,14 @@ composer require maatify/image-profile
 
 ### Image Profile
 
-An `ImageProfile` is a reusable, immutable rule set identified by a stable business `code` such as `category_app_image`, `product_thumbnail`, or `homepage_banner`.
+An `ImageProfileEntity` is a reusable, immutable rule set identified by a stable business `code` such as `category_app_image`, `product_thumbnail`, or `homepage_banner`.
 
 ```php
-use Maatify\ImageProfile\Entity\ImageProfile;
+use Maatify\ImageProfile\Entity\ImageProfileEntity;
 use Maatify\ImageProfile\ValueObject\AllowedExtensionCollection;
 use Maatify\ImageProfile\ValueObject\AllowedMimeTypeCollection;
 
-$profile = new ImageProfile(
+$profile = new ImageProfileEntity(
     id:                1,
     code:              'product_thumbnail',
     displayName:       'Product Thumbnail',
@@ -167,11 +168,11 @@ A provider is responsible for loading an `ImageProfile` by its `code`. The core 
 use Maatify\ImageProfile\Provider\ArrayImageProfileProvider;
 
 $provider = new ArrayImageProfileProvider(
-    new ImageProfile(code: 'product_thumbnail', /* ... */),
-    new ImageProfile(code: 'homepage_banner',   /* ... */),
+    new ImageProfileEntity(code: 'product_thumbnail', /* ... */),
+    new ImageProfileEntity(code: 'homepage_banner',   /* ... */),
 );
 
-$profile = $provider->findByCode('product_thumbnail'); // ?ImageProfile
+$profile = $provider->findByCode('product_thumbnail'); // ?ImageProfileEntity
 $all     = $provider->listAll();                       // ImageProfileCollectionDTO
 $active  = $provider->listActive();                    // ImageProfileCollectionDTO
 ```
@@ -185,7 +186,7 @@ $provider = new PdoImageProfileProvider($pdo);
 // or with a custom table name:
 $provider = new PdoImageProfileProvider($pdo, 'custom_image_profiles');
 
-$profile = $provider->findByCode('product_thumbnail'); // ?ImageProfile
+$profile = $provider->findByCode('product_thumbnail'); // ?ImageProfileEntity
 $all     = $provider->listAll();                       // ImageProfileCollectionDTO
 $active  = $provider->listActive();                    // SQL-level filter
 ```
@@ -266,6 +267,33 @@ $service = ImageProfileComposition::fromPdo($pdo, 'image_profiles');
 
 ---
 
+## Canonical Contract Surface
+
+Consumers should use the module through library-defined contracts/DTOs/services only.
+
+### Validation-first read/use path
+
+- `ImageFileInputDTO` (input)
+- `ImageValidationResultDTO` (result)
+- `ImageProfileValidationServiceInterface` / `ImageProfileValidationService` (entry)
+- `ImageProfileProviderInterface` + `ImageMetadataReaderInterface` (replaceable dependencies)
+
+### Canonical write path (profile management)
+
+- `CreateImageProfileRequest` / `UpdateImageProfileRequest` (command/input DTOs)
+- `ImageProfileRepositoryInterface` (write contract)
+- `CreateImageProfileService`, `UpdateImageProfileService`, `ToggleImageProfileService` (write services)
+
+### Extension processing metadata
+
+- Validation-core profile fields remain canonical.
+- Processing hints are optional extension data via `ImageProfileProcessingExtensionDTO`.
+- Validation behavior does not depend on processing extension data.
+
+Do not use loose arrays as public API and do not invent ad-hoc host-only command formats.
+
+---
+
 ## Error Handling
 
 ### Validation errors — returned, never thrown
@@ -284,6 +312,9 @@ $service = ImageProfileComposition::fromPdo($pdo, 'image_profiles');
 | `width_too_large` | Image width exceeds the profile maximum |
 | `height_too_large` | Image height exceeds the profile maximum |
 | `file_too_large` | File size exceeds the profile maximum |
+| `aspect_ratio_too_narrow` | Image aspect ratio is below the profile minimum |
+| `aspect_ratio_too_wide` | Image aspect ratio is above the profile maximum |
+| `transparency_required` | Profile requires PNG/WebP transparency-capable format |
 
 These codes are defined in `ValidationErrorCodeEnum` and will not change between minor versions.
 
@@ -411,13 +442,13 @@ Implement `ImageProfileProviderInterface`:
 
 ```php
 use Maatify\ImageProfile\Contract\ImageProfileProviderInterface;
-use Maatify\ImageProfile\Entity\ImageProfile;
+use Maatify\ImageProfile\Entity\ImageProfileEntity;
 
 final class RedisImageProfileProvider implements ImageProfileProviderInterface
 {
-    public function findByCode(string $code): ?ImageProfile
+    public function findByCode(string $code): ?ImageProfileEntity
     {
-        // load from Redis, map to ImageProfile
+        // load from Redis, map to ImageProfileEntity
     }
 }
 ```

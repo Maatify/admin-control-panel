@@ -7,6 +7,7 @@ namespace Maatify\ImageProfile\Infrastructure\Repository\PDO;
 use Maatify\ImageProfile\Application\Contract\ImageProfileRepositoryInterface;
 use Maatify\ImageProfile\Application\DTO\CreateImageProfileRequest;
 use Maatify\ImageProfile\Application\DTO\UpdateImageProfileRequest;
+use Maatify\ImageProfile\DTO\ImageProfileProcessingExtensionDTO;
 use Maatify\ImageProfile\DTO\VariantDefinitionCollectionDTO;
 use Maatify\ImageProfile\Entity\ImageProfileEntity;
 use Maatify\ImageProfile\Enum\ImageFormatEnum;
@@ -70,9 +71,11 @@ final class PdoImageProfileRepository implements ImageProfileRepositoryInterface
                 ':min_aspect_ratio'      => $request->minAspectRatio,
                 ':max_aspect_ratio'      => $request->maxAspectRatio,
                 ':requires_transparency' => $request->requiresTransparency ? 1 : 0,
-                ':preferred_format'      => $request->preferredFormat?->value,
-                ':preferred_quality'     => $request->preferredQuality,
-                ':variants'              => $this->serializeVariants($request->variants),
+                ':preferred_format'      => $request->processing?->preferredFormat?->value,
+                ':preferred_quality'     => $request->processing?->preferredQuality,
+                ':variants'              => $this->serializeVariants(
+                    $request->processing?->variants ?? VariantDefinitionCollectionDTO::empty(),
+                ),
             ]);
         } catch (PDOException $e) {
             throw new class (
@@ -125,9 +128,11 @@ final class PdoImageProfileRepository implements ImageProfileRepositoryInterface
                 ':min_aspect_ratio'      => $request->minAspectRatio,
                 ':max_aspect_ratio'      => $request->maxAspectRatio,
                 ':requires_transparency' => $request->requiresTransparency ? 1 : 0,
-                ':preferred_format'      => $request->preferredFormat?->value,
-                ':preferred_quality'     => $request->preferredQuality,
-                ':variants'              => $this->serializeVariants($request->variants),
+                ':preferred_format'      => $request->processing?->preferredFormat?->value,
+                ':preferred_quality'     => $request->processing?->preferredQuality,
+                ':variants'              => $this->serializeVariants(
+                    $request->processing?->variants ?? VariantDefinitionCollectionDTO::empty(),
+                ),
                 ':code'                  => $code,
             ]);
         } catch (PDOException $e) {
@@ -283,14 +288,28 @@ final class PdoImageProfileRepository implements ImageProfileRepositoryInterface
             minAspectRatio: isset($row['min_aspect_ratio']) ? (float) $row['min_aspect_ratio'] : null,
             maxAspectRatio: isset($row['max_aspect_ratio']) ? (float) $row['max_aspect_ratio'] : null,
             requiresTransparency: (bool) ($row['requires_transparency'] ?? false),
+            processing: $this->mapProcessing($row),
+        );
+    }
+
+    /**
+     * @param array{
+     *     preferred_format?: string|null,
+     *     preferred_quality?: int|string|null,
+     *     variants?: string|null
+     * } $row
+     */
+    private function mapProcessing(array $row): ?ImageProfileProcessingExtensionDTO
+    {
+        $processing = new ImageProfileProcessingExtensionDTO(
             preferredFormat: isset($row['preferred_format'])
-                ? ImageFormatEnum::tryFrom($row['preferred_format'])
+                ? ImageFormatEnum::tryFrom((string) $row['preferred_format'])
                 : null,
             preferredQuality: isset($row['preferred_quality']) ? (int) $row['preferred_quality'] : null,
-            variants: VariantDefinitionCollectionDTO::fromJsonString(
-                $row['variants'] ?? null,
-            ),
+            variants: VariantDefinitionCollectionDTO::fromJsonString($row['variants'] ?? null),
         );
+
+        return $processing->isEmpty() ? null : $processing;
     }
 
     private function serializeExtensions(AllowedExtensionCollection $collection): ?string
