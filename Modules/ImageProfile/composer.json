@@ -12,11 +12,15 @@
         }
     ],
     "require": {
-        "php": "^8.2"
+        "php": "^8.2",
+        "ext-pdo": "*",
+        "maatify/exceptions": "^1.0",
+        "psr/container": "^1.1|^2.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.0",
-        "phpstan/phpstan": "^1.10"
+        "phpstan/phpstan": "^1.10",
+        "php-di/php-di": "^7.0"
     },
     "autoload": {
         "psr-4": {
