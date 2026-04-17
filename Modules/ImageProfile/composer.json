@@ -1,0 +1,48 @@
+{
+    "name": "maatify/image-profile",
+    "description": "Reusable image profile CRUD and validation library.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mohamed Abdulalim",
+            "email": "mohamed@maatify.dev",
+            "homepage": "https://www.maatify.dev",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0",
+        "phpstan/phpstan": "^1.10"
+    },
+    "autoload": {
+        "psr-4": {
+            "Maatify\\ImageProfile\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Maatify\\ImageProfile\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "keywords": [
+        "maatify",
+        "image",
+        "profile",
+        "validation"
+    ],
+    "homepage": "https://github.com/Maatify/image-profile",
+    "support": {
+        "source": "https://github.com/Maatify/image-profile",
+        "issues": "https://github.com/Maatify/image-profile/issues"
+    }
+}
