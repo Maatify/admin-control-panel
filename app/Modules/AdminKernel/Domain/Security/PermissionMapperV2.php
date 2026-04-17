@@ -108,6 +108,14 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'currencies.translations.upsert.api' => 'currencies.translations.upsert',
         'currencies.translations.delete.api' => 'currencies.translations.delete',
 
+        // Image Profiles
+        'image_profiles.list.api' => 'image_profiles.list',
+        'image_profiles.details.api' => 'image_profiles.details',
+        'image_profiles.create.api' => 'image_profiles.create',
+        'image_profiles.update.api' => 'image_profiles.update',
+        'image_profiles.set_active.api' => 'image_profiles.set_active',
+        'image_profiles.dropdown.api' => 'image_profiles.dropdown',
+
         // I18n Keys
 //        'i18n.keys.list.ui'  => 'i18n.keys.list',
 //        'i18n.keys.list.api' => 'i18n.keys.list',
