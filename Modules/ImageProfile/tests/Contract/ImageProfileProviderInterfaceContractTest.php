@@ -3,7 +3,6 @@
 /**
  * @copyright   ©2026 Maatify.dev
  * @Library     maatify/image-profile
- * @Project     maatify:admin-control-panel
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-04-17
  *
