@@ -189,6 +189,11 @@
             onReset: resetPageAndReload
         });
 
+        const filterFormSelects = document.querySelectorAll('#image-profiles-filter-form select');
+        filterFormSelects.forEach(function(select) {
+            select.addEventListener('change', resetPageAndReload);
+        });
+
         if (Helpers?.bindTableActionState) {
             Helpers.bindTableActionState({
                 getParams: buildQueryParams,
@@ -211,6 +216,20 @@
         window.reloadImageProfilesTableV2 = function() {
             return loadProfiles(currentPage, currentPerPage);
         };
+
+        // Delegated click handler for Edit button — works on dynamically rendered rows
+        Bridge.Events.onClick('.edit-profile-btn', function(event, btn) {
+            event.preventDefault();
+            const profileId = btn.getAttribute('data-profile-id') || btn.getAttribute('data-entity-id');
+            if (!profileId) return;
+
+            const modals = window.ImageProfilesModalsV2;
+            if (modals && typeof modals.openEditModal === 'function') {
+                modals.openEditModal(profileId);
+            } else {
+                console.warn('[ImageProfiles] ImageProfilesModalsV2 not ready yet.');
+            }
+        });
     }
 
     if (document.readyState === 'loading') {
