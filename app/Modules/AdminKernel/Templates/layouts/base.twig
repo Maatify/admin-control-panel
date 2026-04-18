@@ -31,10 +31,10 @@ darkMode: 'class'
 					transition: all 0.3s ease-in-out !important;
 				}
 				/* Sidebar Collapsed Logic */
-				.sidebar {
+				.sidebar{
 					overflow: scroll;
 				}
-				.sidebar.collapsed {
+				.sidebar.collapsed{
 					overflow: unset;
 				}
 				.sidebar.collapsed > ul {
@@ -80,6 +80,17 @@ darkMode: 'class'
 					box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
 					white-space: normal;
 					min-height: 100%; /* Ensure it covers the full height of the parent LI */
+				}
+				.sidebar.collapsed > ul > li:last-child:hover > .nav-children {
+					top: auto !important;
+					bottom: 30px !important;
+					border-radius: 8px 8px 0 0 !important;
+				}
+				.sidebar.collapsed > ul > li:last-child:hover > .li-name ,.sidebar.collapsed > ul > li:last-child:has(.nav-children):hover > div > a .li-name,
+				.sidebar.collapsed > ul > li:last-child:has(.nav-children):hover > div .li-name{
+					border-radius: 0 0 8px 8px !important;
+					/* border-bottom-left-radius: 8px !important;
+					border-bottom-right-radius: 8px !important; */
 				}
 
 				/* Ensure the parent div itself shows the tooltip when it doesn't have a link */
@@ -131,12 +142,13 @@ darkMode: 'class'
 					border-bottom-right-radius: 0;
 				}
 
+
 				/* Hover Effect: Show Children (The Popup) */
 				.sidebar.collapsed > ul > li:hover > .nav-children {
 					display: block !important;
 					position: absolute;
 					left: 100%;
-					top: 100%; /* Changed from 44px to 100% to attach to bottom of LI */
+					top: 110%; /* Changed from 44px to 100% to attach to bottom of LI */
 					width: 220px;
 					background: var(--bg-primary, #ffffff);
 					border: 1px solid var(--border-color, #e5e7eb);
@@ -148,6 +160,7 @@ darkMode: 'class'
 					overflow-y: auto !important;
 					z-index: 99;
 				}
+
 
 				.dark .sidebar.collapsed > ul > li:hover > .nav-children {
 					background: #1f2937;
@@ -417,28 +430,57 @@ localStorage.setItem('theme', 'dark');
 }
 
 function setActiveNavItem() {
-const currentPath = window.location.pathname;
+    const currentPath = window.location.pathname;
 
-const navLinks = document.querySelectorAll('nav a');
+    const navLinks = document.querySelectorAll('nav a');
 
-navLinks.forEach(link => {
-link.parentElement.classList.remove('bg-blue-300/40');
-link.parentElement.classList.remove('dark:bg-blue-900/40');
-});
+    navLinks.forEach(link => {
+        link.parentElement.classList.remove('bg-blue-300/40', 'rounded-md', 'dark:bg-blue-900/40');
+    });
 
-navLinks.forEach(link => {
-const linkPath = link.getAttribute('href');
+    navLinks.forEach(link => {
+        const linkPath = link.getAttribute('href');
+        let isActive = false;
 
-if (linkPath === currentPath) {
-link.parentElement.classList.add('bg-blue-300/40');
-link.parentElement.classList.add('rounded-md');
-link.parentElement.classList.add('dark:bg-blue-900/40');
-} else if (currentPath.startsWith(linkPath) && linkPath !== '/') {
-link.parentElement.classList.add('bg-blue-300/40');
-link.parentElement.classList.add('dark:bg-blue-900/40');
+        if (linkPath === currentPath) {
+            isActive = true;
+            link.parentElement.classList.add('bg-blue-300/40', 'rounded-md', 'dark:bg-blue-900/40');
+        } else if (currentPath.startsWith(linkPath) && linkPath !== '/') {
+            isActive = true;
+            link.parentElement.classList.add('bg-blue-300/40', 'rounded-md', 'dark:bg-blue-900/40');
+        }
+        
+        if (isActive) {
+            let menusToOpen = [];
+            let parentMenu = link.closest('.nav-children');
+            
+            while (parentMenu) {
+                menusToOpen.unshift(parentMenu); // Top-down order
+                parentMenu = parentMenu.parentElement.closest('.nav-children');
+            }
+
+            menusToOpen.forEach(menu => {
+                menu.classList.remove('hidden');
+            });
+            
+            // Allow DOM to apply display:block and calculate correct scrollHeight
+            requestAnimationFrame(() => {
+                menusToOpen.forEach(menu => {
+                    menu.style.maxHeight = menu.scrollHeight + 400 + 'px';
+                    
+                    const toggleDiv = menu.previousElementSibling;
+                    if (toggleDiv) {
+                        const chevron = toggleDiv.querySelector('.arrow');
+                        if (chevron) {
+                            chevron.classList.add('rotate-180');
+                        }
+                    }
+                });
+            });
+        }
+    });
 }
-});
-}
+
 
 document.addEventListener('DOMContentLoaded', setActiveNavItem);
 
