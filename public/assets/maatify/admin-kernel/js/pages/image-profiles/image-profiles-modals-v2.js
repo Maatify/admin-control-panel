@@ -82,25 +82,28 @@
         newBtn.addEventListener('click', handler);
     }
 
+    function setField(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.value = (value === null || value === undefined) ? '' : value;
+    }
+
     function applyToForm(data) {
-        Bridge.Form.fill({
-            '#profile-id': data.id ?? '',
-            '#profile-code': data.code ?? '',
-            '#profile-display-name': data.display_name ?? '',
-            '#profile-min-width': data.min_width ?? '',
-            '#profile-min-height': data.min_height ?? '',
-            '#profile-max-width': data.max_width ?? '',
-            '#profile-max-height': data.max_height ?? '',
-            '#profile-max-size-bytes': data.max_size_bytes ?? '',
-            '#profile-allowed-extensions': data.allowed_extensions ?? '',
-            '#profile-allowed-mime-types': data.allowed_mime_types ?? '',
-            '#profile-notes': data.notes ?? '',
-            '#profile-min-aspect-ratio': data.min_aspect_ratio ?? '',
-            '#profile-max-aspect-ratio': data.max_aspect_ratio ?? '',
-            '#profile-preferred-format': data.preferred_format ?? '',
-            '#profile-preferred-quality': data.preferred_quality ?? '',
-            '#profile-variants': data.variants ?? ''
-        });
+        setField('profile-id',               data.id);
+        setField('profile-code',             data.code);
+        setField('profile-display-name',     data.display_name);
+        setField('profile-min-width',        data.min_width);
+        setField('profile-min-height',       data.min_height);
+        setField('profile-max-width',        data.max_width);
+        setField('profile-max-height',       data.max_height);
+        setField('profile-max-size-bytes',   data.max_size_bytes);
+        setField('profile-allowed-extensions', data.allowed_extensions);
+        setField('profile-allowed-mime-types', data.allowed_mime_types);
+        setField('profile-notes',            data.notes);
+        setField('profile-min-aspect-ratio', data.min_aspect_ratio);
+        setField('profile-max-aspect-ratio', data.max_aspect_ratio);
+        setField('profile-preferred-format', data.preferred_format);
+        setField('profile-preferred-quality', data.preferred_quality);
+        setField('profile-variants',         data.variants);
 
         const active = document.getElementById('profile-active');
         if (active) active.checked = !!data.is_active;
