@@ -233,6 +233,21 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
             ],
             'allOf' => [],
         ],
+
+
+
+        /*
+         * ########################################################################################
+         * #                                                                                      #
+         * #  🛑 STOP HERE! - DO NOT MODIFY ABOVE THIS LINE (KERNEL BASELINE)                     #
+         * #                                                                                      #
+         * ########################################################################################
+         * #                                                                                      #
+         * #  📌 PROJECT-SPECIFIC CUSTOM PERMISSIONS                                              #
+         * #  If you need to add permissions for a specific project, ADD THEM BELOW.              #
+         * #                                                                                      #
+         * ########################################################################################
+         */
     ];
 
     public function resolve(string $routeName): PermissionRequirement
