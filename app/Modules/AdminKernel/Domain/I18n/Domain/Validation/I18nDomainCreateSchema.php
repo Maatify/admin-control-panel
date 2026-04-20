@@ -6,6 +6,7 @@ namespace Maatify\AdminKernel\Domain\I18n\Domain\Validation;
 
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Rules\Primitive\BooleanRule;
+use Maatify\Validation\Rules\Primitive\StringRule;
 use Maatify\Validation\Rules\Semantic\I18nCodeRule;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
@@ -21,12 +22,12 @@ final class I18nDomainCreateSchema extends AbstractSchema
             ],
 
             'name' => [
-                v::stringType()->length(1, 100),
+                StringRule::required(min: 1, max: 100),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
 
             'description' => [
-                v::optional(v::stringType()->length(0, 255)),
+                StringRule::optional(min: 0, max: 255),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
 
