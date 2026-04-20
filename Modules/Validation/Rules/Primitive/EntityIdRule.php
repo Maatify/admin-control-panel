@@ -13,7 +13,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\Validation\Rules;
+namespace Maatify\Validation\Rules\Primitive;
 
 use Respect\Validation\Validatable;
 use Respect\Validation\Validator as v;

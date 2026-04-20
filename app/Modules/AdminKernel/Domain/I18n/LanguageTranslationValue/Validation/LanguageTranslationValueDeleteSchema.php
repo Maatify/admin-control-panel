@@ -7,7 +7,7 @@ namespace Maatify\AdminKernel\Domain\I18n\LanguageTranslationValue\Validation;
 use Maatify\Validation\Contracts\SchemaInterface;
 use Maatify\Validation\DTO\ValidationResultDTO;
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
-use Maatify\Validation\Rules\EntityIdRule;
+use Maatify\Validation\Rules\Primitive\EntityIdRule;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
 
