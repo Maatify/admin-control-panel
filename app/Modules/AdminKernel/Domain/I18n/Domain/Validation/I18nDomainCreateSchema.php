@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Domain\I18n\Domain\Validation;
 
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
+use Maatify\Validation\Rules\Primitive\BooleanRule;
 use Maatify\Validation\Rules\Semantic\I18nCodeRule;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
@@ -30,7 +31,7 @@ final class I18nDomainCreateSchema extends AbstractSchema
             ],
 
             'is_active' => [
-                v::optional(v::boolVal()),
+                BooleanRule::optional(),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
         ];
