@@ -1,7 +1,7 @@
 # Website UI Theme Module Reference
 
 ## Purpose
-`maatify/website-ui-theme` provides a schema-first dropdown module for retrieving allowed website UI themes.
+`maatify/website-ui-theme` provides a schema-first module for managing website UI theme records and exposing dropdown-ready query methods.
 
 ## Source of Truth
 - Structural and layering style: `Modules/ImageProfile`
@@ -9,22 +9,23 @@
 - Primary table: `maa_website_ui_themes`
 
 ## Structure
-- `src/Contract` — read-side contract for dropdown retrieval
-- `src/DTO` — dropdown item and collection DTOs
+- `src/Command` — write commands (`CreateWebsiteUiThemeCommand`, `UpdateWebsiteUiThemeCommand`)
+- `src/Contract` — write and read contracts
+- `src/DTO` — entity, collection, and pagination DTOs
 - `src/Exception` — module exception family
-- `src/Infrastructure/Repository` — PDO query reader implementation
-- `src/Service` — query service and facade
+- `src/Infrastructure/Repository` — PDO command/query implementations
+- `src/Service` — command and query services
 - `src/Bootstrap` — DI bindings (`WebsiteUiThemeBindings`)
 
 ## Public Entry Points
+- `WebsiteUiThemeCommandService`
 - `WebsiteUiThemeQueryService`
-- `WebsiteUiThemeFacade`
 
 ## In Scope
-- General dropdown list of all themes
-- Dropdown list filtered by `entity_type`
+- CRUD-style create/update over `maa_website_ui_themes`
+- Paginated and lookup query methods
+- Dropdown list retrieval for all themes and by `entity_type`
 
 ## Out of Scope
-- CRUD management
-- Theme file validation against filesystem
+- Theme template file-system validation
 - Rendering logic

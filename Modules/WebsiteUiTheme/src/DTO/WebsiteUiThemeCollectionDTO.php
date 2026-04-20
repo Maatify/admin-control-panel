@@ -8,10 +8,10 @@ use ArrayIterator;
 use IteratorAggregate;
 use JsonSerializable;
 
-/** @implements IteratorAggregate<int, WebsiteUiThemeDropdownItemDTO> */
-final readonly class WebsiteUiThemeDropdownCollectionDTO implements IteratorAggregate, JsonSerializable
+/** @implements IteratorAggregate<int, WebsiteUiThemeDTO> */
+final readonly class WebsiteUiThemeCollectionDTO implements IteratorAggregate, JsonSerializable
 {
-    /** @param list<WebsiteUiThemeDropdownItemDTO> $items */
+    /** @param list<WebsiteUiThemeDTO> $items */
     public function __construct(public array $items) {}
 
     public function isEmpty(): bool
@@ -19,7 +19,7 @@ final readonly class WebsiteUiThemeDropdownCollectionDTO implements IteratorAggr
         return $this->items === [];
     }
 
-    /** @return ArrayIterator<int, WebsiteUiThemeDropdownItemDTO> */
+    /** @return ArrayIterator<int, WebsiteUiThemeDTO> */
     public function getIterator(): ArrayIterator
     {
         return new ArrayIterator($this->items);
@@ -29,7 +29,7 @@ final readonly class WebsiteUiThemeDropdownCollectionDTO implements IteratorAggr
     public function jsonSerialize(): array
     {
         return array_map(
-            static fn (WebsiteUiThemeDropdownItemDTO $item): array => $item->jsonSerialize(),
+            static fn (WebsiteUiThemeDTO $item): array => $item->jsonSerialize(),
             $this->items,
         );
     }

@@ -7,7 +7,7 @@ namespace Maatify\WebsiteUiTheme\DTO;
 use JsonSerializable;
 use Maatify\WebsiteUiTheme\Exception\WebsiteUiThemeInvalidArgumentException;
 
-final readonly class WebsiteUiThemeDropdownItemDTO implements JsonSerializable
+final readonly class WebsiteUiThemeDTO implements JsonSerializable
 {
     public function __construct(
         public int $id,

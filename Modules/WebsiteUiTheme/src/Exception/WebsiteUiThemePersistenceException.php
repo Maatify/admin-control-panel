@@ -19,4 +19,9 @@ final class WebsiteUiThemePersistenceException extends SystemMaatifyException
     {
         return new self(sprintf('PDO::prepare() failed for query: %s', $sql));
     }
+
+    public static function fromPdoException(\PDOException $e): self
+    {
+        return new self($e->getMessage(), 0, $e);
+    }
 }
