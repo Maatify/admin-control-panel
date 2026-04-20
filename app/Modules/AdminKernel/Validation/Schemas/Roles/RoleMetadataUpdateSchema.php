@@ -16,8 +16,8 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Validation\Schemas\Roles;
 
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
+use Maatify\Validation\Rules\Primitive\StringRule;
 use Maatify\Validation\Schemas\AbstractSchema;
-use Respect\Validation\Validator as v;
 
 class RoleMetadataUpdateSchema extends AbstractSchema
 {
@@ -36,16 +36,12 @@ class RoleMetadataUpdateSchema extends AbstractSchema
             // Optional metadata fields
             // ─────────────────────────────
             'display_name' => [
-                v::optional(
-                    v::stringType()->length(1, 128)
-                ),
+                StringRule::optional(min: 1, max: 128),
                 ValidationErrorCodeEnum::INVALID_DISPLAY_NAME
             ],
 
             'description' => [
-                v::optional(
-                    v::stringType()->length(1, 255)
-                ),
+                StringRule::optional(min: 1, max: 255),
                 ValidationErrorCodeEnum::INVALID_VALUE
             ],
         ];
