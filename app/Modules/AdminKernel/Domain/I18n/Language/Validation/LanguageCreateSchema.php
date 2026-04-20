@@ -8,6 +8,7 @@ use Maatify\LanguageCore\Enum\TextDirectionEnum;
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Rules\Primitive\BooleanRule;
 use Maatify\Validation\Rules\Primitive\EntityIdRule;
+use Maatify\Validation\Rules\Primitive\StringRule;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
 
@@ -17,7 +18,7 @@ final class LanguageCreateSchema extends AbstractSchema
     {
         return [
             'name' => [
-                v::stringType()->length(1, 100),
+                StringRule::required(min: 1, max: 100),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
 
@@ -35,7 +36,7 @@ final class LanguageCreateSchema extends AbstractSchema
             ],
 
             'icon' => [
-                v::optional(v::stringType()->length(1, 255)),
+                StringRule::optional(min: 1, max: 255),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
 

@@ -6,8 +6,8 @@ namespace Maatify\AdminKernel\Domain\I18n\Keys\Validation;
 
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Rules\Primitive\EntityIdRule;
+use Maatify\Validation\Rules\Primitive\StringRule;
 use Maatify\Validation\Schemas\AbstractSchema;
-use Respect\Validation\Validator as v;
 
 final class TranslationKeyUpdateDescriptionSchema extends AbstractSchema
 {
@@ -20,7 +20,7 @@ final class TranslationKeyUpdateDescriptionSchema extends AbstractSchema
             ],
 
             'description' => [
-                v::stringType()->length(0, 255),
+                StringRule::required(min: 0, max: 255),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
         ];

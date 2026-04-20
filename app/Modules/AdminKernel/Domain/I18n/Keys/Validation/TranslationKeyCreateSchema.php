@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Domain\I18n\Keys\Validation;
 
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
+use Maatify\Validation\Rules\Primitive\StringRule;
 use Maatify\Validation\Rules\Semantic\I18nCodeRule;
 use Maatify\Validation\Schemas\AbstractSchema;
-use Respect\Validation\Validator as v;
 
 final class TranslationKeyCreateSchema extends AbstractSchema
 {
@@ -26,7 +26,7 @@ final class TranslationKeyCreateSchema extends AbstractSchema
             ],
 
             'description' => [
-                v::optional(v::stringType()->length(0, 255)),
+                StringRule::optional(min: 0, max: 255),
                 ValidationErrorCodeEnum::INVALID_FORMAT
             ],
         ];
