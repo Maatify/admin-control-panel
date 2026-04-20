@@ -117,6 +117,15 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'image_profiles.set_active.api' => 'image_profiles.set_active',
         'image_profiles.dropdown.api' => 'image_profiles.dropdown',
 
+        // Website UI Themes
+        'website_ui_themes.list.ui' => 'website_ui_themes.list',
+        'website_ui_themes.list.api' => 'website_ui_themes.list',
+        'website_ui_themes.details.api' => 'website_ui_themes.details',
+        'website_ui_themes.create.api' => 'website_ui_themes.create',
+        'website_ui_themes.update.api' => 'website_ui_themes.update',
+        'website_ui_themes.dropdown.api' => 'website_ui_themes.dropdown',
+        'website_ui_themes.dropdown_by_entity_type.api' => 'website_ui_themes.dropdown_by_entity_type',
+
         // I18n Keys
 //        'i18n.keys.list.ui'  => 'i18n.keys.list',
 //        'i18n.keys.list.api' => 'i18n.keys.list',

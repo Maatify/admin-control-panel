@@ -21,6 +21,7 @@ use Maatify\AdminKernel\Http\Routes\Ui\Features\SessionsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\SettingsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\TelemetryUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\TwoFactorUiRoutes;
+use Maatify\AdminKernel\Http\Routes\Ui\Features\WebsiteUiThemesUiRoutes;
 use Maatify\AdminKernel\Http\Middleware\SessionGuardMiddleware;
 use Psr\Container\ContainerInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface;
@@ -60,6 +61,7 @@ final class UiProtectedRoutes
 
             CurrenciesUiRoutes::register($protectedGroup);
             ImageProfilesUiRoutes::register($protectedGroup);
+            WebsiteUiThemesUiRoutes::register($protectedGroup);
             MyProfileUiRoutes::register($protectedGroup);
 
         })

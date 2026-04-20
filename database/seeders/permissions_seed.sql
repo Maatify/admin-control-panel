@@ -138,6 +138,14 @@ VALUES
     ('image_profiles.set_active', 'Set active Image Profiles', 'Allows set active image profiles'),
     ('image_profiles.dropdown', 'Dropdown Image Profiles', 'Allows dropdown image profiles'),
 
+    -- [ WEBSITE UI THEMES ]
+    ('website_ui_themes.list', 'List Website UI Themes', 'Allows list website ui themes'),
+    ('website_ui_themes.details', 'Details Website UI Themes', 'Allows details website ui themes'),
+    ('website_ui_themes.create', 'Create Website UI Themes', 'Allows create website ui themes'),
+    ('website_ui_themes.update', 'Update Website UI Themes', 'Allows update website ui themes'),
+    ('website_ui_themes.dropdown', 'Dropdown Website UI Themes', 'Allows dropdown website ui themes'),
+    ('website_ui_themes.dropdown_by_entity_type', 'Dropdown by entity type Website UI Themes', 'Allows dropdown website ui themes by entity type'),
+
     -- [ CONTENT DOCUMENTS ]
     ('content_documents.types.query', 'Query Types Content documents', 'Allows query types content documents'),
     ('content_documents.types.create', 'Create Types Content documents', 'Allows create types content documents'),

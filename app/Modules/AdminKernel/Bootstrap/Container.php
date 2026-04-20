@@ -2612,6 +2612,9 @@ class Container
         // Register Maatify\ImageProfileBindings modules
         \Maatify\ImageProfile\Bootstrap\ImageProfileBindings::register($containerBuilder);
 
+        // Register Maatify\WebsiteUiThemeBindings modules
+        \Maatify\WebsiteUiTheme\Bootstrap\WebsiteUiThemeBindings::register($containerBuilder);
+
         // Extension Hook: Allow host projects to override/extend bindings
         if ($builderHook !== null) {
             $builderHook($containerBuilder);
