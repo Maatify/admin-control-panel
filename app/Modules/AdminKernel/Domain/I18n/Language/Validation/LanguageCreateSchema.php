@@ -6,6 +6,7 @@ namespace Maatify\AdminKernel\Domain\I18n\Language\Validation;
 
 use Maatify\LanguageCore\Enum\TextDirectionEnum;
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
+use Maatify\Validation\Rules\Primitive\EntityIdRule;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
 
@@ -43,7 +44,7 @@ final class LanguageCreateSchema extends AbstractSchema
             ],
 
             'fallback_language_id' => [
-                v::optional(v::intVal()->min(1)),
+                EntityIdRule::optional(),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
         ];

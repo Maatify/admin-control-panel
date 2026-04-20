@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Domain\I18n\Language\Validation;
 
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
+use Maatify\Validation\Rules\Primitive\EntityIdRule;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
 
@@ -14,7 +15,7 @@ final class LanguageUpdateNameSchema extends AbstractSchema
     {
         return [
             'language_id' => [
-                v::intVal()->min(1),
+                EntityIdRule::required(),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
 
