@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Http\Routes\Api\Features;
 
 use Maatify\AdminKernel\Http\Controllers\Api\WebsiteUiTheme\WebsiteUiThemesCreateController;
+use Maatify\AdminKernel\Http\Controllers\Api\WebsiteUiTheme\WebsiteUiThemesDeleteController;
 use Maatify\AdminKernel\Http\Controllers\Api\WebsiteUiTheme\WebsiteUiThemesDetailsController;
 use Maatify\AdminKernel\Http\Controllers\Api\WebsiteUiTheme\WebsiteUiThemesDropdownByEntityTypeController;
 use Maatify\AdminKernel\Http\Controllers\Api\WebsiteUiTheme\WebsiteUiThemesDropdownController;
@@ -38,6 +39,9 @@ final class WebsiteUiThemesApiRoutes
 
             $themes->post('/update', [WebsiteUiThemesUpdateController::class, '__invoke'])
                 ->setName('website_ui_themes.update.api');
+
+            $themes->post('/delete', [WebsiteUiThemesDeleteController::class, '__invoke'])
+                ->setName('website_ui_themes.delete.api');
         });
     }
 }

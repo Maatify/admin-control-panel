@@ -29,17 +29,34 @@
 
     const actionsRenderer = function(_, row) {
         const canUpdate = window.websiteUiThemesCapabilities?.can_update ?? false;
-        if (!canUpdate) return '<span class="text-gray-400 text-xs">No actions</span>';
+        const canDelete = window.websiteUiThemesCapabilities?.can_delete ?? false;
+        if (!canUpdate && !canDelete) return '<span class="text-gray-400 text-xs">No actions</span>';
 
-        return '<div class="flex flex-wrap gap-1">' + AdminUIComponents.buildActionButton({
-            cssClass: 'edit-theme-btn',
-            icon: AdminUIComponents.SVGIcons.edit,
-            text: 'Edit',
-            color: 'blue',
-            entityId: row.id,
-            title: 'Edit website UI theme',
-            dataAttributes: { 'theme-id': row.id }
-        }) + '</div>';
+        let actions = '<div class="flex flex-wrap gap-1">';
+        if (canUpdate) {
+            actions += AdminUIComponents.buildActionButton({
+                cssClass: 'edit-theme-btn',
+                icon: AdminUIComponents.SVGIcons.edit,
+                text: 'Edit',
+                color: 'blue',
+                entityId: row.id,
+                title: 'Edit website UI theme',
+                dataAttributes: { 'theme-id': row.id }
+            });
+        }
+        if (canDelete) {
+            actions += AdminUIComponents.buildActionButton({
+                cssClass: 'delete-theme-btn',
+                icon: AdminUIComponents.SVGIcons.trash,
+                text: 'Delete',
+                color: 'red',
+                entityId: row.id,
+                title: 'Delete website UI theme',
+                dataAttributes: { 'theme-id': row.id }
+            });
+        }
+
+        return actions + '</div>';
     };
 
     function getPaginationInfo(pagination) {

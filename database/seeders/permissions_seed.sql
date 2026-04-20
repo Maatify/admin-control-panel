@@ -143,6 +143,7 @@ VALUES
     ('website_ui_themes.details', 'Details Website UI Themes', 'Allows details website ui themes'),
     ('website_ui_themes.create', 'Create Website UI Themes', 'Allows create website ui themes'),
     ('website_ui_themes.update', 'Update Website UI Themes', 'Allows update website ui themes'),
+    ('website_ui_themes.delete', 'Delete Website UI Themes', 'Allows delete website ui themes'),
     ('website_ui_themes.dropdown', 'Dropdown Website UI Themes', 'Allows dropdown website ui themes'),
     ('website_ui_themes.dropdown_by_entity_type', 'Dropdown by entity type Website UI Themes', 'Allows dropdown website ui themes by entity type'),
 

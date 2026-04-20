@@ -26,7 +26,8 @@
     <script>
         window.websiteUiThemesCapabilities = {
             can_create: {{ capabilities.can_create ?? false ? 'true' : 'false' }},
-            can_update: {{ capabilities.can_update ?? false ? 'true' : 'false' }}
+            can_update: {{ capabilities.can_update ?? false ? 'true' : 'false' }},
+            can_delete: {{ capabilities.can_delete ?? false ? 'true' : 'false' }}
         };
     </script>
 

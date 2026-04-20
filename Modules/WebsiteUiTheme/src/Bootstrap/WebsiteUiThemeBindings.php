@@ -11,6 +11,7 @@ use Maatify\WebsiteUiTheme\Contract\WebsiteUiThemeQueryReaderInterface;
 use Maatify\WebsiteUiTheme\Infrastructure\Repository\PdoWebsiteUiThemeCommandRepository;
 use Maatify\WebsiteUiTheme\Infrastructure\Repository\PdoWebsiteUiThemeQueryReader;
 use Maatify\WebsiteUiTheme\Service\WebsiteUiThemeCommandService;
+use Maatify\WebsiteUiTheme\Service\WebsiteUiThemeFacade;
 use Maatify\WebsiteUiTheme\Service\WebsiteUiThemeQueryService;
 use PDO;
 use Psr\Container\ContainerInterface;
@@ -49,6 +50,13 @@ final class WebsiteUiThemeBindings
                 $reader = $c->get(WebsiteUiThemeQueryReaderInterface::class);
 
                 return new WebsiteUiThemeCommandService($commandRepo, $reader);
+            },
+
+            WebsiteUiThemeFacade::class => static function (ContainerInterface $c): WebsiteUiThemeFacade {
+                /** @var WebsiteUiThemeQueryService $queryService */
+                $queryService = $c->get(WebsiteUiThemeQueryService::class);
+
+                return new WebsiteUiThemeFacade($queryService);
             },
         ]);
     }

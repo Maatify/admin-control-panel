@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maatify\WebsiteUiTheme\Infrastructure\Repository;
 
 use Maatify\WebsiteUiTheme\Command\CreateWebsiteUiThemeCommand;
+use Maatify\WebsiteUiTheme\Command\DeleteWebsiteUiThemeCommand;
 use Maatify\WebsiteUiTheme\Command\UpdateWebsiteUiThemeCommand;
 use Maatify\WebsiteUiTheme\Contract\WebsiteUiThemeCommandRepositoryInterface;
 use Maatify\WebsiteUiTheme\DTO\WebsiteUiThemeDTO;
@@ -60,6 +61,12 @@ final readonly class PdoWebsiteUiThemeCommandRepository implements WebsiteUiThem
         }
 
         return $this->fetchDtoOrFail($command->id);
+    }
+
+    public function delete(DeleteWebsiteUiThemeCommand $command): void
+    {
+        $stmt = $this->prepareOrFail('DELETE FROM `maa_website_ui_themes` WHERE `id` = :id');
+        $stmt->execute([':id' => $command->id]);
     }
 
     /** @param CreateWebsiteUiThemeCommand|UpdateWebsiteUiThemeCommand $command

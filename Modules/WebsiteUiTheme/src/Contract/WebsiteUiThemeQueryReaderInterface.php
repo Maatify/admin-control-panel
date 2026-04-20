@@ -28,4 +28,8 @@ interface WebsiteUiThemeQueryReaderInterface
     public function findById(int $id): ?WebsiteUiThemeDTO;
 
     public function findByEntityTypeAndThemeFile(string $entityType, string $themeFile): ?WebsiteUiThemeDTO;
+
+    public function existsByThemeFile(string $themeFile): bool;
+
+    public function existsByThemeFileAndEntityType(string $themeFile, string $entityType): bool;
 }

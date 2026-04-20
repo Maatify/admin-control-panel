@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maatify\WebsiteUiTheme\Service;
 
 use Maatify\WebsiteUiTheme\Command\CreateWebsiteUiThemeCommand;
+use Maatify\WebsiteUiTheme\Command\DeleteWebsiteUiThemeCommand;
 use Maatify\WebsiteUiTheme\Command\UpdateWebsiteUiThemeCommand;
 use Maatify\WebsiteUiTheme\Contract\WebsiteUiThemeCommandRepositoryInterface;
 use Maatify\WebsiteUiTheme\Contract\WebsiteUiThemeQueryReaderInterface;
@@ -32,6 +33,13 @@ final readonly class WebsiteUiThemeCommandService
         $this->assertUnique($command->entityType, $command->themeFile, $command->id);
 
         return $this->commandRepo->update($command);
+    }
+
+    public function delete(DeleteWebsiteUiThemeCommand $command): void
+    {
+        $this->assertExists($command->id);
+
+        $this->commandRepo->delete($command);
     }
 
     private function assertExists(int $id): void

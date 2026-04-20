@@ -63,4 +63,14 @@ final readonly class WebsiteUiThemeQueryService
     {
         return $this->listByEntityType($entityType);
     }
+
+    public function existsByThemeFile(string $themeFile): bool
+    {
+        return $this->reader->existsByThemeFile($themeFile);
+    }
+
+    public function existsByThemeFileAndEntityType(string $themeFile, string $entityType): bool
+    {
+        return $this->reader->existsByThemeFileAndEntityType($themeFile, $entityType);
+    }
 }

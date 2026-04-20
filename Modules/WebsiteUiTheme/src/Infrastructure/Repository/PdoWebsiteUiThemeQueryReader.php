@@ -137,6 +137,25 @@ final readonly class PdoWebsiteUiThemeQueryReader implements WebsiteUiThemeQuery
         return $row !== null ? WebsiteUiThemeDTO::fromRow($row) : null;
     }
 
+    public function existsByThemeFile(string $themeFile): bool
+    {
+        $stmt = $this->prepareOrFail('SELECT 1 FROM `maa_website_ui_themes` WHERE `theme_file` = :theme_file LIMIT 1');
+        $stmt->bindValue(':theme_file', trim($themeFile));
+        $stmt->execute();
+
+        return $stmt->fetchColumn() !== false;
+    }
+
+    public function existsByThemeFileAndEntityType(string $themeFile, string $entityType): bool
+    {
+        $stmt = $this->prepareOrFail('SELECT 1 FROM `maa_website_ui_themes` WHERE `theme_file` = :theme_file AND `entity_type` = :entity_type LIMIT 1');
+        $stmt->bindValue(':theme_file', trim($themeFile));
+        $stmt->bindValue(':entity_type', trim($entityType));
+        $stmt->execute();
+
+        return $stmt->fetchColumn() !== false;
+    }
+
     private function escapeLike(string $value): string
     {
         return str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $value);

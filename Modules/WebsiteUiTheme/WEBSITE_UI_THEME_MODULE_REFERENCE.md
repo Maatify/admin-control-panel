@@ -20,9 +20,10 @@
 ## Public Entry Points
 - `WebsiteUiThemeCommandService`
 - `WebsiteUiThemeQueryService`
+- `WebsiteUiThemeFacade`
 
 ## In Scope
-- CRUD-style create/update over `maa_website_ui_themes`
+- CRUD-style create/update/delete over `maa_website_ui_themes`
 - Paginated and lookup query methods
 - Dropdown list retrieval for all themes and by `entity_type`
 

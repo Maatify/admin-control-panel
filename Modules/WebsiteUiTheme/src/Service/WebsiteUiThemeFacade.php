@@ -19,4 +19,14 @@ final readonly class WebsiteUiThemeFacade
     {
         return $this->queryService->dropdownByEntityType($entityType);
     }
+
+    public function existsByThemeFile(string $themeFile): bool
+    {
+        return $this->queryService->existsByThemeFile($themeFile);
+    }
+
+    public function existsByThemeFileAndEntityType(string $themeFile, string $entityType): bool
+    {
+        return $this->queryService->existsByThemeFileAndEntityType($themeFile, $entityType);
+    }
 }

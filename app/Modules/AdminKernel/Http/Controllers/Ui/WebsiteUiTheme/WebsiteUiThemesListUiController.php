@@ -26,6 +26,7 @@ final readonly class WebsiteUiThemesListUiController
         $capabilities = [
             'can_create' => $this->uiPermissionService->hasPermission($adminId, 'website_ui_themes.create'),
             'can_update' => $this->uiPermissionService->hasPermission($adminId, 'website_ui_themes.update'),
+            'can_delete' => $this->uiPermissionService->hasPermission($adminId, 'website_ui_themes.delete'),
         ];
 
         return $this->twig->render(
