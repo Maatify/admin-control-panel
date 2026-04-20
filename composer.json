@@ -56,7 +56,8 @@
       "Maatify\\Currency\\": "Modules/currency/src",
       "Maatify\\Storage\\": "Modules/Storage/src",
       "Maatify\\ImageProfile\\": "Modules/ImageProfile/src",
-      "Maatify\\ImageProfileLegacy\\": "Modules/ImageProfileLegacy/src"
+      "Maatify\\ImageProfileLegacy\\": "Modules/ImageProfileLegacy/src",
+      "Maatify\\WebsiteUiTheme\\": "Modules/WebsiteUiTheme/src"
     }
   },
 

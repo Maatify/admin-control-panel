@@ -1,0 +1,21 @@
+{
+  "name": "maatify/website-ui-theme",
+  "description": "Website UI theme reference module for dropdown selection and theme lookup.",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "Maatify\\WebsiteUiTheme\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Maatify\\WebsiteUiTheme\\Tests\\": "tests/"
+    }
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}
