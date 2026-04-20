@@ -16,8 +16,8 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Validation\Schemas\Roles;
 
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
+use Maatify\Validation\Rules\Semantic\RoleNameRule;
 use Maatify\Validation\Schemas\AbstractSchema;
-use Respect\Validation\Validator as v;
 
 class RoleRenameSchema extends AbstractSchema
 {
@@ -28,10 +28,7 @@ class RoleRenameSchema extends AbstractSchema
             // New technical role name
             // ─────────────────────────────
             'name' => [
-                v::stringType()
-                    ->notEmpty()
-                    ->length(3, 190)
-                    ->regex('/^[a-z][a-z0-9_.-]*$/'),
+                RoleNameRule::rule(),
                 ValidationErrorCodeEnum::INVALID_VALUE
             ],
         ];
