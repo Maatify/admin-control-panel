@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Domain\I18n\Scope\Validation;
 
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
-use Maatify\Validation\Rules\PositiveEntityIdRule;
+use Maatify\Validation\Rules\EntityIdRule;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
 
@@ -15,7 +15,7 @@ final class I18nScopeUpdateSortSchema extends AbstractSchema
     {
         return [
             'id' => [
-                PositiveEntityIdRule::rule(),
+                EntityIdRule::required(),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
             'position' => [

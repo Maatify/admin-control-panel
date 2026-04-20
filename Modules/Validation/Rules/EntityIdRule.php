@@ -18,10 +18,15 @@ namespace Maatify\Validation\Rules;
 use Respect\Validation\Validatable;
 use Respect\Validation\Validator as v;
 
-final class OptionalPositiveEntityIdRule
+final class EntityIdRule
 {
-    public static function rule(): Validatable
+    public static function required(): Validatable
     {
-        return v::optional(PositiveEntityIdRule::rule());
+        return v::intVal()->min(1);
+    }
+
+    public static function optional(): Validatable
+    {
+        return v::optional(self::required());
     }
 }

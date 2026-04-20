@@ -6,7 +6,7 @@ namespace Maatify\AdminKernel\Domain\I18n\Language\Validation;
 
 use Maatify\LanguageCore\Enum\TextDirectionEnum;
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
-use Maatify\Validation\Rules\PositiveEntityIdRule;
+use Maatify\Validation\Rules\EntityIdRule;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
 
@@ -16,7 +16,7 @@ final class LanguageUpdateSettingsSchema extends AbstractSchema
     {
         return [
             'language_id' => [
-                PositiveEntityIdRule::rule(),
+                EntityIdRule::required(),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
 
