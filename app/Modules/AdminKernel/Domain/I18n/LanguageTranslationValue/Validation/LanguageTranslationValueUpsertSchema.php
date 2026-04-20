@@ -7,6 +7,7 @@ namespace Maatify\AdminKernel\Domain\I18n\LanguageTranslationValue\Validation;
 use Maatify\Validation\Contracts\SchemaInterface;
 use Maatify\Validation\DTO\ValidationResultDTO;
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
+use Maatify\Validation\Rules\Primitive\EntityIdRule;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
 
@@ -17,7 +18,7 @@ final class LanguageTranslationValueUpsertSchema extends AbstractSchema
     {
         return [
             'key_id' => [
-                v::intVal()->min(1),
+                EntityIdRule::required(),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
 
