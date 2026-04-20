@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Domain\I18n\Domain\Validation;
 
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
+use Maatify\Validation\Rules\Primitive\BooleanRule;
 use Maatify\Validation\Rules\Primitive\EntityIdRule;
 use Maatify\Validation\Schemas\AbstractSchema;
-use Respect\Validation\Validator as v;
 
 final class I18nDomainSetActiveSchema extends AbstractSchema
 {
@@ -20,10 +20,9 @@ final class I18nDomainSetActiveSchema extends AbstractSchema
             ],
 
             'is_active' => [
-                v::boolVal(),
+                BooleanRule::required(),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
         ];
     }
 }
-
