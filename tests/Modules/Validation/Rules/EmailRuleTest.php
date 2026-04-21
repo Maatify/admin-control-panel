@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Tests\Modules\Validation\Rules;
 
-use Maatify\Validation\Rules\EmailRule;
+use Maatify\Validation\Rules\Primitive\EmailRule;
 use PHPUnit\Framework\TestCase;
 use Respect\Validation\Exceptions\ValidationException;
 
@@ -24,12 +24,12 @@ final class EmailRuleTest extends TestCase
     public function testValidEmailPasses(): void
     {
         $this->expectNotToPerformAssertions();
-        EmailRule::rule()->assert('test@example.com');
+        EmailRule::required()->assert('test@example.com');
     }
 
     public function testInvalidEmailFails(): void
     {
         $this->expectException(ValidationException::class);
-        EmailRule::rule()->assert('invalid-email');
+        EmailRule::required()->assert('invalid-email');
     }
 }
