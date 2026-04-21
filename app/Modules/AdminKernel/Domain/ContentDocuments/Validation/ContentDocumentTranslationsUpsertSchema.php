@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Domain\ContentDocuments\Validation;
 
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
+use Maatify\Validation\Rules\Primitive\StringRule;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
 
@@ -18,9 +19,7 @@ final class ContentDocumentTranslationsUpsertSchema extends AbstractSchema
             // Title (Required)
             // ─────────────────────────────
             'title' => [
-                v::stringType()
-                    ->notEmpty()
-                    ->length(1, 255),
+                StringRule::required(min: 1, max: 255),
                 ValidationErrorCodeEnum::INVALID_VALUE
             ],
 
@@ -28,7 +27,7 @@ final class ContentDocumentTranslationsUpsertSchema extends AbstractSchema
             // Meta Title (Optional)
             // ─────────────────────────────
             'meta_title' => [
-                v::stringType()->length(0, 255),
+                StringRule::optional(min: 0, max: 255),
                 ValidationErrorCodeEnum::INVALID_VALUE
             ],
 
@@ -36,7 +35,7 @@ final class ContentDocumentTranslationsUpsertSchema extends AbstractSchema
             // Meta Description (Optional)
             // ─────────────────────────────
             'meta_description' => [
-                v::stringType()->length(0, 5000),
+                StringRule::optional(min: 0, max: 5000),
                 ValidationErrorCodeEnum::INVALID_VALUE
             ],
 

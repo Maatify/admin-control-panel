@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Domain\Currency\Validation;
 
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
+use Maatify\Validation\Rules\Primitive\StringRule;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
 
@@ -18,7 +19,7 @@ final class CurrencyTranslationUpsertSchema extends AbstractSchema
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
             'translated_name' => [
-                v::stringType()->notEmpty()->length(1, 50),
+                StringRule::required(min: 1, max: 50),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
         ];
