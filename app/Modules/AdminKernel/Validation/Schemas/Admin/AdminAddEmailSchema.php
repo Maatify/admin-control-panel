@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Validation\Schemas\Admin;
 
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
+use Maatify\Validation\Rules\Primitive\EmailRule;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
 
@@ -14,7 +15,7 @@ class AdminAddEmailSchema extends AbstractSchema
     {
         return [
             'id' => [v::intVal(), ValidationErrorCodeEnum::REQUIRED_FIELD],
-            'email' => [v::email(), ValidationErrorCodeEnum::INVALID_EMAIL],
+            'email' => [EmailRule::required(), ValidationErrorCodeEnum::INVALID_EMAIL],
         ];
     }
 }
