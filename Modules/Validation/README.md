@@ -109,7 +109,7 @@ Rules are **pure validation units** built on Respect/Validation.
 Example:
 
 ```php
-EmailRule::rule()
+EmailRule::required()
 ```
 
 ---

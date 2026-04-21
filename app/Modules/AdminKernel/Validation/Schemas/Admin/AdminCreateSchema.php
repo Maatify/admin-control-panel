@@ -16,7 +16,7 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Validation\Schemas\Admin;
 
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
-use Maatify\Validation\Rules\EmailRule;
+use Maatify\Validation\Rules\Primitive\EmailRule;
 use Maatify\Validation\Schemas\AbstractSchema;
 
 final class AdminCreateSchema extends AbstractSchema
@@ -31,7 +31,7 @@ final class AdminCreateSchema extends AbstractSchema
     {
         return [
             'email' => [
-                EmailRule::rule(),
+                EmailRule::required(),
                 ValidationErrorCodeEnum::INVALID_EMAIL,
             ],
 
@@ -44,5 +44,4 @@ final class AdminCreateSchema extends AbstractSchema
         ];
     }
 }
-
 
