@@ -14,7 +14,7 @@ final class TextareaRule
     {
         return v::allOf(
             StringRule::required($min, $max),
-            v::not(v::blank())
+            v::notBlank()
         );
     }
 

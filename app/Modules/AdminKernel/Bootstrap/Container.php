@@ -479,6 +479,7 @@ class Container
                             'media' => [
                                 'assetsCdnUrl' => $mediaUrlConfig->assetsCdnUrl,
                                 'cdnImageUrl' => $mediaUrlConfig->cdnImageUrl,
+                                'assetVersion' => $mediaUrlConfig->assetVersion,
                             ],
                         ];
                     }
