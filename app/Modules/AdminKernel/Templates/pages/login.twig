@@ -43,6 +43,9 @@
 
 								<!-- OTP Inputs -->
 								<form method="post" action="/login" class="mb-6 w-full px-4">
+									{% if r %}
+										<input type="hidden" name="r" value="{{ r }}">
+									{% endif %}
 									{% if error %}
 										<div class="text-red-500 dark:text-red-400 text-sm mb-2 w-full  border border-red-500 dark:border-red-700 dark:bg-red-900/20 p-2 rounded-md bg-red-100/50 flex items-center gap-2">
 											<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 stroke-2 text-red-500 dark:text-red-400">

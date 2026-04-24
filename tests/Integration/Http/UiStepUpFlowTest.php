@@ -12,6 +12,7 @@ use Maatify\AdminKernel\Context\RequestContext;
 use Maatify\AdminKernel\Domain\Contracts\TotpServiceInterface;
 use Maatify\AdminKernel\Domain\DTO\TotpVerificationResultDTO;
 use Maatify\AdminKernel\Domain\Enum\Scope;
+use Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface;
 use Maatify\AdminKernel\Domain\Service\StepUpService;
 use Maatify\AdminKernel\Http\Controllers\Ui\Auth\UiStepUpController;
 use Maatify\AdminKernel\Http\Controllers\Web\TwoFactorController;
@@ -29,6 +30,7 @@ final class UiStepUpFlowTest extends TestCase
     private TotpServiceInterface&MockObject $totpServiceMock;
     private DiagnosticsTelemetryService&MockObject $telemetryServiceMock;
     private Twig&MockObject $viewMock;
+    private RedirectTokenProviderInterface&MockObject $redirectTokenProviderMock;
 
     protected function setUp(): void
     {
@@ -38,6 +40,7 @@ final class UiStepUpFlowTest extends TestCase
         $this->totpServiceMock = $this->createMock(TotpServiceInterface::class);
         $this->telemetryServiceMock = $this->createMock(DiagnosticsTelemetryService::class);
         $this->viewMock = $this->createMock(Twig::class);
+        $this->redirectTokenProviderMock = $this->createMock(RedirectTokenProviderInterface::class);
 
         $enrollmentService = new TwoFactorEnrollmentService(
             $this->stepUpServiceMock,
@@ -53,7 +56,8 @@ final class UiStepUpFlowTest extends TestCase
         $webController = new TwoFactorController(
             $enrollmentService,
             $verificationService,
-            $this->viewMock
+            $this->viewMock,
+            $this->redirectTokenProviderMock
         );
 
         $this->uiController = new UiStepUpController($webController);
@@ -78,7 +82,7 @@ final class UiStepUpFlowTest extends TestCase
             ->withParsedBody([
                 'code' => '123456',
                 'scope' => 'security',
-                'return_to' => '/admins/create',
+                'r' => 'valid-token',
             ]);
 
         $response = new Response();
@@ -94,6 +98,12 @@ final class UiStepUpFlowTest extends TestCase
                 Scope::SECURITY
             )
             ->willReturn(new TotpVerificationResultDTO(true));
+
+        $this->redirectTokenProviderMock
+            ->expects($this->once())
+            ->method('verifyAndParse')
+            ->with('valid-token')
+            ->willReturn(new \Maatify\AdminKernel\Domain\DTO\SignedRedirectTokenDTO('/admins/create', time() + 300));
 
         $response = $this->uiController->doVerify($request, $response);
 

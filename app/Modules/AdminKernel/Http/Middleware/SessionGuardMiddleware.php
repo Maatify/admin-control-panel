@@ -12,6 +12,7 @@ use Maatify\AdminKernel\Domain\Exception\InvalidCredentialsException;
 use Maatify\AdminKernel\Domain\Exception\InvalidSessionException;
 use Maatify\AdminKernel\Domain\Exception\ExpiredSessionException;
 use Maatify\AdminKernel\Domain\Exception\RevokedSessionException;
+use Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface;
 use Maatify\AdminKernel\Http\Cookie\CookieFactoryService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -33,7 +34,8 @@ readonly class SessionGuardMiddleware implements MiddlewareInterface
     public function __construct(
         private SessionValidationService $sessionValidationService,
         private RememberMeService $rememberMeService,
-        private CookieFactoryService $cookieFactory
+        private CookieFactoryService $cookieFactory,
+        private RedirectTokenProviderInterface $redirectTokenProvider
     ) {}
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
@@ -59,7 +61,7 @@ readonly class SessionGuardMiddleware implements MiddlewareInterface
                 );
             }
 
-            return $this->handleFailure($isApi, 'No session token provided.');
+            return $this->handleFailure($request, $isApi, 'No session token provided.');
         }
 
         try {
@@ -68,7 +70,7 @@ readonly class SessionGuardMiddleware implements MiddlewareInterface
         catch (InvalidSessionException | ExpiredSessionException | RevokedSessionException $e) {
 
             if (!isset($cookies['remember_me'])) {
-                return $this->handleFailure($isApi, $e->getMessage());
+                return $this->handleFailure($request, $isApi, $e->getMessage());
             }
 
             return $this->attemptRememberFallback(
@@ -204,14 +206,14 @@ readonly class SessionGuardMiddleware implements MiddlewareInterface
 
         return (new \Slim\Psr7\Response())
             ->withHeader('Set-Cookie', $clearCookie)
-            ->withHeader('Location', '/login')
+            ->withHeader('Location', $this->buildLoginLocationWithRedirectToken($request))
             ->withStatus(302);
     }
 
     /**
      * Canonical failure handler.
      */
-    private function handleFailure(bool $isApi, string $message): ResponseInterface
+    private function handleFailure(ServerRequestInterface $request, bool $isApi, string $message): ResponseInterface
     {
         if ($isApi) {
             $response = new \Slim\Psr7\Response();
@@ -222,7 +224,20 @@ readonly class SessionGuardMiddleware implements MiddlewareInterface
         }
 
         return (new \Slim\Psr7\Response())
-            ->withHeader('Location', '/login')
+            ->withHeader('Location', $this->buildLoginLocationWithRedirectToken($request))
             ->withStatus(302);
+    }
+
+    private function buildLoginLocationWithRedirectToken(ServerRequestInterface $request): string
+    {
+        $path = $request->getUri()->getPath();
+
+        if ($path === '' || $path === '/login') {
+            return '/login';
+        }
+
+        $token = $this->redirectTokenProvider->issue($path);
+
+        return '/login?r=' . urlencode($token);
     }
 }

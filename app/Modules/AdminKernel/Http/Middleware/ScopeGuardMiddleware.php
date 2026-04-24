@@ -9,6 +9,7 @@ use Maatify\AdminKernel\Domain\Security\ScopeRegistry;
 use Maatify\AdminKernel\Context\RequestContext;
 use Maatify\AdminKernel\Domain\Service\StepUpService;
 use Maatify\AdminKernel\Http\Auth\AuthSurface;
+use Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -19,7 +20,8 @@ use Slim\Routing\RouteContext;
 class ScopeGuardMiddleware implements MiddlewareInterface
 {
     public function __construct(
-        private StepUpService $stepUpService
+        private StepUpService $stepUpService,
+        private RedirectTokenProviderInterface $redirectTokenProvider
     ) {
     }
 
@@ -124,16 +126,13 @@ class ScopeGuardMiddleware implements MiddlewareInterface
         ServerRequestInterface $request,
         Scope $requiredScope
     ): ResponseInterface {
-        $uri = $request->getUri();
+        $path = $request->getUri()->getPath();
+        $location = '/2fa/verify?scope=' . urlencode($requiredScope->value);
 
-        $returnTo = $uri->getPath();
-        $query = $uri->getQuery();
-        if ($query !== '') {
-            $returnTo .= '?' . $query;
+        if ($path !== '' && $path !== '/login') {
+            $token = $this->redirectTokenProvider->issue($path);
+            $location .= '&r=' . urlencode($token);
         }
-
-        $location = '/2fa/verify?scope=' . urlencode($requiredScope->value)
-                    . '&return_to=' . urlencode($returnTo);
 
         $response = new \Slim\Psr7\Response();
         return $response

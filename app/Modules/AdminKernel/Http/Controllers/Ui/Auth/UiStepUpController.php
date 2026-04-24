@@ -24,8 +24,8 @@ readonly class UiStepUpController
             $request = $request->withAttribute('scope', $query['scope']);
         }
 
-        if (isset($query['return_to']) && is_string($query['return_to'])) {
-            $request = $request->withAttribute('return_to', $query['return_to']);
+        if (isset($query['r']) && is_string($query['r'])) {
+            $request = $request->withAttribute('r', $query['r']);
         }
         // ADDITIVE END
 
@@ -45,8 +45,8 @@ readonly class UiStepUpController
                 $request = $request->withAttribute('scope', $data['scope']);
             }
 
-            if (isset($data['return_to']) && is_string($data['return_to'])) {
-                $request = $request->withAttribute('return_to', $data['return_to']);
+            if (isset($data['r']) && is_string($data['r'])) {
+                $request = $request->withAttribute('r', $data['r']);
             }
         }
         // ADDITIVE END

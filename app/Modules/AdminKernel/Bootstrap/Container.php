@@ -838,14 +838,17 @@ class Container
                 $adminLoginService = $c->get(AdminLoginService::class);
                 $view = $c->get(Twig::class);
                 $challengeRenderer = $c->get(ChallengeWidgetRendererInterface::class);
+                $redirectTokenProvider = $c->get(\Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface::class);
                 assert($adminLoginService instanceof AdminLoginService);
                 assert($view instanceof Twig);
                 assert($challengeRenderer instanceof ChallengeWidgetRendererInterface);
+                assert($redirectTokenProvider instanceof \Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface);
 
                 return new LoginController(
                     $adminLoginService,
                     $view,
-                    $challengeRenderer
+                    $challengeRenderer,
+                    $redirectTokenProvider
                 );
             },
             \Maatify\AdminKernel\Application\Auth\AdminLogoutService::class                              => function (ContainerInterface $c) {
@@ -1096,12 +1099,14 @@ class Container
                 $enrollmentService = $c->get(\Maatify\AdminKernel\Application\Auth\TwoFactorEnrollmentService::class);
                 $verificationService = $c->get(\Maatify\AdminKernel\Application\Auth\TwoFactorVerificationService::class);
                 $view = $c->get(Twig::class);
+                $redirectTokenProvider = $c->get(\Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface::class);
 
                 assert($enrollmentService instanceof \Maatify\AdminKernel\Application\Auth\TwoFactorEnrollmentService);
                 assert($verificationService instanceof \Maatify\AdminKernel\Application\Auth\TwoFactorVerificationService);
                 assert($view instanceof Twig);
+                assert($redirectTokenProvider instanceof \Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface);
 
-                return new TwoFactorController($enrollmentService, $verificationService, $view);
+                return new TwoFactorController($enrollmentService, $verificationService, $view, $redirectTokenProvider);
             },
             AdminNotificationPreferenceController::class => function (ContainerInterface $c) {
                 $reader = $c->get(AdminNotificationPreferenceReaderInterface::class);
@@ -1306,14 +1311,18 @@ class Container
             SessionStateGuardMiddleware::class => function (ContainerInterface $c) {
                 $service = $c->get(StepUpService::class);
                 $repo = $c->get(AdminTotpSecretStoreInterface::class);
+                $redirectTokenProvider = $c->get(\Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface::class);
                 assert($service instanceof StepUpService);
                 assert($repo instanceof AdminTotpSecretStoreInterface);
-                return new SessionStateGuardMiddleware($service, $repo);
+                assert($redirectTokenProvider instanceof \Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface);
+                return new SessionStateGuardMiddleware($service, $repo, $redirectTokenProvider);
             },
             ScopeGuardMiddleware::class => function (ContainerInterface $c) {
                 $service = $c->get(StepUpService::class);
+                $redirectTokenProvider = $c->get(\Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface::class);
                 assert($service instanceof StepUpService);
-                return new ScopeGuardMiddleware($service);
+                assert($redirectTokenProvider instanceof \Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface);
+                return new ScopeGuardMiddleware($service, $redirectTokenProvider);
             },
             \Maatify\AdminKernel\Http\Controllers\StepUpController::class => function (ContainerInterface $c) {
                 $stepUpService = $c->get(\Maatify\AdminKernel\Domain\Service\StepUpService::class);
@@ -2034,6 +2043,27 @@ class Container
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
                 return new \Maatify\AdminKernel\Infrastructure\Repository\Permissions\PdoPermissionAdminsQueryRepository($pdo);
+            },
+
+            \Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface::class => function (ContainerInterface $c) {
+                $keyRotation = $c->get(KeyRotationService::class);
+                $hkdf = $c->get(HKDFService::class);
+                assert($keyRotation instanceof KeyRotationService);
+                assert($hkdf instanceof HKDFService);
+                return new \Maatify\AdminKernel\Infrastructure\Crypto\RedirectTokenCryptoSignatureProvider($keyRotation, $hkdf);
+            },
+
+            \Maatify\AdminKernel\Http\Middleware\SessionGuardMiddleware::class => function (ContainerInterface $c) {
+                $sessionValidationService = $c->get(\Maatify\AdminKernel\Domain\Service\SessionValidationService::class);
+                $rememberMeService = $c->get(RememberMeService::class);
+                $cookieFactory = $c->get(\Maatify\AdminKernel\Http\Cookie\CookieFactoryService::class);
+                $redirectTokenProvider = $c->get(\Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface::class);
+                assert($sessionValidationService instanceof \Maatify\AdminKernel\Domain\Service\SessionValidationService);
+                assert($rememberMeService instanceof RememberMeService);
+                assert($cookieFactory instanceof \Maatify\AdminKernel\Http\Cookie\CookieFactoryService);
+                assert($redirectTokenProvider instanceof \Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface);
+
+                return new \Maatify\AdminKernel\Http\Middleware\SessionGuardMiddleware($sessionValidationService, $rememberMeService, $cookieFactory, $redirectTokenProvider);
             },
 
             \Maatify\AbuseProtection\Contracts\AbuseSignatureProviderInterface::class => function (ContainerInterface $c) {

@@ -28,7 +28,7 @@ final class UiStepUpControllerTest extends TestCase
     {
         $request = (new ServerRequestFactory())
             ->createServerRequest('GET', '/2fa/verify')
-            ->withQueryParams(['scope' => 'security', 'return_to' => '/admins/create']);
+            ->withQueryParams(['scope' => 'security', 'r' => '/admins/create']);
 
         $response = new Response();
 
@@ -38,7 +38,7 @@ final class UiStepUpControllerTest extends TestCase
             ->with(
                 $this->callback(function (ServerRequestInterface $req) {
                     return $req->getAttribute('scope') === 'security'
-                        && $req->getAttribute('return_to') === '/admins/create'
+                        && $req->getAttribute('r') === '/admins/create'
                         && $req->getAttribute('template') === 'pages/2fa_verify.twig';
                 }),
                 $response
@@ -52,7 +52,7 @@ final class UiStepUpControllerTest extends TestCase
     {
         $request = (new ServerRequestFactory())
             ->createServerRequest('POST', '/2fa/verify')
-            ->withParsedBody(['code' => '123456', 'scope' => 'security', 'return_to' => '/admins/create']);
+            ->withParsedBody(['code' => '123456', 'scope' => 'security', 'r' => '/admins/create']);
 
         $response = new Response();
 
@@ -62,7 +62,7 @@ final class UiStepUpControllerTest extends TestCase
             ->with(
                 $this->callback(function (ServerRequestInterface $req) {
                     return $req->getAttribute('scope') === 'security'
-                        && $req->getAttribute('return_to') === '/admins/create'
+                        && $req->getAttribute('r') === '/admins/create'
                         && $req->getAttribute('template') === 'pages/2fa_verify.twig';
                 }),
                 $response
