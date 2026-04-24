@@ -105,9 +105,9 @@ final readonly class RedirectTokenCryptoSignatureProvider implements RedirectTok
         $export = $this->keyRotation->exportForCrypto();
 
         /** @var array<string,string> $keys */
-        $keys = $export['keys'] ?? [];
+        $keys = $export['keys'];
         /** @var string $activeKeyId */
-        $activeKeyId = $export['active_key_id'] ?? '';
+        $activeKeyId = $export['active_key_id'];
 
         $rootKey = $keys[$activeKeyId] ?? null;
         if (!is_string($rootKey) || $rootKey === '') {
@@ -128,7 +128,7 @@ final readonly class RedirectTokenCryptoSignatureProvider implements RedirectTok
         $export = $this->keyRotation->exportForCrypto();
 
         /** @var array<string,string> $keys */
-        $keys = $export['keys'] ?? [];
+        $keys = $export['keys'];
         if (!is_array($keys) || $keys === []) {
             return false;
         }
