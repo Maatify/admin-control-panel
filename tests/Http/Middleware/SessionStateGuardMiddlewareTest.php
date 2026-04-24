@@ -112,10 +112,11 @@ class SessionStateGuardMiddlewareTest extends TestCase
         $this->middleware->process($request, $handler);
     }
 
-    public function testWebStepUpRedirectIncludesSignedRedirectToken(): void
+    public function testWebStepUpRedirectIncludesSignedRedirectTokenAndPreservesQuery(): void
     {
         $uri = $this->createMock(UriInterface::class);
         $uri->method('getPath')->willReturn('/dashboard');
+        $uri->method('getQuery')->willReturn('tab=security');
 
         $request = $this->createMock(ServerRequestInterface::class);
         $request->method('getUri')->willReturn($uri);
@@ -146,7 +147,7 @@ class SessionStateGuardMiddlewareTest extends TestCase
 
         $this->redirectTokenProvider->expects($this->once())
             ->method('issue')
-            ->with('/dashboard')
+            ->with('/dashboard?tab=security')
             ->willReturn('signed-r');
 
         $handler = $this->createMock(RequestHandlerInterface::class);

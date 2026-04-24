@@ -126,11 +126,19 @@ class ScopeGuardMiddleware implements MiddlewareInterface
         ServerRequestInterface $request,
         Scope $requiredScope
     ): ResponseInterface {
-        $path = $request->getUri()->getPath();
+        $uri = $request->getUri();
+        $path = $uri->getPath();
+        $query = $uri->getQuery();
+
+        if ($path === '') {
+            $path = '/';
+        }
+
         $location = '/2fa/verify?scope=' . urlencode($requiredScope->value);
 
-        if ($path !== '' && $path !== '/login') {
-            $token = $this->redirectTokenProvider->issue($path);
+        if ($path !== '/login') {
+            $target = $query !== '' ? $path . '?' . $query : $path;
+            $token = $this->redirectTokenProvider->issue($target);
             $location .= '&r=' . urlencode($token);
         }
 

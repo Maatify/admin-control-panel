@@ -106,15 +106,43 @@ final class RedirectTokenCryptoSignatureProviderTest extends TestCase
         self::assertNull($this->provider->verifyAndParse($token));
     }
 
-    public function testRejectsPathContainingSchemeDelimiter(): void
+    public function testAcceptsInternalTargetWithQueryString(): void
     {
-        $token = $this->buildToken('/safe/https://evil', time() + 300);
-        self::assertNull($this->provider->verifyAndParse($token));
+        $token = $this->buildToken('/products?page=3&search=abc', time() + 300);
+        $parsed = $this->provider->verifyAndParse($token);
+        self::assertNotNull($parsed);
+        self::assertSame('/products?page=3&search=abc', $parsed->path);
+    }
+
+    public function testAcceptsInternalTargetWhenQueryContainsHttpsUrl(): void
+    {
+        $token = $this->buildToken('/page?next=https://example.com', time() + 300);
+        $parsed = $this->provider->verifyAndParse($token);
+        self::assertNotNull($parsed);
+        self::assertSame('/page?next=https://example.com', $parsed->path);
     }
 
     public function testRejectsLoginPath(): void
     {
         $token = $this->buildToken('/login', time() + 300);
+        self::assertNull($this->provider->verifyAndParse($token));
+    }
+
+    public function testRejectsLoginPathWithQuery(): void
+    {
+        $token = $this->buildToken('/login?r=abc', time() + 300);
+        self::assertNull($this->provider->verifyAndParse($token));
+    }
+
+    public function testRejectsPathContainingCarriageReturn(): void
+    {
+        $token = $this->buildToken("/dashboard\rx", time() + 300);
+        self::assertNull($this->provider->verifyAndParse($token));
+    }
+
+    public function testRejectsPathContainingLineFeed(): void
+    {
+        $token = $this->buildToken("/dashboard\nx", time() + 300);
         self::assertNull($this->provider->verifyAndParse($token));
     }
 

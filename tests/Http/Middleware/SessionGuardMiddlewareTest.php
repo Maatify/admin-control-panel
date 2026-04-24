@@ -31,7 +31,7 @@ final class SessionGuardMiddlewareTest extends TestCase
         $this->redirectTokenProvider = $this->createMock(RedirectTokenProviderInterface::class);
     }
 
-    public function testWebSessionFailureRedirectsToLoginWithToken(): void
+    public function testWebSessionFailureRedirectsToLoginWithTokenAndPreservesQuery(): void
     {
         $middleware = new SessionGuardMiddleware(
             $this->sessionValidationService,
@@ -42,10 +42,10 @@ final class SessionGuardMiddlewareTest extends TestCase
 
         $this->redirectTokenProvider->expects($this->once())
             ->method('issue')
-            ->with('/dashboard')
+            ->with('/dashboard?tab=security')
             ->willReturn('signed-token');
 
-        $request = (new ServerRequestFactory())->createServerRequest('GET', '/dashboard')
+        $request = (new ServerRequestFactory())->createServerRequest('GET', '/dashboard?tab=security')
             ->withAttribute(RequestContext::class, new RequestContext('r', '127.0.0.1', 'ua'));
 
         $response = $middleware->process($request, $this->createMock(RequestHandlerInterface::class));

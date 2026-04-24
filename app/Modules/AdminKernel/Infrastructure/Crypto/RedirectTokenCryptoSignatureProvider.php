@@ -165,19 +165,37 @@ final readonly class RedirectTokenCryptoSignatureProvider implements RedirectTok
 
     private function isValidInternalPath(string $path): bool
     {
-        if ($path === '' || !str_starts_with($path, '/')) {
+        if ($path === '') {
             return false;
         }
 
-        if (str_starts_with($path, '//')) {
+        if (str_contains($path, "\r") || str_contains($path, "\n")) {
             return false;
         }
 
-        if (str_contains($path, '://')) {
+        $parts = parse_url($path);
+        if ($parts === false) {
             return false;
         }
 
-        if ($path === '/login') {
+        if (isset($parts['scheme']) || isset($parts['host'])) {
+            return false;
+        }
+
+        $parsedPath = $parts['path'] ?? null;
+        if (!is_string($parsedPath) || $parsedPath === '') {
+            return false;
+        }
+
+        if (!str_starts_with($parsedPath, '/')) {
+            return false;
+        }
+
+        if (str_starts_with($parsedPath, '//')) {
+            return false;
+        }
+
+        if ($parsedPath === '/login') {
             return false;
         }
 

@@ -123,12 +123,20 @@ readonly class SessionStateGuardMiddleware implements MiddlewareInterface
 
     private function buildStepUpLocation(string $basePath, ServerRequestInterface $request): string
     {
-        $path = $request->getUri()->getPath();
-        if ($path === '' || $path === '/login') {
+        $uri = $request->getUri();
+        $path = $uri->getPath();
+        $query = $uri->getQuery();
+
+        if ($path === '') {
+            $path = '/';
+        }
+
+        if ($path === '/login') {
             return $basePath;
         }
 
-        $token = $this->redirectTokenProvider->issue($path);
+        $target = $query !== '' ? $path . '?' . $query : $path;
+        $token = $this->redirectTokenProvider->issue($target);
 
         return $basePath . '?r=' . urlencode($token);
     }

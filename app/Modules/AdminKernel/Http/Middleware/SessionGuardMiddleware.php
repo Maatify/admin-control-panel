@@ -230,13 +230,20 @@ readonly class SessionGuardMiddleware implements MiddlewareInterface
 
     private function buildLoginLocationWithRedirectToken(ServerRequestInterface $request): string
     {
-        $path = $request->getUri()->getPath();
+        $uri = $request->getUri();
+        $path = $uri->getPath();
+        $query = $uri->getQuery();
 
-        if ($path === '' || $path === '/login') {
+        if ($path === '') {
+            $path = '/';
+        }
+
+        if ($path === '/login') {
             return '/login';
         }
 
-        $token = $this->redirectTokenProvider->issue($path);
+        $target = $query !== '' ? $path . '?' . $query : $path;
+        $token = $this->redirectTokenProvider->issue($target);
 
         return '/login?r=' . urlencode($token);
     }
