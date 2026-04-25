@@ -11,6 +11,7 @@ use Maatify\AdminKernel\Domain\DTO\LoginRequestDTO;
 use Maatify\AdminKernel\Domain\Exception\AuthStateException;
 use Maatify\AdminKernel\Domain\Exception\InvalidCredentialsException;
 use Maatify\AdminKernel\Domain\Exception\MustChangePasswordException;
+use Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
@@ -20,7 +21,8 @@ readonly class LoginController
     public function __construct(
         private AdminLoginService $loginService,
         private Twig $view,
-        private ChallengeWidgetRendererInterface $challengeRenderer
+        private ChallengeWidgetRendererInterface $challengeRenderer,
+        private RedirectTokenProviderInterface $redirectTokenProvider
     )
     {
     }
@@ -43,6 +45,7 @@ readonly class LoginController
             [
                 'require_challenge' => true,
                 'challenge_widget' => $challengeWidget,
+                'r' => $this->resolveRedirectToken($request),
             ]
         );
     }
@@ -54,9 +57,11 @@ readonly class LoginController
             $template = 'login.twig';
         }
 
+        $redirectToken = $this->resolveRedirectToken($request);
+
         $data = $request->getParsedBody();
         if (! is_array($data) || ! isset($data['email'], $data['password'])) {
-            return $this->view->render($response, $template, ['error' => 'Invalid request']);
+            return $this->view->render($response, $template, ['error' => 'Invalid request', 'r' => $redirectToken]);
         }
 
         $dto = new LoginRequestDTO((string)$data['email'], (string)$data['password']);
@@ -96,6 +101,7 @@ readonly class LoginController
                         'require_challenge'  => true,
                         'challenge_error'    => $request->getAttribute('challenge_reason'),
                         'challenge_widget' => $challengeWidget,
+                        'r' => $redirectToken,
                     ]
                 );
             }
@@ -160,8 +166,16 @@ readonly class LoginController
                     ->withAddedHeader('Set-Cookie', trim($signatureCookie, '; '));
             }
 
+            $location = '/dashboard';
+            if ($redirectToken !== null) {
+                $parsed = $this->redirectTokenProvider->verifyAndParse($redirectToken);
+                if ($parsed !== null) {
+                    $location = $parsed->path;
+                }
+            }
+
             return $response
-                ->withHeader('Location', '/dashboard')
+                ->withHeader('Location', $location)
                 ->withStatus(302);
         } catch (MustChangePasswordException $e) {
             return $response
@@ -177,7 +191,7 @@ readonly class LoginController
             return $this->view->render(
                 $response,
                 $template,
-                ['error' => $e->getMessage()]
+                ['error' => $e->getMessage(), 'r' => $redirectToken]
             );
         } catch (InvalidCredentialsException $e) {
             $challengeWidget = null;
@@ -196,8 +210,26 @@ readonly class LoginController
                     'require_challenge' => true,
                     'challenge_widget' => $challengeWidget,
                     'challenge_error'    => is_string($challengeReason) ? $challengeReason : null,
+                    'r' => $redirectToken,
                 ]
             );
         }
+    }
+
+    private function resolveRedirectToken(Request $request): ?string
+    {
+        $data = $request->getParsedBody();
+        if (is_array($data) && isset($data['r']) && is_string($data['r'])) {
+            $token = trim($data['r']);
+            return $token === '' ? null : $token;
+        }
+
+        $queryParams = $request->getQueryParams();
+        if (isset($queryParams['r']) && is_string($queryParams['r'])) {
+            $token = trim($queryParams['r']);
+            return $token === '' ? null : $token;
+        }
+
+        return null;
     }
 }

@@ -11,6 +11,7 @@ use Maatify\AdminKernel\Application\Auth\TwoFactorVerificationService;
 use Maatify\AdminKernel\Context\AdminContext;
 use Maatify\AdminKernel\Context\RequestContext;
 use Maatify\AdminKernel\Domain\Enum\Scope;
+use Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
@@ -21,6 +22,7 @@ readonly class TwoFactorController
         private TwoFactorEnrollmentService $enrollmentService,
         private TwoFactorVerificationService $verificationService,
         private Twig $view,
+        private RedirectTokenProviderInterface $redirectTokenProvider,
     ) {
     }
 
@@ -93,13 +95,13 @@ readonly class TwoFactorController
 
         // ADDITIVE START
         $scope = $this->resolveRequestedScope($request);
-        $returnTo = $this->resolveReturnTo($request);
+$redirectToken = $this->resolveRedirectToken($request);
         // ADDITIVE END
 
         return $this->view->render($response, $template, [
             // ADDITIVE
             'scope' => $scope->value,
-            'return_to' => $returnTo,
+            'r' => $redirectToken,
         ]);
     }
 
@@ -139,7 +141,7 @@ readonly class TwoFactorController
 
         // ADDITIVE START
         $requestedScope = $this->resolveRequestedScope($request);
-        $returnTo = $this->resolveReturnTo($request);
+        $redirectToken = $this->resolveRedirectToken($request);
         // ADDITIVE END
 
         $result = $this->verificationService->verifyTotp(
@@ -154,8 +156,11 @@ readonly class TwoFactorController
 
         if ($result->success) {
             // ADDITIVE START
-            if ($returnTo !== null && $returnTo !== '') {
-                return $response->withHeader('Location', $returnTo)->withStatus(302);
+            if ($redirectToken !== null) {
+                $parsed = $this->redirectTokenProvider->verifyAndParse($redirectToken);
+                if ($parsed !== null) {
+                    return $response->withHeader('Location', $parsed->path)->withStatus(302);
+                }
             }
             // ADDITIVE END
 
@@ -164,6 +169,8 @@ readonly class TwoFactorController
 
         return $this->view->render($response, $template, [
             'error' => $result->errorReason ?? 'Invalid code',
+            'scope' => $requestedScope->value,
+            'r' => $redirectToken,
         ]);
     }
 
@@ -205,53 +212,20 @@ readonly class TwoFactorController
         return Scope::LOGIN;
     }
 
-    private function resolveReturnTo(Request $request): ?string
+    private function resolveRedirectToken(Request $request): ?string
     {
-        // Priority:
-        // 1) POST body
-        // 2) Query string
-
         $data = $request->getParsedBody();
-        if (is_array($data) && isset($data['return_to']) && is_string($data['return_to'])) {
-            return $this->normalizeReturnTo($data['return_to']);
+        if (is_array($data) && isset($data['r']) && is_string($data['r'])) {
+            $token = trim($data['r']);
+            return $token === '' ? null : $token;
         }
 
         $queryParams = $request->getQueryParams();
-        if (isset($queryParams['return_to']) && is_string($queryParams['return_to'])) {
-            return $this->normalizeReturnTo($queryParams['return_to']);
+        if (isset($queryParams['r']) && is_string($queryParams['r'])) {
+            $token = trim($queryParams['r']);
+            return $token === '' ? null : $token;
         }
 
         return null;
-    }
-
-    private function normalizeReturnTo(string $returnTo): ?string
-    {
-        $returnTo = trim($returnTo);
-        if ($returnTo === '') {
-            return null;
-        }
-
-        if (!str_starts_with($returnTo, '/')) {
-            return null;
-        }
-
-        if (str_starts_with($returnTo, '//')) {
-            return null;
-        }
-
-        if (str_contains($returnTo, "\r") || str_contains($returnTo, "\n")) {
-            return null;
-        }
-
-        $parts = parse_url($returnTo);
-        if ($parts === false) {
-            return null;
-        }
-
-        if (isset($parts['scheme']) || isset($parts['host'])) {
-            return null;
-        }
-
-        return $returnTo;
     }
 }

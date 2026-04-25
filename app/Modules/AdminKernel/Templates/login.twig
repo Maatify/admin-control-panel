@@ -8,6 +8,9 @@
         <p style="color: red;">{{ error }}</p>
     {% endif %}
     <form action="/login" method="post">
+        {% if r %}
+            <input type="hidden" name="r" value="{{ r }}">
+        {% endif %}
         <div>
             <label for="email">Email:</label>
             <input type="email" id="email" name="email" required>
