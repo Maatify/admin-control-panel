@@ -1,0 +1,268 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}Categories | {{ ui.appName }}{% endblock %}
+
+{% block content %}
+    {# ── Page Header ────────────────────────────────────────────────── #}
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">Categories Management</h2>
+        <nav>
+            <ol class="flex items-center gap-1.5">
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                       href="{{ ui.adminUrl }}dashboard">
+                        Home
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+                <li class="text-sm text-gray-800 dark:text-gray-200">Categories</li>
+            </ol>
+        </nav>
+    </div>
+
+    {# ============================================================
+       🔐 Capabilities Injection (UI Contract)
+       ============================================================ #}
+    <script>
+        window.categoriesCapabilities = {
+            can_create        : {{ capabilities.can_create        ?? false ? 'true' : 'false' }},
+            can_update        : {{ capabilities.can_update        ?? false ? 'true' : 'false' }},
+            can_update_sort   : {{ capabilities.can_update_sort   ?? false ? 'true' : 'false' }},
+            can_active        : {{ capabilities.can_active        ?? false ? 'true' : 'false' }},
+            can_upsert_images : {{ capabilities.can_upsert_images ?? false ? 'true' : 'false' }},
+            can_view_detail   : {{ capabilities.can_view_detail   ?? false ? 'true' : 'false' }},
+        };
+        window.categoriesLanguages = {{ languages|json_encode|raw }};
+        console.log('🔐 Categories Capabilities Injected:', window.categoriesCapabilities);
+    </script>
+
+    <div class="px-0 py-2">
+        <div class="container lg:max-w-[100%] mt-6">
+
+            {# ── Column Filters ──────────────────────────────────────────── #}
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+                <form id="categories-filter-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div>
+                            <label for="filter-id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category ID</label>
+                            <input type="number" id="filter-id"
+                                   class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400"
+                                   placeholder="e.g., 1, 2, 3..." min="1"/>
+                        </div>
+                        <div>
+                            <label for="filter-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name</label>
+                            <input type="text" id="filter-name"
+                                   class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400"
+                                   placeholder="Category name..."/>
+                        </div>
+                        <div>
+                            <label for="filter-status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
+                            <select id="filter-status"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                                <option value="">All Statuses</option>
+                                <option value="1">Active</option>
+                                <option value="0">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-3 pt-4">
+                        <button type="submit"
+                                class="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2">
+                            Search
+                        </button>
+                        <button type="button" id="categories-reset-filters"
+                                class="px-3 py-1 bg-gray-200 text-sm dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium flex items-center gap-2">
+                            Reset
+                        </button>
+                        {% if capabilities.can_create %}
+                            <button type="button" id="btn-create-category"
+                                    class="ml-auto px-3 py-1 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                </svg>
+                                Create Category
+                            </button>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+
+            {# ── Global Search ───────────────────────────────────────────── #}
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4">
+                <div class="flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <input type="text" id="categories-search"
+                           class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400"
+                           placeholder="Quick search categories..."/>
+                    <button type="button" id="categories-search-btn"
+                            class="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium">Search</button>
+                    <button type="button" id="categories-clear-search"
+                            class="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium">Clear</button>
+                </div>
+            </div>
+
+            {# ── Data Table ──────────────────────────────────────────────── #}
+            <div id="table-container" class="w-full"></div>
+        </div>
+    </div>
+
+    {# ── Create / Edit Modal ─────────────────────────────────────────── #}
+    <div id="category-modal" class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-50 flex items-center justify-center hidden overflow-y-auto py-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full mx-4 my-auto flex flex-col max-h-[90vh]">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center shrink-0">
+                <h3 id="category-modal-title" class="text-lg font-semibold text-gray-800 dark:text-gray-100">Category Details</h3>
+                <button type="button" class="close-modal text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <svg class="w-6 h-6 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 min-h-0">
+                <form id="category-form" class="space-y-4">
+                    <input type="hidden" id="category-id">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name <span class="text-red-500">*</span></label>
+                        <input type="text" id="category-name"
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                               placeholder="Category name" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Slug <span class="text-red-500">*</span></label>
+                        <input type="text" id="category-slug"
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                               placeholder="category-slug">
+                        <p class="text-xs text-gray-500 mt-1">URL-friendly identifier (e.g. electronics, mens-clothing).</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Parent Category</label>
+                        <select id="category-parent-id"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                            <option value="">— None (Top Level) —</option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Leave empty for a top-level category.</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Display Order</label>
+                        <input type="number" id="category-sort"
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                               min="0" value="0">
+                        <p class="text-xs text-gray-500 mt-1">0 = append to end.</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                        <textarea id="category-description" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                                  placeholder="Short description of this category (optional)..."></textarea>
+                        <p class="text-xs text-gray-500 mt-1">Translatable — set per language on the Translations page.</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
+                        <textarea id="category-notes" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                                  placeholder="Optional internal notes..."></textarea>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" id="category-active"
+                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked>
+                        <label for="category-active" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">Is Active</label>
+                    </div>
+
+                    {# ── Image (optional, shown when creating) ──────────────── #}
+                    <div id="category-image-section" class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-2">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Category Image <span class="text-xs font-normal text-gray-400">(optional)</span></h4>
+                            <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
+                                <input type="checkbox" id="category-include-image" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                Attach image
+                            </label>
+                        </div>
+                        <div id="category-image-fields" class="space-y-3 hidden">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Image Type</label>
+                                <select id="category-image-type"
+                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                                    <option value="image">Image (Default)</option>
+                                    <option value="mobile_image">Mobile Image</option>
+                                    <option value="api_image">API Image</option>
+                                    <option value="website_image">Website Image</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Language</label>
+                                <select id="category-image-language"
+                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                                    {% for lang in languages %}
+                                        <option value="{{ lang.id }}">{{ lang.name }} ({{ lang.code }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Path / URL</label>
+                                <input type="text" id="category-image-path"
+                                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                                       placeholder="/images/categories/...">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3 shrink-0">
+                <button type="button" class="close-modal px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">Cancel</button>
+                <button type="button" id="btn-save-category" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">Save</button>
+            </div>
+        </div>
+    </div>
+
+    {# ── Sort Modal ──────────────────────────────────────────────────── #}
+    <div id="sort-modal" class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-50 flex items-center justify-center hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Update Sort Order</h3>
+                <button type="button" class="close-modal text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <svg class="w-6 h-6 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6">
+                <input type="hidden" id="sort-category-id">
+                <input type="hidden" id="sort-parent-id">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New Display Order</label>
+                <input type="number" id="sort-new-value"
+                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                       min="1" required>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+                <button type="button" class="close-modal px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">Cancel</button>
+                <button type="button" id="btn-save-sort" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">Save</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {# Shared infrastructure #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/api_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/callback_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/Input_checker.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/data_table.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/select2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-page-bridge.js') }}"></script>
+
+    {# Categories v2 scripts (helpers → core → modals → actions) #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/categories/categories-helpers-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/categories/categories-with-components-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/categories/categories-modals-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/categories/categories-actions-v2.js') }}"></script>
+{% endblock %}
+
+
+
+
+
+

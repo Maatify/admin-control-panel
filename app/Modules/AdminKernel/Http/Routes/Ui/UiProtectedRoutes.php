@@ -6,6 +6,7 @@ namespace Maatify\AdminKernel\Http\Routes\Ui;
 
 use Maatify\AdminKernel\Http\Routes\Ui\Features\ActivityLogsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\AdminsUiRoutes;
+use Maatify\AdminKernel\Http\Routes\Ui\Features\CategoriesUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\AppSettingsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\ContentDocumentsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\CurrenciesUiRoutes;
@@ -57,6 +58,8 @@ final class UiProtectedRoutes
             LogoutUiRoutes::register($protectedGroup);
 
             CurrenciesUiRoutes::register($protectedGroup);
+
+            CategoriesUiRoutes::register($protectedGroup);
 
         })
             // NOTE [Slim Middleware Order]:

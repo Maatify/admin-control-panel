@@ -1,0 +1,415 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}{{ category.name }} | {{ ui.appName }}{% endblock %}
+
+{% block content %}
+    {# ── Capabilities ────────────────────────────────────────────────── #}
+    <script>
+        window.categoryDetailContext = {{ {
+            category_id:            category.id,
+            category_name:          category.name,
+            category_slug:          category.slug,
+            category_parent_id:     category.parent_id,
+            category_display_order: category.display_order ?? 0,
+            category_is_active:     category.is_active ? true : false,
+            category_description:   category.description,
+            category_notes:         category.notes,
+            languages:              languages
+        }|json_encode|raw }};
+        window.categoryDetailCapabilities = {{ {
+            can_view_sub_categories: capabilities.can_view_sub_categories ?? false,
+            can_view_settings:       capabilities.can_view_settings       ?? false,
+            can_upsert_settings:     capabilities.can_upsert_settings     ?? false,
+            can_delete_settings:     capabilities.can_delete_settings     ?? false,
+            can_view_images:         capabilities.can_view_images         ?? false,
+            can_upsert_images:       capabilities.can_upsert_images       ?? false,
+            can_delete_images:       capabilities.can_delete_images       ?? false,
+            can_view_translations:   capabilities.can_view_translations   ?? false,
+            can_upsert:              capabilities.can_upsert              ?? false,
+            can_delete:              capabilities.can_delete              ?? false,
+            can_update:              capabilities.can_update              ?? false,
+            can_active:              capabilities.can_active              ?? false,
+            can_update_sort:         capabilities.can_update_sort         ?? false
+        }|json_encode|raw }};
+        console.log('📦 Category Detail Context:', window.categoryDetailContext);
+        console.log('🔐 Capabilities:', window.categoryDetailCapabilities);
+    </script>
+
+    {# ── Header + Breadcrumb ─────────────────────────────────────────── #}
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">{{ category.name }}</h2>
+        <nav>
+            <ol class="flex items-center gap-1.5">
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                       href="{{ ui.adminUrl }}dashboard">Home
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+                {% if capabilities.can_view_categories %}
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                       href="{{ ui.adminUrl }}categories">Categories
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+                {% endif %}
+                <li class="text-sm text-gray-800 dark:text-gray-200">{{ category.name }}</li>
+            </ol>
+        </nav>
+    </div>
+
+    {# ── Category Info Card ────────────────────────────────────────────── #}
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-5 mb-6">
+        <div class="flex items-center justify-between mb-3 border-b dark:border-gray-700 pb-2">
+            <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Category Details</h3>
+            {% if capabilities.can_update ?? false %}
+                <button type="button" id="btn-edit-category-info"
+                        class="px-3 py-1 text-xs bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors font-medium flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                    Edit
+                </button>
+            {% endif %}
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">ID</p>
+                <code class="text-sm font-mono bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-2 py-1 rounded text-gray-800 dark:text-gray-200">
+                    {{ category.id }}
+                </code>
+            </div>
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Name</p>
+                <p id="category-info-name" class="text-sm text-gray-800 dark:text-gray-100">{{ category.name }}</p>
+            </div>
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Slug</p>
+                <code id="category-info-slug" class="text-sm font-mono bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-2 py-1 rounded text-gray-800 dark:text-gray-200">{{ category.slug }}</code>
+            </div>
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Parent</p>
+                <p id="category-info-parent" class="text-sm text-gray-800 dark:text-gray-100">
+                    {% if category.parent_id %}
+                        <a href="{{ ui.adminUrl }}categories/{{ category.parent_id }}" class="text-blue-600 dark:text-blue-400 hover:underline">ID: {{ category.parent_id }}</a>
+                    {% else %}
+                        <span class="text-gray-400 italic">Top Level</span>
+                    {% endif %}
+                </p>
+            </div>
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Display Order</p>
+                <p id="category-info-order" class="text-sm text-gray-800 dark:text-gray-100">{{ category.display_order ?? 0 }}</p>
+            </div>
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Status</p>
+                <span id="category-info-status"
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                      {% if category.is_active %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300{% else %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300{% endif %}">
+                    {{ category.is_active ? 'Active' : 'Inactive' }}
+                </span>
+            </div>
+            <div class="md:col-span-2 lg:col-span-4">
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Description</p>
+                {% if category.description %}
+                    <p id="category-info-description" class="text-sm text-gray-800 dark:text-gray-100">{{ category.description }}</p>
+                {% else %}
+                    <p id="category-info-description" class="text-sm italic text-gray-400 dark:text-gray-500">No description found</p>
+                {% endif %}
+            </div>
+            <div class="md:col-span-2 lg:col-span-4">
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Notes</p>
+                {% if category.notes %}
+                    <p id="category-info-notes" class="text-sm text-gray-800 dark:text-gray-100">{{ category.notes }}</p>
+                {% else %}
+                    <p id="category-info-notes" class="text-sm italic text-gray-400 dark:text-gray-500">No notes found</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {# ── Tabs ────────────────────────────────────────────────────────── #}
+    <div class="px-0 py-2">
+        <div class="container lg:max-w-[100%]">
+
+            {# Tab buttons #}
+            <div class="border-b border-gray-200 dark:border-gray-700 mb-6">
+                <nav class="flex gap-4" id="category-tabs">
+                    {% if capabilities.can_view_sub_categories %}
+                    <button type="button" data-tab="sub-categories"
+                            class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400 transition-colors">
+                        Sub-categories
+                    </button>
+                    {% endif %}
+                    {% if capabilities.can_view_images %}
+                    <button type="button" data-tab="images"
+                            class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+                        Images
+                    </button>
+                    {% endif %}
+                    {% if capabilities.can_view_translations %}
+                    <button type="button" data-tab="translations"
+                            class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                        </svg>
+                        Translations
+                    </button>
+                    {% endif %}
+                </nav>
+            </div>
+
+            {# ── Sub-categories Tab ──────────────────────────────────── #}
+            {% if capabilities.can_view_sub_categories %}
+            <div id="tab-sub-categories" class="tab-panel">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4">
+                    <div class="flex items-center gap-3">
+                        <input type="text" id="sub-categories-search"
+                               class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 transition-all dark:placeholder-gray-400"
+                               placeholder="Search sub-categories..."/>
+                        <button type="button" id="sub-categories-search-btn"
+                                class="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium">Search</button>
+                        <button type="button" id="sub-categories-clear-search"
+                                class="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium">Clear</button>
+                    </div>
+                </div>
+                <div id="sub-categories-table-container" class="w-full"></div>
+            </div>
+            {% endif %}
+
+            {# ── Images Tab ──────────────────────────────────────────── #}
+            {% if capabilities.can_view_images %}
+            <div id="tab-images" class="tab-panel hidden">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-medium text-gray-800 dark:text-gray-100">Category Images</h3>
+                        {% if capabilities.can_upsert_images %}
+                        <button type="button" id="btn-upsert-image"
+                                class="px-3 py-1 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Add / Update Image
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                <div id="images-table-container" class="w-full"></div>
+            </div>
+            {% endif %}
+
+            {# ── Translations Tab ────────────────────────────────────── #}
+            {% if capabilities.can_view_translations %}
+            <div id="tab-translations" class="tab-panel hidden">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-medium text-gray-800 dark:text-gray-100">Category Translations</h3>
+                        <div class="flex items-center gap-2">
+                            {% if capabilities.can_upsert ?? false %}
+                            <button type="button" id="btn-upsert-translation"
+                                    class="px-3 py-1 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition-colors font-medium flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                </svg>
+                                Add / Edit Translation
+                            </button>
+                            {% endif %}
+                            <a href="{{ ui.adminUrl }}categories/{{ category.id }}/translations"
+                               class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                </svg>
+                                Full Page
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div id="translations-inline-table-container" class="w-full"></div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {# ════════════════════════════════ Modals ════════════════════════════════ #}
+    <div id="image-modal" class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-50 flex items-center justify-center hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full mx-4">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h3 id="image-modal-title" class="text-lg font-semibold text-gray-800 dark:text-gray-100">Category Image</h3>
+                <button type="button" class="close-modal text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <svg class="w-6 h-6 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="image-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Image Type</label>
+                        <select id="image-type" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" required>
+                            <option value="image">Image (Default)</option>
+                            <option value="mobile_image">Mobile Image</option>
+                            <option value="api_image">API Image</option>
+                            <option value="website_image">Website Image</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Language</label>
+                        <select id="image-language" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" required>
+                            {% for lang in languages %}
+                                <option value="{{ lang.id }}">{{ lang.name }} ({{ lang.code }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Path / URL</label>
+                        <input type="text" id="image-path" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" placeholder="/images/categories/..." required>
+                    </div>
+                </form>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+                <button type="button" class="close-modal px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">Cancel</button>
+                <button type="button" id="btn-save-image" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">Save</button>
+            </div>
+        </div>
+    </div>
+    {# ── Edit Category Info Modal ───────────────────────────────────────── #}
+    {% if capabilities.can_update ?? false %}
+    <div id="edit-category-info-modal" class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-50 flex items-center justify-center hidden overflow-y-auto py-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full mx-4 my-auto flex flex-col max-h-[90vh]">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center shrink-0">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Edit Category</h3>
+                <button type="button" class="close-modal text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <svg class="w-6 h-6 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 min-h-0">
+                <form id="edit-category-info-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name <span class="text-red-500">*</span></label>
+                        <input type="text" id="edit-category-info-name"
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                               value="{{ category.name }}" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Slug <span class="text-red-500">*</span></label>
+                        <input type="text" id="edit-category-info-slug"
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                               value="{{ category.slug }}" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Parent Category</label>
+                        <select id="edit-category-info-parent"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                            <option value="">— None (Top Level) —</option>
+                        </select>
+                    </div>
+                    {% if capabilities.can_update_sort ?? false %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Display Order</label>
+                        <input type="number" id="edit-category-info-order"
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                               min="0" value="{{ category.display_order ?? 0 }}">
+                    </div>
+                    {% endif %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                        <textarea id="edit-category-info-description" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                                  placeholder="Short description of this category (optional)...">{{ category.description }}</textarea>
+                        <p class="text-xs text-gray-500 mt-1">Translatable — set per language on the Translations page.</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
+                        <textarea id="edit-category-info-notes" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                                  placeholder="Optional internal notes...">{{ category.notes }}</textarea>
+                    </div>
+                    {% if capabilities.can_active ?? false %}
+                    <div class="flex items-center">
+                        <input type="checkbox" id="edit-category-info-active"
+                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                               {{ category.is_active ? 'checked' : '' }}>
+                        <label for="edit-category-info-active" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">Is Active</label>
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3 shrink-0">
+                <button type="button" class="close-modal px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">Cancel</button>
+                <button type="button" id="btn-save-category-info" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">Save</button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# ── Translation Upsert Modal ──────────────────────────────────────── #}
+    {% if capabilities.can_upsert ?? false %}
+    <div id="translation-upsert-modal" class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-50 flex items-center justify-center hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full mx-4">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h3 id="translation-modal-title" class="text-lg font-semibold text-gray-800 dark:text-gray-100">Add / Edit Translation</h3>
+                <button type="button" class="close-modal text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <svg class="w-6 h-6 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="translation-upsert-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Language <span class="text-red-500">*</span></label>
+                        <select id="translation-language-id"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" required>
+                            {% for lang in languages %}
+                                <option value="{{ lang.id }}">
+                                    {{ lang.name }} ({{ lang.code }}){% if lang.is_default %} ★{% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Translated Name <span class="text-red-500">*</span></label>
+                        <input type="text" id="translation-name"
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                               placeholder="Translated category name..." required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Translated Description <span class="text-xs text-gray-400">(optional)</span></label>
+                        <textarea id="translation-description" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                                  placeholder="Translated description..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+                <button type="button" class="close-modal px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">Cancel</button>
+                <button type="button" id="btn-save-translation-inline" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">Save</button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/api_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/callback_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/Input_checker.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/data_table.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/select2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-page-bridge.js') }}"></script>
+
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/categories/category-detail-v2.js') }}"></script>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+

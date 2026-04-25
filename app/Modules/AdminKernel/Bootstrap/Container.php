@@ -2569,6 +2569,9 @@ class Container
         // Register Maatify\CurrenciesBindings modules
         \Maatify\Currency\Bootstrap\CurrenciesBindings::register($containerBuilder);
 
+        // Register Maatify\Category module
+        \Maatify\Category\Bootstrap\CategoriesBindings::register($containerBuilder);
+
         // Extension Hook: Allow host projects to override/extend bindings
         if ($builderHook !== null) {
             $builderHook($containerBuilder);
