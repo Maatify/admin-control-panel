@@ -11,6 +11,7 @@ use Maatify\AdminKernel\Http\Routes\Api\Features\AdminEmailApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\AdminsApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\AppSettingsApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\ContentDocumentsApiRoutes;
+use Maatify\AdminKernel\Http\Routes\Api\Features\CategoriesApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\CurrenciesApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\I18nApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\ImageProfilesApiRoutes;
@@ -53,6 +54,8 @@ final class ApiProtectedRoutes
 
             CurrenciesApiRoutes::register($group);
             WebsiteUiThemesApiRoutes::register($group);
+
+            CategoriesApiRoutes::register($group);
 
             $group->get('/notifications', [NotificationQueryController::class, 'index'])
                 ->setName('notifications.list');

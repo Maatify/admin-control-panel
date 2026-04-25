@@ -280,24 +280,55 @@
         },
 
         confirm(message, options = {}) {
-            const okText = options.okText || 'OK';
+            const okText     = options.okText     || 'Confirm';
             const cancelText = options.cancelText || 'Cancel';
+            const title      = options.title      || 'Confirm Action';
 
-            log('action:start', {
-                action: 'ui:confirm',
-                message,
-                okText,
-                cancelText
+            log('action:start', { action: 'ui:confirm', message, okText, cancelText });
+
+            return new Promise(function (resolve) {
+                // Build modal
+                const overlay = document.createElement('div');
+                overlay.className = 'fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 dark:bg-opacity-70';
+                overlay.innerHTML = `
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-sm w-full mx-4 border border-gray-200 dark:border-gray-700">
+                        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                            <h3 class="text-base font-semibold text-gray-800 dark:text-gray-100">${title}</h3>
+                        </div>
+                        <div class="px-6 py-4">
+                            <p class="text-sm text-gray-600 dark:text-gray-300">${message}</p>
+                        </div>
+                        <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+                            <button type="button" data-action="cancel"
+                                class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                                ${cancelText}
+                            </button>
+                            <button type="button" data-action="ok"
+                                class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors shadow-sm">
+                                ${okText}
+                            </button>
+                        </div>
+                    </div>`;
+
+                function cleanup(result) {
+                    if (overlay.parentElement) overlay.parentElement.removeChild(overlay);
+                    log('action:success', { action: 'ui:confirm', result });
+                    resolve(result);
+                }
+
+                overlay.querySelector('[data-action="ok"]').addEventListener('click', function () { cleanup(true); });
+                overlay.querySelector('[data-action="cancel"]').addEventListener('click', function () { cleanup(false); });
+                overlay.addEventListener('click', function (e) { if (e.target === overlay) cleanup(false); });
+                document.addEventListener('keydown', function onKey(e) {
+                    if (e.key === 'Escape') { document.removeEventListener('keydown', onKey); cleanup(false); }
+                    if (e.key === 'Enter')  { document.removeEventListener('keydown', onKey); cleanup(true); }
+                });
+
+                document.body.appendChild(overlay);
+                // Focus the cancel button for keyboard safety
+                const cancelBtn = overlay.querySelector('[data-action="cancel"]');
+                if (cancelBtn) cancelBtn.focus();
             });
-
-            const result = window.confirm(`${message}\n\n[${okText}] / [${cancelText}]`);
-
-            log('action:success', {
-                action: 'ui:confirm',
-                result
-            });
-
-            return Promise.resolve(result);
         },
 
         async runAction(config) {

@@ -97,6 +97,41 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         // Currencies
         'currencies.list.ui' => 'currencies.list',
         'currencies.list.api' => 'currencies.list',
+
+        // Categories — list
+        'categories.list.ui'  => 'categories.list',
+        'categories.list.api' => 'categories.list',
+
+        // Categories — detail page (UI)
+        'categories.detail.ui' => 'categories.list',
+
+        // Categories — mutations
+        'categories.create.api'      => 'categories.create',
+        'categories.update.api'      => 'categories.update',
+        'categories.set_active.api'  => 'categories.set_active',
+        'categories.update_sort.api' => 'categories.update_sort',
+        'categories.dropdown.api'    => 'categories.list',
+
+        // Sub-categories
+        'categories.sub_categories.list.api'     => 'categories.sub_categories.list',
+        'categories.sub_categories.dropdown.api' => 'categories.sub_categories.list',
+
+        // Category settings
+        'categories.settings.list.api'   => 'categories.settings.list',
+        'categories.settings.upsert.api' => 'categories.settings.upsert',
+        'categories.settings.delete.api' => 'categories.settings.delete',
+
+        // Category images
+        'categories.images.list.api'   => 'categories.images.list',
+        'categories.images.upsert.api' => 'categories.images.upsert',
+        'categories.images.delete.api' => 'categories.images.delete',
+
+        // Category translations
+        'categories.translations.list.ui'    => 'categories.translations.list',
+        'categories.translations.list.api'   => 'categories.translations.list',
+        'categories.translations.upsert.api' => 'categories.translations.upsert',
+        'categories.translations.delete.api' => 'categories.translations.delete',
+
         'currencies.create.api' => 'currencies.create',
         'currencies.update.api' => 'currencies.update',
         'currencies.set_active.api' => 'currencies.set_active',

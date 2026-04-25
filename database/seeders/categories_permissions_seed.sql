@@ -1,0 +1,16 @@
+INSERT IGNORE INTO permissions (name, display_name, description) VALUES
+  ('categories.list',                   'List Categories',               'View categories list'),
+  ('categories.create',                 'Create Category',               'Create a new category'),
+  ('categories.update',                 'Update Category',               'Edit a category'),
+  ('categories.set_active',             'Toggle Category Status',        'Activate or deactivate a category'),
+  ('categories.update_sort',            'Update Category Sort',          'Update category display order'),
+  ('categories.sub_categories.list',    'List Sub-categories',           'View sub-categories'),
+  ('categories.settings.list',          'List Category Settings',        'View category settings'),
+  ('categories.settings.upsert',        'Upsert Category Setting',       'Create or update a category setting'),
+  ('categories.settings.delete',        'Delete Category Setting',       'Delete a category setting'),
+  ('categories.images.list',            'List Category Images',          'View category images'),
+  ('categories.images.upsert',          'Upsert Category Image',         'Create or update a category image'),
+  ('categories.images.delete',          'Delete Category Image',         'Delete a category image'),
+  ('categories.translations.list',      'List Category Translations',    'View category translations'),
+  ('categories.translations.upsert',    'Upsert Category Translation',   'Create or update a category translation'),
+  ('categories.translations.delete',    'Delete Category Translation',   'Delete a category translation');
