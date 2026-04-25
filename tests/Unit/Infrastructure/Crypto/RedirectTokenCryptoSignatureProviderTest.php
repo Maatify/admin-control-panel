@@ -4,29 +4,41 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Infrastructure\Crypto;
 
+use DateTimeImmutable;
 use Maatify\AdminKernel\Infrastructure\Crypto\RedirectTokenCryptoSignatureProvider;
+use Maatify\Crypto\HKDF\HKDFContext;
 use Maatify\Crypto\HKDF\HKDFService;
+use Maatify\Crypto\KeyRotation\DTO\CryptoKeyDTO;
 use Maatify\Crypto\KeyRotation\KeyRotationService;
-use PHPUnit\Framework\MockObject\MockObject;
+use Maatify\Crypto\KeyRotation\KeyStatusEnum;
+use Maatify\Crypto\KeyRotation\Policy\StrictSingleActiveKeyPolicy;
+use Maatify\Crypto\KeyRotation\Providers\InMemoryKeyProvider;
 use PHPUnit\Framework\TestCase;
 
 final class RedirectTokenCryptoSignatureProviderTest extends TestCase
 {
-    private KeyRotationService&MockObject $keyRotation;
-    private HKDFService&MockObject $hkdf;
+    private KeyRotationService $keyRotation;
+    private HKDFService $hkdf;
     private RedirectTokenCryptoSignatureProvider $provider;
+    private string $rootKey;
 
     protected function setUp(): void
     {
-        $this->keyRotation = $this->createMock(KeyRotationService::class);
-        $this->hkdf = $this->createMock(HKDFService::class);
-
-        $this->keyRotation->method('exportForCrypto')->willReturn([
-            'active_key_id' => 'k1',
-            'keys' => ['k1' => 'root-key-1'],
+        $this->rootKey = random_bytes(32);
+        $provider = new InMemoryKeyProvider([
+            new CryptoKeyDTO(
+                id       : 'k1',
+                material : $this->rootKey,
+                status   : KeyStatusEnum::ACTIVE,
+                createdAt: new DateTimeImmutable()
+            ),
         ]);
 
-        $this->hkdf->method('deriveKey')->willReturn('derived-key-material');
+        $this->keyRotation = new KeyRotationService(
+            provider: $provider,
+            policy  : new StrictSingleActiveKeyPolicy()
+        );
+        $this->hkdf = new HKDFService();
 
         $this->provider = new RedirectTokenCryptoSignatureProvider($this->keyRotation, $this->hkdf);
     }
@@ -156,7 +168,13 @@ final class RedirectTokenCryptoSignatureProviderTest extends TestCase
 
     private function sign(string $payload): string
     {
-        return hash_hmac('sha256', $payload, 'derived-key-material', true);
+        $derivedKey = $this->hkdf->deriveKey(
+            $this->rootKey,
+            new HKDFContext('redirect:token:v1'),
+            32
+        );
+
+        return hash_hmac('sha256', $payload, $derivedKey, true);
     }
 
     private function b64UrlEncode(string $raw): string
