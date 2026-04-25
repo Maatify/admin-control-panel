@@ -10,6 +10,7 @@ use Maatify\AdminKernel\Domain\Service\SessionValidationService;
 use Maatify\AdminKernel\Domain\Service\RememberMeService;
 use Maatify\AdminKernel\Http\Cookie\CookieFactoryService;
 use Maatify\AdminKernel\Http\Middleware\SessionGuardMiddleware;
+use Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface;
 use PHPUnit\Framework\TestCase;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use Slim\Psr7\Response;
@@ -42,10 +43,13 @@ final class RememberCookieAfterStepUpTest extends TestCase
         $cookieFactory->method('createRememberMeCookie')
             ->willReturn('remember_me=new_selector:new_validator; Path=/; HttpOnly;');
 
+        $redirectTokenProvider = $this->createMock(RedirectTokenProviderInterface::class);
+
         $middleware = new SessionGuardMiddleware(
             $sessionValidation,
             $rememberService,
-            $cookieFactory
+            $cookieFactory,
+            $redirectTokenProvider
         );
 
         $request = (new ServerRequestFactory())

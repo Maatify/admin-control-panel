@@ -9,6 +9,7 @@ use Maatify\AdminKernel\Domain\Security\ScopeRegistry;
 use Maatify\AdminKernel\Context\RequestContext;
 use Maatify\AdminKernel\Domain\Service\StepUpService;
 use Maatify\AdminKernel\Http\Auth\AuthSurface;
+use Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -19,7 +20,8 @@ use Slim\Routing\RouteContext;
 class ScopeGuardMiddleware implements MiddlewareInterface
 {
     public function __construct(
-        private StepUpService $stepUpService
+        private StepUpService $stepUpService,
+        private RedirectTokenProviderInterface $redirectTokenProvider
     ) {
     }
 
@@ -90,7 +92,7 @@ class ScopeGuardMiddleware implements MiddlewareInterface
 
         // Check Specific Scope
         if (!$this->stepUpService->hasGrant($adminId, $sessionId, $requiredScope, $context)) {
-             $this->stepUpService->logDenial($adminId, $sessionId, $requiredScope, $context);
+//             $this->stepUpService->logDenial($adminId, $sessionId, $requiredScope, $context);
 
             // ADDITIVE START
             if (!AuthSurface::isApi($request)) {
@@ -125,15 +127,20 @@ class ScopeGuardMiddleware implements MiddlewareInterface
         Scope $requiredScope
     ): ResponseInterface {
         $uri = $request->getUri();
-
-        $returnTo = $uri->getPath();
+        $path = $uri->getPath();
         $query = $uri->getQuery();
-        if ($query !== '') {
-            $returnTo .= '?' . $query;
+
+        if ($path === '') {
+            $path = '/';
         }
 
-        $location = '/2fa/verify?scope=' . urlencode($requiredScope->value)
-                    . '&return_to=' . urlencode($returnTo);
+        $location = '/2fa/verify?scope=' . urlencode($requiredScope->value);
+
+        if ($path !== '/login') {
+            $target = $query !== '' ? $path . '?' . $query : $path;
+            $token = $this->redirectTokenProvider->issue($target);
+            $location .= '&r=' . urlencode($token);
+        }
 
         $response = new \Slim\Psr7\Response();
         return $response

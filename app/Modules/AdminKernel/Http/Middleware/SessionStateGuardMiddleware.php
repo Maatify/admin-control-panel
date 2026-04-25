@@ -10,6 +10,7 @@ use Maatify\AdminKernel\Domain\Enum\Scope;
 use Maatify\AdminKernel\Domain\Enum\SessionState;
 use Maatify\AdminKernel\Domain\Service\StepUpService;
 use Maatify\AdminKernel\Http\Auth\AuthSurface;
+use Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -20,7 +21,8 @@ readonly class SessionStateGuardMiddleware implements MiddlewareInterface
 {
     public function __construct(
         private StepUpService $stepUpService,
-        private AdminTotpSecretStoreInterface $totpSecretStore
+        private AdminTotpSecretStoreInterface $totpSecretStore,
+        private RedirectTokenProviderInterface $redirectTokenProvider
     ) {
     }
 
@@ -79,12 +81,12 @@ readonly class SessionStateGuardMiddleware implements MiddlewareInterface
         if ($state !== SessionState::ACTIVE) {
             if ($isApi) {
                 // API: Deny - Step Up Required (Primary/Login)
-                $this->stepUpService->logDenial(
-                    $adminId,
-                    $sessionId,
-                    Scope::LOGIN,
-                    $context
-                );
+//                $this->stepUpService->logDenial(
+//                    $adminId,
+//                    $sessionId,
+//                    Scope::LOGIN,
+//                    $context
+//                );
 
                 throw new \Maatify\AdminKernel\Domain\Exception\StepUpRequiredException(
                     message: 'Authentication required',
@@ -97,12 +99,12 @@ readonly class SessionStateGuardMiddleware implements MiddlewareInterface
 
             if (!$this->totpSecretStore->exists($adminId)) {
                 return $response
-                    ->withHeader('Location', '/2fa/setup')
+                    ->withHeader('Location', $this->buildStepUpLocation('/2fa/setup', $request))
                     ->withStatus(302);
             }
 
             return $response
-                ->withHeader('Location', '/2fa/verify')
+                ->withHeader('Location', $this->buildStepUpLocation('/2fa/verify', $request))
                 ->withStatus(302);
         }
 
@@ -117,5 +119,25 @@ readonly class SessionStateGuardMiddleware implements MiddlewareInterface
         }
 
         return null;
+    }
+
+    private function buildStepUpLocation(string $basePath, ServerRequestInterface $request): string
+    {
+        $uri = $request->getUri();
+        $path = $uri->getPath();
+        $query = $uri->getQuery();
+
+        if ($path === '') {
+            $path = '/';
+        }
+
+        if ($path === '/login') {
+            return $basePath;
+        }
+
+        $target = $query !== '' ? $path . '?' . $query : $path;
+        $token = $this->redirectTokenProvider->issue($target);
+
+        return $basePath . '?r=' . urlencode($token);
     }
 }

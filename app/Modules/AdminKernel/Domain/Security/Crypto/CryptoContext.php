@@ -79,6 +79,12 @@ final class CryptoContext
     public const ABUSE_PROTECTION_SIGNAL_V1 = 'abuse:protection:signal:v1';
 
 
+    /* ===============================
+     * AUTH REDIRECT TOKENS
+     * =============================== */
+
+    public const REDIRECT_TOKEN_V1 = 'redirect:token:v1';
+
     private function __construct()
     {
         // Static registry only

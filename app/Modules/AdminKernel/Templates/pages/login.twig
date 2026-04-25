@@ -43,6 +43,9 @@
 
 								<!-- OTP Inputs -->
 								<form method="post" action="/login" class="mb-6 w-full px-4">
+									{% if r %}
+										<input type="hidden" name="r" value="{{ r }}">
+									{% endif %}
 									{% if error %}
 										<div class="text-red-500 dark:text-red-400 text-sm mb-2 w-full  border border-red-500 dark:border-red-700 dark:bg-red-900/20 p-2 rounded-md bg-red-100/50 flex items-center gap-2">
 											<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 stroke-2 text-red-500 dark:text-red-400">
@@ -61,7 +64,6 @@
 										{# <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 absolute right-3 top-3 w-5 h-5 text-gray-500">
 																																	<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/>
 																																</svg> #}
-										</input>
 									</div>
 									<div class="flex flex-col gap-1 mt-5 mb-5">
 										<label class="form-label block mb-1 font-normal text-sm dark:text-gray-300" for="passwordInput">
