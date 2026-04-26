@@ -1,0 +1,2442 @@
+{
+    "protected_routes": [
+        {
+            "source": "UI",
+            "route_name": "2fa.setup",
+            "file": "TwoFactorUiRoutes.php",
+            "method": "GET",
+            "path": "\/2fa\/setup",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\Auth\\UiTwoFactorSetupController::index",
+            "permission_checked": "no",
+            "resolved": null
+        },
+        {
+            "source": "UI",
+            "route_name": "2fa.enable",
+            "file": "TwoFactorUiRoutes.php",
+            "method": "POST",
+            "path": "\/2fa\/setup",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\Auth\\UiTwoFactorSetupController::enable",
+            "permission_checked": "no",
+            "resolved": null
+        },
+        {
+            "source": "UI",
+            "route_name": "content_documents.types.query.ui",
+            "file": "ContentDocumentsUiRoutes.php",
+            "method": "GET",
+            "path": "\/content-document-types",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\ContentDocuments\\UiContentDocumentTypesController::index",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "content_documents.types.query"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "content_documents.versions.query.ui",
+            "file": "ContentDocumentsUiRoutes.php",
+            "method": "GET",
+            "path": "\/content-document-types\/{type_id:[0-9]+}\/documents",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\ContentDocuments\\UiContentDocumentVersionsController::index",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "content_documents.versions.query"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "content_documents.translations.query.ui",
+            "file": "ContentDocumentsUiRoutes.php",
+            "method": "GET",
+            "path": "\/content-document-types\/{type_id:[0-9]+}\/documents\/{document_id:[0-9]+}\/translations",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\ContentDocuments\\UiContentDocumentTranslationsController::index",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "content_documents.translations.query"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "content_documents.translations.details",
+            "file": "ContentDocumentsUiRoutes.php",
+            "method": "GET",
+            "path": "\/content-document-types\/{type_id:[0-9]+}\/documents\/{document_id:[0-9]+}\/translations\/{language_id:[0-9]+}",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\ContentDocuments\\UiContentDocumentTranslationsUpdateController::index",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "content_documents.translations.details"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "admins.list.ui",
+            "file": "AdminsUiRoutes.php",
+            "method": "GET",
+            "path": "\/admins",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\Admin\\UiAdminsController::index",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admins.list"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "admin.create.ui",
+            "file": "AdminsUiRoutes.php",
+            "method": "GET",
+            "path": "\/admins\/create",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\Admin\\UiAdminCreateController::index",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admin.create"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "admins.profile.view",
+            "file": "AdminsUiRoutes.php",
+            "method": "GET",
+            "path": "\/admins\/{id:[0-9]+}\/profile",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\Admin\\UiAdminsController::profile",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admins.profile.view"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "admins.profile.edit.view",
+            "file": "AdminsUiRoutes.php",
+            "method": "GET",
+            "path": "\/admins\/{id:[0-9]+}\/profile\/edit",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\Admin\\UiAdminsController::editProfile",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admins.profile.edit.view"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "admins.profile.edit",
+            "file": "AdminsUiRoutes.php",
+            "method": "POST",
+            "path": "\/admins\/{id:[0-9]+}\/profile\/edit",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\Admin\\UiAdminsController::updateProfile",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admins.profile.edit"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "admin.email.list.ui",
+            "file": "AdminsUiRoutes.php",
+            "method": "GET",
+            "path": "\/admins\/{id:[0-9]+}\/emails",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\Admin\\UiAdminsController::emails",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admin.email.list"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "admins.session.list",
+            "file": "AdminsUiRoutes.php",
+            "method": "GET",
+            "path": "\/admins\/{id:[0-9]+}\/sessions",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\Admin\\UiAdminsController::sessions",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admins.session.list"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "admins.permissions",
+            "file": "AdminsUiRoutes.php",
+            "method": "GET",
+            "path": "\/admins\/{id:[0-9]+}\/permissions",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\Admin\\UiAdminsController::permissions",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admins.permissions"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "i18n.scopes.list.ui",
+            "file": "I18nUiRoutes.php",
+            "method": "GET",
+            "path": "\/i18n\/scopes",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\I18n\\ScopesListUiController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.scopes.list"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "i18n.scopes.details.ui",
+            "file": "I18nUiRoutes.php",
+            "method": "GET",
+            "path": "\/i18n\/scopes\/{scope_id:[0-9]+}",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\I18n\\ScopeDetailsController::index",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.scopes.details"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "i18n.scopes.keys.ui",
+            "file": "I18nUiRoutes.php",
+            "method": "GET",
+            "path": "\/i18n\/scopes\/{scope_id:[0-9]+}\/keys",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\I18n\\ScopeKeysController::index",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.scopes.keys"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "i18n.scopes.domains.keys.ui",
+            "file": "I18nUiRoutes.php",
+            "method": "GET",
+            "path": "\/i18n\/scopes\/{scope_id:[0-9]+}\/domains\/{domain_id:[0-9]+}\/keys",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\I18n\\ScopeDomainKeysSummaryController::index",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.scopes.domains.keys"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "i18n.scopes.domains.translations.ui",
+            "file": "I18nUiRoutes.php",
+            "method": "GET",
+            "path": "\/i18n\/scopes\/{scope_id:[0-9]+}\/domains\/{domain_id:[0-9]+}\/translations",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\I18n\\ScopeDomainTranslationsUiController::index",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.scopes.domains.translations"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "i18n.scopes.coverage.domain.ui",
+            "file": "I18nUiRoutes.php",
+            "method": "GET",
+            "path": "\/i18n\/scopes\/{scope_id:[0-9]+}\/coverage\/languages\/{language_id:[0-9]+}",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\I18n\\I18nScopeLanguageCoverageUiController",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.scopes.coverage.domain"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "i18n.domains.list.ui",
+            "file": "I18nUiRoutes.php",
+            "method": "GET",
+            "path": "\/i18n\/domains",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\I18n\\DomainsListUiController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.domains.list"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "permission.details.ui",
+            "file": "PermissionsUiRoutes.php",
+            "method": "GET",
+            "path": "\/permissions\/{permission_id:[0-9]+}",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\Permissions\\UiAPermissionDetailsController::index",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "permission.details"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "permissions.query.ui",
+            "file": "PermissionsUiRoutes.php",
+            "method": "GET",
+            "path": "\/permissions",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\Permissions\\UiPermissionsController::index",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "permissions.query"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "roles.query.ui",
+            "file": "RolesUiRoutes.php",
+            "method": "GET",
+            "path": "\/roles",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\Roles\\UiRolesController::index",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "roles.query"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "roles.view.ui",
+            "file": "RolesUiRoutes.php",
+            "method": "GET",
+            "path": "\/roles\/{id:[0-9]+}",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\Roles\\UiRoleDetailsController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "roles.view"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "languages.list.ui",
+            "file": "LanguagesUiRoutes.php",
+            "method": "GET",
+            "path": "\/languages",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\LanguagesListController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "languages.list"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "languages.translations.list.ui",
+            "file": "LanguagesUiRoutes.php",
+            "method": "GET",
+            "path": "\/languages\/{language_id:[0-9]+}\/translations",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\I18n\\LanguageTranslationsListUiController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.translations.list"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "app_settings.list.ui",
+            "file": "AppSettingsUiRoutes.php",
+            "method": "GET",
+            "path": "\/app-settings",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\AppSettings\\AppSettingsListUiController::__invoke",
+            "permission_checked": "no",
+            "resolved": null
+        },
+        {
+            "source": "UI",
+            "route_name": "sessions.list.ui",
+            "file": "SessionsUiRoutes.php",
+            "method": "GET",
+            "path": "\/sessions",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\SessionListController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "sessions.list"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "activity_logs.view",
+            "file": "ActivityLogsUiRoutes.php",
+            "method": "GET",
+            "path": "\/activity-logs",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\ActivityLogListController::index",
+            "permission_checked": "no",
+            "resolved": null
+        },
+        {
+            "source": "UI",
+            "route_name": "telemetry.list",
+            "file": "TelemetryUiRoutes.php",
+            "method": "GET",
+            "path": "\/telemetry",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\TelemetryListController::index",
+            "permission_checked": "no",
+            "resolved": null
+        },
+        {
+            "source": "UI",
+            "route_name": "auth.logout",
+            "file": "LogoutUiRoutes.php",
+            "method": "POST",
+            "path": "\/logout",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Web\\LogoutController::logout",
+            "permission_checked": "no",
+            "resolved": null
+        },
+        {
+            "source": "UI",
+            "route_name": "auth.logout.web",
+            "file": "LogoutUiRoutes.php",
+            "method": "GET",
+            "path": "\/logout",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Web\\LogoutController::logout",
+            "permission_checked": "no",
+            "resolved": null
+        },
+        {
+            "source": "UI",
+            "route_name": "currencies.list.ui",
+            "file": "CurrenciesUiRoutes.php",
+            "method": "GET",
+            "path": "\/currencies",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\Currency\\CurrenciesListUiController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "currencies.list"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "currencies.translations.list.ui",
+            "file": "CurrenciesUiRoutes.php",
+            "method": "GET",
+            "path": "\/currencies\/{currency_id:[0-9]+}\/translations",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\Currency\\CurrencyTranslationsListUiController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "currencies.translations.list"
+                ]
+            }
+        },
+        {
+            "source": "UI",
+            "route_name": "image_profiles.list.ui",
+            "file": "ImageProfilesUiRoutes.php",
+            "method": "GET",
+            "path": "\/image-profiles",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Ui\\ImageProfile\\ImageProfilesListUiController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "image_profiles.list"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "admin.email.verify",
+            "file": "AdminEmailApiRoutes.php",
+            "method": "POST",
+            "path": "\/admin-emails\/{emailId:[0-9]+}\/verify",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Admin\\AdminEmailVerificationController::verify",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admin.email.verify"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "admin.email.replace",
+            "file": "AdminEmailApiRoutes.php",
+            "method": "POST",
+            "path": "\/admin-emails\/{emailId:[0-9]+}\/replace",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Admin\\AdminEmailVerificationController::replace",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admin.email.replace"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "admin.email.fail",
+            "file": "AdminEmailApiRoutes.php",
+            "method": "POST",
+            "path": "\/admin-emails\/{emailId:[0-9]+}\/fail",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Admin\\AdminEmailVerificationController::fail",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admin.email.fail"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "admin.email.restart",
+            "file": "AdminEmailApiRoutes.php",
+            "method": "POST",
+            "path": "\/admin-emails\/{emailId}\/restart-verification",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Admin\\AdminEmailVerificationController::restart",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admin.email.restart"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "admins.list.api",
+            "file": "AdminsApiRoutes.php",
+            "method": "POST",
+            "path": "\/admins\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Admin\\AdminQueryController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admins.list"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "admin.create.api",
+            "file": "AdminsApiRoutes.php",
+            "method": "POST",
+            "path": "\/admins\/create",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Admin\\AdminController::create",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admin.create"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "admin.preferences.read",
+            "file": "AdminsApiRoutes.php",
+            "method": "GET",
+            "path": "\/admins\/{admin_id:[0-9]+}\/preferences",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\AdminNotificationPreferenceController::getPreferences",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admin.preferences.read"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "admin.preferences.write",
+            "file": "AdminsApiRoutes.php",
+            "method": "PUT",
+            "path": "\/admins\/{admin_id:[0-9]+}\/preferences",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\AdminNotificationPreferenceController::upsertPreference",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admin.preferences.write"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "admin.notifications.history",
+            "file": "AdminsApiRoutes.php",
+            "method": "GET",
+            "path": "\/admins\/{admin_id:[0-9]+}\/notifications",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\AdminNotificationHistoryController::index",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admin.notifications.history"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "admin.roles.query",
+            "file": "AdminsApiRoutes.php",
+            "method": "POST",
+            "path": "\/admins\/{admin_id:[0-9]+}\/roles\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Admin\\AdminRolesQueryController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admin.roles.query"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "admin.permissions.effective",
+            "file": "AdminsApiRoutes.php",
+            "method": "POST",
+            "path": "\/admins\/{admin_id:[0-9]+}\/permissions\/effective",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Admin\\EffectivePermissionsQueryController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admin.permissions.effective"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "admin.permissions.direct.query",
+            "file": "AdminsApiRoutes.php",
+            "method": "POST",
+            "path": "\/admins\/{admin_id:[0-9]+}\/permissions\/direct\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Admin\\DirectPermissionsQueryController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admin.permissions.direct.query"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "admin.permissions.direct.assign",
+            "file": "AdminsApiRoutes.php",
+            "method": "POST",
+            "path": "\/admins\/{admin_id:[0-9]+}\/permissions\/direct\/assign",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Admin\\AssignDirectPermissionController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admin.permissions.direct.assign"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "admin.permissions.direct.revoke",
+            "file": "AdminsApiRoutes.php",
+            "method": "POST",
+            "path": "\/admins\/{admin_id:[0-9]+}\/permissions\/direct\/revoke",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Admin\\RevokeDirectPermissionController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admin.permissions.direct.revoke"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "admin.permissions.direct.assignable.query",
+            "file": "AdminsApiRoutes.php",
+            "method": "POST",
+            "path": "\/admins\/{admin_id:[0-9]+}\/permissions\/direct\/assignable\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Admin\\DirectPermissionsAssignableQueryController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admin.permissions.direct.assignable.query"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "admin.email.list.api",
+            "file": "AdminsApiRoutes.php",
+            "method": "GET",
+            "path": "\/admins\/{id:[0-9]+}\/emails",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Admin\\AdminController::getEmails",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admin.email.list"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "admin.email.add",
+            "file": "AdminsApiRoutes.php",
+            "method": "POST",
+            "path": "\/admins\/{id:[0-9]+}\/emails",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Admin\\AdminController::addEmail",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admin.email.add"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "sessions.list.api",
+            "file": "SessionsApiRoutes.php",
+            "method": "POST",
+            "path": "\/sessions\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Sessions\\SessionQueryController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "sessions.list"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "sessions.revoke.id",
+            "file": "SessionsApiRoutes.php",
+            "method": "DELETE",
+            "path": "\/sessions\/{session_id}",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Sessions\\SessionRevokeController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "sessions.revoke"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "sessions.revoke.bulk",
+            "file": "SessionsApiRoutes.php",
+            "method": "POST",
+            "path": "\/sessions\/revoke-bulk",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Sessions\\SessionBulkRevokeController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "sessions.revoke"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "content_documents.types.dropdown.api",
+            "file": "ContentDocumentsApiRoutes.php",
+            "method": "POST",
+            "path": "\/content-document-types\/dropdown",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\ContentDocuments\\ContentDocumentsKeysDropdownController",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "anyOf",
+                "permissions": [
+                    "content_documents.types.dropdown",
+                    "content_documents.types.query"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "content_documents.types.query.api",
+            "file": "ContentDocumentsApiRoutes.php",
+            "method": "POST",
+            "path": "\/content-document-types\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\ContentDocuments\\ContentDocumentTypesQueryController",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "content_documents.types.query"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "content_documents.types.create.api",
+            "file": "ContentDocumentsApiRoutes.php",
+            "method": "POST",
+            "path": "\/content-document-types\/create",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\ContentDocuments\\ContentDocumentTypesCreateController",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "content_documents.types.create"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "content_documents.types.update.api",
+            "file": "ContentDocumentsApiRoutes.php",
+            "method": "POST",
+            "path": "\/content-document-types\/{type_id:[0-9]+}\/update",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\ContentDocuments\\ContentDocumentTypesUpdateController",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "content_documents.types.update"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "content_documents.versions.query.api",
+            "file": "ContentDocumentsApiRoutes.php",
+            "method": "POST",
+            "path": "\/content-document-types\/{type_id:[0-9]+}\/documents\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\ContentDocuments\\ContentDocumentVersionsQueryController",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "content_documents.versions.query"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "content_documents.versions.create.api",
+            "file": "ContentDocumentsApiRoutes.php",
+            "method": "POST",
+            "path": "\/content-document-types\/{type_id:[0-9]+}\/documents\/create",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\ContentDocuments\\ContentDocumentVersionsCreateController",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "content_documents.versions.create"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "content_documents.versions.activate.api",
+            "file": "ContentDocumentsApiRoutes.php",
+            "method": "POST",
+            "path": "\/content-document-types\/{type_id:[0-9]+}\/documents\/{document_id:[0-9]+}\/activate",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\ContentDocuments\\ContentDocumentVersionsActivateController",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "content_documents.versions.activate"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "content_documents.versions.deactivate.api",
+            "file": "ContentDocumentsApiRoutes.php",
+            "method": "POST",
+            "path": "\/content-document-types\/{type_id:[0-9]+}\/documents\/{document_id:[0-9]+}\/deactivate",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\ContentDocuments\\ContentDocumentVersionsDeactivateController",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "content_documents.versions.deactivate"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "content_documents.versions.publish.api",
+            "file": "ContentDocumentsApiRoutes.php",
+            "method": "POST",
+            "path": "\/content-document-types\/{type_id:[0-9]+}\/documents\/{document_id:[0-9]+}\/publish",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\ContentDocuments\\ContentDocumentVersionsPublishController",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "content_documents.versions.publish"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "content_documents.versions.archive.api",
+            "file": "ContentDocumentsApiRoutes.php",
+            "method": "POST",
+            "path": "\/content-document-types\/{type_id:[0-9]+}\/documents\/{document_id:[0-9]+}\/archive",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\ContentDocuments\\ContentDocumentVersionsArchiveController",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "content_documents.versions.archive"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "content_documents.translations.query.api",
+            "file": "ContentDocumentsApiRoutes.php",
+            "method": "POST",
+            "path": "\/content-document-types\/{type_id:[0-9]+}\/documents\/{document_id:[0-9]+}\/translations\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\ContentDocuments\\ContentDocumentTranslationsQueryController",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "content_documents.translations.query"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "content_documents.translations.upsert.api",
+            "file": "ContentDocumentsApiRoutes.php",
+            "method": "POST",
+            "path": "\/content-document-types\/{type_id:[0-9]+}\/documents\/{document_id:[0-9]+}\/translations\/{language_id:[0-9]+}",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\ContentDocuments\\ContentDocumentTranslationsUpsertController",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "content_documents.translations.upsert"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.scopes.dropdown.api",
+            "file": "I18nApiRoutes.php",
+            "method": "POST",
+            "path": "\/i18n\/scopes\/dropdown",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Scope\\I18nScopesDropdownController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.scopes.dropdown"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.scopes.list.api",
+            "file": "I18nApiRoutes.php",
+            "method": "POST",
+            "path": "\/i18n\/scopes\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Scope\\I18nScopesQueryController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.scopes.list"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.scopes.create.api",
+            "file": "I18nApiRoutes.php",
+            "method": "POST",
+            "path": "\/i18n\/scopes\/create",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Scope\\I18nScopeCreateController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.scopes.create"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.scopes.change_code.api",
+            "file": "I18nApiRoutes.php",
+            "method": "POST",
+            "path": "\/i18n\/scopes\/change-code",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Scope\\I18nScopeChangeCodeController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.scopes.change_code"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.scopes.set_active.api",
+            "file": "I18nApiRoutes.php",
+            "method": "POST",
+            "path": "\/i18n\/scopes\/set-active",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Scope\\I18nScopeSetActiveController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.scopes.set_active"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.scopes.update_sort.api",
+            "file": "I18nApiRoutes.php",
+            "method": "POST",
+            "path": "\/i18n\/scopes\/update-sort",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Scope\\I18nScopeUpdateSortController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.scopes.update_sort"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.scopes.update_metadata.api",
+            "file": "I18nApiRoutes.php",
+            "method": "POST",
+            "path": "\/i18n\/scopes\/update-metadata",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Scope\\I18nScopeUpdateMetadataController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.scopes.update_metadata"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.scopes.domains.query.api",
+            "file": "I18nApiRoutes.php",
+            "method": "POST",
+            "path": "\/i18n\/scopes\/{scope_id:[0-9]+}\/domains\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\ScopeDomains\\I18nScopeDomainsQueryController",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.scopes.details"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.scopes.domains.assign.api",
+            "file": "I18nApiRoutes.php",
+            "method": "POST",
+            "path": "\/i18n\/scopes\/{scope_id:[0-9]+}\/domains\/assign",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\ScopeDomains\\I18nScopeDomainAssignController",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.scopes.domains.assign"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.scopes.domains.unassign.api",
+            "file": "I18nApiRoutes.php",
+            "method": "POST",
+            "path": "\/i18n\/scopes\/{scope_id:[0-9]+}\/domains\/unassign",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\ScopeDomains\\I18nScopeDomainUnassignController",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.scopes.domains.unassign"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.scopes.domains.dropdown.api",
+            "file": "I18nApiRoutes.php",
+            "method": "GET",
+            "path": "\/i18n\/scopes\/{scope_id:[0-9]+}\/domains\/dropdown",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\ScopeDomains\\I18nScopeDomainsDropdownController",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "anyOf",
+                "permissions": [
+                    "i18n.scopes.keys.create",
+                    "i18n.scopes.domains.dropdown"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.scopes.domains.keys.query.api",
+            "file": "I18nApiRoutes.php",
+            "method": "POST",
+            "path": "\/i18n\/scopes\/{scope_id:[0-9]+}\/domains\/{domain_id:[0-9]+}\/keys\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\ScopeDomains\\I18nScopeDomainKeysSummaryQueryController",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.scopes.domains.keys"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.scopes.domains.translations.query.api",
+            "file": "I18nApiRoutes.php",
+            "method": "POST",
+            "path": "\/i18n\/scopes\/{scope_id:[0-9]+}\/domains\/{domain_id:[0-9]+}\/translations\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\ScopeDomains\\ScopeDomainTranslationsQueryController",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.scopes.domains.translations"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.scopes.coverage.language.api",
+            "file": "I18nApiRoutes.php",
+            "method": "GET",
+            "path": "\/i18n\/scopes\/{scope_id:[0-9]+}\/coverage",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Coverage\\I18nScopeCoverageByLanguageController",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.scopes.details"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.scopes.coverage.domain.api",
+            "file": "I18nApiRoutes.php",
+            "method": "GET",
+            "path": "\/i18n\/scopes\/{scope_id:[0-9]+}\/coverage\/languages\/{language_id:[0-9]+}",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Coverage\\I18nScopeCoverageByDomainController",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.scopes.coverage.domain"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.scopes.keys.query.api",
+            "file": "I18nApiRoutes.php",
+            "method": "POST",
+            "path": "\/i18n\/scopes\/{scope_id:[0-9]+}\/keys\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Keys\\I18nScopeKeysQueryController",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.scopes.keys"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.scopes.keys.update_name.api",
+            "file": "I18nApiRoutes.php",
+            "method": "POST",
+            "path": "\/i18n\/scopes\/{scope_id:[0-9]+}\/keys\/update-name",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Keys\\I18nScopeKeysUpdateNameController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.scopes.keys.update_name"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.scopes.keys.create.api",
+            "file": "I18nApiRoutes.php",
+            "method": "POST",
+            "path": "\/i18n\/scopes\/{scope_id:[0-9]+}\/keys\/create",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Keys\\I18nScopeKeysCreateController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.scopes.keys.create"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.scopes.keys.update_metadata.api",
+            "file": "I18nApiRoutes.php",
+            "method": "POST",
+            "path": "\/i18n\/scopes\/{scope_id:[0-9]+}\/keys\/update_metadata",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Keys\\I18nScopeKeysUpdateDescriptionController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.scopes.keys.update_metadata"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.domains.list.api",
+            "file": "I18nApiRoutes.php",
+            "method": "POST",
+            "path": "\/i18n\/domains\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Domains\\I18nDomainsQueryController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.domains.list"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.domains.create.api",
+            "file": "I18nApiRoutes.php",
+            "method": "POST",
+            "path": "\/i18n\/domains\/create",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Domains\\I18nDomainCreateController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.domains.create"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.domains.change_code.api",
+            "file": "I18nApiRoutes.php",
+            "method": "POST",
+            "path": "\/i18n\/domains\/change-code",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Domains\\I18nDomainChangeCodeController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.domains.change_code"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.domains.set_active.api",
+            "file": "I18nApiRoutes.php",
+            "method": "POST",
+            "path": "\/i18n\/domains\/set-active",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Domains\\I18nDomainSetActiveController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.domains.set_active"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.domains.update_sort.api",
+            "file": "I18nApiRoutes.php",
+            "method": "POST",
+            "path": "\/i18n\/domains\/update-sort",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Domains\\I18nScopeDomainSortController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.domains.update_sort"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.domains.update_metadata.api",
+            "file": "I18nApiRoutes.php",
+            "method": "POST",
+            "path": "\/i18n\/domains\/update-metadata",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Domains\\I18nDomainUpdateMetadataController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "i18n.domains.update_metadata"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "image_profiles.dropdown.api",
+            "file": "ImageProfilesApiRoutes.php",
+            "method": "POST",
+            "path": "\/image-profiles\/dropdown",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\ImageProfile\\ImageProfilesDropdownController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "image_profiles.dropdown"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "image_profiles.list.api",
+            "file": "ImageProfilesApiRoutes.php",
+            "method": "POST",
+            "path": "\/image-profiles\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\ImageProfile\\ImageProfilesQueryController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "image_profiles.list"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "image_profiles.details.api",
+            "file": "ImageProfilesApiRoutes.php",
+            "method": "POST",
+            "path": "\/image-profiles\/details",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\ImageProfile\\ImageProfilesDetailsController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "image_profiles.details"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "image_profiles.create.api",
+            "file": "ImageProfilesApiRoutes.php",
+            "method": "POST",
+            "path": "\/image-profiles\/create",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\ImageProfile\\ImageProfilesCreateController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "image_profiles.create"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "image_profiles.update.api",
+            "file": "ImageProfilesApiRoutes.php",
+            "method": "POST",
+            "path": "\/image-profiles\/update",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\ImageProfile\\ImageProfilesUpdateController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "image_profiles.update"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "image_profiles.set_active.api",
+            "file": "ImageProfilesApiRoutes.php",
+            "method": "POST",
+            "path": "\/image-profiles\/set-active",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\ImageProfile\\ImageProfilesSetActiveController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "image_profiles.set_active"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "app_settings.list.api",
+            "file": "AppSettingsApiRoutes.php",
+            "method": "POST",
+            "path": "\/app-settings\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\AppSettings\\AppSettingsQueryController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "app_settings.list"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "app_settings.create.api",
+            "file": "AppSettingsApiRoutes.php",
+            "method": "POST",
+            "path": "\/app-settings\/create",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\AppSettings\\AppSettingsCreateController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "app_settings.create"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "app_settings.metadata.api",
+            "file": "AppSettingsApiRoutes.php",
+            "method": "POST",
+            "path": "\/app-settings\/metadata",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\AppSettings\\AppSettingsMetadataController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "app_settings.create"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "app_settings.update.api",
+            "file": "AppSettingsApiRoutes.php",
+            "method": "POST",
+            "path": "\/app-settings\/update",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\AppSettings\\AppSettingsUpdateController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "app_settings.update"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "app_settings.set_active.api",
+            "file": "AppSettingsApiRoutes.php",
+            "method": "POST",
+            "path": "\/app-settings\/set-active",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\AppSettings\\AppSettingsSetActiveController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "app_settings.set_active"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "i18n.languages.dropdown.api",
+            "file": "LanguagesApiRoutes.php",
+            "method": "POST",
+            "path": "\/languages\/dropdown",
+            "controller": "Maatify\\LanguageCore\\Http\\Controllers\\Api\\LanguageDropdownController",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "anyOf",
+                "permissions": [
+                    "i18n.translations.upsert",
+                    "i18n.languages.dropdown"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "languages.list.api",
+            "file": "LanguagesApiRoutes.php",
+            "method": "POST",
+            "path": "\/languages\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Languages\\LanguagesQueryController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "languages.list"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "languages.create.api",
+            "file": "LanguagesApiRoutes.php",
+            "method": "POST",
+            "path": "\/languages\/create",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Languages\\LanguagesCreateController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "languages.create"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "languages.update.settings.api",
+            "file": "LanguagesApiRoutes.php",
+            "method": "POST",
+            "path": "\/languages\/update-settings",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Languages\\LanguagesUpdateSettingsController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "languages.update.settings"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "languages.set.active.api",
+            "file": "LanguagesApiRoutes.php",
+            "method": "POST",
+            "path": "\/languages\/set-active",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Languages\\LanguagesSetActiveController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "languages.set.active"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "languages.set.fallback.api",
+            "file": "LanguagesApiRoutes.php",
+            "method": "POST",
+            "path": "\/languages\/set-fallback",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Languages\\LanguagesSetFallbackController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "languages.set.fallback"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "languages.clear.fallback.api",
+            "file": "LanguagesApiRoutes.php",
+            "method": "POST",
+            "path": "\/languages\/clear-fallback",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Languages\\LanguagesClearFallbackController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "languages.set.fallback"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "languages.update.sort.api",
+            "file": "LanguagesApiRoutes.php",
+            "method": "POST",
+            "path": "\/languages\/update-sort",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Languages\\LanguagesUpdateSortOrderController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "languages.update.sort"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "languages.update.name.api",
+            "file": "LanguagesApiRoutes.php",
+            "method": "POST",
+            "path": "\/languages\/update-name",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Languages\\LanguagesUpdateNameController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "languages.update.name"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "languages.update.code.api",
+            "file": "LanguagesApiRoutes.php",
+            "method": "POST",
+            "path": "\/languages\/update-code",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\Languages\\LanguagesUpdateCodeController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "languages.update.code"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "languages.translations.list.api",
+            "file": "LanguagesApiRoutes.php",
+            "method": "POST",
+            "path": "\/languages\/{language_id:[0-9]+}\/translations\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\LanguageTranslationsQueryController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "languages.translations.list"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "languages.translations.upsert.api",
+            "file": "LanguagesApiRoutes.php",
+            "method": "POST",
+            "path": "\/languages\/{language_id:[0-9]+}\/translations\/upsert",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\LanguageTranslationUpsertController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "languages.translations.upsert"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "languages.translations.delete.api",
+            "file": "LanguagesApiRoutes.php",
+            "method": "POST",
+            "path": "\/languages\/{language_id:[0-9]+}\/translations\/delete",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\I18n\\LanguageTranslationDeleteController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "languages.translations.delete"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "permissions.query.api",
+            "file": "PermissionsApiRoutes.php",
+            "method": "POST",
+            "path": "\/permissions\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Permissions\\PermissionsController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "permissions.query"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "permissions.metadata.update",
+            "file": "PermissionsApiRoutes.php",
+            "method": "POST",
+            "path": "\/permissions\/{id:[0-9]+}\/metadata",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Permissions\\PermissionMetadataUpdateController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "permissions.metadata.update"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "permissions.roles.query",
+            "file": "PermissionsApiRoutes.php",
+            "method": "POST",
+            "path": "\/permissions\/{permission_id:[0-9]+}\/roles\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Permissions\\PermissionRolesQueryController",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "permissions.roles.query"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "permissions.admins.query",
+            "file": "PermissionsApiRoutes.php",
+            "method": "POST",
+            "path": "\/permissions\/{permission_id:[0-9]+}\/admins\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Permissions\\PermissionAdminsQueryController",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "permissions.admins.query"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "roles.query.api",
+            "file": "RolesApiRoutes.php",
+            "method": "POST",
+            "path": "\/roles\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Roles\\RolesControllerQuery::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "roles.query"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "roles.metadata.update",
+            "file": "RolesApiRoutes.php",
+            "method": "POST",
+            "path": "\/roles\/{id:[0-9]+}\/metadata",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Roles\\RoleMetadataUpdateController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "roles.metadata.update"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "roles.toggle",
+            "file": "RolesApiRoutes.php",
+            "method": "POST",
+            "path": "\/roles\/{id:[0-9]+}\/toggle",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Roles\\RoleToggleController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "roles.toggle"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "roles.rename",
+            "file": "RolesApiRoutes.php",
+            "method": "POST",
+            "path": "\/roles\/{id:[0-9]+}\/rename",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Roles\\RoleRenameController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "roles.rename"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "roles.create",
+            "file": "RolesApiRoutes.php",
+            "method": "POST",
+            "path": "\/roles\/create",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Roles\\RoleCreateController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "roles.create"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "roles.permissions.query",
+            "file": "RolesApiRoutes.php",
+            "method": "POST",
+            "path": "\/roles\/{id:[0-9]+}\/permissions\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Roles\\RolePermissionsQueryController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "roles.permissions.query"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "roles.permissions.assign",
+            "file": "RolesApiRoutes.php",
+            "method": "POST",
+            "path": "\/roles\/{id:[0-9]+}\/permissions\/assign",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Roles\\RolePermissionAssignController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "roles.permissions.assign"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "roles.permissions.unassign",
+            "file": "RolesApiRoutes.php",
+            "method": "POST",
+            "path": "\/roles\/{id:[0-9]+}\/permissions\/unassign",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Roles\\RolePermissionUnassignController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "roles.permissions.unassign"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "roles.admins.query",
+            "file": "RolesApiRoutes.php",
+            "method": "POST",
+            "path": "\/roles\/{id:[0-9]+}\/admins\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Roles\\RoleAdminsQueryController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "roles.admins.query"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "roles.admins.assign",
+            "file": "RolesApiRoutes.php",
+            "method": "POST",
+            "path": "\/roles\/{id:[0-9]+}\/admins\/assign",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Roles\\RoleAdminAssignController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "roles.admins.assign"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "roles.admins.unassign",
+            "file": "RolesApiRoutes.php",
+            "method": "POST",
+            "path": "\/roles\/{id}\/admins\/unassign",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Roles\\RoleAdminUnassignController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "roles.admins.unassign"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "currencies.dropdown.api",
+            "file": "CurrenciesApiRoutes.php",
+            "method": "POST",
+            "path": "\/currencies\/dropdown",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Currency\\CurrenciesDropdownController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "currencies.dropdown"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "currencies.list.api",
+            "file": "CurrenciesApiRoutes.php",
+            "method": "POST",
+            "path": "\/currencies\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Currency\\CurrenciesQueryController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "currencies.list"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "currencies.create.api",
+            "file": "CurrenciesApiRoutes.php",
+            "method": "POST",
+            "path": "\/currencies\/create",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Currency\\CurrenciesCreateController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "currencies.create"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "currencies.update.api",
+            "file": "CurrenciesApiRoutes.php",
+            "method": "POST",
+            "path": "\/currencies\/update",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Currency\\CurrenciesUpdateController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "currencies.update"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "currencies.set_active.api",
+            "file": "CurrenciesApiRoutes.php",
+            "method": "POST",
+            "path": "\/currencies\/set-active",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Currency\\CurrenciesSetActiveController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "currencies.set_active"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "currencies.update_sort.api",
+            "file": "CurrenciesApiRoutes.php",
+            "method": "POST",
+            "path": "\/currencies\/update-sort",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Currency\\CurrenciesUpdateSortOrderController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "currencies.update_sort"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "currencies.translations.list.api",
+            "file": "CurrenciesApiRoutes.php",
+            "method": "POST",
+            "path": "\/currencies\/{currency_id:[0-9]+}\/translations\/query",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Currency\\Translations\\CurrencyTranslationsQueryController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "currencies.translations.list"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "currencies.translations.upsert.api",
+            "file": "CurrenciesApiRoutes.php",
+            "method": "POST",
+            "path": "\/currencies\/{currency_id:[0-9]+}\/translations\/upsert",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Currency\\Translations\\CurrencyTranslationUpsertController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "currencies.translations.upsert"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "currencies.translations.delete.api",
+            "file": "CurrenciesApiRoutes.php",
+            "method": "POST",
+            "path": "\/currencies\/{currency_id:[0-9]+}\/translations\/delete",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\Api\\Currency\\Translations\\CurrencyTranslationDeleteController::__invoke",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "currencies.translations.delete"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "notifications.list",
+            "file": "ApiProtectedRoutes.php",
+            "method": "GET",
+            "path": "\/notifications",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\NotificationQueryController::index",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "notifications.list"
+                ]
+            }
+        },
+        {
+            "source": "API",
+            "route_name": "admin.notifications.read",
+            "file": "ApiProtectedRoutes.php",
+            "method": "POST",
+            "path": "\/admin\/notifications\/{id}\/read",
+            "controller": "Maatify\\AdminKernel\\Http\\Controllers\\AdminNotificationReadController::markAsRead",
+            "permission_checked": "yes",
+            "resolved": {
+                "type": "single",
+                "permissions": [
+                    "admin.notifications.read"
+                ]
+            }
+        }
+    ],
+    "used_and_present_in_seed": [
+        "admin.create",
+        "admin.email.add",
+        "admin.email.fail",
+        "admin.email.list",
+        "admin.email.replace",
+        "admin.email.restart",
+        "admin.email.verify",
+        "admin.notifications.history",
+        "admin.notifications.read",
+        "admin.permissions.direct.assign",
+        "admin.permissions.direct.assignable.query",
+        "admin.permissions.direct.query",
+        "admin.permissions.direct.revoke",
+        "admin.permissions.effective",
+        "admin.preferences.read",
+        "admin.preferences.write",
+        "admin.roles.query",
+        "admins.list",
+        "admins.permissions",
+        "admins.profile.edit",
+        "admins.profile.edit.view",
+        "admins.profile.view",
+        "admins.session.list",
+        "app_settings.create",
+        "app_settings.list",
+        "app_settings.set_active",
+        "app_settings.update",
+        "content_documents.translations.details",
+        "content_documents.translations.query",
+        "content_documents.translations.upsert",
+        "content_documents.types.create",
+        "content_documents.types.dropdown",
+        "content_documents.types.query",
+        "content_documents.types.update",
+        "content_documents.versions.activate",
+        "content_documents.versions.archive",
+        "content_documents.versions.create",
+        "content_documents.versions.deactivate",
+        "content_documents.versions.publish",
+        "content_documents.versions.query",
+        "currencies.create",
+        "currencies.dropdown",
+        "currencies.list",
+        "currencies.set_active",
+        "currencies.translations.delete",
+        "currencies.translations.list",
+        "currencies.translations.upsert",
+        "currencies.update",
+        "currencies.update_sort",
+        "i18n.domains.change_code",
+        "i18n.domains.create",
+        "i18n.domains.list",
+        "i18n.domains.set_active",
+        "i18n.domains.update_metadata",
+        "i18n.domains.update_sort",
+        "i18n.languages.dropdown",
+        "i18n.scopes.change_code",
+        "i18n.scopes.coverage.domain",
+        "i18n.scopes.create",
+        "i18n.scopes.details",
+        "i18n.scopes.domains.assign",
+        "i18n.scopes.domains.dropdown",
+        "i18n.scopes.domains.keys",
+        "i18n.scopes.domains.translations",
+        "i18n.scopes.domains.unassign",
+        "i18n.scopes.dropdown",
+        "i18n.scopes.keys",
+        "i18n.scopes.keys.create",
+        "i18n.scopes.keys.update_metadata",
+        "i18n.scopes.keys.update_name",
+        "i18n.scopes.list",
+        "i18n.scopes.set_active",
+        "i18n.scopes.update_metadata",
+        "i18n.scopes.update_sort",
+        "i18n.translations.list",
+        "i18n.translations.upsert",
+        "languages.create",
+        "languages.list",
+        "languages.set.active",
+        "languages.set.fallback",
+        "languages.translations.delete",
+        "languages.translations.list",
+        "languages.translations.upsert",
+        "languages.update.code",
+        "languages.update.name",
+        "languages.update.settings",
+        "languages.update.sort",
+        "notifications.list",
+        "permission.details",
+        "permissions.admins.query",
+        "permissions.metadata.update",
+        "permissions.query",
+        "permissions.roles.query",
+        "roles.admins.assign",
+        "roles.admins.query",
+        "roles.admins.unassign",
+        "roles.create",
+        "roles.metadata.update",
+        "roles.permissions.assign",
+        "roles.permissions.query",
+        "roles.permissions.unassign",
+        "roles.query",
+        "roles.rename",
+        "roles.toggle",
+        "roles.view",
+        "sessions.list",
+        "sessions.revoke"
+    ],
+    "used_but_missing_in_seed": [
+        "image_profiles.create",
+        "image_profiles.details",
+        "image_profiles.dropdown",
+        "image_profiles.list",
+        "image_profiles.set_active",
+        "image_profiles.update"
+    ],
+    "present_in_seed_but_not_canonical_route_derived": [
+        "2fa.enable",
+        "2fa.setup",
+        "activity_logs.view",
+        "auth.logout",
+        "auth.logout.web",
+        "content_documents.acceptance.query",
+        "i18n.domains.update",
+        "i18n.keys.list",
+        "i18n.scopes.update",
+        "roles.admins.view",
+        "roles.permissions.view",
+        "sessions.view_all",
+        "telemetry.list"
+    ],
+    "non_permission_checked_routes": [
+        "2fa.setup",
+        "2fa.enable",
+        "app_settings.list.ui",
+        "activity_logs.view",
+        "telemetry.list",
+        "auth.logout",
+        "auth.logout.web"
+    ],
+    "non_permission_checked_route_names_present_in_seed": [
+        "2fa.setup",
+        "2fa.enable",
+        "activity_logs.view",
+        "telemetry.list",
+        "auth.logout",
+        "auth.logout.web"
+    ],
+    "standalone_permissions": [
+        "i18n.domains.update",
+        "i18n.scopes.update",
+        "roles.admins.view",
+        "roles.permissions.view",
+        "sessions.view_all"
+    ],
+    "standalone_permissions_present_in_seed": [
+        "i18n.domains.update",
+        "i18n.scopes.update",
+        "roles.admins.view",
+        "roles.permissions.view",
+        "sessions.view_all"
+    ],
+    "suspected_legacy_permissions": [
+        "content_documents.acceptance.query",
+        "i18n.keys.list"
+    ],
+    "fallback_derived_permissions": [
+        "admin.email.add",
+        "admin.email.fail",
+        "admin.email.replace",
+        "admin.email.restart",
+        "admin.email.verify",
+        "admin.notifications.history",
+        "admin.notifications.read",
+        "admin.permissions.direct.assign",
+        "admin.permissions.direct.assignable.query",
+        "admin.permissions.direct.query",
+        "admin.permissions.direct.revoke",
+        "admin.permissions.effective",
+        "admin.preferences.read",
+        "admin.preferences.write",
+        "admin.roles.query",
+        "admins.permissions",
+        "admins.profile.edit.view",
+        "admins.profile.view",
+        "admins.session.list",
+        "content_documents.translations.details",
+        "notifications.list",
+        "permissions.admins.query",
+        "permissions.metadata.update",
+        "permissions.roles.query",
+        "roles.admins.assign",
+        "roles.admins.query",
+        "roles.admins.unassign",
+        "roles.create",
+        "roles.metadata.update",
+        "roles.permissions.assign",
+        "roles.permissions.query",
+        "roles.permissions.unassign",
+        "roles.rename",
+        "roles.toggle"
+    ],
+    "explicitly_mapped_permissions": [
+        "admin.create",
+        "admin.email.list",
+        "admins.list",
+        "admins.profile.edit",
+        "app_settings.create",
+        "app_settings.list",
+        "app_settings.set_active",
+        "app_settings.update",
+        "content_documents.translations.query",
+        "content_documents.translations.upsert",
+        "content_documents.types.create",
+        "content_documents.types.dropdown",
+        "content_documents.types.query",
+        "content_documents.types.update",
+        "content_documents.versions.activate",
+        "content_documents.versions.archive",
+        "content_documents.versions.create",
+        "content_documents.versions.deactivate",
+        "content_documents.versions.publish",
+        "content_documents.versions.query",
+        "currencies.create",
+        "currencies.dropdown",
+        "currencies.list",
+        "currencies.set_active",
+        "currencies.translations.delete",
+        "currencies.translations.list",
+        "currencies.translations.upsert",
+        "currencies.update",
+        "currencies.update_sort",
+        "i18n.domains.change_code",
+        "i18n.domains.create",
+        "i18n.domains.list",
+        "i18n.domains.set_active",
+        "i18n.domains.update_metadata",
+        "i18n.domains.update_sort",
+        "i18n.languages.dropdown",
+        "i18n.scopes.change_code",
+        "i18n.scopes.coverage.domain",
+        "i18n.scopes.create",
+        "i18n.scopes.details",
+        "i18n.scopes.domains.assign",
+        "i18n.scopes.domains.dropdown",
+        "i18n.scopes.domains.keys",
+        "i18n.scopes.domains.translations",
+        "i18n.scopes.domains.unassign",
+        "i18n.scopes.dropdown",
+        "i18n.scopes.keys",
+        "i18n.scopes.keys.create",
+        "i18n.scopes.keys.update_metadata",
+        "i18n.scopes.keys.update_name",
+        "i18n.scopes.list",
+        "i18n.scopes.set_active",
+        "i18n.scopes.update_metadata",
+        "i18n.scopes.update_sort",
+        "i18n.translations.list",
+        "i18n.translations.upsert",
+        "image_profiles.create",
+        "image_profiles.details",
+        "image_profiles.dropdown",
+        "image_profiles.list",
+        "image_profiles.set_active",
+        "image_profiles.update",
+        "languages.create",
+        "languages.list",
+        "languages.set.active",
+        "languages.set.fallback",
+        "languages.translations.delete",
+        "languages.translations.list",
+        "languages.translations.upsert",
+        "languages.update.code",
+        "languages.update.name",
+        "languages.update.settings",
+        "languages.update.sort",
+        "permission.details",
+        "permissions.query",
+        "roles.query",
+        "roles.view",
+        "sessions.list",
+        "sessions.revoke"
+    ],
+    "anyof_permissions": [
+        "content_documents.types.dropdown",
+        "content_documents.types.query",
+        "i18n.languages.dropdown",
+        "i18n.scopes.domains.dropdown",
+        "i18n.scopes.keys.create",
+        "i18n.translations.upsert"
+    ],
+    "allof_permissions": [],
+    "unresolved_items": [],
+    "ui_registered_subtrees": [
+        "ActivityLogsUiRoutes.php",
+        "AdminsUiRoutes.php",
+        "AppSettingsUiRoutes.php",
+        "ContentDocumentsUiRoutes.php",
+        "CurrenciesUiRoutes.php",
+        "DashboardUiRoutes.php",
+        "I18nUiRoutes.php",
+        "ImageProfilesUiRoutes.php",
+        "LanguagesUiRoutes.php",
+        "LogoutUiRoutes.php",
+        "PermissionsUiRoutes.php",
+        "RolesUiRoutes.php",
+        "SessionsUiRoutes.php",
+        "SettingsUiRoutes.php",
+        "TelemetryUiRoutes.php",
+        "TwoFactorUiRoutes.php"
+    ],
+    "api_registered_subtrees": [
+        "AdminEmailApiRoutes.php",
+        "AdminsApiRoutes.php",
+        "AppSettingsApiRoutes.php",
+        "ContentDocumentsApiRoutes.php",
+        "CurrenciesApiRoutes.php",
+        "I18nApiRoutes.php",
+        "ImageProfilesApiRoutes.php",
+        "LanguagesApiRoutes.php",
+        "PermissionsApiRoutes.php",
+        "RolesApiRoutes.php",
+        "SessionsApiRoutes.php"
+    ]
+}
