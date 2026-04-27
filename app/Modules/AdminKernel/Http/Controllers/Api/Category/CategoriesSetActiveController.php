@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Http\Controllers\Api\Category;
 
 use Maatify\AdminKernel\Domain\Category\Validation\CategorySetActiveSchema;
+use Maatify\AdminKernel\Domain\Exception\AdminKernelValidationException;
+use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
 use Maatify\Category\Command\UpdateCategoryStatusCommand;
+use Maatify\Category\Exception\CategoryNotFoundException;
+use Maatify\Category\Exception\CategoryPersistenceException;
 use Maatify\Category\Service\CategoryCommandService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -31,15 +35,22 @@ final readonly class CategoriesSetActiveController
         $isActive = $body['is_active'];
 
         if (!is_int($id) || !is_bool($isActive)) {
-            throw new \RuntimeException('Invalid validated payload.');
+            throw new AdminKernelValidationException(
+                sprintf('Field "id/is_active" has unexpected type %s.', get_debug_type($body))
+            );
         }
 
-        $this->commandService->updateStatus(new UpdateCategoryStatusCommand(
-            id:       $id,
-            isActive: $isActive,
-        ));
+        try {
+            $this->commandService->updateStatus(new UpdateCategoryStatusCommand(
+                id:       $id,
+                isActive: $isActive,
+            ));
+        } catch (CategoryNotFoundException $e) {
+            throw new EntityNotFoundException('Category', $id);
+        } catch (CategoryPersistenceException $e) {
+            throw $e;
+        }
 
         return $this->json->success($response);
     }
 }
-

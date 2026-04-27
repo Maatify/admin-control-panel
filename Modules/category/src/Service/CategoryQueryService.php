@@ -7,8 +7,10 @@ namespace Maatify\Category\Service;
 use Maatify\Category\Contract\CategoryQueryReaderInterface;
 use Maatify\Category\DTO\CategoryDTO;
 use Maatify\Category\DTO\CategoryImageDTO;
+use Maatify\Category\DTO\CategoryImagesCollection;
 use Maatify\Category\DTO\CategorySettingDTO;
 use Maatify\Category\DTO\CategoryTranslationDTO;
+use Maatify\Category\DTO\PaginatedResult;
 use Maatify\Category\Enum\CategoryImageTypeEnum;
 use Maatify\Category\Exception\CategoryNotFoundException;
 
@@ -34,26 +36,20 @@ final class CategoryQueryService
 
     /**
      * @param  array<string, int|string> $columnFilters
-     * @return array{
-     *     data:       list<CategoryDTO>,
-     *     pagination: array{page: int, per_page: int, total: int, filtered: int}
-     * }
+     * @return PaginatedResult<CategoryDTO>
      */
     public function paginate(
         int     $page          = 1,
         int     $perPage       = 20,
         ?string $globalSearch  = null,
         array   $columnFilters = [],
-    ): array {
+    ): PaginatedResult {
         return $this->reader->listCategories($page, $perPage, $globalSearch, $columnFilters);
     }
 
     /**
      * @param  array<string, int|string> $columnFilters
-     * @return array{
-     *     data:       list<CategoryDTO>,
-     *     pagination: array{page: int, per_page: int, total: int, filtered: int}
-     * }
+     * @return PaginatedResult<CategoryDTO>
      */
     public function paginateSubCategories(
         int     $parentId,
@@ -61,7 +57,7 @@ final class CategoryQueryService
         int     $perPage       = 20,
         ?string $globalSearch  = null,
         array   $columnFilters = [],
-    ): array {
+    ): PaginatedResult {
         return $this->reader->listSubCategories($parentId, $page, $perPage, $globalSearch, $columnFilters);
     }
 
@@ -122,10 +118,7 @@ final class CategoryQueryService
 
     /**
      * @param  array<string, int|string> $columnFilters
-     * @return array{
-     *     data:       list<CategorySettingDTO>,
-     *     pagination: array{page: int, per_page: int, total: int, filtered: int}
-     * }
+     * @return PaginatedResult<CategorySettingDTO>
      */
     public function listSettingsPaginated(
         int     $categoryId,
@@ -133,7 +126,7 @@ final class CategoryQueryService
         int     $perPage       = 20,
         ?string $globalSearch  = null,
         array   $columnFilters = [],
-    ): array {
+    ): PaginatedResult {
         return $this->reader->listSettings($categoryId, $page, $perPage, $globalSearch, $columnFilters);
     }
 
@@ -141,10 +134,7 @@ final class CategoryQueryService
     //  Images
     // ------------------------------------------------------------------ //
 
-    /**
-     * @return array<string, list<CategoryImageDTO>>
-     */
-    public function listImages(int $categoryId): array
+    public function listImages(int $categoryId): CategoryImagesCollection
     {
         return $this->reader->listImages($categoryId);
     }
@@ -165,10 +155,7 @@ final class CategoryQueryService
 
     /**
      * @param  array<string, int|string> $columnFilters
-     * @return array{
-     *     data:       list<CategoryTranslationDTO>,
-     *     pagination: array{page: int, per_page: int, total: int, filtered: int}
-     * }
+     * @return PaginatedResult<CategoryTranslationDTO>
      */
     public function listTranslationsPaginated(
         int     $categoryId,
@@ -176,7 +163,7 @@ final class CategoryQueryService
         int     $perPage       = 20,
         ?string $globalSearch  = null,
         array   $columnFilters = [],
-    ): array {
+    ): PaginatedResult {
         return $this->reader->listTranslationsForCategoryPaginated(
             $categoryId,
             $page,

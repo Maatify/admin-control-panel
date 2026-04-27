@@ -7,6 +7,7 @@ namespace Maatify\AdminKernel\Http\Controllers\Api\Category;
 use Maatify\AdminKernel\Domain\Category\Validation\CategoryUpdateSchema;
 use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
 use Maatify\Category\Command\UpdateCategoryCommand;
+use Maatify\Category\Exception\CategoryInvalidArgumentException;
 use Maatify\Category\Service\CategoryCommandService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -34,13 +35,17 @@ final readonly class CategoriesUpdateController
         $displayOrder = $body['display_order'];
 
         if (!is_int($id) || !is_string($name) || !is_string($slug) || !is_bool($isActive) || !is_int($displayOrder)) {
-            throw new \RuntimeException('Invalid validated payload.');
+            throw new AdminKernelValidationException(
+                sprintf('Field "id/name/slug/is_active/display_order" has unexpected type %s.', get_debug_type($body))
+            );
         }
 
         $parentId = null;
         if (array_key_exists('parent_id', $body)) {
             if (!is_int($body['parent_id']) && $body['parent_id'] !== null) {
-                throw new \RuntimeException('Invalid parent_id payload.');
+                throw new AdminKernelValidationException(
+                    sprintf('Field "parent_id" has unexpected type %s.', get_debug_type($body['parent_id']))
+                );
             }
             $parentId = $body['parent_id'];
         }
@@ -48,7 +53,9 @@ final readonly class CategoriesUpdateController
         $notes = null;
         if (array_key_exists('notes', $body)) {
             if (!is_string($body['notes']) && $body['notes'] !== null) {
-                throw new \RuntimeException('Invalid notes payload.');
+                throw new AdminKernelValidationException(
+                    sprintf('Field "notes" has unexpected type %s.', get_debug_type($body['notes']))
+                );
             }
             $notes = is_string($body['notes']) ? $body['notes'] : null;
         }
@@ -56,7 +63,9 @@ final readonly class CategoriesUpdateController
         $description = null;
         if (array_key_exists('description', $body)) {
             if (!is_string($body['description']) && $body['description'] !== null) {
-                throw new \RuntimeException('Invalid description payload.');
+                throw new AdminKernelValidationException(
+                    sprintf('Field "description" has unexpected type %s.', get_debug_type($body['description']))
+                );
             }
             $description = is_string($body['description']) && $body['description'] !== '' ? $body['description'] : null;
         }
@@ -75,4 +84,3 @@ final readonly class CategoriesUpdateController
         return $this->json->success($response);
     }
 }
-

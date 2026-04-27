@@ -5,8 +5,13 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Http\Controllers\Api\Category\Settings;
 
 use Maatify\AdminKernel\Domain\Category\Validation\CategorySettingDeleteSchema;
+use Maatify\AdminKernel\Domain\Exception\AdminKernelValidationException;
+use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
 use Maatify\Category\Command\DeleteCategorySettingCommand;
+use Maatify\Category\Exception\CategoryNotFoundException;
+use Maatify\Category\Exception\CategoryPersistenceException;
+use Maatify\Category\Exception\CategorySettingNotFoundException;
 use Maatify\Category\Service\CategoryCommandService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -32,15 +37,24 @@ final readonly class CategorySettingDeleteController
         $key = $body['key'];
 
         if (!is_string($key)) {
-            throw new \RuntimeException('Invalid validated payload.');
+            throw new AdminKernelValidationException(
+                sprintf('Field "key" has unexpected type %s.', get_debug_type($body['key']))
+            );
         }
 
-        $this->commandService->deleteSetting(new DeleteCategorySettingCommand(
-            categoryId: $category_id,
-            key:        $key,
-        ));
+        try {
+            $this->commandService->deleteSetting(new DeleteCategorySettingCommand(
+                categoryId: $category_id,
+                key:        $key,
+            ));
+        } catch (CategoryNotFoundException $e) {
+            throw new EntityNotFoundException('Category', $category_id);
+        } catch (CategorySettingNotFoundException $e) {
+            throw new EntityNotFoundException('Category setting', $category_id);
+        } catch (CategoryPersistenceException $e) {
+            throw $e;
+        }
 
         return $this->json->success($response);
     }
 }
-

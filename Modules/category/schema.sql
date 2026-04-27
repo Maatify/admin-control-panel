@@ -113,15 +113,18 @@ CREATE TABLE IF NOT EXISTS `maa_category_settings` (
 /* ==========================================================
  * 3) maa_category_images
  * ----------------------------------------------------------
- * Per-language image paths for each of the four image slots.
+ * Per-language image paths for each image slot.
  *
- * Image types:
+ * Image types (validated at the application layer, not the DB):
  *   image         → default / general-purpose image
  *   mobile_image  → optimised for mobile renderers
  *   api_image     → served by the consumer API (mobile app)
  *   website_image → displayed on the public-facing website
  *
  * Design:
+ *   - image_type is a plain VARCHAR — the DB does NOT restrict allowed values.
+ *     Validation is the responsibility of the project/application layer so that
+ *     new image types can be added without a schema migration.
  *   - UNIQUE(category_id, image_type, language_id) — one path per slot per language
  *   - ON DELETE CASCADE: when a category is deleted, its images go too
  *   - language_id FK enforces that only known languages can be assigned
@@ -132,8 +135,8 @@ CREATE TABLE IF NOT EXISTS `maa_category_settings` (
 CREATE TABLE IF NOT EXISTS `maa_category_images` (
     `id`          INT UNSIGNED    NOT NULL AUTO_INCREMENT,
     `category_id` INT UNSIGNED    NOT NULL,
-    `image_type`  ENUM('image','mobile_image','api_image','website_image') NOT NULL
-                  COMMENT 'One of four supported image slots',
+    `image_type`  VARCHAR(50)     NOT NULL
+                  COMMENT 'Image slot identifier. Validated by the application layer (see CategoryImageTypeEnum).',
     `language_id` INT UNSIGNED    NOT NULL COMMENT 'FK to languages.id',
     `path`        VARCHAR(500)    NOT NULL COMMENT 'Stored URL or relative file path',
     `created_at`  DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,

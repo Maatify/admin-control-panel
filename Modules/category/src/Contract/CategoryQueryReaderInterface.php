@@ -6,8 +6,10 @@ namespace Maatify\Category\Contract;
 
 use Maatify\Category\DTO\CategoryDTO;
 use Maatify\Category\DTO\CategoryImageDTO;
+use Maatify\Category\DTO\CategoryImagesCollection;
 use Maatify\Category\DTO\CategorySettingDTO;
 use Maatify\Category\DTO\CategoryTranslationDTO;
+use Maatify\Category\DTO\PaginatedResult;
 use Maatify\Category\Enum\CategoryImageTypeEnum;
 
 /**
@@ -49,35 +51,19 @@ interface CategoryQueryReaderInterface
     /**
      * @param  array<string, int|string> $columnFilters
      *   Allowed keys: is_active (0|1), parent_id (int, 0=roots only), name (LIKE), slug (LIKE)
-     * @return array{
-     *     data:       list<CategoryDTO>,
-     *     pagination: array{
-     *         page:     int,
-     *         per_page: int,
-     *         total:    int,
-     *         filtered: int
-     *     }
-     * }
+     * @return PaginatedResult<CategoryDTO>
      */
     public function listCategories(
         int     $page,
         int     $perPage,
         ?string $globalSearch,
         array   $columnFilters,
-    ): array;
+    ): PaginatedResult;
 
     /**
      * @param  array<string, int|string> $columnFilters
      *   Allowed keys: is_active (0|1), name (LIKE), slug (LIKE)
-     * @return array{
-     *     data:       list<CategoryDTO>,
-     *     pagination: array{
-     *         page:     int,
-     *         per_page: int,
-     *         total:    int,
-     *         filtered: int
-     *     }
-     * }
+     * @return PaginatedResult<CategoryDTO>
      */
     public function listSubCategories(
         int     $parentId,
@@ -85,7 +71,7 @@ interface CategoryQueryReaderInterface
         int     $perPage,
         ?string $globalSearch,
         array   $columnFilters,
-    ): array;
+    ): PaginatedResult;
 
     // ================================================================== //
     //  Website list — active only, no pagination
@@ -125,15 +111,7 @@ interface CategoryQueryReaderInterface
     /**
      * @param  array<string, int|string> $columnFilters
      *   Allowed keys: key (LIKE), value (LIKE)
-     * @return array{
-     *     data:       list<CategorySettingDTO>,
-     *     pagination: array{
-     *         page:     int,
-     *         per_page: int,
-     *         total:    int,
-     *         filtered: int
-     *     }
-     * }
+     * @return PaginatedResult<CategorySettingDTO>
      */
     public function listSettings(
         int     $categoryId,
@@ -141,7 +119,7 @@ interface CategoryQueryReaderInterface
         int     $perPage,
         ?string $globalSearch,
         array   $columnFilters,
-    ): array;
+    ): PaginatedResult;
 
     public function findSetting(int $categoryId, string $key): ?CategorySettingDTO;
 
@@ -151,12 +129,9 @@ interface CategoryQueryReaderInterface
 
     /**
      * Returns all images for a category grouped by image type.
-     * Every type key is always present even when empty.
-     *
-     * @return array<string, list<CategoryImageDTO>>
-     *   Keys: 'image', 'mobile_image', 'api_image', 'website_image'
+     * Every type slot is always present even when empty.
      */
-    public function listImages(int $categoryId): array;
+    public function listImages(int $categoryId): CategoryImagesCollection;
 
     public function findImage(int $categoryId, CategoryImageTypeEnum $imageType, int $languageId): ?CategoryImageDTO;
 
@@ -178,15 +153,7 @@ interface CategoryQueryReaderInterface
      *
      * @param  array<string, int|string> $columnFilters
      *   Allowed keys: language_id, language_code, language_name, name, has_translation
-     * @return array{
-     *     data:       list<CategoryTranslationDTO>,
-     *     pagination: array{
-     *         page:     int,
-     *         per_page: int,
-     *         total:    int,
-     *         filtered: int
-     *     }
-     * }
+     * @return PaginatedResult<CategoryTranslationDTO>
      */
     public function listTranslationsForCategoryPaginated(
         int     $categoryId,
@@ -194,6 +161,6 @@ interface CategoryQueryReaderInterface
         int     $perPage,
         ?string $globalSearch,
         array   $columnFilters,
-    ): array;
+    ): PaginatedResult;
 }
 

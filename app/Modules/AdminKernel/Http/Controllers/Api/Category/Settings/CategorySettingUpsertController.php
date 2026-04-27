@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Http\Controllers\Api\Category\Settings;
 
 use Maatify\AdminKernel\Domain\Category\Validation\CategorySettingUpsertSchema;
+use Maatify\AdminKernel\Domain\Exception\AdminKernelValidationException;
+use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
 use Maatify\Category\Command\UpsertCategorySettingCommand;
+use Maatify\Category\Exception\CategoryNotFoundException;
+use Maatify\Category\Exception\CategoryPersistenceException;
 use Maatify\Category\Service\CategoryCommandService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -33,16 +37,23 @@ final readonly class CategorySettingUpsertController
         $value = $body['value'];
 
         if (!is_string($key) || !is_string($value)) {
-            throw new \RuntimeException('Invalid validated payload.');
+            throw new AdminKernelValidationException(
+                sprintf('Field "key/value" has unexpected type %s.', get_debug_type($body))
+            );
         }
 
-        $dto = $this->commandService->upsertSetting(new UpsertCategorySettingCommand(
-            categoryId: $category_id,
-            key:        $key,
-            value:      $value,
-        ));
+        try {
+            $dto = $this->commandService->upsertSetting(new UpsertCategorySettingCommand(
+                categoryId: $category_id,
+                key:        $key,
+                value:      $value,
+            ));
+        } catch (CategoryNotFoundException $e) {
+            throw new EntityNotFoundException('Category', $category_id);
+        } catch (CategoryPersistenceException $e) {
+            throw $e;
+        }
 
         return $this->json->data($response, $dto);
     }
 }
-

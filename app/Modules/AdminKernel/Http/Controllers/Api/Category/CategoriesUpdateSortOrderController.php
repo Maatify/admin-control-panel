@@ -6,6 +6,7 @@ namespace Maatify\AdminKernel\Http\Controllers\Api\Category;
 
 use Maatify\AdminKernel\Domain\Category\Validation\CategoryUpdateSortOrderSchema;
 use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
+use Maatify\Category\Exception\CategoryInvalidArgumentException;
 use Maatify\Category\Service\CategoryCommandService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -30,14 +31,18 @@ final readonly class CategoriesUpdateSortOrderController
         $displayOrder = $body['display_order'];
 
         if (!is_int($id) || !is_int($displayOrder)) {
-            throw new \RuntimeException('Invalid validated payload.');
+            throw new AdminKernelValidationException(
+                sprintf('Field "id/display_order" has unexpected type %s.', get_debug_type($body))
+            );
         }
 
         // parent_id is optional — scopes the reorder to root or sub-category level
         $parentId = null;
         if (array_key_exists('parent_id', $body)) {
             if (!is_int($body['parent_id']) && $body['parent_id'] !== null) {
-                throw new \RuntimeException('Invalid parent_id payload.');
+                throw new AdminKernelValidationException(
+                    sprintf('Field "parent_id" has unexpected type %s.', get_debug_type($body['parent_id']))
+                );
             }
             $parentId = $body['parent_id'];
         }
@@ -47,4 +52,3 @@ final readonly class CategoriesUpdateSortOrderController
         return $this->json->success($response);
     }
 }
-

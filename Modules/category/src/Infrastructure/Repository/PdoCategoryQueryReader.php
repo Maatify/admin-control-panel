@@ -7,8 +7,11 @@ namespace Maatify\Category\Infrastructure\Repository;
 use Maatify\Category\Contract\CategoryQueryReaderInterface;
 use Maatify\Category\DTO\CategoryDTO;
 use Maatify\Category\DTO\CategoryImageDTO;
+use Maatify\Category\DTO\CategoryImagesCollection;
 use Maatify\Category\DTO\CategorySettingDTO;
 use Maatify\Category\DTO\CategoryTranslationDTO;
+use Maatify\Category\DTO\PaginatedResult;
+use Maatify\Category\DTO\PaginationInfo;
 use Maatify\Category\Enum\CategoryImageTypeEnum;
 use Maatify\Category\Exception\CategoryPersistenceException;
 use PDO;
@@ -47,7 +50,7 @@ final class PdoCategoryQueryReader implements CategoryQueryReaderInterface
         int     $perPage,
         ?string $globalSearch,
         array   $columnFilters,
-    ): array {
+    ): PaginatedResult {
         $page   = max(1, $page);
         $limit  = max(1, min(200, $perPage));
         $offset = ($page - 1) * $limit;
@@ -123,15 +126,15 @@ final class PdoCategoryQueryReader implements CategoryQueryReaderInterface
             $this->fetchAllAssoc($stmt),
         );
 
-        return [
-            'data'       => $data,
-            'pagination' => [
-                'page'     => $page,
-                'per_page' => $limit,
-                'total'    => $total,
-                'filtered' => $filtered,
-            ],
-        ];
+        return new PaginatedResult(
+            data:       $data,
+            pagination: new PaginationInfo(
+                page:     $page,
+                per_page: $limit,
+                total:    $total,
+                filtered: $filtered,
+            ),
+        );
     }
 
     // ================================================================== //
@@ -149,7 +152,7 @@ final class PdoCategoryQueryReader implements CategoryQueryReaderInterface
         int     $perPage,
         ?string $globalSearch,
         array   $columnFilters,
-    ): array {
+    ): PaginatedResult {
         $page   = max(1, $page);
         $limit  = max(1, min(200, $perPage));
         $offset = ($page - 1) * $limit;
@@ -212,15 +215,15 @@ final class PdoCategoryQueryReader implements CategoryQueryReaderInterface
             $this->fetchAllAssoc($stmt),
         );
 
-        return [
-            'data'       => $data,
-            'pagination' => [
-                'page'     => $page,
-                'per_page' => $limit,
-                'total'    => $total,
-                'filtered' => $filtered,
-            ],
-        ];
+        return new PaginatedResult(
+            data:       $data,
+            pagination: new PaginationInfo(
+                page:     $page,
+                per_page: $limit,
+                total:    $total,
+                filtered: $filtered,
+            ),
+        );
     }
 
     // ================================================================== //
@@ -334,7 +337,7 @@ final class PdoCategoryQueryReader implements CategoryQueryReaderInterface
         int     $perPage,
         ?string $globalSearch,
         array   $columnFilters,
-    ): array {
+    ): PaginatedResult {
         $page   = max(1, $page);
         $limit  = max(1, min(200, $perPage));
         $offset = ($page - 1) * $limit;
@@ -390,15 +393,15 @@ final class PdoCategoryQueryReader implements CategoryQueryReaderInterface
             $this->fetchAllAssoc($stmt),
         );
 
-        return [
-            'data'       => $data,
-            'pagination' => [
-                'page'     => $page,
-                'per_page' => $limit,
-                'total'    => $total,
-                'filtered' => $filtered,
-            ],
-        ];
+        return new PaginatedResult(
+            data:       $data,
+            pagination: new PaginationInfo(
+                page:     $page,
+                per_page: $limit,
+                total:    $total,
+                filtered: $filtered,
+            ),
+        );
     }
 
     /** {@inheritDoc} */
@@ -419,7 +422,7 @@ final class PdoCategoryQueryReader implements CategoryQueryReaderInterface
     // ================================================================== //
 
     /** {@inheritDoc} */
-    public function listImages(int $categoryId): array
+    public function listImages(int $categoryId): CategoryImagesCollection
     {
         $stmt = $this->prepareOrFail(
             'SELECT * FROM `maa_category_images`
@@ -431,7 +434,7 @@ final class PdoCategoryQueryReader implements CategoryQueryReaderInterface
         /** @var array<string, list<CategoryImageDTO>> $grouped */
         $grouped = [];
 
-        // Pre-seed all four slots so every key is always present
+        // Pre-seed all known slots so every key is always present
         foreach (CategoryImageTypeEnum::cases() as $case) {
             $grouped[$case->value] = [];
         }
@@ -441,7 +444,7 @@ final class PdoCategoryQueryReader implements CategoryQueryReaderInterface
             $grouped[$dto->imageType][] = $dto;
         }
 
-        return $grouped;
+        return new CategoryImagesCollection($grouped);
     }
 
     /** {@inheritDoc} */
@@ -487,7 +490,7 @@ final class PdoCategoryQueryReader implements CategoryQueryReaderInterface
         int     $perPage,
         ?string $globalSearch,
         array   $columnFilters,
-    ): array {
+    ): PaginatedResult {
         $page   = max(1, $page);
         $limit  = max(1, min(200, $perPage));
         $offset = ($page - 1) * $limit;
@@ -589,15 +592,15 @@ final class PdoCategoryQueryReader implements CategoryQueryReaderInterface
             $this->fetchAllAssoc($stmt),
         );
 
-        return [
-            'data'       => $data,
-            'pagination' => [
-                'page'     => $page,
-                'per_page' => $limit,
-                'total'    => $total,
-                'filtered' => $filtered,
-            ],
-        ];
+        return new PaginatedResult(
+            data:       $data,
+            pagination: new PaginationInfo(
+                page:     $page,
+                per_page: $limit,
+                total:    $total,
+                filtered: $filtered,
+            ),
+        );
     }
 
     // ================================================================== //

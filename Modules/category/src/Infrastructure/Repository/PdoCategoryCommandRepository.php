@@ -376,7 +376,7 @@ final class PdoCategoryCommandRepository implements CategoryCommandRepositoryInt
 
     private function fetchImageOrFail(int $categoryId, string $imageType, int $languageId): CategoryImageDTO
     {
-        $enum = CategoryImageTypeEnum::from($imageType);
+        $enum = CategoryImageTypeEnum::fromString($imageType);
         $dto  = $this->queryReader->findImage($categoryId, $enum, $languageId);
         if ($dto === null) {
             throw CategoryImageNotFoundException::for($categoryId, $imageType, $languageId);

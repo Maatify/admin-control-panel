@@ -5,9 +5,14 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Http\Controllers\Api\Category\Images;
 
 use Maatify\AdminKernel\Domain\Category\Validation\CategoryImageUpsertSchema;
+use Maatify\AdminKernel\Domain\Exception\AdminKernelValidationException;
+use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
 use Maatify\Category\Command\UpsertCategoryImageCommand;
 use Maatify\Category\Enum\CategoryImageTypeEnum;
+use Maatify\Category\Exception\CategoryInvalidArgumentException;
+use Maatify\Category\Exception\CategoryNotFoundException;
+use Maatify\Category\Exception\CategoryPersistenceException;
 use Maatify\Category\Service\CategoryCommandService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -35,17 +40,26 @@ final readonly class CategoryImageUpsertController
         $path       = $body['path'];
 
         if (!is_string($imageType) || !is_int($languageId) || !is_string($path)) {
-            throw new \RuntimeException('Invalid validated payload.');
+            throw new AdminKernelValidationException(
+                sprintf('Field "image_type/language_id/path" has unexpected type %s.', get_debug_type($body))
+            );
         }
 
-        $result = $this->commandService->upsertImage(new UpsertCategoryImageCommand(
-            categoryId: $category_id,
-            imageType:  CategoryImageTypeEnum::from($imageType),
-            languageId: $languageId,
-            path:       $path,
-        ));
+        try {
+            $result = $this->commandService->upsertImage(new UpsertCategoryImageCommand(
+                categoryId: $category_id,
+                imageType:  CategoryImageTypeEnum::fromString($imageType),
+                languageId: $languageId,
+                path:       $path,
+            ));
+        } catch (CategoryNotFoundException $e) {
+            throw new EntityNotFoundException('Category', $category_id);
+        } catch (CategoryInvalidArgumentException $e) {
+            throw new AdminKernelValidationException($e->getMessage());
+        } catch (CategoryPersistenceException $e) {
+            throw $e;
+        }
 
         return $this->json->data($response, $result);
     }
 }
-
