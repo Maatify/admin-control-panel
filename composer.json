@@ -25,7 +25,8 @@
     "slim/twig-view": "^3.4",
     "vlucas/phpdotenv": "^5.5",
     "ext-fileinfo": "*",
-    "ext-gd": "*"
+    "ext-gd": "*",
+    "ext-bcmath": "*"
   },
 
   "require-dev": {
@@ -57,7 +58,8 @@
       "Maatify\\Storage\\": "Modules/Storage/src",
       "Maatify\\ImageProfile\\": "Modules/ImageProfile/src",
       "Maatify\\ImageProfileLegacy\\": "Modules/ImageProfileLegacy/src",
-      "Maatify\\WebsiteUiTheme\\": "Modules/WebsiteUiTheme/src"
+      "Maatify\\WebsiteUiTheme\\": "Modules/WebsiteUiTheme/src",
+      "Maatify\\ExchangeRates\\": "Modules/ExchangeRates/src"
     }
   },
 
