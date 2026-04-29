@@ -101,7 +101,7 @@ class DefaultNavigationProvider implements NavigationProviderInterface
                         ]
                     ),
 
-                    // 🌍 Languages (I18n)
+                    //  Languages (I18n)
                     new NavigationItemDTO(
                         'Languages',
                         '/languages',
@@ -142,7 +142,7 @@ class DefaultNavigationProvider implements NavigationProviderInterface
                         </svg>'
                     ),
 
-                    // 🌐 Translations (I18n Group)
+                    //  Translations (I18n Group)
                     new NavigationItemDTO(
                         'Translations',
                         null,

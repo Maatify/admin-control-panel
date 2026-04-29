@@ -228,14 +228,14 @@
         if (actionHeaders.length) {
             renderers.actions = function (_, row) {
                 var btns = [];
-                if (caps.can_upsert) {
+                if (caps.can_upsert_translations) {
                     btns.push('<button class="edit-translation-inline-btn px-2 py-1 text-xs bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 rounded hover:bg-indigo-200 transition-colors"'
                         + ' data-language-id="' + row.language_id + '"'
                         + ' data-name="' + (row.translated_name || '').replace(/"/g, '&quot;') + '"'
                         + ' data-description="' + (row.translated_description || '').replace(/"/g, '&quot;') + '">'
                         + 'Edit</button>');
                 }
-                if (caps.can_delete && row.has_translation) {
+                if (caps.can_delete_translations && row.has_translation) {
                     btns.push('<button class="delete-translation-inline-btn px-2 py-1 text-xs bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 rounded hover:bg-red-200 transition-colors"'
                         + ' data-language-id="' + row.language_id + '">Delete</button>');
                 }

@@ -5,7 +5,7 @@
  * Context injected by CategoryTranslationsListUiController via Twig:
  *   window.categoryTranslationsContext  — { category_id, category_name, category_slug, languages }
  *   window.categoryTranslationsApi      — { query, upsert, delete }
- *   window.categoryTranslationsCapabilities — { can_upsert, can_delete }
+ *   window.categoryTranslationsCapabilities — { can_upsert_translations, can_delete_translations }
  *   window.categoryTranslationsTableContainerId
  */
 
@@ -66,7 +66,7 @@
       actions: function (value, row) {
         const actions = [];
 
-        if (capabilities.can_upsert) {
+        if (capabilities.can_upsert_translations) {
           const safeValue    = (row.translated_name        || '').replace(/"/g, '&quot;');
           const safeDesc     = (row.translated_description || '').replace(/"/g, '&quot;');
           const safeLangName = (row.language_name          || '').replace(/"/g, '&quot;');
@@ -83,7 +83,7 @@
           );
         }
 
-        if (capabilities.can_delete && row.has_translation) {
+        if (capabilities.can_delete_translations && row.has_translation) {
           actions.push(
             '<button class="btn-delete-translation text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300" title="Delete"' +
             ' data-language-id="' + row.language_id + '">' +

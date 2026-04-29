@@ -12,7 +12,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
 
-final readonly class CategoryDetailUiController
+final readonly class CategorySubCategoriesListUiController
 {
     public function __construct(
         private Twig                 $view,
@@ -36,18 +36,15 @@ final readonly class CategoryDetailUiController
         }
 
         $capabilities = [
-            'can_view_categories'   => $this->uiPermissionService->hasPermission($adminId, 'categories.list.ui'),
-            'can_update'            => $this->uiPermissionService->hasPermission($adminId, 'categories.update.api'),
-            'can_active'            => $this->uiPermissionService->hasPermission($adminId, 'categories.set_active.api'),
-            'can_update_sort'       => $this->uiPermissionService->hasPermission($adminId, 'categories.update_sort.api'),
-            // Navigation links to sub-pages (shown only when admin has access)
-            'can_view_sub_categories' => $this->uiPermissionService->hasPermission($adminId, 'categories.sub_categories.list.ui'),
-            'can_view_images'         => $this->uiPermissionService->hasPermission($adminId, 'categories.images.list.ui'),
-            'can_view_translations'   => $this->uiPermissionService->hasPermission($adminId, 'categories.translations.list.ui'),
-            'can_view_settings'       => $this->uiPermissionService->hasPermission($adminId, 'categories.settings.list.ui'),
+            'can_view_categories' => $this->uiPermissionService->hasPermission($adminId, 'categories.list.ui'),
+            'can_view_detail'     => $this->uiPermissionService->hasPermission($adminId, 'categories.detail.ui'),
+            'can_create'          => $this->uiPermissionService->hasPermission($adminId, 'categories.create.api'),
+            'can_update'          => $this->uiPermissionService->hasPermission($adminId, 'categories.update.api'),
+            'can_active'          => $this->uiPermissionService->hasPermission($adminId, 'categories.set_active.api'),
+            'can_update_sort'     => $this->uiPermissionService->hasPermission($adminId, 'categories.update_sort.api'),
         ];
 
-        return $this->view->render($response, 'pages/categories/category_detail.twig', [
+        return $this->view->render($response, 'pages/categories/category_sub_categories.twig', [
             'category'     => $category->jsonSerialize(),
             'capabilities' => $capabilities,
         ]);

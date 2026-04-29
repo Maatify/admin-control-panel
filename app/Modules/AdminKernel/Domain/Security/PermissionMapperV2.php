@@ -113,15 +113,18 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'categories.dropdown.api'    => 'categories.list',
 
         // Sub-categories
+        'categories.sub_categories.list.ui'      => 'categories.sub_categories.list',
         'categories.sub_categories.list.api'     => 'categories.sub_categories.list',
         'categories.sub_categories.dropdown.api' => 'categories.sub_categories.list',
 
         // Category settings
+        'categories.settings.list.ui'    => 'categories.settings.list',
         'categories.settings.list.api'   => 'categories.settings.list',
         'categories.settings.upsert.api' => 'categories.settings.upsert',
         'categories.settings.delete.api' => 'categories.settings.delete',
 
         // Category images
+        'categories.images.list.ui'    => 'categories.images.list',
         'categories.images.list.api'   => 'categories.images.list',
         'categories.images.upsert.api' => 'categories.images.upsert',
         'categories.images.delete.api' => 'categories.images.delete',

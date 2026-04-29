@@ -8,8 +8,6 @@ use Maatify\AdminKernel\Application\Security\UiPermissionService;
 use Maatify\AdminKernel\Context\AdminContext;
 use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\Category\Service\CategoryQueryService;
-use Maatify\LanguageCore\Contract\LanguageRepositoryInterface;
-use Maatify\LanguageCore\Contract\LanguageSettingsRepositoryInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
@@ -17,11 +15,9 @@ use Slim\Views\Twig;
 final readonly class CategoryTranslationsListUiController
 {
     public function __construct(
-        private Twig                               $view,
-        private UiPermissionService                $uiPermissionService,
-        private CategoryQueryService               $categoryQueryService,
-        private LanguageRepositoryInterface        $languageRepository,
-        private LanguageSettingsRepositoryInterface $settingsRepository,
+        private Twig                 $view,
+        private UiPermissionService  $uiPermissionService,
+        private CategoryQueryService $categoryQueryService,
     ) {}
 
     /** @param array{category_id: string} $args */
@@ -39,33 +35,16 @@ final readonly class CategoryTranslationsListUiController
             throw new EntityNotFoundException('Category', $categoryId);
         }
 
-        $languages     = $this->languageRepository->listAll();
-        $languagesData = [];
-
-        foreach ($languages->items as $language) {
-            $settings = $this->settingsRepository->getByLanguageId($language->id);
-            $languagesData[] = [
-                'id'         => $language->id,
-                'code'       => $language->code,
-                'name'       => $language->name,
-                'direction'  => $settings?->direction->value ?? 'ltr',
-                'icon'       => $settings?->icon ?? '',
-                'is_default' => $language->fallbackLanguageId === null,
-            ];
-        }
-
         $capabilities = [
-            'can_upsert'          => $this->uiPermissionService->hasPermission($adminId, 'categories.translations.upsert.api'),
-            'can_delete'          => $this->uiPermissionService->hasPermission($adminId, 'categories.translations.delete.api'),
-            'can_view_categories' => $this->uiPermissionService->hasPermission($adminId, 'categories.list.ui'),
-            'can_view_detail'     => $this->uiPermissionService->hasPermission($adminId, 'categories.detail.ui'),
+            'can_upsert_translations' => $this->uiPermissionService->hasPermission($adminId, 'categories.translations.upsert.api'),
+            'can_delete_translations' => $this->uiPermissionService->hasPermission($adminId, 'categories.translations.delete.api'),
+            'can_view_categories'     => $this->uiPermissionService->hasPermission($adminId, 'categories.list.ui'),
+            'can_view_detail'         => $this->uiPermissionService->hasPermission($adminId, 'categories.detail.ui'),
         ];
 
         return $this->view->render($response, 'pages/categories/category_translations.twig', [
             'category'     => $category->jsonSerialize(),
-            'languages'    => $languagesData,
             'capabilities' => $capabilities,
         ]);
     }
 }
-

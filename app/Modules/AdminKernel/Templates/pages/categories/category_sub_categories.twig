@@ -1,0 +1,149 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}Sub-categories: {{ category.name }} | {{ ui.appName }}{% endblock %}
+
+{% block content %}
+    <script>
+        window.categorySubCategoriesContext = {
+            category_id:   {{ category.id }},
+            category_name: "{{ category.name|e('js') }}"
+        };
+        window.categorySubCategoriesCapabilities = {
+            can_create:      {{ capabilities.can_create      ? 'true' : 'false' }},
+            can_update:      {{ capabilities.can_update      ? 'true' : 'false' }},
+            can_active:      {{ capabilities.can_active      ? 'true' : 'false' }},
+            can_update_sort: {{ capabilities.can_update_sort ? 'true' : 'false' }}
+        };
+        console.log(' Sub-categories Context:', window.categorySubCategoriesContext);
+        console.log(' Capabilities:', window.categorySubCategoriesCapabilities);
+    </script>
+
+    {# ── Header + Breadcrumb ─────────────────────────────────────────── #}
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">Sub-categories</h2>
+        <nav>
+            <ol class="flex items-center gap-1.5">
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                       href="{{ ui.adminUrl }}dashboard">Home
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+                {% if capabilities.can_view_categories %}
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                       href="{{ ui.adminUrl }}categories">Categories
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+                {% endif %}
+                {% if capabilities.can_view_detail %}
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                       href="{{ ui.adminUrl }}categories/{{ category.id }}">{{ category.name }}
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+                {% endif %}
+                <li class="text-sm text-gray-800 dark:text-gray-200">Sub-categories</li>
+            </ol>
+        </nav>
+    </div>
+
+    {# ── Context Card ────────────────────────────────────────────────── #}
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-5 mb-6">
+        <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3 border-b dark:border-gray-700 pb-2">Parent Category</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Name</p>
+                <p class="text-sm text-gray-800 dark:text-gray-100">{{ category.name }}</p>
+            </div>
+            <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Slug</p>
+                <code class="text-sm font-mono bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-2 py-1 rounded text-gray-800 dark:text-gray-200">{{ category.slug }}</code>
+            </div>
+        </div>
+    </div>
+
+    {# ── Sub-categories Table Section ─────────────────────────────────── #}
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-4">
+        <div class="flex flex-wrap items-center gap-3 mb-4">
+            <input type="text" id="sub-categories-search"
+                   class="flex-1 min-w-[180px] px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 transition-all dark:placeholder-gray-400"
+                   placeholder="Search sub-categories…"/>
+            <button type="button" id="sub-categories-search-btn"
+                    class="px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium">Search</button>
+            <button type="button" id="sub-categories-clear-search"
+                    class="px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium">Clear</button>
+            {% if capabilities.can_create %}
+            <button type="button" id="btn-create-sub-category"
+                    class="ml-auto px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Add Sub-category
+            </button>
+            {% endif %}
+        </div>
+        <div id="sub-categories-table-container" class="w-full"></div>
+    </div>
+
+    {# ── Create Sub-category Modal ─────────────────────────────────────── #}
+    {% if capabilities.can_create %}
+    <div id="sub-category-create-modal" class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-50 flex items-center justify-center hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full mx-4">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Add Sub-category</h3>
+                <button type="button" class="close-modal text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <svg class="w-6 h-6 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="sub-category-create-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name <span class="text-red-500">*</span></label>
+                        <input type="text" id="sub-cat-name"
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                               placeholder="Sub-category name" required/>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Slug <span class="text-red-500">*</span></label>
+                        <input type="text" id="sub-cat-slug"
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-mono text-sm"
+                               placeholder="sub-category-slug" required/>
+                        <p class="text-xs text-gray-400 mt-1">Auto-generated from name. You can edit it.</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Display Order</label>
+                        <input type="number" id="sub-cat-order" value="0" min="0"
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"/>
+                    </div>
+                </form>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+                <button type="button" class="close-modal px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">Cancel</button>
+                <button type="button" id="btn-save-sub-category" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">Create</button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/api_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/callback_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/Input_checker.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/data_table.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/select2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-page-bridge.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/categories/category-sub-categories-v2.js') }}"></script>
+{% endblock %}

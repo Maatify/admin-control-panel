@@ -22,14 +22,14 @@
         }|json_encode|raw }};
 
         window.categoryTranslationsCapabilities = {{ {
-            can_upsert: capabilities.can_upsert ? true : false,
-            can_delete: capabilities.can_delete ? true : false
+            can_upsert_translations: capabilities.can_upsert_translations ? true : false,
+            can_delete_translations: capabilities.can_delete_translations ? true : false
         }|json_encode|raw }};
         window.categoryTranslationsTableContainerId = 'translations-table-container';
 
-        console.log('🌍 Category Translations Context:', window.categoryTranslationsContext);
-        console.log('🔐 Capabilities:', window.categoryTranslationsCapabilities);
-        console.log('🌐 API Endpoints:', window.categoryTranslationsApi);
+        console.log(' Category Translations Context:', window.categoryTranslationsContext);
+        console.log(' Capabilities:', window.categoryTranslationsCapabilities);
+        console.log(' API Endpoints:', window.categoryTranslationsApi);
     </script>
 
     {# ===================================================================
@@ -193,7 +193,7 @@
                 </svg>
                 <input type="text" id="translations-search-global"
                        class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400"
-                       placeholder="🔍 Quick search by name or language..."/>
+                       placeholder=" Quick search by name or language..."/>
                 <button type="button" id="btn-search-global"
                         class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
                     Search
@@ -279,7 +279,7 @@
     <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
     <script src="{{ asset('assets/maatify/admin-kernel/js/admin-page-bridge.js') }}"></script>
 
-    {# 📦 Category translation scripts #}
+    {#  Category translation scripts #}
     <script src="{{ asset('assets/maatify/admin-kernel/js/pages/categories/categories-helpers-v2.js') }}"></script>
     <script src="{{ asset('assets/maatify/admin-kernel/js/pages/categories/category_translations-v2.js') }}"></script>
 {% endblock %}
