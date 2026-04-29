@@ -65,6 +65,52 @@
             </div>
         </div>
     </div>
+
+    <!-- Rate Modal -->
+    <div id="rate-modal" class="fixed inset-0 z-50 hidden bg-slate-900 bg-opacity-50 transition-opacity flex items-center justify-center">
+        <div class="bg-white dark:bg-slate-800 rounded shadow-lg overflow-hidden w-full max-w-lg mx-4">
+            <div class="px-5 py-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                <h3 class="font-semibold text-slate-800 dark:text-slate-100" id="rate-modal-title">Rate</h3>
+                <button class="text-slate-400 hover:text-slate-500" id="rate-modal-close">&times;</button>
+            </div>
+            <div class="px-5 py-4">
+                <div id="rate-modal-error" class="hidden mb-4 p-3 bg-rose-100 text-rose-600 rounded"></div>
+                <form id="rate-form">
+                    <input type="hidden" id="rate-id" name="id">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1" for="rate-provider">Provider</label>
+                            <select id="rate-provider" name="provider_id" class="form-select w-full"></select>
+                            <p class="text-xs text-slate-500 mt-1" id="rate-provider-help">Provider is immutable after creation.</p>
+                        </div>
+                        <div class="flex space-x-4">
+                            <div class="flex-1">
+                                <label class="block text-sm font-medium mb-1" for="rate-base">Base Currency</label>
+                                <input id="rate-base" name="base_currency_code" class="form-input w-full uppercase" type="text" maxlength="3" />
+                                <p class="text-xs text-slate-500 mt-1" id="rate-base-help">3-letter ISO code.</p>
+                            </div>
+                            <div class="flex-1">
+                                <label class="block text-sm font-medium mb-1" for="rate-target">Target Currency</label>
+                                <input id="rate-target" name="target_currency_code" class="form-input w-full uppercase" type="text" maxlength="3" />
+                                <p class="text-xs text-slate-500 mt-1" id="rate-target-help">3-letter ISO code.</p>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1" for="rate-value">Rate Value</label>
+                            <input id="rate-value" name="rate" class="form-input w-full" type="text" placeholder="e.g. 48.7500000000" />
+                            <p class="text-xs text-slate-500 mt-1">1 Base = X Target. Must be decimal string.</p>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="px-5 py-4 border-t border-slate-200 dark:border-slate-700 flex justify-end">
+                <button class="btn-sm border-slate-200 hover:border-slate-300 text-slate-600 mr-2" id="rate-modal-cancel">Cancel</button>
+                <button class="btn-sm bg-indigo-500 hover:bg-indigo-600 text-white" id="rate-modal-save">Save</button>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
+{% block scripts %}
     <script src="{{ asset('assets/maatify/admin-kernel/js/pages/exchange_rates/rates-with-components-v2.js') }}"></script>
+{% endblock %}

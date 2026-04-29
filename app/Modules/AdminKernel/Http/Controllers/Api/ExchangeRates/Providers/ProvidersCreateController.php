@@ -8,6 +8,8 @@ use Maatify\AdminKernel\Domain\ExchangeRates\Validation\ProviderCreateSchema;
 use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
 use Maatify\ExchangeRates\Admin\Provider\Command\CreateProviderCommand;
 use Maatify\ExchangeRates\Admin\Provider\Service\ProviderCommandService;
+use Maatify\ExchangeRates\Exception\ExchangeRatesCodeAlreadyExistsException;
+use Maatify\Exceptions\Exception\Conflict\GenericConflictMaatifyException;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -32,11 +34,15 @@ final readonly class ProvidersCreateController
         /** @var string|null $description */
         $description = $body['description'] ?? null;
 
-        $this->commandService->create(new CreateProviderCommand(
-            name: $name,
-            code: $code,
-            description: $description
-        ));
+        try {
+            $this->commandService->create(new CreateProviderCommand(
+                name: $name,
+                code: $code,
+                description: $description
+            ));
+        } catch (ExchangeRatesCodeAlreadyExistsException $e) {
+            throw new GenericConflictMaatifyException($e->getMessage());
+        }
 
         return $this->json->success($response);
     }
