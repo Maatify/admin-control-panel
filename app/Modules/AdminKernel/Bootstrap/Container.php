@@ -2640,6 +2640,9 @@ class Container
         // Register Maatify\CurrenciesBindings modules
         \Maatify\Currency\Bootstrap\CurrenciesBindings::register($containerBuilder);
 
+        // Register Maatify\ExchangeRatesBindings modules
+        \Maatify\ExchangeRates\Bootstrap\ExchangeRatesBindings::register($containerBuilder);
+
         // Register Maatify\ImageProfileBindings modules
         \Maatify\ImageProfile\Bootstrap\ImageProfileBindings::register($containerBuilder);
 

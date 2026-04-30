@@ -106,7 +106,25 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'currencies.translations.list.ui' => 'currencies.translations.list',
         'currencies.translations.list.api' => 'currencies.translations.list',
         'currencies.translations.upsert.api' => 'currencies.translations.upsert',
-        'currencies.translations.delete.api' => 'currencies.translations.delete',
+                'currencies.translations.delete.api' => 'currencies.translations.delete',
+
+        'exchange_rates.providers.list.ui' => 'exchange_rates.providers.list',
+        'exchange_rates.providers.list.api' => 'exchange_rates.providers.list',
+        'exchange_rates.providers.dropdown.api' => 'exchange_rates.providers.list',
+        'exchange_rates.providers.create.api' => 'exchange_rates.providers.create',
+        'exchange_rates.providers.update.api' => 'exchange_rates.providers.update',
+        'exchange_rates.providers.set_active.api' => 'exchange_rates.providers.set_active',
+        'exchange_rates.providers.update_sort.api' => 'exchange_rates.providers.update_sort',
+        'exchange_rates.providers.delete.api' => 'exchange_rates.providers.delete',
+
+        'exchange_rates.rates.list.ui' => 'exchange_rates.rates.list',
+        'exchange_rates.rates.list.api' => 'exchange_rates.rates.list',
+        'exchange_rates.rates.create.api' => 'exchange_rates.rates.create',
+        'exchange_rates.rates.update.api' => 'exchange_rates.rates.update',
+        'exchange_rates.rates.set_active.api' => 'exchange_rates.rates.set_active',
+        'exchange_rates.rates.update_sort.api' => 'exchange_rates.rates.update_sort',
+        'exchange_rates.rates.delete.api' => 'exchange_rates.rates.delete',
+        'exchange_rates.rates.history.api' => 'exchange_rates.rates.history',
 
         // Image Profiles
         'image_profiles.list.ui' => 'image_profiles.list',

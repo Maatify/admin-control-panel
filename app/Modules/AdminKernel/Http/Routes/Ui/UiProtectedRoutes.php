@@ -9,6 +9,7 @@ use Maatify\AdminKernel\Http\Routes\Ui\Features\AdminsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\AppSettingsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\ContentDocumentsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\CurrenciesUiRoutes;
+use Maatify\AdminKernel\Http\Routes\Ui\Features\ExchangeRatesUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\DashboardUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\I18nUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\ImageProfilesUiRoutes;
@@ -60,6 +61,7 @@ final class UiProtectedRoutes
             LogoutUiRoutes::register($protectedGroup);
 
             CurrenciesUiRoutes::register($protectedGroup);
+            ExchangeRatesUiRoutes::register($protectedGroup);
             ImageProfilesUiRoutes::register($protectedGroup);
             WebsiteUiThemesUiRoutes::register($protectedGroup);
             MyProfileUiRoutes::register($protectedGroup);
