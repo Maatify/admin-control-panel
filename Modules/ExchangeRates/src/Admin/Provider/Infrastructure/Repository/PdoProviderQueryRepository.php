@@ -93,17 +93,29 @@ final class PdoProviderQueryRepository implements ProviderQueryRepositoryInterfa
             $params['global_code'] = $searchVal;
         }
 
+        if (isset($columnFilters['name'])) {
+            $where[]             = '`p`.`name` = :name';
+            $params['name'] = (string) $columnFilters['name'];
+        }
+
+        if (isset($columnFilters['code'])) {
+            $where[]             = '`p`.`code` = :code';
+            $params['code'] = (string) $columnFilters['code'];
+        }
+
         if (isset($columnFilters['is_active'])) {
             $where[]             = '`p`.`is_active` = :is_active';
             $params['is_active'] = (int) $columnFilters['is_active'];
         }
 
-        if (isset($columnFilters['deleted'])) {
-            $where[] = (int) $columnFilters['deleted'] === 1
-                ? '`p`.`deleted_at` IS NOT NULL'
-                : '`p`.`deleted_at` IS NULL';
+        if (array_key_exists('deleted', $columnFilters) && $columnFilters['deleted'] !== null) {
+            $deletedFilter = (int) $columnFilters['deleted'];
+
+            $where[] = $deletedFilter === 1
+                ? 'p.deleted_at IS NOT NULL'
+                : 'p.deleted_at IS NULL';
         } else {
-            $where[] = '`p`.`deleted_at` IS NULL';
+            $where[] = 'p.deleted_at IS NULL';
         }
 
         // $where always contains at least the deleted_at condition — never empty.

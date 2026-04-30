@@ -11,15 +11,14 @@ final class RateListCapabilities
     public static function define(): ListCapabilities
     {
         return new ListCapabilities(
-            supportsGlobalSearch: false,
-            searchableColumns: [],
+            supportsGlobalSearch: true,
+            searchableColumns: ['base_currency_code', 'target_currency_code'],
             supportsColumnFilters: true,
             filterableColumns: [
-                'id' => 'id',
                 'provider_id' => 'provider_id',
-                'base_currency_code' => 'base_currency_code',
-                'target_currency_code' => 'target_currency_code',
                 'is_active' => 'is_active',
+                'base_currency_code' => 'base_currency_code',
+                'deleted' => 'deleted',
             ],
             supportsDateFilter: false,
             dateColumn: null

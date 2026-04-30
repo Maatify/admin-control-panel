@@ -104,12 +104,14 @@ final class PdoRateQueryRepository implements RateQueryRepositoryInterface
             $params['base_code'] = strtoupper((string) $columnFilters['base_currency_code']);
         }
 
-        if (isset($columnFilters['deleted'])) {
-            $where[] = (int) $columnFilters['deleted'] === 1
-                ? '`r`.`deleted_at` IS NOT NULL'
-                : '`r`.`deleted_at` IS NULL';
+        if (array_key_exists('deleted', $columnFilters) && $columnFilters['deleted'] !== null) {
+            $deletedFilter = (int) $columnFilters['deleted'];
+
+            $where[] = $deletedFilter === 1
+                ? 'r.deleted_at IS NOT NULL'
+                : 'r.deleted_at IS NULL';
         } else {
-            $where[] = '`r`.`deleted_at` IS NULL';
+            $where[] = 'r.deleted_at IS NULL';
         }
 
         // $where always contains at least the deleted_at condition — never empty.
