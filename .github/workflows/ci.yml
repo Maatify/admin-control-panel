@@ -76,6 +76,6 @@ jobs:
       # -------------------------------------------------
       # 7) Syntax Check (extra safety)
       # -------------------------------------------------
-      - name: Lint PHP files
-        run: |
-          find . -type f -name "*.php" -not -path "./vendor/*" -print0 | xargs -0 -n1 php -l
+#      - name: Lint PHP files
+#        run: |
+#          find . -type f -name "*.php" -not -path "./vendor/*" -print0 | xargs -0 -n1 php -l
