@@ -1837,8 +1837,24 @@ class Container
             //                return new PermissionMapper();
             //            },
 
-            PermissionMapperV2Interface::class => function (ContainerInterface $c) {
-                return new PermissionMapperV2();
+            /** Legacy as we use from index.php */
+            //            PermissionMapperV2Interface::class => function (ContainerInterface $c) {
+            //                return new PermissionMapperV2();
+            //            },
+
+            /** can be overridden by hook from index.php */
+            PermissionMapperV2Interface::class => static function (ContainerInterface $c): PermissionMapperV2Interface {
+                $providers = [
+                    new \Maatify\AdminKernel\Domain\Security\Permission\KernelPermissionMapProvider(),
+                ];
+
+                (new \Maatify\AdminKernel\Domain\Security\Permission\PermissionMapProviderValidator())
+                    ->assertNoDuplicateRoutes($providers);
+
+                return new \Maatify\AdminKernel\Domain\Security\Permission\CompositePermissionMapperV2(
+                    providers: $providers,
+                    converter: new \Maatify\AdminKernel\Domain\Security\Permission\SharedPermissionRequirementConverter(),
+                );
             },
 
             \Maatify\AdminKernel\Domain\Contracts\Roles\RolePermissionsRepositoryInterface::class => function (ContainerInterface $c) {
