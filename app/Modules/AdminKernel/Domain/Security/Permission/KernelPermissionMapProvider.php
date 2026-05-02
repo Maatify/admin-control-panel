@@ -116,10 +116,6 @@ final class KernelPermissionMapProvider implements PermissionMapProviderInterfac
             'website_ui_themes.dropdown.api'            => PermissionRequirementDefinition::single('website_ui_themes.dropdown'),
             'website_ui_themes.dropdown_by_entity_type.api' => PermissionRequirementDefinition::single('website_ui_themes.dropdown_by_entity_type'),
 
-            // I18n Keys
-            // 'i18n.keys.list.ui'  => PermissionRequirementDefinition::single('i18n.keys.list'),
-            // 'i18n.keys.list.api' => PermissionRequirementDefinition::single('i18n.keys.list'),
-
             // I18n Translations
             'languages.translations.list.ui'    => PermissionRequirementDefinition::single('i18n.translations.list'),
             'languages.translations.list.api'   => PermissionRequirementDefinition::single('languages.translations.list'),

@@ -19,7 +19,6 @@ VALUES
     ('2fa.enable', 'Enable 2fa', 'Allows enable 2fa'),
     ('2fa.setup', 'Setup 2fa', 'Allows setup 2fa'),
     ('auth.logout', 'Logout Auth', 'Allows logout auth'),
-    ('auth.logout.web', 'Web Logout Auth', 'Allows web logout auth'),
 
     -- [ ADMINS & PROFILE ]
     ('admin.create', 'Create Admin', 'Allows create admin'),
@@ -46,11 +45,9 @@ VALUES
     ('roles.toggle', 'Toggle Roles', 'Allows toggle roles'),
     ('roles.metadata.update', 'Update Metadata Roles', 'Allows update metadata roles'),
     ('roles.admins.query', 'Query Admins Roles', 'Allows query admins roles'),
-    ('roles.admins.view', 'View Admins Roles', 'Allows view admins roles'),
     ('roles.admins.assign', 'Assign Admins Roles', 'Allows assign admins roles'),
     ('roles.admins.unassign', 'Unassign Admins Roles', 'Allows unassign admins roles'),
     ('roles.permissions.query', 'Query Permissions Roles', 'Allows query permissions roles'),
-    ('roles.permissions.view', 'View Permissions Roles', 'Allows view permissions roles'),
     ('roles.permissions.assign', 'Assign Permissions Roles', 'Allows assign permissions roles'),
     ('roles.permissions.unassign', 'Unassign Permissions Roles', 'Allows unassign permissions roles'),
 
@@ -94,7 +91,6 @@ VALUES
     ('i18n.scopes.list', 'List Scopes I18n', 'Allows list scopes i18n'),
     ('i18n.scopes.details', 'Details Scopes I18n', 'Allows details scopes i18n'),
     ('i18n.scopes.create', 'Create Scopes I18n', 'Allows create scopes i18n'),
-    ('i18n.scopes.update', 'Update Scopes I18n', 'Allows update scopes i18n'),
     ('i18n.scopes.set_active', 'Set active Scopes I18n', 'Allows set active scopes i18n'),
     ('i18n.scopes.change_code', 'Change code Scopes I18n', 'Allows change code scopes i18n'),
     ('i18n.scopes.dropdown', 'Dropdown Scopes I18n', 'Allows dropdown scopes i18n'),
@@ -110,25 +106,12 @@ VALUES
     ('i18n.scopes.keys.create', 'Create Keys Scopes I18n', 'Allows create keys scopes i18n'),
     ('i18n.scopes.keys.update_name', 'Update name Keys Scopes I18n', 'Allows update name keys scopes i18n'),
     ('i18n.scopes.keys.update_metadata', 'Update metadata Keys Scopes I18n', 'Allows update metadata keys scopes i18n'),
-    ('i18n.keys.list', 'List Keys I18n', 'Allows list keys i18n'),
     ('i18n.domains.list', 'List Domains I18n', 'Allows list domains i18n'),
     ('i18n.domains.create', 'Create Domains I18n', 'Allows create domains i18n'),
-    ('i18n.domains.update', 'Update Domains I18n', 'Allows update domains i18n'),
     ('i18n.domains.set_active', 'Set active Domains I18n', 'Allows set active domains i18n'),
     ('i18n.domains.change_code', 'Change code Domains I18n', 'Allows change code domains i18n'),
     ('i18n.domains.update_metadata', 'Update metadata Domains I18n', 'Allows update metadata domains i18n'),
     ('i18n.domains.update_sort', 'Update sort Domains I18n', 'Allows update sort domains i18n'),
-
-    -- [ CURRENCIES ]
-    ('currencies.list', 'List Currencies', 'Allows list currencies'),
-    ('currencies.create', 'Create Currencies', 'Allows create currencies'),
-    ('currencies.update', 'Update Currencies', 'Allows update currencies'),
-    ('currencies.set_active', 'Set active Currencies', 'Allows set active currencies'),
-    ('currencies.update_sort', 'Update sort Currencies', 'Allows update sort currencies'),
-    ('currencies.dropdown', 'Dropdown Currencies', 'Allows dropdown currencies'),
-    ('currencies.translations.list', 'List Translations Currencies', 'Allows list translations currencies'),
-    ('currencies.translations.upsert', 'Upsert Translations Currencies', 'Allows upsert translations currencies'),
-    ('currencies.translations.delete', 'Delete Translations Currencies', 'Allows delete translations currencies'),
 
     -- [ IMAGE PROFILES ]
     ('image_profiles.list', 'List Image Profiles', 'Allows list image profiles'),
@@ -173,18 +156,3 @@ VALUES
     ('admin.notifications.history', 'History Notifications Admin', 'Allows history notifications admin'),
     ('admin.notifications.read', 'Read Notifications Admin', 'Allows read notifications admin'),
     ('telemetry.list', 'List Telemetry', 'Allows list telemetry');
-
--- ########################################################################################
--- #                                                                                      #
--- #  🛑 STOP HERE! - DO NOT MODIFY ABOVE THIS LINE (KERNEL BASELINE)                     #
--- #                                                                                      #
--- ########################################################################################
--- #                                                                                      #
--- #  📌 PROJECT-SPECIFIC CUSTOM PERMISSIONS                                              #
--- #  If you need to add permissions for a specific project, ADD THEM BELOW.              #
--- #  Use: INSERT IGNORE INTO permissions (name, display_name, description) VALUES ...    #
--- #                                                                                      #
--- ########################################################################################
-
--- Example:
--- INSERT IGNORE INTO permissions (name, display_name, description) VALUES ('project.custom.view', 'View Custom Project', 'Allows view custom project');
