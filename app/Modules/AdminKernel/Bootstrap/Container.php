@@ -2434,11 +2434,6 @@ class Container
                 );
             },
 
-
-
-
-
-
             \Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainsQueryReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
@@ -2624,43 +2619,6 @@ class Container
             },
 
         ]);
-
-        // ------- Register Infrastructure modules -------
-
-        // Register ContentDocuments Infrastructure
-        \Maatify\AdminKernel\Infrastructure\ContentDocuments\Bootstrap\ContentDocumentBinding::register($containerBuilder);
-
-        // ------- Register internal modules -------
-
-        // Register Maatify\LanguageCore modules
-        \Maatify\LanguageCore\Bootstrap\LanguageCoreBindings::register($containerBuilder);
-
-        // Register Maatify\I18n modules
-        \Maatify\I18n\Bootstrap\I18nBindings::register($containerBuilder);
-
-        // Register Maatify\ContentDocuments modules
-        \Maatify\ContentDocuments\Bootstrap\ContentDocumentsBindings::register($containerBuilder);
-
-        // Register Maatify\Validation modules
-        \Maatify\Validation\Bootstrap\ValidationBindings::register($containerBuilder);
-
-        // Register Maatify\AppSettings modules
-        \Maatify\AppSettings\Bootstrap\AppSettingsBindings::register($containerBuilder);
-
-        // Register Maatify\Verification modules
-        \Maatify\Verification\Bootstrap\VerificationBindings::register($containerBuilder);
-
-        // Register Maatify\LanguageCoreBinding modules
-        \Maatify\AdminKernel\Infrastructure\LanguageCore\Bootstrap\LanguageCoreBinding::register($containerBuilder);
-
-        // Register Maatify\ExchangeRatesBindings modules
-        \Maatify\ExchangeRates\Bootstrap\ExchangeRatesBindings::register($containerBuilder);
-
-        // Register Maatify\ImageProfileBindings modules
-        \Maatify\ImageProfile\Bootstrap\ImageProfileBindings::register($containerBuilder);
-
-        // Register Maatify\WebsiteUiThemeBindings modules
-        \Maatify\WebsiteUiTheme\Bootstrap\WebsiteUiThemeBindings::register($containerBuilder);
 
         // Extension Hook: Allow host projects to override/extend bindings
         if ($builderHook !== null) {
