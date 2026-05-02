@@ -1,103 +1,289 @@
 {% extends "layouts/base.twig" %}
-{% set page_title = 'Exchange Rates Providers' %}
+
+{% block title %}
+    Exchange Rate Providers | {{ ui.appName }}
+{% endblock %}
 
 {% block content %}
+    {# ============================================================
+       Page Header + Breadcrumb
+       ============================================================ #}
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">Exchange Rate Providers</h2>
+
+        <nav>
+            <ol class="flex items-center gap-1.5">
+                <li>
+                    <a
+                            class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                            href="{{ ui.adminUrl }}dashboard"
+                    >
+                        Home
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none"
+                             xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                  stroke=""
+                                  stroke-width="1.2"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+                <li>
+                    <a
+                            class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                            href="{{ ui.adminUrl }}exchange-rates/providers"
+                    >
+                        Exchange Rates
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none"
+                             xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                  stroke-width="1.2"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+                <li class="text-sm text-gray-800 dark:text-gray-200">Providers</li>
+            </ol>
+        </nav>
+    </div>
+
+    {# ============================================================
+       🔐 Capabilities Injection (UI Contract)
+       ============================================================ #}
+
     <script>
         window.providersCapabilities = {
-            can_create: {{ capabilities.can_create ? 'true' : 'false' }},
-            can_update: {{ capabilities.can_update ? 'true' : 'false' }},
-            can_active: {{ capabilities.can_active ? 'true' : 'false' }},
-            can_update_sort: {{ capabilities.can_update_sort ? 'true' : 'false' }},
-            can_delete: {{ capabilities.can_delete ? 'true' : 'false' }},
-            endpoints: {
-                query: '{{ ui.adminUrl }}exchange-rates/providers/query',
-                create: '{{ ui.adminUrl }}exchange-rates/providers/create',
-                update: '{{ ui.adminUrl }}exchange-rates/providers/update',
-                set_active: '{{ ui.adminUrl }}exchange-rates/providers/set-active',
-                update_sort: '{{ ui.adminUrl }}exchange-rates/providers/update-sort',
-                delete: '{{ ui.adminUrl }}exchange-rates/providers/delete'
-            }
+            can_create     : {{ capabilities.can_create      ?? false ? 'true' : 'false' }},
+            can_update     : {{ capabilities.can_update      ?? false ? 'true' : 'false' }},
+            can_active     : {{ capabilities.can_active      ?? false ? 'true' : 'false' }},
+            can_update_sort: {{ capabilities.can_update_sort ?? false ? 'true' : 'false' }},
+            can_delete     : {{ capabilities.can_delete      ?? false ? 'true' : 'false' }}
         };
+
+        console.log('🔐 Providers Capabilities Injected:', window.providersCapabilities);
     </script>
 
-    <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
-        <div class="sm:flex sm:justify-between sm:items-center mb-8">
-            <div class="mb-4 sm:mb-0">
-                <h1 class="text-2xl md:text-3xl text-slate-800 dark:text-slate-100 font-bold">Exchange Rates Providers ✨</h1>
-            </div>
-            <div class="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
-                {% if capabilities.can_create %}
-                    <button class="btn bg-indigo-500 hover:bg-indigo-600 text-white" id="providers-create-btn">
-                        <svg class="w-4 h-4 fill-current opacity-50 shrink-0" viewBox="0 0 16 16">
-                            <path d="M15 7H9V1c0-.6-.4-1-1-1S7 .4 7 1v6H1c-.6 0-1 .4-1 1s.4 1 1 1h6v6c0 .6.4 1 1 1s1-.4 1-1V9h6c.6 0 1-.4 1-1s-.4-1-1-1z" />
-                        </svg>
-                        <span class="hidden xs:block ml-2">Create Provider</span>
-                    </button>
-                {% endif %}
-            </div>
-        </div>
+    {# ============================================================
+       Page Body
+       ============================================================ #}
+    <div class="px-0 py-2">
+        <div class="container lg:max-w-[100%] mt-6">
+            {# ============================================================
+               🔍 Search & Filters Section
+               ============================================================ #}
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+                <form id="providers-filter-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {# <div>
+                            <label for="filter-id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Provider ID
+                            </label>
+                            <input
+                                    type="number"
+                                    id="filter-id"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400"
+                                    placeholder="e.g., 1, 2, 3..."
+                                    min="1"
+                            />
+                        </div> #}
 
-        <div class="bg-white dark:bg-slate-800 shadow-lg rounded-sm border border-slate-200 dark:border-slate-700 relative">
-            <header class="px-5 py-4 border-b border-slate-100 dark:border-slate-700">
-                <h2 class="font-semibold text-slate-800 dark:text-slate-100">All Providers <span class="text-slate-400 dark:text-slate-500 font-medium" id="providers-total-count">0</span></h2>
-            </header>
-            <div x-data="providersTableContainer">
-                <div class="overflow-x-auto">
-                    <table class="table-auto w-full dark:text-slate-300" id="providers-table">
-                        <thead class="text-xs font-semibold uppercase text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/20 border-t border-b border-slate-200 dark:border-slate-700">
-                            <tr>
-                                <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap"><div class="font-semibold text-left">Display Order</div></th>
-                                <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap"><div class="font-semibold text-left">Code</div></th>
-                                <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap"><div class="font-semibold text-left">Name</div></th>
-                                <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap"><div class="font-semibold text-center">Status</div></th>
-                                <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap"><div class="font-semibold text-right">Actions</div></th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-sm divide-y divide-slate-200 dark:divide-slate-700" id="providers-table-body">
-                            <!-- Rows rendered by JS -->
-                        </tbody>
-                    </table>
+                        <div>
+                            <label for="filter-code" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Provider Code
+                            </label>
+                            <input
+                                    type="text"
+                                    id="filter-code"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400 uppercase"
+                                    placeholder="e.g., CBE, FIXER..."
+                            />
+                        </div>
+
+                        <div>
+                            <label for="filter-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Provider Name
+                            </label>
+                            <input
+                                    type="text"
+                                    id="filter-name"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400"
+                                    placeholder="e.g., Central Bank..."
+                            />
+                        </div>
+
+                        <div>
+                            <label for="filter-status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Status
+                            </label>
+                            <select
+                                    id="filter-status"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                            >
+                                <option value="">All Statuses</option>
+                                <option value="1">Active</option>
+                                <option value="0">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {# Action Buttons #}
+                    <div class="flex flex-wrap gap-3 pt-4">
+                        <button
+                                type="submit"
+                                class="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+                        >
+                            Search
+                        </button>
+
+                        <button
+                                type="button"
+                                id="providers-reset-filters"
+                                class="px-3 py-1 bg-gray-200 text-sm dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium flex items-center gap-2"
+                        >
+                            Reset
+                        </button>
+
+                        {# Create Provider Button #}
+                        {% if capabilities.can_create %}
+                            <button
+                                    type="button"
+                                    id="btn-create-provider"
+                                    class="ml-auto px-3 py-1 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                                Create Provider
+                            </button>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+
+            {# ============================================================
+               📋 Global Search Bar (Above Table)
+               ============================================================ #}
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4">
+                <div class="flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input
+                            type="text"
+                            id="providers-search"
+                            class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400"
+                            placeholder="Quick search by code or name..."
+                    />
+                    <button
+                            type="button"
+                            id="providers-search-btn"
+                            class="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    >
+                        Search
+                    </button>
+                    <button
+                            type="button"
+                            id="providers-clear-search"
+                            class="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
+                    >
+                        Clear
+                    </button>
                 </div>
+            </div>
+
+            {# ============================================================
+               📋 Providers Table Container (Rendered by JS)
+               ============================================================ #}
+            <div id="table-container" class="w-full"></div>
+        </div>
+    </div>
+
+    {# ============================================================
+       🏗️ Create/Edit Provider Modal
+       ============================================================ #}
+    <div id="provider-modal" class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-50 flex items-center justify-center hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full mx-4">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h3 id="provider-modal-title" class="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                    Provider Details
+                </h3>
+                <button type="button" class="close-modal text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <svg class="w-6 h-6 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="provider-form" class="space-y-4">
+                    <input type="hidden" id="provider-id">
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Code</label>
+                        <input type="text" id="provider-code" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 uppercase" maxlength="32" required>
+                        <p class="text-xs text-gray-500 mt-1">Code is immutable after creation.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
+                        <input type="text" id="provider-name" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                        <textarea id="provider-description" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+                <button type="button" class="close-modal px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">Cancel</button>
+                <button type="button" id="btn-save-provider" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">Save</button>
             </div>
         </div>
     </div>
 
-    <!-- Provider Modal -->
-    <div id="provider-modal" class="fixed inset-0 z-50 hidden bg-slate-900 bg-opacity-50 transition-opacity flex items-center justify-center">
-        <div class="bg-white dark:bg-slate-800 rounded shadow-lg overflow-hidden w-full max-w-lg mx-4">
-            <div class="px-5 py-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
-                <h3 class="font-semibold text-slate-800 dark:text-slate-100" id="provider-modal-title">Provider</h3>
-                <button class="text-slate-400 hover:text-slate-500" id="provider-modal-close">&times;</button>
+    {# ============================================================
+       🏗️ Update Sort Order Modal
+       ============================================================ #}
+    <div id="sort-modal" class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-50 flex items-center justify-center hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Update Sort Order</h3>
+                <button type="button" class="close-modal text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <svg class="w-6 h-6 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
             </div>
-            <div class="px-5 py-4">
-                <div id="provider-modal-error" class="hidden mb-4 p-3 bg-rose-100 text-rose-600 rounded"></div>
-                <form id="provider-form">
-                    <input type="hidden" id="provider-id" name="id">
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium mb-1" for="provider-code">Code</label>
-                            <input id="provider-code" name="code" class="form-input w-full" type="text" />
-                            <p class="text-xs text-slate-500 mt-1" id="provider-code-help">Code is immutable after creation.</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium mb-1" for="provider-name">Name</label>
-                            <input id="provider-name" name="name" class="form-input w-full" type="text" />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium mb-1" for="provider-description">Description</label>
-                            <textarea id="provider-description" name="description" class="form-textarea w-full" rows="3"></textarea>
-                        </div>
-                    </div>
-                </form>
+            <div class="p-6">
+                <input type="hidden" id="sort-provider-id">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New Display Order</label>
+                <input type="number" id="sort-new-value" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" min="1" required>
             </div>
-            <div class="px-5 py-4 border-t border-slate-200 dark:border-slate-700 flex justify-end">
-                <button class="btn-sm border-slate-200 hover:border-slate-300 text-slate-600 mr-2" id="provider-modal-cancel">Cancel</button>
-                <button class="btn-sm bg-indigo-500 hover:bg-indigo-600 text-white" id="provider-modal-save">Save</button>
+            <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+                <button type="button" class="close-modal px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">Cancel</button>
+                <button type="button" id="btn-save-sort" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">Save</button>
             </div>
         </div>
     </div>
 {% endblock %}
 
 {% block scripts %}
+    {# Shared infrastructure scripts #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/api_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/callback_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/Input_checker.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/data_table.js') }}"></script>
+
+    {# ✨ Select2 - Custom dropdown with search #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/select2.js') }}"></script>
+
+    {# ✨ Project-wide reusable UI components library #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
+
+    {# 🧩 V2 bridge (page-scoped) #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-page-bridge.js') }}"></script>
+
+    {# 💱 Providers v2 scripts (helpers → core → modals → actions) #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/exchange_rates/providers-helpers-v2.js') }}"></script>
     <script src="{{ asset('assets/maatify/admin-kernel/js/pages/exchange_rates/providers-with-components-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/exchange_rates/providers-modals-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/exchange_rates/providers-actions-v2.js') }}"></script>
 {% endblock %}

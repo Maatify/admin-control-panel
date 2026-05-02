@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Http\Routes\Ui\Features;
 
 use Maatify\AdminKernel\Http\Controllers\Ui\ExchangeRates\ProvidersListUiController;
+use Maatify\AdminKernel\Http\Controllers\Ui\ExchangeRates\RatesHistoryListUiController;
 use Maatify\AdminKernel\Http\Controllers\Ui\ExchangeRates\RatesListUiController;
 use Maatify\AdminKernel\Http\Middleware\AuthorizationGuardMiddleware;
 use Psr\Container\ContainerInterface;
@@ -24,6 +25,9 @@ final class ExchangeRatesUiRoutes
 
             $erGroup->get('/rates', [RatesListUiController::class, '__invoke'])
                 ->setName('exchange_rates.rates.list.ui');
+
+            $erGroup->get('/rates/{rate_id:[0-9]+}/history', [RatesHistoryListUiController::class, '__invoke'])
+                ->setName('exchange_rates.rates.history.list.ui');
 
         })->add(AuthorizationGuardMiddleware::class);
     }

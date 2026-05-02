@@ -125,6 +125,7 @@ final class PermissionMapperV2 implements PermissionMapperV2Interface
         'exchange_rates.rates.update_sort.api' => 'exchange_rates.rates.update_sort',
         'exchange_rates.rates.delete.api' => 'exchange_rates.rates.delete',
         'exchange_rates.rates.history.api' => 'exchange_rates.rates.history',
+        'exchange_rates.rates.history.list.ui' => 'exchange_rates.rates.history.list',
 
         // Image Profiles
         'image_profiles.list.ui' => 'image_profiles.list',

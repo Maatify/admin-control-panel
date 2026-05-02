@@ -108,6 +108,8 @@ final class KernelPermissionMapProvider implements PermissionMapProviderInterfac
             'exchange_rates.rates.update_sort.api' => PermissionRequirementDefinition::single('exchange_rates.rates.update_sort'),
             'exchange_rates.rates.delete.api'      => PermissionRequirementDefinition::single('exchange_rates.rates.delete'),
             'exchange_rates.rates.history.api'     => PermissionRequirementDefinition::single('exchange_rates.rates.history'),
+            'exchange_rates.rates.history.list.ui'     => PermissionRequirementDefinition::single('exchange_rates.rates.history'),
+
 
             // Image Profiles
             'image_profiles.list.ui'      => PermissionRequirementDefinition::single('image_profiles.list'),

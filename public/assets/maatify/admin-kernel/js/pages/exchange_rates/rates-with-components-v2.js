@@ -1,141 +1,330 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const tableBody = document.getElementById('rates-table-body');
-    const totalCount = document.getElementById('rates-total-count');
+/**
+ * 💱 Exchange Rates Management Core V2 (Bridge-first)
+ */
 
-    // Modal elements
-    const modal = document.getElementById('rate-modal');
-    const modalTitle = document.getElementById('rate-modal-title');
-    const modalError = document.getElementById('rate-modal-error');
-    const form = document.getElementById('rate-form');
-    const inputId = document.getElementById('rate-id');
-    const inputProvider = document.getElementById('rate-provider');
-    const inputBase = document.getElementById('rate-base');
-    const inputTarget = document.getElementById('rate-target');
-    const inputRate = document.getElementById('rate-value');
+(function() {
+    'use strict';
 
-    function loadProvidersForDropdown(selectedId = null) {
-        fetch(window.ratesCapabilities.endpoints.providers_dropdown, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({})
-        })
-        .then(res => res.json())
-        .then(data => {
-            if(data.success && data.data && data.data.data) {
-                inputProvider.innerHTML = data.data.data.map(p => `<option value="${p.id}">${p.name} (${p.code})</option>`).join('');
-                if (selectedId) {
-                    inputProvider.value = selectedId;
-                }
-            }
-        });
+    console.log('💱 Rates Module V2 Initialized');
+
+    if (typeof AdminUIComponents === 'undefined' || !window.AdminPageBridge) {
+        console.error('❌ Missing dependencies for rates-with-components-v2');
+        return;
     }
 
-    function loadRates() {
-        fetch(window.ratesCapabilities.endpoints.query, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ page: 1, per_page: 100 })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if(data.success && data.data && data.data.data) {
-                renderTable(data.data.data);
-                totalCount.innerText = data.data.pagination.total;
-            }
-        });
-    }
+    const Bridge = window.AdminPageBridge;
+    const Helpers = window.RatesHelpersV2;
 
-    function renderTable(items) {
-        tableBody.innerHTML = items.map(item => `
-            <tr>
-                <td class="px-2 py-3 font-medium">${item.provider_name}</td>
-                <td class="px-2 py-3">${item.base_currency_code}</td>
-                <td class="px-2 py-3">${item.target_currency_code}</td>
-                <td class="px-2 py-3 font-mono">${item.rate}</td>
-                <td class="px-2 py-3 text-center">${item.is_active ? '<span class="text-emerald-500">Active</span>' : '<span class="text-rose-500">Inactive</span>'}</td>
-                <td class="px-2 py-3 text-right">
-                    ${window.ratesCapabilities.can_update ? `<button class="text-indigo-500 hover:text-indigo-600 mr-2 edit-btn" data-item='${JSON.stringify(item).replace(/'/g, "&apos;")}'>Edit</button>` : ''}
-                </td>
-            </tr>
-        `).join('');
+    let currentPage = 1;
+    let currentPerPage = 20;
 
-        document.querySelectorAll('.edit-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const item = JSON.parse(e.target.getAttribute('data-item'));
-                openModal(item);
-            });
-        });
-    }
+    const headers = ['ID', 'Provider', 'Base', 'Target', 'Rate', 'Order', 'Status', 'Actions'];
+    const rows = ['id', 'provider_name', 'base_currency_code', 'target_currency_code', 'rate', 'display_order', 'is_active', 'actions'];
 
-    function openModal(item = null) {
-        modalError.classList.add('hidden');
-        if (item) {
-            modalTitle.innerText = 'Edit Rate';
-            inputId.value = item.id;
-            loadProvidersForDropdown(item.provider_id);
-            inputProvider.disabled = true; // Immutable pair
-            inputBase.value = item.base_currency_code;
-            inputBase.disabled = true; // Immutable pair
-            inputTarget.value = item.target_currency_code;
-            inputTarget.disabled = true; // Immutable pair
-            inputRate.value = item.rate;
-        } else {
-            modalTitle.innerText = 'Create Rate';
-            form.reset();
-            inputId.value = '';
-            inputProvider.disabled = false;
-            inputBase.disabled = false;
-            inputTarget.disabled = false;
-            loadProvidersForDropdown();
+    const idRenderer = function(value) {
+        return '<span class="text-gray-900 dark:text-gray-200">' + value + '</span>';
+    };
+
+    const providerRenderer = function(value) {
+        if (!value) return '<span class="text-gray-400 dark:text-gray-500 italic">N/A</span>';
+        return '<span class="font-medium text-gray-900 dark:text-gray-200">' + value + '</span>';
+    };
+
+    const baseCurrencyRenderer = function(value) {
+        return AdminUIComponents.renderCodeBadge(value || '-', { color: 'blue', uppercase: true });
+    };
+
+    const targetCurrencyRenderer = function(value) {
+        return AdminUIComponents.renderCodeBadge(value || '-', { color: 'purple', uppercase: true });
+    };
+
+    const rateRenderer = function(value) {
+        if (value === null || value === undefined || value === '') {
+            return '<span class="text-gray-400 dark:text-gray-500 italic">N/A</span>';
         }
-        modal.classList.remove('hidden');
+        return '<span class="font-mono text-sm text-gray-800 dark:text-gray-100 bg-gray-50 dark:bg-gray-700/50 px-2 py-0.5 rounded">' + value + '</span>';
+    };
+
+    const sortRenderer = function(value) {
+        return AdminUIComponents.renderSortBadge(value, { size: 'md', color: 'indigo' });
+    };
+
+    const statusRenderer = function(value, row) {
+        const canActive = window.ratesCapabilities?.can_active ?? false;
+        return AdminUIComponents.renderStatusBadge(value, {
+            clickable: canActive,
+            entityId: row.id,
+            activeText: 'Active',
+            inactiveText: 'Inactive',
+            buttonClass: 'toggle-status-btn',
+            dataAttribute: 'data-rate-id'
+        }).replace('data-rate-id', 'data-current-is-active="' + (value ? '1' : '0') + '" data-rate-id');
+    };
+
+    const actionsRenderer = function(_, row) {
+        const canUpdate = window.ratesCapabilities?.can_update ?? false;
+        const canUpdateSort = window.ratesCapabilities?.can_update_sort ?? false;
+        const canDelete = window.ratesCapabilities?.can_delete ?? false;
+        const canViewHistory = window.ratesCapabilities?.can_view_history ?? false;
+
+        if (!canUpdate && !canUpdateSort && !canDelete && !canViewHistory) {
+            return '<span class="text-gray-400 text-xs">No actions</span>';
+        }
+
+        const actions = [];
+
+        if (canUpdate) {
+            actions.push(AdminUIComponents.buildActionButton({
+                cssClass: 'edit-rate-btn',
+                icon: AdminUIComponents.SVGIcons.edit,
+                text: 'Edit',
+                color: 'blue',
+                entityId: row.id,
+                title: 'Edit rate',
+                dataAttributes: {
+                    'rate-id': row.id,
+                    'current-provider-id': row.provider_id || '',
+                    'current-provider-name': row.provider_name || '',
+                    'current-base': row.base_currency_code || '',
+                    'current-target': row.target_currency_code || '',
+                    'current-rate': row.rate || '',
+                    'current-display-order': row.display_order
+                }
+            }));
+        }
+
+        if (canUpdateSort) {
+            actions.push(AdminUIComponents.buildActionButton({
+                cssClass: 'update-sort-btn',
+                icon: AdminUIComponents.SVGIcons.sort,
+                text: 'Sort',
+                color: 'indigo',
+                entityId: row.id,
+                title: 'Update sort order',
+                dataAttributes: { 'rate-id': row.id, 'current-sort': row.display_order }
+            }));
+        }
+
+        if (canViewHistory) {
+            actions.push(AdminUIComponents.buildActionButton({
+                cssClass: 'view-history-btn',
+                icon: AdminUIComponents.SVGIcons.view,
+                text: 'History',
+                color: 'purple',
+                entityId: row.id,
+                title: 'View rate history',
+                link: '/exchange-rates/rates/' + row.id + '/history',
+                dataAttributes: {
+                    'rate-id': row.id,
+                    'rate-label': (row.base_currency_code || '') + '/' + (row.target_currency_code || '')
+                }
+            }));
+        }
+
+        if (canDelete) {
+            actions.push(AdminUIComponents.buildActionButton({
+                cssClass: 'delete-rate-btn',
+                icon: AdminUIComponents.SVGIcons.delete,
+                text: 'Delete',
+                color: 'red',
+                entityId: row.id,
+                title: 'Delete rate',
+                dataAttributes: { 'rate-id': row.id }
+            }));
+        }
+
+        return '<div class="flex flex-wrap gap-1">' + actions.join('') + '</div>';
+    };
+
+    function getPaginationInfo(pagination) {
+        const page = pagination.page || 1;
+        const perPage = pagination.per_page || 20;
+        const total = pagination.total || 0;
+        const filtered = pagination.filtered === undefined ? total : pagination.filtered;
+        const displayCount = filtered || total;
+        const startItem = displayCount === 0 ? 0 : (page - 1) * perPage + 1;
+        const endItem = Math.min(page * perPage, displayCount);
+
+        let infoText = '<span>' + startItem + ' to ' + endItem + '</span> of <span>' + displayCount + '</span>';
+        if (filtered && filtered !== total) infoText += ' <span class="text-gray-500">(filtered from ' + total + ' total)</span>';
+
+        return { total: displayCount, info: infoText };
     }
 
-    function closeModal() {
-        modal.classList.add('hidden');
+    function buildQueryParams() {
+        const params = { page: currentPage, per_page: currentPerPage };
+        const globalSearch = Bridge.DOM.value('#rates-search', '').trim();
+
+        const columnFilters = Bridge.Form.omitEmpty({
+            // id: Bridge.DOM.value('#filter-id', '').trim(),
+            provider_id: Bridge.DOM.value('#filter-provider', ''),
+            base_currency_code: Bridge.DOM.value('#filter-base', '').trim(),
+            target_currency_code: Bridge.DOM.value('#filter-target', '').trim(),
+            is_active: Bridge.DOM.value('#filter-status', '')
+        });
+
+        if (globalSearch || Object.keys(columnFilters).length > 0) {
+            params.search = {};
+            if (globalSearch) params.search.global = globalSearch;
+            if (Object.keys(columnFilters).length > 0) params.search.columns = columnFilters;
+        }
+
+        return params;
     }
 
-    function saveRate() {
-        const isUpdate = inputId.value !== '';
-        const endpoint = isUpdate ? window.ratesCapabilities.endpoints.update : window.ratesCapabilities.endpoints.create;
+    async function loadRates(pageNumber, perPageNumber) {
+        if (pageNumber !== null && pageNumber !== undefined) currentPage = pageNumber;
+        if (perPageNumber !== null && perPageNumber !== undefined) currentPerPage = perPageNumber;
 
-        const payload = {
-            rate: inputRate.value
+        const params = buildQueryParams();
+        const result = await Bridge.API.execute({
+            endpoint: 'exchange-rates/rates/query',
+            payload: params,
+            operation: 'Query Exchange Rates',
+            method: 'POST',
+            showErrorMessage: false
+        });
+
+        if (!result.success) {
+            const container = document.getElementById('table-container');
+            if (container) {
+                container.innerHTML = '<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative"><strong class="font-bold">Error!</strong><span class="block sm:inline">' + (result.error || 'Failed to load exchange rates.') + '</span></div>';
+            }
+            Bridge.UI.error(result.error || 'Failed to load exchange rates.');
+            return;
+        }
+
+        const data = result.data || {};
+        const items = Array.isArray(data.data) ? data.data : [];
+        const paginationInfo = data.pagination || { page: params.page, per_page: params.per_page, total: items.length };
+        currentPage = Bridge.normalizeInt(paginationInfo.page, currentPage) || currentPage;
+        currentPerPage = Bridge.normalizeInt(paginationInfo.per_page, currentPerPage) || currentPerPage;
+
+        try {
+            TableComponent(items, headers, rows, paginationInfo, '', false, 'id', null, {
+                id: idRenderer,
+                provider_name: providerRenderer,
+                base_currency_code: baseCurrencyRenderer,
+                target_currency_code: targetCurrencyRenderer,
+                rate: rateRenderer,
+                display_order: sortRenderer,
+                is_active: statusRenderer,
+                actions: actionsRenderer
+            }, null, getPaginationInfo);
+        } catch (error) {
+            Bridge.UI.error('Failed to render table: ' + error.message);
+        }
+    }
+
+    async function loadProvidersDropdown() {
+        const selectEl = document.getElementById('filter-provider');
+        if (!selectEl) return;
+
+        const result = await Bridge.API.execute({
+            endpoint: 'exchange-rates/providers/dropdown',
+            payload: {},
+            operation: 'Load Providers Dropdown',
+            method: 'POST',
+            showErrorMessage: false
+        });
+
+        if (result.success && result.data && result.data.data) {
+            const currentHTML = selectEl.innerHTML;
+            selectEl.innerHTML = currentHTML + result.data.data.map(function(p) {
+                return '<option value="' + p.id + '">' + Bridge.Text.escapeHtml(p.name) + ' (' + Bridge.Text.escapeHtml(p.code) + ')</option>';
+            }).join('');
+        }
+    }
+
+    function setupSearchAndFilters() {
+        const resetPageAndReload = Helpers?.bindResetPageReload
+            ? Helpers.bindResetPageReload({
+                setPage: function(page) { currentPage = page; },
+                reload: function() { return loadRates(); }
+            })
+            : function() {
+                currentPage = 1;
+                return loadRates();
+            };
+
+        Bridge.Events.bindDebouncedInput({
+            input: '#rates-search',
+            delay: 500,
+            eventName: 'input',
+            onFire: resetPageAndReload
+        });
+
+        const searchBtn = document.getElementById('rates-search-btn');
+        if (searchBtn) searchBtn.addEventListener('click', resetPageAndReload);
+
+        const clearBtn = document.getElementById('rates-clear-search');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function() {
+                const input = document.getElementById('rates-search');
+                if (input) input.value = '';
+                resetPageAndReload();
+            });
+        }
+
+        Bridge.Events.bindFilterForm({
+            form: '#rates-filter-form',
+            resetButton: '#rates-reset-filters',
+            onSubmit: resetPageAndReload,
+            onReset: resetPageAndReload
+        });
+
+        const filterFormSelects = document.querySelectorAll('#rates-filter-form select');
+        filterFormSelects.forEach(function(select) {
+            select.addEventListener('change', resetPageAndReload);
+        });
+
+        if (Helpers?.bindTableActionState) {
+            Helpers.bindTableActionState({
+                getParams: buildQueryParams,
+                sourceContainerId: 'table-container',
+                getState: function() { return { page: currentPage, perPage: currentPerPage }; },
+                setState: function(state) {
+                    currentPage = state.page ?? currentPage;
+                    currentPerPage = state.perPage ?? currentPerPage;
+                },
+                reload: function() { return loadRates(currentPage, currentPerPage); }
+            });
+        }
+    }
+
+    function init() {
+        setupSearchAndFilters();
+        loadProvidersDropdown();
+        loadRates();
+
+        window.loadRatesV2 = loadRates;
+        window.reloadRatesTableV2 = function() {
+            return loadRates(currentPage, currentPerPage);
         };
 
-        if (isUpdate) {
-            payload.id = parseInt(inputId.value, 10);
-        } else {
-            payload.provider_id = parseInt(inputProvider.value, 10);
-            payload.base_currency_code = inputBase.value.toUpperCase();
-            payload.target_currency_code = inputTarget.value.toUpperCase();
-        }
+        // Delegated click handler for Edit button
+        Bridge.Events.onClick('.edit-rate-btn', function(event, btn) {
+            event.preventDefault();
+            const rateId = btn.getAttribute('data-rate-id') || btn.getAttribute('data-entity-id');
+            if (!rateId) return;
 
-        fetch(endpoint, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(payload)
-        })
-        .then(async res => {
-            const data = await res.json();
-            if (!res.ok || !data.success) {
-                throw new Error(data.message || 'Error saving rate');
+            const modals = window.RatesModalsV2;
+            if (modals && typeof modals.openEditRateModal === 'function') {
+                modals.openEditRateModal(rateId, btn);
+            } else {
+                console.warn('[Rates] RatesModalsV2 not ready yet.');
             }
-            closeModal();
-            loadRates();
-        })
-        .catch(err => {
-            modalError.innerText = err.message;
-            modalError.classList.remove('hidden');
         });
     }
 
-    if (document.getElementById('rates-create-btn')) {
-        document.getElementById('rates-create-btn').addEventListener('click', () => openModal());
-    }
-    document.getElementById('rate-modal-close').addEventListener('click', closeModal);
-    document.getElementById('rate-modal-cancel').addEventListener('click', closeModal);
-    document.getElementById('rate-modal-save').addEventListener('click', saveRate);
+    window.RatesCoreV2 = {
+        loadRates,
+        buildQueryParams
+    };
 
-    loadRates();
-});
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
