@@ -39,7 +39,6 @@ final readonly class ScopesListUiController
 
         $capabilities = [
             'can_create'        => $this->uiPermissionService->hasPermission($adminId, 'i18n.scopes.create'),
-            'can_update'        => $this->uiPermissionService->hasPermission($adminId, 'i18n.scopes.update'),
             'can_change_code'   => $this->uiPermissionService->hasPermission($adminId, 'i18n.scopes.change_code'),
             'can_set_active'    => $this->uiPermissionService->hasPermission($adminId, 'i18n.scopes.set_active'),
             'can_update_sort'   => $this->uiPermissionService->hasPermission($adminId, 'i18n.scopes.update_sort'),
