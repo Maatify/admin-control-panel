@@ -17,6 +17,5 @@ final class UpdateCurrencyCommand
         public readonly string $name,
         public readonly string $symbol,
         public readonly bool   $isActive,
-        public readonly int    $displayOrder,
     ) {}
 }

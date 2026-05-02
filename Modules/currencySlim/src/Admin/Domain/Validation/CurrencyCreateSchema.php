@@ -30,10 +30,6 @@ final class CurrencyCreateSchema extends AbstractSchema
                 v::optional(v::boolType()),
                 ValidationErrorCodeEnum::INVALID_FORMAT
             ],
-            'display_order' => [
-                v::optional(v::intType()->min(0)),
-                ValidationErrorCodeEnum::INVALID_FORMAT
-            ],
         ];
     }
 }

@@ -45,21 +45,12 @@ final readonly class CurrenciesCreateController
             $isActive = $body['is_active'];
         }
 
-        $displayOrder = 0;
-        if (array_key_exists('display_order', $body)) {
-            if (!is_int($body['display_order'])) {
-                throw new \RuntimeException('Invalid display_order payload.');
-            }
-            $displayOrder = $body['display_order'];
-        }
-
         // 3) Execute service
         $dto = $this->commandService->create(new CreateCurrencyCommand(
             code: $code,
             name: $name,
             symbol: $symbol,
             isActive: $isActive,
-            displayOrder: $displayOrder
         ));
 
         // 4) Return success using JSON response factory

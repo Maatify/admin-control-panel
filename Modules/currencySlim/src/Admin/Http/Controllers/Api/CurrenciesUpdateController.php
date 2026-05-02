@@ -34,9 +34,8 @@ final readonly class CurrenciesUpdateController
         $name = $body['name'];
         $symbol = $body['symbol'];
         $isActive = $body['is_active'];
-        $displayOrder = $body['display_order'];
 
-        if (!is_int($id) || !is_string($code) || !is_string($name) || !is_string($symbol) || !is_bool($isActive) || !is_int($displayOrder)) {
+        if (!is_int($id) || !is_string($code) || !is_string($name) || !is_string($symbol) || !is_bool($isActive)) {
             throw new \RuntimeException('Invalid validated payload.');
         }
 
@@ -47,7 +46,6 @@ final readonly class CurrenciesUpdateController
             name: $name,
             symbol: $symbol,
             isActive: $isActive,
-            displayOrder: $displayOrder
         ));
 
         // 4) Return success using JSON response factory

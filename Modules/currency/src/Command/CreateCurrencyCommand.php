@@ -18,6 +18,5 @@ final class CreateCurrencyCommand
         public readonly string $name,
         public readonly string $symbol,
         public readonly bool   $isActive     = true,
-        public readonly int    $displayOrder = 0,
     ) {}
 }

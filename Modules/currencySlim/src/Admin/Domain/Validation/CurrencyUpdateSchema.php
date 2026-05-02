@@ -34,10 +34,6 @@ final class CurrencyUpdateSchema extends AbstractSchema
                 v::boolType(),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
-            'display_order' => [
-                v::intType()->min(1),
-                ValidationErrorCodeEnum::REQUIRED_FIELD
-            ],
         ];
     }
 }
