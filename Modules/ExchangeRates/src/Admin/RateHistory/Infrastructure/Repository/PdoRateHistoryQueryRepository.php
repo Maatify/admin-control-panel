@@ -59,6 +59,159 @@ final class PdoRateHistoryQueryRepository implements RateHistoryQueryRepositoryI
         ];
     }
 
+    /**
+     * @param array<string, mixed> $columnFilters
+     * @return array{
+     *     data: list<RateHistoryListItemDTO>,
+     *     pagination: array{
+     *         page: int,
+     *         per_page: int,
+     *         total: int,
+     *         filtered: int
+     *     }
+     * }
+     */
+    public function list(
+        int $page,
+        int $perPage,
+        ?string $globalSearch,
+        array $columnFilters
+    ): array {
+        $page = max(1, $page);
+        $perPage = max(1, min(100, $perPage));
+        $offset = ($page - 1) * $perPage;
+
+        $where = [];
+        $params = [];
+
+        if ($globalSearch !== null && trim($globalSearch) !== '') {
+            $search = '%' . trim($globalSearch) . '%';
+
+            $where[] = '(
+            `h`.`base_currency_code` LIKE :global_search_base_currency_code
+            OR `h`.`target_currency_code` LIKE :global_search_target_currency_code
+        )';
+
+            $params['global_search_base_currency_code'] = $search;
+            $params['global_search_target_currency_code'] = $search;
+        }
+
+        if (array_key_exists('id', $columnFilters)) {
+            $idRaw = $columnFilters['id'];
+
+            if (is_scalar($idRaw) && is_numeric($idRaw)) {
+                $where[] = '`h`.`id` = :id';
+                $params['id'] = (int) $idRaw;
+            }
+        }
+
+        if (array_key_exists('rate_id', $columnFilters)) {
+            $rateIdRaw = $columnFilters['rate_id'];
+
+            if (is_scalar($rateIdRaw) && is_numeric($rateIdRaw)) {
+                $where[] = '`h`.`rate_id` = :rate_id';
+                $params['rate_id'] = (int) $rateIdRaw;
+            }
+        }
+
+        if (array_key_exists('provider_id', $columnFilters)) {
+            $providerIdRaw = $columnFilters['provider_id'];
+
+            if (is_scalar($providerIdRaw) && is_numeric($providerIdRaw)) {
+                $where[] = '`h`.`provider_id` = :provider_id';
+                $params['provider_id'] = (int) $providerIdRaw;
+            }
+        }
+
+        if (array_key_exists('base_currency_code', $columnFilters)) {
+            $baseRaw = $columnFilters['base_currency_code'];
+
+            if (is_string($baseRaw) && trim($baseRaw) !== '') {
+                $where[] = '`h`.`base_currency_code` = :base_currency_code';
+                $params['base_currency_code'] = strtoupper(trim($baseRaw));
+            }
+        }
+
+        if (array_key_exists('target_currency_code', $columnFilters)) {
+            $targetRaw = $columnFilters['target_currency_code'];
+
+            if (is_string($targetRaw) && trim($targetRaw) !== '') {
+                $where[] = '`h`.`target_currency_code` = :target_currency_code';
+                $params['target_currency_code'] = strtoupper(trim($targetRaw));
+            }
+        }
+
+        if (array_key_exists('recorded_from', $columnFilters)) {
+            $fromRaw = $columnFilters['recorded_from'];
+
+            if (is_string($fromRaw) && trim($fromRaw) !== '') {
+                $where[] = '`h`.`recorded_at` >= :recorded_from';
+                $params['recorded_from'] = trim($fromRaw);
+            }
+        }
+
+        if (array_key_exists('recorded_to', $columnFilters)) {
+            $toRaw = $columnFilters['recorded_to'];
+
+            if (is_string($toRaw) && trim($toRaw) !== '') {
+                $where[] = '`h`.`recorded_at` <= :recorded_to';
+                $params['recorded_to'] = trim($toRaw);
+            }
+        }
+
+        $whereSql = $where !== [] ? ' WHERE ' . implode(' AND ', $where) : '';
+
+        $stmtTotal = $this->pdo->query('SELECT COUNT(*) FROM `maa_er_rate_history`');
+        $total = $stmtTotal !== false ? (int) $stmtTotal->fetchColumn() : 0;
+
+        $stmtFiltered = $this->pdo->prepare(
+            'SELECT COUNT(*)
+           FROM `maa_er_rate_history` `h`
+     INNER JOIN `maa_er_providers` `p` ON `p`.`id` = `h`.`provider_id`'
+            . $whereSql
+        );
+
+        $stmtFiltered->execute($params);
+        $filtered = (int) $stmtFiltered->fetchColumn();
+
+        $stmt = $this->pdo->prepare(
+            'SELECT `h`.`id`, `h`.`rate_id`, `h`.`provider_id`,
+                `h`.`base_currency_code`, `h`.`target_currency_code`,
+                `h`.`rate`, `h`.`recorded_at`, `h`.`created_at`,
+                `p`.`name` AS `provider_name`
+           FROM `maa_er_rate_history` `h`
+     INNER JOIN `maa_er_providers` `p` ON `p`.`id` = `h`.`provider_id`'
+            . $whereSql .
+            ' ORDER BY `h`.`recorded_at` DESC, `h`.`id` DESC
+          LIMIT :limit OFFSET :offset'
+        );
+
+        foreach ($params as $key => $value) {
+            if (is_int($value)) {
+                $stmt->bindValue(':' . $key, $value, PDO::PARAM_INT);
+            } else {
+                $stmt->bindValue(':' . $key, $value);
+            }
+        }
+
+        $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+
+        /** @var list<array<string, mixed>> $rows */
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return [
+            'data' => $this->hydrateAll($rows),
+            'pagination' => [
+                'page'     => $page,
+                'per_page' => $perPage,
+                'total'    => $total,
+                'filtered' => $filtered,
+            ],
+        ];
+    }
+
     // =========================================================
     //  List by pair
     // =========================================================

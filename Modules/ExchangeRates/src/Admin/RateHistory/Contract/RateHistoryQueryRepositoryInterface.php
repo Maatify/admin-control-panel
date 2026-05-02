@@ -14,6 +14,27 @@ interface RateHistoryQueryRepositoryInterface
     public function listByRateId(int $rateId, int $page, int $perPage): array;
 
     /**
+     * Paginated history entries.
+     *
+     * @param array<string, mixed> $columnFilters
+     * @return array{
+     *     data: list<\Maatify\ExchangeRates\Admin\RateHistory\DTO\RateHistoryListItemDTO>,
+     *     pagination: array{
+     *         page: int,
+     *         per_page: int,
+     *         total: int,
+     *         filtered: int
+     *     }
+     * }
+     */
+    public function list(
+        int $page,
+        int $perPage,
+        ?string $globalSearch,
+        array $columnFilters
+    ): array;
+
+    /**
      * Paginated history for a currency pair, optionally scoped to a provider.
      *
      * @return array{data: list<\Maatify\ExchangeRates\Admin\RateHistory\DTO\RateHistoryListItemDTO>, pagination: array{page: int, per_page: int, total: int, filtered: int}}

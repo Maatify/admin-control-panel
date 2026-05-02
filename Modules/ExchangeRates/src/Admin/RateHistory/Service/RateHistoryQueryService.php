@@ -22,6 +22,32 @@ final class RateHistoryQueryService
     }
 
     /**
+     * @param array<string, mixed> $columnFilters
+     * @return array{
+     *     data: list<\Maatify\ExchangeRates\Admin\RateHistory\DTO\RateHistoryListItemDTO>,
+     *     pagination: array{
+     *         page: int,
+     *         per_page: int,
+     *         total: int,
+     *         filtered: int
+     *     }
+     * }
+     */
+    public function list(
+        int $page,
+        int $perPage,
+        ?string $globalSearch,
+        array $columnFilters
+    ): array {
+        return $this->queryRepo->list(
+            $page,
+            $perPage,
+            $globalSearch,
+            $columnFilters
+        );
+    }
+
+    /**
      * @return array{data: list<\Maatify\ExchangeRates\Admin\RateHistory\DTO\RateHistoryListItemDTO>, pagination: array{page: int, per_page: int, total: int, filtered: int}}
      */
     public function listByPair(
