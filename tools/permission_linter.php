@@ -1332,7 +1332,10 @@ $autoloadFile = permission_linter_first_existing_file([
 if ($autoloadFile !== null) {
     require_once $autoloadFile;
 } else {
-    $report->error('autoload', 'vendor/autoload.php was not found. Provider discovery cannot be trusted.');
+    $report->warning(
+        'autoload',
+        'vendor/autoload.php was not found. Runtime provider discovery was skipped; static provider parsing will be used.'
+    );
 }
 
 $seedFiles = permission_linter_find_permission_seed_files($projectRoot, $scanRoots);
@@ -1356,7 +1359,10 @@ $staticProviderMap = permission_linter_scan_static_provider_maps($scanRoots, $re
 $providerMap = permission_linter_merge_provider_maps($runtimeProviderMap, $staticProviderMap, $report);
 
 if ($providerMap === []) {
-    $report->error('PermissionMapProviderInterface', 'No permission map providers or static provider maps were discovered. Check scan roots, autoloading, and provider classes.');
+    $report->error(
+        'provider_map',
+        'No permission provider mappings were discovered. Runtime discovery and static provider parsing both failed.'
+    );
 }
 
 permission_linter_validate_seed($dbPermissions, $report);
