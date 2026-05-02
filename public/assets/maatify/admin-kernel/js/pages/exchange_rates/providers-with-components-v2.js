@@ -132,7 +132,7 @@
         const globalSearch = Bridge.DOM.value('#providers-search', '').trim();
 
         const columnFilters = Bridge.Form.omitEmpty({
-            id: Bridge.DOM.value('#filter-id', '').trim(),
+            // id: Bridge.DOM.value('#filter-id', '').trim(),
             code: Bridge.DOM.value('#filter-code', '').trim(),
             name: Bridge.DOM.value('#filter-name', '').trim(),
             is_active: Bridge.DOM.value('#filter-status', '')
