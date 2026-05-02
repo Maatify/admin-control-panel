@@ -223,6 +223,7 @@
             color = 'blue', // blue, green, amber, red, purple, indigo
             entityId = null,
             title = '',
+            link = '', // ✅ Added link support
             dataAttributes = {}
         } = config;
 
@@ -237,6 +238,8 @@
         };
 
         let dataAttrs = entityId ? `data-entity-id="${entityId}"` : '';
+        if (link) dataAttrs += ` data-link="${link}"`; // ✅ Add data-link
+
         for (const [key, value] of Object.entries(dataAttributes)) {
             dataAttrs += ` data-${key}="${value}"`;
         }

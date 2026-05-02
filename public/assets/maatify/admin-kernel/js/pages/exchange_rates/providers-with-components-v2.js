@@ -1,115 +1,283 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const tableBody = document.getElementById('providers-table-body');
-    const totalCount = document.getElementById('providers-total-count');
+/**
+ * 💱 Exchange Rate Providers Management Core V2 (Bridge-first)
+ */
 
-    // Modal elements
-    const modal = document.getElementById('provider-modal');
-    const modalTitle = document.getElementById('provider-modal-title');
-    const modalError = document.getElementById('provider-modal-error');
-    const form = document.getElementById('provider-form');
-    const inputId = document.getElementById('provider-id');
-    const inputCode = document.getElementById('provider-code');
-    const inputName = document.getElementById('provider-name');
-    const inputDesc = document.getElementById('provider-description');
+(function() {
+    'use strict';
 
-    function loadProviders() {
-        fetch(window.providersCapabilities.endpoints.query, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ page: 1, per_page: 100 })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if(data.success && data.data && data.data.data) {
-                renderTable(data.data.data);
-                totalCount.innerText = data.data.pagination.total;
-            }
-        });
+    console.log('💱 Providers Module V2 Initialized');
+
+    if (typeof AdminUIComponents === 'undefined' || !window.AdminPageBridge) {
+        console.error('❌ Missing dependencies for providers-with-components-v2');
+        return;
     }
 
-    function renderTable(items) {
-        tableBody.innerHTML = items.map(item => `
-            <tr>
-                <td class="px-2 py-3">${item.display_order}</td>
-                <td class="px-2 py-3 font-medium">${item.code}</td>
-                <td class="px-2 py-3">${item.name}</td>
-                <td class="px-2 py-3 text-center">${item.is_active ? '<span class="text-emerald-500">Active</span>' : '<span class="text-rose-500">Inactive</span>'}</td>
-                <td class="px-2 py-3 text-right">
-                    ${window.providersCapabilities.can_update ? `<button class="text-indigo-500 hover:text-indigo-600 edit-btn" data-item='${JSON.stringify(item).replace(/'/g, "&apos;")}'>Edit</button>` : ''}
-                </td>
-            </tr>
-        `).join('');
+    const Bridge = window.AdminPageBridge;
+    const Helpers = window.ProvidersHelpersV2;
 
-        document.querySelectorAll('.edit-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const item = JSON.parse(e.target.getAttribute('data-item'));
-                openModal(item);
-            });
-        });
-    }
+    let currentPage = 1;
+    let currentPerPage = 20;
 
-    function openModal(item = null) {
-        modalError.classList.add('hidden');
-        if (item) {
-            modalTitle.innerText = 'Edit Provider';
-            inputId.value = item.id;
-            inputCode.value = item.code;
-            inputCode.disabled = true; // Immutable
-            inputName.value = item.name;
-            inputDesc.value = item.description || '';
-        } else {
-            modalTitle.innerText = 'Create Provider';
-            form.reset();
-            inputId.value = '';
-            inputCode.disabled = false;
+    const headers = ['ID', 'Code', 'Name', 'Description', 'Order', 'Status', 'Actions'];
+    const rows = ['id', 'code', 'name', 'description', 'display_order', 'is_active', 'actions'];
+
+    const idRenderer = function(value) {
+        return '<span class="text-gray-900 dark:text-gray-200">' + value + '</span>';
+    };
+
+    const codeRenderer = function(value) {
+        return AdminUIComponents.renderCodeBadge(value || '-', { color: 'blue', uppercase: true });
+    };
+
+    const nameRenderer = function(value) {
+        if (!value) return '<span class="text-gray-400 dark:text-gray-500 italic">N/A</span>';
+        return '<span class="font-medium text-gray-900 dark:text-gray-200">' + value + '</span>';
+    };
+
+    const descriptionRenderer = function(value) {
+        if (!value) return '<span class="text-gray-400 dark:text-gray-500 italic">—</span>';
+        const truncated = value.length > 60 ? value.substring(0, 60) + '…' : value;
+        return '<span class="text-xs text-gray-600 dark:text-gray-300" title="' + Bridge.Text.escapeHtml(value) + '">' + Bridge.Text.escapeHtml(truncated) + '</span>';
+    };
+
+    const sortRenderer = function(value) {
+        return AdminUIComponents.renderSortBadge(value, { size: 'md', color: 'indigo' });
+    };
+
+    const statusRenderer = function(value, row) {
+        const canActive = window.providersCapabilities?.can_active ?? false;
+        return AdminUIComponents.renderStatusBadge(value, {
+            clickable: canActive,
+            entityId: row.id,
+            activeText: 'Active',
+            inactiveText: 'Inactive',
+            buttonClass: 'toggle-status-btn',
+            dataAttribute: 'data-provider-id'
+        }).replace('data-provider-id', 'data-current-is-active="' + (value ? '1' : '0') + '" data-provider-id');
+    };
+
+    const actionsRenderer = function(_, row) {
+        const canUpdate = window.providersCapabilities?.can_update ?? false;
+        const canUpdateSort = window.providersCapabilities?.can_update_sort ?? false;
+        const canDelete = window.providersCapabilities?.can_delete ?? false;
+
+        if (!canUpdate && !canUpdateSort && !canDelete) {
+            return '<span class="text-gray-400 text-xs">No actions</span>';
         }
-        modal.classList.remove('hidden');
+
+        const actions = [];
+
+        if (canUpdate) {
+            actions.push(AdminUIComponents.buildActionButton({
+                cssClass: 'edit-provider-btn',
+                icon: AdminUIComponents.SVGIcons.edit,
+                text: 'Edit',
+                color: 'blue',
+                entityId: row.id,
+                title: 'Edit provider',
+                dataAttributes: {
+                    'provider-id': row.id,
+                    'current-code': row.code || '',
+                    'current-name': row.name || '',
+                    'current-description': row.description || '',
+                    'current-display-order': row.display_order
+                }
+            }));
+        }
+
+        if (canUpdateSort) {
+            actions.push(AdminUIComponents.buildActionButton({
+                cssClass: 'update-sort-btn',
+                icon: AdminUIComponents.SVGIcons.sort,
+                text: 'Sort',
+                color: 'indigo',
+                entityId: row.id,
+                title: 'Update sort order',
+                dataAttributes: { 'provider-id': row.id, 'current-sort': row.display_order }
+            }));
+        }
+
+        if (canDelete) {
+            actions.push(AdminUIComponents.buildActionButton({
+                cssClass: 'delete-provider-btn',
+                icon: AdminUIComponents.SVGIcons.delete,
+                text: 'Delete',
+                color: 'red',
+                entityId: row.id,
+                title: 'Delete provider',
+                dataAttributes: { 'provider-id': row.id }
+            }));
+        }
+
+        return '<div class="flex flex-wrap gap-1">' + actions.join('') + '</div>';
+    };
+
+    function getPaginationInfo(pagination) {
+        const page = pagination.page || 1;
+        const perPage = pagination.per_page || 20;
+        const total = pagination.total || 0;
+        const filtered = pagination.filtered === undefined ? total : pagination.filtered;
+        const displayCount = filtered || total;
+        const startItem = displayCount === 0 ? 0 : (page - 1) * perPage + 1;
+        const endItem = Math.min(page * perPage, displayCount);
+
+        let infoText = '<span>' + startItem + ' to ' + endItem + '</span> of <span>' + displayCount + '</span>';
+        if (filtered && filtered !== total) infoText += ' <span class="text-gray-500">(filtered from ' + total + ' total)</span>';
+
+        return { total: displayCount, info: infoText };
     }
 
-    function closeModal() {
-        modal.classList.add('hidden');
+    function buildQueryParams() {
+        const params = { page: currentPage, per_page: currentPerPage };
+        const globalSearch = Bridge.DOM.value('#providers-search', '').trim();
+
+        const columnFilters = Bridge.Form.omitEmpty({
+            // id: Bridge.DOM.value('#filter-id', '').trim(),
+            code: Bridge.DOM.value('#filter-code', '').trim(),
+            name: Bridge.DOM.value('#filter-name', '').trim(),
+            is_active: Bridge.DOM.value('#filter-status', '')
+        });
+
+        if (globalSearch || Object.keys(columnFilters).length > 0) {
+            params.search = {};
+            if (globalSearch) params.search.global = globalSearch;
+            if (Object.keys(columnFilters).length > 0) params.search.columns = columnFilters;
+        }
+
+        return params;
     }
 
-    function saveProvider() {
-        const isUpdate = inputId.value !== '';
-        const endpoint = isUpdate ? window.providersCapabilities.endpoints.update : window.providersCapabilities.endpoints.create;
+    async function loadProviders(pageNumber, perPageNumber) {
+        if (pageNumber !== null && pageNumber !== undefined) currentPage = pageNumber;
+        if (perPageNumber !== null && perPageNumber !== undefined) currentPerPage = perPageNumber;
 
-        const payload = {
-            name: inputName.value,
-            description: inputDesc.value
+        const params = buildQueryParams();
+        const result = await Bridge.API.execute({
+            endpoint: 'exchange-rates/providers/query',
+            payload: params,
+            operation: 'Query Providers',
+            method: 'POST',
+            showErrorMessage: false
+        });
+
+        if (!result.success) {
+            const container = document.getElementById('table-container');
+            if (container) {
+                container.innerHTML = '<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative"><strong class="font-bold">Error!</strong><span class="block sm:inline">' + (result.error || 'Failed to load providers.') + '</span></div>';
+            }
+            Bridge.UI.error(result.error || 'Failed to load providers.');
+            return;
+        }
+
+        const data = result.data || {};
+        const items = Array.isArray(data.data) ? data.data : [];
+        const paginationInfo = data.pagination || { page: params.page, per_page: params.per_page, total: items.length };
+        currentPage = Bridge.normalizeInt(paginationInfo.page, currentPage) || currentPage;
+        currentPerPage = Bridge.normalizeInt(paginationInfo.per_page, currentPerPage) || currentPerPage;
+
+        try {
+            TableComponent(items, headers, rows, paginationInfo, '', false, 'id', null, {
+                id: idRenderer,
+                code: codeRenderer,
+                name: nameRenderer,
+                description: descriptionRenderer,
+                display_order: sortRenderer,
+                is_active: statusRenderer,
+                actions: actionsRenderer
+            }, null, getPaginationInfo);
+        } catch (error) {
+            Bridge.UI.error('Failed to render table: ' + error.message);
+        }
+    }
+
+    function setupSearchAndFilters() {
+        const resetPageAndReload = Helpers?.bindResetPageReload
+            ? Helpers.bindResetPageReload({
+                setPage: function(page) { currentPage = page; },
+                reload: function() { return loadProviders(); }
+            })
+            : function() {
+                currentPage = 1;
+                return loadProviders();
+            };
+
+        Bridge.Events.bindDebouncedInput({
+            input: '#providers-search',
+            delay: 500,
+            eventName: 'input',
+            onFire: resetPageAndReload
+        });
+
+        const searchBtn = document.getElementById('providers-search-btn');
+        if (searchBtn) searchBtn.addEventListener('click', resetPageAndReload);
+
+        const clearBtn = document.getElementById('providers-clear-search');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function() {
+                const input = document.getElementById('providers-search');
+                if (input) input.value = '';
+                resetPageAndReload();
+            });
+        }
+
+        Bridge.Events.bindFilterForm({
+            form: '#providers-filter-form',
+            resetButton: '#providers-reset-filters',
+            onSubmit: resetPageAndReload,
+            onReset: resetPageAndReload
+        });
+
+        const filterFormSelects = document.querySelectorAll('#providers-filter-form select');
+        filterFormSelects.forEach(function(select) {
+            select.addEventListener('change', resetPageAndReload);
+        });
+
+        if (Helpers?.bindTableActionState) {
+            Helpers.bindTableActionState({
+                getParams: buildQueryParams,
+                sourceContainerId: 'table-container',
+                getState: function() { return { page: currentPage, perPage: currentPerPage }; },
+                setState: function(state) {
+                    currentPage = state.page ?? currentPage;
+                    currentPerPage = state.perPage ?? currentPerPage;
+                },
+                reload: function() { return loadProviders(currentPage, currentPerPage); }
+            });
+        }
+    }
+
+    function init() {
+        setupSearchAndFilters();
+        loadProviders();
+
+        window.loadProvidersV2 = loadProviders;
+        window.reloadProvidersTableV2 = function() {
+            return loadProviders(currentPage, currentPerPage);
         };
 
-        if (isUpdate) {
-            payload.id = parseInt(inputId.value, 10);
-        } else {
-            payload.code = inputCode.value;
-        }
+        // Delegated click handler for Edit button
+        Bridge.Events.onClick('.edit-provider-btn', function(event, btn) {
+            event.preventDefault();
+            const providerId = btn.getAttribute('data-provider-id') || btn.getAttribute('data-entity-id');
+            if (!providerId) return;
 
-        fetch(endpoint, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(payload)
-        })
-        .then(async res => {
-            const data = await res.json();
-            if (!res.ok || !data.success) {
-                throw new Error(data.message || 'Error saving provider');
+            const modals = window.ProvidersModalsV2;
+            if (modals && typeof modals.openEditProviderModal === 'function') {
+                modals.openEditProviderModal(providerId, btn);
+            } else {
+                console.warn('[Providers] ProvidersModalsV2 not ready yet.');
             }
-            closeModal();
-            loadProviders();
-        })
-        .catch(err => {
-            modalError.innerText = err.message;
-            modalError.classList.remove('hidden');
         });
     }
 
-    if (document.getElementById('providers-create-btn')) {
-        document.getElementById('providers-create-btn').addEventListener('click', () => openModal());
-    }
-    document.getElementById('provider-modal-close').addEventListener('click', closeModal);
-    document.getElementById('provider-modal-cancel').addEventListener('click', closeModal);
-    document.getElementById('provider-modal-save').addEventListener('click', saveProvider);
+    window.ProvidersCoreV2 = {
+        loadProviders,
+        buildQueryParams
+    };
 
-    loadProviders();
-});
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
