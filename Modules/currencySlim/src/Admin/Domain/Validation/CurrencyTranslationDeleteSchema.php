@@ -2,25 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\Currency\Validation;
+namespace Maatify\currencySlim\Admin\Domain\Validation;
 
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
 
-final class CurrencySetActiveSchema extends AbstractSchema
+final class CurrencyTranslationDeleteSchema extends AbstractSchema
 {
     protected function rules(): array
     {
         return [
-            'id' => [
+            'language_id' => [
                 v::intType()->min(1),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
-            'is_active' => [
-                v::boolType(),
-                ValidationErrorCodeEnum::REQUIRED_FIELD
-            ]
         ];
     }
 }

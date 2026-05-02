@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Controllers\Api\Currency;
+namespace Maatify\currencySlim\Admin\Http\Controllers\Api;
 
-use Maatify\AdminKernel\Domain\Currency\Validation\CurrencyUpdateSortOrderSchema;
 use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
 use Maatify\Currency\Service\CurrencyCommandService;
+use Maatify\currencySlim\Admin\Domain\Validation\CurrencyUpdateSortOrderSchema;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;

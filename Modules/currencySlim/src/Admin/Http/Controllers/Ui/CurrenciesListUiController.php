@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Controllers\Ui\Currency;
+namespace Maatify\currencySlim\Admin\Http\Controllers\Ui;
 
 use Maatify\AdminKernel\Application\Security\UiPermissionService;
 use Maatify\AdminKernel\Context\AdminContext;

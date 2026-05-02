@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Controllers\Api\Currency\Translations;
+namespace Maatify\currencySlim\Admin\Http\Controllers\Api\Translations;
 
-use Maatify\AdminKernel\Domain\Currency\Validation\CurrencyTranslationUpsertSchema;
 use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
-use Maatify\Currency\Command\UpsertCurrencyTranslationCommand;
+use Maatify\Currency\Command\DeleteCurrencyTranslationCommand;
 use Maatify\Currency\Service\CurrencyCommandService;
+use Maatify\currencySlim\Admin\Domain\Validation\CurrencyTranslationDeleteSchema;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-final readonly class CurrencyTranslationUpsertController
+final readonly class CurrencyTranslationDeleteController
 {
     public function __construct(
         private CurrencyCommandService $commandService,
@@ -32,21 +32,19 @@ final readonly class CurrencyTranslationUpsertController
         $body = (array) $request->getParsedBody();
 
         // 1) Validate request
-        $this->validationGuard->check(new CurrencyTranslationUpsertSchema(), $body);
+        $this->validationGuard->check(new CurrencyTranslationDeleteSchema(), $body);
 
         $languageId = $body['language_id'];
-        $translatedName = $body['translated_name'];
 
-        if (!is_int($languageId) || !is_string($translatedName)) {
+        if (!is_int($languageId)) {
             // Defensive guard – should never happen after validation
             throw new \RuntimeException('Invalid validated payload.');
         }
 
         // 3) Execute service
-        $this->commandService->upsertTranslation(new UpsertCurrencyTranslationCommand(
+        $this->commandService->deleteTranslation(new DeleteCurrencyTranslationCommand(
             currencyId: $currencyId,
-            languageId: $languageId,
-            translatedName: $translatedName
+            languageId: $languageId
         ));
 
         // 4) Return success using JSON response factory

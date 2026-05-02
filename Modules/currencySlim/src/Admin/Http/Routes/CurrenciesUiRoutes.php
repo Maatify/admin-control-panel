@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Routes\Ui\Features;
+namespace Maatify\currencySlim\Admin\Http\Routes;
 
-use Maatify\AdminKernel\Http\Controllers\Ui\Currency\CurrenciesListUiController;
-use Maatify\AdminKernel\Http\Controllers\Ui\Currency\CurrencyTranslationsListUiController;
 use Maatify\AdminKernel\Http\Middleware\AuthorizationGuardMiddleware;
+use Maatify\currencySlim\Admin\Http\Controllers\Ui\CurrenciesListUiController;
+use Maatify\currencySlim\Admin\Http\Controllers\Ui\CurrencyTranslationsListUiController;
 use Psr\Container\ContainerInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 

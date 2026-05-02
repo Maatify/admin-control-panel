@@ -76,20 +76,6 @@ final class KernelPermissionMapProvider implements PermissionMapProviderInterfac
             'languages.update.settings.api' => PermissionRequirementDefinition::single('languages.update.settings'),
             'languages.update.sort.api'     => PermissionRequirementDefinition::single('languages.update.sort'),
 
-            // Currencies
-            'currencies.list.ui'         => PermissionRequirementDefinition::single('currencies.list'),
-            'currencies.list.api'        => PermissionRequirementDefinition::single('currencies.list'),
-            'currencies.create.api'      => PermissionRequirementDefinition::single('currencies.create'),
-            'currencies.update.api'      => PermissionRequirementDefinition::single('currencies.update'),
-            'currencies.set_active.api'  => PermissionRequirementDefinition::single('currencies.set_active'),
-            'currencies.update_sort.api' => PermissionRequirementDefinition::single('currencies.update_sort'),
-            'currencies.dropdown.api'    => PermissionRequirementDefinition::single('currencies.dropdown'),
-
-            'currencies.translations.list.ui'    => PermissionRequirementDefinition::single('currencies.translations.list'),
-            'currencies.translations.list.api'   => PermissionRequirementDefinition::single('currencies.translations.list'),
-            'currencies.translations.upsert.api' => PermissionRequirementDefinition::single('currencies.translations.upsert'),
-            'currencies.translations.delete.api' => PermissionRequirementDefinition::single('currencies.translations.delete'),
-
             // Exchange Rates
             'exchange_rates.providers.list.ui'        => PermissionRequirementDefinition::single('exchange_rates.providers.list'),
             'exchange_rates.providers.list.api'       => PermissionRequirementDefinition::single('exchange_rates.providers.list'),

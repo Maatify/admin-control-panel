@@ -13,6 +13,7 @@ use Maatify\AdminKernel\Kernel\KernelOptions;
 use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
 use Dotenv\Dotenv;
 use Maatify\AdminKernel\Ui\Config\MediaUrlConfigDTO;
+use Maatify\currencySlim\Admin\Security\CurrencyAdminPermissionPackage;
 use Maatify\Storage\Bootstrap\StorageBindings;
 use Maatify\Storage\Config\StorageConfig;
 
@@ -40,6 +41,7 @@ $options->runtimeConfig = $runtimeConfig;
 // $options->routes = fn ($app) => ...;
 
 $permissionPackages = [
+    new CurrencyAdminPermissionPackage(),
     // new PaymentMethodPackage(),
     // new ExchangeRatesPackage(),
     // new ShippingPackage(),
@@ -65,6 +67,9 @@ $options->builderHook = static function (ContainerBuilder $containerBuilder) use
         $containerBuilder,
         $permissionPackages,
     );
+
+    // Register Maatify\CurrenciesBindings modules
+    \Maatify\Currency\Bootstrap\CurrenciesBindings::register($containerBuilder);
 };
 
 // 5️⃣ Boot & Run

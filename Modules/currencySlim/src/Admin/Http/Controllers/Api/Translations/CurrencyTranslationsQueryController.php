@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Controllers\Api\Currency\Translations;
+namespace Maatify\currencySlim\Admin\Http\Controllers\Api\Translations;
 
-use Maatify\AdminKernel\Domain\Currency\List\CurrencyTranslationListCapabilities;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
 use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
 use Maatify\AdminKernel\Infrastructure\Query\ListFilterResolver;
 use Maatify\Currency\Service\CurrencyQueryService;
+use Maatify\currencySlim\Admin\Domain\List\CurrencyTranslationListCapabilities;
 use Maatify\Validation\Guard\ValidationGuard;
 use Maatify\Validation\Schemas\SharedListQuerySchema;
 use Psr\Http\Message\ResponseInterface as Response;

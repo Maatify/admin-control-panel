@@ -11,7 +11,6 @@ use Maatify\AdminKernel\Http\Routes\Api\Features\AdminEmailApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\AdminsApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\AppSettingsApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\ContentDocumentsApiRoutes;
-use Maatify\AdminKernel\Http\Routes\Api\Features\CurrenciesApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\ExchangeRatesApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\I18nApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\ImageProfilesApiRoutes;
@@ -20,6 +19,7 @@ use Maatify\AdminKernel\Http\Routes\Api\Features\PermissionsApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\RolesApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\SessionsApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\WebsiteUiThemesApiRoutes;
+use Maatify\currencySlim\Admin\Http\Routes\CurrenciesApiRoutes;
 use Psr\Container\ContainerInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 

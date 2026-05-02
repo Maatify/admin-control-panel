@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Http\Routes\Api\Features;
+namespace Maatify\currencySlim\Admin\Http\Routes;
 
-use Maatify\AdminKernel\Http\Controllers\Api\Currency\CurrenciesCreateController;
-use Maatify\AdminKernel\Http\Controllers\Api\Currency\CurrenciesDropdownController;
-use Maatify\AdminKernel\Http\Controllers\Api\Currency\CurrenciesQueryController;
-use Maatify\AdminKernel\Http\Controllers\Api\Currency\CurrenciesSetActiveController;
-use Maatify\AdminKernel\Http\Controllers\Api\Currency\CurrenciesUpdateController;
-use Maatify\AdminKernel\Http\Controllers\Api\Currency\CurrenciesUpdateSortOrderController;
-use Maatify\AdminKernel\Http\Controllers\Api\Currency\Translations\CurrencyTranslationDeleteController;
-use Maatify\AdminKernel\Http\Controllers\Api\Currency\Translations\CurrencyTranslationsQueryController;
-use Maatify\AdminKernel\Http\Controllers\Api\Currency\Translations\CurrencyTranslationUpsertController;
+use Maatify\currencySlim\Admin\Http\Controllers\Api\CurrenciesCreateController;
+use Maatify\currencySlim\Admin\Http\Controllers\Api\CurrenciesDropdownController;
+use Maatify\currencySlim\Admin\Http\Controllers\Api\CurrenciesQueryController;
+use Maatify\currencySlim\Admin\Http\Controllers\Api\CurrenciesSetActiveController;
+use Maatify\currencySlim\Admin\Http\Controllers\Api\CurrenciesUpdateController;
+use Maatify\currencySlim\Admin\Http\Controllers\Api\CurrenciesUpdateSortOrderController;
+use Maatify\currencySlim\Admin\Http\Controllers\Api\Translations\CurrencyTranslationDeleteController;
+use Maatify\currencySlim\Admin\Http\Controllers\Api\Translations\CurrencyTranslationsQueryController;
+use Maatify\currencySlim\Admin\Http\Controllers\Api\Translations\CurrencyTranslationUpsertController;
 use Psr\Container\ContainerInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 

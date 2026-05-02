@@ -2653,9 +2653,6 @@ class Container
         // Register Maatify\LanguageCoreBinding modules
         \Maatify\AdminKernel\Infrastructure\LanguageCore\Bootstrap\LanguageCoreBinding::register($containerBuilder);
 
-        // Register Maatify\CurrenciesBindings modules
-        \Maatify\Currency\Bootstrap\CurrenciesBindings::register($containerBuilder);
-
         // Register Maatify\ExchangeRatesBindings modules
         \Maatify\ExchangeRates\Bootstrap\ExchangeRatesBindings::register($containerBuilder);
 

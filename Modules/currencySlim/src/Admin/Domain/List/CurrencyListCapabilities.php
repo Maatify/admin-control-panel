@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\Currency\List;
+namespace Maatify\currencySlim\Admin\Domain\List;
 
 use Maatify\AdminKernel\Domain\List\ListCapabilities;
 
