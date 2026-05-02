@@ -73,7 +73,8 @@
 
   "scripts": {
     "test": "phpunit",
-    "analyse": "phpstan analyse app Modules --level=max"
+    "analyse": "phpstan analyse app Modules --level=max",
+    "Permission Linter": "php tools/permission_linter.php"
   },
 
   "config": {

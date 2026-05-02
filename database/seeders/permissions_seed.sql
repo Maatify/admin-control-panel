@@ -68,7 +68,6 @@ VALUES
     -- [ SESSIONS ]
     ('sessions.list', 'List Sessions', 'Allows list sessions'),
     ('sessions.revoke', 'Revoke Sessions', 'Allows revoke sessions'),
-    ('sessions.view_all', 'View all Sessions', 'Allows view all sessions'),
     ('admins.session.list', 'List Session Admins', 'Allows list session admins'),
 
     -- [ I18N & LANGUAGES ]
