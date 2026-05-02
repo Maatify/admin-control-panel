@@ -14,6 +14,7 @@ use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
 use Dotenv\Dotenv;
 use Maatify\AdminKernel\Ui\Config\MediaUrlConfigDTO;
 use Maatify\currencySlim\Admin\Security\CurrencyAdminPermissionPackage;
+use Maatify\ExchangeRatesSlim\Admin\Security\ExchangeRatesAdminPermissionPackage;
 use Maatify\Storage\Bootstrap\StorageBindings;
 use Maatify\Storage\Config\StorageConfig;
 
@@ -42,6 +43,7 @@ $options->runtimeConfig = $runtimeConfig;
 
 $permissionPackages = [
     new CurrencyAdminPermissionPackage(),
+    new ExchangeRatesAdminPermissionPackage(),
     // new PaymentMethodPackage(),
     // new ExchangeRatesPackage(),
     // new ShippingPackage(),

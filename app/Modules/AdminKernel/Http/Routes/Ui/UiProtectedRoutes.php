@@ -10,7 +10,6 @@ use Maatify\AdminKernel\Http\Routes\Ui\Features\AdminsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\AppSettingsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\ContentDocumentsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\DashboardUiRoutes;
-use Maatify\AdminKernel\Http\Routes\Ui\Features\ExchangeRatesUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\I18nUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\ImageProfilesUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\LanguagesUiRoutes;
@@ -24,6 +23,7 @@ use Maatify\AdminKernel\Http\Routes\Ui\Features\TelemetryUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\TwoFactorUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\WebsiteUiThemesUiRoutes;
 use Maatify\currencySlim\Admin\Http\Routes\CurrenciesUiRoutes;
+use Maatify\ExchangeRatesSlim\Admin\Http\Routes\ExchangeRatesUiRoutes;
 use Psr\Container\ContainerInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 
