@@ -29,7 +29,7 @@
             name: '#currency-name',
             symbol: '#currency-symbol',
             is_active: { selector: '#currency-active', type: 'checked' },
-            display_order: { selector: '#currency-sort', type: 'int', default: 0 }
+            // display_order: { selector: '#currency-sort', type: 'int', default: 0 }
         }, { includeEmpty: true });
     }
 
@@ -81,19 +81,19 @@
         const codeEl = document.getElementById('currency-code');
         const nameEl = document.getElementById('currency-name');
         const symbolEl = document.getElementById('currency-symbol');
-        const sortEl = document.getElementById('currency-sort');
+        // const sortEl = document.getElementById('currency-sort');
         const activeEl = document.getElementById('currency-active');
 
         if (idEl) idEl.value = id;
         if (codeEl) codeEl.value = btn.getAttribute('data-current-code') || '';
         if (nameEl) nameEl.value = btn.getAttribute('data-current-name') || '';
         if (symbolEl) symbolEl.value = btn.getAttribute('data-current-symbol') || '';
-        if (sortEl) sortEl.value = btn.getAttribute('data-current-display-order') || '1';
+        // if (sortEl) sortEl.value = btn.getAttribute('data-current-display-order') || '1';
         if (activeEl) activeEl.checked = btn.getAttribute('data-current-is-active') === '1';
 
         bindSaveAction(async function() {
             const payload = collectCurrencyPayload();
-            if (payload.display_order === 0) payload.display_order = 1;
+            // if (payload.display_order === 0) payload.display_order = 1;
 
             await Bridge.API.runMutation({
                 operation: 'Update Currency',
