@@ -18,7 +18,7 @@ use Maatify\AdminKernel\Http\Routes\Api\Features\PermissionsApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\RolesApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\SessionsApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\WebsiteUiThemesApiRoutes;
-use Maatify\currencySlim\Admin\Http\Routes\CurrenciesApiRoutes;
+use Maatify\CurrencySlim\Admin\Http\Routes\CurrenciesApiRoutes;
 use Maatify\ExchangeRatesSlim\Admin\Http\Routes\ExchangeRatesApiRoutes;
 use Psr\Container\ContainerInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface;

@@ -22,7 +22,7 @@ use Maatify\AdminKernel\Http\Routes\Ui\Features\SettingsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\TelemetryUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\TwoFactorUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\WebsiteUiThemesUiRoutes;
-use Maatify\currencySlim\Admin\Http\Routes\CurrenciesUiRoutes;
+use Maatify\CurrencySlim\Admin\Http\Routes\CurrenciesUiRoutes;
 use Maatify\ExchangeRatesSlim\Admin\Http\Routes\ExchangeRatesUiRoutes;
 use Psr\Container\ContainerInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface;

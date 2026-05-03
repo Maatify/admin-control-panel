@@ -13,7 +13,7 @@ use Maatify\AdminKernel\Kernel\KernelOptions;
 use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
 use Dotenv\Dotenv;
 use Maatify\AdminKernel\Ui\Config\MediaUrlConfigDTO;
-use Maatify\currencySlim\Admin\Security\CurrencyAdminPermissionPackage;
+use Maatify\CurrencySlim\Admin\Security\CurrencyAdminPermissionPackage;
 use Maatify\ExchangeRatesSlim\Admin\Security\ExchangeRatesAdminPermissionPackage;
 use Maatify\Storage\Bootstrap\StorageBindings;
 use Maatify\Storage\Config\StorageConfig;

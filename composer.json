@@ -55,7 +55,7 @@
       "Maatify\\ContentDocuments\\": "Modules/ContentDocuments",
       "Maatify\\Verification\\": "Modules/Verification",
       "Maatify\\Currency\\": "Modules/currency/src",
-      "Maatify\\currencySlim\\": "Modules/currencySlim/src",
+      "Maatify\\CurrencySlim\\": "Modules/CurrencySlim/src",
       "Maatify\\Storage\\": "Modules/Storage/src",
       "Maatify\\ImageProfile\\": "Modules/ImageProfile/src",
       "Maatify\\ImageProfileLegacy\\": "Modules/ImageProfileLegacy/src",
