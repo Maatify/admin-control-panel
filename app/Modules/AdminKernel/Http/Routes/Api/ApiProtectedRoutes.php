@@ -12,7 +12,8 @@ use Maatify\AdminKernel\Http\Routes\Api\Features\AdminsApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\AppSettingsApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\ContentDocumentsApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\CategoriesApiRoutes;
-use Maatify\AdminKernel\Http\Routes\Api\Features\CurrenciesApiRoutes;
+use Maatify\CurrencySlim\Admin\Http\Routes\CurrenciesApiRoutes;
+use Maatify\ExchangeRatesSlim\Admin\Http\Routes\ExchangeRatesApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\I18nApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\ImageProfilesApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\LanguagesApiRoutes;
@@ -53,6 +54,7 @@ final class ApiProtectedRoutes
             RolesApiRoutes::register($group);
 
             CurrenciesApiRoutes::register($group);
+            ExchangeRatesApiRoutes::register($group);
             WebsiteUiThemesApiRoutes::register($group);
 
             CategoriesApiRoutes::register($group);

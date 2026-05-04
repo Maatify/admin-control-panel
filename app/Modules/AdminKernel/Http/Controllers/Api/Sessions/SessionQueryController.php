@@ -58,7 +58,7 @@ final readonly class SessionQueryController
         $query = ListQueryDTO::fromArray($canonicalInput);
 
         // 3️⃣ Authorization scope (HARD RULE)
-        $adminIdFilter = $this->authorizationService->hasPermission($adminId, 'sessions.view_all')
+        $adminIdFilter = $this->authorizationService->hasPermission($adminId, 'sessions.list')
             ? null
             : $adminId;
 

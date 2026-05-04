@@ -25,7 +25,8 @@
     "slim/twig-view": "^3.4",
     "vlucas/phpdotenv": "^5.5",
     "ext-fileinfo": "*",
-    "ext-gd": "*"
+    "ext-gd": "*",
+    "ext-bcmath": "*"
   },
 
   "require-dev": {
@@ -55,11 +56,15 @@
       "Maatify\\ContentDocuments\\": "Modules/ContentDocuments",
       "Maatify\\Verification\\": "Modules/Verification",
       "Maatify\\Currency\\": "Modules/currency/src",
+      "Maatify\\CurrencySlim\\": "Modules/CurrencySlim/src",
       "Maatify\\Storage\\": "Modules/Storage/src",
       "Maatify\\ImageProfile\\": "Modules/ImageProfile/src",
       "Maatify\\ImageProfileLegacy\\": "Modules/ImageProfileLegacy/src",
       "Maatify\\WebsiteUiTheme\\": "Modules/WebsiteUiTheme/src",
-      "Maatify\\Category\\": "Modules/category/src"
+      "Maatify\\Category\\": "Modules/category/src",
+      "Maatify\\ExchangeRates\\": "Modules/ExchangeRates/src",
+      "Maatify\\ExchangeRatesSlim\\": "Modules/ExchangeRatesSlim/src",
+      "Maatify\\Persistence\\": "Modules/Persistence/src"
     }
   },
 
@@ -71,7 +76,8 @@
 
   "scripts": {
     "test": "phpunit",
-    "analyse": "phpstan analyse app Modules --level=max"
+    "analyse": "phpstan analyse app Modules --level=max",
+    "Permission Linter": "php tools/permission_linter.php"
   },
 
   "config": {

@@ -7,6 +7,7 @@
     "php": "^8.2",
     "ext-pdo": "*",
     "maatify/exceptions": "^1.0",
+    "maatify/persistence": "^1.0",
     "psr/container": "^1.1|^2.0"
   },
   "require-dev": {

@@ -49,7 +49,6 @@ final class CurrencyCommandService
             name:         $command->name,
             symbol:       $command->symbol,
             isActive:     $command->isActive,
-            displayOrder: $command->displayOrder,
         ));
     }
 
@@ -70,7 +69,6 @@ final class CurrencyCommandService
             name:         $command->name,
             symbol:       $command->symbol,
             isActive:     $command->isActive,
-            displayOrder: $command->displayOrder,
         ));
     }
 

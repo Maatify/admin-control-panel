@@ -39,7 +39,6 @@ final readonly class DomainsListUiController
 
         $capabilities = [
             'can_create'        => $this->uiPermissionService->hasPermission($adminId, 'i18n.domains.create'),
-            'can_update'        => $this->uiPermissionService->hasPermission($adminId, 'i18n.domains.update'),
             'can_change_code'   => $this->uiPermissionService->hasPermission($adminId, 'i18n.domains.change_code'),
             'can_set_active'    => $this->uiPermissionService->hasPermission($adminId, 'i18n.domains.set_active'),
             'can_update_sort'   => $this->uiPermissionService->hasPermission($adminId, 'i18n.domains.update_sort'),

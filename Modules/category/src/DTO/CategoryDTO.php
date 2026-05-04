@@ -95,6 +95,7 @@ final class CategoryDTO implements JsonSerializable
      *     parent_id:     int|null,
      *     name:          string,
      *     slug:          string,
+     *     description:   string|null,
      *     is_active:     bool,
      *     display_order: int,
      *     created_at:    string,

@@ -338,7 +338,7 @@ readonly class UiAdminsController
 
             // Clickable breadcrumbs
             'can_view_admin_profile'           => $this->uiPermissionService->hasPermission($adminId, 'admins.profile.view'),
-            'can_view_admins'           => $this->uiPermissionService->hasPermission($adminId, 'roles.admins.view'),
+            'can_view_admins'           => $this->uiPermissionService->hasPermission($adminId, 'roles.admins.query'),
         ];
 
         return $this->view->render(

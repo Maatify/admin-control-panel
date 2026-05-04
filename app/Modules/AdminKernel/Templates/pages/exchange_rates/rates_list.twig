@@ -1,0 +1,313 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}
+    Exchange Rates | {{ ui.appName }}
+{% endblock %}
+
+{% block content %}
+    {# ============================================================
+       Page Header + Breadcrumb
+       ============================================================ #}
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">Exchange Rates</h2>
+
+        <nav>
+            <ol class="flex items-center gap-1.5">
+                <li>
+                    <a
+                            class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                            href="{{ ui.adminUrl }}dashboard"
+                    >
+                        Home
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none"
+                             xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                  stroke=""
+                                  stroke-width="1.2"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+                <li>
+                    <a
+                            class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                            href="{{ ui.adminUrl }}exchange-rates/rates"
+                    >
+                        Exchange Rates
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none"
+                             xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                  stroke-width="1.2"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+                <li class="text-sm text-gray-800 dark:text-gray-200">Rates</li>
+            </ol>
+        </nav>
+    </div>
+
+    {# ============================================================
+       🔐 Capabilities Injection (UI Contract)
+       ============================================================ #}
+
+    <script>
+        window.ratesCapabilities = {
+            can_create      : {{ capabilities.can_create       ?? false ? 'true' : 'false' }},
+            can_update      : {{ capabilities.can_update       ?? false ? 'true' : 'false' }},
+            can_active      : {{ capabilities.can_active       ?? false ? 'true' : 'false' }},
+            can_update_sort : {{ capabilities.can_update_sort  ?? false ? 'true' : 'false' }},
+            can_delete      : {{ capabilities.can_delete       ?? false ? 'true' : 'false' }},
+            can_view_history: {{ capabilities.can_view_history ?? false ? 'true' : 'false' }}
+        };
+
+        console.log('🔐 Rates Capabilities Injected:', window.ratesCapabilities);
+    </script>
+
+    {# ============================================================
+       Page Body
+       ============================================================ #}
+    <div class="px-0 py-2">
+        <div class="container lg:max-w-[100%] mt-6">
+            {# ============================================================
+               🔍 Search & Filters Section
+               ============================================================ #}
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+                <form id="rates-filter-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {# <div>
+                            <label for="filter-id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Rate ID
+                            </label>
+                            <input
+                                    type="number"
+                                    id="filter-id"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400"
+                                    placeholder="e.g., 1, 2, 3..."
+                                    min="1"
+                            />
+                        </div> #}
+
+                        <div>
+                            <label for="filter-provider" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Provider
+                            </label>
+                            <select
+                                    id="filter-provider"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                            >
+                                <option value="">All Providers</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="filter-base" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Base Currency
+                            </label>
+                            <input
+                                    type="text"
+                                    id="filter-base"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400 uppercase"
+                                    placeholder="e.g., USD"
+                                    maxlength="3"
+                            />
+                        </div>
+
+                        <div>
+                            <label for="filter-target" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Target Currency
+                            </label>
+                            <input
+                                    type="text"
+                                    id="filter-target"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400 uppercase"
+                                    placeholder="e.g., EGP"
+                                    maxlength="3"
+                            />
+                        </div>
+
+                        <div>
+                            <label for="filter-status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Status
+                            </label>
+                            <select
+                                    id="filter-status"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                            >
+                                <option value="">All Statuses</option>
+                                <option value="1">Active</option>
+                                <option value="0">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {# Action Buttons #}
+                    <div class="flex flex-wrap gap-3 pt-4">
+                        <button
+                                type="submit"
+                                class="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+                        >
+                            Search
+                        </button>
+
+                        <button
+                                type="button"
+                                id="rates-reset-filters"
+                                class="px-3 py-1 bg-gray-200 text-sm dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium flex items-center gap-2"
+                        >
+                            Reset
+                        </button>
+
+                        {# Create Rate Button #}
+                        {% if capabilities.can_create %}
+                            <button
+                                    type="button"
+                                    id="btn-create-rate"
+                                    class="ml-auto px-3 py-1 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                                Create Rate
+                            </button>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+
+            {# ============================================================
+               📋 Global Search Bar (Above Table)
+               ============================================================ #}
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4">
+                <div class="flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input
+                            type="text"
+                            id="rates-search"
+                            class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400"
+                            placeholder="Quick search by currency pair or provider..."
+                    />
+                    <button
+                            type="button"
+                            id="rates-search-btn"
+                            class="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    >
+                        Search
+                    </button>
+                    <button
+                            type="button"
+                            id="rates-clear-search"
+                            class="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
+                    >
+                        Clear
+                    </button>
+                </div>
+            </div>
+
+            {# ============================================================
+               📋 Rates Table Container (Rendered by JS)
+               ============================================================ #}
+            <div id="table-container" class="w-full"></div>
+        </div>
+    </div>
+
+    {# ============================================================
+       🏗️ Create/Edit Rate Modal
+       ============================================================ #}
+    <div id="rate-modal" class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-50 flex items-center justify-center hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full mx-4">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h3 id="rate-modal-title" class="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                    Exchange Rate Details
+                </h3>
+                <button type="button" class="close-modal text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <svg class="w-6 h-6 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="rate-form" class="space-y-4">
+                    <input type="hidden" id="rate-id">
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Provider</label>
+                        <select id="rate-provider" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"></select>
+                        <p class="text-xs text-gray-500 mt-1">Provider is immutable after creation.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Base Currency</label>
+                            <input type="text" id="rate-base" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 uppercase" maxlength="3" required>
+                            <p class="text-xs text-gray-500 mt-1">3-letter ISO code.</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Target Currency</label>
+                            <input type="text" id="rate-target" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 uppercase" maxlength="3" required>
+                            <p class="text-xs text-gray-500 mt-1">3-letter ISO code.</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rate Value</label>
+                        <input type="text" id="rate-value" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-mono" placeholder="e.g. 48.7500000000" required>
+                        <p class="text-xs text-gray-500 mt-1">1 Base = X Target. Must be decimal string.</p>
+                    </div>
+                </form>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+                <button type="button" class="close-modal px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">Cancel</button>
+                <button type="button" id="btn-save-rate" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">Save</button>
+            </div>
+        </div>
+    </div>
+
+    {# ============================================================
+       🏗️ Update Sort Order Modal
+       ============================================================ #}
+    <div id="sort-modal" class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-50 flex items-center justify-center hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Update Sort Order</h3>
+                <button type="button" class="close-modal text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <svg class="w-6 h-6 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="p-6">
+                <input type="hidden" id="sort-rate-id">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New Display Order</label>
+                <input type="number" id="sort-new-value" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" min="1" required>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+                <button type="button" class="close-modal px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">Cancel</button>
+                <button type="button" id="btn-save-sort" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">Save</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {# Shared infrastructure scripts #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/api_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/callback_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/Input_checker.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/data_table.js') }}"></script>
+
+    {# ✨ Select2 - Custom dropdown with search #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/select2.js') }}"></script>
+
+    {# ✨ Project-wide reusable UI components library #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
+
+    {# 🧩 V2 bridge (page-scoped) #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-page-bridge.js') }}"></script>
+
+    {# 💱 Rates v2 scripts (helpers → core → modals → actions) #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/exchange_rates/rates-helpers-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/exchange_rates/rates-with-components-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/exchange_rates/rates-modals-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/exchange_rates/rates-actions-v2.js') }}"></script>
+{% endblock %}

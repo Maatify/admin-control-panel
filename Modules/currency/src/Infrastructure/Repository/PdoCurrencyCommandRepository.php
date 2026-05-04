@@ -19,11 +19,13 @@ use Maatify\Currency\Exception\CurrencyInvalidArgumentException;
 use Maatify\Currency\Exception\CurrencyNotFoundException;
 use Maatify\Currency\Exception\CurrencyPersistenceException;
 use Maatify\Currency\Exception\CurrencyTranslationNotFoundException;
+use Maatify\Persistence\Pdo\Ordering\ScopedOrderingConfig;
+use Maatify\Persistence\Pdo\Ordering\ScopedOrderingManager;
 use PDO;
 use PDOStatement;
 use Throwable;
 
-final class PdoCurrencyCommandRepository implements CurrencyCommandRepositoryInterface
+final readonly class PdoCurrencyCommandRepository implements CurrencyCommandRepositoryInterface
 {
     /**
      * @param CurrencyQueryReaderInterface $queryReader  Injected for translation read-back
@@ -31,46 +33,41 @@ final class PdoCurrencyCommandRepository implements CurrencyCommandRepositoryInt
      *                                                   the JOIN SELECT from the query reader.
      */
     public function __construct(
-        private readonly PDO                         $pdo,
-        private readonly CurrencyQueryReaderInterface $queryReader,
+        private PDO                          $pdo,
+        private CurrencyQueryReaderInterface $queryReader,
+        private ScopedOrderingManager $orderingManager = new ScopedOrderingManager(),
     ) {}
 
     /** {@inheritDoc} */
     public function create(CreateCurrencyCommand $command): CurrencyDTO
     {
-        if ($command->displayOrder === 0) {
-            // Atomic auto-order: MAX inside the INSERT avoids a separate
-            // SELECT MAX + INSERT pair, but does NOT prevent concurrent
-            // inserts from receiving the same display_order (since display_order
-            // has no UNIQUE constraint). Ties are acceptable — reorder() fixes them.
-            $stmt = $this->prepareOrFail(
-                'INSERT INTO `currencies`
-                     (`code`, `name`, `symbol`, `is_active`, `display_order`)
-                 SELECT :code, :name, :symbol, :is_active,
-                        COALESCE(MAX(`display_order`), 0) + 1
-                 FROM   `currencies`',
-            );
-        } else {
-            $stmt = $this->prepareOrFail(
-                'INSERT INTO `currencies`
-                     (`code`, `name`, `symbol`, `is_active`, `display_order`)
-                 VALUES
-                     (:code, :name, :symbol, :is_active, :display_order)',
-            );
-        }
+        /*
+         * display_order is intentionally owned by the repository ordering
+         * environment. CreateCurrencyCommand::displayOrder is not trusted here;
+         * callers must use reorder() for explicit ordering changes.
+         */
+        $displayOrder = $this->orderingManager->getNextPosition(
+            $this->pdo,
+            $this->orderingConfig(),
+            null
+        );
+
+        $stmt = $this->prepareOrFail(
+            'INSERT INTO `currencies`
+                 (`code`, `name`, `symbol`, `is_active`, `display_order`)
+             VALUES
+                 (:code, :name, :symbol, :is_active, :display_order)',
+        );
 
         // strtoupper is intentionally repeated here — the repository must not
         // assume callers always go through CurrencyCommandService.
         $params = [
-            ':code'      => strtoupper($command->code),
-            ':name'      => $command->name,
-            ':symbol'    => $command->symbol,
-            ':is_active' => $command->isActive ? 1 : 0,
+            ':code'          => strtoupper($command->code),
+            ':name'          => $command->name,
+            ':symbol'        => $command->symbol,
+            ':is_active'     => $command->isActive ? 1 : 0,
+            ':display_order' => $displayOrder,
         ];
-
-        if ($command->displayOrder !== 0) {
-            $params[':display_order'] = $command->displayOrder;
-        }
 
         try {
             $stmt->execute($params);
@@ -88,56 +85,39 @@ final class PdoCurrencyCommandRepository implements CurrencyCommandRepositoryInt
     }
 
     // ================================================================== //
-    //  UPDATE (full replace + atomic re-sort)
+    //  UPDATE (full replace)
     // ================================================================== //
 
     /**
      * {@inheritDoc}
      *
-     * Opens the transaction BEFORE reading oldOrder so that the SELECT and all
-     * subsequent writes are atomic — prevents a race where another process changes
-     * display_order between our read and our UPDATE.
+     * display_order is intentionally not updated here. Ordering changes must go
+     * through reorder(), which delegates to ScopedOrderingManager.
      */
     public function update(UpdateCurrencyCommand $command): CurrencyDTO
     {
-        // Open transaction FIRST so that the read of oldOrder and the subsequent
-        // writes are atomic — prevents a race where another process changes
-        // display_order between our read and our UPDATE.
-        $this->pdo->beginTransaction();
         try {
-            $oldOrder = $this->fetchDisplayOrder($command->id);
-
-            if ($oldOrder !== $command->displayOrder) {
-                $this->shiftRows($command->id, $oldOrder, $command->displayOrder);
-            }
-
             $stmt = $this->prepareOrFail(
                 'UPDATE `currencies`
-                 SET `code`          = :code,
-                     `name`          = :name,
-                     `symbol`        = :symbol,
-                     `is_active`     = :is_active,
-                     `display_order` = :display_order
+                 SET `code`      = :code,
+                     `name`      = :name,
+                     `symbol`    = :symbol,
+                     `is_active` = :is_active
                  WHERE `id` = :id',
             );
             $stmt->execute([
-                ':code'          => strtoupper($command->code),
-                ':name'          => $command->name,
-                ':symbol'        => $command->symbol,
-                ':is_active'     => $command->isActive ? 1 : 0,
-                ':display_order' => $command->displayOrder,
-                ':id'            => $command->id,
+                ':code'      => strtoupper($command->code),
+                ':name'      => $command->name,
+                ':symbol'    => $command->symbol,
+                ':is_active' => $command->isActive ? 1 : 0,
+                ':id'        => $command->id,
             ]);
-
-            $this->pdo->commit();
         } catch (\PDOException $e) {
-            $this->pdo->rollBack();
             if ($this->isDuplicateKeyError($e)) {
                 throw CurrencyCodeAlreadyExistsException::withCode($command->code);
             }
             throw CurrencyPersistenceException::fromPdoException($e);
         } catch (Throwable $e) {
-            $this->pdo->rollBack();
             // Re-throw currency exceptions as-is; they carry the correct domain semantics.
             // Wrap anything unexpected (e.g. a driver-level error) as a persistence failure.
             if ($e instanceof CurrencyExceptionInterface) {
@@ -179,33 +159,25 @@ final class PdoCurrencyCommandRepository implements CurrencyCommandRepositoryInt
     /**
      * {@inheritDoc}
      *
-     * Algorithm (gap-free sequential ordering):
-     *   Moving DOWN  (newOrder > oldOrder):
-     *       rows in range (oldOrder, newOrder] shift up   (display_order − 1)
-     *   Moving UP    (newOrder < oldOrder):
-     *       rows in range [newOrder, oldOrder) shift down (display_order + 1)
-     *
-     * fetchDisplayOrder is called INSIDE the transaction so that the read
-     * and all subsequent writes are atomic — same pattern used in update().
+     * Delegates all ordering movement to ScopedOrderingManager.
+     * The manager owns its transaction and must be called outside active PDO
+     * transactions.
      */
     public function reorder(int $id, int $newOrder): void
     {
-        $this->pdo->beginTransaction();
         try {
-            $oldOrder = $this->fetchDisplayOrder($id);
+            $moved = $this->orderingManager->moveWithinScope(
+                $this->pdo,
+                $this->orderingConfig(),
+                null,
+                $id,
+                $newOrder
+            );
 
-            if ($oldOrder !== $newOrder) {
-                $this->shiftRows($id, $oldOrder, $newOrder);
-
-                $stmt = $this->prepareOrFail(
-                    'UPDATE `currencies` SET `display_order` = ? WHERE `id` = ?',
-                );
-                $stmt->execute([$newOrder, $id]);
+            if (!$moved) {
+                throw CurrencyNotFoundException::withId($id);
             }
-
-            $this->pdo->commit();
         } catch (Throwable $e) {
-            $this->pdo->rollBack();
             if ($e instanceof CurrencyExceptionInterface) {
                 throw $e;
             }
@@ -262,82 +234,23 @@ final class PdoCurrencyCommandRepository implements CurrencyCommandRepositoryInt
     }
 
     // ================================================================== //
-    //  Private — re-sort logic
+    //  Private — ordering config
     // ================================================================== //
 
-    /**
-     * Shifts the rows that sit between oldOrder and newOrder.
-     * Assumes a transaction is already open.
-     */
-    private function shiftRows(int $excludeId, int $oldOrder, int $newOrder): void
+    private function orderingConfig(): ScopedOrderingConfig
     {
-        if ($newOrder > $oldOrder) {
-            /*
-             * Moving DOWN ↓ — close the gap left by the moving row.
-             * Rows in (oldOrder … newOrder] slide UP by 1.
-             *
-             *  Before:  1  [2]  3   4   5      target moves to 4
-             *  Shift :  1   _   2   3   5
-             *  Set   :  1   _   2   3  [4]  5  ← done in the caller
-             */
-            $sql    = 'UPDATE `currencies`
-                       SET    `display_order` = `display_order` - 1
-                       WHERE  `display_order` >  ?
-                         AND  `display_order` <= ?
-                         AND  `id`            != ?';
-            $params = [$oldOrder, $newOrder, $excludeId];
-        } else {
-            /*
-             * Moving UP ↑ — make room for the moving row.
-             * Rows in [newOrder … oldOrder) slide DOWN by 1.
-             *
-             *  Before:  1   2   3  [4]  5      target moves to 2
-             *  Shift :  1   3   4   _   5
-             *  Set   :  1  [2]  3   4   5      ← done in the caller
-             */
-            $sql    = 'UPDATE `currencies`
-                       SET    `display_order` = `display_order` + 1
-                       WHERE  `display_order` >= ?
-                         AND  `display_order` <  ?
-                         AND  `id`            != ?';
-            $params = [$newOrder, $oldOrder, $excludeId];
-        }
-
-        $this->prepareOrFail($sql)->execute($params);
+        return new ScopedOrderingConfig(
+            table: 'currencies',
+            scopeColumn: null,
+            idColumn: 'id',
+            orderColumn: 'display_order',
+            deletedAtColumn: null,
+        );
     }
 
     // ================================================================== //
     //  Private — DB helpers
     // ================================================================== //
-
-    private function fetchDisplayOrder(int $id): int
-    {
-        // FOR UPDATE acquires an exclusive row lock, preventing concurrent
-        // transactions from reading the same display_order and causing a
-        // double-shift. Must be called inside an open transaction.
-        $stmt = $this->prepareOrFail(
-            'SELECT `display_order` FROM `currencies` WHERE `id` = ? LIMIT 1 FOR UPDATE',
-        );
-        $stmt->execute([$id]);
-
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($row === false || !is_array($row)) {
-            throw CurrencyNotFoundException::withId($id);
-        }
-
-        /** @var array<string, mixed> $row */
-        $order = $row['display_order'];
-
-        if (is_int($order)) {
-            return $order;
-        }
-
-        if (is_numeric($order)) {
-            return (int) $order;
-        }
-
-        throw CurrencyPersistenceException::unexpectedColumnType('display_order', $id);
-    }
 
     private function fetchDtoOrFail(int $id): CurrencyDTO
     {

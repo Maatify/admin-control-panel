@@ -1837,8 +1837,24 @@ class Container
             //                return new PermissionMapper();
             //            },
 
-            PermissionMapperV2Interface::class => function (ContainerInterface $c) {
-                return new PermissionMapperV2();
+            /** Legacy as we use from index.php */
+            //            PermissionMapperV2Interface::class => function (ContainerInterface $c) {
+            //                return new PermissionMapperV2();
+            //            },
+
+            /** can be overridden by hook from index.php */
+            PermissionMapperV2Interface::class => static function (ContainerInterface $c): PermissionMapperV2Interface {
+                $providers = [
+                    new \Maatify\AdminKernel\Domain\Security\Permission\KernelPermissionMapProvider(),
+                ];
+
+                (new \Maatify\AdminKernel\Domain\Security\Permission\PermissionMapProviderValidator())
+                    ->assertNoDuplicateRoutes($providers);
+
+                return new \Maatify\AdminKernel\Domain\Security\Permission\CompositePermissionMapperV2(
+                    providers: $providers,
+                    converter: new \Maatify\AdminKernel\Domain\Security\Permission\SharedPermissionRequirementConverter(),
+                );
             },
 
             \Maatify\AdminKernel\Domain\Contracts\Roles\RolePermissionsRepositoryInterface::class => function (ContainerInterface $c) {
@@ -2418,11 +2434,6 @@ class Container
                 );
             },
 
-
-
-
-
-
             \Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainsQueryReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
@@ -2609,45 +2620,6 @@ class Container
 
         ]);
 
-        // ------- Register Infrastructure modules -------
-
-        // Register ContentDocuments Infrastructure
-        \Maatify\AdminKernel\Infrastructure\ContentDocuments\Bootstrap\ContentDocumentBinding::register($containerBuilder);
-
-        // ------- Register internal modules -------
-
-        // Register Maatify\LanguageCore modules
-        \Maatify\LanguageCore\Bootstrap\LanguageCoreBindings::register($containerBuilder);
-
-        // Register Maatify\I18n modules
-        \Maatify\I18n\Bootstrap\I18nBindings::register($containerBuilder);
-
-        // Register Maatify\ContentDocuments modules
-        \Maatify\ContentDocuments\Bootstrap\ContentDocumentsBindings::register($containerBuilder);
-
-        // Register Maatify\Validation modules
-        \Maatify\Validation\Bootstrap\ValidationBindings::register($containerBuilder);
-
-        // Register Maatify\AppSettings modules
-        \Maatify\AppSettings\Bootstrap\AppSettingsBindings::register($containerBuilder);
-
-        // Register Maatify\Verification modules
-        \Maatify\Verification\Bootstrap\VerificationBindings::register($containerBuilder);
-
-        // Register Maatify\LanguageCoreBinding modules
-        \Maatify\AdminKernel\Infrastructure\LanguageCore\Bootstrap\LanguageCoreBinding::register($containerBuilder);
-
-        // Register Maatify\CurrenciesBindings modules
-        \Maatify\Currency\Bootstrap\CurrenciesBindings::register($containerBuilder);
-
-        // Register Maatify\ImageProfileBindings modules
-        \Maatify\ImageProfile\Bootstrap\ImageProfileBindings::register($containerBuilder);
-
-        // Register Maatify\WebsiteUiThemeBindings modules
-        \Maatify\WebsiteUiTheme\Bootstrap\WebsiteUiThemeBindings::register($containerBuilder);
-
-        // Register Maatify\Category module
-        \Maatify\Category\Bootstrap\CategoriesBindings::register($containerBuilder);
 
         // Extension Hook: Allow host projects to override/extend bindings
         if ($builderHook !== null) {

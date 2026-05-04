@@ -49,13 +49,13 @@ readonly class UiRoleDetailsController
             'can_view_roles'            => $this->uiPermissionService->hasPermission($adminId, 'roles.query'),
 
             // Permissions tab
-            'can_view_permissions'     => $this->uiPermissionService->hasPermission($adminId, 'roles.permissions.view'),
+            'can_view_permissions'     => $this->uiPermissionService->hasPermission($adminId, 'roles.permissions.query'),
             'can_assign_permissions'   => $this->uiPermissionService->hasPermission($adminId, 'roles.permissions.assign'),
             'can_unassign_permissions'   => $this->uiPermissionService->hasPermission($adminId, 'roles.permissions.unassign'),
 
             // Admins tab (next phase)
             'can_view_admin_profile'           => $this->uiPermissionService->hasPermission($adminId, 'admins.profile.view'),
-            'can_view_admins'           => $this->uiPermissionService->hasPermission($adminId, 'roles.admins.view'),
+            'can_view_admins'           => $this->uiPermissionService->hasPermission($adminId, 'roles.admins.query'),
             'can_assign_admins'         => $this->uiPermissionService->hasPermission($adminId, 'roles.admins.assign'),
             'can_unassign_admins'         => $this->uiPermissionService->hasPermission($adminId, 'roles.admins.unassign'),
         ];

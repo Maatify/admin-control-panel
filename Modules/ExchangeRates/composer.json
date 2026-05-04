@@ -1,0 +1,40 @@
+{
+  "name": "maatify/exchange-rates",
+  "description": "Standalone exchange-rate module. Providers, current rates, and append-only history. No dependency on any other Maatify module.",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Mohamed Abdulalim",
+      "email": "mohamed@maatify.dev",
+      "role": "Developer"
+    }
+  ],
+  "keywords": [
+    "exchange-rates",
+    "currency",
+    "forex",
+    "maatify",
+    "bcmath"
+  ],
+  "require": {
+    "php": ">=8.1",
+    "ext-bcmath": "*",
+    "ext-pdo": "*",
+    "ext-mbstring": "*"
+  },
+  "require-dev": {
+    "phpstan/phpstan": "^1.0",
+    "php-di/php-di": "^7.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Maatify\\ExchangeRates\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Maatify\\ExchangeRates\\Tests\\": "tests/"
+    }
+  }
+}

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Maatify\Category\Infrastructure\Repository;
 
-use Maatify\AdminKernel\Infrastructure\Persistence\Support\ScopedOrderingManager;
 use Maatify\Category\Command\CreateCategoryCommand;
 use Maatify\Category\Command\DeleteCategoryImageCommand;
 use Maatify\Category\Command\DeleteCategorySettingCommand;
@@ -29,19 +28,19 @@ use Maatify\Category\Exception\CategorySettingNotFoundException;
 use Maatify\Category\Exception\CategorySlugAlreadyExistsException;
 use Maatify\Category\Exception\CategoryTranslationNotFoundException;
 use Maatify\Category\Enum\CategoryImageTypeEnum;
+use Maatify\Persistence\Pdo\Ordering\ScopedOrderingConfig;
+use Maatify\Persistence\Pdo\Ordering\ScopedOrderingManager;
 use PDO;
 use PDOStatement;
 use Throwable;
 
-final class PdoCategoryCommandRepository implements CategoryCommandRepositoryInterface
+final readonly class PdoCategoryCommandRepository implements CategoryCommandRepositoryInterface
 {
-    private ScopedOrderingManager $ordering;
-
     public function __construct(
-        private readonly PDO                          $pdo,
-        private readonly CategoryQueryReaderInterface $queryReader,
+        private PDO                          $pdo,
+        private CategoryQueryReaderInterface $queryReader,
+        private ScopedOrderingManager        $orderingManager = new ScopedOrderingManager(),
     ) {
-        $this->ordering = new ScopedOrderingManager($pdo);
     }
 
     // ================================================================== //
@@ -51,10 +50,8 @@ final class PdoCategoryCommandRepository implements CategoryCommandRepositoryInt
     /** {@inheritDoc} */
     public function create(CreateCategoryCommand $command): CategoryDTO
     {
-        $scope = ['parent_id' => $command->parentId];
-
         $displayOrder = $command->displayOrder === 0
-            ? $this->ordering->getNextPosition('maa_categories', 'display_order', $scope)
+            ? $this->orderingManager->getNextPosition($this->pdo, $this->orderingConfig(), $command->parentId)
             : $command->displayOrder;
 
         $stmt = $this->prepareOrFail('
@@ -83,26 +80,22 @@ final class PdoCategoryCommandRepository implements CategoryCommandRepositoryInt
     }
 
     // ================================================================== //
-    //  UPDATE (full replace + atomic re-sort)
+    //  UPDATE
     // ================================================================== //
 
     /** {@inheritDoc} */
     public function update(UpdateCategoryCommand $command): CategoryDTO
     {
-        $scope    = ['parent_id' => $command->parentId];
-        $oldOrder = $this->fetchDisplayOrder($command->id);
-
-        if ($oldOrder !== $command->displayOrder) {
-            $this->ordering->moveWithinScope(
-                table:            'maa_categories',
-                idColumn:         'id',
-                idValue:          $command->id,
-                currentPosition:  $oldOrder,
-                requestedPosition: $command->displayOrder,
-                orderColumn:      'display_order',
-                scope:            $scope,
-            );
-        }
+        // Reorder siblings atomically before writing other fields.
+        // ScopedOrderingManager::moveWithinScope() reads the current position
+        // from the DB inside its own transaction, so no pre-fetch is needed.
+        $this->orderingManager->moveWithinScope(
+            $this->pdo,
+            $this->orderingConfig(),
+            $command->parentId,
+            $command->id,
+            $command->displayOrder,
+        );
 
         try {
             $stmt = $this->prepareOrFail('
@@ -112,19 +105,17 @@ final class PdoCategoryCommandRepository implements CategoryCommandRepositoryInt
                     `slug`          = :slug,
                     `description`   = :description,
                     `is_active`     = :is_active,
-                    `display_order` = :display_order,
                     `notes`         = :notes
                 WHERE `id` = :id
             ');
             $stmt->execute([
-                ':parent_id'     => $command->parentId,
-                ':name'          => $command->name,
-                ':slug'          => $command->slug,
-                ':description'   => $command->description,
-                ':is_active'     => $command->isActive ? 1 : 0,
-                ':display_order' => $command->displayOrder,
-                ':notes'         => $command->notes,
-                ':id'            => $command->id,
+                ':parent_id'   => $command->parentId,
+                ':name'        => $command->name,
+                ':slug'        => $command->slug,
+                ':description' => $command->description,
+                ':is_active'   => $command->isActive ? 1 : 0,
+                ':notes'       => $command->notes,
+                ':id'          => $command->id,
             ]);
         } catch (\PDOException $e) {
             if ($this->isDuplicateKeyError($e)) {
@@ -162,29 +153,17 @@ final class PdoCategoryCommandRepository implements CategoryCommandRepositoryInt
     public function reorder(int $id, int $newOrder, ?int $parentId): void
     {
         try {
-            // Pre-flight read — optimistic equality check to avoid an unnecessary
-            // transaction when the position has not changed.
-            // ⚠️ This read is NOT inside a transaction; it is intentionally
-            // without FOR UPDATE because the lock would be released immediately
-            // in autocommit mode and provide no real concurrency protection.
-            // moveWithinScope() owns its own atomic transaction for the actual update.
-            $oldOrder = $this->fetchDisplayOrder($id);
-
-            if ($oldOrder === $newOrder) {
-                return;
-            }
-
-            // ScopedOrderingManager::moveWithinScope() handles its own transaction
-            // and writes the final display_order back to the item row.
-            $this->ordering->moveWithinScope(
-                table:             'maa_categories',
-                idColumn:          'id',
-                idValue:           $id,
-                currentPosition:   $oldOrder,
-                requestedPosition: $newOrder,
-                orderColumn:       'display_order',
-                scope:             ['parent_id' => $parentId],
+            $moved = $this->orderingManager->moveWithinScope(
+                $this->pdo,
+                $this->orderingConfig(),
+                $parentId,
+                $id,
+                $newOrder,
             );
+
+            if (!$moved) {
+                throw CategoryNotFoundException::withId($id);
+            }
         } catch (Throwable $e) {
             if ($e instanceof CategoryExceptionInterface) {
                 throw $e;
@@ -231,7 +210,6 @@ final class PdoCategoryCommandRepository implements CategoryCommandRepositoryInt
             'DELETE FROM `maa_category_settings` WHERE `category_id` = ? AND `key` = ?',
         );
         $stmt->execute([$command->categoryId, $command->key]);
-        // Silent no-op when row does not exist (rowCount = 0 is acceptable).
     }
 
     // ================================================================== //
@@ -256,8 +234,6 @@ final class PdoCategoryCommandRepository implements CategoryCommandRepositoryInt
                 ':update_path'  => $command->path,
             ]);
         } catch (\PDOException $e) {
-            // MySQL 1452: FK violation on language_id — language does not exist.
-            // category_id FK is already guarded by CategoryCommandService::assertExists().
             if ($this->isForeignKeyViolation($e)) {
                 throw CategoryInvalidArgumentException::invalidLanguageId($command->languageId);
             }
@@ -278,7 +254,6 @@ final class PdoCategoryCommandRepository implements CategoryCommandRepositoryInt
             'DELETE FROM `maa_category_images` WHERE `category_id` = ? AND `image_type` = ? AND `language_id` = ?',
         );
         $stmt->execute([$command->categoryId, $command->imageType->value, $command->languageId]);
-        // Silent no-op when slot does not exist.
     }
 
     // ================================================================== //
@@ -320,39 +295,26 @@ final class PdoCategoryCommandRepository implements CategoryCommandRepositoryInt
             'DELETE FROM `maa_category_translations` WHERE `category_id` = ? AND `language_id` = ?',
         );
         $stmt->execute([$command->categoryId, $command->languageId]);
-        // Silent no-op if the row does not exist.
     }
 
+    // ================================================================== //
+    //  Private — ordering config
+    // ================================================================== //
+
+    private function orderingConfig(): ScopedOrderingConfig
+    {
+        return new ScopedOrderingConfig(
+            table:          'maa_categories',
+            scopeColumn:    'parent_id',
+            idColumn:       'id',
+            orderColumn:    'display_order',
+            deletedAtColumn: null,
+        );
+    }
 
     // ================================================================== //
     //  Private — DB helpers
     // ================================================================== //
-
-    private function fetchDisplayOrder(int $id): int
-    {
-        $stmt = $this->prepareOrFail(
-            'SELECT `display_order` FROM `maa_categories` WHERE `id` = ? LIMIT 1',
-        );
-        $stmt->execute([$id]);
-
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($row === false || !is_array($row)) {
-            throw CategoryNotFoundException::withId($id);
-        }
-
-        /** @var array<string, mixed> $row */
-        $order = $row['display_order'];
-
-        if (is_int($order)) {
-            return $order;
-        }
-
-        if (is_numeric($order)) {
-            return (int) $order;
-        }
-
-        throw CategoryPersistenceException::unexpectedColumnType('display_order', $id);
-    }
 
     private function fetchDtoOrFail(int $id): CategoryDTO
     {

@@ -1,0 +1,133 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}
+    Rate History | {{ ui.appName }}
+{% endblock %}
+
+{% block content %}
+<script>
+    window.rateId = {{ rate_id }};
+</script>
+    {# ============================================================
+       Page Header + Breadcrumb
+       ============================================================ #}
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">Rate History</h2>
+
+        <nav>
+            <ol class="flex items-center gap-1.5">
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" href="{{ ui.adminUrl }}dashboard">
+                        Home
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+                <li>
+                    <a
+                            class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                            href="{{ ui.adminUrl }}exchange-rates/rates"
+                    >
+                        Rates
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none"
+                             xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                  stroke-width="1.2"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+                <li class="text-sm text-gray-800 dark:text-gray-200">History</li>
+            </ol>
+        </nav>
+    </div>
+
+    {# ============================================================
+       🔐 Capabilities Injection (UI Contract)
+       ============================================================ #}
+    <script>
+        window.historyCapabilities = {
+            can_view_history: {{ capabilities.can_view_history ?? false ? 'true' : 'false' }}
+        };
+        window.initialRateId = "{{ rate_id }}";
+    </script>
+
+    {# ============================================================
+       Page Body
+       ============================================================ #}
+    <div class="px-0 py-2">
+        <div class="container lg:max-w-[100%] mt-6">
+            {# ============================================================
+               🔍 Search & Filters Section
+               ============================================================ #}
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+                <form id="history-filter-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <label for="filter-id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">History ID</label>
+                            <input type="number" id="filter-id" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400" placeholder="ID" min="1" />
+                        </div>
+
+                        {# <div>
+                            <label for="filter-rate-id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rate ID</label>
+                            <input type="number" id="filter-rate-id" value="{{ rate_id }}" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400" placeholder="Rate ID" min="1" />
+                        </div> #}
+
+                        <div>
+                            <label for="filter-provider" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Provider</label>
+                            <select id="filter-provider" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                                <option value="">All Providers</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="filter-base" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Base Currency</label>
+                            <input type="text" id="filter-base" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400 uppercase" placeholder="e.g., USD" maxlength="3" />
+                        </div>
+
+                        <div>
+                            <label for="filter-target" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Target Currency</label>
+                            <input type="text" id="filter-target" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400 uppercase" placeholder="e.g., EGP" maxlength="3" />
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap gap-3 pt-4">
+                        <button type="submit" class="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2">Search</button>
+                        <button type="button" id="history-reset-filters" class="px-3 py-1 bg-gray-200 text-sm dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium flex items-center gap-2">Reset</button>
+                    </div>
+                </form>
+            </div>
+
+            {# ============================================================
+               📋 Global Search Bar
+               ============================================================ #}
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4">
+                <div class="flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input type="text" id="history-search" class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400" placeholder="Search by provider or pair..." />
+                    <button type="button" id="history-search-btn" class="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium">Search</button>
+                    <button type="button" id="history-clear-search" class="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium">Clear</button>
+                </div>
+            </div>
+
+            <div id="table-container" class="w-full"></div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/api_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/callback_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/Input_checker.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/data_table.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/select2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-page-bridge.js') }}"></script>
+
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/exchange_rates/rates-history-helpers-v2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/exchange_rates/rates-history-with-components-v2.js') }}"></script>
+{% endblock %}

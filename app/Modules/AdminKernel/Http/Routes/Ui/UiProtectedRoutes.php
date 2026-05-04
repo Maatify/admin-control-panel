@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Routes\Ui;
 
+use Maatify\AdminKernel\Http\Middleware\SessionGuardMiddleware;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\ActivityLogsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\AdminsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\CategoriesUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\AppSettingsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\ContentDocumentsUiRoutes;
-use Maatify\AdminKernel\Http\Routes\Ui\Features\CurrenciesUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\DashboardUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\I18nUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\ImageProfilesUiRoutes;
@@ -23,7 +23,8 @@ use Maatify\AdminKernel\Http\Routes\Ui\Features\SettingsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\TelemetryUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\TwoFactorUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\WebsiteUiThemesUiRoutes;
-use Maatify\AdminKernel\Http\Middleware\SessionGuardMiddleware;
+use Maatify\CurrencySlim\Admin\Http\Routes\CurrenciesUiRoutes;
+use Maatify\ExchangeRatesSlim\Admin\Http\Routes\ExchangeRatesUiRoutes;
 use Psr\Container\ContainerInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 
@@ -61,6 +62,7 @@ final class UiProtectedRoutes
             LogoutUiRoutes::register($protectedGroup);
 
             CurrenciesUiRoutes::register($protectedGroup);
+            ExchangeRatesUiRoutes::register($protectedGroup);
             ImageProfilesUiRoutes::register($protectedGroup);
             WebsiteUiThemesUiRoutes::register($protectedGroup);
             MyProfileUiRoutes::register($protectedGroup);

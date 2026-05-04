@@ -1,0 +1,50 @@
+{
+  "name": "maatify/persistence",
+  "description": "Reusable persistence-layer utilities for Maatify projects.",
+  "type": "library",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Maatify\\Persistence\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Maatify\\Persistence\\Tests\\": "tests/"
+    }
+  },
+  "require": {
+    "php": ">=8.2",
+    "ext-pdo": "*"
+  },
+  "require-dev": {
+    "phpstan/phpstan": "^2.1",
+    "friendsofphp/php-cs-fixer": "^3.94"
+  },
+  "scripts": {
+    "analyse": "phpstan analyse src tests --level=max",
+    "format": "php-cs-fixer fix"
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "sort-packages": true,
+    "platform": {
+      "php": "8.2.0"
+    }
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true,
+
+
+  "authors": [
+    {
+      "name": "Maatify",
+      "email": "support@maatify.com"
+    }
+  ],
+
+  "support": {
+    "issues": "https://github.com/maatify/shared-common/issues",
+    "source": "https://github.com/maatify/shared-common"
+  }
+}

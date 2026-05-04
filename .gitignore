@@ -12,3 +12,6 @@ composer.lock
 .idea/git_toolbox_prj.xml
 .DS_Store
 public/storage/
+.phpunit.cache/
+/internals/
+*.patch
