@@ -2621,6 +2621,36 @@ class Container
         ]);
 
 
+        // Register Maatify\I18n modules
+        \Maatify\I18n\Bootstrap\I18nBindings::register($containerBuilder);
+
+        // Register Maatify\ContentDocuments modules
+        \Maatify\ContentDocuments\Bootstrap\ContentDocumentsBindings::register($containerBuilder);
+
+        // Register Maatify\Validation modules
+        \Maatify\Validation\Bootstrap\ValidationBindings::register($containerBuilder);
+
+        // Register Maatify\AppSettings modules
+        \Maatify\AppSettings\Bootstrap\AppSettingsBindings::register($containerBuilder);
+
+        // Register Maatify\Verification modules
+        \Maatify\Verification\Bootstrap\VerificationBindings::register($containerBuilder);
+
+        // Register Maatify\LanguageCoreBinding modules
+        \Maatify\AdminKernel\Infrastructure\LanguageCore\Bootstrap\LanguageCoreBinding::register($containerBuilder);
+
+        // Register Maatify\CurrenciesBindings modules
+        \Maatify\Currency\Bootstrap\CurrenciesBindings::register($containerBuilder);
+
+        // Register Maatify\ImageProfileBindings modules
+        \Maatify\ImageProfile\Bootstrap\ImageProfileBindings::register($containerBuilder);
+
+        // Register Maatify\WebsiteUiThemeBindings modules
+        \Maatify\WebsiteUiTheme\Bootstrap\WebsiteUiThemeBindings::register($containerBuilder);
+
+        // Register Maatify\Category module
+        \Maatify\Category\Bootstrap\CategoriesBindings::register($containerBuilder);
+
         // Extension Hook: Allow host projects to override/extend bindings
         if ($builderHook !== null) {
             $builderHook($containerBuilder);

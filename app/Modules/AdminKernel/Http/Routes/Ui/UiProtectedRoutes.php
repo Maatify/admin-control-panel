@@ -7,7 +7,7 @@ namespace Maatify\AdminKernel\Http\Routes\Ui;
 use Maatify\AdminKernel\Http\Middleware\SessionGuardMiddleware;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\ActivityLogsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\AdminsUiRoutes;
-use Maatify\AdminKernel\Http\Routes\Ui\Features\CategoriesUiRoutes;
+use Maatify\Category\Admin\Http\Routes\CategoriesUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\AppSettingsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\ContentDocumentsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\DashboardUiRoutes;

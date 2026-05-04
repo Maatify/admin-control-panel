@@ -6,6 +6,7 @@ namespace Tests\Http\Middleware;
 
 use Maatify\AdminKernel\Context\AdminContext;
 use Maatify\AdminKernel\Context\RequestContext;
+use Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface;
 use Maatify\AdminKernel\Domain\Enum\Scope;
 use Maatify\AdminKernel\Domain\Service\StepUpService;
 use Maatify\AdminKernel\Http\Middleware\ScopeGuardMiddleware;
@@ -28,7 +29,8 @@ class ScopeGuardMiddlewareTest extends TestCase
     protected function setUp(): void
     {
         $this->stepUpService = $this->createMock(StepUpService::class);
-        $this->middleware = new ScopeGuardMiddleware($this->stepUpService);
+        $redirectTokenProvider = $this->createMock(RedirectTokenProviderInterface::class);
+        $this->middleware = new ScopeGuardMiddleware($this->stepUpService, $redirectTokenProvider);
     }
 
     public function testDeniesAccessWhenNoAdminId(): void

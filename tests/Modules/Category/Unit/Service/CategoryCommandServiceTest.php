@@ -221,7 +221,7 @@ final class CategoryCommandServiceTest extends TestCase
             isActive:     true,
             displayOrder: 1,
         );
-        $existing = new CategoryDTO(5, null, 'Same Name', 'my-slug', true, 1, '2026-01-01', null, 0);
+        $existing = new CategoryDTO(id: 5, parentId: null, name: 'Same Name', slug: 'my-slug', isActive: true, displayOrder: 1, createdAt: '2026-01-01', updatedAt: null, childCount: 0);
 
         $this->queryReader->method('findById')->with(5)->willReturn($existing);
         $this->queryReader->method('findBySlug')->with('my-slug')->willReturn($existing);

@@ -7,6 +7,8 @@ namespace Tests\Modules\Category\Unit\Service;
 use Maatify\Category\Contract\CategoryQueryReaderInterface;
 use Maatify\Category\DTO\CategoryDTO;
 use Maatify\Category\DTO\CategorySettingDTO;
+use Maatify\Category\DTO\PaginatedResult;
+use Maatify\Category\DTO\PaginationInfo;
 use Maatify\Category\Exception\CategoryNotFoundException;
 use Maatify\Category\Service\CategoryQueryService;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -51,13 +53,13 @@ final class CategoryQueryServiceTest extends TestCase
         );
     }
 
-    /** @return array{data: list<never>, pagination: array{page: int, per_page: int, total: int, filtered: int}} */
-    private function emptyPage(): array
+    /** @return PaginatedResult<object> */
+    private function emptyPage(): PaginatedResult
     {
-        return [
-            'data'       => [],
-            'pagination' => ['page' => 1, 'per_page' => 20, 'total' => 0, 'filtered' => 0],
-        ];
+        return new PaginatedResult(
+            data:       [],
+            pagination: new PaginationInfo(page: 1, per_page: 20, total: 0, filtered: 0),
+        );
     }
 
     // ================================================================== //

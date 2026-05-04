@@ -11,7 +11,7 @@ use Maatify\AdminKernel\Http\Routes\Api\Features\AdminEmailApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\AdminsApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\AppSettingsApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\ContentDocumentsApiRoutes;
-use Maatify\AdminKernel\Http\Routes\Api\Features\CategoriesApiRoutes;
+use Maatify\Category\Admin\Http\Routes\CategoriesApiRoutes;
 use Maatify\CurrencySlim\Admin\Http\Routes\CurrenciesApiRoutes;
 use Maatify\ExchangeRatesSlim\Admin\Http\Routes\ExchangeRatesApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\I18nApiRoutes;
