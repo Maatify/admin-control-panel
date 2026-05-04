@@ -6,7 +6,7 @@ namespace Maatify\Validation\Schemas;
 
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Rules\CredentialInputRule;
-use Respect\Validation\Validator as v;
+use Maatify\Validation\Rules\Primitive\EmailRule;
 
 /**
  * Authentication Input Schema
@@ -19,7 +19,7 @@ class AuthLoginSchemaExample extends AbstractSchema
     protected function rules(): array
     {
         return [
-            'email' => [v::email(), ValidationErrorCodeEnum::INVALID_EMAIL],
+            'email' => [EmailRule::required(), ValidationErrorCodeEnum::INVALID_EMAIL],
             'password' => [CredentialInputRule::rule(), ValidationErrorCodeEnum::INVALID_PASSWORD],
         ];
     }
