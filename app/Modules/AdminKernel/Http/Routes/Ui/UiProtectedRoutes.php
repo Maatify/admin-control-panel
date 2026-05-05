@@ -25,6 +25,7 @@ use Maatify\AdminKernel\Http\Routes\Ui\Features\TwoFactorUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\WebsiteUiThemesUiRoutes;
 use Maatify\CurrencySlim\Admin\Http\Routes\CurrenciesUiRoutes;
 use Maatify\ExchangeRatesSlim\Admin\Http\Routes\ExchangeRatesUiRoutes;
+use Maatify\GeoSlim\Admin\Http\Routes\GeoUiRoutes;
 use Psr\Container\ContainerInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 
@@ -68,6 +69,8 @@ final class UiProtectedRoutes
             MyProfileUiRoutes::register($protectedGroup);
 
             CategoriesUiRoutes::register($protectedGroup);
+
+            GeoUiRoutes::register($protectedGroup);
 
         })
             // NOTE [Slim Middleware Order]:

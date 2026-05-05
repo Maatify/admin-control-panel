@@ -65,7 +65,8 @@
       "Maatify\\ExchangeRates\\": "Modules/ExchangeRates/src",
       "Maatify\\ExchangeRatesSlim\\": "Modules/ExchangeRatesSlim/src",
       "Maatify\\Persistence\\": "Modules/Persistence/src",
-      "Maatify\\Geo\\": "Modules/geo/src"
+      "Maatify\\Geo\\": "Modules/geo/src",
+      "Maatify\\GeoSlim\\": "Modules/GeoSlim/src"
     }
   },
 
