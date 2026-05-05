@@ -15,6 +15,7 @@ use Dotenv\Dotenv;
 use Maatify\AdminKernel\Ui\Config\MediaUrlConfigDTO;
 use Maatify\CurrencySlim\Admin\Security\CurrencyAdminPermissionPackage;
 use Maatify\ExchangeRatesSlim\Admin\Security\ExchangeRatesAdminPermissionPackage;
+use Maatify\GeoSlim\Admin\Security\GeoAdminPermissionPackage;
 use Maatify\Storage\Bootstrap\StorageBindings;
 use Maatify\Storage\Config\StorageConfig;
 
@@ -44,6 +45,7 @@ $options->runtimeConfig = $runtimeConfig;
 $permissionPackages = [
     new CurrencyAdminPermissionPackage(),
     new ExchangeRatesAdminPermissionPackage(),
+    new GeoAdminPermissionPackage(),
     // new PaymentMethodPackage(),
     // new ExchangeRatesPackage(),
     // new ShippingPackage(),
@@ -109,6 +111,9 @@ $options->builderHook = static function (ContainerBuilder $containerBuilder) use
 
     // Register Maatify\ExchangeRatesBindings modules
     \Maatify\ExchangeRates\Bootstrap\ExchangeRatesBindings::register($containerBuilder);
+
+    // Register Maatify\Geo module
+    \Maatify\Geo\Bootstrap\GeoBindings::register($containerBuilder);
 };
 
 // 5️⃣ Boot & Run
