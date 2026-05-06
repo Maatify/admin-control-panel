@@ -36,9 +36,7 @@ final class AdminCreateSchema extends AbstractSchema
             ],
 
             'display_name' => [
-                \Respect\Validation\Validator::stringType()
-                    ->notEmpty()
-                    ->length(2, 100),
+                \Maatify\Validation\Rules\Primitive\StringRule::required(2, 100),
                 ValidationErrorCodeEnum::INVALID_DISPLAY_NAME,
             ],
         ];
