@@ -8,6 +8,7 @@ use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
 use Maatify\Validation\Rules\Primitive\StrictEntityIdRule;
+use Maatify\Validation\Rules\Primitive\StrictBooleanRule;
 
 final class ImageProfileUpdateSchema extends AbstractSchema
 {
@@ -27,11 +28,13 @@ final class ImageProfileUpdateSchema extends AbstractSchema
             'max_size_bytes' => [$nullableInt(), ValidationErrorCodeEnum::REQUIRED_FIELD],
             'allowed_extensions' => [$nullableString(255), ValidationErrorCodeEnum::REQUIRED_FIELD],
             'allowed_mime_types' => [v::anyOf(v::nullType(), v::stringType()), ValidationErrorCodeEnum::REQUIRED_FIELD],
-            'is_active' => [v::boolType(), ValidationErrorCodeEnum::REQUIRED_FIELD],
+            'is_active' => [
+                StrictBooleanRule::required(), ValidationErrorCodeEnum::REQUIRED_FIELD],
             'notes' => [v::anyOf(v::nullType(), v::stringType()), ValidationErrorCodeEnum::REQUIRED_FIELD],
             'min_aspect_ratio' => [$nullableString(16), ValidationErrorCodeEnum::REQUIRED_FIELD],
             'max_aspect_ratio' => [$nullableString(16), ValidationErrorCodeEnum::REQUIRED_FIELD],
-            'requires_transparency' => [v::boolType(), ValidationErrorCodeEnum::REQUIRED_FIELD],
+            'requires_transparency' => [
+                StrictBooleanRule::required(), ValidationErrorCodeEnum::REQUIRED_FIELD],
             'preferred_format' => [$nullableString(10), ValidationErrorCodeEnum::REQUIRED_FIELD],
             'preferred_quality' => [$nullableInt(1, 100), ValidationErrorCodeEnum::REQUIRED_FIELD],
             'variants' => [v::anyOf(v::nullType(), v::stringType()), ValidationErrorCodeEnum::REQUIRED_FIELD],

@@ -8,6 +8,7 @@ use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
 use Maatify\Validation\Rules\Primitive\StrictEntityIdRule;
+use Maatify\Validation\Rules\Primitive\StrictBooleanRule;
 
 final class DirectPermissionAssignSchema extends AbstractSchema
 {
@@ -20,7 +21,7 @@ final class DirectPermissionAssignSchema extends AbstractSchema
             ],
 
             'is_allowed' => [
-                v::boolType(),
+                StrictBooleanRule::required(),
                 ValidationErrorCodeEnum::INVALID_VALUE
             ],
 

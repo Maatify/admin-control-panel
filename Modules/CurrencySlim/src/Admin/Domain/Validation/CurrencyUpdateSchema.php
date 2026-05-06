@@ -9,6 +9,7 @@ use Maatify\Validation\Rules\Primitive\StringRule;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
 use Maatify\Validation\Rules\Primitive\StrictEntityIdRule;
+use Maatify\Validation\Rules\Primitive\StrictBooleanRule;
 
 final class CurrencyUpdateSchema extends AbstractSchema
 {
@@ -32,7 +33,7 @@ final class CurrencyUpdateSchema extends AbstractSchema
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
             'is_active' => [
-                v::boolType(),
+                StrictBooleanRule::required(),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
         ];

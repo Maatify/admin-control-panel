@@ -29,7 +29,7 @@ class RoleMetadataUpdateSchema extends AbstractSchema
             // Route parameter: role id (validated at routing level)
             // ─────────────────────────────
 //            'id' => [
-//                StrictEntityIdRule::required(),
+// v::intType()->positive(),
 //                ValidationErrorCodeEnum::REQUIRED_FIELD
 //            ],
 

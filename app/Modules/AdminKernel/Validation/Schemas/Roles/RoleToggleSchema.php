@@ -19,6 +19,7 @@ use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
 use Maatify\Validation\Rules\Primitive\StrictEntityIdRule;
+use Maatify\Validation\Rules\Primitive\StrictBooleanRule;
 
 class RoleToggleSchema extends AbstractSchema
 {
@@ -29,7 +30,7 @@ class RoleToggleSchema extends AbstractSchema
             // Route parameter: role id (validated at routing level)
             // ─────────────────────────────
             //            'id' => [
-            //                StrictEntityIdRule::required(),
+            // v::intType()->positive(),
             //                ValidationErrorCodeEnum::REQUIRED_FIELD
             //            ],
 
@@ -37,7 +38,7 @@ class RoleToggleSchema extends AbstractSchema
             // Role activation flag
             // ─────────────────────────────
             'is_active' => [
-                v::boolType(),
+                StrictBooleanRule::required(),
                 ValidationErrorCodeEnum::INVALID_VALUE
             ],
         ];

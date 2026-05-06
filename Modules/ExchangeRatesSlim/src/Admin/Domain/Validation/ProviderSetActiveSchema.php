@@ -8,6 +8,7 @@ use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
 use Maatify\Validation\Rules\Primitive\StrictEntityIdRule;
+use Maatify\Validation\Rules\Primitive\StrictBooleanRule;
 
 final class ProviderSetActiveSchema extends AbstractSchema
 {
@@ -19,7 +20,7 @@ final class ProviderSetActiveSchema extends AbstractSchema
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
             'is_active' => [
-                v::boolType(),
+                StrictBooleanRule::required(),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
         ];

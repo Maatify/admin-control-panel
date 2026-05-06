@@ -7,6 +7,7 @@ namespace Maatify\AdminKernel\Domain\ContentDocuments\Validation;
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
+use Maatify\Validation\Rules\Primitive\StrictBooleanRule;
 
 final class ContentDocumentVersionsCreateSchema extends AbstractSchema
 {
@@ -29,7 +30,7 @@ final class ContentDocumentVersionsCreateSchema extends AbstractSchema
             // Requires Acceptance flag
             // ─────────────────────────────
             'requires_acceptance' => [
-                v::boolType(),
+                StrictBooleanRule::required(),
                 ValidationErrorCodeEnum::INVALID_VALUE
             ],
         ];

@@ -29,7 +29,7 @@ class PermissionMetadataUpdateSchema extends AbstractSchema
             // Permission ID
             // ─────────────────────────────
 //            'id' => [
-//                StrictEntityIdRule::required(),
+// v::intType()->positive(),
 //                ValidationErrorCodeEnum::REQUIRED_FIELD
 //            ],
 

@@ -7,6 +7,7 @@ namespace Maatify\AdminKernel\Domain\ContentDocuments\Validation;
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
+use Maatify\Validation\Rules\Primitive\StrictBooleanRule;
 
 final class ContentDocumentTypesUpdateSchema extends AbstractSchema
 {
@@ -17,12 +18,12 @@ final class ContentDocumentTypesUpdateSchema extends AbstractSchema
             // Optional flags
             // ─────────────────────────────
             'requires_acceptance_default' => [
-                v::boolType(),
+                StrictBooleanRule::required(),
                 ValidationErrorCodeEnum::INVALID_VALUE
             ],
 
             'is_system' => [
-                v::boolType(),
+                StrictBooleanRule::required(),
                 ValidationErrorCodeEnum::INVALID_VALUE
             ],
         ];

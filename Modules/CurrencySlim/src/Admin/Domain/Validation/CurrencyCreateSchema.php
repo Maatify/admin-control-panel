@@ -8,6 +8,7 @@ use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Rules\Primitive\StringRule;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
+use Maatify\Validation\Rules\Primitive\StrictBooleanRule;
 
 final class CurrencyCreateSchema extends AbstractSchema
 {
@@ -26,8 +27,7 @@ final class CurrencyCreateSchema extends AbstractSchema
                 StringRule::required(min: 1, max: 10),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
-            'is_active' => [
-                v::optional(v::boolType()),
+            'is_active' => [StrictBooleanRule::optional(),
                 ValidationErrorCodeEnum::INVALID_FORMAT
             ],
         ];

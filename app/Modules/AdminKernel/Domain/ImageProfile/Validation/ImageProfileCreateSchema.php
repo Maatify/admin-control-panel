@@ -7,6 +7,7 @@ namespace Maatify\AdminKernel\Domain\ImageProfile\Validation;
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
+use Maatify\Validation\Rules\Primitive\StrictBooleanRule;
 
 final class ImageProfileCreateSchema extends AbstractSchema
 {
@@ -28,11 +29,11 @@ final class ImageProfileCreateSchema extends AbstractSchema
             'max_size_bytes' => [$nullableInt(), ValidationErrorCodeEnum::INVALID_FORMAT],
             'allowed_extensions' => [$nullableString(255), ValidationErrorCodeEnum::INVALID_FORMAT],
             'allowed_mime_types' => [v::optional(v::anyOf(v::nullType(), v::stringType())), ValidationErrorCodeEnum::INVALID_FORMAT],
-            'is_active' => [v::optional(v::boolType()), ValidationErrorCodeEnum::INVALID_FORMAT],
+            'is_active' => [StrictBooleanRule::optional(), ValidationErrorCodeEnum::INVALID_FORMAT],
             'notes' => [v::optional(v::anyOf(v::nullType(), v::stringType())), ValidationErrorCodeEnum::INVALID_FORMAT],
             'min_aspect_ratio' => [$nullableString(16), ValidationErrorCodeEnum::INVALID_FORMAT],
             'max_aspect_ratio' => [$nullableString(16), ValidationErrorCodeEnum::INVALID_FORMAT],
-            'requires_transparency' => [v::optional(v::boolType()), ValidationErrorCodeEnum::INVALID_FORMAT],
+            'requires_transparency' => [StrictBooleanRule::optional(), ValidationErrorCodeEnum::INVALID_FORMAT],
             'preferred_format' => [$nullableString(10), ValidationErrorCodeEnum::INVALID_FORMAT],
             'preferred_quality' => [$nullableInt(1, 100), ValidationErrorCodeEnum::INVALID_FORMAT],
             'variants' => [v::optional(v::anyOf(v::nullType(), v::stringType())), ValidationErrorCodeEnum::INVALID_FORMAT],
