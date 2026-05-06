@@ -18,6 +18,7 @@ namespace Maatify\AdminKernel\Validation\Schemas\Roles;
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Rules\Primitive\StringRule;
 use Maatify\Validation\Schemas\AbstractSchema;
+use Maatify\Validation\Rules\Primitive\StrictEntityIdRule;
 
 class RoleMetadataUpdateSchema extends AbstractSchema
 {
@@ -28,7 +29,7 @@ class RoleMetadataUpdateSchema extends AbstractSchema
             // Route parameter: role id (validated at routing level)
             // ─────────────────────────────
 //            'id' => [
-//                v::intType()->positive(),
+//                StrictEntityIdRule::required(),
 //                ValidationErrorCodeEnum::REQUIRED_FIELD
 //            ],
 

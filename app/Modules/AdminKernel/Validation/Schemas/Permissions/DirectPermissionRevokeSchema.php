@@ -7,6 +7,7 @@ namespace Maatify\AdminKernel\Validation\Schemas\Permissions;
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
+use Maatify\Validation\Rules\Primitive\StrictEntityIdRule;
 
 final class DirectPermissionRevokeSchema extends AbstractSchema
 {
@@ -14,7 +15,7 @@ final class DirectPermissionRevokeSchema extends AbstractSchema
     {
         return [
             'permission_id' => [
-                v::intType()->positive(),
+                StrictEntityIdRule::required(),
                 ValidationErrorCodeEnum::INVALID_VALUE
             ],
         ];

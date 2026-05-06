@@ -7,6 +7,7 @@ namespace Maatify\AdminKernel\Validation\Schemas\Roles;
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
+use Maatify\Validation\Rules\Primitive\StrictEntityIdRule;
 
 class RolePermissionUnassignSchema extends AbstractSchema
 {
@@ -17,7 +18,7 @@ class RolePermissionUnassignSchema extends AbstractSchema
             // Permission ID
             // ─────────────────────────────
             'permission_id' => [
-                v::intType()->positive(),
+                StrictEntityIdRule::required(),
                 ValidationErrorCodeEnum::INVALID_VALUE
             ],
         ];
