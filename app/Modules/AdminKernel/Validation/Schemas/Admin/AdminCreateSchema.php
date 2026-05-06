@@ -17,6 +17,7 @@ namespace Maatify\AdminKernel\Validation\Schemas\Admin;
 
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Rules\Primitive\EmailRule;
+use Maatify\Validation\Rules\Primitive\StringRule;
 use Maatify\Validation\Schemas\AbstractSchema;
 
 final class AdminCreateSchema extends AbstractSchema
@@ -36,7 +37,7 @@ final class AdminCreateSchema extends AbstractSchema
             ],
 
             'display_name' => [
-                \Maatify\Validation\Rules\Primitive\StringRule::required(2, 100),
+                StringRule::required(2, 100),
                 ValidationErrorCodeEnum::INVALID_DISPLAY_NAME,
             ],
         ];
