@@ -13,7 +13,8 @@
   "require-dev": {
     "phpstan/phpstan": "^1.12",
     "phpstan/phpstan-strict-rules": "^1.6",
-    "php-di/php-di": "^7.0"
+    "php-di/php-di": "^7.0",
+    "phpunit/phpunit": "^11.5"
   },
   "autoload": {
     "psr-4": {

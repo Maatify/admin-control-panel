@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Maatify\GeoSlim\Admin\Domain\Validation;
 
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
+use Maatify\Validation\Rules\Primitive\BooleanRule;
+use Maatify\Validation\Rules\Primitive\EntityIdRule;
 use Maatify\Validation\Rules\Primitive\StringRule;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
@@ -15,11 +17,11 @@ final class CountryUpdateSchema extends AbstractSchema
     {
         return [
             'id' => [
-                v::intType()->min(1),
+                EntityIdRule::required(),
                 ValidationErrorCodeEnum::REQUIRED_FIELD,
             ],
             'code' => [
-                v::stringType()->notEmpty()->length(2, 2),
+                StringRule::required(min: 2, max: 2),
                 ValidationErrorCodeEnum::REQUIRED_FIELD,
             ],
             'name' => [
@@ -31,10 +33,9 @@ final class CountryUpdateSchema extends AbstractSchema
                 ValidationErrorCodeEnum::INVALID_FORMAT,
             ],
             'is_active' => [
-                v::boolType(),
+                BooleanRule::required(),
                 ValidationErrorCodeEnum::REQUIRED_FIELD,
             ],
         ];
     }
 }
-

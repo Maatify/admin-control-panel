@@ -14,25 +14,30 @@ use Maatify\Geo\Command\UpdateCountryCommand;
 use Maatify\Geo\Command\UpdateCountryStatusCommand;
 use Maatify\Geo\Command\UpsertCityTranslationCommand;
 use Maatify\Geo\Command\UpsertCountryTranslationCommand;
-use Maatify\Geo\Contract\GeoCommandRepositoryInterface;
-use Maatify\Geo\Contract\GeoQueryReaderInterface;
+use Maatify\Geo\Contract\CityRepositoryInterface;
+use Maatify\Geo\Contract\CityTranslationRepositoryInterface;
+use Maatify\Geo\Contract\CountryRepositoryInterface;
+use Maatify\Geo\Contract\CountryTranslationRepositoryInterface;
 use Maatify\Geo\DTO\CityDTO;
 use Maatify\Geo\DTO\CityTranslationDTO;
 use Maatify\Geo\DTO\CountryDTO;
 use Maatify\Geo\DTO\CountryTranslationDTO;
+use Maatify\Geo\Exception\CityAlreadyExistsException;
 use Maatify\Geo\Exception\CityNotFoundException;
 use Maatify\Geo\Exception\CountryCodeAlreadyExistsException;
 use Maatify\Geo\Exception\CountryNotFoundException;
 
 /**
  * Write-side service — enforces all business rules before delegating
- * to the command repository.
+ * to the focused entity repositories.
  */
 final class GeoCommandService
 {
     public function __construct(
-        private readonly GeoCommandRepositoryInterface $commandRepo,
-        private readonly GeoQueryReaderInterface       $queryReader,
+        private readonly CountryRepositoryInterface            $countryRepo,
+        private readonly CountryTranslationRepositoryInterface $countryTranslationRepo,
+        private readonly CityRepositoryInterface               $cityRepo,
+        private readonly CityTranslationRepositoryInterface    $cityTranslationRepo,
     ) {}
 
     // ================================================================== //
@@ -47,7 +52,7 @@ final class GeoCommandService
         $code = strtoupper($command->code);
         $this->assertCountryCodeIsUnique($code, excludeId: null);
 
-        return $this->commandRepo->createCountry(new CreateCountryCommand(
+        return $this->countryRepo->createCountry(new CreateCountryCommand(
             code:     $code,
             name:     $command->name,
             icon:     $command->icon,
@@ -66,7 +71,7 @@ final class GeoCommandService
         $code = strtoupper($command->code);
         $this->assertCountryCodeIsUnique($code, excludeId: $command->id);
 
-        return $this->commandRepo->updateCountry(new UpdateCountryCommand(
+        return $this->countryRepo->updateCountry(new UpdateCountryCommand(
             id:       $command->id,
             code:     $code,
             name:     $command->name,
@@ -82,7 +87,7 @@ final class GeoCommandService
     {
         $this->assertCountryExists($command->id);
 
-        return $this->commandRepo->updateCountryStatus($command);
+        return $this->countryRepo->updateCountryStatus($command);
     }
 
     /**
@@ -98,7 +103,7 @@ final class GeoCommandService
         }
 
         $this->assertCountryExists($id);
-        $this->commandRepo->reorderCountry($id, $newOrder);
+        $this->countryRepo->reorderCountry($id, $newOrder);
     }
 
     // ================================================================== //
@@ -112,7 +117,7 @@ final class GeoCommandService
     {
         $this->assertCountryExists($command->countryId);
 
-        return $this->commandRepo->upsertCountryTranslation($command);
+        return $this->countryTranslationRepo->upsertCountryTranslation($command);
     }
 
     /**
@@ -122,7 +127,7 @@ final class GeoCommandService
     {
         $this->assertCountryExists($command->countryId);
 
-        $this->commandRepo->deleteCountryTranslation($command);
+        $this->countryTranslationRepo->deleteCountryTranslation($command);
     }
 
     // ================================================================== //
@@ -131,22 +136,31 @@ final class GeoCommandService
 
     /**
      * @throws CountryNotFoundException  when the country does not exist
+     * @throws CityAlreadyExistsException when a city with the same name exists in that country
      */
     public function createCity(CreateCityCommand $command): CityDTO
     {
         $this->assertCountryExists($command->countryId);
+        $this->assertCityNameIsUnique($command->name, $command->countryId, excludeId: null);
 
-        return $this->commandRepo->createCity($command);
+        return $this->cityRepo->createCity($command);
     }
 
     /**
      * @throws CityNotFoundException
+     * @throws CityAlreadyExistsException when the new name conflicts with another city in the same country
      */
     public function updateCity(UpdateCityCommand $command): CityDTO
     {
         $this->assertCityExists($command->id);
 
-        return $this->commandRepo->updateCity($command);
+        // Fetch current city to get its country_id for name-uniqueness check
+        $current = $this->cityRepo->findCityById($command->id);
+        if ($current !== null) {
+            $this->assertCityNameIsUnique($command->name, $current->countryId, excludeId: $command->id);
+        }
+
+        return $this->cityRepo->updateCity($command);
     }
 
     /**
@@ -156,7 +170,7 @@ final class GeoCommandService
     {
         $this->assertCityExists($command->id);
 
-        return $this->commandRepo->updateCityStatus($command);
+        return $this->cityRepo->updateCityStatus($command);
     }
 
     /**
@@ -172,7 +186,7 @@ final class GeoCommandService
         }
 
         $this->assertCityExists($id);
-        $this->commandRepo->reorderCity($id, $newOrder);
+        $this->cityRepo->reorderCity($id, $newOrder);
     }
 
     // ================================================================== //
@@ -186,7 +200,7 @@ final class GeoCommandService
     {
         $this->assertCityExists($command->cityId);
 
-        return $this->commandRepo->upsertCityTranslation($command);
+        return $this->cityTranslationRepo->upsertCityTranslation($command);
     }
 
     /**
@@ -196,7 +210,7 @@ final class GeoCommandService
     {
         $this->assertCityExists($command->cityId);
 
-        $this->commandRepo->deleteCityTranslation($command);
+        $this->cityTranslationRepo->deleteCityTranslation($command);
     }
 
     // ================================================================== //
@@ -208,7 +222,7 @@ final class GeoCommandService
      */
     private function assertCountryExists(int $id): void
     {
-        if ($this->queryReader->findCountryById($id) === null) {
+        if ($this->countryRepo->findCountryById($id) === null) {
             throw CountryNotFoundException::withId($id);
         }
     }
@@ -218,7 +232,7 @@ final class GeoCommandService
      */
     private function assertCityExists(int $id): void
     {
-        if ($this->queryReader->findCityById($id) === null) {
+        if ($this->cityRepo->findCityById($id) === null) {
             throw CityNotFoundException::withId($id);
         }
     }
@@ -228,7 +242,7 @@ final class GeoCommandService
      */
     private function assertCountryCodeIsUnique(string $code, ?int $excludeId): void
     {
-        $existing = $this->queryReader->findCountryByCode($code);
+        $existing = $this->countryRepo->findCountryByCode($code);
 
         if ($existing === null) { return; }
 
@@ -236,5 +250,20 @@ final class GeoCommandService
         if ($excludeId !== null && $existing->id === $excludeId) { return; }
 
         throw CountryCodeAlreadyExistsException::withCode($code);
+    }
+
+    /**
+     * @throws CityAlreadyExistsException
+     */
+    private function assertCityNameIsUnique(string $name, int $countryId, ?int $excludeId): void
+    {
+        $existing = $this->cityRepo->findCityByNameAndCountryId($name, $countryId);
+
+        if ($existing === null) { return; }
+
+        // Allow updating a city with its own existing name
+        if ($excludeId !== null && $existing->id === $excludeId) { return; }
+
+        throw CityAlreadyExistsException::withNameAndCountryId($name, $countryId);
     }
 }

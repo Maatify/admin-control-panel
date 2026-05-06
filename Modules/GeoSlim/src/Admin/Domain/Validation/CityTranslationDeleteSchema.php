@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Maatify\GeoSlim\Admin\Domain\Validation;
 
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
+use Maatify\Validation\Rules\Primitive\EntityIdRule;
 use Maatify\Validation\Schemas\AbstractSchema;
-use Respect\Validation\Validator as v;
 
 final class CityTranslationDeleteSchema extends AbstractSchema
 {
@@ -14,10 +14,9 @@ final class CityTranslationDeleteSchema extends AbstractSchema
     {
         return [
             'language_id' => [
-                v::intType()->min(1),
+                EntityIdRule::required(),
                 ValidationErrorCodeEnum::REQUIRED_FIELD,
             ],
         ];
     }
 }
-

@@ -6,10 +6,16 @@ namespace Maatify\Geo\Bootstrap;
 
 use DI\Container;
 use DI\ContainerBuilder;
-use Maatify\Geo\Contract\GeoCommandRepositoryInterface;
-use Maatify\Geo\Contract\GeoQueryReaderInterface;
-use Maatify\Geo\Infrastructure\Repository\PdoGeoCommandRepository;
-use Maatify\Geo\Infrastructure\Repository\PdoGeoQueryReader;
+use Maatify\Geo\Contract\CityDropdownRepositoryInterface;
+use Maatify\Geo\Contract\CityRepositoryInterface;
+use Maatify\Geo\Contract\CityTranslationRepositoryInterface;
+use Maatify\Geo\Contract\CountryDropdownRepositoryInterface;
+use Maatify\Geo\Contract\CountryRepositoryInterface;
+use Maatify\Geo\Contract\CountryTranslationRepositoryInterface;
+use Maatify\Geo\Infrastructure\Repository\PdoCityRepository;
+use Maatify\Geo\Infrastructure\Repository\PdoCityTranslationRepository;
+use Maatify\Geo\Infrastructure\Repository\PdoCountryRepository;
+use Maatify\Geo\Infrastructure\Repository\PdoCountryTranslationRepository;
 use Maatify\Geo\Service\GeoCommandService;
 use Maatify\Geo\Service\GeoQueryService;
 use PDO;
@@ -19,10 +25,14 @@ use Psr\Container\ContainerInterface;
  * Registers all Geo module service bindings into a DI ContainerBuilder.
  *
  * --------------------------------------------------------------------------
- * PURPOSE
+ * INTERFACE → IMPLEMENTATION MAP
  * --------------------------------------------------------------------------
- * This class acts as the Composition Root adapter for the Geo module.
- * It maps Geo contracts (interfaces) to their PDO/MySQL implementations.
+ * CountryRepositoryInterface          → PdoCountryRepository
+ * CountryDropdownRepositoryInterface  → PdoCountryRepository  (same instance)
+ * CountryTranslationRepositoryInterface → PdoCountryTranslationRepository
+ * CityRepositoryInterface             → PdoCityRepository
+ * CityDropdownRepositoryInterface     → PdoCityRepository     (same instance)
+ * CityTranslationRepositoryInterface  → PdoCityTranslationRepository
  *
  * --------------------------------------------------------------------------
  * DESIGN PRINCIPLES
@@ -31,24 +41,6 @@ use Psr\Container\ContainerInterface;
  * - No dependency on any host kernel.
  * - language_id is a plain int — no dependency on the `languages` table schema.
  * - Safe for extraction as a standalone library.
- *
- * --------------------------------------------------------------------------
- * HOST REQUIREMENTS
- * --------------------------------------------------------------------------
- * The host application MUST provide:
- * - PDO binding
- * - `languages` table in the same database (used only by admin translation
- *   listing queries that JOIN on language_id)
- *
- * --------------------------------------------------------------------------
- * HOST CUSTOMIZATION
- * --------------------------------------------------------------------------
- * A host application MAY override any binding after calling register():
- *
- *   GeoBindings::register($builder);
- *   $builder->addDefinitions([
- *       GeoQueryReaderInterface::class => MyCustomGeoQueryReader::class,
- *   ]);
  */
 final class GeoBindings
 {
@@ -59,42 +51,98 @@ final class GeoBindings
     {
         $builder->addDefinitions([
 
-            // --- Infrastructure -----------------------------------------
+            // --- Country repositories ------------------------------------
 
-            GeoQueryReaderInterface::class => static function (ContainerInterface $c): PdoGeoQueryReader {
+            CountryRepositoryInterface::class => static function (ContainerInterface $c): PdoCountryRepository {
                 /** @var PDO $pdo */
                 $pdo = $c->get(PDO::class);
-
-                return new PdoGeoQueryReader($pdo);
+                return new PdoCountryRepository($pdo);
             },
 
-            GeoCommandRepositoryInterface::class => static function (ContainerInterface $c): PdoGeoCommandRepository {
+            // Dropdown re-uses the same PdoCountryRepository instance (it implements both interfaces).
+            CountryDropdownRepositoryInterface::class => static function (ContainerInterface $c): PdoCountryRepository {
+                /** @var PdoCountryRepository $repo */
+                $repo = $c->get(CountryRepositoryInterface::class);
+                return $repo;
+            },
+
+            CountryTranslationRepositoryInterface::class => static function (ContainerInterface $c): PdoCountryTranslationRepository {
                 /** @var PDO $pdo */
                 $pdo = $c->get(PDO::class);
+                return new PdoCountryTranslationRepository($pdo);
+            },
 
-                /** @var GeoQueryReaderInterface $queryReader */
-                $queryReader = $c->get(GeoQueryReaderInterface::class);
+            // --- City repositories ---------------------------------------
 
-                return new PdoGeoCommandRepository($pdo, $queryReader);
+            CityRepositoryInterface::class => static function (ContainerInterface $c): PdoCityRepository {
+                /** @var PDO $pdo */
+                $pdo = $c->get(PDO::class);
+                return new PdoCityRepository($pdo);
+            },
+
+            // Dropdown re-uses the same PdoCityRepository instance (it implements both interfaces).
+            CityDropdownRepositoryInterface::class => static function (ContainerInterface $c): PdoCityRepository {
+                /** @var PdoCityRepository $repo */
+                $repo = $c->get(CityRepositoryInterface::class);
+                return $repo;
+            },
+
+            CityTranslationRepositoryInterface::class => static function (ContainerInterface $c): PdoCityTranslationRepository {
+                /** @var PDO $pdo */
+                $pdo = $c->get(PDO::class);
+                return new PdoCityTranslationRepository($pdo);
             },
 
             // --- Services -----------------------------------------------
 
             GeoQueryService::class => static function (ContainerInterface $c): GeoQueryService {
-                /** @var GeoQueryReaderInterface $reader */
-                $reader = $c->get(GeoQueryReaderInterface::class);
+                /** @var CountryRepositoryInterface $countryRepo */
+                $countryRepo = $c->get(CountryRepositoryInterface::class);
 
-                return new GeoQueryService($reader);
+                /** @var CountryDropdownRepositoryInterface $countryDropdown */
+                $countryDropdown = $c->get(CountryDropdownRepositoryInterface::class);
+
+                /** @var CountryTranslationRepositoryInterface $countryTranslationRepo */
+                $countryTranslationRepo = $c->get(CountryTranslationRepositoryInterface::class);
+
+                /** @var CityRepositoryInterface $cityRepo */
+                $cityRepo = $c->get(CityRepositoryInterface::class);
+
+                /** @var CityDropdownRepositoryInterface $cityDropdown */
+                $cityDropdown = $c->get(CityDropdownRepositoryInterface::class);
+
+                /** @var CityTranslationRepositoryInterface $cityTranslationRepo */
+                $cityTranslationRepo = $c->get(CityTranslationRepositoryInterface::class);
+
+                return new GeoQueryService(
+                    $countryRepo,
+                    $countryDropdown,
+                    $countryTranslationRepo,
+                    $cityRepo,
+                    $cityDropdown,
+                    $cityTranslationRepo,
+                );
             },
 
             GeoCommandService::class => static function (ContainerInterface $c): GeoCommandService {
-                /** @var GeoCommandRepositoryInterface $commandRepo */
-                $commandRepo = $c->get(GeoCommandRepositoryInterface::class);
+                /** @var CountryRepositoryInterface $countryRepo */
+                $countryRepo = $c->get(CountryRepositoryInterface::class);
 
-                /** @var GeoQueryReaderInterface $queryReader */
-                $queryReader = $c->get(GeoQueryReaderInterface::class);
+                /** @var CountryTranslationRepositoryInterface $countryTranslationRepo */
+                $countryTranslationRepo = $c->get(CountryTranslationRepositoryInterface::class);
 
-                return new GeoCommandService($commandRepo, $queryReader);
+                /** @var CityRepositoryInterface $cityRepo */
+                $cityRepo = $c->get(CityRepositoryInterface::class);
+
+                /** @var CityTranslationRepositoryInterface $cityTranslationRepo */
+                $cityTranslationRepo = $c->get(CityTranslationRepositoryInterface::class);
+
+                return new GeoCommandService(
+                    $countryRepo,
+                    $countryTranslationRepo,
+                    $cityRepo,
+                    $cityTranslationRepo,
+                );
             },
 
         ]);
