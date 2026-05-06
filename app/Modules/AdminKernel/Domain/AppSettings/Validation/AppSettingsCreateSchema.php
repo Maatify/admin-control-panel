@@ -8,8 +8,6 @@ use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Rules\Primitive\BooleanRule;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
-use Maatify\Validation\Rules\Primitive\StringRule;
-use Maatify\Validation\Rules\StringPatternRule;
 
 final class AppSettingsCreateSchema extends AbstractSchema
 {
@@ -17,12 +15,12 @@ final class AppSettingsCreateSchema extends AbstractSchema
     {
         return [
             'setting_group' => [
-                StringRule::required(1, 64, StringPatternRule::MACHINE_KEY_PATTERN),
+                v::stringType()->length(1, 64),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
 
             'setting_key' => [
-                StringRule::required(1, 64, StringPatternRule::MACHINE_KEY_PATTERN),
+                v::stringType()->length(1, 64),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
 
