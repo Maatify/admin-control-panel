@@ -18,7 +18,6 @@ namespace Maatify\AdminKernel\Validation\Schemas\Permissions;
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Rules\Primitive\StringRule;
 use Maatify\Validation\Schemas\AbstractSchema;
-use Maatify\Validation\Rules\Primitive\StrictEntityIdRule;
 
 class PermissionMetadataUpdateSchema extends AbstractSchema
 {

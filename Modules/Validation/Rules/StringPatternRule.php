@@ -14,5 +14,7 @@ final class StringPatternRule
 
     public const PRICE_PATTERN = '/^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/';
 
+    public const MACHINE_KEY_PATTERN = '/^[a-zA-Z0-9_.-]+$/';
+
     public const CLEAN_STRING_PATTERN = '/^[^\p{C}]*$/u';
 }

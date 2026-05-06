@@ -18,7 +18,6 @@ namespace Maatify\AdminKernel\Validation\Schemas\Roles;
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
-use Maatify\Validation\Rules\Primitive\StrictEntityIdRule;
 use Maatify\Validation\Rules\Primitive\StrictBooleanRule;
 
 class RoleToggleSchema extends AbstractSchema
