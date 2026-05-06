@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace Maatify\Geo\Service;
 
-use Maatify\Geo\Contract\GeoQueryReaderInterface;
+use Maatify\Geo\Contract\CityDropdownRepositoryInterface;
+use Maatify\Geo\Contract\CityRepositoryInterface;
+use Maatify\Geo\Contract\CityTranslationRepositoryInterface;
+use Maatify\Geo\Contract\CountryDropdownRepositoryInterface;
+use Maatify\Geo\Contract\CountryRepositoryInterface;
+use Maatify\Geo\Contract\CountryTranslationRepositoryInterface;
 use Maatify\Geo\DTO\CityDTO;
 use Maatify\Geo\DTO\CityTranslationDTO;
 use Maatify\Geo\DTO\CountryDTO;
@@ -27,7 +32,12 @@ use Maatify\Geo\Exception\CountryNotFoundException;
 final class GeoQueryService
 {
     public function __construct(
-        private readonly GeoQueryReaderInterface $reader,
+        private readonly CountryRepositoryInterface            $countryRepo,
+        private readonly CountryDropdownRepositoryInterface    $countryDropdown,
+        private readonly CountryTranslationRepositoryInterface $countryTranslationRepo,
+        private readonly CityRepositoryInterface               $cityRepo,
+        private readonly CityDropdownRepositoryInterface       $cityDropdown,
+        private readonly CityTranslationRepositoryInterface    $cityTranslationRepo,
     ) {}
 
     // ================================================================== //
@@ -48,11 +58,11 @@ final class GeoQueryService
         array   $columnFilters = [],
         ?int    $languageId    = null,
     ): array {
-        return $this->reader->listCountries($page, $perPage, $globalSearch, $columnFilters, $languageId);
+        return $this->countryRepo->listCountries($page, $perPage, $globalSearch, $columnFilters, $languageId);
     }
 
     // ================================================================== //
-    //  Countries — public (active list)
+    //  Countries — public (active list / dropdown)
     // ================================================================== //
 
     /**
@@ -62,7 +72,7 @@ final class GeoQueryService
      */
     public function activeCountries(?int $languageId = null): array
     {
-        return $this->reader->listActiveCountries($languageId);
+        return $this->countryDropdown->listActiveCountries($languageId);
     }
 
     // ================================================================== //
@@ -74,7 +84,7 @@ final class GeoQueryService
      */
     public function getCountryById(int $id, ?int $languageId = null): CountryDTO
     {
-        $dto = $this->reader->findCountryById($id, $languageId);
+        $dto = $this->countryRepo->findCountryById($id, $languageId);
         if ($dto === null) {
             throw CountryNotFoundException::withId($id);
         }
@@ -87,7 +97,7 @@ final class GeoQueryService
      */
     public function getCountryByCode(string $code, ?int $languageId = null): CountryDTO
     {
-        $dto = $this->reader->findCountryByCode($code, $languageId);
+        $dto = $this->countryRepo->findCountryByCode($code, $languageId);
         if ($dto === null) {
             throw CountryNotFoundException::withCode($code);
         }
@@ -101,7 +111,7 @@ final class GeoQueryService
 
     public function findCountryTranslation(int $countryId, int $languageId): ?CountryTranslationDTO
     {
-        return $this->reader->findCountryTranslation($countryId, $languageId);
+        return $this->countryTranslationRepo->findCountryTranslation($countryId, $languageId);
     }
 
     /**
@@ -118,7 +128,7 @@ final class GeoQueryService
         ?string $globalSearch  = null,
         array   $columnFilters = [],
     ): array {
-        return $this->reader->listTranslationsForCountryPaginated(
+        return $this->countryTranslationRepo->listTranslationsForCountryPaginated(
             $countryId, $page, $perPage, $globalSearch, $columnFilters,
         );
     }
@@ -141,11 +151,11 @@ final class GeoQueryService
         array   $columnFilters = [],
         ?int    $languageId    = null,
     ): array {
-        return $this->reader->listCities($page, $perPage, $globalSearch, $columnFilters, $languageId);
+        return $this->cityRepo->listCities($page, $perPage, $globalSearch, $columnFilters, $languageId);
     }
 
     // ================================================================== //
-    //  Cities — public (active list by country)
+    //  Cities — public (active list / dropdown)
     // ================================================================== //
 
     /**
@@ -155,7 +165,7 @@ final class GeoQueryService
      */
     public function activeCitiesByCountryId(int $countryId, ?int $languageId = null): array
     {
-        return $this->reader->listActiveCitiesByCountryId($countryId, $languageId);
+        return $this->cityDropdown->listActiveCitiesByCountryId($countryId, $languageId);
     }
 
     /**
@@ -165,7 +175,7 @@ final class GeoQueryService
      */
     public function activeCitiesByCountryCode(string $countryCode, ?int $languageId = null): array
     {
-        return $this->reader->listActiveCitiesByCountryCode($countryCode, $languageId);
+        return $this->cityDropdown->listActiveCitiesByCountryCode($countryCode, $languageId);
     }
 
     // ================================================================== //
@@ -177,7 +187,7 @@ final class GeoQueryService
      */
     public function getCityById(int $id, ?int $languageId = null): CityDTO
     {
-        $dto = $this->reader->findCityById($id, $languageId);
+        $dto = $this->cityRepo->findCityById($id, $languageId);
         if ($dto === null) {
             throw CityNotFoundException::withId($id);
         }
@@ -191,7 +201,7 @@ final class GeoQueryService
 
     public function findCityTranslation(int $cityId, int $languageId): ?CityTranslationDTO
     {
-        return $this->reader->findCityTranslation($cityId, $languageId);
+        return $this->cityTranslationRepo->findCityTranslation($cityId, $languageId);
     }
 
     /**
@@ -208,7 +218,7 @@ final class GeoQueryService
         ?string $globalSearch  = null,
         array   $columnFilters = [],
     ): array {
-        return $this->reader->listTranslationsForCityPaginated(
+        return $this->cityTranslationRepo->listTranslationsForCityPaginated(
             $cityId, $page, $perPage, $globalSearch, $columnFilters,
         );
     }

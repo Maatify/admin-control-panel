@@ -12,14 +12,11 @@ final class CityTranslationListCapabilities
     {
         return new ListCapabilities(
             supportsGlobalSearch: true,
-            searchableColumns: ['language_name', 'language_code', 'translated_name'],
+            searchableColumns: ['name'],              // geo_city_translations.name is the only searchable column
             supportsColumnFilters: true,
             filterableColumns: [
-                'language_id'    => 'int',
-                'language_code'  => 'string',
-                'language_name'  => 'string',
-                'name'           => 'string',
-                'has_translation' => 'string',
+                'language_id' => 'int',              // handled: `language_id` = :language_id
+                'name'        => 'string',           // handled: `name` LIKE :trans_name
             ],
             supportsDateFilter: false,
             dateColumn: null

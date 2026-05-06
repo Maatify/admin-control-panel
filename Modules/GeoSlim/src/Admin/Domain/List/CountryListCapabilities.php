@@ -12,7 +12,7 @@ final class CountryListCapabilities
     {
         return new ListCapabilities(
             supportsGlobalSearch: true,
-            searchableColumns: ['name', 'code', 'icon'],
+            searchableColumns: ['code', 'name'],     // SQL: c.code LIKE :global_text OR c.name LIKE :global_text
             supportsColumnFilters: true,
             filterableColumns: [
                 'id'        => 'id',

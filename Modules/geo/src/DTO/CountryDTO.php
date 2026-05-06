@@ -10,7 +10,7 @@ use Maatify\Geo\Exception\GeoInvalidArgumentException;
 /**
  * Immutable read-model for a single country row.
  *
- * Implements JsonSerializable — json_encode($dto) works directly.
+ * Implements JsonSerializable — Json_encode($dto) works directly.
  *
  * ── Translation fields ──────────────────────────────────────────────────
  *
@@ -22,7 +22,7 @@ use Maatify\Geo\Exception\GeoInvalidArgumentException;
  *                           either the actual translation or the base name
  *                           as fallback. No null-check required by the caller.
  */
-final class CountryDTO implements JsonSerializable
+final class  CountryDTO implements JsonSerializable
 {
     public function __construct(
         public readonly int     $id,

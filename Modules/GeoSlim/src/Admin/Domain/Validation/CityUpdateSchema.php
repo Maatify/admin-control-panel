@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Maatify\GeoSlim\Admin\Domain\Validation;
 
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
+use Maatify\Validation\Rules\Primitive\BooleanRule;
+use Maatify\Validation\Rules\Primitive\EntityIdRule;
 use Maatify\Validation\Rules\Primitive\StringRule;
 use Maatify\Validation\Schemas\AbstractSchema;
-use Respect\Validation\Validator as v;
 
 final class CityUpdateSchema extends AbstractSchema
 {
@@ -15,7 +16,7 @@ final class CityUpdateSchema extends AbstractSchema
     {
         return [
             'id' => [
-                v::intType()->min(1),
+                EntityIdRule::required(),
                 ValidationErrorCodeEnum::REQUIRED_FIELD,
             ],
             'name' => [
@@ -27,10 +28,9 @@ final class CityUpdateSchema extends AbstractSchema
                 ValidationErrorCodeEnum::INVALID_FORMAT,
             ],
             'is_active' => [
-                v::boolType(),
+                BooleanRule::required(),
                 ValidationErrorCodeEnum::REQUIRED_FIELD,
             ],
         ];
     }
 }
-
