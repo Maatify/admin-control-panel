@@ -62,6 +62,7 @@
       "Maatify\\ImageProfileLegacy\\": "Modules/ImageProfileLegacy/src",
       "Maatify\\WebsiteUiTheme\\": "Modules/WebsiteUiTheme/src",
       "Maatify\\Category\\": "Modules/category/src",
+      "Maatify\\CategorySlim\\": "Modules/CategorySlim/src",
       "Maatify\\ExchangeRates\\": "Modules/ExchangeRates/src",
       "Maatify\\ExchangeRatesSlim\\": "Modules/ExchangeRatesSlim/src",
       "Maatify\\Persistence\\": "Modules/Persistence/src",
