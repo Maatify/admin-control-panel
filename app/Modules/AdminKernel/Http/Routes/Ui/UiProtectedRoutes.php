@@ -4,23 +4,28 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Routes\Ui;
 
+use Maatify\AdminKernel\Http\Middleware\SessionGuardMiddleware;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\ActivityLogsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\AdminsUiRoutes;
-use Maatify\AdminKernel\Http\Routes\Ui\Features\CategoriesUiRoutes;
+use Maatify\CategorySlim\Admin\Http\Routes\CategoriesUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\AppSettingsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\ContentDocumentsUiRoutes;
-use Maatify\AdminKernel\Http\Routes\Ui\Features\CurrenciesUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\DashboardUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\I18nUiRoutes;
+use Maatify\AdminKernel\Http\Routes\Ui\Features\ImageProfilesUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\LanguagesUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\LogoutUiRoutes;
+use Maatify\AdminKernel\Http\Routes\Ui\Features\MyProfileUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\PermissionsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\RolesUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\SessionsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\SettingsUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\TelemetryUiRoutes;
 use Maatify\AdminKernel\Http\Routes\Ui\Features\TwoFactorUiRoutes;
-use Maatify\AdminKernel\Http\Middleware\SessionGuardMiddleware;
+use Maatify\AdminKernel\Http\Routes\Ui\Features\WebsiteUiThemesUiRoutes;
+use Maatify\CurrencySlim\Admin\Http\Routes\CurrenciesUiRoutes;
+use Maatify\ExchangeRatesSlim\Admin\Http\Routes\ExchangeRatesUiRoutes;
+use Maatify\GeoSlim\Admin\Http\Routes\GeoUiRoutes;
 use Psr\Container\ContainerInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 
@@ -58,8 +63,14 @@ final class UiProtectedRoutes
             LogoutUiRoutes::register($protectedGroup);
 
             CurrenciesUiRoutes::register($protectedGroup);
+            ExchangeRatesUiRoutes::register($protectedGroup);
+            ImageProfilesUiRoutes::register($protectedGroup);
+            WebsiteUiThemesUiRoutes::register($protectedGroup);
+            MyProfileUiRoutes::register($protectedGroup);
 
             CategoriesUiRoutes::register($protectedGroup);
+
+            GeoUiRoutes::register($protectedGroup);
 
         })
             // NOTE [Slim Middleware Order]:

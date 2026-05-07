@@ -11,13 +11,17 @@ use Maatify\AdminKernel\Http\Routes\Api\Features\AdminEmailApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\AdminsApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\AppSettingsApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\ContentDocumentsApiRoutes;
-use Maatify\AdminKernel\Http\Routes\Api\Features\CategoriesApiRoutes;
-use Maatify\AdminKernel\Http\Routes\Api\Features\CurrenciesApiRoutes;
+use Maatify\CategorySlim\Admin\Http\Routes\CategoriesApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\I18nApiRoutes;
+use Maatify\AdminKernel\Http\Routes\Api\Features\ImageProfilesApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\LanguagesApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\PermissionsApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\RolesApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\SessionsApiRoutes;
+use Maatify\AdminKernel\Http\Routes\Api\Features\WebsiteUiThemesApiRoutes;
+use Maatify\CurrencySlim\Admin\Http\Routes\CurrenciesApiRoutes;
+use Maatify\ExchangeRatesSlim\Admin\Http\Routes\ExchangeRatesApiRoutes;
+use Maatify\GeoSlim\Admin\Http\Routes\GeoApiRoutes;
 use Psr\Container\ContainerInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 
@@ -40,6 +44,8 @@ final class ApiProtectedRoutes
 
             I18nApiRoutes::register($group);
 
+            ImageProfilesApiRoutes::register($group);
+
             AppSettingsApiRoutes::register($group);
 
             LanguagesApiRoutes::register($group);
@@ -49,8 +55,12 @@ final class ApiProtectedRoutes
             RolesApiRoutes::register($group);
 
             CurrenciesApiRoutes::register($group);
+            ExchangeRatesApiRoutes::register($group);
+            WebsiteUiThemesApiRoutes::register($group);
 
             CategoriesApiRoutes::register($group);
+
+            GeoApiRoutes::register($group);
 
             $group->get('/notifications', [NotificationQueryController::class, 'index'])
                 ->setName('notifications.list');

@@ -1,18 +1,51 @@
 {
   "name": "maatify/category",
-  "description": "Standalone Category Module — hierarchical category management with PDO & Slim-ready DI bindings",
+  "description": "Standalone Category library for hierarchical category management with PDO repositories and DI-ready bindings.",
   "type": "library",
   "license": "MIT",
+  "keywords": [
+    "category",
+    "categories",
+    "hierarchical-categories",
+    "taxonomy",
+    "pdo",
+    "php-di",
+    "maatify"
+  ],
+  "authors": [
+    {
+      "name": "Maatify Team",
+      "email": "support@maatify.dev",
+      "homepage": "https://maatify.dev",
+      "role": "Maintainer"
+    },
+    {
+      "name": "Mohamed Abdulalim",
+      "homepage": "https://github.com/megyptm",
+      "role": "Lead Developer"
+    },
+    {
+      "name": "Youssef Mansour",
+      "homepage": "https://github.com/YoussefMansour9",
+      "role": "Contributor"
+    }
+  ],
+  "homepage": "https://github.com/maatify/category",
+  "support": {
+    "issues": "https://github.com/maatify/category/issues",
+    "source": "https://github.com/maatify/category"
+  },
   "require": {
-    "php": "^8.2",
+    "php": ">=8.2",
     "ext-pdo": "*",
     "maatify/exceptions": "^1.0",
-    "psr/container": "^1.1|^2.0"
+    "maatify/persistence": "^1.0",
+    "psr/container": "^1.1 || ^2.0"
   },
   "require-dev": {
+    "php-di/php-di": "^7.0",
     "phpstan/phpstan": "^1.12",
-    "phpstan/phpstan-strict-rules": "^1.6",
-    "php-di/php-di": "^7.0"
+    "phpstan/phpstan-strict-rules": "^1.6"
   },
   "autoload": {
     "psr-4": {
@@ -24,8 +57,17 @@
       "Maatify\\Category\\Tests\\": "tests/"
     }
   },
+  "scripts": {
+    "phpstan": "vendor/bin/phpstan analyse --level max src/",
+    "analyze": [
+      "@phpstan"
+    ]
+  },
   "config": {
-    "sort-packages": true
-  }
+    "sort-packages": true,
+    "allow-plugins": {
+      "php-di/php-di": true
+    }
+  },
+  "minimum-stability": "stable"
 }
-
