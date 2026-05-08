@@ -7,6 +7,7 @@ namespace Maatify\AdminKernel\Validation\Schemas\Admin;
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Rules\Primitive\BooleanRule;
 use Maatify\Validation\Schemas\AbstractSchema;
+use Maatify\Validation\Rules\PaginationRule;
 use Respect\Validation\Validator as v;
 
 class AdminNotificationHistorySchema extends AbstractSchema
@@ -15,7 +16,7 @@ class AdminNotificationHistorySchema extends AbstractSchema
     {
         return [
             'admin_id' => [v::intVal(), ValidationErrorCodeEnum::REQUIRED_FIELD],
-            'page' => [v::optional(v::intVal()->min(1)), ValidationErrorCodeEnum::REQUIRED_FIELD],
+            'page' => [PaginationRule::page(), ValidationErrorCodeEnum::REQUIRED_FIELD],
             'limit' => [v::optional(v::intVal()->min(1)), ValidationErrorCodeEnum::REQUIRED_FIELD],
             'notification_type' => [v::optional(v::stringType()), ValidationErrorCodeEnum::REQUIRED_FIELD],
             'is_read' => [BooleanRule::optional(), ValidationErrorCodeEnum::REQUIRED_FIELD],
