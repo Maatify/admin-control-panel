@@ -16,7 +16,7 @@ final class CurrencyCreateSchema extends AbstractSchema
     {
         return [
             'code' => [
-                v::stringType()->notEmpty()->length(3, 3),
+                StringRule::required(3, 3),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
             'name' => [

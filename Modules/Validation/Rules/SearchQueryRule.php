@@ -17,6 +17,7 @@ namespace Maatify\Validation\Rules;
 
 use Respect\Validation\Validatable;
 use Respect\Validation\Validator as v;
+use Maatify\Validation\Rules\Primitive\StringRule;
 
 final class SearchQueryRule
 {
@@ -25,7 +26,7 @@ final class SearchQueryRule
         return v::arrayType()->anyOf(
             // Structure-only validation:
             // search must contain either `global` or non-empty `columns`
-            v::key('global', v::stringType()->length(1, 255)),
+            v::key('global', StringRule::required(1, 255)),
             v::key('columns', v::arrayType()->notEmpty())
         );
     }

@@ -21,7 +21,7 @@ final class CurrencyUpdateSchema extends AbstractSchema
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
             'code' => [
-                v::stringType()->notEmpty()->length(3, 3),
+                StringRule::required(3, 3),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
             'name' => [

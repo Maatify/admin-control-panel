@@ -6,16 +6,17 @@ namespace Maatify\Validation\Rules\Semantic;
 
 use Respect\Validation\Validatable;
 use Respect\Validation\Validator as v;
+use Maatify\Validation\Rules\Primitive\StringRule;
 
 final class WebsiteUiThemeIdentifierRule
 {
     public static function entityType(): Validatable
     {
-        return v::stringType()->notEmpty()->length(1, 50);
+        return StringRule::required(1, 50);
     }
 
     public static function themeFile(): Validatable
     {
-        return v::stringType()->notEmpty()->length(1, 255);
+        return StringRule::required(1, 255);
     }
 }

@@ -9,6 +9,7 @@ use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
 use Maatify\Validation\Rules\Primitive\StrictEntityIdRule;
 use Maatify\Validation\Rules\Primitive\StrictBooleanRule;
+use Maatify\Validation\Rules\Primitive\StringRule;
 
 final class ImageProfileUpdateSchema extends AbstractSchema
 {
@@ -19,7 +20,7 @@ final class ImageProfileUpdateSchema extends AbstractSchema
 
         return [
             'id' => [StrictEntityIdRule::required(), ValidationErrorCodeEnum::REQUIRED_FIELD],
-            'code' => [v::stringType()->notEmpty()->length(1, 64), ValidationErrorCodeEnum::REQUIRED_FIELD],
+            'code' => [StringRule::required(1, 64), ValidationErrorCodeEnum::REQUIRED_FIELD],
             'display_name' => [$nullableString(128), ValidationErrorCodeEnum::REQUIRED_FIELD],
             'min_width' => [$nullableInt(), ValidationErrorCodeEnum::REQUIRED_FIELD],
             'min_height' => [$nullableInt(), ValidationErrorCodeEnum::REQUIRED_FIELD],

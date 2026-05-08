@@ -8,6 +8,7 @@ use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Rules\Primitive\EntityIdRule;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
+use Maatify\Validation\Rules\Primitive\StringRule;
 
 final class LanguageUpdateCodeSchema extends AbstractSchema
 {
@@ -20,7 +21,7 @@ final class LanguageUpdateCodeSchema extends AbstractSchema
             ],
 
             'code' => [
-                v::stringType()->length(1, 32),
+                StringRule::required(1, 32),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
         ];

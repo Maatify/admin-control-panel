@@ -23,7 +23,7 @@ final class LanguageCreateSchema extends AbstractSchema
             ],
 
             'code' => [
-                v::stringType()->length(2, 10),
+                StringRule::required(2, 10),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
 

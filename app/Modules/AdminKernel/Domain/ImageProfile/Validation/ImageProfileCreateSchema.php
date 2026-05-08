@@ -8,6 +8,7 @@ use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 use Maatify\Validation\Schemas\AbstractSchema;
 use Respect\Validation\Validator as v;
 use Maatify\Validation\Rules\Primitive\StrictBooleanRule;
+use Maatify\Validation\Rules\Primitive\StringRule;
 
 final class ImageProfileCreateSchema extends AbstractSchema
 {
@@ -18,7 +19,7 @@ final class ImageProfileCreateSchema extends AbstractSchema
 
         return [
             'code' => [
-                v::stringType()->notEmpty()->length(1, 64),
+                StringRule::required(1, 64),
                 ValidationErrorCodeEnum::REQUIRED_FIELD,
             ],
             'display_name' => [$nullableString(128), ValidationErrorCodeEnum::INVALID_FORMAT],
