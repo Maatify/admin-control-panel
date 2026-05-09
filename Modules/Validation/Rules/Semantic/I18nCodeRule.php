@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Maatify\Validation\Rules\Semantic;
 
+use Maatify\Validation\Rules\Primitive\StringRule;
+use Maatify\Validation\Rules\StringPatternRule;
 use Respect\Validation\Validatable;
-use Respect\Validation\Validator as v;
 
 /**
  * I18n scope_code, domain_code, Key Naming Rule
@@ -31,9 +32,6 @@ final class I18nCodeRule
 {
     public static function rule(int $min, int $max): Validatable
     {
-        return v::stringType()
-            ->notEmpty()
-            ->length($min, $max)
-            ->regex('/^[a-z0-9]+([._-][a-z0-9]+)*$/');
+        return StringRule::required($min, $max, StringPatternRule::I18N_CODE);
     }
 }

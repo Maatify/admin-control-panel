@@ -24,7 +24,6 @@ use Maatify\Validation\Enum\ValidationErrorCodeEnum;
 final class SystemApiErrorMapper implements SystemErrorMapperInterface
 {
     /**
-     * @param ValidationErrorCodeEnum  $errors
      * @param array<string, list<ValidationErrorCodeEnum>> $errors
      */
     public function mapValidationErrors(array $errors): ApiErrorResponseDTO
