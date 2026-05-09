@@ -40,6 +40,8 @@ final class KernelPermissionMapProvider implements PermissionMapProviderInterfac
             // Admin Create
             'admin.create.ui'  => PermissionRequirementDefinition::single('admin.create'),
             'admin.create.api' => PermissionRequirementDefinition::single('admin.create'),
+            'admin.password.reset_temp.api' => PermissionRequirementDefinition::single('admin.password.reset_temp'),
+            'admin.2fa.reset.api' => PermissionRequirementDefinition::single('admin.2fa.reset'),
 
             // Sessions
             'sessions.list.ui'  => PermissionRequirementDefinition::single('sessions.list'),

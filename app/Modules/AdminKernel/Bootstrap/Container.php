@@ -530,6 +530,8 @@ class Container
 
                 $passwordRepository = $c->get(\Maatify\AdminKernel\Domain\Contracts\Admin\AdminPasswordRepositoryInterface::class);
                 $passwordService = $c->get(\Maatify\AdminKernel\Domain\Service\PasswordService::class);
+                $totpSecretStore = $c->get(\Maatify\AdminKernel\Domain\Contracts\Admin\AdminTotpSecretStoreInterface::class);
+                $sessionValidationRepository = $c->get(\Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionValidationRepositoryInterface::class);
                 $pdo = $c->get(PDO::class);
 
                 $emailReader = $c->get(AdminEmailReaderInterface::class);
@@ -542,6 +544,8 @@ class Container
 
                 assert($passwordRepository instanceof \Maatify\AdminKernel\Domain\Contracts\Admin\AdminPasswordRepositoryInterface);
                 assert($passwordService instanceof \Maatify\AdminKernel\Domain\Service\PasswordService);
+                assert($totpSecretStore instanceof \Maatify\AdminKernel\Domain\Contracts\Admin\AdminTotpSecretStoreInterface);
+                assert($sessionValidationRepository instanceof \Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionValidationRepositoryInterface);
                 assert($pdo instanceof PDO);
 
                 assert($emailReader instanceof AdminEmailReaderInterface);
@@ -554,6 +558,8 @@ class Container
                     $cryptoService,
                     $passwordRepository,
                     $passwordService,
+                    $totpSecretStore,
+                    $sessionValidationRepository,
                     $pdo,
                     $emailReader,
                     $basicInfoReader,

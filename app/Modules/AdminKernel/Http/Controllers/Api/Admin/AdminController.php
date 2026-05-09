@@ -11,9 +11,13 @@ use Maatify\AdminKernel\Domain\Admin\DTO\AdminEmailListItemDTO;
 use Maatify\AdminKernel\Domain\Admin\Reader\AdminBasicInfoReaderInterface;
 use Maatify\AdminKernel\Domain\Admin\Reader\AdminEmailReaderInterface;
 use Maatify\AdminKernel\Domain\Contracts\Admin\AdminPasswordRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionValidationRepositoryInterface;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminTotpSecretStoreInterface;
 use Maatify\AdminKernel\Domain\DTO\Request\CreateAdminEmailRequestDTO;
 use Maatify\AdminKernel\Domain\DTO\Response\ActionResultResponseDTO;
 use Maatify\AdminKernel\Domain\DTO\Response\AdminCreateResponseDTO;
+use Maatify\AdminKernel\Domain\DTO\Response\AdminTemporaryPasswordResetResponseDTO;
+use Maatify\AdminKernel\Domain\DTO\Response\AdminTwoFactorResetResponseDTO;
 use Maatify\AdminKernel\Domain\Enum\IdentifierType;
 use Maatify\AdminKernel\Domain\Enum\VerificationStatus;
 use Maatify\AdminKernel\Domain\Exception\InvalidIdentifierFormatException;
@@ -41,11 +45,91 @@ readonly class AdminController
         private AdminIdentifierCryptoServiceInterface $cryptoService,
         private AdminPasswordRepositoryInterface $passwordRepository,
         private PasswordService $passwordService,
+        private AdminTotpSecretStoreInterface $totpSecretStore,
+        private AdminSessionValidationRepositoryInterface $sessionValidationRepository,
         private PDO $pdo,
 
         private AdminEmailReaderInterface $emailReader,
         private AdminBasicInfoReaderInterface $basicInfoReader,
     ) {
+    }
+
+    public function resetTemporaryPassword(Request $request, Response $response, array $args): Response
+    {
+        $adminId = (int)($args['id'] ?? 0);
+        if ($adminId <= 0) {
+            throw new HttpBadRequestException($request, 'Invalid admin id.');
+        }
+
+        $createdAt = $this->adminRepository->getCreatedAt($adminId);
+        if ($createdAt === '') {
+            throw new HttpNotFoundException($request, 'Admin not found.');
+        }
+
+        $tempPassword = bin2hex(random_bytes(8));
+        $hashResult = $this->passwordService->hash($tempPassword);
+
+        $this->pdo->beginTransaction();
+        try {
+            $this->passwordRepository->savePassword(
+                $adminId,
+                $hashResult['hash'],
+                $hashResult['pepper_id'],
+                true
+            );
+
+            $this->sessionValidationRepository->revokeAllSessions($adminId);
+
+            $this->pdo->commit();
+        } catch (\Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+
+        $responseDto = new AdminTemporaryPasswordResetResponseDTO(
+            adminId: $adminId,
+            tempPassword: $tempPassword
+        );
+
+        $response->getBody()->write((string)json_encode($responseDto->jsonSerialize(), JSON_THROW_ON_ERROR));
+
+        return $response
+            ->withHeader('Content-Type', 'application/json')
+            ->withStatus(200);
+    }
+
+    public function resetTwoFactor(Request $request, Response $response, array $args): Response
+    {
+        $adminId = (int)($args['id'] ?? 0);
+        if ($adminId <= 0) {
+            throw new HttpBadRequestException($request, 'Invalid admin id.');
+        }
+
+        $createdAt = $this->adminRepository->getCreatedAt($adminId);
+        if ($createdAt === '') {
+            throw new HttpNotFoundException($request, 'Admin not found.');
+        }
+
+        $this->pdo->beginTransaction();
+        try {
+            $this->totpSecretStore->delete($adminId);
+            $this->sessionValidationRepository->revokeAllSessions($adminId);
+            $this->pdo->commit();
+        } catch (\Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+
+        $responseDto = new AdminTwoFactorResetResponseDTO(
+            adminId: $adminId,
+            twoFactorReset: true
+        );
+
+        $response->getBody()->write((string)json_encode($responseDto->jsonSerialize(), JSON_THROW_ON_ERROR));
+
+        return $response
+            ->withHeader('Content-Type', 'application/json')
+            ->withStatus(200);
     }
 
     /**

@@ -27,6 +27,12 @@ class AdminsApiRoutes
             $admins->post('/create', [AdminController::class, 'create'])
                 ->setName('admin.create.api');
 
+            $admins->post('/{id:[0-9]+}/password/reset-temp', [AdminController::class, 'resetTemporaryPassword'])
+                ->setName('admin.password.reset_temp.api');
+
+            $admins->post('/{id:[0-9]+}/2fa/reset', [AdminController::class, 'resetTwoFactor'])
+                ->setName('admin.2fa.reset.api');
+
             $admins->get('/{admin_id:[0-9]+}/preferences', [AdminNotificationPreferenceController::class, 'getPreferences'])
                 ->setName('admin.preferences.read');
 
