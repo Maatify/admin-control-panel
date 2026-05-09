@@ -18,6 +18,9 @@ use Maatify\AdminKernel\Domain\Enum\IdentifierType;
 use Maatify\AdminKernel\Domain\Enum\VerificationStatus;
 use Maatify\AdminKernel\Domain\Exception\InvalidIdentifierFormatException;
 use Maatify\AdminKernel\Domain\Service\PasswordService;
+use Maatify\AdminKernel\Domain\Service\SessionRevocationService;
+use Maatify\AdminKernel\Domain\Contracts\Admin\AdminTotpSecretStoreInterface;
+use Maatify\AdminKernel\Application\Services\AuthoritativeAuditService;
 use Maatify\AdminKernel\Domain\Support\CorrelationId;
 use Maatify\AdminKernel\Infrastructure\Repository\AdminEmailRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\AdminRepository;
@@ -42,6 +45,9 @@ readonly class AdminController
         private AdminPasswordRepositoryInterface $passwordRepository,
         private PasswordService $passwordService,
         private PDO $pdo,
+        private SessionRevocationService $sessionRevocationService,
+        private AdminTotpSecretStoreInterface $totpSecretStore,
+        private AuthoritativeAuditService $auditService,
 
         private AdminEmailReaderInterface $emailReader,
         private AdminBasicInfoReaderInterface $basicInfoReader,
@@ -125,7 +131,8 @@ readonly class AdminController
                 $adminId,
                 $hashResult['hash'],
                 $hashResult['pepper_id'],
-                true
+                true,
+                (new \DateTimeImmutable('+15 minutes'))->format('Y-m-d H:i:s')
             );
 
             // 1️⃣2️⃣ Commit
@@ -341,4 +348,53 @@ readonly class AdminController
 //            ->withHeader('Content-Type', 'application/json')
 //            ->withStatus(200);
 //    }
+
+
+    public function generateTemporaryPassword(Request $request, Response $response, array $args): Response
+    {
+        $targetAdminId = (int)($args['admin_id'] ?? 0);
+        $adminContext = $request->getAttribute(\Maatify\AdminKernel\Context\AdminContext::class);
+        $requestContext = $request->getAttribute(RequestContext::class);
+        if (!$adminContext instanceof \Maatify\AdminKernel\Context\AdminContext || !$requestContext instanceof RequestContext) {
+            throw new RuntimeException('Context missing');
+        }
+        if ($targetAdminId <= 0 || $targetAdminId === $adminContext->adminId) {
+            throw new HttpBadRequestException($request, 'Invalid target admin.');
+        }
+        $tempPassword = bin2hex(random_bytes(8));
+        $expiresAt = (new \DateTimeImmutable('+15 minutes'))->format('Y-m-d H:i:s');
+        $this->pdo->beginTransaction();
+        try {
+            $hashResult = $this->passwordService->hash($tempPassword);
+            $this->passwordRepository->savePassword($targetAdminId, $hashResult['hash'], $hashResult['pepper_id'], true, $expiresAt);
+            $this->sessionRevocationService->revokeAllActiveForAdmin($targetAdminId, $adminContext->adminId, $requestContext, 'admin_temp_password_reset');
+            $this->auditService->recordSystemConfigChanged($adminContext->adminId, 'admin.temp_password.generate', (string)$targetAdminId, 'issued');
+            $this->pdo->commit();
+        } catch (\Throwable $e) { $this->pdo->rollBack(); throw $e; }
+        $response->getBody()->write((string)json_encode(['admin_id'=>$targetAdminId,'temporary_password'=>$tempPassword,'expires_at'=>$expiresAt], JSON_THROW_ON_ERROR));
+        return $response->withHeader('Content-Type','application/json')->withStatus(200);
+    }
+
+    public function resetTwoFactor(Request $request, Response $response, array $args): Response
+    {
+        $targetAdminId = (int)($args['admin_id'] ?? 0);
+        $adminContext = $request->getAttribute(\Maatify\AdminKernel\Context\AdminContext::class);
+        $requestContext = $request->getAttribute(RequestContext::class);
+        if (!$adminContext instanceof \Maatify\AdminKernel\Context\AdminContext || !$requestContext instanceof RequestContext) {
+            throw new RuntimeException('Context missing');
+        }
+        if ($targetAdminId <= 0 || $targetAdminId === $adminContext->adminId) {
+            throw new HttpBadRequestException($request, 'Invalid target admin.');
+        }
+        $this->pdo->beginTransaction();
+        try {
+            $this->totpSecretStore->delete($targetAdminId);
+            $this->sessionRevocationService->revokeAllActiveForAdmin($targetAdminId, $adminContext->adminId, $requestContext, 'admin_2fa_reset');
+            $this->auditService->recordSystemConfigChanged($adminContext->adminId, 'admin.2fa.reset', (string)$targetAdminId, 'reset');
+            $this->pdo->commit();
+        } catch (\Throwable $e) { $this->pdo->rollBack(); throw $e; }
+        $response->getBody()->write((string)json_encode(['admin_id'=>$targetAdminId,'two_factor_reset'=>true], JSON_THROW_ON_ERROR));
+        return $response->withHeader('Content-Type','application/json')->withStatus(200);
+    }
+
 }

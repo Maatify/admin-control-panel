@@ -28,6 +28,8 @@ VALUES
     ('admins.profile.edit.view', 'View Edit Profile Admins', 'Allows access to edit profile form'),
     ('admin.preferences.read', 'Read Preferences Admin', 'Allows read preferences admin'),
     ('admin.preferences.write', 'Write Preferences Admin', 'Allows write preferences admin'),
+    ('admin.security.generate_temporary_password', 'Generate Temporary Password Admin', 'Allows generating temporary password for admin'),
+    ('admin.security.reset_2fa', 'Reset 2FA Admin', 'Allows resetting admin 2FA'),
 
     -- [ ADMIN EMAILS ]
     ('admin.email.add', 'Add Email Admin', 'Allows add email admin'),

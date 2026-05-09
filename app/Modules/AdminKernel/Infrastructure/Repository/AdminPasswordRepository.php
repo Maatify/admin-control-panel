@@ -21,35 +21,38 @@ class AdminPasswordRepository implements AdminPasswordRepositoryInterface
         int $adminId,
         string $passwordHash,
         string $pepperId,
-        bool $mustChangePassword
+        bool $mustChangePassword,
+        ?string $tempPasswordExpiresAt = null
     ): void {
         $stmt = $this->pdo->prepare("
-        INSERT INTO admin_passwords (admin_id, password_hash, pepper_id, must_change_password)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO admin_passwords (admin_id, password_hash, pepper_id, must_change_password, temp_password_expires_at)
+        VALUES (?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE 
             password_hash = VALUES(password_hash),
             pepper_id = VALUES(pepper_id),
-            must_change_password = VALUES(must_change_password)
+            must_change_password = VALUES(must_change_password),
+            temp_password_expires_at = VALUES(temp_password_expires_at)
     ");
 
         $stmt->execute([
             $adminId,
             $passwordHash,
             $pepperId,
-            (int) $mustChangePassword
+            (int) $mustChangePassword,
+            $tempPasswordExpiresAt
         ]);
     }
 
     public function getPasswordRecord(int $adminId): ?AdminPasswordRecordDTO
     {
         $stmt = $this->pdo->prepare("
-        SELECT password_hash, pepper_id, must_change_password
+        SELECT password_hash, pepper_id, must_change_password, temp_password_expires_at
         FROM admin_passwords
         WHERE admin_id = ?
     ");
         $stmt->execute([$adminId]);
 
-        /** @var array{password_hash: string, pepper_id: string, must_change_password: int}|false $result */
+        /** @var array{password_hash: string, pepper_id: string, must_change_password: int, temp_password_expires_at: ?string}|false $result */
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($result === false) {
@@ -59,7 +62,8 @@ class AdminPasswordRepository implements AdminPasswordRepositoryInterface
         return new AdminPasswordRecordDTO(
             hash: $result['password_hash'],
             pepperId: $result['pepper_id'],
-            mustChangePassword: (bool) $result['must_change_password']
+            mustChangePassword: (bool) $result['must_change_password'],
+            tempPasswordExpiresAt: $result['temp_password_expires_at']
         );
     }
 }

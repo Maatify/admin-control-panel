@@ -9,7 +9,8 @@ final readonly class AdminPasswordRecordDTO
     public function __construct(
         public string $hash,
         public string $pepperId,
-        public bool $mustChangePassword
+        public bool $mustChangePassword,
+        public ?string $tempPasswordExpiresAt = null
     ) {
     }
 }

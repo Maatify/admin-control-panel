@@ -12,7 +12,8 @@ interface AdminPasswordRepositoryInterface
         int $adminId,
         string $passwordHash,
         string $pepperId,
-        bool $mustChangePassword
+        bool $mustChangePassword,
+        ?string $tempPasswordExpiresAt = null
     ): void;
 
     public function getPasswordRecord(int $adminId): ?AdminPasswordRecordDTO;

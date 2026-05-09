@@ -85,6 +85,14 @@ readonly class AdminAuthenticationService
             );
         }
 
+        
+        if ($record->mustChangePassword && $record->tempPasswordExpiresAt !== null) {
+            $expiresAtTs = strtotime($record->tempPasswordExpiresAt);
+            if ($expiresAtTs !== false && $expiresAtTs < time()) {
+                throw new InvalidCredentialsException('Temporary password expired.');
+            }
+        }
+
         // 🔒 5. Enforce Must-Change-Password
         if ($record->mustChangePassword) {
             throw new MustChangePasswordException('Password change required.');
