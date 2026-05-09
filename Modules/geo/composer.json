@@ -1,0 +1,78 @@
+{
+  "name": "maatify/geo",
+  "description": "Standalone Geo library for country and city management with translations, PDO repositories, and DI-ready bindings.",
+  "type": "library",
+  "license": "MIT",
+  "keywords": [
+    "geo",
+    "countries",
+    "cities",
+    "translations",
+    "localization",
+    "pdo",
+    "php-di",
+    "maatify"
+  ],
+  "authors": [
+    {
+      "name": "Maatify Team",
+      "email": "support@maatify.dev",
+      "homepage": "https://maatify.dev",
+      "role": "Maintainer"
+    },
+    {
+      "name": "Mohamed Abdulalim",
+      "homepage": "https://github.com/megyptm",
+      "role": "Lead Developer"
+    },
+    {
+      "name": "Youssef Mansour",
+      "homepage": "https://github.com/YoussefMansour9",
+      "role": "Contributor"
+    }
+  ],
+  "homepage": "https://github.com/maatify/geo",
+  "support": {
+    "issues": "https://github.com/maatify/geo/issues",
+    "source": "https://github.com/maatify/geo"
+  },
+  "require": {
+    "php": ">=8.2",
+    "ext-pdo": "*",
+    "maatify/exceptions": "^1.0",
+    "maatify/persistence": "^1.0",
+    "psr/container": "^1.1 || ^2.0"
+  },
+  "require-dev": {
+    "php-di/php-di": "^7.0",
+    "phpstan/phpstan": "^1.12",
+    "phpstan/phpstan-strict-rules": "^1.6",
+    "phpunit/phpunit": "^11.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "Maatify\\Geo\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Maatify\\Geo\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "vendor/bin/phpunit --bootstrap tests/bootstrap.php tests/Unit --no-coverage",
+    "test:coverage": "vendor/bin/phpunit --bootstrap tests/bootstrap.php tests/Unit --coverage-html=.phpunit.cache/code-coverage",
+    "phpstan": "vendor/bin/phpstan analyse --level max src/",
+    "analyze": [
+      "@phpstan",
+      "@test"
+    ]
+  },
+  "config": {
+    "sort-packages": true,
+    "allow-plugins": {
+      "php-di/php-di": true
+    }
+  },
+  "minimum-stability": "stable"
+}

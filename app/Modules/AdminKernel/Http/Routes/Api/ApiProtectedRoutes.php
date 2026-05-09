@@ -20,6 +20,7 @@ use Maatify\AdminKernel\Http\Routes\Api\Features\SessionsApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\WebsiteUiThemesApiRoutes;
 use Maatify\CurrencySlim\Admin\Http\Routes\CurrenciesApiRoutes;
 use Maatify\ExchangeRatesSlim\Admin\Http\Routes\ExchangeRatesApiRoutes;
+use Maatify\GeoSlim\Admin\Http\Routes\GeoApiRoutes;
 use Psr\Container\ContainerInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 
@@ -55,6 +56,8 @@ final class ApiProtectedRoutes
             CurrenciesApiRoutes::register($group);
             ExchangeRatesApiRoutes::register($group);
             WebsiteUiThemesApiRoutes::register($group);
+
+            GeoApiRoutes::register($group);
 
             $group->get('/notifications', [NotificationQueryController::class, 'index'])
                 ->setName('notifications.list');
