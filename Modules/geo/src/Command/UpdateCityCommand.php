@@ -17,6 +17,7 @@ final readonly class UpdateCityCommand
         public int     $id,
         public string  $name,
         public ?string $code,
+        public ?string $timeZone,
         public bool    $isActive,
     ) {
         if ($id < 1) {

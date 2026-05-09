@@ -228,8 +228,8 @@ final class PdoCityRepository implements CityRepositoryInterface, CityDropdownRe
         );
 
         $stmt = $this->prepareOrFail(
-            'INSERT INTO `geo_cities` (`country_id`, `code`, `name`, `is_active`, `display_order`)
-             VALUES (:country_id, :code, :name, :is_active, :display_order)',
+            'INSERT INTO `geo_cities` (`country_id`, `code`, `name`, `time_zone`, `is_active`, `display_order`)
+             VALUES (:country_id, :code, :name, :time_zone, :is_active, :display_order)',
         );
 
         try {
@@ -237,6 +237,7 @@ final class PdoCityRepository implements CityRepositoryInterface, CityDropdownRe
                 ':country_id'    => $command->countryId,
                 ':code'          => $command->code,
                 ':name'          => $command->name,
+                ':time_zone'     => $command->timeZone,
                 ':is_active'     => $command->isActive ? 1 : 0,
                 ':display_order' => $displayOrder,
             ]);
@@ -258,12 +259,13 @@ final class PdoCityRepository implements CityRepositoryInterface, CityDropdownRe
         try {
             $stmt = $this->prepareOrFail(
                 'UPDATE `geo_cities`
-                 SET `code` = :code, `name` = :name, `is_active` = :is_active
+                 SET `code` = :code, `name` = :name, `time_zone` = :time_zone, `is_active` = :is_active
                  WHERE `id` = :id',
             );
             $stmt->execute([
                 ':code'      => $command->code,
                 ':name'      => $command->name,
+                ':time_zone' => $command->timeZone,
                 ':is_active' => $command->isActive ? 1 : 0,
                 ':id'        => $command->id,
             ]);

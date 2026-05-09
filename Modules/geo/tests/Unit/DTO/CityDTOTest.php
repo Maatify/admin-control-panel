@@ -21,6 +21,7 @@ final class CityDTOTest extends TestCase
             'country_id'             => 1,
             'code'                   => 'CAI',
             'name'                   => 'Cairo',
+            'time_zone'              => 'Africa/Cairo',
             'is_active'              => 1,
             'display_order'          => 1,
             'created_at'             => '2025-02-01 00:00:00',
@@ -31,12 +32,13 @@ final class CityDTOTest extends TestCase
 
         $dto = CityDTO::fromRow($row);
 
-        self::assertSame(5,      $dto->id);
-        self::assertSame(1,      $dto->countryId);
-        self::assertSame('CAI',  $dto->code);
-        self::assertSame('Cairo',$dto->name);
+        self::assertSame(5,             $dto->id);
+        self::assertSame(1,             $dto->countryId);
+        self::assertSame('CAI',         $dto->code);
+        self::assertSame('Cairo',       $dto->name);
+        self::assertSame('Africa/Cairo',$dto->timeZone);
         self::assertTrue($dto->isActive);
-        self::assertSame(1,      $dto->displayOrder);
+        self::assertSame(1,             $dto->displayOrder);
         self::assertNull($dto->translatedName);
         self::assertNull($dto->languageId);
     }
@@ -88,6 +90,7 @@ final class CityDTOTest extends TestCase
         self::assertContains('country_id',      $keys);
         self::assertContains('code',            $keys);
         self::assertContains('name',            $keys);
+        self::assertContains('time_zone',       $keys);
         self::assertContains('is_active',       $keys);
         self::assertContains('display_order',   $keys);
         self::assertContains('created_at',      $keys);
@@ -120,6 +123,7 @@ final class CityDTOTest extends TestCase
             countryId:      1,
             code:           'CAI',
             name:           $name,
+            timeZone:       null,
             isActive:       true,
             displayOrder:   1,
             createdAt:      '2025-02-01 00:00:00',

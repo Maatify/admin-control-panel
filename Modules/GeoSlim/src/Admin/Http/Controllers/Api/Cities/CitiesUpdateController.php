@@ -42,11 +42,17 @@ final readonly class CitiesUpdateController
             $code = $body['code'];
         }
 
+        $timeZone = null;
+        if (array_key_exists('time_zone', $body) && is_string($body['time_zone'])) {
+            $timeZone = $body['time_zone'];
+        }
+
         // 2) Execute service
         $this->commandService->updateCity(new UpdateCityCommand(
             id:       $id,
             name:     $name,
             code:     $code,
+            timeZone: $timeZone,
             isActive: $isActive,
         ));
 

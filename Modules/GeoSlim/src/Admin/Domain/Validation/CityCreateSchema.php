@@ -27,6 +27,10 @@ final class CityCreateSchema extends AbstractSchema
                 StringRule::optional(min: 1, max: 10),
                 ValidationErrorCodeEnum::INVALID_FORMAT,
             ],
+            'time_zone' => [
+                StringRule::optional(min: 1, max: 100),
+                ValidationErrorCodeEnum::INVALID_FORMAT,
+            ],
             'is_active' => [
                 BooleanRule::optional(),
                 ValidationErrorCodeEnum::INVALID_FORMAT,

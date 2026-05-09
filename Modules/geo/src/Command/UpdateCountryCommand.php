@@ -18,6 +18,7 @@ final readonly class UpdateCountryCommand
         public int     $id,
         public string  $code,
         public string  $name,
+        public ?string $currency,
         public ?string $icon,
         public bool    $isActive,
     ) {

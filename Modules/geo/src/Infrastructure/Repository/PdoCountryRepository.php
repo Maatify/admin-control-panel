@@ -201,14 +201,15 @@ final class PdoCountryRepository implements CountryRepositoryInterface, CountryD
         );
 
         $stmt = $this->prepareOrFail(
-            'INSERT INTO `geo_countries` (`code`, `name`, `icon`, `is_active`, `display_order`)
-             VALUES (:code, :name, :icon, :is_active, :display_order)',
+            'INSERT INTO `geo_countries` (`code`, `name`, `currency`, `icon`, `is_active`, `display_order`)
+             VALUES (:code, :name, :currency, :icon, :is_active, :display_order)',
         );
 
         try {
             $stmt->execute([
                 ':code'          => strtoupper($command->code),
                 ':name'          => $command->name,
+                ':currency'      => $command->currency,
                 ':icon'          => $command->icon,
                 ':is_active'     => $command->isActive ? 1 : 0,
                 ':display_order' => $displayOrder,
@@ -228,12 +229,13 @@ final class PdoCountryRepository implements CountryRepositoryInterface, CountryD
         try {
             $stmt = $this->prepareOrFail(
                 'UPDATE `geo_countries`
-                 SET `code` = :code, `name` = :name, `icon` = :icon, `is_active` = :is_active
+                 SET `code` = :code, `name` = :name, `currency` = :currency, `icon` = :icon, `is_active` = :is_active
                  WHERE `id` = :id',
             );
             $stmt->execute([
                 ':code'      => strtoupper($command->code),
                 ':name'      => $command->name,
+                ':currency'  => $command->currency,
                 ':icon'      => $command->icon,
                 ':is_active' => $command->isActive ? 1 : 0,
                 ':id'        => $command->id,

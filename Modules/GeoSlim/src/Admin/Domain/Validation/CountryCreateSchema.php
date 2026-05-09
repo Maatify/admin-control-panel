@@ -22,6 +22,10 @@ final class CountryCreateSchema extends AbstractSchema
                 StringRule::required(min: 1, max: 100),
                 ValidationErrorCodeEnum::REQUIRED_FIELD,
             ],
+            'currency' => [
+                StringRule::optional(min: 1, max: 10),
+                ValidationErrorCodeEnum::INVALID_FORMAT,
+            ],
             'icon' => [
                 StringRule::optional(min: 1, max: 255),
                 ValidationErrorCodeEnum::INVALID_FORMAT,

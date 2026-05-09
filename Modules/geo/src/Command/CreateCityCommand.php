@@ -17,6 +17,7 @@ final readonly class CreateCityCommand
         public int     $countryId,
         public string  $name,
         public ?string $code     = null,
+        public ?string $timeZone = null,
         public bool    $isActive = true,
     ) {
         if ($countryId < 1) {

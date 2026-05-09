@@ -41,6 +41,11 @@ final readonly class CitiesCreateController
             $code = $body['code'];
         }
 
+        $timeZone = null;
+        if (array_key_exists('time_zone', $body) && is_string($body['time_zone'])) {
+            $timeZone = $body['time_zone'];
+        }
+
         $isActive = true;
         if (array_key_exists('is_active', $body)) {
             if (!is_bool($body['is_active'])) {
@@ -54,6 +59,7 @@ final readonly class CitiesCreateController
             countryId: $countryId,
             name:      $name,
             code:      $code,
+            timeZone:  $timeZone,
             isActive:  $isActive,
         ));
 

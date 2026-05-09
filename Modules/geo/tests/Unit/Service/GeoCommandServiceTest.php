@@ -178,6 +178,7 @@ final class GeoCommandServiceTest extends TestCase
             id:             $id,
             code:           $code,
             name:           $name,
+            currency:       null,
             icon:           null,
             isActive:       true,
             displayOrder:   $id,

@@ -38,6 +38,11 @@ final readonly class CountriesUpdateController
             throw new \RuntimeException('Invalid validated payload.');
         }
 
+        $currency = null;
+        if (array_key_exists('currency', $body) && is_string($body['currency'])) {
+            $currency = $body['currency'];
+        }
+
         $icon = null;
         if (array_key_exists('icon', $body) && is_string($body['icon'])) {
             $icon = $body['icon'];
@@ -48,6 +53,7 @@ final readonly class CountriesUpdateController
             id:       $id,
             code:     $code,
             name:     $name,
+            currency: $currency,
             icon:     $icon,
             isActive: $isActive,
         ));

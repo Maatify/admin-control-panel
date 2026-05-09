@@ -24,6 +24,7 @@ final class CountryDTOTest extends TestCase
             'id'                     => 1,
             'code'                   => 'EG',
             'name'                   => 'Egypt',
+            'currency'               => 'EGP',
             'icon'                   => '🇪🇬',
             'is_active'              => 1,
             'display_order'          => 1,
@@ -38,6 +39,7 @@ final class CountryDTOTest extends TestCase
         self::assertSame(1,             $dto->id);
         self::assertSame('EG',          $dto->code);
         self::assertSame('Egypt',       $dto->name);
+        self::assertSame('EGP',         $dto->currency);
         self::assertSame('🇪🇬',         $dto->icon);
         self::assertTrue($dto->isActive);
         self::assertSame(1,             $dto->displayOrder);
@@ -103,6 +105,7 @@ final class CountryDTOTest extends TestCase
         self::assertArrayHasKey('id',              $serialized);
         self::assertArrayHasKey('code',            $serialized);
         self::assertArrayHasKey('name',            $serialized);
+        self::assertArrayHasKey('currency',        $serialized);
         self::assertArrayHasKey('icon',            $serialized);
         self::assertArrayHasKey('is_active',       $serialized);
         self::assertArrayHasKey('display_order',   $serialized);
@@ -144,6 +147,7 @@ final class CountryDTOTest extends TestCase
             id:             1,
             code:           'EG',
             name:           $name,
+            currency:       null,
             icon:           null,
             isActive:       true,
             displayOrder:   1,

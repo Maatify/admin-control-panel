@@ -75,6 +75,7 @@ final class GeoCommandService
             id:       $command->id,
             code:     $code,
             name:     $command->name,
+            currency: $command->currency,
             icon:     $command->icon,
             isActive: $command->isActive,
         ));

@@ -9,7 +9,6 @@ use Maatify\Validation\Rules\Primitive\BooleanRule;
 use Maatify\Validation\Rules\Primitive\EntityIdRule;
 use Maatify\Validation\Rules\Primitive\StringRule;
 use Maatify\Validation\Schemas\AbstractSchema;
-use Respect\Validation\Validator as v;
 
 final class CountryUpdateSchema extends AbstractSchema
 {
@@ -27,6 +26,10 @@ final class CountryUpdateSchema extends AbstractSchema
             'name' => [
                 StringRule::required(min: 1, max: 100),
                 ValidationErrorCodeEnum::REQUIRED_FIELD,
+            ],
+            'currency' => [
+                StringRule::optional(min: 1, max: 10),
+                ValidationErrorCodeEnum::INVALID_FORMAT,
             ],
             'icon' => [
                 StringRule::optional(min: 1, max: 255),
