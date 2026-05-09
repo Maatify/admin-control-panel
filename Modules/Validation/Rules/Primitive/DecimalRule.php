@@ -11,6 +11,10 @@ final class DecimalRule
 {
     public static function required(int $scale = 2, ?string $min = null, ?string $max = null): Validatable
     {
+        if ($scale < 0) {
+            throw new \InvalidArgumentException('Decimal scale must be greater than or equal to zero.');
+        }
+
         $regex = $scale > 0
             ? '/^(0|[1-9]\d*)(\.\d{1,' . $scale . '})?$/'
             : '/^(0|[1-9]\d*)$/';

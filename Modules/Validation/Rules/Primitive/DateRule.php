@@ -11,7 +11,7 @@ final class DateRule
 {
     public static function required(string $format = 'Y-m-d'): Validatable
     {
-        return v::dateTime($format);
+        return v::stringType()->date($format);
     }
 
     public static function optional(string $format = 'Y-m-d'): Validatable

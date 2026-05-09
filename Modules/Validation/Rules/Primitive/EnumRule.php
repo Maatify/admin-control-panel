@@ -14,7 +14,7 @@ final class EnumRule
      */
     public static function required(array $allowedValues): Validatable
     {
-        return v::in($allowedValues);
+        return v::in($allowedValues, true);
     }
 
     /**
