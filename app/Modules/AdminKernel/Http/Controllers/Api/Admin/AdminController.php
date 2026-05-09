@@ -54,6 +54,9 @@ readonly class AdminController
     ) {
     }
 
+    /**
+     * @param array{id?: string} $args
+     */
     public function resetTemporaryPassword(Request $request, Response $response, array $args): Response
     {
         $adminId = (int)($args['id'] ?? 0);
@@ -98,6 +101,9 @@ readonly class AdminController
             ->withStatus(200);
     }
 
+    /**
+     * @param array{id?: string} $args
+     */
     public function resetTwoFactor(Request $request, Response $response, array $args): Response
     {
         $adminId = (int)($args['id'] ?? 0);
