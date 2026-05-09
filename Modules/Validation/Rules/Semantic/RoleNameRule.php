@@ -7,7 +7,6 @@ namespace Maatify\Validation\Rules\Semantic;
 use Maatify\Validation\Rules\Primitive\StringRule;
 use Maatify\Validation\Rules\StringPatternRule;
 use Respect\Validation\Validatable;
-use Respect\Validation\Validator as v;
 
 final class RoleNameRule
 {
