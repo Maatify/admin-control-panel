@@ -352,6 +352,7 @@
 {% endblock %}
 
 {% block scripts %}
+    {# Exposes admin profile recovery UI context (capabilities + target admin id) to page JS. #}
     <script>
         window.AdminProfileCapabilities = {
             can_reset_temp_password: {{ capabilities.can_reset_temp_password ?? false ? 'true' : 'false' }},
