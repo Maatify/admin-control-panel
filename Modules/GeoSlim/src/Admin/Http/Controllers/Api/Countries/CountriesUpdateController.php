@@ -38,6 +38,11 @@ final readonly class CountriesUpdateController
             throw new \RuntimeException('Invalid validated payload.');
         }
 
+        $phoneCode = null;
+        if (array_key_exists('phone_code', $body) && is_string($body['phone_code'])) {
+            $phoneCode = $body['phone_code'];
+        }
+
         $currency = null;
         if (array_key_exists('currency', $body) && is_string($body['currency'])) {
             $currency = $body['currency'];
@@ -50,12 +55,13 @@ final readonly class CountriesUpdateController
 
         // 2) Execute service
         $this->commandService->updateCountry(new UpdateCountryCommand(
-            id:       $id,
-            code:     $code,
-            name:     $name,
-            currency: $currency,
-            icon:     $icon,
-            isActive: $isActive,
+            id:        $id,
+            code:      $code,
+            name:      $name,
+            phoneCode: $phoneCode,
+            currency:  $currency,
+            icon:      $icon,
+            isActive:  $isActive,
         ));
 
         // 3) Return success

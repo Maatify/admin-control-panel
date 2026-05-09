@@ -194,6 +194,7 @@ final class GeoQueryServiceTest extends TestCase
             id:             $id,
             code:           $code,
             name:           $name,
+            phoneCode:      null,
             currency:       null,
             icon:           null,
             isActive:       true,
