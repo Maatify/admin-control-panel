@@ -22,6 +22,8 @@ VALUES
 
     -- [ ADMINS & PROFILE ]
     ('admin.create', 'Create Admin', 'Allows create admin'),
+    ('admin.password.reset_temp', 'Reset Temp Password Admin', 'Allows reset temporary password admin'),
+    ('admin.2fa.reset', 'Reset 2fa Admin', 'Allows reset 2fa admin'),
     ('admins.list', 'List Admins', 'Allows list admins'),
     ('admins.profile.view', 'View Profile Admins', 'Allows view profile admins'),
     ('admins.profile.edit', 'Edit Profile Admins', 'Allows edit profile admins'),
