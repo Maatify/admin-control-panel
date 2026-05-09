@@ -146,10 +146,10 @@ final readonly class PdoEffectivePermissionsRepository implements EffectivePermi
                 p.display_name,
                 p.description,
 
-                adp.is_allowed   AS direct_allowed,
-                adp.expires_at   AS direct_expires,
-
-                r.name           AS role_name
+                MAX(adp.is_allowed) AS direct_allowed,
+                MAX(adp.expires_at) AS direct_expires,
+                
+                MIN(r.name) AS role_name
 
             FROM permissions p
 
@@ -175,7 +175,12 @@ final readonly class PdoEffectivePermissionsRepository implements EffectivePermi
                 )
                 {$whereSql}
 
-            GROUP BY p.id
+            GROUP BY
+                p.id,
+                p.name,
+                p.display_name,
+                p.description
+            
             ORDER BY
                 SUBSTRING_INDEX(p.name, '.', 1),
                 p.name
@@ -201,7 +206,7 @@ final readonly class PdoEffectivePermissionsRepository implements EffectivePermi
          *   name:string,
          *   display_name:string|null,
          *   description:string|null,
-         *   direct_allowed:int|null,
+         *   direct_allowed:int|string|null,
          *   direct_expires:string|null,
          *   role_name:string|null
          * }> $rows
@@ -215,8 +220,10 @@ final readonly class PdoEffectivePermissionsRepository implements EffectivePermi
             $group = explode('.', $name, 2)[0];
 
             if ($row['direct_allowed'] !== null) {
-                $source    = $row['direct_allowed'] === 1 ? 'direct_allow' : 'direct_deny';
-                $isAllowed = $row['direct_allowed'] === 1;
+                $directAllowed = (int)$row['direct_allowed'];
+
+                $source    = $directAllowed === 1 ? 'direct_allow' : 'direct_deny';
+                $isAllowed = $directAllowed === 1;
             } else {
                 $source    = 'role';
                 $isAllowed = true;
