@@ -85,6 +85,8 @@ readonly class UiAdminsController
             'can_view_admins'        => $this->uiPermissionService->hasPermission($adminId, 'admins.list'),
             'can_view_notifications' => $this->uiPermissionService->hasPermission($adminId, 'notifications.list'),
             'can_view_permissions'   => $this->uiPermissionService->hasPermission($adminId, 'admins.permissions'),
+            'can_reset_temp_password'=> $this->uiPermissionService->hasPermission($adminId, 'admin.password.reset_temp'),
+            'can_reset_2fa'          => $this->uiPermissionService->hasPermission($adminId, 'admin.2fa.reset'),
         ];
         $profile['capabilities'] = $capabilities;
 

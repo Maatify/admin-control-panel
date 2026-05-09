@@ -90,7 +90,19 @@
 							</div> #}
 
 							{# ✅ Show "Edit Profile" button only if user has can_edit capability #}
-							{% if capabilities.can_edit ?? false %}
+							
+                            {% if capabilities.can_reset_temp_password ?? false %}
+                                <button type="button" id="btn-generate-temp-password" data-admin-id="{{ admin.id }}" class="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-2xl border border-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md">
+                                    <span>Generate Temporary Password</span>
+                                </button>
+                            {% endif %}
+
+                            {% if capabilities.can_reset_2fa ?? false %}
+                                <button type="button" id="btn-reset-2fa" data-admin-id="{{ admin.id }}" class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-2xl border border-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md">
+                                    <span>Reset 2FA</span>
+                                </button>
+                            {% endif %}
+{% if capabilities.can_edit ?? false %}
 								<!-- Edit Profile Button -->
 								<a href="{{ ui.adminUrl }}admins/{{ admin.id }}/profile/edit" class="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm font-medium rounded-2xl border border-gray-200 dark:border-gray-600 hover:bg-gray-50/70 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md">
 									<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
@@ -324,15 +336,29 @@
 
 	</div>
 
+
+
+    <div id="temp-password-result" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-600 p-6 w-full max-w-lg">
+            <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Temporary Password Generated</h4>
+            <p class="text-sm text-red-600 dark:text-red-400 mb-3">Copy this password now. It will not be shown again.</p>
+            <code id="temp-password-value" class="block w-full break-all rounded-lg bg-gray-100 dark:bg-gray-700 px-3 py-3 text-sm text-gray-900 dark:text-gray-100"></code>
+            <div class="mt-4 flex justify-end">
+                <button type="button" id="temp-password-close" class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800">Close</button>
+            </div>
+        </div>
+    </div>
+
 {% endblock %}
 
 {% block scripts %}
-	<!-- Add any specific JavaScript for admin profile page if needed -->
-	<script>
-		document.addEventListener('DOMContentLoaded', () => {
-console.log('Admin Profile Page Loaded');
-
-// Add any interactive features here
-});
-	</script>
+    <script>
+        window.AdminProfileCapabilities = {
+            can_reset_temp_password: {{ capabilities.can_reset_temp_password ?? false ? 'true' : 'false' }},
+            can_reset_2fa: {{ capabilities.can_reset_2fa ?? false ? 'true' : 'false' }}
+        };
+        window.AdminProfileAdminId = {{ admin.id }};
+    </script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/callback_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/admin_profile_recovery.js') }}"></script>
 {% endblock %}
