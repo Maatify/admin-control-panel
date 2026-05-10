@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS `geo_countries` (
     `id`            INT UNSIGNED    NOT NULL AUTO_INCREMENT,
     `code`          CHAR(2)         NOT NULL COMMENT 'ISO 3166-1 alpha-2: US, EG, GB …',
     `name`          VARCHAR(100)    NOT NULL COMMENT 'Base name — always English or default locale',
+    `phone_code`    VARCHAR(10)         NULL COMMENT 'International phone prefix: +1, +20, +44 …',
     `currency`      VARCHAR(10)         NULL COMMENT 'ISO 4217 currency code: USD, EUR, EGP …',
     `icon`          VARCHAR(512)        NULL COMMENT 'Flag path or URL — purely presentational',
     `is_active`     TINYINT(1)      NOT NULL DEFAULT 1,

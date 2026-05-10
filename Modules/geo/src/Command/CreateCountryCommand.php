@@ -17,6 +17,7 @@ final readonly class CreateCountryCommand
     public function __construct(
         public string  $code,
         public string  $name,
+        public ?string $phoneCode = null,
         public ?string $currency = null,
         public ?string $icon     = null,
         public bool    $isActive = true,

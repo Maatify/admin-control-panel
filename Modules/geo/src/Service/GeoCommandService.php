@@ -53,10 +53,12 @@ final class GeoCommandService
         $this->assertCountryCodeIsUnique($code, excludeId: null);
 
         return $this->countryRepo->createCountry(new CreateCountryCommand(
-            code:     $code,
-            name:     $command->name,
-            icon:     $command->icon,
-            isActive: $command->isActive,
+            code:      $code,
+            name:      $command->name,
+            phoneCode: $command->phoneCode,
+            currency:  $command->currency,
+            icon:      $command->icon,
+            isActive:  $command->isActive,
         ));
     }
 
@@ -75,6 +77,7 @@ final class GeoCommandService
             id:       $command->id,
             code:     $code,
             name:     $command->name,
+            phoneCode: $command->phoneCode,
             currency: $command->currency,
             icon:     $command->icon,
             isActive: $command->isActive,

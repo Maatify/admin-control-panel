@@ -24,6 +24,7 @@ final class CountryDTOTest extends TestCase
             'id'                     => 1,
             'code'                   => 'EG',
             'name'                   => 'Egypt',
+            'phone_code'             => '+20',
             'currency'               => 'EGP',
             'icon'                   => '🇪🇬',
             'is_active'              => 1,
@@ -39,6 +40,7 @@ final class CountryDTOTest extends TestCase
         self::assertSame(1,             $dto->id);
         self::assertSame('EG',          $dto->code);
         self::assertSame('Egypt',       $dto->name);
+        self::assertSame('+20',          $dto->phoneCode);
         self::assertSame('EGP',         $dto->currency);
         self::assertSame('🇪🇬',         $dto->icon);
         self::assertTrue($dto->isActive);
@@ -56,6 +58,7 @@ final class CountryDTOTest extends TestCase
             'id'                     => 2,
             'code'                   => 'US',
             'name'                   => 'United States',
+            'phone_code'             => '+1',
             'icon'                   => null,
             'is_active'              => '1',
             'display_order'          => '2',
@@ -147,6 +150,7 @@ final class CountryDTOTest extends TestCase
             id:             1,
             code:           'EG',
             name:           $name,
+            phoneCode:      null,
             currency:       null,
             icon:           null,
             isActive:       true,
