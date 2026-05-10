@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // ✅ Setup click handler for session ID copy
-        document.addEventListener('click', (e) => {
+        document.addEventListener('click', async (e) => {
             if (e.target.classList.contains('session-id-copy')) {
                 const sessionId = e.target.getAttribute('data-session-id');
                 copyToClipboard(sessionId, e.target);
@@ -169,7 +169,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // ✅ Setup click handler for revoke button in each row
             if (e.target.classList.contains('revoke-session-btn')) {
                 const sessionId = e.target.getAttribute('data-session-id');
-                if (sessionId && confirm('Are you sure you want to revoke this session?')) {
+                const ok = await appConfirm({
+                    title: "are you sure?",
+                    message: `Are you sure you want to revoke this session?`,
+                    type: "danger"
+                })
+
+                if (sessionId && ok) {
                     revokeSession(sessionId).then((success) => {
                         if (success) {
                             loadSessions(); // Reload table
@@ -244,15 +250,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function revokeAllSessionsSelected() {
+   async function revokeAllSessionsSelected() {
         const items = getSelectedItems();
 
         if (items.length === 0) {
             showAlert('w', 'Select at least one session');
             return;
         }
-
-        if (!confirm(`Revoke ${items.length} session(s)?`)) return;
+        const ok = await appConfirm({
+            title: "are you sure?",
+            message: `Revoke ${items.length} session(s)?`,
+            type: "danger"
+        })
+        if (!ok) {
+            return;
+        }
+        // if (!confirm(`Revoke ${items.length} session(s)?`)) return;
 
         selectedSessions = new Set(items);
         Promise.all(items.map(id => revokeSession(id)))

@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function revokeAllSessionsSelected() {
+    async function revokeAllSessionsSelected() {
         const items = getSelectedItems();
 
         if (items.length === 0) {
@@ -217,8 +217,15 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (!confirm(`Revoke ${items.length} session(s)?`)) return;
-
+        // if (!confirm(`Revoke ${items.length} session(s)?`)) return;
+        const ok = await appConfirm({
+            title: "are you sure?",
+            message: `Revoke ${items.length} session(s)?`,
+            type: "danger"
+        })
+        if (!ok) {
+            return;
+        }
         selectedSessions = new Set(items);
         Promise.all(items.map(id => revokeSession(id)))
             .then(() => {

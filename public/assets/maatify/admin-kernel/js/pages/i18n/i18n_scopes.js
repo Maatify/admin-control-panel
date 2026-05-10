@@ -335,7 +335,15 @@
     }
 
     async function toggleActive(id, currentStatus) {
-        if (!confirm(`Are you sure you want to ${currentStatus ? 'deactivate' : 'activate'} this scope?`)) return;
+        // if (!confirm(`Are you sure you want to ${currentStatus ? 'deactivate' : 'activate'} this scope?`)) return;
+        const ok = await appConfirm({
+            title: "are you sure?",
+            message: `Are you sure you want to ${currentStatus ? 'deactivate' : 'activate'} this scope?`,
+            type: "danger"
+        })
+        if (!ok) {
+            return;
+        }
         const result = await ApiHandler.call('i18n/scopes/set-active', {
             id: parseInt(id),
             is_active: !currentStatus

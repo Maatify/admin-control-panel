@@ -349,8 +349,15 @@
     // ========================================================================
 
     async function handleAssign(domainCode, domainName) {
-        if (!confirm(`Are you sure you want to assign domain "${domainName}" (${domainCode}) to this scope?`)) return;
-
+        // if (!confirm(`Are you sure you want to assign domain "${domainName}" (${domainCode}) to this scope?`)) return;
+        const ok = await appConfirm({
+            title: "are you sure?",
+            message: `Are you sure you want to assign domain "${domainName}" (${domainCode}) to this scope?`,
+            type: "danger"
+        })
+        if (!ok) {
+            return;
+        }
         const endpoint = `i18n/scopes/${scopeId}/domains/assign`;
         const payload = { domain_code: domainCode };
 
@@ -365,8 +372,15 @@
     }
 
     async function handleUnassign(domainCode, domainName) {
-        if (!confirm(`Are you sure you want to unassign domain "${domainName}" (${domainCode}) from this scope?`)) return;
-
+        // if (!confirm(`Are you sure you want to unassign domain "${domainName}" (${domainCode}) from this scope?`)) return;
+        const ok = await appConfirm({
+            title: "are you sure?",
+            message: `Are you sure you want to unassign domain "${domainName}" (${domainCode}) to this scope?`,
+            type: "danger"
+        })
+        if (!ok) {
+            return;
+        }
         const endpoint = `i18n/scopes/${scopeId}/domains/unassign`;
         const payload = { domain_code: domainCode };
 

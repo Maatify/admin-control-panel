@@ -75,8 +75,15 @@
         const newStatus = !currentStatus;
         const action = newStatus ? 'activate' : 'deactivate';
 
-        if (!confirm(`Are you sure you want to ${action} this domain?`)) return;
-
+        // if (!confirm(`Are you sure you want to ${action} this domain?`)) return;
+        const ok = await appConfirm({
+            title: "are you sure?",
+            message: `Are you sure you want to ${action} this domain?`,
+            type: "danger"
+        })
+        if (!ok) {
+            return;
+        }
         const payload = {
             id: parseInt(domainId),
             is_active: newStatus
