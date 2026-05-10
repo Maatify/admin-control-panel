@@ -412,8 +412,16 @@
         const permId = btn.dataset.permissionId;
         console.log('🗑️  [Direct] Revoke clicked — permission_id:', permId);
 
-        if (!confirm('Revoke this direct permission? This action cannot be undone.')) return;
+        // if (!confirm('Revoke this direct permission? This action cannot be undone.')) return;
 
+        const ok = await appConfirm({
+            title: "are you sure?",
+            message: "Revoke this direct permission? This action cannot be undone",
+            type: "danger"
+        })
+        if (!ok) {
+            return;
+        }
         btn.disabled = true;
         btn.classList.add('opacity-50');
 
@@ -1104,8 +1112,15 @@
         const permId = Number(btn.dataset.permissionId);
         console.log('🗑️  [Assignable] Revoke clicked — permission_id:', permId);
 
-        if (!confirm('Revoke this direct permission? This action cannot be undone.')) return;
-
+        // if (!confirm('Revoke this direct permission? This action cannot be undone.')) return;
+        const ok = await appConfirm({
+            title: "are you sure?",
+            message: "Revoke this direct permission? This action cannot be undone.",
+            type: "danger"
+        })
+        if (!ok) {
+            return;
+        }
         btn.disabled = true;
         btn.classList.add('opacity-50');
 

@@ -258,7 +258,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
         }
 
-        if (!confirm(confirmMsg)) return;
+        // if (!confirm(confirmMsg)) return;
+        const ok = await appConfirm({
+            title: "are you sure?",
+            message: confirmMsg,
+            type: "danger"
+        })
+        if (!ok) {
+            return;
+        }
 
         // Call appropriate API
         await performEmailAction(action, emailId, emailAddress);

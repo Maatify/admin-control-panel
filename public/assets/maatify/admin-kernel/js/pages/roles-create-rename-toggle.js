@@ -637,7 +637,7 @@
     // ========================================================================
 
     window.RolesToggle = {
-        handleToggleClick: (btn) => {
+        handleToggleClick: async (btn) => {
             const roleId = btn.getAttribute('data-role-id');
             const roleName = btn.getAttribute('data-role-name');
             const isActive = btn.getAttribute('data-is-active') === '1';
@@ -659,12 +659,19 @@
                     : 'Disabled roles are ignored during authorization.'
             }`;
 
-            if (!confirm(confirmMsg)) {
-                console.log('❌ User cancelled toggle operation');
-                console.log('━'.repeat(60));
+            // if (!confirm(confirmMsg)) {
+            //     console.log('❌ User cancelled toggle operation');
+            //     console.log('━'.repeat(60));
+            //     return;
+            // }
+            const ok = await appConfirm({
+                title: "are you sure?",
+                message: confirmMsg,
+                type: "danger"
+            })
+            if (!ok) {
                 return;
             }
-
             console.log('✅ User confirmed toggle');
             performToggle(roleId, roleName, newState);
         }

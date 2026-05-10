@@ -104,8 +104,16 @@
         const newStatus = !currentStatus;
         const action = newStatus ? 'activate' : 'deactivate';
 
-        if (!confirm(`Are you sure you want to ${action} this scope?`)) {
-            console.log('❌ User cancelled action');
+        // if (!confirm(`Are you sure you want to ${action} this scope?`)) {
+        //     console.log('❌ User cancelled action');
+        //     return;
+        // }
+        const ok = await appConfirm({
+            title: "are you sure?",
+            message: `Are you sure you want to ${action} this scope?`,
+            type: "danger"
+        })
+        if (!ok) {
             return;
         }
 

@@ -428,8 +428,15 @@
     // ========================================================================
 
     async function handleDelete(keyId, keyPart) {
-        if (!confirm(`Are you sure you want to clear the translation for "${keyPart}"?`)) return;
-
+        // if (!confirm(`Are you sure you want to clear the translation for "${keyPart}"?`)) return;
+        const ok = await appConfirm({
+            title: "are you sure?",
+            message: `Are you sure you want to clear the translation for "${keyPart}"?`,
+            type: "danger"
+        })
+        if (!ok) {
+            return;
+        }
         const endpoint = `languages/${languageId}/translations/delete`;
         const payload = { key_id: parseInt(keyId) };
 

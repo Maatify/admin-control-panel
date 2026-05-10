@@ -17,7 +17,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (tempBtn && capabilities.can_reset_temp_password) {
         tempBtn.addEventListener('click', async () => {
-            if (!confirm('Generate a temporary password for this admin? The current password will be replaced.')) {
+            // if (!confirm('')) {
+            //     return;
+            // }
+
+            const ok = await appConfirm({
+                title: "are you sure?",
+                message: "Generate a temporary password for this admin? The current password will be replaced.",
+                type: "danger"
+            })
+            if (!ok) {
                 return;
             }
 
@@ -61,10 +70,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (reset2faBtn && capabilities.can_reset_2fa) {
         reset2faBtn.addEventListener('click', async () => {
-            if (!confirm('Reset 2FA for this admin? This will remove the existing 2FA setup and require re-enrollment.')) {
+            // if (!confirm('Reset 2FA for this admin? This will remove the existing 2FA setup and require re-enrollment.')) {
+            //     return;
+            // }
+            const ok = await appConfirm({
+                title: "are you sure?",
+                message: "Reset 2FA for this admin? This will remove the existing 2FA setup and require re-enrollment.",
+                type: "danger"
+            })
+            if (!ok) {
                 return;
             }
-
             try {
                 const response = await fetch(`/api/admins/${adminId}/2fa/reset`, {
                     method: 'POST',
