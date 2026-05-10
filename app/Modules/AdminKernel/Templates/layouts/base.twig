@@ -30,13 +30,16 @@ darkMode: 'class'
 				* {
 					transition: all 0.3s ease-in-out !important;
 				}
+
 				/* Sidebar Collapsed Logic */
-				.sidebar{
-					overflow: scroll;
+				.sidebar {
+					overflow-y: auto;
 				}
-				.sidebar.collapsed{
+
+				.sidebar.collapsed {
 					overflow: unset;
 				}
+
 				.sidebar.collapsed > ul {
 					padding-left: 0 !important;
 					padding-right: 0 !important;
@@ -81,16 +84,19 @@ darkMode: 'class'
 					white-space: normal;
 					min-height: 100%; /* Ensure it covers the full height of the parent LI */
 				}
+
 				.sidebar.collapsed > ul > li:last-child:hover > .nav-children {
 					top: auto !important;
 					bottom: 30px !important;
 					border-radius: 8px 8px 0 0 !important;
 				}
-				.sidebar.collapsed > ul > li:last-child:hover > .li-name ,.sidebar.collapsed > ul > li:last-child:has(.nav-children):hover > div > a .li-name,
-				.sidebar.collapsed > ul > li:last-child:has(.nav-children):hover > div .li-name{
+
+				.sidebar.collapsed > ul > li:last-child:hover > .li-name,
+				.sidebar.collapsed > ul > li:last-child:has(.nav-children):hover > div > a .li-name,
+				.sidebar.collapsed > ul > li:last-child:has(.nav-children):hover > div .li-name {
 					border-radius: 0 0 8px 8px !important;
 					/* border-bottom-left-radius: 8px !important;
-					border-bottom-right-radius: 8px !important; */
+                    border-bottom-right-radius: 8px !important; */
 				}
 
 				/* Ensure the parent div itself shows the tooltip when it doesn't have a link */
@@ -110,11 +116,13 @@ darkMode: 'class'
 					box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
 					white-space: normal;
 				}
+
 				.sidebar.collapsed > ul > li > div:not(:has(a)) {
 
 					& .li-name {
 						gap: 10px;
 					}
+
 					& > div {
 						width: fit-content;
 						display: flex;
@@ -122,6 +130,7 @@ darkMode: 'class'
 						justify-content: center;
 					}
 				}
+
 				.sidebar.collapsed > ul > li > div:not(:has(a)) span.li-name {
 					display: none;
 				}
@@ -186,8 +195,8 @@ darkMode: 'class'
 				}
 
 				/* ---------------------------------------------------------
-			   NESTED CHILDREN SUPPORT (Children of Children)
-			   --------------------------------------------------------- */
+               NESTED CHILDREN SUPPORT (Children of Children)
+               --------------------------------------------------------- */
 
 				/* Ensure nested children behave as a normal accordion inside the popup */
 				.sidebar.collapsed .nav-children .nav-children {
@@ -319,7 +328,7 @@ document.documentElement.classList.remove('dark');
 		<!-- Alert Container -->
 		<div id="alert-container" class="fixed top-0 left-0 z-[99999]"></div>
 
-		<nav class="sidebar fixed top-0 left-0 h-full w-[18%] bg-white dark:bg-gray-800 text-main dark:text-gray-100 flex flex-col pt-5  transition-all duration-300 shadow-md dark:shadow-gray-900/50 z-[1]  [&.collapsed]:w-[5%] [&.collapsed_.sidebar_footer_a_span]:hidden [&.collapsed_.li-text]:hidden [&.collapsed_.arrow-icon]:hidden [&.collapsed_.logo]:text-base min-w-[50px]">
+		<nav class="sidebar fixed top-0 left-0 h-full w-[18%] bg-white dark:bg-gray-800 text-main dark:text-gray-100 flex flex-col pt-5  transition-all duration-300 shadow-md dark:shadow-gray-900/50 z-[1]  [&.collapsed]:w-[5%] [&.collapsed_.sidebar_footer_a_span]:hidden [&.collapsed_.li-text]:hidden [&.collapsed_.arrow-icon]:hidden [&.collapsed_.logo]:text-base min-w-[50px]  [scrollbar-width:thin] [scrollbar-color:theme(colors.blue.300)_theme(colors.blue.50)] dark:[scrollbar-color:theme(colors.gray.900)_theme(colors.gray.800)] [&::-webkit-scrollbar]:w-0">
 			{% block sidebar_header %}
 				<div
 					class="logo text-center text-xl font-bold whitespace-nowrap flex items-center gap-2 justify-center  dark:text-gray-100">
