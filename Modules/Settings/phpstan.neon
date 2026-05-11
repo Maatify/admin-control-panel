@@ -20,7 +20,7 @@ parameters:
     excludePaths:
         - vendor
         - tests
-        - build
+        - build?
 
     # -------------------------------------------------------------------------
     # Strict behaviour

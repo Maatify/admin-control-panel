@@ -31,7 +31,7 @@ final class PdoAdminSettingCommandRepositoryTest extends TestCase
             CREATE TABLE `settings` (
                 `id` INTEGER PRIMARY KEY AUTOINCREMENT,
                 `setting_key` VARCHAR(64) NOT NULL UNIQUE,
-                `setting_value` VARCHAR(255) NOT NULL DEFAULT """",
+                `setting_value` VARCHAR(255) NOT NULL DEFAULT \'\',
                 `value_type` VARCHAR(16) NOT NULL,
                 `is_admin_editable` TINYINT(1) NOT NULL DEFAULT 0,
                 `admin_note` TEXT,
@@ -45,7 +45,7 @@ final class PdoAdminSettingCommandRepositoryTest extends TestCase
     {
         $this->pdo->exec('
             INSERT INTO `settings` (`setting_key`, `setting_value`, `value_type`, `is_admin_editable`)
-            VALUES (\"maintenance\", \"0\", \"bool\", 1)
+            VALUES (\'maintenance\', \'0\', \'bool\', 1)
         ');
     }
 

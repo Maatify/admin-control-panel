@@ -15,6 +15,78 @@ The Settings module provides application-level configuration management:
 
 ---
 
+## Enum Classes
+
+### `SettingValueType`
+
+Type-safe enum for setting value types.
+
+```php
+enum SettingValueType: string
+{
+    case BOOL = 'bool';
+    case INT = 'int';
+    case STRING = 'string';
+    case DATE = 'date';
+    case DATETIME = 'datetime';
+}
+```
+
+**Methods:**
+
+```php
+// Get from string value
+$type = SettingValueType::fromValue('bool');  // SettingValueType::BOOL
+$type = SettingValueType::fromValue('invalid');  // throws \ValueError
+
+// Get human-readable label
+SettingValueType::BOOL->label();       // "Boolean"
+SettingValueType::INT->label();        // "Integer"
+SettingValueType::STRING->label();     // "String"
+SettingValueType::DATE->label();       // "Date (YYYY-MM-DD)"
+SettingValueType::DATETIME->label();   // "DateTime (YYYY-MM-DD HH:MM:SS)"
+
+// Get value as string
+SettingValueType::BOOL->value;  // "bool"
+
+// Get all types or values
+SettingValueType::all();    // [BOOL, INT, STRING, DATE, DATETIME]
+SettingValueType::values(); // ["bool", "int", "string", "date", "datetime"]
+```
+
+**Usage in DTOs:**
+
+DTOs expose `valueType` as string for extensibility:
+
+```php
+$setting = $adminService->getByKey('default_currency');
+
+echo $setting->valueType;  // "int"
+
+// Use the provider for labels and validation
+$provider = $container->get(SettingValueTypeProviderInterface::class);
+
+echo $provider->label($setting->valueType);  // "Integer"
+
+if ($provider->isValid($setting->valueType)) {
+    // Type is valid for this provider
+}
+```
+
+**JSON Serialization:**
+
+`valueType` is automatically included as string in JSON:
+
+```php
+json_encode($setting);
+// {
+//   "value_type": "int",  // ✓ string value
+//   ...
+// }
+```
+
+---
+
 ## Exception Classes
 
 ### `SettingsExceptionInterface`
@@ -96,7 +168,13 @@ echo $setting->settingKey;       // "maintenance"
 echo $setting->settingValue;     // "0"
 echo $setting->valueType;        // "bool"
 echo $setting->isAdminEditable;  // true
-echo $setting->adminNote;        // "App maintenance mode"
+
+// Validation is delegated to the provider
+$provider = $container->get(SettingValueTypeProviderInterface::class);
+echo $provider->label($setting->valueType);  // "Boolean"
+if ($provider->isValid($setting->valueType)) {
+    // Type is valid for this provider
+}
 ```
 
 ### `SettingListItemDTO`
@@ -466,22 +544,99 @@ SettingsInvalidArgumentException::keyNotEditable('system_id')
 
 ### Support New Value Type
 
-1. Add comment to schema describing the new type
-2. Add type-safe getter to `SettingValueService`:
+The module uses **`SettingValueTypeProviderInterface`** for pluggable, project-specific validation. Built-in types (`bool`, `int`, `string`, `date`, `datetime`) are provided by `DefaultSettingValueTypeProvider`.
+
+#### To add custom types without modifying the module:
+
+**1. Create a custom provider:**
 
 ```php
-public function getDatetime(string $settingKey): \DateTime
+<?php
+namespace App\Settings;
+
+use Maatify\Settings\Shared\Contract\SettingValueTypeProviderInterface;
+use Maatify\Settings\Exception\SettingsInvalidArgumentException;
+
+final class CustomSettingValueTypeProvider implements SettingValueTypeProviderInterface
 {
-    $value = $this->getValue($settingKey);
-    return new \DateTime($value);
+    private const TYPES = ['bool', 'int', 'string', 'email', 'url'];
+
+    public function all(): array
+    {
+        return self::TYPES;
+    }
+
+    public function isValid(string $type): bool
+    {
+        return in_array($type, self::TYPES, true);
+    }
+
+    public function label(string $type): string
+    {
+        return match ($type) {
+            'bool' => 'Boolean',
+            'int' => 'Integer',
+            'string' => 'String',
+            'email' => 'Email Address',
+            'url' => 'URL',
+            default => throw SettingsInvalidArgumentException::invalidValueType($type),
+        };
+    }
+
+    public function validate(string $value, string $type): void
+    {
+        match ($type) {
+            'bool' => $this->validateBool($value),
+            'int' => $this->validateInt($value),
+            'string' => true,
+            'email' => filter_var($value, FILTER_VALIDATE_EMAIL) 
+                or throw SettingsInvalidArgumentException::invalidValueForType($value, $this->label($type)),
+            'url' => filter_var($value, FILTER_VALIDATE_URL)
+                or throw SettingsInvalidArgumentException::invalidValueForType($value, $this->label($type)),
+        };
+    }
+
+    private function validateBool(string $value): void
+    {
+        if ($value !== '0' && $value !== '1') {
+            throw SettingsInvalidArgumentException::invalidValueForType($value, $this->label('bool'));
+        }
+    }
+
+    private function validateInt(string $value): void
+    {
+        if (! preg_match('/^-?\d+$/', $value)) {
+            throw SettingsInvalidArgumentException::invalidValueForType($value, $this->label('int'));
+        }
+    }
 }
 ```
 
-3. Value type validation is automatically enforced by `AdminSettingService` on updates:
-   - `bool`: accepts only "0" or "1"
-   - `int`: validates numeric format
-   - `date`/`datetime`: validates format with `DateTimeImmutable`
-   - `string`: accepts any value
+**2. Register in DI container:**
+
+```php
+use DI\ContainerBuilder;
+use App\Settings\CustomSettingValueTypeProvider;
+use Maatify\Settings\Shared\Contract\SettingValueTypeProviderInterface;
+
+$builder = new ContainerBuilder();
+
+$builder->addDefinitions([
+    SettingValueTypeProviderInterface::class => CustomSettingValueTypeProvider::class,
+]);
+```
+
+Now `AdminSettingService` automatically uses your provider for validation.
+
+**Built-in Validation (DefaultSettingValueTypeProvider):**
+
+- `bool`: accepts only "0" or "1"
+- `int`: validates numeric format (`-?\d+`)
+- `date`: validates with `DateTimeImmutable`
+- `datetime`: validates with `DateTimeImmutable`
+- `string`: accepts any value
+
+See **`CUSTOM_TYPES.md`** for complete implementation guide with configuration-based approach.
 
 ---
 

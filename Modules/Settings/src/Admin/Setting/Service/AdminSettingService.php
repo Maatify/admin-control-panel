@@ -9,13 +9,16 @@ use Maatify\Settings\Admin\Setting\Contract\AdminSettingCommandRepositoryInterfa
 use Maatify\Settings\Admin\Setting\Contract\AdminSettingQueryRepositoryInterface;
 use Maatify\Settings\Exception\SettingsInvalidArgumentException;
 use Maatify\Settings\Exception\SettingsNotFoundException;
+use Maatify\Settings\Shared\Contract\SettingValueTypeProviderInterface;
 use Maatify\Settings\Shared\DTO\SettingDTO;
+use Maatify\Settings\Shared\Infrastructure\DefaultSettingValueTypeProvider;
 
 final class AdminSettingService
 {
     public function __construct(
         private readonly AdminSettingCommandRepositoryInterface $commandRepo,
         private readonly AdminSettingQueryRepositoryInterface $queryRepo,
+        private readonly SettingValueTypeProviderInterface $typeProvider = new DefaultSettingValueTypeProvider(),
     ) {}
 
     public function getByKey(string $settingKey): SettingDTO
@@ -37,7 +40,7 @@ final class AdminSettingService
             throw SettingsInvalidArgumentException::keyNotEditable($command->settingKey);
         }
 
-        $this->validateValueByType($command->settingValue, $setting->valueType);
+        $this->typeProvider->validate($command->settingValue, $setting->valueType);
 
         if (! $this->commandRepo->updateValue($command)) {
             throw SettingsNotFoundException::withKey($command->settingKey);
@@ -57,49 +60,5 @@ final class AdminSettingService
     public function listAsKeyValue(): array
     {
         return $this->queryRepo->listAsKeyValue();
-    }
-
-    private function validateValueByType(string $value, string $valueType): void
-    {
-        match ($valueType) {
-            'bool' => $this->validateBool($value),
-            'int' => $this->validateInt($value),
-            'datetime' => $this->validateDateTime($value),
-            'date' => $this->validateDate($value),
-            'string' => true,
-            default => throw SettingsInvalidArgumentException::invalidValueType($valueType),
-        };
-    }
-
-    private function validateBool(string $value): void
-    {
-        if ($value !== '0' && $value !== '1') {
-            throw SettingsInvalidArgumentException::invalidValueType('bool');
-        }
-    }
-
-    private function validateInt(string $value): void
-    {
-        if (! preg_match('/^-?\d+$/', $value)) {
-            throw SettingsInvalidArgumentException::invalidValueType('int');
-        }
-    }
-
-    private function validateDateTime(string $value): void
-    {
-        try {
-            new \DateTimeImmutable($value);
-        } catch (\Throwable) {
-            throw SettingsInvalidArgumentException::invalidValueType('datetime');
-        }
-    }
-
-    private function validateDate(string $value): void
-    {
-        try {
-            new \DateTimeImmutable($value);
-        } catch (\Throwable) {
-            throw SettingsInvalidArgumentException::invalidValueType('date');
-        }
     }
 }

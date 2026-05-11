@@ -30,6 +30,6 @@ final class SettingsInvalidArgumentExceptionTest extends TestCase
     {
         $exception = SettingsInvalidArgumentException::invalidValueType('custom');
 
-        self::assertSame('Invalid value type [custom]. Allowed: bool, int, string, datetime, date.', $exception->getMessage());
+        self::assertSame('Invalid value type [custom]. Allowed: bool, int, string, date, datetime.', $exception->getMessage());
     }
 }

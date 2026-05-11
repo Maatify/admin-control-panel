@@ -32,7 +32,7 @@ final class PdoAdminSettingQueryRepositoryTest extends TestCase
             CREATE TABLE `settings` (
                 `id` INTEGER PRIMARY KEY AUTOINCREMENT,
                 `setting_key` VARCHAR(64) NOT NULL UNIQUE,
-                `setting_value` VARCHAR(255) NOT NULL DEFAULT """",
+                `setting_value` VARCHAR(255) NOT NULL DEFAULT \'\',
                 `value_type` VARCHAR(16) NOT NULL,
                 `is_admin_editable` TINYINT(1) NOT NULL DEFAULT 0,
                 `admin_note` TEXT,
@@ -47,10 +47,10 @@ final class PdoAdminSettingQueryRepositoryTest extends TestCase
         $this->pdo->exec('
             INSERT INTO `settings` (`setting_key`, `setting_value`, `value_type`, `is_admin_editable`, `admin_note`)
             VALUES
-                (\"maintenance\", \"0\", \"bool\", 1, \"App maintenance mode\"),
-                (\"default_currency\", \"1\", \"int\", 1, \"Default currency id\"),
-                (\"system_id\", \"123\", \"int\", 0, \"System identifier\"),
-                (\"app_name\", \"MyApp\", \"string\", 1, \"Application name\")
+                (\'maintenance\', \'0\', \'bool\', 1, \'App maintenance mode\'),
+                (\'default_currency\', \'1\', \'int\', 1, \'Default currency id\'),
+                (\'system_id\', \'123\', \'int\', 0, \'System identifier\'),
+                (\'app_name\', \'MyApp\', \'string\', 1, \'Application name\')
         ');
     }
 

@@ -18,6 +18,12 @@ final class SettingsInvalidArgumentException extends \RuntimeException implement
 
     public static function invalidValueType(string $valueType): self
     {
-        return new self("Invalid value type [{$valueType}]. Allowed: bool, int, string, datetime, date.");
+        $allowed = implode(', ', \Maatify\Settings\Shared\SettingValueType::values());
+        return new self("Invalid value type [{$valueType}]. Allowed: {$allowed}.");
+    }
+
+    public static function invalidValueForType(string $value, string $typeLabel): self
+    {
+        return new self("Invalid value [{$value}] for type [{$typeLabel}].");
     }
 }

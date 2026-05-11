@@ -9,6 +9,8 @@ use Maatify\Settings\Admin\Setting\Contract\AdminSettingQueryRepositoryInterface
 use Maatify\Settings\Admin\Setting\Infrastructure\Repository\PdoAdminSettingCommandRepository;
 use Maatify\Settings\Admin\Setting\Infrastructure\Repository\PdoAdminSettingQueryRepository;
 use Maatify\Settings\Admin\Setting\Service\AdminSettingService;
+use Maatify\Settings\Shared\Contract\SettingValueTypeProviderInterface;
+use Maatify\Settings\Shared\Infrastructure\DefaultSettingValueTypeProvider;
 use Maatify\Settings\Shared\Service\SettingValueService;
 use DI\ContainerBuilder;
 use Psr\Container\ContainerInterface;
@@ -40,10 +42,16 @@ final class SettingsBindings
                 $commandRepo = $c->get(AdminSettingCommandRepositoryInterface::class);
                 /** @var AdminSettingQueryRepositoryInterface $queryRepo */
                 $queryRepo = $c->get(AdminSettingQueryRepositoryInterface::class);
-                return new AdminSettingService($commandRepo, $queryRepo);
+                /** @var SettingValueTypeProviderInterface $typeProvider */
+                $typeProvider = $c->get(SettingValueTypeProviderInterface::class);
+                return new AdminSettingService($commandRepo, $queryRepo, $typeProvider);
             },
 
             // ── Shared ─────────────────────────────────────────────────
+
+            SettingValueTypeProviderInterface::class => static function (): DefaultSettingValueTypeProvider {
+                return new DefaultSettingValueTypeProvider();
+            },
 
             SettingValueService::class => static function (ContainerInterface $c): SettingValueService {
                 /** @var AdminSettingQueryRepositoryInterface $queryRepo */
