@@ -65,7 +65,8 @@
       "Maatify\\Persistence\\": "Modules/Persistence/src",
       "Maatify\\Geo\\": "Modules/geo/src",
       "Maatify\\GeoSlim\\": "Modules/GeoSlim/src",
-      "Maatify\\Settings\\": "Modules/Settings/src"
+      "Maatify\\Settings\\": "Modules/Settings/src",
+      "Maatify\\SettingsSlim\\": "Modules/SettingsSlim/src"
     }
   },
 

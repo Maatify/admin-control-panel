@@ -1061,11 +1061,6 @@ class Container
                 assert($authorizationService instanceof \Maatify\AdminKernel\Application\Security\UiPermissionService);
                 return new UiRolesController($view, $authorizationService);
             },
-            UiSettingsController::class => function (ContainerInterface $c) {
-                $view = $c->get(Twig::class);
-                assert($view instanceof Twig);
-                return new UiSettingsController($view);
-            },
             TelegramHandler::class => function (ContainerInterface $c) {
                 $validator = $c->get(VerificationCodeValidatorInterface::class);
                 $repo = $c->get(AdminNotificationChannelRepositoryInterface::class);

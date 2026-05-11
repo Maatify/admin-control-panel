@@ -53,6 +53,7 @@ final class UiProtectedRoutes
 
             AppSettingsUiRoutes::register($protectedGroup);
             SettingsUiRoutes::register($protectedGroup);
+            \Maatify\SettingsSlim\Admin\Http\Routes\SettingsUiRoutes::register($protectedGroup);
 
             SessionsUiRoutes::register($protectedGroup);
 

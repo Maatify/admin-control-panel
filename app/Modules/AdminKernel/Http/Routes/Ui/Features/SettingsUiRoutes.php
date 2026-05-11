@@ -14,8 +14,6 @@ final class SettingsUiRoutes
      */
     public static function register(RouteCollectorProxyInterface $group): void
     {
-        $group->get('/settings', [\Maatify\AdminKernel\Http\Controllers\Ui\UiSettingsController::class, 'index']);
-
         // UI sandbox for Twig/layout experimentation (non-canonical page)
         $group->get('/examples', [\Maatify\AdminKernel\Http\Controllers\Ui\UiExamplesController::class, 'index']);
     }

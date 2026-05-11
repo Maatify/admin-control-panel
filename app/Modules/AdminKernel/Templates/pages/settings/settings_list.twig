@@ -1,0 +1,190 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}
+    Settings | {{ ui.appName }}
+{% endblock %}
+
+{% block content %}
+    {# =========================================================
+       UI CONTRACT
+       ---------------------------------------------------------
+       - window.settingsCapabilities
+       - window.settingsApi
+       - JS owns all behavior
+       ========================================================= #}
+
+    <script>
+        window.settingsCapabilities = {{ capabilities|json_encode|raw }};
+
+        window.settingsApi = {
+            query: 'settings/query',
+            get: 'settings/get',
+            update: 'settings/update',
+            dropdown: 'settings/dropdown'
+        };
+    </script>
+
+    <!-- Page Header + Breadcrumb -->
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100"> Settings Management</h2>
+
+        <nav>
+            <ol class="flex items-center gap-1.5">
+                <li>
+                    <a
+                            class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                            href="{{ ui.adminUrl }}dashboard"
+                    >
+                        Home
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none"
+                             xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                                  stroke=""
+                                  stroke-width="1.2"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </li>
+                <li class="text-sm text-gray-800 dark:text-gray-200">Settings</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- Page Body -->
+    <div class="px-0 py-2">
+        <div class="container lg:max-w-[100%] mt-6">
+            {# ============================================================
+               🔍 Search & Filters Section
+               ============================================================ #}
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+                <form id="settings-filter-form" class="space-y-4">
+                    {# Column Filters #}
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {# Key Filter #}
+                        <div>
+                            <label for="filter-key" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                 Setting Key
+                            </label>
+                            <input
+                                    type="text"
+                                    id="filter-key"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400"
+                                    placeholder="e.g., app_version, max_upload_size..."
+                            />
+                        </div>
+
+                        {# Admin Note Filter #}
+                        <div>
+                            <label for="filter-admin-note" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                 Admin Note
+                            </label>
+                            <input
+                                    type="text"
+                                    id="filter-admin-note"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400"
+                                    placeholder="e.g., Default currency..."
+                            />
+                        </div>
+
+                        {# Value Type Filter #}
+                        <div>
+                            <label for="filter-value-type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                 Value Type
+                            </label>
+                            <input
+                                    type="text"
+                                    id="filter-value-type"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400"
+                                    placeholder="e.g., string, int, bool..."
+                            />
+                        </div>
+                    </div>
+
+                    {# Action Buttons #}
+                    <div class="flex flex-wrap gap-3 pt-4">
+                        <button
+                                type="submit"
+                                class="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+                        >
+
+                            Search
+                        </button>
+
+                        <button
+                                type="button"
+                                id="settings-reset-filters"
+                                class="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium flex items-center gap-2"
+                        >
+
+                            Reset
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            {# ============================================================
+               📋 Table Container (Rendered by JS)
+               ============================================================ #}
+
+            {# Global Search Bar (Above Table) #}
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4">
+                <div class="flex items-center gap-3">
+
+                    <input
+                            type="text"
+                            id="settings-search"
+                            class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all dark:placeholder-gray-400"
+                            placeholder=" Quick search by key or admin note..."
+                    />
+                    <button
+                            type="button"
+                            id="settings-search-btn"
+                            class="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    >
+                        Search
+                    </button>
+                    <button
+                            type="button"
+                            id="settings-clear-search"
+                            class="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
+                    >
+                        Clear
+                    </button>
+                </div>
+            </div>
+
+            {# Data Table #}
+            <div id="settings-table-container" class="w-full"></div>
+        </div>
+    </div>
+
+    {# ===================================================================
+       🎨 Custom Styles for Select2 Dark Mode
+       =================================================================== #}
+    <style>
+        /* Dark Mode overrides for Select2 selected item */
+        .dark .js-select-list li.bg-blue-50 {
+            background-color: rgba(30, 64, 175, 0.3) !important; /* blue-900/30 */
+        }
+        .dark .js-select-list li.text-blue-600 {
+            color: #60a5fa !important; /* blue-400 */
+        }
+        .dark .js-select-list li.text-blue-600 span.font-bold {
+            color: #60a5fa !important; /* blue-400 */
+        }
+    </style>
+{% endblock %}
+
+{% block scripts %}
+    {# Shared JS utilities #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/api_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/callback_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/Input_checker.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/data_table.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/select2.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/admin-ui-components.js') }}"></script>
+
+    {# Page-specific JS #}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/pages/settings_list.js') }}"></script>
+{% endblock %}

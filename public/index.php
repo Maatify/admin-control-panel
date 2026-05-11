@@ -12,6 +12,7 @@ use Maatify\AdminKernel\Kernel\AdminKernel;
 use Maatify\AdminKernel\Kernel\KernelOptions;
 use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
 use Dotenv\Dotenv;
+use Maatify\SettingsSlim\Admin\Security\SettingAdminPermissionPackage;
 use Maatify\AdminKernel\Ui\Config\MediaUrlConfigDTO;
 use Maatify\CurrencySlim\Admin\Security\CurrencyAdminPermissionPackage;
 use Maatify\ExchangeRatesSlim\Admin\Security\ExchangeRatesAdminPermissionPackage;
@@ -43,6 +44,7 @@ $options->runtimeConfig = $runtimeConfig;
 // $options->routes = fn ($app) => ...;
 
 $permissionPackages = [
+    new SettingAdminPermissionPackage(),
     new CurrencyAdminPermissionPackage(),
     new ExchangeRatesAdminPermissionPackage(),
     new GeoAdminPermissionPackage(),
@@ -93,6 +95,9 @@ $options->builderHook = static function (ContainerBuilder $containerBuilder) use
 
     // Register Maatify\AppSettings modules
     \Maatify\AppSettings\Bootstrap\AppSettingsBindings::register($containerBuilder);
+
+    // Register Maatify\SettingsSlim modules
+    \Maatify\Settings\Bootstrap\SettingsBindings::register($containerBuilder);
 
     // Register Maatify\Verification modules
     \Maatify\Verification\Bootstrap\VerificationBindings::register($containerBuilder);

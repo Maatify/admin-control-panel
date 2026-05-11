@@ -55,6 +55,16 @@ final class PdoAdminSettingQueryRepository implements AdminSettingQueryRepositor
             $params['id'] = (int) $columnFilters['id'];
         }
 
+        if (isset($columnFilters['key'])) {
+            $where[]      = '`setting_key` LIKE :key';
+            $params['key'] = '%' . $columnFilters['key'] . '%';
+        }
+
+        if (isset($columnFilters['admin_note'])) {
+            $where[]           = '`admin_note` LIKE :admin_note';
+            $params['admin_note'] = '%' . $columnFilters['admin_note'] . '%';
+        }
+
         if (isset($columnFilters['is_admin_editable'])) {
             $where[]                   = '`is_admin_editable` = :is_admin_editable';
             $params['is_admin_editable'] = (int) $columnFilters['is_admin_editable'];
