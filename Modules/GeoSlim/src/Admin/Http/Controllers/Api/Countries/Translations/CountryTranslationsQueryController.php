@@ -7,8 +7,8 @@ namespace Maatify\GeoSlim\Admin\Http\Controllers\Api\Countries\Translations;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
 use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
 use Maatify\AdminKernel\Infrastructure\Query\ListFilterResolver;
-use Maatify\Geo\Service\GeoQueryService;
 use Maatify\GeoSlim\Admin\Domain\List\CountryTranslationListCapabilities;
+use Maatify\GeoSlim\Admin\Infrastructure\Repository\Translation\CountryTranslationMatrixQueryService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Maatify\Validation\Schemas\SharedListQuerySchema;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -17,7 +17,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 final readonly class CountryTranslationsQueryController
 {
     public function __construct(
-        private GeoQueryService $queryService,
+        private CountryTranslationMatrixQueryService $queryService,
         private ValidationGuard $validationGuard,
         private ListFilterResolver $filterResolver,
         private JsonResponseFactory $json
@@ -57,7 +57,7 @@ final readonly class CountryTranslationsQueryController
         $filters = $this->filterResolver->resolve($query, $capabilities);
 
         // 5) Execute service
-        $list = $this->queryService->listCountryTranslationsPaginated(
+        $list = $this->queryService->listByCountryPaginated(
             countryId:     $countryId,
             page:          $query->page,
             perPage:       $query->perPage,
