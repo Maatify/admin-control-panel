@@ -290,14 +290,17 @@
                 cancelText
             });
 
-            const result = window.confirm(`${message}\n\n[${okText}] / [${cancelText}]`);
-
-            log('action:success', {
-                action: 'ui:confirm',
-                result
+            return appConfirm({
+                title: options.title || 'Are you sure?',
+                message,
+                type: options.type || 'danger'
+            }).then(result => {
+                log('action:success', {
+                    action: 'ui:confirm',
+                    result
+                });
+                return result;
             });
-
-            return Promise.resolve(result);
         },
 
         async runAction(config) {
@@ -550,9 +553,13 @@
             let shouldProceed = true;
             if (confirmMessage || confirm) {
                 if (typeof confirm === 'function') {
-                    shouldProceed = await confirm(config);
+                    shouldProceed = await confirm();
                 } else {
-                    shouldProceed = await UI.confirm(confirmMessage || 'Are you sure?', confirmOptions);
+                    shouldProceed = await appConfirm({
+                        title: confirmOptions.title || 'Are you sure?',
+                        message: confirmMessage || 'Are you sure?',
+                        type: confirmOptions.type || 'danger'
+                    });
                 }
 
                 log('mutation:confirm', {
