@@ -3,13 +3,6 @@
   "description": "Standalone exchange-rate module. Providers, current rates, and append-only history. No dependency on any other Maatify module.",
   "type": "library",
   "license": "MIT",
-  "authors": [
-    {
-      "name": "Mohamed Abdulalim",
-      "email": "mohamed@maatify.dev",
-      "role": "Developer"
-    }
-  ],
   "keywords": [
     "exchange-rates",
     "currency",
@@ -17,8 +10,23 @@
     "maatify",
     "bcmath"
   ],
+  "authors": [
+    {
+      "name": "Maatify",
+      "email": "support@maatify.com"
+    },
+    {
+      "name": "Mohamed Abdulalim",
+      "email": "mohamed@maatify.dev",
+      "role": "Developer"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/maatify/exchange-rates/issues",
+    "source": "https://github.com/maatify/exchange-rates"
+  },
   "require": {
-    "php": ">=8.1",
+    "php": ">=8.2",
     "ext-bcmath": "*",
     "ext-pdo": "*",
     "ext-mbstring": "*"
@@ -36,5 +44,13 @@
     "psr-4": {
       "Maatify\\ExchangeRates\\Tests\\": "tests/"
     }
+  },
+  "suggest": {
+    "php-di/php-di": "Required to use ExchangeRatesBindings::register() for automatic container wiring"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "config": {
+    "sort-packages": true
   }
 }
