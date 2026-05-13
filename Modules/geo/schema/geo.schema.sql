@@ -106,6 +106,7 @@ CREATE TABLE IF NOT EXISTS `geo_cities` (
     `updated_at`    DATETIME            NULL ON UPDATE CURRENT_TIMESTAMP,
 
     PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_geo_cities_country_name`    (`country_id`, `name`),
     INDEX `idx_geo_cities_country_id`      (`country_id`),
     INDEX `idx_geo_cities_is_active`       (`is_active`),
     INDEX `idx_geo_cities_display_order`   (`display_order`),

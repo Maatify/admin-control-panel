@@ -8,7 +8,7 @@ use Maatify\Geo\Command\DeleteCityTranslationCommand;
 use Maatify\Geo\Command\UpsertCityTranslationCommand;
 use Maatify\Geo\Contract\CityTranslationRepositoryInterface;
 use Maatify\Geo\DTO\CityTranslationDTO;
-use Maatify\Geo\Exception\GeoInvalidArgumentException;
+use Maatify\Geo\Exception\CityNotFoundException;
 use Maatify\Geo\Exception\GeoPersistenceException;
 use PDO;
 use PDOStatement;
@@ -18,9 +18,9 @@ use PDOStatement;
  *
  * NEVER references the `languages` table.
  */
-final class PdoCityTranslationRepository implements CityTranslationRepositoryInterface
+final readonly class PdoCityTranslationRepository implements CityTranslationRepositoryInterface
 {
-    public function __construct(private readonly PDO $pdo) {}
+    public function __construct(private PDO $pdo) {}
 
     // ================================================================== //
     //  Queries
@@ -90,7 +90,7 @@ final class PdoCityTranslationRepository implements CityTranslationRepositoryInt
             ]);
         } catch (\PDOException $e) {
             if ($this->isForeignKeyViolation($e)) {
-                throw GeoInvalidArgumentException::invalidLanguageId($command->languageId);
+                throw CityNotFoundException::withId($command->cityId);
             }
             throw GeoPersistenceException::fromPdoException($e);
         }
@@ -141,7 +141,7 @@ final class PdoCityTranslationRepository implements CityTranslationRepositoryInt
         $offset = ($page - 1) * $limit;
 
         $where  = ['`' . $fkColumn . '` = :entity_id'];
-        $params = [':entity_id' => $entityId];
+        $params = ['entity_id' => $entityId];
 
         if ($globalSearch !== null && trim($globalSearch) !== '') {
             $where[]               = '`name` LIKE :global_text';
@@ -174,7 +174,9 @@ final class PdoCityTranslationRepository implements CityTranslationRepositoryInt
              ORDER BY `language_id` ASC
              LIMIT :limit OFFSET :offset",
         );
-        foreach ($params as $key => $value) { $stmt->bindValue($key, $value); }
+        foreach ($params as $key => $value) {
+            $stmt->bindValue(':' . $key, $value);
+        }
         $stmt->bindValue(':limit',  $limit,  PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();

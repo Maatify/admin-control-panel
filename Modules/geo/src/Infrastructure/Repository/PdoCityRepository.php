@@ -62,8 +62,11 @@ final class PdoCityRepository implements CityRepositoryInterface, CityDropdownRe
         $params = [];
 
         if ($globalSearch !== null && trim($globalSearch) !== '') {
-            $where[]               = '(ci.`code` LIKE :global_text OR ci.`name` LIKE :global_text)';
-            $params['global_text'] = '%' . $this->escapeLike(trim($globalSearch)) . '%';
+            $globalText = '%' . $this->escapeLike(trim($globalSearch)) . '%';
+
+            $where[] = '(ci.`code` LIKE :global_text_code OR ci.`name` LIKE :global_text_name)';
+            $params['global_text_code'] = $globalText;
+            $params['global_text_name'] = $globalText;
         }
         if (isset($columnFilters['is_active'])) {
             $where[]             = 'ci.`is_active` = :is_active';
@@ -199,7 +202,7 @@ final class PdoCityRepository implements CityRepositoryInterface, CityDropdownRe
             FROM   `geo_cities` AS ci
             INNER JOIN `geo_countries` gc ON gc.`id` = ci.`country_id`
             {$join}
-            WHERE  gc.`code` = ? AND ci.`is_active` = 1
+            WHERE  gc.`code` = ? AND ci.`is_active` = 1 AND gc.`is_active` = 1
             ORDER BY ci.`display_order` ASC, ci.`id` ASC
         ");
 
@@ -271,7 +274,12 @@ final class PdoCityRepository implements CityRepositoryInterface, CityDropdownRe
             ]);
         } catch (\PDOException $e) {
             if ($this->isDuplicateKeyError($e)) {
-                throw CityAlreadyExistsException::withNameAndCountryId($command->name, $command->id);
+                $current = $this->fetchOrFail($command->id);
+
+                throw CityAlreadyExistsException::withNameAndCountryId(
+                    $command->name,
+                    $current->countryId
+                );
             }
             throw GeoPersistenceException::fromPdoException($e);
         } catch (Throwable $e) {

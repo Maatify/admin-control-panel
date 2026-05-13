@@ -61,8 +61,11 @@ final class PdoCountryRepository implements CountryRepositoryInterface, CountryD
         $params = [];
 
         if ($globalSearch !== null && trim($globalSearch) !== '') {
-            $where[]               = '(c.`code` LIKE :global_text OR c.`name` LIKE :global_text)';
-            $params['global_text'] = '%' . $this->escapeLike(trim($globalSearch)) . '%';
+            $globalText = '%' . $this->escapeLike(trim($globalSearch)) . '%';
+
+            $where[] = '(c.`code` LIKE :global_text_code OR c.`name` LIKE :global_text_name)';
+            $params['global_text_code'] = $globalText;
+            $params['global_text_name'] = $globalText;
         }
         if (isset($columnFilters['is_active'])) {
             $where[]             = 'c.`is_active` = :is_active';

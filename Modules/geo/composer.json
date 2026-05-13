@@ -60,8 +60,8 @@
     }
   },
   "scripts": {
-    "test": "vendor/bin/phpunit --bootstrap tests/bootstrap.php tests/Unit --no-coverage",
-    "test:coverage": "vendor/bin/phpunit --bootstrap tests/bootstrap.php tests/Unit --coverage-html=.phpunit.cache/code-coverage",
+    "test": "vendor/bin/phpunit -c phpunit.xml --no-coverage",
+    "test:coverage": "vendor/bin/phpunit -c phpunit.xml --coverage-html=.phpunit.cache/code-coverage",
     "phpstan": "vendor/bin/phpstan analyse --level max src/",
     "analyze": [
       "@phpstan",
