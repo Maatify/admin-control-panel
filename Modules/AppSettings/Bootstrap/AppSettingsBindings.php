@@ -69,6 +69,7 @@ final class AppSettingsBindings
             'linkedin',
             'youtube',
             'whatsapp',
+            'snapchat',
         ],
 
         'apps' => [
@@ -82,7 +83,9 @@ final class AppSettingsBindings
 
         'legal' => [
             'about_us',
+            'contact_us',
             'privacy_policy',
+            'terms_of_usage',
             'returns_refunds_policy',
         ],
 
