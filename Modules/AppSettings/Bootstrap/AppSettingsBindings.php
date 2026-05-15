@@ -63,6 +63,7 @@ final class AppSettingsBindings
     private const DEFAULT_WHITELIST = [
         'social' => [
             'email',
+            'phone',
             'facebook',
             'twitter',
             'instagram',
@@ -87,6 +88,7 @@ final class AppSettingsBindings
             'privacy_policy',
             'terms_of_usage',
             'returns_refunds_policy',
+            'usage_policy',
         ],
 
         'meta' => [
