@@ -6,15 +6,21 @@
 
   "require": {
     "php": "^8.2",
+    "ext-bcmath": "*",
     "ext-curl": "*",
+    "ext-fileinfo": "*",
+    "ext-gd": "*",
     "ext-openssl": "*",
     "ext-pdo": "*",
     "ext-readline": "*",
     "ext-redis": "*",
+    "ext-intl": "*",
+
     "maatify/crypto": "^1.0",
     "maatify/exceptions": "^1.0",
     "maatify/psr-logger": "^1.0",
     "maatify/shared-common": "^1.0",
+
     "php-di/php-di": "^7.0",
     "phpmailer/phpmailer": "^7.0",
     "pragmarx/google2fa": "^8.0",
@@ -24,9 +30,7 @@
     "slim/slim": "^4.15",
     "slim/twig-view": "^3.4",
     "vlucas/phpdotenv": "^5.5",
-    "ext-fileinfo": "*",
-    "ext-gd": "*",
-    "ext-bcmath": "*"
+    "ezyang/htmlpurifier": "^4.19"
   },
 
   "require-dev": {
