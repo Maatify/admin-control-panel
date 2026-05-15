@@ -41,6 +41,8 @@ final class AppSettingsProtectionPolicy
         'system.base_url',
         'system.environment',
         'system.timezone',
+        'meta.dev_name',
+        'meta.dev_url',
     ];
 
     /**
