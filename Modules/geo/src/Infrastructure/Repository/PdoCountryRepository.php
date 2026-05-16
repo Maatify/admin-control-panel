@@ -83,6 +83,14 @@ final class PdoCountryRepository implements CountryRepositoryInterface, CountryD
             $where[]      = 'c.`id` = :id';
             $params['id'] = (int) $columnFilters['id'];
         }
+        if (isset($columnFilters['is_state_required'])) {
+            $where[]                         = 'c.`is_state_required` = :is_state_required';
+            $params['is_state_required']     = (int) $columnFilters['is_state_required'];
+        }
+        if (isset($columnFilters['is_postcode_required'])) {
+            $where[]                             = 'c.`is_postcode_required` = :is_postcode_required';
+            $params['is_postcode_required']      = (int) $columnFilters['is_postcode_required'];
+        }
 
         $whereSql = $where !== [] ? 'WHERE ' . implode(' AND ', $where) : '';
 
