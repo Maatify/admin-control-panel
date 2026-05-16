@@ -23,6 +23,7 @@ final class PdoCurrencyDropdownQuery implements CurrencyDropdownQueryInterface
             SELECT
                 c.`id`,
                 c.`name`,
+                c.`code`,
                 c.`symbol`,
                 c.`is_active`
             FROM `currencies` c
@@ -44,6 +45,7 @@ final class PdoCurrencyDropdownQuery implements CurrencyDropdownQueryInterface
             SELECT
                 c.`id`,
                 c.`name`,
+                c.`code`,
                 c.`symbol`,
                 c.`is_active`
             FROM `currencies` c
@@ -65,6 +67,7 @@ final class PdoCurrencyDropdownQuery implements CurrencyDropdownQueryInterface
             SELECT
                 c.`id`,
                 c.`name`,
+                c.`code`,
                 c.`symbol`,
                 c.`is_active`
             FROM `currencies` c
@@ -90,6 +93,7 @@ final class PdoCurrencyDropdownQuery implements CurrencyDropdownQueryInterface
             SELECT
                 c.`id`,
                 c.`name`,
+                c.`code`,
                 c.`symbol`,
                 c.`is_active`
             FROM `currencies` c
