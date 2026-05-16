@@ -18,13 +18,18 @@
     let currentPage = 1;
     let currentPerPage = 20;
 
-    const headers = ['ID', 'Name', 'Code', 'Symbol', 'Order', 'Status', 'Actions'];
-    const rows = ['id', 'name', 'code', 'symbol', 'display_order', 'is_active', 'actions'];
+    const headers = ['ID','country ID', 'Name', 'Code',  'Order', 'Status', 'Actions'];
+    const rows = ['id','country_id', 'name', 'code',  'display_order', 'is_active', 'actions'];
 
-    const idRenderer = function(value) {
+    const idRenderer = function(value, row) {
         const canView = window.citiesCapabilities?.can_view_city_translations ?? false;
         if (!canView) return '<span class="text-gray-900 dark:text-gray-200">' + value + '</span>';
-        return '<a href="/geo/countries/' + (window.geoCitiesContext?.country_id || '') + '/cities/' + value + '/translations" class="text-blue-600 dark:text-blue-400 hover:underline font-medium">' + value + '</a>';
+        return '<a href="/geo/countries/' + row.country_id  + '/cities/' + value + '/translations" class="text-blue-600 dark:text-blue-400 hover:underline font-medium">' + value + '</a>';
+    };
+    const countryIdRenderer = function(value, row) {
+        const canView = window.citiesCapabilities?.can_view_city_translations ?? false;
+        if (!canView) return '<span class="text-gray-900 dark:text-gray-200">' + value + '</span>';
+        return '<a href="/geo/countries?id=' + row.country_id +'  " class="text-blue-600 dark:text-blue-400 hover:underline font-medium">' + value + '</a>';
     };
 
     const nameRenderer = function(value) {
@@ -178,6 +183,7 @@
         try {
             TableComponent(items, headers, rows, paginationInfo, '', false, 'id', null, {
                 id: idRenderer,
+                country_id: countryIdRenderer,
                 name: nameRenderer,
                 code: codeRenderer,
                 symbol: symbolRenderer,
