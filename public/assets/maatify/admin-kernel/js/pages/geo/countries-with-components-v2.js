@@ -5,6 +5,13 @@
 (function() {
     'use strict';
 
+    const queryString = window.location.search.replaceAll("_", "-");
+    const urlParams = new URLSearchParams(queryString);
+
+    const firstValue = urlParams.keys().next().value
+    const filterValue = urlParams.get(firstValue) || '';
+    filterValue ? document.getElementById("filter-" + firstValue).value = filterValue : '';
+
     console.log('🌍 Countries Module V2 Initialized');
 
     if (typeof AdminUIComponents === 'undefined' || !window.AdminPageBridge) {
@@ -18,8 +25,8 @@
     let currentPage = 1;
     let currentPerPage = 20;
 
-    const headers = ['ID', 'Name', 'Code', 'Symbol', 'Order', 'Status', 'Actions'];
-    const rows = ['id', 'name', 'code', 'symbol', 'display_order', 'is_active', 'actions'];
+    const headers = ['ID', 'Name', 'Code', 'currency', 'phone code', 'Order', 'Status', 'Actions'];
+    const rows = ['id', 'name', 'code', 'currency', 'phone_code', 'display_order', 'is_active', 'actions'];
 
     const idRenderer = function(value) {
         const canViewCities = window.countriesCapabilities?.can_view_cities ?? true;
@@ -36,8 +43,11 @@
         return AdminUIComponents.renderCodeBadge(value, { color: 'blue', uppercase: true });
     };
 
-    const symbolRenderer = function(value) {
+    const currencyRenderer = function(value) {
         return '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">' + value + '</span>';
+    };
+    const phoneCodeRenderer = function(value) {
+        return '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-700 dark:text-emerald-200">' + value + '</span>';
     };
 
     const sortRenderer = function(value) {
@@ -196,7 +206,8 @@
                 id: idRenderer,
                 name: nameRenderer,
                 code: codeRenderer,
-                symbol: symbolRenderer,
+                currency: currencyRenderer,
+                phone_code: phoneCodeRenderer,
                 display_order: sortRenderer,
                 is_active: statusRenderer,
                 actions: actionsRenderer
