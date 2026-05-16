@@ -204,19 +204,21 @@ final class PdoCountryRepository implements CountryRepositoryInterface, CountryD
         );
 
         $stmt = $this->prepareOrFail(
-            'INSERT INTO `geo_countries` (`code`, `name`, `phone_code`, `currency`, `icon`, `is_active`, `display_order`)
-             VALUES (:code, :name, :phone_code, :currency, :icon, :is_active, :display_order)',
+            'INSERT INTO `geo_countries` (`code`, `name`, `phone_code`, `currency`, `icon`, `is_active`, `is_state_required`, `is_postcode_required`, `display_order`)
+             VALUES (:code, :name, :phone_code, :currency, :icon, :is_active, :is_state_required, :is_postcode_required, :display_order)',
         );
 
         try {
             $stmt->execute([
-                ':code'          => strtoupper($command->code),
-                ':name'          => $command->name,
-                ':phone_code'    => $command->phoneCode,
-                ':currency'      => $command->currency,
-                ':icon'          => $command->icon,
-                ':is_active'     => $command->isActive ? 1 : 0,
-                ':display_order' => $displayOrder,
+                ':code'                => strtoupper($command->code),
+                ':name'                => $command->name,
+                ':phone_code'          => $command->phoneCode,
+                ':currency'            => $command->currency,
+                ':icon'                => $command->icon,
+                ':is_active'           => $command->isActive ? 1 : 0,
+                ':is_state_required'   => $command->isStateRequired ? 1 : 0,
+                ':is_postcode_required'=> $command->isPostcodeRequired ? 1 : 0,
+                ':display_order'       => $displayOrder,
             ]);
         } catch (\PDOException $e) {
             if ($this->isDuplicateKeyError($e)) {
@@ -230,21 +232,39 @@ final class PdoCountryRepository implements CountryRepositoryInterface, CountryD
 
     public function updateCountry(UpdateCountryCommand $command): CountryDTO
     {
+        $sets   = [
+            '`code` = :code',
+            '`name` = :name',
+            '`phone_code` = :phone_code',
+            '`currency` = :currency',
+            '`icon` = :icon',
+            '`is_active` = :is_active',
+        ];
+        $params = [
+            ':code'       => strtoupper($command->code),
+            ':name'       => $command->name,
+            ':phone_code' => $command->phoneCode,
+            ':currency'   => $command->currency,
+            ':icon'       => $command->icon,
+            ':is_active'  => $command->isActive ? 1 : 0,
+            ':id'         => $command->id,
+        ];
+
+        if ($command->isStateRequired !== null) {
+            $sets[]                            = '`is_state_required` = :is_state_required';
+            $params[':is_state_required']      = $command->isStateRequired ? 1 : 0;
+        }
+
+        if ($command->isPostcodeRequired !== null) {
+            $sets[]                                = '`is_postcode_required` = :is_postcode_required';
+            $params[':is_postcode_required']       = $command->isPostcodeRequired ? 1 : 0;
+        }
+
         try {
             $stmt = $this->prepareOrFail(
-                'UPDATE `geo_countries`
-                 SET `code` = :code, `name` = :name, `phone_code` = :phone_code, `currency` = :currency, `icon` = :icon, `is_active` = :is_active
-                 WHERE `id` = :id',
+                'UPDATE `geo_countries` SET ' . implode(', ', $sets) . ' WHERE `id` = :id',
             );
-            $stmt->execute([
-                ':code'      => strtoupper($command->code),
-                ':name'      => $command->name,
-                ':phone_code' => $command->phoneCode,
-                ':currency'  => $command->currency,
-                ':icon'      => $command->icon,
-                ':is_active' => $command->isActive ? 1 : 0,
-                ':id'        => $command->id,
-            ]);
+            $stmt->execute($params);
         } catch (\PDOException $e) {
             if ($this->isDuplicateKeyError($e)) {
                 throw CountryCodeAlreadyExistsException::withCode($command->code);

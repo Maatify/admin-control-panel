@@ -12,6 +12,7 @@
 | Tables | `geo_countries`, `geo_country_translations`, `geo_cities`, `geo_city_translations` |
 | Languages table | **NEVER referenced** — `language_id` is a plain `INT` |
 | Status field | `is_active` TINYINT(1) — `1 = active`, `0 = inactive` |
+| Shipping flags | `is_state_required`, `is_postcode_required` TINYINT(1) — populated from shipping provider sync |
 | Soft delete | Not implemented — hard delete only |
 | display_order | Auto-assigned on create; scoped per country for cities |
 | PDO | All persistence via PDO — no ORM |
@@ -30,6 +31,8 @@
 | name | VARCHAR(100) | Base (default locale) name |
 | icon | VARCHAR(512) NULL | Flag path or URL |
 | is_active | TINYINT(1) | `1` = active |
+| is_state_required | TINYINT(1) | `1` = state/province required (from shipping provider) |
+| is_postcode_required | TINYINT(1) | `1` = postcode required (from shipping provider) |
 | display_order | INT UNSIGNED | Global ordering |
 | created_at | DATETIME | |
 | updated_at | DATETIME NULL | Auto ON UPDATE |
@@ -140,10 +143,10 @@ $result = $service->listCityTranslationsPaginated(cityId: 5, page: 1, perPage: 5
 
 ```php
 // Create
-$dto = $service->createCountry(new CreateCountryCommand(code: 'EG', name: 'Egypt'));
+$dto = $service->createCountry(new CreateCountryCommand(code: 'EG', name: 'Egypt', isStateRequired: true));
 
 // Update
-$dto = $service->updateCountry(new UpdateCountryCommand(id: 1, code: 'EG', name: 'Egypt', icon: null, isActive: true));
+$dto = $service->updateCountry(new UpdateCountryCommand(id: 1, code: 'EG', name: 'Egypt', icon: null, isActive: true, isStateRequired: true, isPostcodeRequired: false));
 
 // Status toggle
 $dto = $service->updateCountryStatus(new UpdateCountryStatusCommand(id: 1, isActive: false));
@@ -189,6 +192,8 @@ $service->deleteCityTranslation(new DeleteCityTranslationCommand(cityId: 5, lang
 | name | string | Base name |
 | icon | ?string | |
 | isActive | bool | |
+| isStateRequired | bool | Default false |
+| isPostcodeRequired | bool | Default false |
 | displayOrder | int | |
 | createdAt | string | |
 | updatedAt | ?string | |

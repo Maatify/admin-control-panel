@@ -22,6 +22,8 @@ final readonly class UpdateCountryCommand
         public ?string $currency,
         public ?string $icon,
         public bool    $isActive,
+        public ?bool   $isStateRequired = null,
+        public ?bool   $isPostcodeRequired = null,
     ) {
         if ($id < 1) {
             throw GeoInvalidArgumentException::invalidId('id');

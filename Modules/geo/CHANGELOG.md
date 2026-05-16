@@ -4,6 +4,16 @@ All notable changes to the Geo module will be documented in this file.
 
 ---
 
+## [1.1.0] — 2026-05-16
+
+### Added
+- `geo_countries.is_state_required` — TINYINT(1) NOT NULL DEFAULT 0
+- `geo_countries.is_postcode_required` — TINYINT(1) NOT NULL DEFAULT 0
+- `CountryDTO::$isStateRequired` / `$isPostcodeRequired` (default false, at end of constructor for BC)
+- `CreateCountryCommand::$isStateRequired` / `$isPostcodeRequired` (default false)
+- `UpdateCountryCommand::$isStateRequired` / `$isPostcodeRequired` (`?bool`; `null` preserves current DB value)
+- Repository INSERT / UPDATE include both new columns
+
 ## [1.0.0] — 2026-05-05
 
 ### Added

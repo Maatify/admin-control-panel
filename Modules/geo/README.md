@@ -6,11 +6,12 @@ Standalone Country & City management with translations, display ordering, and ac
 
 ## What it does
 
-- Manages a master list of **countries** (`geo_countries`) with optional flag icons
+- Manages a master list of **countries** (`geo_countries`) with optional flag icons, state/postcode requirement flags
 - Manages a master list of **cities** (`geo_cities`) linked to a country via `country_id`
 - Supports **translated names** per language for both entities (`geo_country_translations`, `geo_city_translations`)
 - Supports **display_order** (auto-assigned on create, re-orderable, scoped per country for cities)
 - Supports **is_active** status flag on both countries and cities
+- Tracks `is_state_required` / `is_postcode_required` per country (populated from shipping provider)
 - Provides **COALESCE fallback** — if a translation is missing, the base name is used transparently
 - Provides paginated admin lists for countries, cities, and their translations
 
@@ -77,7 +78,7 @@ $cities = $geoQueryService->activeCitiesByCountryCode(countryCode: 'EG', languag
 ### Create a country
 
 ```php
-$command = new CreateCountryCommand(code: 'EG', name: 'Egypt');
+$command = new CreateCountryCommand(code: 'EG', name: 'Egypt', isStateRequired: true, isPostcodeRequired: false);
 $country = $geoCommandService->createCountry($command);
 ```
 

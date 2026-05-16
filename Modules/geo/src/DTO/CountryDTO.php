@@ -35,8 +35,10 @@ final class  CountryDTO implements JsonSerializable
         public readonly int     $displayOrder,
         public readonly string  $createdAt,
         public readonly ?string $updatedAt,
-        public readonly ?string $translatedName,
-        public readonly ?int    $languageId,
+        public readonly ?string $translatedName = null,
+        public readonly ?int    $languageId = null,
+        public readonly bool    $isStateRequired = false,
+        public readonly bool    $isPostcodeRequired = false,
     ) {}
 
     // ------------------------------------------------------------------ //
@@ -49,18 +51,20 @@ final class  CountryDTO implements JsonSerializable
     public static function fromRow(array $row): self
     {
         return new self(
-            id:             self::int($row['id']),
-            code:           self::string($row['code']),
-            name:           self::string($row['name']),
-            phoneCode:      self::nullableString($row['phone_code'] ?? null),
-            currency:       self::nullableString($row['currency'] ?? null),
-            icon:           self::nullableString($row['icon'] ?? null),
-            isActive:       self::bool($row['is_active']),
-            displayOrder:   self::int($row['display_order']),
-            createdAt:      self::string($row['created_at']),
-            updatedAt:      self::nullableString($row['updated_at'] ?? null),
-            translatedName: self::nullableString($row['translated_name'] ?? null),
-            languageId:     self::nullableInt($row['translation_language_id'] ?? null),
+            id:                self::int($row['id']),
+            code:              self::string($row['code']),
+            name:              self::string($row['name']),
+            phoneCode:         self::nullableString($row['phone_code'] ?? null),
+            currency:          self::nullableString($row['currency'] ?? null),
+            icon:              self::nullableString($row['icon'] ?? null),
+            isActive:          self::bool($row['is_active']),
+            displayOrder:      self::int($row['display_order']),
+            createdAt:         self::string($row['created_at']),
+            updatedAt:         self::nullableString($row['updated_at'] ?? null),
+            translatedName:    self::nullableString($row['translated_name'] ?? null),
+            languageId:        self::nullableInt($row['translation_language_id'] ?? null),
+            isStateRequired:   self::bool($row['is_state_required']),
+            isPostcodeRequired: self::bool($row['is_postcode_required']),
         );
     }
 
@@ -79,34 +83,39 @@ final class  CountryDTO implements JsonSerializable
 
     /**
      * @return array{
-     *     id:              int,
-     *     code:            string,
-     *     name:            string,
-     *     currency:        string|null,
-     *     icon:            string|null,
-     *     is_active:       bool,
-     *     display_order:   int,
-     *     created_at:      string,
-     *     updated_at:      string|null,
-     *     translated_name: string|null,
-     *     language_id:     int|null
+     *     id:                   int,
+     *     code:                 string,
+     *     name:                 string,
+     *     phone_code:           string|null,
+     *     currency:             string|null,
+     *     icon:                 string|null,
+     *     is_active:            bool,
+     *     display_order:        int,
+     *     created_at:           string,
+     *     updated_at:           string|null,
+     *     translated_name:      string|null,
+     *     language_id:          int|null,
+     *     is_state_required:    bool,
+     *     is_postcode_required: bool
      * }
      */
     public function jsonSerialize(): array
     {
         return [
-            'id'              => $this->id,
-            'code'            => $this->code,
-            'name'            => $this->name,
-            'phone_code'      => $this->phoneCode,
-            'currency'        => $this->currency,
-            'icon'            => $this->icon,
-            'is_active'       => $this->isActive,
-            'display_order'   => $this->displayOrder,
-            'created_at'      => $this->createdAt,
-            'updated_at'      => $this->updatedAt,
-            'translated_name' => $this->translatedName,
-            'language_id'     => $this->languageId,
+            'id'                  => $this->id,
+            'code'                => $this->code,
+            'name'                => $this->name,
+            'phone_code'          => $this->phoneCode,
+            'currency'            => $this->currency,
+            'icon'                => $this->icon,
+            'is_active'           => $this->isActive,
+            'display_order'       => $this->displayOrder,
+            'created_at'          => $this->createdAt,
+            'updated_at'          => $this->updatedAt,
+            'translated_name'     => $this->translatedName,
+            'language_id'         => $this->languageId,
+            'is_state_required'   => $this->isStateRequired,
+            'is_postcode_required'=> $this->isPostcodeRequired,
         ];
     }
 

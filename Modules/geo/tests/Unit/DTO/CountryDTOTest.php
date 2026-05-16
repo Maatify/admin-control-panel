@@ -28,6 +28,8 @@ final class CountryDTOTest extends TestCase
             'currency'               => 'EGP',
             'icon'                   => '🇪🇬',
             'is_active'              => 1,
+            'is_state_required'      => 0,
+            'is_postcode_required'   => 1,
             'display_order'          => 1,
             'created_at'             => '2025-01-01 00:00:00',
             'updated_at'             => null,
@@ -44,6 +46,8 @@ final class CountryDTOTest extends TestCase
         self::assertSame('EGP',         $dto->currency);
         self::assertSame('🇪🇬',         $dto->icon);
         self::assertTrue($dto->isActive);
+        self::assertFalse($dto->isStateRequired);
+        self::assertTrue($dto->isPostcodeRequired);
         self::assertSame(1,             $dto->displayOrder);
         self::assertSame('2025-01-01 00:00:00', $dto->createdAt);
         self::assertNull($dto->updatedAt);
@@ -61,6 +65,8 @@ final class CountryDTOTest extends TestCase
             'phone_code'             => '+1',
             'icon'                   => null,
             'is_active'              => '1',
+            'is_state_required'      => false,
+            'is_postcode_required'   => false,
             'display_order'          => '2',
             'created_at'             => '2025-06-01 00:00:00',
             'updated_at'             => '2025-06-15 00:00:00',
@@ -110,8 +116,10 @@ final class CountryDTOTest extends TestCase
         self::assertArrayHasKey('name',            $serialized);
         self::assertArrayHasKey('currency',        $serialized);
         self::assertArrayHasKey('icon',            $serialized);
-        self::assertArrayHasKey('is_active',       $serialized);
-        self::assertArrayHasKey('display_order',   $serialized);
+        self::assertArrayHasKey('is_active',             $serialized);
+        self::assertArrayHasKey('is_state_required',     $serialized);
+        self::assertArrayHasKey('is_postcode_required',  $serialized);
+        self::assertArrayHasKey('display_order',         $serialized);
         self::assertArrayHasKey('created_at',      $serialized);
         self::assertArrayHasKey('updated_at',      $serialized);
         self::assertArrayHasKey('translated_name', $serialized);
@@ -147,18 +155,20 @@ final class CountryDTOTest extends TestCase
         ?string $translatedName = null,
     ): CountryDTO {
         return new CountryDTO(
-            id:             1,
-            code:           'EG',
-            name:           $name,
-            phoneCode:      null,
-            currency:       null,
-            icon:           null,
-            isActive:       true,
-            displayOrder:   1,
-            createdAt:      '2025-01-01 00:00:00',
-            updatedAt:      null,
-            translatedName: $translatedName,
-            languageId:     $translatedName !== null ? 1 : null,
+            id:                1,
+            code:              'EG',
+            name:              $name,
+            phoneCode:         null,
+            currency:          null,
+            icon:              null,
+            isActive:          true,
+            displayOrder:      1,
+            createdAt:         '2025-01-01 00:00:00',
+            updatedAt:         null,
+            translatedName:    $translatedName,
+            languageId:        $translatedName !== null ? 1 : null,
+            isStateRequired:   false,
+            isPostcodeRequired: false,
         );
     }
 }

@@ -21,6 +21,8 @@ final readonly class CreateCountryCommand
         public ?string $currency = null,
         public ?string $icon     = null,
         public bool    $isActive = true,
+        public bool    $isStateRequired = false,
+        public bool    $isPostcodeRequired = false,
     ) {
         $trimmedCode = trim($code);
         if ($trimmedCode === '') {

@@ -175,18 +175,20 @@ final class GeoCommandServiceTest extends TestCase
     private function makeCountryDTO(int $id, string $code, string $name): CountryDTO
     {
         return new CountryDTO(
-            id:             $id,
-            code:           $code,
-            name:           $name,
-            phoneCode:      null,
-            currency:       null,
-            icon:           null,
-            isActive:       true,
-            displayOrder:   $id,
-            createdAt:      '2025-01-01 00:00:00',
-            updatedAt:      null,
-            translatedName: null,
-            languageId:     null,
+            id:                 $id,
+            code:               $code,
+            name:               $name,
+            phoneCode:          null,
+            currency:           null,
+            icon:               null,
+            isActive:           true,
+            displayOrder:       $id,
+            createdAt:          '2025-01-01 00:00:00',
+            updatedAt:          null,
+            translatedName:     null,
+            languageId:         null,
+            isStateRequired:    false,
+            isPostcodeRequired: false,
         );
     }
 }
