@@ -53,15 +53,33 @@ final readonly class CountriesUpdateController
             $icon = $body['icon'];
         }
 
+        $isStateRequired = null;
+        if (array_key_exists('is_state_required', $body)) {
+            if (!is_bool($body['is_state_required'])) {
+                throw new \RuntimeException('Invalid is_state_required payload.');
+            }
+            $isStateRequired = $body['is_state_required'];
+        }
+
+        $isPostcodeRequired = null;
+        if (array_key_exists('is_postcode_required', $body)) {
+            if (!is_bool($body['is_postcode_required'])) {
+                throw new \RuntimeException('Invalid is_postcode_required payload.');
+            }
+            $isPostcodeRequired = $body['is_postcode_required'];
+        }
+
         // 2) Execute service
         $this->commandService->updateCountry(new UpdateCountryCommand(
-            id:        $id,
-            code:      $code,
-            name:      $name,
-            phoneCode: $phoneCode,
-            currency:  $currency,
-            icon:      $icon,
-            isActive:  $isActive,
+            id:                 $id,
+            code:               $code,
+            name:               $name,
+            phoneCode:          $phoneCode,
+            currency:           $currency,
+            icon:               $icon,
+            isActive:           $isActive,
+            isStateRequired:    $isStateRequired,
+            isPostcodeRequired: $isPostcodeRequired,
         ));
 
         // 3) Return success

@@ -38,6 +38,14 @@ final class CountryCreateSchema extends AbstractSchema
                 BooleanRule::optional(),
                 ValidationErrorCodeEnum::INVALID_FORMAT,
             ],
+            'is_state_required' => [
+                BooleanRule::optional(),
+                ValidationErrorCodeEnum::INVALID_FORMAT,
+            ],
+            'is_postcode_required' => [
+                BooleanRule::optional(),
+                ValidationErrorCodeEnum::INVALID_FORMAT,
+            ],
         ];
     }
 }

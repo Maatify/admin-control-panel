@@ -43,6 +43,14 @@ final class CountryUpdateSchema extends AbstractSchema
                 BooleanRule::required(),
                 ValidationErrorCodeEnum::REQUIRED_FIELD,
             ],
+            'is_state_required' => [
+                BooleanRule::optional(),
+                ValidationErrorCodeEnum::INVALID_FORMAT,
+            ],
+            'is_postcode_required' => [
+                BooleanRule::optional(),
+                ValidationErrorCodeEnum::INVALID_FORMAT,
+            ],
         ];
     }
 }

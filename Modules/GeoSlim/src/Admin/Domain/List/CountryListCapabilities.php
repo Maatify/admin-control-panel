@@ -15,10 +15,12 @@ final class CountryListCapabilities
             searchableColumns: ['code', 'name'],     // SQL: c.code LIKE :global_text OR c.name LIKE :global_text
             supportsColumnFilters: true,
             filterableColumns: [
-                'id'        => 'id',
-                'name'      => 'name',
-                'code'      => 'code',
-                'is_active' => 'is_active',
+                'id'                  => 'id',
+                'name'                => 'name',
+                'code'                => 'code',
+                'is_active'           => 'is_active',
+                'is_state_required'   => 'is_state_required',
+                'is_postcode_required'=> 'is_postcode_required',
             ],
             supportsDateFilter: false,
             dateColumn: null

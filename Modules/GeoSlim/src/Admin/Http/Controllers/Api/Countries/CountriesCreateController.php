@@ -59,14 +59,32 @@ final readonly class CountriesCreateController
             $isActive = $body['is_active'];
         }
 
+        $isStateRequired = false;
+        if (array_key_exists('is_state_required', $body)) {
+            if (!is_bool($body['is_state_required'])) {
+                throw new \RuntimeException('Invalid is_state_required payload.');
+            }
+            $isStateRequired = $body['is_state_required'];
+        }
+
+        $isPostcodeRequired = false;
+        if (array_key_exists('is_postcode_required', $body)) {
+            if (!is_bool($body['is_postcode_required'])) {
+                throw new \RuntimeException('Invalid is_postcode_required payload.');
+            }
+            $isPostcodeRequired = $body['is_postcode_required'];
+        }
+
         // 2) Execute service
         $this->commandService->createCountry(new CreateCountryCommand(
-            code:      $code,
-            name:      $name,
-            phoneCode: $phoneCode,
-            currency:  $currency,
-            icon:      $icon,
-            isActive:  $isActive,
+            code:               $code,
+            name:               $name,
+            phoneCode:          $phoneCode,
+            currency:           $currency,
+            icon:               $icon,
+            isActive:           $isActive,
+            isStateRequired:    $isStateRequired,
+            isPostcodeRequired: $isPostcodeRequired,
         ));
 
         // 3) Return success
