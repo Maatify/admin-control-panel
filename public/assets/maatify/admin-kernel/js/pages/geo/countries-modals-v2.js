@@ -27,7 +27,8 @@
             id: { selector: '#geo-id', type: 'int' },
             code: '#geo-code',
             name: '#geo-name',
-            symbol: '#geo-code2',
+            currency: '#geo-currency',
+            phone_code: '#geo-phone-code',
             is_active: { selector: '#geo-active', type: 'checked' },
         }, { includeEmpty: true });
     }
@@ -77,13 +78,15 @@ console.log(btn.attributes)
         const idEl = document.getElementById('geo-id');
         const codeEl = document.getElementById('geo-code');
         const nameEl = document.getElementById('geo-name');
-        const symbolEl = document.getElementById('geo-code2');
+        const currencyEl = document.getElementById('geo-currency');
+        const phoneCodeEl = document.getElementById('geo-phone-code');
         const activeEl = document.getElementById('geo-active');
 
         if (idEl) idEl.value = id;
         if (codeEl) codeEl.value = btn.getAttribute('data-current-code') || '';
         if (nameEl) nameEl.value = btn.getAttribute('data-current-name') || '';
-        if (symbolEl) symbolEl.value = btn.getAttribute('data-current-symbol') || '';
+        if (currencyEl) currencyEl.value = btn.getAttribute('data-current-currency') || '';
+        if (phoneCodeEl) phoneCodeEl.value = btn.getAttribute('data-current-phone-code') || '';
         if (activeEl) activeEl.checked = btn.getAttribute('data-current-is-active') === '1';
 
         bindSaveAction(async function() {
