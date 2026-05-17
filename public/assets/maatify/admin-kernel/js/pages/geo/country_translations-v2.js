@@ -27,7 +27,7 @@
     const apiUrl = (apiEndpoints.query || '').replace('{country_id}', countryId);
 
     const headers = ['ID', 'Language Code', 'Language Id', 'Language Name', 'Translated Name', 'Has Translation', 'Actions'];
-    const rowKeys = ['id', 'language_code', 'language_id', 'language_name', 'translated_name', 'has_translation', 'actions'];
+    const rowKeys = ['id', 'language_code', 'language_id', 'language_name', 'name', 'has_translation', 'actions'];
 
     const customRenderers = {
       id: function(value) {
@@ -39,8 +39,8 @@
       language_name: function(value) {
         return '<span class="font-medium text-gray-900 dark:text-gray-200">' + value + '</span>';
       },
-      translated_name: function(value) {
-        return value ? '<span class="font-medium text-gray-900 dark:text-gray-200">' + value + '</span>' : '<span class="text-gray-400 italic text-sm">Base name fallback</span>';
+      name: function(value) {
+        return value ? '<span class="font-medium text-gray-900 dark:text-gray-200">' + value + '</span>' : '';
       },
       has_translation: function(value) {
         if (value) return '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Translated</span>';
@@ -119,16 +119,16 @@
 
       return Bridge.Table.withTargetContainer(containerId, function() {
         return createTable(
-          apiUrl,
-          params,
-          headers,
-          rowKeys,
-          false,
-          'language_id',
-          null,
-          customRenderers,
-          null,
-          getPaginationInfo
+            apiUrl,
+            params,
+            headers,
+            rowKeys,
+            false,
+            'language_id',
+            null,
+            customRenderers,
+            null,
+            getPaginationInfo
         ).catch(function(err) {
           console.error('Table creation failed', err);
         });
@@ -159,14 +159,14 @@
     const modalTranslationValue = document.getElementById('edit-translation-value');
     const btnSaveTranslation = document.getElementById('btn-save-translation');
     const resetPageAndReload = Helpers?.bindResetPageReload
-      ? Helpers.bindResetPageReload({
-        setPage: function(page) { currentPage = page; },
-        reload: function() { return loadTable(); }
-      })
-      : function() {
-        currentPage = 1;
-        return loadTable();
-      };
+        ? Helpers.bindResetPageReload({
+          setPage: function(page) { currentPage = page; },
+          reload: function() { return loadTable(); }
+        })
+        : function() {
+          currentPage = 1;
+          return loadTable();
+        };
 
     function openEditModal(languageId, languageName, languageCode, translatedName,cauntryNamw) {
       if (!modal) return;
@@ -195,11 +195,11 @@
 
     Bridge.Events.onClick('.btn-edit-translation', function(event, editBtn) {
       openEditModal(
-        editBtn.getAttribute('data-language-id'),
-        editBtn.getAttribute('data-language-name'),
-        editBtn.getAttribute('data-language-code'),
-        editBtn.getAttribute('data-translated-name'),
-        editBtn.getAttribute('data-country-name')
+          editBtn.getAttribute('data-language-id'),
+          editBtn.getAttribute('data-language-name'),
+          editBtn.getAttribute('data-language-code'),
+          editBtn.getAttribute('data-translated-name'),
+          editBtn.getAttribute('data-country-name')
       );
     });
 

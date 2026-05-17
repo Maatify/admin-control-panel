@@ -116,7 +116,8 @@
                     'country-id': row.id,
                     'current-name': row.name,
                     'current-code': row.code,
-                    'current-symbol': row.symbol,
+                    'current-currency': row.currency || '',
+                    'current-phone-code': row.phone_code || '',
                     'current-is-active': row.is_active ? '1' : '0',
                     'current-display-order': row.display_order
                 }

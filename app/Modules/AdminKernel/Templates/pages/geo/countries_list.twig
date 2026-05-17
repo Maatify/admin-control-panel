@@ -87,6 +87,7 @@
                             <label for="filter-code" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                  Country Code
                             </label>
+
                             <input
                                     type="text"
                                     id="filter-code"
@@ -213,8 +214,19 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Code 2 (Optional)</label>
-                        <input type="text" id="geo-code2" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 uppercase" maxlength="10">
+                        <label for="geo-currency" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Currency</label>
+{#                        <input type="text" id="geo-currency" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 uppercase" maxlength="10" placeholder="e.g., USD, EGP">#}
+                        <select  id="geo-currency" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 uppercase">
+                            <option value="">All Currencies</option>
+                            {% for currency in currencies %}
+                                <option value="{{ currency.code }}">{{ currency.code }} - {{ currency.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="geo-phone-code" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Code</label>
+                        <input type="text" id="geo-phone-code" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" maxlength="10" placeholder="e.g., +20, +1">
                     </div>
 
                     <div class="flex items-center">

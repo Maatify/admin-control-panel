@@ -27,7 +27,7 @@
     const apiUrl = (apiEndpoints.query || '').replace('{city_id}', cityId);
 
     const headers = ['ID', 'Language Code', 'Language Id', 'Language Name', 'Translated Name', 'Has Translation', 'Actions'];
-    const rowKeys = ['id', 'language_code', 'language_id', 'language_name', 'translated_name', 'has_translation', 'actions'];
+    const rowKeys = ['id', 'language_code', 'language_id', 'language_name', 'name', 'has_translation', 'actions'];
 
     const customRenderers = {
       id: function(value) {
@@ -40,7 +40,7 @@
         return '<span class="font-medium text-gray-900 dark:text-gray-200">' + value + '</span>';
       },
       translated_name: function(value) {
-        return value ? '<span class="font-medium text-gray-900 dark:text-gray-200">' + value + '</span>' : '<span class="text-gray-400 italic text-sm">Base name fallback</span>';
+        return value ? '<span class="font-medium text-gray-900 dark:text-gray-200">' + value + '</span>' : '';
       },
       has_translation: function(value) {
         if (value) return '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Translated</span>';
@@ -50,7 +50,7 @@
         const actions = [];
 
         if (capabilities.can_upsert) {
-          const safeValue = (row.translated_name || '').replace(/"/g, '&quot;');
+          const safeValue = (row.name || '').replace(/"/g, '&quot;');
           actions.push('<button class="btn-edit-translation text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 mr-2" title="Edit" data-city-name="' + row.base_city_name + '"  data-language-id="' + row.language_id + '" data-language-name="' + row.language_name + '" data-language-code="' + row.language_code + '" data-translated-name="' + safeValue + '"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>');
         }
 
@@ -119,16 +119,16 @@
 
       return Bridge.Table.withTargetContainer(containerId, function() {
         return createTable(
-          apiUrl,
-          params,
-          headers,
-          rowKeys,
-          false,
-          'language_id',
-          null,
-          customRenderers,
-          null,
-          getPaginationInfo
+            apiUrl,
+            params,
+            headers,
+            rowKeys,
+            false,
+            'language_id',
+            null,
+            customRenderers,
+            null,
+            getPaginationInfo
         ).catch(function(err) {
           console.error('Table creation failed', err);
         });
@@ -159,14 +159,14 @@
     const modalTranslationValue = document.getElementById('edit-translation-value');
     const btnSaveTranslation = document.getElementById('btn-save-translation');
     const resetPageAndReload = Helpers?.bindResetPageReload
-      ? Helpers.bindResetPageReload({
-        setPage: function(page) { currentPage = page; },
-        reload: function() { return loadTable(); }
-      })
-      : function() {
-        currentPage = 1;
-        return loadTable();
-      };
+        ? Helpers.bindResetPageReload({
+          setPage: function(page) { currentPage = page; },
+          reload: function() { return loadTable(); }
+        })
+        : function() {
+          currentPage = 1;
+          return loadTable();
+        };
 
     function openEditModal(languageId, languageName, languageCode, translatedName,cityName) {
       if (!modal) return;
@@ -195,11 +195,11 @@
 
     Bridge.Events.onClick('.btn-edit-translation', function(event, editBtn) {
       openEditModal(
-        editBtn.getAttribute('data-language-id'),
-        editBtn.getAttribute('data-language-name'),
-        editBtn.getAttribute('data-language-code'),
-        editBtn.getAttribute('data-translated-name'),
-        editBtn.getAttribute('data-city-name')
+          editBtn.getAttribute('data-language-id'),
+          editBtn.getAttribute('data-language-name'),
+          editBtn.getAttribute('data-language-code'),
+          editBtn.getAttribute('data-translated-name'),
+          editBtn.getAttribute('data-city-name')
       );
     });
 
