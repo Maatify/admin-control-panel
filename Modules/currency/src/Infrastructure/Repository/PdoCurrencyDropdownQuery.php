@@ -23,6 +23,7 @@ final class PdoCurrencyDropdownQuery implements CurrencyDropdownQueryInterface
             SELECT
                 c.`id`,
                 c.`name`,
+                c.`code`,
                 c.`symbol`,
                 c.`is_active`
             FROM `currencies` c
@@ -44,6 +45,7 @@ final class PdoCurrencyDropdownQuery implements CurrencyDropdownQueryInterface
             SELECT
                 c.`id`,
                 c.`name`,
+                c.`code`,
                 c.`symbol`,
                 c.`is_active`
             FROM `currencies` c
@@ -65,6 +67,7 @@ final class PdoCurrencyDropdownQuery implements CurrencyDropdownQueryInterface
             SELECT
                 c.`id`,
                 c.`name`,
+                c.`code`,
                 c.`symbol`,
                 c.`is_active`
             FROM `currencies` c
@@ -90,6 +93,7 @@ final class PdoCurrencyDropdownQuery implements CurrencyDropdownQueryInterface
             SELECT
                 c.`id`,
                 c.`name`,
+                c.`code`,
                 c.`symbol`,
                 c.`is_active`
             FROM `currencies` c
@@ -117,6 +121,7 @@ final class PdoCurrencyDropdownQuery implements CurrencyDropdownQueryInterface
     {
         $id = $row['id'] ?? null;
         $name = $row['name'] ?? null;
+        $code = $row['code'] ?? null;
         $symbol = $row['symbol'] ?? null;
         $isActive = $row['is_active'] ?? null;
 
@@ -125,6 +130,10 @@ final class PdoCurrencyDropdownQuery implements CurrencyDropdownQueryInterface
         }
 
         if (!is_string($name) || trim($name) === '') {
+            return null;
+        }
+
+        if (!is_string($code) || trim($code) === '') {
             return null;
         }
 
@@ -139,6 +148,7 @@ final class PdoCurrencyDropdownQuery implements CurrencyDropdownQueryInterface
         return new CurrencyDropdownItemDTO(
             id: (int) $id,
             name: trim($name),
+            code: trim($code),
             symbol: trim($symbol),
             isActive: (int) $isActive,
         );
