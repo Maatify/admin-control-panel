@@ -18,8 +18,8 @@
     let currentPage = 1;
     let currentPerPage = 20;
 
-    const headers = ['ID','country ID', 'Name', 'Code',  'Order', 'Status', 'Actions'];
-    const rows = ['id','country_id', 'name', 'code',  'display_order', 'is_active', 'actions'];
+    const headers = ['ID','country ID', 'Name', 'Code','Time Zone',  'Order', 'Status', 'Actions'];
+    const rows = ['id','country_id', 'name', 'code',  'time_zone','display_order', 'is_active', 'actions'];
 
     const idRenderer = function(value, row) {
         const canView = window.citiesCapabilities?.can_view_city_translations ?? false;
@@ -39,6 +39,9 @@
 
     const codeRenderer = function(value) {
         return AdminUIComponents.renderCodeBadge(value, { color: 'blue', uppercase: true });
+    };
+    const timeRenderer = function(value) {
+        return AdminUIComponents.renderCodeBadge(value, { color: 'teal', uppercase: true });
     };
 
     const symbolRenderer = function(value) {
@@ -95,7 +98,7 @@
                     'city-id': row.id,
                     'current-name': row.name,
                     'current-code': row.code,
-                    'current-symbol': row.symbol,
+                    'current-timezone': row.time_zone || '',
                     'current-is-active': row.is_active ? '1' : '0',
                     'current-display-order': row.display_order
                 }
@@ -140,7 +143,8 @@
             id: Bridge.DOM.value('#filter-id', '').trim(),
             name: Bridge.DOM.value('#filter-name', '').trim(),
             code: Bridge.DOM.value('#filter-code', '').trim(),
-            is_active: Bridge.DOM.value('#filter-status', '')
+            is_active: Bridge.DOM.value('#filter-status', ''),
+            country_id:`${ window.geoCitiesContext?.country_id}` || ''
         });
 
         if (globalSearch || Object.keys(columnFilters).length > 0) {
@@ -158,7 +162,7 @@
 
         const params = buildQueryParams();
         const result = await Bridge.API.execute({
-            endpoint: 'geo/cities/query',
+            endpoint: `geo/cities/query`,
             payload: params,
             operation: 'Query Cities',
             method: 'POST',
@@ -186,7 +190,7 @@
                 country_id: countryIdRenderer,
                 name: nameRenderer,
                 code: codeRenderer,
-                symbol: symbolRenderer,
+                time_zone: timeRenderer,
                 display_order: sortRenderer,
                 is_active: statusRenderer,
                 actions: actionsRenderer

@@ -27,15 +27,12 @@
             id: { selector: '#geo-id', type: 'int' },
             code: '#geo-code',
             name: '#geo-name',
-            symbol: '#geo-symbol',
+            time_zone: '#geo-timezone',
             is_active: { selector: '#geo-active', type: 'checked' },
         }, { includeEmpty: true });
 
-        // Explicitly inject country_id from context
-        const countryId = window.geoCitiesContext?.country_id;
-        if (countryId) {
-            payload.country_id = Bridge.normalizeInt(countryId, 0);
-        }
+        // Inject country_id from context (required by backend)
+        payload.country_id = Bridge.normalizeInt(window.geoCitiesContext?.country_id, 0);
 
         return payload;
     }
@@ -85,13 +82,13 @@
         const idEl = document.getElementById('geo-id');
         const codeEl = document.getElementById('geo-code');
         const nameEl = document.getElementById('geo-name');
-        const symbolEl = document.getElementById('geo-symbol');
+        const timezoneEl = document.getElementById('geo-timezone');
         const activeEl = document.getElementById('geo-active');
 
         if (idEl) idEl.value = id;
         if (codeEl) codeEl.value = btn.getAttribute('data-current-code') || '';
         if (nameEl) nameEl.value = btn.getAttribute('data-current-name') || '';
-        if (symbolEl) symbolEl.value = btn.getAttribute('data-current-symbol') || '';
+        if (timezoneEl) timezoneEl.value = btn.getAttribute('data-current-timezone') || '';
         if (activeEl) activeEl.checked = btn.getAttribute('data-current-is-active') === '1';
 
         bindSaveAction(async function() {
