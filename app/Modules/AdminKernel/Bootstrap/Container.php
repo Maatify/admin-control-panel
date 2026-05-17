@@ -118,7 +118,6 @@ use Maatify\AdminKernel\Http\Controllers\Ui\Permissions\UiPermissionsController;
 use Maatify\AdminKernel\Http\Controllers\Ui\Roles\UiRolesController;
 use Maatify\AdminKernel\Http\Controllers\Ui\SessionListController;
 use Maatify\AdminKernel\Http\Controllers\Ui\UiDashboardController;
-use Maatify\AdminKernel\Http\Controllers\Ui\UiSettingsController;
 use Maatify\AdminKernel\Http\Controllers\Web\DashboardController;
 use Maatify\AdminKernel\Http\Controllers\Web\EmailVerificationController;
 use Maatify\AdminKernel\Http\Controllers\Web\LoginController;
@@ -480,6 +479,7 @@ class Container
                                 'assetsCdnUrl' => $mediaUrlConfig->assetsCdnUrl,
                                 'cdnImageUrl' => $mediaUrlConfig->cdnImageUrl,
                                 'assetVersion' => $mediaUrlConfig->assetVersion,
+                                'defaultImage' => $mediaUrlConfig->getDefaultImage(),
                             ],
                         ];
                     }

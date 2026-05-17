@@ -101,4 +101,9 @@ final class MediaUrlConfigDTO
 
         return $this->cdnImageUrl . '/' . ltrim($path, '/');
     }
+
+    public function getDefaultImage(): string
+    {
+        return self::DEFAULT_IMAGE;
+    }
 }
