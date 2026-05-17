@@ -35,7 +35,6 @@ interface CityRepositoryInterface
         int     $perPage,
         ?string $globalSearch,
         array   $columnFilters,
-        ?int    $languageId = null,
     ): array;
 
     public function findCityById(int $id, ?int $languageId = null): ?CityDTO;

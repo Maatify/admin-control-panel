@@ -18,7 +18,7 @@ final class CityListCapabilities
                 'id'         => 'id',
                 'name'       => 'name',
                 'code'       => 'code',
-                'country_id' => 'int',
+                'country_id' => 'country_id',
                 'is_active'  => 'is_active',
             ],
             supportsDateFilter: false,

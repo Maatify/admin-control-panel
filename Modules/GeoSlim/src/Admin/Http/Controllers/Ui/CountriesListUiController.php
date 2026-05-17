@@ -6,6 +6,7 @@ namespace Maatify\GeoSlim\Admin\Http\Controllers\Ui;
 
 use Maatify\AdminKernel\Application\Security\UiPermissionService;
 use Maatify\AdminKernel\Context\AdminContext;
+use Maatify\Currency\Contract\CurrencyDropdownQueryInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
@@ -13,6 +14,7 @@ use Slim\Views\Twig;
 final readonly class CountriesListUiController
 {
     public function __construct(
+        private CurrencyDropdownQueryInterface $currencyDropdownQuery,
         private Twig $twig,
         private UiPermissionService $uiPermissionService,
     ) {
@@ -36,7 +38,10 @@ final readonly class CountriesListUiController
         return $this->twig->render(
             $response,
             'pages/geo/countries_list.twig',
-            ['capabilities' => $capabilities]
+            ['capabilities' => $capabilities,
+            'currencies' => $this->currencyDropdownQuery->listAllForDropdown(),]
+
+
         );
     }
 }

@@ -149,9 +149,8 @@ final class GeoQueryService
         int     $perPage       = 20,
         ?string $globalSearch  = null,
         array   $columnFilters = [],
-        ?int    $languageId    = null,
     ): array {
-        return $this->cityRepo->listCities($page, $perPage, $globalSearch, $columnFilters, $languageId);
+        return $this->cityRepo->listCities($page, $perPage, $globalSearch, $columnFilters);
     }
 
     // ================================================================== //

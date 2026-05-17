@@ -32,13 +32,17 @@ final readonly class CitiesQueryController
         // 1) Validate request shape
         $this->validationGuard->check(new SharedListQuerySchema(), $body);
 
-        /**
-         * @var array{
+        /** @var array{
          *   page?: int,
          *   per_page?: int,
-         *   search?: array{global?: string, columns?: array<string, string>},
-         *   date?: array{from?: string, to?: string},
-         *   language_id?: int
+         *   search?: array{
+         *     global?: string,
+         *     columns?: array<string, string>
+         *   },
+         *   date?: array{
+         *     from?: string,
+         *     to?: string
+         *   }
          * } $validated
          */
         $validated = $body;
@@ -52,18 +56,12 @@ final readonly class CitiesQueryController
         // 4) Resolve filters
         $filters = $this->filterResolver->resolve($query, $capabilities);
 
-        $languageId = null;
-        if (isset($validated['language_id'])) {
-            $languageId = $validated['language_id'];
-        }
-
         // 5) Execute service
         $result = $this->queryService->paginateCities(
             page:          $query->page,
             perPage:       $query->perPage,
             globalSearch:  $filters->globalSearch,
             columnFilters: $filters->columnFilters,
-            languageId:    $languageId,
         );
 
         // 6) Return JSON

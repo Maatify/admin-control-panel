@@ -52,73 +52,215 @@ final class PdoCityRepository implements CityRepositoryInterface, CityDropdownRe
         int     $perPage,
         ?string $globalSearch,
         array   $columnFilters,
-        ?int    $languageId = null,
     ): array {
+        // Intentionally ignored.
+        // Admin city listing is a direct geo_cities query only.
+        // Translations belong to translation matrix/query endpoints, not here.
         $page   = max(1, $page);
         $limit  = max(1, min(200, $perPage));
         $offset = ($page - 1) * $limit;
 
-        $where  = [];
-        $params = [];
+        [$whereSql, $params] = $this->buildCityListWhereSql($globalSearch, $columnFilters);
 
-        if ($globalSearch !== null && trim($globalSearch) !== '') {
-            $globalText = '%' . $this->escapeLike(trim($globalSearch)) . '%';
+        $totalSql = 'SELECT COUNT(*) FROM `geo_cities`';
 
-            $where[] = '(ci.`code` LIKE :global_text_code OR ci.`name` LIKE :global_text_name)';
-            $params['global_text_code'] = $globalText;
-            $params['global_text_name'] = $globalText;
-        }
-        if (isset($columnFilters['is_active'])) {
-            $where[]             = 'ci.`is_active` = :is_active';
-            $params['is_active'] = (int) $columnFilters['is_active'];
-        }
-        if (isset($columnFilters['country_id'])) {
-            $where[]              = 'ci.`country_id` = :country_id';
-            $params['country_id'] = (int) $columnFilters['country_id'];
-        }
-        if (isset($columnFilters['code'])) {
-            $where[]        = 'ci.`code` = :code';
-            $params['code'] = trim((string) $columnFilters['code']);
-        }
-        if (isset($columnFilters['name'])) {
-            $where[]        = 'ci.`name` LIKE :name';
-            $params['name'] = '%' . $this->escapeLike(trim((string) $columnFilters['name'])) . '%';
-        }
-        if (isset($columnFilters['id'])) {
-            $where[]      = 'ci.`id` = :id';
-            $params['id'] = (int) $columnFilters['id'];
+        $totalStmt = $this->pdo->prepare($totalSql);
+        if ($totalStmt === false) {
+            throw GeoPersistenceException::prepareFailed($totalSql);
         }
 
-        $whereSql = $where !== [] ? 'WHERE ' . implode(' AND ', $where) : '';
+        $totalStmt->execute();
 
-        [$selectExtra, $join, $joinParams] = $this->buildTranslationJoin($languageId);
+        $totalValue = $totalStmt->fetchColumn();
+        $total      = is_numeric($totalValue) ? (int) $totalValue : 0;
 
-        $total    = $this->scalarInt('SELECT COUNT(*) FROM `geo_cities`');
-        $filtered = $this->scalarFiltered("SELECT COUNT(*) FROM `geo_cities` AS ci {$whereSql}", $params);
+        $filteredSql = "
+        SELECT COUNT(*)
+        FROM `geo_cities` AS ci
+        {$whereSql}
+    ";
 
-        $stmt = $this->prepareOrFail("
-            SELECT ci.*, {$selectExtra}
-            FROM   `geo_cities` AS ci
-            {$join}
-            {$whereSql}
-            ORDER BY ci.`display_order` ASC, ci.`id` ASC
-            LIMIT :limit OFFSET :offset
-        ");
+        $filteredStmt = $this->pdo->prepare($filteredSql);
+        if ($filteredStmt === false) {
+            throw GeoPersistenceException::prepareFailed($filteredSql);
+        }
 
-        $pos = 1;
-        foreach ($joinParams as $v) { $stmt->bindValue($pos++, $v, PDO::PARAM_INT); }
-        foreach ($params as $key => $value) { $stmt->bindValue(':' . $key, $value); }
-        $stmt->bindValue(':limit',  $limit,  PDO::PARAM_INT);
+        $this->bindCityListParams($filteredStmt, $params);
+        $filteredStmt->execute();
+
+        $filteredValue = $filteredStmt->fetchColumn();
+        $filtered      = is_numeric($filteredValue) ? (int) $filteredValue : 0;
+
+        $sql = "
+        SELECT
+            ci.`id`,
+            ci.`country_id`,
+            ci.`code`,
+            ci.`name`,
+            ci.`time_zone`,
+            ci.`is_active`,
+            ci.`display_order`,
+            ci.`created_at`,
+            ci.`updated_at`,
+            NULL AS `translated_name`,
+            NULL AS `translation_language_id`
+        FROM `geo_cities` AS ci
+        {$whereSql}
+        ORDER BY ci.`display_order` ASC, ci.`id` ASC
+        LIMIT :limit OFFSET :offset
+    ";
+
+        $stmt = $this->pdo->prepare($sql);
+        if ($stmt === false) {
+            throw GeoPersistenceException::prepareFailed($sql);
+        }
+
+        $this->bindCityListParams($stmt, $params);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
+
+        /** @var list<array<string, mixed>> $rows */
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         /** @var list<CityDTO> $data */
         $data = array_map(
             static fn (array $row): CityDTO => CityDTO::fromRow($row),
-            $this->fetchAllAssoc($stmt),
+            $rows,
         );
 
-        return $this->paginatedResult($data, $page, $limit, $total, $filtered);
+        return [
+            'data'       => $data,
+            'pagination' => [
+                'page'     => $page,
+                'per_page' => $limit,
+                'total'    => $total,
+                'filtered' => $filtered,
+            ],
+        ];
+    }
+
+    /**
+     * Builds WHERE SQL for the city admin list only.
+     *
+     * This helper is intentionally scoped to listCities().
+     * It does not know about translations, languages, dropdowns, or matrix queries.
+     *
+     * @param array<string, int|string> $columnFilters
+     * @return array{0: string, 1: array<string, int|string>}
+     */
+    private function buildCityListWhereSql(?string $globalSearch, array $columnFilters): array
+    {
+        $where  = [];
+        $params = [];
+
+        $escapeLike = static function (string $value): string {
+            return str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $value);
+        };
+
+        $stringValue = static function (mixed $value): ?string {
+            if (! is_scalar($value)) {
+                return null;
+            }
+
+            $value = trim((string) $value);
+
+            return $value !== '' ? $value : null;
+        };
+
+        $positiveIntValue = static function (mixed $value): ?int {
+            if (! is_scalar($value) || ! is_numeric($value)) {
+                return null;
+            }
+
+            $value = (int) $value;
+
+            return $value > 0 ? $value : null;
+        };
+
+        $boolIntValue = static function (mixed $value): ?int {
+            if (! is_scalar($value) || ! is_numeric($value)) {
+                return null;
+            }
+
+            $value = (int) $value;
+
+            return in_array($value, [0, 1], true) ? $value : null;
+        };
+
+        $search = $stringValue($globalSearch);
+        if ($search !== null) {
+            $global = '%' . $escapeLike($search) . '%';
+
+            $where[] = '(
+            CAST(ci.`id` AS CHAR) LIKE :global_search_id
+            OR CAST(ci.`country_id` AS CHAR) LIKE :global_search_country_id
+            OR ci.`code` LIKE :global_search_code
+            OR ci.`name` LIKE :global_search_name
+            OR ci.`time_zone` LIKE :global_search_time_zone
+        )';
+
+            $params['global_search_id']        = $global;
+            $params['global_search_country_id'] = $global;
+            $params['global_search_code']      = $global;
+            $params['global_search_name']      = $global;
+            $params['global_search_time_zone'] = $global;
+        }
+
+        $id = $positiveIntValue($columnFilters['id'] ?? null);
+        if ($id !== null) {
+            $where[]      = 'ci.`id` = :id';
+            $params['id'] = $id;
+        }
+
+        $countryId = $positiveIntValue($columnFilters['country_id'] ?? null);
+        if ($countryId !== null) {
+            $where[]              = 'ci.`country_id` = :country_id';
+            $params['country_id'] = $countryId;
+        }
+
+        $isActive = $boolIntValue($columnFilters['is_active'] ?? null);
+        if ($isActive !== null) {
+            $where[]             = 'ci.`is_active` = :is_active';
+            $params['is_active'] = $isActive;
+        }
+
+        $code = $stringValue($columnFilters['code'] ?? null);
+        if ($code !== null) {
+            $where[]        = 'ci.`code` = :code';
+            $params['code'] = $code;
+        }
+
+        $name = $stringValue($columnFilters['name'] ?? null);
+        if ($name !== null) {
+            $where[]        = 'ci.`name` LIKE :name';
+            $params['name'] = '%' . $escapeLike($name) . '%';
+        }
+
+        $timeZone = $stringValue($columnFilters['time_zone'] ?? null);
+        if ($timeZone !== null) {
+            $where[]              = 'ci.`time_zone` LIKE :time_zone';
+            $params['time_zone'] = '%' . $escapeLike($timeZone) . '%';
+        }
+
+        return [
+            $where !== [] ? 'WHERE ' . implode(' AND ', $where) : '',
+            $params,
+        ];
+    }
+
+    /**
+     * @param array<string, int|string> $params
+     */
+    private function bindCityListParams(PDOStatement $stmt, array $params): void
+    {
+        foreach ($params as $key => $value) {
+            $stmt->bindValue(
+                ':' . $key,
+                $value,
+                is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR,
+            );
+        }
     }
 
     public function findCityById(int $id, ?int $languageId = null): ?CityDTO
@@ -366,11 +508,6 @@ final class PdoCityRepository implements CityRepositoryInterface, CityDropdownRe
         ];
     }
 
-    private function escapeLike(string $value): string
-    {
-        return str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $value);
-    }
-
     private function prepareOrFail(string $sql): PDOStatement
     {
         $stmt = $this->pdo->prepare($sql);
@@ -410,36 +547,6 @@ final class PdoCityRepository implements CityRepositoryInterface, CityDropdownRe
         $stmt->execute($params);
         $val = $stmt->fetchColumn();
         return is_numeric($val) ? (int) $val : 0;
-    }
-
-    /**
-     * @param array<string, mixed> $params
-     */
-    private function scalarFiltered(string $sql, array $params): int
-    {
-        $stmt = $this->prepareOrFail($sql);
-        foreach ($params as $key => $value) { $stmt->bindValue(':' . $key, $value); }
-        $stmt->execute();
-        $val = $stmt->fetchColumn();
-        return is_numeric($val) ? (int) $val : 0;
-    }
-
-    /**
-     * @template T
-     * @param list<T> $data
-     * @return array{data: list<T>, pagination: array{page: int, per_page: int, total: int, filtered: int}}
-     */
-    private function paginatedResult(array $data, int $page, int $perPage, int $total, int $filtered): array
-    {
-        return [
-            'data'       => $data,
-            'pagination' => [
-                'page'     => $page,
-                'per_page' => $perPage,
-                'total'    => $total,
-                'filtered' => $filtered,
-            ],
-        ];
     }
 
     private function isForeignKeyViolation(\PDOException $e): bool
