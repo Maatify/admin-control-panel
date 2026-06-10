@@ -71,6 +71,7 @@ final class AppSettingsBindings
             'youtube',
             'whatsapp',
             'snapchat',
+            'tiktok',
         ],
 
         'apps' => [
