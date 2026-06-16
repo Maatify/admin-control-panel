@@ -12,7 +12,10 @@ final class TranslationKeyNotFoundException extends I18nNotFoundException
     public function __construct(int $keyId)
     {
         parent::__construct(
-            sprintf('Translation key not found (id: %d).', $keyId)
+            sprintf(
+                'Translation key not found (id: %d).',
+                $keyId
+            )
         );
     }
 

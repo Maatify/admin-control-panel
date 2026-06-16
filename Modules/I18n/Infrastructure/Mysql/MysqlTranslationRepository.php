@@ -16,6 +16,7 @@ declare(strict_types=1);
 namespace Maatify\I18n\Infrastructure\Mysql;
 
 use Maatify\I18n\DTO\TranslationUpsertResultDTO;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 use PDO;
 use PDOStatement;
 use Maatify\I18n\Contract\TranslationRepositoryInterface;
@@ -25,7 +26,8 @@ use Maatify\I18n\DTO\TranslationDTO;
 final readonly class MysqlTranslationRepository implements TranslationRepositoryInterface
 {
     public function __construct(
-        private PDO $pdo
+        private PDO $pdo,
+        private ClockInterface $clock,
     ) {}
 
     public function upsert(int $languageId, int $keyId, string $value): TranslationUpsertResultDTO
@@ -35,7 +37,7 @@ final readonly class MysqlTranslationRepository implements TranslationRepository
             ON DUPLICATE KEY UPDATE
                 id = LAST_INSERT_ID(id),
                 value = VALUES(value),
-                updated_at = CURRENT_TIMESTAMP';
+                updated_at = :now';
 
         $stmt = $this->pdo->prepare($sql);
         if (!$stmt instanceof PDOStatement) {
@@ -46,6 +48,7 @@ final readonly class MysqlTranslationRepository implements TranslationRepository
             'language_id' => $languageId,
             'key_id' => $keyId,
             'value' => $value,
+            'now' => $this->clock->now()->format('Y-m-d H:i:s'),
         ]);
 
         $id = (int) $this->pdo->lastInsertId();

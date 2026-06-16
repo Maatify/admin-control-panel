@@ -113,7 +113,9 @@ final class I18nBindings
             \Maatify\I18n\Contract\TranslationRepositoryInterface::class => function (ContainerInterface $c) {
                 /** @var PDO $pdo */
                 $pdo = $c->get(PDO::class);
-                return new \Maatify\I18n\Infrastructure\Mysql\MysqlTranslationRepository($pdo);
+                $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
+                assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
+                return new \Maatify\I18n\Infrastructure\Mysql\MysqlTranslationRepository($pdo, $clock);
             }
 
         ]);

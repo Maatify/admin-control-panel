@@ -113,8 +113,8 @@ final readonly class MysqlKeyStatsRepository implements KeyStatsRepositoryInterf
         $stmt = $this->pdo->prepare(
             "
             INSERT INTO i18n_key_stats (key_id, translated_count)
-            VALUES (:key_id, :count)
-            ON DUPLICATE KEY UPDATE translated_count = :count
+            VALUES (:key_id, :count_insert)
+            ON DUPLICATE KEY UPDATE translated_count = :count_update
             "
         );
 
@@ -123,8 +123,9 @@ final readonly class MysqlKeyStatsRepository implements KeyStatsRepositoryInterf
         }
 
         $stmt->execute([
-            'key_id' => $keyId,
-            'count'  => $translatedCount,
+            'key_id'       => $keyId,
+            'count_insert' => $translatedCount,
+            'count_update' => $translatedCount,
         ]);
     }
 

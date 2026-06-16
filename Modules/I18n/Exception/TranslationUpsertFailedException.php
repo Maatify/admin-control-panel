@@ -9,8 +9,10 @@ use Maatify\I18n\Domain\Enum\I18nErrorCodeEnum;
 
 final class TranslationUpsertFailedException extends I18nSystemException
 {
-    public function __construct(int $languageId, int $keyId)
-    {
+    public function __construct(
+        int $languageId,
+        int $keyId
+    ) {
         parent::__construct(
             sprintf(
                 'Failed to upsert translation (language_id=%d, key_id=%d).',

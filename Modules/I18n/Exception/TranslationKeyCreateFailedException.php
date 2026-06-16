@@ -9,8 +9,11 @@ use Maatify\I18n\Domain\Enum\I18nErrorCodeEnum;
 
 final class TranslationKeyCreateFailedException extends I18nSystemException
 {
-    public function __construct(string $scope, string $domain, string $key)
-    {
+    public function __construct(
+        string $scope,
+        string $domain,
+        string $key
+    ) {
         parent::__construct(
             sprintf(
                 'Failed to create translation key [%s.%s.%s].',

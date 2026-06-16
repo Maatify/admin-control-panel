@@ -15,3 +15,6 @@ public/storage/
 .phpunit.cache/
 /internals/
 *.patch
+
+*.tmp
+*.temp
