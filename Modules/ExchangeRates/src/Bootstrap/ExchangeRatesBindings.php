@@ -26,6 +26,7 @@ use Maatify\ExchangeRates\Customer\Rate\Infrastructure\Repository\PdoCustomerRat
 use Maatify\ExchangeRates\Customer\Rate\Service\CustomerRateQueryService;
 use Maatify\ExchangeRates\Shared\Infrastructure\Persistence\Support\ScopedOrderingManager;
 use Maatify\ExchangeRates\Shared\Infrastructure\Support\RateHistoryWriter;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 use PDO;
 use Psr\Container\ContainerInterface;
 
@@ -45,7 +46,9 @@ final class ExchangeRatesBindings
             RateHistoryWriter::class => static function (ContainerInterface $c): RateHistoryWriter {
                 /** @var PDO $pdo */
                 $pdo = $c->get(PDO::class);
-                return new RateHistoryWriter($pdo);
+                /** @var ClockInterface $clock */
+                $clock = $c->get(ClockInterface::class);
+                return new RateHistoryWriter($pdo, $clock);
             },
 
             // ── Admin — Provider ──────────────────────────────────────────
@@ -55,7 +58,9 @@ final class ExchangeRatesBindings
                 $pdo = $c->get(PDO::class);
                 /** @var ScopedOrderingManager $orderingManager */
                 $orderingManager = $c->get(ScopedOrderingManager::class);
-                return new PdoProviderCommandRepository($pdo, $orderingManager);
+                /** @var ClockInterface $clock */
+                $clock = $c->get(ClockInterface::class);
+                return new PdoProviderCommandRepository($pdo, $orderingManager, $clock);
             },
 
             ProviderQueryRepositoryInterface::class => static function (ContainerInterface $c): PdoProviderQueryRepository {
@@ -91,7 +96,9 @@ final class ExchangeRatesBindings
                 $historyWriter = $c->get(RateHistoryWriter::class);
                 /** @var ScopedOrderingManager $orderingManager */
                 $orderingManager = $c->get(ScopedOrderingManager::class);
-                return new PdoRateCommandRepository($pdo, $historyWriter, $orderingManager);
+                /** @var ClockInterface $clock */
+                $clock = $c->get(ClockInterface::class);
+                return new PdoRateCommandRepository($pdo, $historyWriter, $orderingManager, $clock);
             },
 
             RateCommandService::class => static function (ContainerInterface $c): RateCommandService {

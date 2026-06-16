@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Maatify\ExchangeRates\Shared\Infrastructure\Support;
 
+use Maatify\SharedCommon\Contracts\ClockInterface;
 use PDO;
 
 /**
@@ -19,7 +20,7 @@ use PDO;
  */
 final class RateHistoryWriter
 {
-    public function __construct(private readonly PDO $pdo) {}
+    public function __construct(private readonly PDO $pdo, private readonly ClockInterface $clock) {}
 
     /**
      * Append a history snapshot.
@@ -53,7 +54,7 @@ final class RateHistoryWriter
             'base_code'   => strtoupper($baseCode),
             'target_code' => strtoupper($targetCode),
             'rate'        => $rate,
-            'recorded_at' => $recordedAt ?? date('Y-m-d H:i:s'),
+            'recorded_at' => $recordedAt ?? $this->clock->now()->format('Y-m-d H:i:s'),
         ]);
 
         return (int) $this->pdo->lastInsertId();

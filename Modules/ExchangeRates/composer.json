@@ -21,6 +21,7 @@
       "role": "Developer"
     }
   ],
+
   "support": {
     "issues": "https://github.com/maatify/exchange-rates/issues",
     "source": "https://github.com/maatify/exchange-rates"
@@ -29,7 +30,8 @@
     "php": ">=8.2",
     "ext-bcmath": "*",
     "ext-pdo": "*",
-    "ext-mbstring": "*"
+    "ext-mbstring": "*",
+    "maatify/shared-common": "^1.0"
   },
   "require-dev": {
     "phpstan/phpstan": "^1.0",

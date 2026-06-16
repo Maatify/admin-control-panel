@@ -10,6 +10,7 @@ use Maatify\ExchangeRates\Admin\Provider\Contract\ProviderCommandRepositoryInter
 use Maatify\ExchangeRates\Exception\ExchangeRatesCodeAlreadyExistsException;
 use Maatify\ExchangeRates\Exception\ExchangeRatesNotFoundException;
 use Maatify\ExchangeRates\Shared\Infrastructure\Persistence\Support\ScopedOrderingManager;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 use PDO;
 
 final class PdoProviderCommandRepository implements ProviderCommandRepositoryInterface
@@ -17,6 +18,7 @@ final class PdoProviderCommandRepository implements ProviderCommandRepositoryInt
     public function __construct(
         private readonly PDO                   $pdo,
         private readonly ScopedOrderingManager $orderingManager,
+        private readonly ClockInterface        $clock,
     ) {}
 
     public function create(CreateProviderCommand $command): int
@@ -112,12 +114,15 @@ final class PdoProviderCommandRepository implements ProviderCommandRepositoryInt
     {
         $stmt = $this->pdo->prepare(
             'UPDATE `maa_er_providers`
-                SET `deleted_at` = NOW()
+                SET `deleted_at` = :now
               WHERE `id` = :id
                 AND `deleted_at` IS NULL'
         );
 
-        $stmt->execute(['id' => $id]);
+        $stmt->execute([
+            'id' => $id,
+            'now' => $this->clock->now()->format('Y-m-d H:i:s'),
+        ]);
 
         return $stmt->rowCount() > 0;
     }

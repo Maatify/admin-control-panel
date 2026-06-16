@@ -11,6 +11,7 @@ use Maatify\ExchangeRates\Exception\ExchangeRatesCodeAlreadyExistsException;
 use Maatify\ExchangeRates\Exception\ExchangeRatesNotFoundException;
 use Maatify\ExchangeRates\Shared\Infrastructure\Persistence\Support\ScopedOrderingManager;
 use Maatify\ExchangeRates\Shared\Infrastructure\Support\RateHistoryWriter;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 use PDO;
 
 final class PdoRateCommandRepository implements RateCommandRepositoryInterface
@@ -19,6 +20,7 @@ final class PdoRateCommandRepository implements RateCommandRepositoryInterface
         private readonly PDO                   $pdo,
         private readonly RateHistoryWriter      $historyWriter,
         private readonly ScopedOrderingManager  $orderingManager,
+        private readonly ClockInterface         $clock,
     ) {}
 
     // =========================================================
@@ -194,11 +196,14 @@ final class PdoRateCommandRepository implements RateCommandRepositoryInterface
     {
         $stmt = $this->pdo->prepare(
             'UPDATE `maa_er_rates`
-                SET `deleted_at` = NOW()
+                SET `deleted_at` = :now
               WHERE `id` = :id
                 AND `deleted_at` IS NULL'
         );
-        $stmt->execute(['id' => $id]);
+        $stmt->execute([
+            'id' => $id,
+            'now' => $this->clock->now()->format('Y-m-d H:i:s'),
+        ]);
 
         return $stmt->rowCount() > 0;
     }
