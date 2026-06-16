@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS `geo_country_translations` (
 CREATE TABLE IF NOT EXISTS `geo_cities` (
     `id`            INT UNSIGNED    NOT NULL AUTO_INCREMENT,
     `country_id`    INT UNSIGNED    NOT NULL,
-    `code`          VARCHAR(20)         NULL COMMENT 'Optional short code or IATA/ICAO code',
+    `code`          VARCHAR(100)        NULL COMMENT 'Short code or slug (populated from Aramex city sync)',
     `name`          VARCHAR(100)    NOT NULL COMMENT 'Base name — always English or default locale',
     `time_zone`     VARCHAR(100)        NULL COMMENT 'IANA timezone identifier: Africa/Cairo, America/New_York …',
     `is_active`     TINYINT(1)      NOT NULL DEFAULT 1,

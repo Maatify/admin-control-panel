@@ -75,6 +75,17 @@ final class GeoQueryService
         return $this->countryDropdown->listActiveCountries($languageId);
     }
 
+    /**
+     * Countries with a phone dial code — minimal payload for phone-number inputs.
+     * SQL-level filter (phone_code IS NOT NULL) and projection (code, name, phone_code, flag only).
+     *
+     * @return list<array{code: string, name: string, phone_code: string, flag: string|null}>
+     */
+    public function countriesForPhoneInput(?int $languageId = null): array
+    {
+        return $this->countryDropdown->listCountriesWithPhoneCode($languageId);
+    }
+
     // ================================================================== //
     //  Countries — single-record
     // ================================================================== //

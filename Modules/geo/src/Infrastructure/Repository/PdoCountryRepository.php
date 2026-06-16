@@ -199,6 +199,46 @@ final class PdoCountryRepository implements CountryRepositoryInterface, CountryD
         );
     }
 
+    public function listCountriesWithPhoneCode(?int $languageId = null): array
+    {
+        [$selectExtra, $join, $joinParams] = $this->buildTranslationJoin($languageId);
+
+        $stmt = $this->prepareOrFail("
+            SELECT
+                c.`code`,
+                c.`name`,
+                c.`phone_code`,
+                c.`icon`,
+                {$selectExtra}
+            FROM   `geo_countries` AS c
+            {$join}
+            WHERE  c.`is_active`   = 1
+              AND  c.`phone_code`  IS NOT NULL
+              AND  c.`phone_code`  != ''
+            ORDER BY c.`display_order` ASC, c.`id` ASC
+        ");
+
+        $pos = 1;
+        foreach ($joinParams as $v) { $stmt->bindValue($pos++, $v, PDO::PARAM_INT); }
+        $stmt->execute();
+
+        return array_map(
+            static function (array $row): array {
+                $translatedName = is_string($row['translated_name'] ?? null) ? $row['translated_name'] : null;
+                $baseName       = is_string($row['name']             ?? null) ? $row['name']             : '';
+                $icon           = is_string($row['icon']             ?? null) && $row['icon'] !== '' ? $row['icon'] : null;
+
+                return [
+                    'code'       => is_string($row['code']       ?? null) ? $row['code']       : '',
+                    'name'       => $translatedName ?? $baseName,
+                    'phone_code' => is_string($row['phone_code'] ?? null) ? $row['phone_code'] : '',
+                    'flag'       => $icon,
+                ];
+            },
+            $this->fetchAllAssoc($stmt),
+        );
+    }
+
     // ================================================================== //
     //  CountryRepositoryInterface — Commands
     // ================================================================== //

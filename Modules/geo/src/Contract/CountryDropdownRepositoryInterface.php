@@ -21,5 +21,14 @@ interface CountryDropdownRepositoryInterface
      * @return list<CountryDTO>
      */
     public function listActiveCountries(?int $languageId = null): array;
+
+    /**
+     * Active countries that have a phone dial code, ordered by display_order ASC.
+     * Selects only the fields needed for phone-number input UIs:
+     *   code, name (translated), phone_code, icon (flag).
+     *
+     * @return list<array{code: string, name: string, phone_code: string, flag: string|null}>
+     */
+    public function listCountriesWithPhoneCode(?int $languageId = null): array;
 }
 
