@@ -6,13 +6,15 @@ namespace Maatify\RateLimiter\Penalty;
 
 use Maatify\RateLimiter\Contract\RateLimitStoreInterface;
 use Maatify\RateLimiter\DTO\BudgetStatusDTO;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 
 class BudgetTracker
 {
     private const EPOCH_DURATION = 86400; // 24h
 
     public function __construct(
-        private readonly RateLimitStoreInterface $store
+        private readonly RateLimitStoreInterface $store,
+        private readonly ClockInterface $clock,
     ) {}
 
     public function increment(string $key): void
@@ -34,7 +36,7 @@ class BudgetTracker
         $status = $this->getStatus($key);
 
         if ($status->count >= $limit) {
-            $now = time();
+            $now = $this->clock->now()->getTimestamp();
             if ($status->epochStart + self::EPOCH_DURATION > $now) {
                 return true;
             }

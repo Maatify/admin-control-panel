@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Maatify\RateLimiter\Engine;
 
+use Maatify\SharedCommon\Contracts\ClockInterface;
+
 class LocalFallbackLimiter
 {
     /** @var array<string, int> */
@@ -23,9 +25,9 @@ class LocalFallbackLimiter
     private const API_IP = 120;
     private const API_IP_UA = 60;
 
-    public static function check(string $policyName, string $mode, string $ip, ?string $accountId = null, string $ua = ''): bool
+    public static function check(ClockInterface $clock, string $policyName, string $mode, string $ip, ?string $accountId = null, string $ua = ''): bool
     {
-        self::gc();
+        self::gc($clock);
 
         $allowed = true;
 
@@ -39,37 +41,37 @@ class LocalFallbackLimiter
         if ($mode === 'DEGRADED_MODE') {
             if ($policyName === 'login_protection') {
                 $window = self::WINDOW_LOGIN;
-                if ($accountId && !self::incrementAndCheck("deg:login:acc:{$accountId}", self::DEGRADED_LOGIN_ACCOUNT, $window)) {
+                if ($accountId && !self::incrementAndCheck($clock, "deg:login:acc:{$accountId}", self::DEGRADED_LOGIN_ACCOUNT, $window)) {
                     $allowed = false;
                 }
-                if (!self::incrementAndCheck("deg:login:ip:{$normalizedIp}", self::DEGRADED_LOGIN_IP, $window)) {
+                if (!self::incrementAndCheck($clock, "deg:login:ip:{$normalizedIp}", self::DEGRADED_LOGIN_IP, $window)) {
                     $allowed = false;
                 }
             } elseif ($policyName === 'otp_protection') {
                 $window = self::WINDOW_OTP;
-                if ($accountId && !self::incrementAndCheck("deg:otp:acc:{$accountId}", self::DEGRADED_OTP_ACCOUNT, $window)) {
+                if ($accountId && !self::incrementAndCheck($clock, "deg:otp:acc:{$accountId}", self::DEGRADED_OTP_ACCOUNT, $window)) {
                     $allowed = false;
                 }
-                if (!self::incrementAndCheck("deg:otp:ip:{$normalizedIp}", self::DEGRADED_OTP_IP, $window)) {
+                if (!self::incrementAndCheck($clock, "deg:otp:ip:{$normalizedIp}", self::DEGRADED_OTP_IP, $window)) {
                     $allowed = false;
                 }
             } elseif ($policyName === 'api_heavy_protection') {
                 $window = self::WINDOW_API;
-                if (!self::incrementAndCheck("fail:api:ip:{$normalizedIp}", self::API_IP, $window)) {
+                if (!self::incrementAndCheck($clock, "fail:api:ip:{$normalizedIp}", self::API_IP, $window)) {
                     $allowed = false;
                 }
                 $k2 = md5("{$normalizedIp}:{$normalizedUa}");
-                if (!self::incrementAndCheck("fail:api:k2:{$k2}", self::API_IP_UA, $window)) {
+                if (!self::incrementAndCheck($clock, "fail:api:k2:{$k2}", self::API_IP_UA, $window)) {
                     $allowed = false;
                 }
             }
         } elseif ($mode === 'FAIL_OPEN' && $policyName === 'api_heavy_protection') {
              $window = self::WINDOW_API;
-             if (!self::incrementAndCheck("fail:api:ip:{$normalizedIp}", self::API_IP, $window)) {
+             if (!self::incrementAndCheck($clock, "fail:api:ip:{$normalizedIp}", self::API_IP, $window)) {
                  $allowed = false;
              }
              $k2 = md5("{$normalizedIp}:{$normalizedUa}");
-             if (!self::incrementAndCheck("fail:api:k2:{$k2}", self::API_IP_UA, $window)) {
+             if (!self::incrementAndCheck($clock, "fail:api:k2:{$k2}", self::API_IP_UA, $window)) {
                  $allowed = false;
              }
         }
@@ -112,10 +114,10 @@ class LocalFallbackLimiter
         return "{$browser}/{$major} ({$os})";
     }
 
-    private static function incrementAndCheck(string $key, int $limit, int $window): bool
+    private static function incrementAndCheck(ClockInterface $clock, string $key, int $limit, int $window): bool
     {
         // Use time bucket for stateless window tracking
-        $bucket = (int) floor(time() / $window);
+        $bucket = (int) floor($clock->now()->getTimestamp() / $window);
         $bucketKey = "{$key}:{$bucket}";
 
         if (!isset(self::$counters[$bucketKey])) {
@@ -125,10 +127,10 @@ class LocalFallbackLimiter
         return self::$counters[$bucketKey] <= $limit;
     }
 
-    private static function gc(): void
+    private static function gc(ClockInterface $clock): void
     {
         // Simple GC to prevent infinite array growth
-        $now = time();
+        $now = $clock->now()->getTimestamp();
         if ($now - self::$lastGc > 3600) { // Every hour
             self::$counters = [];
             self::$lastGc = $now;

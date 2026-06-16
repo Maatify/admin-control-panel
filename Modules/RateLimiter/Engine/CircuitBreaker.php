@@ -9,6 +9,7 @@ use Maatify\RateLimiter\Contract\FailureSignalEmitterInterface;
 use Maatify\RateLimiter\DTO\FailureSignalDTO;
 use Maatify\RateLimiter\DTO\FailureStateDTO;
 use Maatify\RateLimiter\DTO\Store\CircuitBreakerStateDTO;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 
 class CircuitBreaker
 {
@@ -22,13 +23,14 @@ class CircuitBreaker
 
     public function __construct(
         private readonly CircuitBreakerStoreInterface $store,
-        private readonly FailureSignalEmitterInterface $emitter
+        private readonly FailureSignalEmitterInterface $emitter,
+        private readonly ClockInterface $clock,
     ) {}
 
     public function reportFailure(string $policyName): void
     {
         $state = $this->loadState($policyName);
-        $now = time();
+        $now = $this->clock->now()->getTimestamp();
 
         $failures = $state->failures;
         $failures[] = $now;
@@ -78,7 +80,7 @@ class CircuitBreaker
             return;
         }
 
-        $now = time();
+        $now = $this->clock->now()->getTimestamp();
         $status = $state->status;
         $failures = $state->failures;
 
@@ -117,7 +119,7 @@ class CircuitBreaker
     public function isReEntryGuardViolated(string $policyName): bool
     {
         $data = $this->loadState($policyName);
-        return $data->failClosedUntil > time();
+        return $data->failClosedUntil > $this->clock->now()->getTimestamp();
     }
 
     private function loadState(string $policyName): CircuitBreakerStateDTO

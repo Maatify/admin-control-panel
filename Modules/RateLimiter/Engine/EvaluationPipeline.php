@@ -18,6 +18,7 @@ use Maatify\RateLimiter\Penalty\AntiEquilibriumGate;
 use Maatify\RateLimiter\Penalty\BudgetTracker;
 use Maatify\RateLimiter\Penalty\DecayCalculator;
 use Maatify\RateLimiter\Penalty\PenaltyLadder;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 
 class EvaluationPipeline
 {
@@ -33,6 +34,7 @@ class EvaluationPipeline
         private readonly EphemeralBucket $ephemeralBucket,
         string $keySecret,
         private readonly string $envScope, // e.g. 'prod', 'staging'
+        private readonly ClockInterface $clock,
         ?string $previousKeySecret = null
     )
     {
@@ -157,7 +159,7 @@ class EvaluationPipeline
                 }
                 $block = $this->store->checkBlock($key);
                 if ($block && $block->level >= 2) {
-                    return $this->createBlockedResult($block->level, $block->expiresAt - time(), RateLimitResultDTO::DECISION_HARD_BLOCK);
+                    return $this->createBlockedResult($block->level, $block->expiresAt - $this->clock->now()->getTimestamp(), RateLimitResultDTO::DECISION_HARD_BLOCK);
                 }
             }
         }
@@ -184,7 +186,7 @@ class EvaluationPipeline
 
                 // Calculate Retry-After
                 $status = $this->budgetTracker->getStatus($keys['k4']);
-                $retryAfter = max(0, ($status->epochStart + 86400) - time());
+                $retryAfter = max(0, ($status->epochStart + 86400) - $this->clock->now()->getTimestamp());
 
                 return $this->createBlockedResult($level, $retryAfter, RateLimitResultDTO::DECISION_SOFT_BLOCK);
             }
@@ -266,7 +268,7 @@ class EvaluationPipeline
                 } else {
                     // Medium+ Confidence requires 2-window confirmation (consecutive 10-minute windows)
                     // We use a window-based key to track presence
-                    $windowId = (int)floor(time() / 600);
+                    $windowId = (int)floor($this->clock->now()->getTimestamp() / 600);
                     $prevWindowId = $windowId - 1;
 
                     $wKey = "dilution_warn:{$device->fingerprintHash}:{$windowId}";
@@ -313,13 +315,13 @@ class EvaluationPipeline
         if ($request->isFailure && empty($device->fingerprintHash) && $context->accountId) {
             $key = "last_missing_fp:acc:{$context->accountId}";
             $last = $this->store->get($key);
-            if ($last && (time() - $last->value) <= 1800) {
+            if ($last && ($this->clock->now()->getTimestamp() - $last->value) <= 1800) {
                 $k4Repeated = $policy->getScoreDeltas()->k4_repeated_missing_fp;
                 if ($k4Repeated > 0) {
                     $deltas['k4'] = $deltas['k4'] + $k4Repeated;
                 }
             }
-            $this->store->set($key, time(), 3600);
+            $this->store->set($key, $this->clock->now()->getTimestamp(), 3600);
         }
 
         $newMaxLevel = 0;
@@ -339,7 +341,7 @@ class EvaluationPipeline
             if ($delta > 0) {
                 $scoreDto = $rawScores[$keyType] ?? null;
                 $rawVal = $scoreDto ? $scoreDto->value : 0;
-                $updatedAt = $scoreDto ? $scoreDto->updatedAt : time();
+                $updatedAt = $scoreDto ? $scoreDto->updatedAt : $this->clock->now()->getTimestamp();
 
                 $decayed = $this->calculateDecayedScore($rawVal, $updatedAt, $keyType, $key);
                 $baseValue = ($scoreDto && ! $scoreDto->isFromV1) ? $rawVal : 0;

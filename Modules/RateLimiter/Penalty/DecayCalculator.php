@@ -4,11 +4,17 @@ declare(strict_types=1);
 
 namespace Maatify\RateLimiter\Penalty;
 
+use Maatify\SharedCommon\Contracts\ClockInterface;
+
 class DecayCalculator
 {
     private const RATE_ACCOUNT = 600; // 10m
     private const RATE_DEVICE = 300;  // 5m
     private const RATE_IP = 180;      // 3m
+
+    public function __construct(
+        private readonly ClockInterface $clock,
+    ) {}
 
     public function calculateDecay(
         int $currentScore,
@@ -20,7 +26,7 @@ class DecayCalculator
             return 0;
         }
 
-        $now = time();
+        $now = $this->clock->now()->getTimestamp();
         $elapsed = $now - $lastUpdateTimestamp;
 
         if ($elapsed <= 0) {
