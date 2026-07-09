@@ -1,60 +1,15 @@
-# AuditTrail Module
+# AuditTrail - README.md
 
-A standalone library for logging data access, views, and exports.
+> **DEPRECATED: Architectural Ownership Transferred**
+>
+> The canonical logging architecture, domain rules, blueprints, and specifications
+> have been moved to the `maatify/event-logging` package.
+>
+> This local module inside `admin-control-panel` is kept for legacy history,
+> host integration, or migration contexts only. It is no longer a standalone,
+> canonical logging library.
+>
+> Please refer to the `maatify/event-logging` repository for the official
+> documentation regarding this logging domain.
 
-## Installation
-
-This module is part of the `Maatify` logging system.
-Namespace: `Maatify\AuditTrail\`
-
-## Usage
-
-### Recording an Event
-
-Inject `Maatify\AuditTrail\Recorder\AuditTrailRecorder` and call `record()`.
-
-```php
-use Maatify\AuditTrail\Recorder\AuditTrailRecorder;
-use Maatify\AuditTrail\Enum\AuditTrailActorTypeEnum;
-
-class CustomerController {
-    public function __construct(
-        private AuditTrailRecorder $auditRecorder
-    ) {}
-
-    public function show(int $id) {
-        // ... business logic ...
-
-        $this->auditRecorder->record(
-            eventKey: 'customer.view',
-            actorType: AuditTrailActorTypeEnum::ADMIN,
-            actorId: $currentUserId,
-            entityType: 'customer',
-            entityId: $id,
-            metadata: ['section' => 'billing']
-        );
-    }
-}
-```
-
-### Querying Events
-
-Inject `Maatify\AuditTrail\Contract\AuditTrailQueryInterface`.
-
-```php
-use Maatify\AuditTrail\Contract\AuditTrailQueryInterface;
-use Maatify\AuditTrail\DTO\AuditTrailQueryDTO;
-
-$query = new AuditTrailQueryDTO(
-    actorId: 123,
-    limit: 10
-);
-
-$logs = $queryRepo->find($query);
-```
-
-## Configuration
-
-Ensure `AuditTrailRecorder` is wired in your DI container with:
-- `AuditTrailLoggerInterface` implementation (e.g. `AuditTrailLoggerMysqlRepository`)
-- `ClockInterface` implementation
+This file is intentionally left blank and deprecated to prevent duplication of the canonical architecture.
