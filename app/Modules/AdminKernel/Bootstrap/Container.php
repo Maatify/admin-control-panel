@@ -1747,24 +1747,24 @@ class Container
             },
 
             // 3. Behavior Trace (Operational Activity)
-            \Maatify\BehaviorTrace\Contract\BehaviorTraceWriterInterface::class => function (ContainerInterface $c) {
+            \Maatify\EventLogging\BehaviorTrace\Contract\BehaviorTraceWriterInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
-                return new \Maatify\BehaviorTrace\Infrastructure\Mysql\BehaviorTraceWriterMysqlRepository($pdo);
+                return new \Maatify\EventLogging\BehaviorTrace\Infrastructure\Mysql\BehaviorTraceWriterMysqlRepository($pdo);
             },
-            \Maatify\BehaviorTrace\Recorder\BehaviorTraceRecorder::class => function (ContainerInterface $c) {
-                $writer = $c->get(\Maatify\BehaviorTrace\Contract\BehaviorTraceWriterInterface::class);
+            \Maatify\EventLogging\BehaviorTrace\Recorder\BehaviorTraceRecorder::class => function (ContainerInterface $c) {
+                $writer = $c->get(\Maatify\EventLogging\BehaviorTrace\Contract\BehaviorTraceWriterInterface::class);
                 $clock = $c->get(ClockInterface::class);
                 $fallbackLogger = $c->get(LoggerInterface::class);
 
-                assert($writer instanceof \Maatify\BehaviorTrace\Contract\BehaviorTraceWriterInterface);
+                assert($writer instanceof \Maatify\EventLogging\BehaviorTrace\Contract\BehaviorTraceWriterInterface);
                 assert($clock instanceof ClockInterface);
 
-                return new \Maatify\BehaviorTrace\Recorder\BehaviorTraceRecorder($writer, $clock, $fallbackLogger instanceof LoggerInterface ? $fallbackLogger : null);
+                return new \Maatify\EventLogging\BehaviorTrace\Recorder\BehaviorTraceRecorder($writer, $clock, $fallbackLogger instanceof LoggerInterface ? $fallbackLogger : null);
             },
             \Maatify\AdminKernel\Application\Contracts\BehaviorTraceRecorderInterface::class => function (ContainerInterface $c) {
-                $recorder = $c->get(\Maatify\BehaviorTrace\Recorder\BehaviorTraceRecorder::class);
-                assert($recorder instanceof \Maatify\BehaviorTrace\Recorder\BehaviorTraceRecorder);
+                $recorder = $c->get(\Maatify\EventLogging\BehaviorTrace\Recorder\BehaviorTraceRecorder::class);
+                assert($recorder instanceof \Maatify\EventLogging\BehaviorTrace\Recorder\BehaviorTraceRecorder);
                 return new \Maatify\AdminKernel\Infrastructure\Logging\BehaviorTraceMaatifyAdapter($recorder);
             },
 
