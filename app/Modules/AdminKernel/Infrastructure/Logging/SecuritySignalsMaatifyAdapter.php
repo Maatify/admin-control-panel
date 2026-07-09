@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Infrastructure\Logging;
 
 use Maatify\AdminKernel\Application\Contracts\SecuritySignalsRecorderInterface;
-use Maatify\SecuritySignals\Recorder\SecuritySignalsRecorder;
+use Maatify\EventLogging\SecuritySignals\Recorder\SecuritySignalsRecorder;
 
 class SecuritySignalsMaatifyAdapter implements SecuritySignalsRecorderInterface
 {

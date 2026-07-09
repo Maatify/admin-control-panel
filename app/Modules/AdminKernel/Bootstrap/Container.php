@@ -1769,24 +1769,24 @@ class Container
             },
 
             // 4. Delivery Operations
-            \Maatify\DeliveryOperations\Contract\DeliveryOperationsLoggerInterface::class => function (ContainerInterface $c) {
+            \Maatify\EventLogging\DeliveryOperations\Contract\DeliveryOperationsLoggerInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
-                return new \Maatify\DeliveryOperations\Infrastructure\Mysql\DeliveryOperationsLoggerMysqlRepository($pdo);
+                return new \Maatify\EventLogging\DeliveryOperations\Infrastructure\Mysql\DeliveryOperationsLoggerMysqlRepository($pdo);
             },
-            \Maatify\DeliveryOperations\Recorder\DeliveryOperationsRecorder::class => function (ContainerInterface $c) {
-                $logger = $c->get(\Maatify\DeliveryOperations\Contract\DeliveryOperationsLoggerInterface::class);
+            \Maatify\EventLogging\DeliveryOperations\Recorder\DeliveryOperationsRecorder::class => function (ContainerInterface $c) {
+                $logger = $c->get(\Maatify\EventLogging\DeliveryOperations\Contract\DeliveryOperationsLoggerInterface::class);
                 $clock = $c->get(ClockInterface::class);
                 $fallbackLogger = $c->get(LoggerInterface::class);
 
-                assert($logger instanceof \Maatify\DeliveryOperations\Contract\DeliveryOperationsLoggerInterface);
+                assert($logger instanceof \Maatify\EventLogging\DeliveryOperations\Contract\DeliveryOperationsLoggerInterface);
                 assert($clock instanceof ClockInterface);
 
-                return new \Maatify\DeliveryOperations\Recorder\DeliveryOperationsRecorder($logger, $clock, $fallbackLogger instanceof LoggerInterface ? $fallbackLogger : null);
+                return new \Maatify\EventLogging\DeliveryOperations\Recorder\DeliveryOperationsRecorder($logger, $clock, $fallbackLogger instanceof LoggerInterface ? $fallbackLogger : null);
             },
             \Maatify\AdminKernel\Application\Contracts\DeliveryOperationsRecorderInterface::class => function (ContainerInterface $c) {
-                $recorder = $c->get(\Maatify\DeliveryOperations\Recorder\DeliveryOperationsRecorder::class);
-                assert($recorder instanceof \Maatify\DeliveryOperations\Recorder\DeliveryOperationsRecorder);
+                $recorder = $c->get(\Maatify\EventLogging\DeliveryOperations\Recorder\DeliveryOperationsRecorder::class);
+                assert($recorder instanceof \Maatify\EventLogging\DeliveryOperations\Recorder\DeliveryOperationsRecorder);
                 return new \Maatify\AdminKernel\Infrastructure\Logging\DeliveryOperationsMaatifyAdapter($recorder);
             },
 
@@ -1813,24 +1813,24 @@ class Container
             },
 
             // 6. Security Signals
-            \Maatify\SecuritySignals\Contract\SecuritySignalsLoggerInterface::class => function (ContainerInterface $c) {
+            \Maatify\EventLogging\SecuritySignals\Contract\SecuritySignalsLoggerInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
-                return new \Maatify\SecuritySignals\Infrastructure\Mysql\SecuritySignalsLoggerMysqlRepository($pdo);
+                return new \Maatify\EventLogging\SecuritySignals\Infrastructure\Mysql\SecuritySignalsLoggerMysqlRepository($pdo);
             },
-            \Maatify\SecuritySignals\Recorder\SecuritySignalsRecorder::class => function (ContainerInterface $c) {
-                $logger = $c->get(\Maatify\SecuritySignals\Contract\SecuritySignalsLoggerInterface::class);
+            \Maatify\EventLogging\SecuritySignals\Recorder\SecuritySignalsRecorder::class => function (ContainerInterface $c) {
+                $logger = $c->get(\Maatify\EventLogging\SecuritySignals\Contract\SecuritySignalsLoggerInterface::class);
                 $clock = $c->get(ClockInterface::class);
                 $fallbackLogger = $c->get(LoggerInterface::class);
 
-                assert($logger instanceof \Maatify\SecuritySignals\Contract\SecuritySignalsLoggerInterface);
+                assert($logger instanceof \Maatify\EventLogging\SecuritySignals\Contract\SecuritySignalsLoggerInterface);
                 assert($clock instanceof ClockInterface);
 
-                return new \Maatify\SecuritySignals\Recorder\SecuritySignalsRecorder($logger, $clock, $fallbackLogger instanceof LoggerInterface ? $fallbackLogger : null);
+                return new \Maatify\EventLogging\SecuritySignals\Recorder\SecuritySignalsRecorder($logger, $clock, $fallbackLogger instanceof LoggerInterface ? $fallbackLogger : null);
             },
             \Maatify\AdminKernel\Application\Contracts\SecuritySignalsRecorderInterface::class => function (ContainerInterface $c) {
-                $recorder = $c->get(\Maatify\SecuritySignals\Recorder\SecuritySignalsRecorder::class);
-                assert($recorder instanceof \Maatify\SecuritySignals\Recorder\SecuritySignalsRecorder);
+                $recorder = $c->get(\Maatify\EventLogging\SecuritySignals\Recorder\SecuritySignalsRecorder::class);
+                assert($recorder instanceof \Maatify\EventLogging\SecuritySignals\Recorder\SecuritySignalsRecorder);
                 return new \Maatify\AdminKernel\Infrastructure\Logging\SecuritySignalsMaatifyAdapter($recorder);
             },
 
