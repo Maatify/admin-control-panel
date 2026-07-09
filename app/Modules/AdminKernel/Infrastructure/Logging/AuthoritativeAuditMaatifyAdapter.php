@@ -6,7 +6,7 @@ namespace Maatify\AdminKernel\Infrastructure\Logging;
 
 use Maatify\AdminKernel\Application\Contracts\AuthoritativeAuditRecorderInterface;
 use Maatify\AdminKernel\Context\RequestContext;
-use Maatify\AuthoritativeAudit\Recorder\AuthoritativeAuditRecorder;
+use Maatify\EventLogging\AuthoritativeAudit\Recorder\AuthoritativeAuditRecorder;
 
 class AuthoritativeAuditMaatifyAdapter implements AuthoritativeAuditRecorderInterface
 {
