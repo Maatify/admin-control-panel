@@ -1,4 +1,9 @@
-# Unified Logging System - Migration Blueprint (Revised)
+# Unified Logging System - Migration Blueprint
+
+> **Notice:** The canonical architecture for logging is now owned by `maatify/event-logging`.
+> This document only contains host-specific migration history and wiring instructions.
+> Do NOT duplicate canonical package documentation here.
+
 
 ## Current Findings
 The `maatify/event-logging` library (v1.0.0) is not currently installed. The project relies on 6 custom logging modules inside the `Modules/` directory.

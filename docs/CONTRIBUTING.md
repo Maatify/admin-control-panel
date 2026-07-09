@@ -33,7 +33,7 @@
 ## 🔵 Verification
 - [ ] **Static Analysis**: Run `phpstan` (if available).
 - [ ] **Manual Test**: Verify the flow end-to-end.
-- [ ] **Audit Check**: Verify `authoritative_audit_log` and `security_events` entries created (where required).
+- [ ] **Audit Check**: Verify `maa_event_logging_authoritative_audit_log` and `maa_event_logging_security_signals` entries created (where required).
 
 ## 🧪 Testing & Verification Compliance
 

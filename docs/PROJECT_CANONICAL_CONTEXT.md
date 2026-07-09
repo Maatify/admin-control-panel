@@ -210,15 +210,18 @@ ALL failures MUST degrade into:
 
 ## 🪵 D) Logging Policy (HARD)
 
-The system enforces a **strict, non-negotiable separation** between different
-types of logging, based on **authority, security impact, and transactional guarantees**.
+The system delegates its logging architecture to the `maatify/event-logging` package.
+Please refer to `maatify/event-logging` for the canonical rules regarding the 6 domains:
 
-Logging is **NOT a single concern** in this system.
+- Authoritative Audit (integrity critical)
+- Audit Trail (data exposure)
+- Security Signals (observational)
+- Behavior Trace (implementation name for the conceptual Operational Activity domain)
+- Diagnostics Telemetry
+- Delivery Operations
 
-**Authoritative Source of Truth:**
-> `docs/architecture/logging/UNIFIED_LOGGING_DESIGN.md`
-
-All implementation MUST align with the Unified Logging Design.
+> **Notice:** The `admin-control-panel` is strictly a consumer of this architecture.
+> All legacy descriptions previously found in this file have been removed to prevent duplication.
 
 ---
 
@@ -227,8 +230,8 @@ All implementation MUST align with the Unified Logging Design.
 * **Purpose**: Authoritative history of authority, permission, and security-impacting mutations.
 * **Nature**: Source of truth (Integrity Critical).
 * **Interface**: `AuthoritativeSecurityAuditWriterInterface`
-* **Storage**: Database only (Outbox: `authoritative_audit_outbox` → Read: `authoritative_audit_log`).
-* **Schema**: Defined by Unified Logging Design.
+* **Storage**: Database only (Outbox: `maa_event_logging_authoritative_audit_outbox` → Read: `maa_event_logging_authoritative_audit_log`).
+* **Schema**: Defined by maatify/event-logging package.
 
 **Hard Requirements:**
 
@@ -245,7 +248,7 @@ Any deviation is a **SECURITY VIOLATION**.
 
 ---
 
-### D.2 Security Events (`security_events`) — Observational
+### D.2 Security Events (`maa_event_logging_security_signals`) — Observational
 
 * **Purpose**: High-volume **security signals and security-related events**.
 
@@ -254,7 +257,7 @@ Any deviation is a **SECURITY VIOLATION**.
   * Failed authentication
   * Step-up failures
 * **Interface**: `SecurityEventLoggerInterface`
-* **Storage**: Database only (`security_events` table).
+* **Storage**: Database only (`maa_event_logging_security_signals` table).
 * **Severity**: Info / Warning / Error
 * **Behavior**:
 
@@ -375,11 +378,11 @@ This exception **does NOT apply** to runtime application logic.
 * Log rotation and cleanup apply **ONLY** to:
 
   * Application & infrastructure logs (PSR-3)
-  * Activity logs (`activity_logs`)
+  * Activity logs (`maa_event_logging_behavior_trace`)
 * Retention policies MUST NOT be applied to:
 
-  * `authoritative_audit_log`
-  * `security_events`
+  * `maa_event_logging_authoritative_audit_log`
+  * `maa_event_logging_security_signals`
 
 Any retention or deletion of authoritative logs is forbidden without
 explicit legal and architectural approval.
@@ -399,7 +402,7 @@ This separation is **ARCHITECTURE-LOCKED**.
 
 ---
 
-## 🧾 D.7 Activity Logs (`activity_logs`) — Operational User Activity Tracking
+## 🧾 D.7 Activity Logs (`maa_event_logging_behavior_trace`) — Operational User Activity Tracking
 
 **Status:** ARCHITECTURE-APPROVED / ACTIVE
 **Scope:** Admin Panel (UI + API Mutations)
@@ -410,7 +413,7 @@ This separation is **ARCHITECTURE-LOCKED**.
 
 ## 📌 Purpose (Why this exists)
 
-`activity_logs` provide a **human-readable, queryable trail**
+`maa_event_logging_behavior_trace` provide a **human-readable, queryable trail**
 of **what admins and employees do inside the system**.
 
 They answer questions such as:
@@ -422,7 +425,7 @@ They answer questions such as:
 * هل التعديل كان Create / Update / Delete؟
 * إيه الصفحة أو المورد اللي حصل فيه التغيير؟
 
-`activity_logs` are **NOT** a security mechanism
+`maa_event_logging_behavior_trace` are **NOT** a security mechanism
 and **NOT** a legal source of truth.
 
 They exist purely for **staff activity tracking and operational transparency**.
@@ -450,7 +453,7 @@ They exist purely for **staff activity tracking and operational transparency**.
 
 ## 🧱 Storage & Interface
 
-* **Storage:** Database (`activity_logs` table)
+* **Storage:** Database (`maa_event_logging_behavior_trace` table)
 * **Nature:** Best-effort (non-transactional)
 * **Interface:** `ActivityLoggerInterface` (Infrastructure concern)
 
@@ -499,8 +502,8 @@ These belong to:
 
 | Concern              | Correct Log       |
 |----------------------|-------------------|
-| Authority decisions  | `authoritative_audit_log`      |
-| Security attempts    | `security_events` |
+| Authority decisions  | `maa_event_logging_authoritative_audit_log`      |
+| Security attempts    | `maa_event_logging_security_signals` |
 | Crashes / exceptions | PSR-3 logs        |
 
 ---
@@ -1605,6 +1608,6 @@ Further discussion/refactor on this topic is **FORBIDDEN** unless a new ADR is o
 * **Routing**: `routes/web.php`
 * **DI/Config**: `Maatify\AdminKernel\Bootstrap\Container.php`
 * **Session List Pattern**: `app/Modules/AdminKernel/Http/Controllers/Ui/SessionListController.php`, `app/Modules/AdminKernel/Http/Controllers/Api/SessionQueryController.php`
-* **Audit Model**: `docs/architecture/logging/UNIFIED_LOGGING_DESIGN.md`, `Maatify\AdminKernel\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface.php`
+* **Audit Model**: ``maatify/event-logging``, `Maatify\AdminKernel\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface.php`
 * **Canonical Template**: `docs/ADMIN_PANEL_CANONICAL_TEMPLATE.md`
 * **Placeholders**: `templates/pages/admins.twig`, `templates/pages/roles.twig`
