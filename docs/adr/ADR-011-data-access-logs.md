@@ -11,8 +11,8 @@
 
 ## 1. Context
 
-The Admin Control Panel implements a strict, canonical logging architecture
-with clearly separated responsibilities:
+The Admin Control Panel integrates a strict, canonical logging architecture
+(owned by `maatify/event-logging`) with clearly separated responsibilities:
 
 - Audit Logs
 - Security Events
