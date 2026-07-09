@@ -1,79 +1,60 @@
-# Unified Logging System - Migration Blueprint
+# Unified Logging System - Migration Blueprint (Revised)
 
 ## Current Findings
-The `maatify/event-logging` library is not currently installed or referenced in `composer.json`.
-Instead, the project uses 6 custom logging modules implemented in the `Modules/` directory:
-- `Modules/AuthoritativeAudit`
-- `Modules/AuditTrail`
-- `Modules/SecuritySignals`
-- `Modules/BehaviorTrace`
-- `Modules/DiagnosticsTelemetry`
-- `Modules/DeliveryOperations`
+The `maatify/event-logging` library (v1.0.0) is not currently installed. The project relies on 6 custom logging modules inside the `Modules/` directory.
 
-These modules strictly follow the exact same architecture, naming conventions, and domain definitions as `maatify/event-logging` v1.0.0. They are already designed as "extractable libraries" as per `LOGGING_LIBRARY_STRUCTURE_CANONICAL.md` and `LOGGING_MODULE_BLUEPRINT.md`.
+The new library uses the `Maatify\EventLogging` namespace, which differs from the legacy custom namespaces (e.g., `Maatify\AuthoritativeAudit`). Specifically, the legacy `BehaviorTrace` module structurally corresponds to the `OperationalActivity` concept but is explicitly named `BehaviorTrace` in the new library `Maatify\EventLogging\BehaviorTrace`.
 
-The Host application (`app/Modules/AdminKernel`) connects to these modules using Adapters and Services (e.g., `AuthoritativeAuditMaatifyAdapter`, `AuditTrailService`).
+### Call Sites Analysis (AuthoritativeAudit)
+Upon reviewing `app/Modules/AdminKernel/Application/Services/AuthoritativeAuditService.php` and its call sites, it acts strictly as an abstraction for writing to the audit log. The actual `beginTransaction()` calls happen within domain services or controllers (e.g., `AdminProfileUpdateService.php`, `AdminController.php`). The `AuthoritativeAuditService` methods (like `recordAdminCreated`) are invoked inside these external transactions. Because `AuthoritativeAuditRecorder` throws exceptions directly, it correctly fails the surrounding transaction if writing to the `authoritative_audit_outbox` fails, preserving the fail-closed guarantee.
 
-`AuthoritativeAudit` is strictly fail-closed, throws exceptions, and writes to `authoritative_audit_outbox` (transactional). It does not use `PSR-3` for swallowing errors. The other 5 domains are fail-open (best-effort) and swallow exceptions in their Recorders, logging failures to `PSR-3` fallback loggers.
+## Exact Namespace Replacement Map
+| Legacy Namespace | New Library Namespace |
+|---|---|
+| `Maatify\AuthoritativeAudit` | `Maatify\EventLogging\AuthoritativeAudit` |
+| `Maatify\AuditTrail` | `Maatify\EventLogging\AuditTrail` |
+| `Maatify\SecuritySignals` | `Maatify\EventLogging\SecuritySignals` |
+| `Maatify\BehaviorTrace` | `Maatify\EventLogging\BehaviorTrace` |
+| `Maatify\DiagnosticsTelemetry` | `Maatify\EventLogging\DiagnosticsTelemetry` |
+| `Maatify\DeliveryOperations` | `Maatify\EventLogging\DeliveryOperations` |
 
-## Existing Logging Inventory
-- **AuthoritativeAudit**: Handles governance-grade changes. Written to `authoritative_audit_outbox` (fail-closed).
-- **AuditTrail**: Tracks data exposure/reads. Written to `audit_trail` (fail-open).
-- **SecuritySignals**: Tracks auth/policy anomalies. Written to `security_signals` (fail-open).
-- **BehaviorTrace (Operational Activity)**: Tracks daily mutations. Written to `operational_activity` (fail-open).
-- **DiagnosticsTelemetry**: Tracks technical metrics/errors. Written to `diagnostics_telemetry` (fail-open).
-- **DeliveryOperations**: Tracks async jobs/webhooks/emails. Written to `delivery_operations` (fail-open).
+## Exact Class/Interface Replacement Map (Examples)
+- `Maatify\AuthoritativeAudit\Recorder\AuthoritativeAuditRecorder` ➡️ `Maatify\EventLogging\AuthoritativeAudit\Recorder\AuthoritativeAuditRecorder`
+- `Maatify\AuditTrail\Contract\AuditTrailLoggerInterface` ➡️ `Maatify\EventLogging\AuditTrail\Contract\AuditTrailLoggerInterface`
+- `Maatify\BehaviorTrace\Contract\BehaviorTraceWriterInterface` ➡️ `Maatify\EventLogging\BehaviorTrace\Contract\BehaviorTraceWriterInterface`
+- (This applies universally to DTOs, Enums, Interfaces, and Recorders).
 
-## Domain Mapping Table
-| Current Module | New Library Domain | Current Table | Retention Rule |
-|---|---|---|---|
-| `Maatify\AuthoritativeAudit` | `Maatify\EventLogging\AuthoritativeAudit` (or exact same if unchanged) | `authoritative_audit_outbox` | Keep DB table (Host Specific schemas remain) |
-| `Maatify\AuditTrail` | `Maatify\EventLogging\AuditTrail` | `audit_trail` | Keep DB table (Backward Compatible) |
-| `Maatify\SecuritySignals` | `Maatify\EventLogging\SecuritySignals` | `security_signals` | Keep DB table (Backward Compatible) |
-| `Maatify\BehaviorTrace` | `Maatify\EventLogging\OperationalActivity` (or `BehaviorTrace`) | `operational_activity` | Keep DB table (Backward Compatible) |
-| `Maatify\DiagnosticsTelemetry` | `Maatify\EventLogging\DiagnosticsTelemetry` | `diagnostics_telemetry` | Keep DB table (Backward Compatible) |
-| `Maatify\DeliveryOperations` | `Maatify\EventLogging\DeliveryOperations` | `delivery_operations` | Keep DB table (Backward Compatible) |
+## Exact Table Compatibility Decision
+The legacy tables are named without the `maa_event_logging_` prefix (e.g., `authoritative_audit_outbox`, `audit_trail`, `security_signals`, `operational_activity`).
+The `maatify/event-logging` library expects prefixed table names (e.g., `maa_event_logging_audit_trail`).
 
-## DB Tables Mapping
-All DB schema files (`database/*.sql` and `Modules/*/Database/*.sql`) are strictly MySQL/PDO compliant. There are NO MongoDB assumptions in the current schema or repositories. They all use `event_id`, `actor_type`, `metadata` JSON, and `occurred_at`. These tables MUST remain untouched to ensure backward compatibility and zero data loss. The event-logging library version 1.0.0 is MySQL/PDO-only.
+**Decision:** We **MUST NOT** delete the current infrastructure/repository implementations (`Infrastructure/Mysql/*MysqlRepository.php`) from the host application unless the new library allows configuring table names.
+Assuming the library has hardcoded table names or expects specific repository injections, we will adopt the **Host-Specific Repository Adapter** pattern. The host will implement the library's `*Interface` contracts but keep its own SQL queries pointing to the legacy table names to ensure backward compatibility and zero data migration.
 
-## Host-Specific Boundaries
-- **Adapters**: `app/Modules/AdminKernel/Infrastructure/Logging/*MaatifyAdapter.php` must stay to inject Host-specific `RequestContext` (like `correlation_id`, `request_id`, `ip_address`).
-- **Services**: `app/Modules/AdminKernel/Application/Services/*Service.php` must stay as they encapsulate business logic/events (e.g., `ACTION_ADMIN_CREATE`).
-- **DI Container**: `app/Modules/AdminKernel/Bootstrap/Container.php` will need to register the library's classes instead of the local module classes.
-- **DB Schemas**: `database/*.sql` files are host specific and must stay.
+## Safe Phased Deletion Plan
+1. **Do NOT delete anything yet.**
+2. Require the library (`composer require maatify/event-logging:^1.0.0`).
+3. Refactor the host application (`app/Modules/AdminKernel`) to update all `use` statements from the legacy `Maatify\*` namespaces to the new `Maatify\EventLogging\*` namespaces for Recorders, Interfaces, DTOs, and Enums.
+4. Refactor `app/Modules/AdminKernel/Bootstrap/Container.php` to bind the new library's Interfaces to the **legacy** host-specific Mysql Repositories.
+5. Move the legacy `Infrastructure/Mysql/` repository files from `Modules/*/` into `app/Modules/AdminKernel/Infrastructure/Logging/Repositories/` and update their namespaces and implemented interfaces to point to `Maatify\EventLogging\*`.
+6. Once PHPStan confirms zero references to the old `Maatify\AuthoritativeAudit`, `Maatify\AuditTrail`, etc., and all tests pass, delete the `Modules/AuthoritativeAudit`, `Modules/AuditTrail`, `Modules/SecuritySignals`, `Modules/BehaviorTrace`, `Modules/DiagnosticsTelemetry`, and `Modules/DeliveryOperations` directories entirely.
+7. Remove the legacy PSR-4 autoload entries from `composer.json`.
 
-## Replacement Candidates
-The following entire directories are exact duplicates of what `maatify/event-logging` provides and MUST be deleted (replaced by Composer dependency):
-- `Modules/AuthoritativeAudit/`
-- `Modules/AuditTrail/`
-- `Modules/SecuritySignals/`
-- `Modules/BehaviorTrace/`
-- `Modules/DiagnosticsTelemetry/`
-- `Modules/DeliveryOperations/`
+## Files Expected to be Modified by Codex
+- `composer.json` (Require library, remove old PSR-4 namespaces)
+- `app/Modules/AdminKernel/Bootstrap/Container.php` (Update bindings)
+- `app/Modules/AdminKernel/Infrastructure/Logging/*MaatifyAdapter.php` (Update imports)
+- `app/Modules/AdminKernel/Application/Services/*Service.php` (Update imports if applicable)
+- Legacy `*MysqlRepository.php` files (Moved and updated with new namespaces/interfaces)
 
-## Blockers Before Codex Implementation
-1. The package `maatify/event-logging:^1.0.0` must be available on Packagist or configured as a VCS repository in `composer.json` for installation.
-2. The current `composer.json` uses `Maatify\*` namespaces mapping to `Modules/*/`. These autoload entries must be removed after package installation.
-
-## Safe Codex Implementation Plan
-1. **Require Library:** Run `composer require maatify/event-logging:^1.0.0`.
-2. **Update Autoload:** Remove the 6 custom namespaces (`Maatify\AuthoritativeAudit\`, `Maatify\AuditTrail\`, `Maatify\SecuritySignals\`, `Maatify\BehaviorTrace\`, `Maatify\DiagnosticsTelemetry\`, `Maatify\DeliveryOperations\`) from the `autoload.psr-4` section in `composer.json`.
-3. **Refactor Container:** In `app/Modules/AdminKernel/Bootstrap/Container.php`, update bindings to point to the new library's classes instead of local ones. If the library uses identical namespaces (e.g. `Maatify\AuthoritativeAudit`), this step may only require removing the local modules, as the autoloader will now load from the vendor directory.
-4. **Refactor Adapters/Services:** If namespaces changed in the library (e.g. from `Maatify\BehaviorTrace` to `Maatify\EventLogging\OperationalActivity`), update all `use` statements in `app/Modules/AdminKernel/Infrastructure/Logging/*` and `app/Modules/AdminKernel/Application/Services/*`.
-5. **Delete Local Modules:** Remove the directories:
-   - `Modules/AuthoritativeAudit`
-   - `Modules/AuditTrail`
-   - `Modules/SecuritySignals`
-   - `Modules/BehaviorTrace`
-   - `Modules/DiagnosticsTelemetry`
-   - `Modules/DeliveryOperations`
-6. **Cleanup Docs:** Delete `docs/architecture/logging/LOGGING_LIBRARY_STRUCTURE_CANONICAL.md` (or mark as implemented) and update `docs/architecture/logging/README.md` to indicate the system is now powered by the standalone `maatify/event-logging` library instead of local modules. Any references to specific local modules in `LOG_DOMAINS_OVERVIEW.md` should be updated to point to the library.
+## Files/Directories That Must NOT be Deleted Yet
+- `database/*.sql` and `Modules/*/Database/*.sql` (Host schema MUST remain untouched).
+- `Modules/*/Infrastructure/Mysql/*MysqlRepository.php` (These must be preserved and moved into the `app/` namespace to act as host-specific adapters pointing to legacy table names).
 
 ## Verification Commands
 - `composer validate`
 - `composer dump-autoload`
-- `vendor/bin/phpstan analyse app Modules --level=max`
-- `vendor/bin/phpunit` (if applicable/available)
+- `vendor/bin/phpstan analyse app Modules --level=max` (Must pass with 0 errors about missing classes)
+- `vendor/bin/phpunit` (if applicable)
 - `php tools/permission_linter.php`
-- `php -l` for any modified files (Adapters, Services, Container.php).
+- `php -l` for all modified PHP files.
