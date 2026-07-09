@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Infrastructure\Logging;
 
 use Maatify\AdminKernel\Application\Contracts\DeliveryOperationsRecorderInterface;
-use Maatify\DeliveryOperations\Recorder\DeliveryOperationsRecorder;
+use Maatify\EventLogging\DeliveryOperations\Recorder\DeliveryOperationsRecorder;
 
 class DeliveryOperationsMaatifyAdapter implements DeliveryOperationsRecorderInterface
 {
