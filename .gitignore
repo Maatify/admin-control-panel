@@ -1,8 +1,12 @@
 vendor/
 .env
+.env.local
+.env.test
+.env.testing
 composer.lock
 /storage/
 .idea/admin-control-panel.iml
+.phpunit.cache/
 .gitignore
 .idea/
 .idea/modules.xml
@@ -10,11 +14,13 @@ composer.lock
 .idea/phpunit.xml
 .idea/vcs.xml
 .idea/git_toolbox_prj.xml
+Modules/ArPlatform/.DS_Store
 .DS_Store
 public/storage/
-.phpunit.cache/
 /internals/
 *.patch
 
 *.tmp
 *.temp
+
+.phpunit.result.cache
