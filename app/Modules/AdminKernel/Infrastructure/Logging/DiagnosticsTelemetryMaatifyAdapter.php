@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Infrastructure\Logging;
 
 use Maatify\AdminKernel\Application\Contracts\DiagnosticsTelemetryRecorderInterface;
-use Maatify\DiagnosticsTelemetry\Recorder\DiagnosticsTelemetryRecorder;
+use Maatify\EventLogging\DiagnosticsTelemetry\Recorder\DiagnosticsTelemetryRecorder;
 
 class DiagnosticsTelemetryMaatifyAdapter implements DiagnosticsTelemetryRecorderInterface
 {
