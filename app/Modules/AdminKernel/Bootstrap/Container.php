@@ -1699,24 +1699,24 @@ class Container
             // ─────────────────────────────
 
             // 1. Audit Trail
-            \Maatify\AuditTrail\Contract\AuditTrailLoggerInterface::class => function (ContainerInterface $c) {
+            \Maatify\EventLogging\AuditTrail\Contract\AuditTrailLoggerInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
-                return new \Maatify\AuditTrail\Infrastructure\Mysql\AuditTrailLoggerMysqlRepository($pdo);
+                return new \Maatify\EventLogging\AuditTrail\Infrastructure\Mysql\AuditTrailLoggerMysqlRepository($pdo);
             },
-            \Maatify\AuditTrail\Recorder\AuditTrailRecorder::class => function (ContainerInterface $c) {
-                $logger = $c->get(\Maatify\AuditTrail\Contract\AuditTrailLoggerInterface::class);
+            \Maatify\EventLogging\AuditTrail\Recorder\AuditTrailRecorder::class => function (ContainerInterface $c) {
+                $logger = $c->get(\Maatify\EventLogging\AuditTrail\Contract\AuditTrailLoggerInterface::class);
                 $clock = $c->get(ClockInterface::class);
                 $fallbackLogger = $c->get(LoggerInterface::class);
 
-                assert($logger instanceof \Maatify\AuditTrail\Contract\AuditTrailLoggerInterface);
+                assert($logger instanceof \Maatify\EventLogging\AuditTrail\Contract\AuditTrailLoggerInterface);
                 assert($clock instanceof ClockInterface);
 
-                return new \Maatify\AuditTrail\Recorder\AuditTrailRecorder($logger, $clock, $fallbackLogger instanceof LoggerInterface ? $fallbackLogger : null);
+                return new \Maatify\EventLogging\AuditTrail\Recorder\AuditTrailRecorder($logger, $clock, $fallbackLogger instanceof LoggerInterface ? $fallbackLogger : null);
             },
             \Maatify\AdminKernel\Application\Contracts\AuditTrailRecorderInterface::class => function (ContainerInterface $c) {
-                $recorder = $c->get(\Maatify\AuditTrail\Recorder\AuditTrailRecorder::class);
-                assert($recorder instanceof \Maatify\AuditTrail\Recorder\AuditTrailRecorder);
+                $recorder = $c->get(\Maatify\EventLogging\AuditTrail\Recorder\AuditTrailRecorder::class);
+                assert($recorder instanceof \Maatify\EventLogging\AuditTrail\Recorder\AuditTrailRecorder);
                 return new \Maatify\AdminKernel\Infrastructure\Logging\AuditTrailMaatifyAdapter($recorder);
             },
 

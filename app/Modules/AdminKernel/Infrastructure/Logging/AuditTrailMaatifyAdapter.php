@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Infrastructure\Logging;
 
 use Maatify\AdminKernel\Application\Contracts\AuditTrailRecorderInterface;
-use Maatify\AuditTrail\Recorder\AuditTrailRecorder;
+use Maatify\EventLogging\AuditTrail\Recorder\AuditTrailRecorder;
 use InvalidArgumentException;
 
 class AuditTrailMaatifyAdapter implements AuditTrailRecorderInterface
