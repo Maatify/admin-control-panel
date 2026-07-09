@@ -1721,26 +1721,26 @@ class Container
             },
 
             // 2. Authoritative Audit
-            \Maatify\AuthoritativeAudit\Contract\AuthoritativeAuditOutboxWriterInterface::class => function (ContainerInterface $c) {
+            \Maatify\EventLogging\AuthoritativeAudit\Contract\AuthoritativeAuditOutboxWriterInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
-                return new \Maatify\AuthoritativeAudit\Infrastructure\Mysql\AuthoritativeAuditOutboxWriterMysqlRepository($pdo);
+                return new \Maatify\EventLogging\AuthoritativeAudit\Infrastructure\Mysql\AuthoritativeAuditOutboxWriterMysqlRepository($pdo);
             },
-            \Maatify\AuthoritativeAudit\Recorder\AuthoritativeAuditRecorder::class => function (ContainerInterface $c) {
-                $writer = $c->get(\Maatify\AuthoritativeAudit\Contract\AuthoritativeAuditOutboxWriterInterface::class);
+            \Maatify\EventLogging\AuthoritativeAudit\Recorder\AuthoritativeAuditRecorder::class => function (ContainerInterface $c) {
+                $writer = $c->get(\Maatify\EventLogging\AuthoritativeAudit\Contract\AuthoritativeAuditOutboxWriterInterface::class);
                 $clock = $c->get(ClockInterface::class);
                 // AuthoritativeAuditRecorder does NOT accept a fallback logger in constructor
 
-                assert($writer instanceof \Maatify\AuthoritativeAudit\Contract\AuthoritativeAuditOutboxWriterInterface);
+                assert($writer instanceof \Maatify\EventLogging\AuthoritativeAudit\Contract\AuthoritativeAuditOutboxWriterInterface);
                 assert($clock instanceof ClockInterface);
 
-                return new \Maatify\AuthoritativeAudit\Recorder\AuthoritativeAuditRecorder($writer, $clock);
+                return new \Maatify\EventLogging\AuthoritativeAudit\Recorder\AuthoritativeAuditRecorder($writer, $clock);
             },
             \Maatify\AdminKernel\Application\Contracts\AuthoritativeAuditRecorderInterface::class => function (ContainerInterface $c) {
-                $recorder = $c->get(\Maatify\AuthoritativeAudit\Recorder\AuthoritativeAuditRecorder::class);
+                $recorder = $c->get(\Maatify\EventLogging\AuthoritativeAudit\Recorder\AuthoritativeAuditRecorder::class);
                 $requestContext = $c->get(\Maatify\AdminKernel\Context\RequestContext::class);
 
-                assert($recorder instanceof \Maatify\AuthoritativeAudit\Recorder\AuthoritativeAuditRecorder);
+                assert($recorder instanceof \Maatify\EventLogging\AuthoritativeAudit\Recorder\AuthoritativeAuditRecorder);
                 assert($requestContext instanceof \Maatify\AdminKernel\Context\RequestContext);
 
                 return new \Maatify\AdminKernel\Infrastructure\Logging\AuthoritativeAuditMaatifyAdapter($recorder, $requestContext);
