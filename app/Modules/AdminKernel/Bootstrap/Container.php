@@ -1791,24 +1791,24 @@ class Container
             },
 
             // 5. Diagnostics Telemetry
-            \Maatify\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryLoggerInterface::class => function (ContainerInterface $c) {
+            \Maatify\EventLogging\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryLoggerInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 assert($pdo instanceof PDO);
-                return new \Maatify\DiagnosticsTelemetry\Infrastructure\Mysql\DiagnosticsTelemetryLoggerMysqlRepository($pdo);
+                return new \Maatify\AdminKernel\Infrastructure\Logging\Repositories\DiagnosticsTelemetryLoggerMysqlRepository($pdo);
             },
-            \Maatify\DiagnosticsTelemetry\Recorder\DiagnosticsTelemetryRecorder::class => function (ContainerInterface $c) {
-                $logger = $c->get(\Maatify\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryLoggerInterface::class);
+            \Maatify\EventLogging\DiagnosticsTelemetry\Recorder\DiagnosticsTelemetryRecorder::class => function (ContainerInterface $c) {
+                $logger = $c->get(\Maatify\EventLogging\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryLoggerInterface::class);
                 $clock = $c->get(ClockInterface::class);
                 $fallbackLogger = $c->get(LoggerInterface::class);
 
-                assert($logger instanceof \Maatify\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryLoggerInterface);
+                assert($logger instanceof \Maatify\EventLogging\DiagnosticsTelemetry\Contract\DiagnosticsTelemetryLoggerInterface);
                 assert($clock instanceof ClockInterface);
 
-                return new \Maatify\DiagnosticsTelemetry\Recorder\DiagnosticsTelemetryRecorder($logger, $clock, $fallbackLogger instanceof LoggerInterface ? $fallbackLogger : null);
+                return new \Maatify\EventLogging\DiagnosticsTelemetry\Recorder\DiagnosticsTelemetryRecorder($logger, $clock, $fallbackLogger instanceof LoggerInterface ? $fallbackLogger : null);
             },
             \Maatify\AdminKernel\Application\Contracts\DiagnosticsTelemetryRecorderInterface::class => function (ContainerInterface $c) {
-                $recorder = $c->get(\Maatify\DiagnosticsTelemetry\Recorder\DiagnosticsTelemetryRecorder::class);
-                assert($recorder instanceof \Maatify\DiagnosticsTelemetry\Recorder\DiagnosticsTelemetryRecorder);
+                $recorder = $c->get(\Maatify\EventLogging\DiagnosticsTelemetry\Recorder\DiagnosticsTelemetryRecorder::class);
+                assert($recorder instanceof \Maatify\EventLogging\DiagnosticsTelemetry\Recorder\DiagnosticsTelemetryRecorder);
                 return new \Maatify\AdminKernel\Infrastructure\Logging\DiagnosticsTelemetryMaatifyAdapter($recorder);
             },
 
