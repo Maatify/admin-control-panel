@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Infrastructure\Logging;
 
 use Maatify\AdminKernel\Application\Contracts\BehaviorTraceRecorderInterface;
-use Maatify\BehaviorTrace\Recorder\BehaviorTraceRecorder;
+use Maatify\EventLogging\BehaviorTrace\Recorder\BehaviorTraceRecorder;
 
 class BehaviorTraceMaatifyAdapter implements BehaviorTraceRecorderInterface
 {
