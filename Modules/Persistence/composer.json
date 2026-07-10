@@ -14,16 +14,22 @@
     }
   },
   "require": {
-    "php": ">=8.2",
-    "ext-pdo": "*"
+    "ext-pdo": "*",
+    "maatify/exceptions": "^1.0",
+    "php": ">=8.2"
   },
   "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3.94",
     "phpstan/phpstan": "^2.1",
-    "friendsofphp/php-cs-fixer": "^3.94"
+    "phpunit/phpunit": "^11.5"
   },
   "scripts": {
     "analyse": "phpstan analyse src tests --level=max",
-    "format": "php-cs-fixer fix"
+    "format": "php-cs-fixer fix",
+    "test": "phpunit",
+    "test:unit": "phpunit --testsuite unit",
+    "test:regression": "phpunit --testsuite regression",
+    "test:integration": "phpunit --testsuite integration"
   },
   "config": {
     "optimize-autoloader": true,
@@ -34,15 +40,12 @@
   },
   "minimum-stability": "stable",
   "prefer-stable": true,
-
-
   "authors": [
     {
       "name": "Maatify",
       "email": "support@maatify.com"
     }
   ],
-
   "support": {
     "issues": "https://github.com/maatify/persistence/issues",
     "source": "https://github.com/maatify/persistence"

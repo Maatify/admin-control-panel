@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Maatify\Persistence\Exception;
 
-use InvalidArgumentException;
+use Maatify\Exceptions\Contracts\ErrorCodeInterface;
+use Maatify\Exceptions\Enum\ErrorCodeEnum;
+use Maatify\Exceptions\Exception\System\SystemMaatifyException;
 
 /**
  * Thrown when an ordering configuration is invalid.
@@ -17,6 +19,10 @@ use InvalidArgumentException;
  * This exception is intended for configuration/programming mistakes, not for
  * user-input validation failures.
  */
-final class InvalidOrderingConfigurationException extends InvalidArgumentException implements PersistenceException
+final class InvalidOrderingConfigurationException extends SystemMaatifyException implements PersistenceException
 {
+    protected function defaultErrorCode(): ErrorCodeInterface
+    {
+        return ErrorCodeEnum::MAATIFY_ERROR;
+    }
 }

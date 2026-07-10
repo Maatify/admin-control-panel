@@ -47,7 +47,7 @@ Every package must contain these files at its root (the repository root is the p
 ├── CHANGELOG.md                       ← versioned history, starting at [1.0.0]
 ├── {PACKAGE_NAME}_PACKAGE_REFERENCE.md ← complete API reference and design rules (e.g. docs/EVENT_LOGGING_MODULE_REFERENCE.md)
 ├── composer.json                      ← library type, psr-4 autoload, explicit runtime/Composer dependencies only
-├── phpstan.neon                       ← level: max, paths: [src]
+├── phpstan.neon                       ← level: max, paths: [src, tests]
 ├── src/                               ← all PHP source code
 ├── tests/                             ← if applicable
 ├── schema/                            ← if the package owns SQL schema
@@ -662,6 +662,7 @@ parameters:
     level: max
     paths:
         - src
+        - tests
 ```
 
 ### Testing Strategy
@@ -755,14 +756,19 @@ private function findRawById(int $id): ?array
 
 Every new standalone Composer package in the Maatify ecosystem must adhere to the CI workflow standards defined in [`CI_WORKFLOW_STANDARD.md`](CI_WORKFLOW_STANDARD.md).
 
-CI pipelines must be:
-- **path-scoped** (running only when relevant files change)
-- **framework-agnostic**
-- **host-agnostic**
-- **independent of host app dependencies**
-- **free of required secrets for baseline checks**
+CI pipelines MUST be:
+- **compliant with `CI_WORKFLOW_STANDARD.md`** (which serves as the single detailed source of truth)
+- **reliable always-reporting required checks** (using stable gates, not fragile matrix jobs)
+- **testing minimum and latest PHP compatibility**
+- **testing lowest and latest dependency compatibility**
 - **enforcing PHPStan max**
-- **using real service integration tests** where package-owned persistence exists
+- **enforcing code-style dry-run** (when configured)
+- **using real service Integration tests** (where applicable)
+- **running Composer security audit**
+- **running workflow linting**
+- **following least-privilege and immutable action pinning**
+- **free of hidden failures** (no silent continue-on-error)
+- **free of required secrets or Host dependencies in baseline CI**
 
 ---
 
@@ -770,12 +776,18 @@ CI pipelines must be:
 
 - [ ] All PHPStan max errors resolved — zero errors, no suppressions
 - [ ] CI workflows exist and pass
-- [ ] CI workflows are path-scoped to relevant files
+- [ ] CI workflows comply fully with `CI_WORKFLOW_STANDARD.md`
+- [ ] Minimum and latest PHP compatibility tested
+- [ ] Lowest and latest dependency compatibility tested
 - [ ] PHPStan max passes
-- [ ] PHPUnit suites pass where applicable
-- [ ] examples are syntax-checked where examples exist
+- [ ] Code-style dry-run passes (if configured)
+- [ ] PHPUnit full suite passes (Unit, Regression, Integration where applicable)
+- [ ] Example PHP files are syntax-checked where examples exist
 - [ ] DB integration tests use real service dependencies where applicable
-- [ ] no baseline CI depends on host app code, host schema, framework bindings, or secrets
+- [ ] Composer security audit passes
+- [ ] Workflow files pass linting
+- [ ] Required gates always report a stable status
+- [ ] No baseline CI depends on host app code, host schema, framework bindings, or secrets
 - [ ] `README.md` written with installation steps and quick examples
 - [ ] `CHANGELOG.md` written starting at `[1.0.0]`
 - [ ] `{PACKAGE}_PACKAGE_REFERENCE.md` complete — full API, design rules, extension guide

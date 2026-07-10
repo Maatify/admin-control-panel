@@ -327,14 +327,14 @@ final readonly class ScopedOrderingManager
     ): void {
         $where = [];
         $params = [
-            'new_order'     => $newOrder,
+            'new_order_where' => $newOrder,
             'current_order' => $currentOrder,
         ];
 
         $this->appendScopeCondition($config, $scopeValue, $where, $params);
         $this->appendSoftDeleteCondition($config, $where);
 
-        $where[] = $config->quotedOrderColumn() . ' >= :new_order';
+        $where[] = $config->quotedOrderColumn() . ' >= :new_order_where';
         $where[] = $config->quotedOrderColumn() . ' < :current_order';
 
         $stmt = $pdo->prepare(
@@ -364,14 +364,14 @@ final readonly class ScopedOrderingManager
     ): void {
         $where = [];
         $params = [
-            'new_order'     => $newOrder,
+            'new_order_where' => $newOrder,
             'current_order' => $currentOrder,
         ];
 
         $this->appendScopeCondition($config, $scopeValue, $where, $params);
         $this->appendSoftDeleteCondition($config, $where);
 
-        $where[] = $config->quotedOrderColumn() . ' <= :new_order';
+        $where[] = $config->quotedOrderColumn() . ' <= :new_order_where';
         $where[] = $config->quotedOrderColumn() . ' > :current_order';
 
         $stmt = $pdo->prepare(
@@ -397,8 +397,8 @@ final readonly class ScopedOrderingManager
     ): bool {
         $where = [];
         $params = [
-            'id'        => $id,
-            'new_order' => $newOrder,
+            'id'             => $id,
+            'new_order_case' => $newOrder,
         ];
 
         $where[] = $config->quotedIdColumn() . ' = :id';
@@ -407,7 +407,7 @@ final readonly class ScopedOrderingManager
 
         $stmt = $pdo->prepare(
             'UPDATE ' . $config->quotedTable() . '
-                SET ' . $config->quotedOrderColumn() . ' = :new_order
+                SET ' . $config->quotedOrderColumn() . ' = :new_order_case
               WHERE ' . implode(' AND ', $where)
         );
 

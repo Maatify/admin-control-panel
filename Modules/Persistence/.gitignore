@@ -17,13 +17,4 @@
 
 # Temporary files
 *.tmp
-*.temp
 *.patch
-
-.env
-.env.local
-.env.test
-.env.testing
-/storage/
-public/storage/
-/internals/
