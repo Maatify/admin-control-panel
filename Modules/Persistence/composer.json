@@ -1,6 +1,20 @@
 {
   "name": "maatify/persistence",
-  "description": "Reusable persistence-layer utilities for Maatify projects.",
+  "description": "Standalone, framework-agnostic PDO scoped and global ordering utilities for Maatify projects.",
+  "keywords": [
+    "persistence",
+    "pdo",
+    "mysql",
+    "ordering",
+    "scoped-ordering",
+    "global-ordering",
+    "display-order",
+    "sort-order",
+    "transaction",
+    "php",
+    "maatify"
+  ],
+  "homepage": "https://github.com/Maatify/persistence",
   "type": "library",
   "license": "MIT",
   "autoload": {
@@ -43,11 +57,12 @@
   "authors": [
     {
       "name": "Maatify",
-      "email": "support@maatify.com"
+      "email": "support@maatify.com",
+      "homepage": "https://maatify.dev"
     }
   ],
   "support": {
-    "issues": "https://github.com/maatify/persistence/issues",
-    "source": "https://github.com/maatify/persistence"
+    "issues": "https://github.com/Maatify/persistence/issues",
+    "source": "https://github.com/Maatify/persistence"
   }
 }

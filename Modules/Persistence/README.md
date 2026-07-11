@@ -1,347 +1,217 @@
+<div align="center">
+
 # Maatify Persistence
 
-[![Latest Version](https://img.shields.io/packagist/v/maatify/persistence.svg?style=for-the-badge)](https://packagist.org/packages/maatify/persistence)
-[![PHP Version](https://img.shields.io/packagist/php-v/maatify/persistence.svg?style=for-the-badge)](https://packagist.org/packages/maatify/persistence)
-[![License](https://img.shields.io/packagist/l/maatify/persistence.svg?style=for-the-badge)](LICENSE)
+![Maatify.dev](https://www.maatify.dev/assets/img/img/maatify_logo_white.svg)
 
-![PHPStan](https://img.shields.io/badge/PHPStan-Level%20Max-4E8CAE)
+**Package status:**<br>
+[![Latest Version](https://img.shields.io/packagist/v/maatify/persistence.svg)](https://packagist.org/packages/maatify/persistence)
+[![PHP Version](https://img.shields.io/packagist/php-v/maatify/persistence.svg)](https://packagist.org/packages/maatify/persistence)
+[![License: MIT](https://img.shields.io/packagist/l/maatify/persistence.svg)](LICENSE)
+[![PHPStan: Level Max](https://img.shields.io/badge/PHPStan-level%20max-brightgreen.svg)](phpstan.neon)
 
-[![Changelog](https://img.shields.io/badge/Changelog-View-blue)](CHANGELOG.md)
-[![Security](https://img.shields.io/badge/Security-Policy-important)](SECURITY.md)
+**Documentation:**<br>
+[![Changelog](https://img.shields.io/badge/Changelog-View-blue.svg)](CHANGELOG.md)
+[![Package Reference](https://img.shields.io/badge/Reference-Read-blue.svg)](PERSISTENCE_PACKAGE_REFERENCE.md)
+[![Security Policy](https://img.shields.io/badge/Security-Policy-blue.svg)](SECURITY.md)
+[![Contributing Guide](https://img.shields.io/badge/Contributing-Guide-blue.svg)](CONTRIBUTING.md)
 
-![Monthly Downloads](https://img.shields.io/packagist/dm/maatify/persistence?label=Monthly%20Downloads&color=00A8E8)
-![Total Downloads](https://img.shields.io/packagist/dt/maatify/persistence?label=Total%20Downloads&color=2AA9E0)
+**Ecosystem and usage:**<br>
+[![Monthly Downloads](https://img.shields.io/packagist/dm/maatify/persistence)](https://packagist.org/packages/maatify/persistence)
+[![Total Downloads](https://img.shields.io/packagist/dt/maatify/persistence)](https://packagist.org/packages/maatify/persistence)
+[![Maatify Ecosystem](https://img.shields.io/badge/Maatify-Ecosystem-blueviolet)](https://github.com/Maatify)
+[![Install](https://img.shields.io/badge/Install-composer%20require%20maatify%2Fpersistence-blue)](https://packagist.org/packages/maatify/persistence)
 
-![Maatify Ecosystem](https://img.shields.io/badge/Maatify-Ecosystem-blueviolet?style=for-the-badge)
+*Standalone, framework-agnostic PDO utilities for Maatify projects, providing robust scoped and global ordering tools. Designed and verified for MySQL environments.*
 
-[![Install](https://img.shields.io/badge/Install-composer%20require%20maatify%2Fpersistence-blue?style=for-the-badge)](https://packagist.org/packages/maatify/persistence)
+</div>
 
-Reusable persistence-layer utilities for Maatify projects.
+---
 
-This package contains infrastructure-level helpers that are shared across repositories/modules, without coupling domain modules to each other.
+## 🚀 Key Features
 
-## Installation
+* **Global and Scoped Ordering**: Easily manage display order across an entire table or within a specific scope.
+* **Transaction Ownership**: Handles its own transactions and locks the necessary scope reliably.
+* **SQL Identifier Validation**: Ensures table and column configurations are safe and properly quoted.
+* **Soft-Delete Filtering**: Optional support for ignoring soft-deleted rows in ordering calculations.
+* **Scope Isolation**: Ensures only the affected range within the configured scope is updated.
+
+## ⚙️ Requirements
+
+**Runtime requirements:**
+* PHP `>= 8.2`
+* `ext-pdo`
+* `maatify/exceptions ^1.0`
+
+**Database behavior:**
+* The package behavior is designed and verified against MySQL.
+
+## 📦 Installation
 
 ```bash
 composer require maatify/persistence
-````
-
-## Requirements
-
-* PHP `>= 8.2`
-* PDO extension
-
-## Namespace
-
-```php
-Maatify\Persistence
 ```
 
-## Current Components
-
-### PDO Ordering
-
-The package currently provides a scoped ordering manager for tables that use integer ordering columns such as `display_order`.
-
-```php
-Maatify\Persistence\Pdo\Ordering\ScopedOrderingConfig;
-Maatify\Persistence\Pdo\Ordering\ScopedOrderingManager;
-```
-
-It supports:
-
-* Global ordering across a whole table.
-* Scoped ordering, for example ordering records per `method_id`, `product_id`, `category_id`, etc.
-* Optional soft-delete filtering via `deleted_at IS NULL`.
-* Safe SQL identifier validation for table and column names.
-* Self-owned transactions for reorder operations.
-* Scope locking with `SELECT ... FOR UPDATE` during reorder operations.
-* Custom package exceptions.
-
----
-
-## Ordering Configuration
-
-Use `ScopedOrderingConfig` to describe the table and columns used for ordering.
+## ⚡ Quick Usage
 
 ```php
 use Maatify\Persistence\Pdo\Ordering\ScopedOrderingConfig;
+use Maatify\Persistence\Pdo\Ordering\ScopedOrderingManager;
 
+// 1. Configure the ordering behavior for a table
 $config = new ScopedOrderingConfig(
     table: 'maa_shipping_rates',
-    scopeColumn: 'method_id',
+    scopeColumn: 'method_id', // Use null for global ordering
     idColumn: 'id',
     orderColumn: 'display_order',
-    deletedAtColumn: 'deleted_at',
+    deletedAtColumn: 'deleted_at', // Use null if soft-deletes are not used
 );
-```
-
-### Constructor Arguments
-
-| Argument          |      Type |         Default | Description                                                    |
-| ----------------- | --------: | --------------: | -------------------------------------------------------------- |
-| `table`           |  `string` |        required | Trusted table identifier. Supports `table` or `schema.table`.  |
-| `scopeColumn`     | `?string` |          `null` | Optional scope column. Example: `method_id`.                   |
-| `idColumn`        |  `string` |            `id` | Primary key column.                                            |
-| `orderColumn`     |  `string` | `display_order` | Ordering column.                                               |
-| `deletedAtColumn` | `?string` |    `deleted_at` | Soft-delete column. Use `null` for tables without soft delete. |
-
-### Important
-
-Table and column names are SQL identifiers and cannot be bound as PDO parameters.
-
-`ScopedOrderingConfig` validates and quotes identifiers internally, but identifiers must still be trusted application constants, never raw user input.
-
-Allowed table identifiers:
-
-```text
-table
-schema.table
-```
-
-Allowed column identifiers:
-
-```text
-column_name
-```
-
----
-
-## Getting the Next Position
-
-```php
-use Maatify\Persistence\Pdo\Ordering\ScopedOrderingManager;
 
 $ordering = new ScopedOrderingManager();
 
+// 2. Get the next position for a new insert
 $nextPosition = $ordering->getNextPosition(
     pdo: $pdo,
     config: $config,
-    scopeValue: 12,
-);
-```
-
-For global ordering:
-
-```php
-$config = new ScopedOrderingConfig(
-    table: 'maa_shipping_methods',
-    scopeColumn: null,
-    idColumn: 'id',
-    orderColumn: 'display_order',
-    deletedAtColumn: null,
+    scopeValue: 2, // Use null for global ordering
 );
 
-$nextPosition = $ordering->getNextPosition(
-    pdo: $pdo,
-    config: $config,
-    scopeValue: null,
-);
-```
-
-### Concurrency Note
-
-`getNextPosition()` does not start a transaction and does not lock the scope.
-
-If used for concurrent inserts, call it from a caller-owned transaction with appropriate repository/application-level locking.
-
----
-
-## Moving a Row Within Scope
-
-```php
+// 3. Move an existing row within its scope
 $success = $ordering->moveWithinScope(
     pdo: $pdo,
     config: $config,
-    scopeValue: 12,
-    id: 55,
-    newOrder: 3,
-);
-```
-
-### Behavior
-
-`moveWithinScope()`:
-
-1. Starts its own transaction.
-2. Locks all rows in the configured ordering scope using `SELECT ... FOR UPDATE`.
-3. Reads the target row's current order from the database.
-4. Clamps `newOrder` to the current maximum position in the scope.
-5. Shifts affected rows up or down.
-6. Updates the target row to the final order.
-7. Commits the transaction.
-
-It does **not** trust a caller-provided current order.
-
-### Return Values
-
-|  Return | Meaning                                            |
-| ------: | -------------------------------------------------- |
-|  `true` | Move succeeded.                                    |
-|  `true` | Row was already at the requested/clamped position. |
-| `false` | Target row does not exist in the configured scope. |
-| `false` | Target row could not be updated.                   |
-
-### Transaction Ownership
-
-`moveWithinScope()` owns its transaction.
-
-It must be called outside active PDO transactions.
-
-If an active transaction already exists, it throws:
-
-```php
-Maatify\Persistence\Exception\OrderingTransactionException
-```
-
----
-
-## Checking Row Existence
-
-```php
-$exists = $ordering->rowExistsInScope(
-    pdo: $pdo,
-    config: $config,
-    scopeValue: 12,
-    id: 55,
-);
-```
-
-If `deletedAtColumn` is configured, soft-deleted rows are treated as non-existing.
-
----
-
-## Examples
-
-### Global Ordering
-
-```php
-use Maatify\Persistence\Pdo\Ordering\ScopedOrderingConfig;
-use Maatify\Persistence\Pdo\Ordering\ScopedOrderingManager;
-
-$config = new ScopedOrderingConfig(
-    table: 'maa_shipping_methods',
-    scopeColumn: null,
-    idColumn: 'id',
-    orderColumn: 'display_order',
-    deletedAtColumn: null,
-);
-
-$ordering = new ScopedOrderingManager();
-
-$next = $ordering->getNextPosition($pdo, $config);
-
-$ordering->moveWithinScope(
-    pdo: $pdo,
-    config: $config,
-    scopeValue: null,
-    id: 5,
-    newOrder: 1,
-);
-```
-
-### Scoped Ordering
-
-```php
-use Maatify\Persistence\Pdo\Ordering\ScopedOrderingConfig;
-use Maatify\Persistence\Pdo\Ordering\ScopedOrderingManager;
-
-$config = new ScopedOrderingConfig(
-    table: 'maa_shipping_rates',
-    scopeColumn: 'method_id',
-    idColumn: 'id',
-    orderColumn: 'display_order',
-    deletedAtColumn: 'deleted_at',
-);
-
-$ordering = new ScopedOrderingManager();
-
-$next = $ordering->getNextPosition(
-    pdo: $pdo,
-    config: $config,
-    scopeValue: 2,
-);
-
-$ordering->moveWithinScope(
-    pdo: $pdo,
-    config: $config,
-    scopeValue: 2,
+    scopeValue: 2, // Use null for global ordering
     id: 15,
     newOrder: 4,
 );
 ```
 
----
+### Note on `getNextPosition()` Concurrency
+`getNextPosition()` does not start a transaction and does not lock the scope. When using it for concurrent inserts, the host application must provide an appropriate transaction and locking mechanism at the repository/application level.
 
-## Exceptions
+## 🧩 Public Runtime API
 
-All package exceptions implement:
-
-```php
-Maatify\Persistence\Exception\PersistenceException
-```
-
-### Available Exceptions
-
-| Exception                               | Meaning                                                                                         |
-| --------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `InvalidOrderingConfigurationException` | Invalid table/column identifier or unsafe ordering configuration.                               |
-| `InvalidOrderingOperationException`     | Invalid runtime operation arguments, such as invalid id, invalid order, or invalid scope usage. |
-| `OrderingTransactionException`          | `moveWithinScope()` was called while a PDO transaction was already active.                      |
-
-Example:
+The package currently provides the following public classes for PDO ordering:
 
 ```php
-use Maatify\Persistence\Exception\PersistenceException;
+Maatify\Persistence\Pdo\Ordering\ScopedOrderingConfig;
+Maatify\Persistence\Pdo\Ordering\ScopedOrderingManager;
 
-try {
-    $ordering->moveWithinScope(
-        pdo: $pdo,
-        config: $config,
-        scopeValue: 2,
-        id: 15,
-        newOrder: 4,
-    );
-} catch (PersistenceException $e) {
-    // Handle package-level persistence exception.
-}
+// Exceptions
+Maatify\Persistence\Exception\PersistenceException;
+Maatify\Persistence\Exception\InvalidOrderingConfigurationException;
+Maatify\Persistence\Exception\InvalidOrderingOperationException;
+Maatify\Persistence\Exception\OrderingTransactionException;
 ```
 
----
+## ⚠️ Critical Runtime Behavior
 
-## Design Notes
+**`moveWithinScope()`:**
+* Rejects inconsistent scope usage.
+* Rejects `id <= 0`.
+* Rejects `newOrder <= 0`.
+* Rejects caller-owned active PDO transactions.
+* Owns its own transaction.
+* Locks the applicable active scope using `SELECT ... FOR UPDATE`.
+* Reads the current order from the database within the same transaction.
+* Does not trust a current order provided by the caller.
+* Returns `false` if the target row is missing.
+* Clamps values higher than the maximum position to the maximum available position.
+* Returns `true` if the movement is a no-op (already at the requested position).
+* Moves only the affected range.
+* Does not globally normalize pre-existing gaps.
+* Rolls back and returns `false` if the final target update fails.
+* Rolls back on any Throwable after starting the transaction.
+* Rethrows the original Throwable without arbitrary wrapping.
 
-### Why not static methods?
+**`rowExistsInScope()`:**
+* Returns `false` for `id <= 0`.
+* Returns `false` if the row is not found within the configured scope.
+* Treats soft-deleted rows as non-existent if `deletedAtColumn` is configured.
+* Throws `InvalidOrderingOperationException` on invalid scope usage.
+* External PDO errors propagate unmodified.
 
-`ScopedOrderingManager` is intentionally a service class, not a static helper.
+## 🏛️ Architecture Guarantees
 
-This makes it easier to:
+* Standalone Composer package.
+* Framework-agnostic.
+* Host-agnostic.
+* PDO-based.
+* No ORM.
+* No framework bindings.
+* No HTTP endpoints, UI, controllers, or routes.
+* No host table ownership.
+* No generic application repository abstraction.
+* The host provides the PDO connection.
+* Trusted SQL identifiers.
+* Runtime values use prepared statements.
 
-* Inject through a container.
-* Test in isolation.
-* Replace or decorate later.
-* Add logging or driver-specific behavior in the future.
+## 🛡️ Exception and Error Propagation
 
-### Why pass PDO per call?
+All package-defined exceptions implement the marker interface `Maatify\Persistence\Exception\PersistenceException`. However, this interface is not a catch-all. `PDOException` or other external `Throwable`s may propagate without wrapping and require a separate catch or an outer `Throwable` boundary if handling is needed.
 
-The manager is stateless. Passing `PDO` per call allows the same manager instance to be reused with different connections.
+## 🔐 Security and Trust Boundaries
 
----
+The `ScopedOrderingConfig` validates and quotes all configured table and column identifiers. However, these identifiers **must** still be provided as trusted application configurations (e.g., constants), never as raw user input. All actual runtime values are safely passed using PDO prepared statements.
 
-## Development
+## 📚 Documentation
 
-Run static analysis:
+For a comprehensive guide, please refer to the main technical reference:
+* [Persistence Package Reference](PERSISTENCE_PACKAGE_REFERENCE.md)
+
+Other important documentation:
+* [Changelog](CHANGELOG.md)
+* [Security Policy](SECURITY.md)
+* [Contributing Guide](CONTRIBUTING.md)
+* [Code of Conduct](CODE_OF_CONDUCT.md)
+* [Package Building Standard](docs/standards/PACKAGE_BUILDING_STANDARD.md)
+* [CI Workflow Standard](docs/standards/CI_WORKFLOW_STANDARD.md)
+* [Library Presentation Standard](docs/standards/LIBRARY_PRESENTATION_STANDARD.md)
+
+## ✅ Quality Status
+
+* PHP 8.2–8.5 verification in CI.
+* PHPStan Level Max.
+* Unit, Regression, and MySQL Integration tests.
+* Lowest dependencies verification.
+* Stable CI Gate.
+
+**Integration testing:**
+* Real MySQL is required for Integration tests.
+* SQLite is not an Integration substitute.
+* MySQL `8.4.10` is the currently verified CI baseline.
+
+## 🛠️ Development and Testing
 
 ```bash
+composer validate --strict
 composer analyse
+composer test:unit
+composer test:regression
+vendor/bin/php-cs-fixer fix --dry-run --diff
 ```
 
-Run tests:
+`composer test:integration` and `composer test` require a real MySQL database. SQLite is explicitly **not** an integration substitute.
 
-```bash
-composer test
-```
+Set the following environment variables for Integration tests:
+* `PERSISTENCE_TEST_MYSQL_DSN`
+* `PERSISTENCE_TEST_MYSQL_USER`
+* `PERSISTENCE_TEST_MYSQL_PASSWORD`
 
-## License
+## 📄 License
 
-MIT
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👤 Author
+
+Engineered by **Mohamed Abdulalim** ([@megyptm](https://github.com/megyptm))<br>
+Backend Lead & Technical Architect<br>
+[https://www.maatify.dev](https://www.maatify.dev)
+
+---
+
+<div align="center">
+
+[Built with ❤️ by Maatify.dev — Unified Ecosystem for Modern PHP Libraries](https://www.maatify.dev)
+
+</div>

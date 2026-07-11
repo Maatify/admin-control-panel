@@ -68,6 +68,8 @@ Rules:
 
 ## 5. Composer Validation and Dependency Resolution
 
+The canonical construction and package-level contract of `composer.json` is defined by [COMPOSER_PACKAGE_STANDARD.md](COMPOSER_PACKAGE_STANDARD.md). This section governs how that contract is verified in CI.
+
 Composer validation MUST use:
 ```bash
 composer validate --strict
