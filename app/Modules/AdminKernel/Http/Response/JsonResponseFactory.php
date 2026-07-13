@@ -11,7 +11,7 @@ use Psr\Http\Message\ResponseInterface;
 final class JsonResponseFactory
 {
     /**
-     * @param array<string,mixed>|JsonSerializable $data
+     * @param array<array-key, mixed>|JsonSerializable $data
      */
     public function data(
         ResponseInterface $response,
