@@ -1,5 +1,3 @@
-دي النسخة المصححة بعد إدخال الملاحظات الأخيرة بالكامل، خصوصًا **Restore Safety، إضافة/إزالة الـOptions مع Immutable Variants، الفصل النهائي بين Stock وPricing، Barcode lifecycle، Logical Identity immutability، والـBase Price invariant**. وهي مبنية على آخر Final Review Candidate.
-
 # Catalog V1 Database Architecture — Locked
 
 **Host-Agnostic Product Catalog Engine**
@@ -1491,11 +1489,10 @@ Restore لأي Primary Media يجب أن يحل أي Conflict موجود داخ�
 كل الجداول:
 
 ```text
-ENGINE = InnoDB
-CHARSET = utf8mb4
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_unicode_ci
 ```
-
-Collation تتبع Canonical Collation المعتمدة بالمشروع.
 
 كل PK:
 
@@ -1570,6 +1567,14 @@ PRIMARY KEY(id)
 UNIQUE(category_id, language_code)
 ```
 
+FK:
+
+```text
+category_id → maa_catalog_categories.id
+ON DELETE RESTRICT
+ON UPDATE RESTRICT
+```
+
 ---
 
 ## 56.3 `maa_catalog_products`
@@ -1615,6 +1620,14 @@ PRIMARY KEY(id)
 UNIQUE(product_id, language_code)
 ```
 
+FK:
+
+```text
+product_id → maa_catalog_products.id
+ON DELETE RESTRICT
+ON UPDATE RESTRICT
+```
+
 ---
 
 ## 56.5 `maa_catalog_product_categories`
@@ -1632,6 +1645,18 @@ UNIQUE(product_id, language_code)
 ```text
 PRIMARY KEY(id)
 UNIQUE(product_id, category_id)
+```
+
+FK:
+
+```text
+product_id → maa_catalog_products.id
+ON DELETE RESTRICT
+ON UPDATE RESTRICT
+
+category_id → maa_catalog_categories.id
+ON DELETE RESTRICT
+ON UPDATE RESTRICT
 ```
 
 ---
@@ -1655,6 +1680,14 @@ UNIQUE(product_id, code)
 CHECK(status IN ('active','inactive'))
 ```
 
+FK:
+
+```text
+product_id → maa_catalog_products.id
+ON DELETE RESTRICT
+ON UPDATE RESTRICT
+```
+
 ---
 
 ## 56.7 `maa_catalog_product_option_translations`
@@ -1672,6 +1705,14 @@ CHECK(status IN ('active','inactive'))
 ```text
 PRIMARY KEY(id)
 UNIQUE(option_id, language_code)
+```
+
+FK:
+
+```text
+option_id → maa_catalog_product_options.id
+ON DELETE RESTRICT
+ON UPDATE RESTRICT
 ```
 
 ---
@@ -1695,6 +1736,14 @@ UNIQUE(option_id, code)
 CHECK(status IN ('active','inactive'))
 ```
 
+FK:
+
+```text
+option_id → maa_catalog_product_options.id
+ON DELETE RESTRICT
+ON UPDATE RESTRICT
+```
+
 ---
 
 ## 56.9 `maa_catalog_product_option_value_translations`
@@ -1712,6 +1761,14 @@ CHECK(status IN ('active','inactive'))
 ```text
 PRIMARY KEY(id)
 UNIQUE(option_value_id, language_code)
+```
+
+FK:
+
+```text
+option_value_id → maa_catalog_product_option_values.id
+ON DELETE RESTRICT
+ON UPDATE RESTRICT
 ```
 
 ---
@@ -1739,6 +1796,14 @@ CHECK(is_default IN (0,1))
 CHECK(status IN ('active','inactive'))
 ```
 
+FK:
+
+```text
+product_id → maa_catalog_products.id
+ON DELETE RESTRICT
+ON UPDATE RESTRICT
+```
+
 ---
 
 ## 56.11 `maa_catalog_variant_option_values`
@@ -1756,6 +1821,22 @@ CHECK(status IN ('active','inactive'))
 ```text
 PRIMARY KEY(id)
 UNIQUE(variant_id, option_id)
+```
+
+FK:
+
+```text
+variant_id → maa_catalog_variants.id
+ON DELETE RESTRICT
+ON UPDATE RESTRICT
+
+option_id → maa_catalog_product_options.id
+ON DELETE RESTRICT
+ON UPDATE RESTRICT
+
+option_value_id → maa_catalog_product_option_values.id
+ON DELETE RESTRICT
+ON UPDATE RESTRICT
 ```
 
 Composition Immutable after Variant creation.
@@ -1780,6 +1861,14 @@ UNIQUE(product_id, currency_code)
 CHECK(base_price >= 0)
 ```
 
+FK:
+
+```text
+product_id → maa_catalog_products.id
+ON DELETE RESTRICT
+ON UPDATE RESTRICT
+```
+
 ---
 
 ## 56.13 `maa_catalog_option_value_price_adjustments`
@@ -1799,6 +1888,14 @@ PRIMARY KEY(id)
 UNIQUE(option_value_id, currency_code)
 ```
 
+FK:
+
+```text
+option_value_id → maa_catalog_product_option_values.id
+ON DELETE RESTRICT
+ON UPDATE RESTRICT
+```
+
 ---
 
 ## 56.14 `maa_catalog_variant_inventory`
@@ -1816,6 +1913,14 @@ UNIQUE(option_value_id, currency_code)
 PRIMARY KEY(id)
 UNIQUE(variant_id)
 CHECK(quantity_on_hand >= 0)
+```
+
+FK:
+
+```text
+variant_id → maa_catalog_variants.id
+ON DELETE RESTRICT
+ON UPDATE RESTRICT
 ```
 
 ---
@@ -1841,6 +1946,18 @@ CHECK(quantity_on_hand >= 0)
 ```text
 PRIMARY KEY(id)
 CHECK(is_primary IN (0,1))
+```
+
+FK:
+
+```text
+product_id → maa_catalog_products.id
+ON DELETE RESTRICT
+ON UPDATE RESTRICT
+
+variant_id → maa_catalog_variants.id
+ON DELETE RESTRICT
+ON UPDATE RESTRICT
 ```
 
 ---
