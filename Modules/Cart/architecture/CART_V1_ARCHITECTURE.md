@@ -115,10 +115,15 @@
 ### 4.1 التخزين الرئيسي للـ Cart (Root Cart DTO)
 يمثل حالة الـ Cart الإجمالية:
 - `CartStorageDTO`
-  - `items`: قائمة بـ `CartItemStorageDTO`
+  - `items`: `CartItemStorageCollectionDTO`
   - *(أي بيانات أخرى مملوكة للمتصفح مثل تفضيلات العملة المبدئية)*
 
-### 4.2 عنصر الـ Cart (Cart Item Storage DTO)
+### 4.2 مجموعة عناصر الـ Cart (Cart Item Storage Collection DTO)
+يمثل مجموعة العناصر لتجنب استخدام المصفوفات الخام (Raw arrays/lists) في العقود:
+- `CartItemStorageCollectionDTO`
+  - يحتوي على مجموعة من الـ `CartItemStorageDTO`
+
+### 4.3 عنصر الـ Cart (Cart Item Storage DTO)
 يمثل العنصر الفردي داخل الـ Cart:
 - `CartItemStorageDTO`
   - `variantId` (المعرف المرجعي للـ Variant)
