@@ -151,8 +151,9 @@ Browser Cart
 يُمنع وصول Orders إلى جداول Catalog بشكل مباشر. كما يجب ألا يعلم Catalog بأي شيء عن الـ `order_id` أو الدفع.
 - تُدار جميع عمليات إنشاء الطلب (التدقيق، الحجز، التحديثات المشتركة، وإنشاء اللقطات) كعملية ذرية واحدة (All-or-nothing).
 - **التنسيق المشترك:** يمتلك منسق الدفع في التطبيق (Host/Application Checkout Coordinator) مسؤولية التنسيق المباشر.
-- **التجريد (Transaction abstraction):** يتم الاعتماد على مكتبة `maatify/persistence` لضمان أن التحديثات تشارك في نفس الـ PDO connection ونفس الـ Database transaction بشكل متداخل وآمن (Nested-safe participation).
+- **التجريد (Transaction abstraction):** سيتم الاعتماد مستقبلاً على مكتبة `maatify/persistence` لتوفير تجريد يضمن مشاركة التحديثات في نفس الـ PDO connection ونفس الـ Database transaction بشكل متداخل وآمن (Nested-safe participation). (هذا التجريد هو متطلب تنفيذ مستقبلي، ولا تقدم المكتبة هذه الميزة حاليًا).
 - يجب على أي موديول ينضم لمعاملة قائمة ألا يقوم بعمل `commit` أو `rollback` مستقل؛ المالك الوحيد (Coordinator) هو المتحكم النهائي في إتمام أو تراجع المعاملة.
+- لا توجد حاجة لمعاملات موزعة (Distributed transactions) أو Two-phase commit، فالعملية تتم بالكامل عبر اتصال قاعدة بيانات واحد.
 
 ---
 
@@ -229,8 +230,8 @@ Browser Cart
 ## 11. القرارات المقفولة / متطلبات التنفيذ (Locked Decisions / Implementation Prerequisites)
 
 تم حسم جميع القرارات المعمارية وتم قفل المستند. تبقى الملاحظات التالية كمتطلبات للتنفيذ المستقبلي:
-- بناء دعم المعاملات الموزعة والتجريد في مكتبة `maatify/persistence` يظل خطوة تنفيذية قادمة ولن يتم تفصيل الـ API الخاصة به في هذه الوثيقة.
-- تنفيذ سير عمل التجهيز والشحن الفعلي (Shipping/Fulfillment runtime implementation) وتحديث الـ `shipment_reference` يُعتبر عملاً مستقبلياً خارج نطاق إنشاء السجل الأساسي V1 للطلب.
+- بناء تجريد المعاملات (لضمان نفس اتصال PDO ونفس المعاملة) في مكتبة `maatify/persistence` يظل خطوة تنفيذية قادمة ولن يتم تفصيل الـ API الخاصة به في هذه الوثيقة. (لا تتطلب المعمارية معاملات موزعة Distributed Transactions أو Two-phase Commit).
+- تنفيذ سير عمل التجهيز والشحن الفعلي (Shipping/Fulfillment runtime implementation) وتحديث الـ `shipment_reference` يُعتبر عملاً مستقبلياً خارج نطاق إنشاء السجل الأساسي V1 للطلب. يبدأ الحقل كـ `NULL` عند إنشاء الطلب، وقد يتم تعبئته لاحقاً كبيانات تشغيلية (Operational data)، مع التأكيد على عدم إضافة حالات شحن جديدة أو تصميم شحنات متعددة في هذا الإصدار.
 
 
 ## 12. محددات قاعدة البيانات (Database Invariants)
@@ -368,7 +369,7 @@ Browser Cart
 - `provider_code` (VARCHAR(100), NULL)
 - `service_code` (VARCHAR(100), NULL)
 - `method_name` (VARCHAR(255), NOT NULL)
-- `shipment_reference` (VARCHAR(100), NULL): يبدأ كـ `NULL` وقت الدفع ويتم تعبئته لاحقاً عبر عمليات التجهيز (لا تُضاف حالات أو سجلات شحنات أخرى ضمن Orders V1).
+- `shipment_reference` (VARCHAR(100), NULL): قد يكون `NULL` عند إنشاء الطلب ويتم تعبئته لاحقاً كبيانات شحن تشغيلية. (يُمنع إضافة حالات شحن إضافية أو تصميم شحنات متعددة Multi-shipment ضمن هذا الإصدار).
 - `created_at` (DATETIME, NOT NULL)
 - `updated_at` (DATETIME, NOT NULL)
 
