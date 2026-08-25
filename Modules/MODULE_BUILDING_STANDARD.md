@@ -97,7 +97,9 @@ src/
 - Every table needs: `PRIMARY KEY (id)`, proper indexes, meaningful COMMENTs on columns
 - All policies (soft delete, display order, FK behavior, uniqueness) documented in the SQL header
 - No FK constraints on host tables — use `COMMENT 'Host-provided ID. No FK.'`
+
 - Soft delete: `deleted_at DATETIME NULL` — `NULL = active`, `NOT NULL = soft-deleted`
+  - **Explicit Architecture Exception:** While soft delete remains the default rule for normal mutable CRUD-oriented module records, a module's own authoritative/locked architecture MAY explicitly define some records as append-only, immutable historical, ledger-like, or otherwise intentionally non-deletable at normal runtime. When such an explicit module architecture exists, `deleted_at` may intentionally be omitted for those records. Normal runtime soft delete and/or hard delete must follow the module-specific architecture; lifecycle, retention, anonymization, archival, or physical purge policy belongs to that module's own architecture.
 - Hard delete: always in a transaction with any required cleanup (e.g. compact display_order)
 - Split schema into logical files if restrictions or addons exist separately
 
