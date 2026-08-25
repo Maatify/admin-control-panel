@@ -115,8 +115,15 @@ Browser Cart
 - `released`
 - `expired`
 
-- يتم حفظ موعد انتهاء الحجز المطلق في الطلب كـ `reservation_expires_at`.
-- تغيير إعدادات مدة الحجز لاحقًا في الـ Host لا يؤثر على الطلبات الموجودة.
+- يتم الحجز لكل (Order Item / Variant).
+- **دورة حياة الحجز (Lifecycle):**
+  - عند نجاح الحجز: يتم إنقاص مخزون الكتالوج (`Catalog quantity_on_hand -= reserved quantity`) وحالة الحجز تصبح `reserved`.
+  - عند نجاح الدفع: `reserved` → `consumed`. (لا يتم إنقاص الكتالوج مرة أخرى).
+  - عند الإلغاء قبل الدفع: `reserved` → `released` ويزداد الكتالوج (`Catalog quantity_on_hand += reserved quantity`).
+  - عند انتهاء الحجز: `reserved` → `expired` ويزداد الكتالوج (`Catalog quantity_on_hand += reserved quantity`).
+- يجب أن تكون جميع عمليات `consume/release/expire` غير قابلة للتكرار (idempotent) وتؤثر على المخزون مرة واحدة فقط.
+- يُمنع البيع الزائد (No overselling).
+- يتم تنسيق العمليات والتحديثات من خلال `Host/Application Coordinator` ولا يجوز لـ Orders تحديث جداول Catalog بشكل مباشر.
 
 ---
 
@@ -184,6 +191,8 @@ Browser Cart
 
 يجب أن تعتمد هذه الجداول محرك `InnoDB` بترميز `utf8mb4_unicode_ci`، واستخدام توقيتات UTC مدارة من التطبيق.
 
+*(ملاحظة: سياسة وجود عمود `deleted_at` للحذف المرن تبقى معلقة حتى حسم سياسة السجل التجاري المذكورة في القرارات المعلقة).*
+
 ---
 
 ## 11. القرارات المعمارية المعلقة (Unresolved Decisions)
@@ -208,7 +217,7 @@ Browser Cart
 - **وحدانية مرجع الطلب (Order reference uniqueness):** يجب أن يكون `order_reference` فريدًا كليًا (UNIQUE constraint).
 - **عدم التكرار (Checkout idempotency uniqueness):** يجب أن يكون `checkout_idempotency_key` فريدًا لكل طلب (UNIQUE constraint).
 - **تأمين حالة الطلب (Valid Order statuses):** مقيد بـ CHECK constraint (أو تطبيق صارم في الـ Repository في حال عدم دعم CHECK) لضمان القيم `pending_payment`, `confirmed`, `processing`, `completed`, `cancelled`, `expired` فقط.
-- **وحدانية لقطة الترجمة (Translation snapshot uniqueness):** لكل عنصر (Item/Option Value)، لا يجوز تكرار الترجمة لنفس `language_id` (UNIQUE constraint).
+- **وحدانية لقطة الترجمة (Translation snapshot uniqueness):** لكل عنصر (Item/Option Value)، لا يجوز تكرار الترجمة لنفس `language_code` (UNIQUE constraint).
 - **وحدانية الحجز (One logical reservation per Order Item):** يجب أن يكون هناك حجز نشط واحد فقط مرتبط بسطر الطلب.
 - **الكميات الإيجابية (Positive quantities):** كميات العناصر يجب أن تكون > 0 (CHECK constraint).
 - **القيم المالية (Nonnegative commercial money values):** جميع الحقول المالية (subtotal, shipping, total) يجب أن تكون >= 0 (CHECK constraint).
@@ -239,7 +248,7 @@ Browser Cart
 
 ### 13.1 `maa_orders_orders`
 **الغرض:** تخزين السجل التجاري الرئيسي للطلب.
-- `id` (INT UNSIGNED, AUTO_INCREMENT, PK)
+- `id` (BIGINT UNSIGNED, AUTO_INCREMENT, PK)
 - `order_reference` (VARCHAR(64), UNIQUE, NOT NULL): معرّف عشوائي آمن للعرض.
 - `checkout_idempotency_key` (VARCHAR(128), UNIQUE, NOT NULL)
 - `checkout_request_fingerprint` (VARCHAR(128), NOT NULL)
@@ -247,23 +256,27 @@ Browser Cart
 - `subtotal_amount` (DECIMAL(20,6), NOT NULL, CHECK >= 0)
 - `shipping_amount` (DECIMAL(20,6), NOT NULL, CHECK >= 0)
 - `total_amount` (DECIMAL(20,6), NOT NULL, CHECK >= 0)
-- `checkout_language_code` (CHAR(2), NULL)
+- `currency_code` (CHAR(3), NOT NULL): رمز العملة (ISO 4217) المرجعي للسجل (No FK).
+- `checkout_language_code` (VARCHAR(16), NULL): (BCP-47)
+- `reservation_expires_at` (DATETIME, NOT NULL)
 - `created_at` (DATETIME, NOT NULL)
-- `updated_at` (DATETIME, NULL)
-**الفهارس:** `idx_orders_status`
+- `updated_at` (DATETIME, NOT NULL)
+**الفهارس:** `idx_orders_status_created` (`status`, `created_at`), `idx_orders_reservation_expiry` (`status`, `reservation_expires_at`, `id`)
 
 ### 13.2 `maa_orders_order_contacts`
 **الغرض:** لقطة بيانات الزائر المستقلة.
-- `id` (INT UNSIGNED, AUTO_INCREMENT, PK)
-- `order_id` (INT UNSIGNED, NOT NULL, UNIQUE, FK -> `maa_orders_orders` ON DELETE CASCADE)
+- `id` (BIGINT UNSIGNED, AUTO_INCREMENT, PK)
+- `order_id` (BIGINT UNSIGNED, NOT NULL, UNIQUE, FK -> `maa_orders_orders` ON DELETE RESTRICT ON UPDATE RESTRICT)
 - `full_name` (VARCHAR(255), NOT NULL)
 - `email` (VARCHAR(255), NULL): *(ينتظر حسم الإلزامية)*
 - `phone` (VARCHAR(50), NULL): *(ينتظر حسم الإلزامية)*
+- `created_at` (DATETIME, NOT NULL)
+- `updated_at` (DATETIME, NOT NULL)
 
 ### 13.3 `maa_orders_order_shipping_addresses`
 **الغرض:** لقطة عنوان الشحن المختار.
-- `id` (INT UNSIGNED, AUTO_INCREMENT, PK)
-- `order_id` (INT UNSIGNED, NOT NULL, UNIQUE, FK -> `maa_orders_orders` ON DELETE CASCADE)
+- `id` (BIGINT UNSIGNED, AUTO_INCREMENT, PK)
+- `order_id` (BIGINT UNSIGNED, NOT NULL, UNIQUE, FK -> `maa_orders_orders` ON DELETE RESTRICT ON UPDATE RESTRICT)
 - `recipient_name` (VARCHAR(255), NOT NULL)
 - `recipient_phone` (VARCHAR(50), NOT NULL)
 - `country_code` (CHAR(2), NOT NULL): مرجع تاريخي لـ Geo.
@@ -274,65 +287,77 @@ Browser Cart
 - `district` (VARCHAR(100), NULL)
 - `postal_code` (VARCHAR(50), NULL)
 - `delivery_instructions` (TEXT, NULL)
+- `created_at` (DATETIME, NOT NULL)
+- `updated_at` (DATETIME, NOT NULL)
 
 ### 13.4 `maa_orders_order_shipping_address_translations`
 **الغرض:** ترجمات بيانات المدينة/الدولة التاريخية وقت إنشاء الطلب.
-- `id` (INT UNSIGNED, AUTO_INCREMENT, PK)
-- `address_id` (INT UNSIGNED, NOT NULL, FK -> `maa_orders_order_shipping_addresses` ON DELETE CASCADE)
-- `language_id` (INT UNSIGNED, NOT NULL)
+- `id` (BIGINT UNSIGNED, AUTO_INCREMENT, PK)
+- `address_id` (BIGINT UNSIGNED, NOT NULL, FK -> `maa_orders_order_shipping_addresses` ON DELETE RESTRICT ON UPDATE RESTRICT)
+- `language_code` (VARCHAR(16), NOT NULL): (BCP-47)
 - `country_name` (VARCHAR(100), NOT NULL)
 - `city_name` (VARCHAR(100), NULL)
-**القيود:** UNIQUE KEY (`address_id`, `language_id`)
+- `created_at` (DATETIME, NOT NULL)
+- `updated_at` (DATETIME, NOT NULL)
+**القيود:** UNIQUE KEY (`address_id`, `language_code`)
 
 ### 13.5 `maa_orders_order_items`
 **الغرض:** سجلات العناصر المطلوبة.
-- `id` (INT UNSIGNED, AUTO_INCREMENT, PK)
-- `order_id` (INT UNSIGNED, NOT NULL, FK -> `maa_orders_orders` ON DELETE CASCADE)
-- `product_id` (INT UNSIGNED, NOT NULL): مرجع تاريخي لـ Catalog.
+- `id` (BIGINT UNSIGNED, AUTO_INCREMENT, PK)
+- `order_id` (BIGINT UNSIGNED, NOT NULL, FK -> `maa_orders_orders` ON DELETE RESTRICT ON UPDATE RESTRICT)
+- `product_id` (BIGINT UNSIGNED, NOT NULL): مرجع تاريخي لـ Catalog.
 - `product_code` (VARCHAR(100), NOT NULL)
-- `variant_id` (INT UNSIGNED, NOT NULL): مرجع تاريخي لـ Catalog.
+- `variant_id` (BIGINT UNSIGNED, NOT NULL): مرجع تاريخي لـ Catalog.
 - `sku` (VARCHAR(100), NOT NULL)
 - `base_unit_price` (DECIMAL(20,6), NOT NULL, CHECK >= 0)
 - `unit_price` (DECIMAL(20,6), NOT NULL, CHECK >= 0)
 - `quantity` (INT UNSIGNED, NOT NULL, CHECK > 0)
 - `line_total` (DECIMAL(20,6), NOT NULL, CHECK >= 0)
+- `created_at` (DATETIME, NOT NULL)
+- `updated_at` (DATETIME, NOT NULL)
+**القيود:** UNIQUE KEY (`order_id`, `variant_id`)
+**الفهارس:** `idx_order_items_order_id` (`order_id`)
 
 ### 13.6 `maa_orders_order_item_translations`
 **الغرض:** لقطة لجميع ترجمات المنتج المطلوبة.
-- `id` (INT UNSIGNED, AUTO_INCREMENT, PK)
-- `order_item_id` (INT UNSIGNED, NOT NULL, FK -> `maa_orders_order_items` ON DELETE CASCADE)
-- `language_id` (INT UNSIGNED, NOT NULL)
+- `id` (BIGINT UNSIGNED, AUTO_INCREMENT, PK)
+- `order_item_id` (BIGINT UNSIGNED, NOT NULL, FK -> `maa_orders_order_items` ON DELETE RESTRICT ON UPDATE RESTRICT)
+- `language_code` (VARCHAR(16), NOT NULL): (BCP-47)
 - `product_name` (VARCHAR(255), NOT NULL)
-**القيود:** UNIQUE KEY (`order_item_id`, `language_id`)
+- `created_at` (DATETIME, NOT NULL)
+- `updated_at` (DATETIME, NOT NULL)
+**القيود:** UNIQUE KEY (`order_item_id`, `language_code`)
 
 ### 13.7 `maa_orders_order_item_option_values`
 **الغرض:** لقطة الخيارات المحددة للعنصر.
-- `id` (INT UNSIGNED, AUTO_INCREMENT, PK)
-- `order_item_id` (INT UNSIGNED, NOT NULL, FK -> `maa_orders_order_items` ON DELETE CASCADE)
-- `option_id` (INT UNSIGNED, NOT NULL): مرجع تاريخي.
+- `id` (BIGINT UNSIGNED, AUTO_INCREMENT, PK)
+- `order_item_id` (BIGINT UNSIGNED, NOT NULL, FK -> `maa_orders_order_items` ON DELETE RESTRICT ON UPDATE RESTRICT)
+- `option_id` (BIGINT UNSIGNED, NOT NULL): مرجع تاريخي.
 - `option_code` (VARCHAR(100), NOT NULL)
-- `option_value_id` (INT UNSIGNED, NOT NULL): مرجع تاريخي.
+- `option_value_id` (BIGINT UNSIGNED, NOT NULL): مرجع تاريخي.
 - `option_value_code` (VARCHAR(100), NOT NULL)
 - `price_adjustment` (DECIMAL(20,6), NOT NULL DEFAULT 0.00)
+- `created_at` (DATETIME, NOT NULL)
+- `updated_at` (DATETIME, NOT NULL)
 **القيود:** UNIQUE KEY (`order_item_id`, `option_id`)
 
 ### 13.8 `maa_orders_order_item_option_value_translations`
 **الغرض:** لقطة ترجمات الخيارات والقيم للعنصر.
-- `id` (INT UNSIGNED, AUTO_INCREMENT, PK)
-- `item_option_value_id` (INT UNSIGNED, NOT NULL, FK -> `maa_orders_order_item_option_values` ON DELETE CASCADE)
-- `language_id` (INT UNSIGNED, NOT NULL)
+- `id` (BIGINT UNSIGNED, AUTO_INCREMENT, PK)
+- `item_option_value_id` (BIGINT UNSIGNED, NOT NULL, FK -> `maa_orders_order_item_option_values` ON DELETE RESTRICT ON UPDATE RESTRICT)
+- `language_code` (VARCHAR(16), NOT NULL): (BCP-47)
 - `option_name` (VARCHAR(255), NOT NULL)
 - `option_value_name` (VARCHAR(255), NOT NULL)
-**القيود:** UNIQUE KEY (`item_option_value_id`, `language_id`)
+- `created_at` (DATETIME, NOT NULL)
+- `updated_at` (DATETIME, NOT NULL)
+**القيود:** UNIQUE KEY (`item_option_value_id`, `language_code`)
 
 ### 13.9 `maa_orders_stock_reservations`
 **الغرض:** محرك حجز المخزون للعنصر.
-- `id` (INT UNSIGNED, AUTO_INCREMENT, PK)
-- `order_item_id` (INT UNSIGNED, NOT NULL, UNIQUE, FK -> `maa_orders_order_items` ON DELETE CASCADE)
-- `variant_id` (INT UNSIGNED, NOT NULL)
+- `id` (BIGINT UNSIGNED, AUTO_INCREMENT, PK)
+- `order_item_id` (BIGINT UNSIGNED, NOT NULL, UNIQUE, FK -> `maa_orders_order_items` ON DELETE RESTRICT ON UPDATE RESTRICT)
 - `quantity` (INT UNSIGNED, NOT NULL, CHECK > 0)
 - `status` (VARCHAR(32), NOT NULL, CHECK: 'reserved', 'consumed', 'released', 'expired')
-- `reservation_expires_at` (DATETIME, NOT NULL)
 - `created_at` (DATETIME, NOT NULL)
-- `updated_at` (DATETIME, NULL)
-**الفهارس:** `idx_reservations_status_expires`
+- `updated_at` (DATETIME, NOT NULL)
+**الفهارس:** `idx_reservations_status` (`status`)

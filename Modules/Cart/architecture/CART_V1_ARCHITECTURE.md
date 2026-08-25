@@ -103,3 +103,23 @@
 - يصبح الـ Order هو السجل التجاري الموثوق (Authoritative commercial record).
 - أي محاولات إعادة دفع (Payment retries) تعمل على نفس الـ Order الموجود.
 - يجب ألا يقوم الـ Cart بإنشاء Order آخر لنفس محاولة الدفع (Idempotent attempt).
+
+---
+
+## 4. النموذج المفاهيمي للبيانات (Conceptual DTO Model)
+
+نظرًا لعدم وجود تخزين دائم في الـ Backend للـ Cart، يتم تصميم العقود (Contracts) باستخدام مفهوم كائنات نقل البيانات (DTO) فقط، ويُمنع استخدام مصفوفات البيانات الخام (Raw-array contracts).
+
+هذا النموذج يمثل هيكلة التخزين في المتصفح والتواصل مع الخادم، ولا يتم تنفيذ أي جداول قاعدة بيانات له:
+
+### 4.1 التخزين الرئيسي للـ Cart (Root Cart DTO)
+يمثل حالة الـ Cart الإجمالية:
+- `CartStorageDTO`
+  - `items`: قائمة بـ `CartItemStorageDTO`
+  - *(أي بيانات أخرى مملوكة للمتصفح مثل تفضيلات العملة المبدئية)*
+
+### 4.2 عنصر الـ Cart (Cart Item Storage DTO)
+يمثل العنصر الفردي داخل الـ Cart:
+- `CartItemStorageDTO`
+  - `variantId` (المعرف المرجعي للـ Variant)
+  - `quantity` (الكمية المطلوبة)
