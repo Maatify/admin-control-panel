@@ -98,7 +98,17 @@ Browser Cart
 - لا توجد إحياء للطلب (No resurrection). الانتهاء (Expired) أو الإلغاء (Cancelled) إلى مؤكد (Confirmed) محظور.
 - فشل محاولة الدفع لا يغير الطلب من `pending_payment`.
 
-### 5.1 التعامل مع تأخير الدفع (Late Payment / Races)
+### 5.1 عمليات الإلغاء بعد الدفع (Post-Payment Cancellation Semantics)
+الانتقالات المسموحة إلى `cancelled` من حالتي `confirmed` أو `processing` لا تزال سارية، ولكن يُعتبر الإلغاء هنا عملية تجارية (Business operation) وليس مجرد تغيير للحالة:
+- يصبح الطلب `cancelled` فقط بعد اكتمال جميع التعويضات الضرورية (Compensation) بنجاح، وقد يشمل ذلك:
+  - تعويضات في نطاق الدفع/الاسترداد (Payment/refund compensation).
+  - تعويضات التجهيز أو المخزون (Fulfillment/inventory compensation).
+- حالة `cancelled` تعني أن الإلغاء **قد اكتمل**، وليس مجرد أنه طُلب.
+- **يُمنع صراحةً** إضافة حالات وسيطة أو خاصة بالدفع إلى `OrderStatusEnum` مثل: `refund_pending`، `refunded`، أو `cancellation_requested`. حالات الاسترداد تظل ضمن اختصاص نطاق الدفع.
+- **استعادة المخزون:** يجب ألا يتم استعادة المخزون تلقائيًا لمجرد تحول الطلب المدفوع إلى `cancelled`. تتم استعادة المخزون فقط عندما يؤكد تعويض التجهيز/المخزون إمكانية إرجاع الكمية المادية لاستعادة البضائع المشحونة أو المجهزة. هذا يمنع اختلاق مخزون وهمي بعد تقدم مرحلة التجهيز.
+- الحالات النهائية (Terminal states) المسموحة هي فقط: `completed`, `cancelled`, `expired`.
+
+### 5.2 التعامل مع تأخير الدفع (Late Payment / Races)
 - إذا فاز وقت انتهاء الحجز (Reservation expiry) أولاً: الطلب يصبح `expired`، وتعود البضائع للمخزون. نجاح الدفع اللاحق يجب **ألا يُحيي** الطلب (عمليات الاسترداد من شأن نظام الدفع).
 - إذا فاز نجاح الدفع أولاً: الطلب يصبح `confirmed`، وتُستهلك الحجوزات. يجب ألا يفعل أمر انتهاء الحجز شيئًا حينها.
 
@@ -116,6 +126,13 @@ Browser Cart
 - `expired`
 
 - يتم الحجز لكل (Order Item / Variant).
+- **سياسة المهلة الزمنية للحجز (Reservation Deadline Policy):**
+  - يتم إعداد مدة الحجز وتكوينها من قبل الـ Host.
+  - عند إنشاء الطلب، يتم حساب مدة الحجز ليصبح وقت انتهاء واحد مطلق `reservation_expires_at`.
+  - هذا الوقت المطلق يتم حفظه كلقطة تاريخية على مستوى الطلب ككل (Order).
+  - تشترك جميع الحجوزات التابعة للطلب في هذا الموعد النهائي.
+  - أي تغييرات لاحقة في إعدادات مهلة الحجز في الـ Host **يجب ألا تؤثر** على الطلبات المنشأة بالفعل.
+  - عمليات معالجة انتهاء المهلة (Expiry processing) تعتمد على الموعد المطلق المحفوظ في الطلب، وليس التكوين الحالي.
 - **دورة حياة الحجز (Lifecycle):**
   - عند نجاح الحجز: يتم إنقاص مخزون الكتالوج (`Catalog quantity_on_hand -= reserved quantity`) وحالة الحجز تصبح `reserved`.
   - عند نجاح الدفع: `reserved` → `consumed`. (لا يتم إنقاص الكتالوج مرة أخرى).
@@ -162,7 +179,7 @@ Browser Cart
 
 - نظرًا لوجود أسماء أساسية إلزامية لـ Country و City في المرجع الحالي (Geo)، يجب الاحتفاظ بهذه الأسماء كجزء من اللقطة الأساسية لعنوان الشحن.
 - الترجمات الفعلية للعنوان التي كانت متوفرة وقت الدفع تحفظ في جداول الترجمة الخاصة باللقطة.
-- **حدود التكامل (Integration Boundary):** تستخدم هوية لغة الجغرافيا (Geo translation identity) الـ `language_id` الخاص بالـ Host. ومع ذلك، يجب على المنسق (Host/Application Coordinator) تحويل هذا المعرف إلى رمز دائم (BCP-47 `language_code`) عند تكوين لقطة الترجمة الخاصة بـ Orders. يُمنع تمامًا اختلاق ترجمات غير موجودة أو تخزين نصوص بديلة (Fallback text) على أنها صفوف ترجمة فعلية.
+- **حدود التكامل (Integration Boundary):** تستخدم هوية لغة الجغرافيا (Geo translation identity) الـ `language_id` الخاص بالـ Host. ومع ذلك، يجب على المنسق (Host/Application Coordinator) تحويل هذا المعرف إلى رمز دائم (BCP-47 `language_code`) عند تكوين لقطة الترجمة الخاصة بـ Orders. يُمنع تمامًا اختلاق ترجمات غير موجودة أو تخزين نصوص بديلة (Fallback text) على أنها صفوف ترجمة فعلية. إذا كانت الترجمة غير موجودة، يتم ترك الحقل `NULL`، بشرط توفر ترجمة واحدة على الأقل في السطر.
 
 ### 8.5 اللقطة المالية (Financial Snapshot)
 الحد الأدنى المطلوب:
@@ -252,25 +269,33 @@ Browser Cart
 
 ### 13.1 `maa_orders_orders`
 **الغرض:** تخزين السجل التجاري الرئيسي للطلب.
-- `id` (BIGINT UNSIGNED, AUTO_INCREMENT, PK)
-- `order_reference` (VARCHAR(64), UNIQUE, NOT NULL): معرّف عشوائي آمن للعرض.
-- `checkout_idempotency_key` (VARCHAR(128), UNIQUE, NOT NULL)
+- `id` (BIGINT UNSIGNED, AUTO_INCREMENT)
+- `order_reference` (VARCHAR(64), NOT NULL): معرّف عشوائي آمن للعرض.
+- `checkout_idempotency_key` (VARCHAR(128), NOT NULL)
 - `checkout_request_fingerprint` (VARCHAR(128), NOT NULL)
-- `status` (VARCHAR(32), NOT NULL, CHECK(status IN ('pending_payment', 'confirmed', 'processing', 'completed', 'cancelled', 'expired'))): حالة الطلب.
-- `subtotal_amount` (DECIMAL(20,6), NOT NULL, CHECK >= 0)
-- `shipping_amount` (DECIMAL(20,6), NOT NULL, CHECK >= 0)
-- `total_amount` (DECIMAL(20,6), NOT NULL, CHECK >= 0)
+- `status` (VARCHAR(32), NOT NULL)
+- `subtotal_amount` (DECIMAL(20,6), NOT NULL)
+- `shipping_amount` (DECIMAL(20,6), NOT NULL)
+- `total_amount` (DECIMAL(20,6), NOT NULL)
 - `currency_code` (CHAR(3), NOT NULL): رمز العملة (ISO 4217) المرجعي للسجل (No FK).
 - `checkout_language_code` (VARCHAR(16), NULL): (BCP-47)
 - `reservation_expires_at` (DATETIME, NOT NULL)
 - `created_at` (DATETIME, NOT NULL)
 - `updated_at` (DATETIME, NOT NULL)
+**القيود:**
+  - PRIMARY KEY (`id`)
+  - UNIQUE (`order_reference`)
+  - UNIQUE (`checkout_idempotency_key`)
+  - CHECK (`subtotal_amount` >= 0)
+  - CHECK (`shipping_amount` >= 0)
+  - CHECK (`total_amount` >= 0)
+  - CHECK (`status` IN ('pending_payment', 'confirmed', 'processing', 'completed', 'cancelled', 'expired'))
 **الفهارس:** `idx_orders_status_created_id` (`status`, `created_at`, `id`), `idx_orders_reservation_expiry` (`status`, `reservation_expires_at`, `id`)
 
 ### 13.2 `maa_orders_order_contacts`
 **الغرض:** لقطة بيانات الزائر المستقلة.
-- `id` (BIGINT UNSIGNED, AUTO_INCREMENT, PK)
-- `order_id` (BIGINT UNSIGNED, NOT NULL, UNIQUE)
+- `id` (BIGINT UNSIGNED, AUTO_INCREMENT)
+- `order_id` (BIGINT UNSIGNED, NOT NULL)
   - FOREIGN KEY (`order_id`) REFERENCES `maa_orders_orders.id`
   - ON DELETE RESTRICT
   - ON UPDATE RESTRICT
@@ -280,10 +305,14 @@ Browser Cart
 - `created_at` (DATETIME, NOT NULL)
 - `updated_at` (DATETIME, NOT NULL)
 
+**القيود:**
+  - PRIMARY KEY (`id`)
+  - UNIQUE (`order_id`)
+
 ### 13.3 `maa_orders_order_shipping_addresses`
 **الغرض:** لقطة عنوان الشحن المختار.
-- `id` (BIGINT UNSIGNED, AUTO_INCREMENT, PK)
-- `order_id` (BIGINT UNSIGNED, NOT NULL, UNIQUE)
+- `id` (BIGINT UNSIGNED, AUTO_INCREMENT)
+- `order_id` (BIGINT UNSIGNED, NOT NULL)
   - FOREIGN KEY (`order_id`) REFERENCES `maa_orders_orders.id`
   - ON DELETE RESTRICT
   - ON UPDATE RESTRICT
@@ -302,23 +331,30 @@ Browser Cart
 - `created_at` (DATETIME, NOT NULL)
 - `updated_at` (DATETIME, NOT NULL)
 
+**القيود:**
+  - PRIMARY KEY (`id`)
+  - UNIQUE (`order_id`)
+
 ### 13.4 `maa_orders_order_shipping_address_translations`
 **الغرض:** ترجمات بيانات المدينة/الدولة التاريخية وقت إنشاء الطلب.
-- `id` (BIGINT UNSIGNED, AUTO_INCREMENT, PK)
+- `id` (BIGINT UNSIGNED, AUTO_INCREMENT)
 - `address_id` (BIGINT UNSIGNED, NOT NULL)
   - FOREIGN KEY (`address_id`) REFERENCES `maa_orders_order_shipping_addresses.id`
   - ON DELETE RESTRICT
   - ON UPDATE RESTRICT
 - `language_code` (VARCHAR(16), NOT NULL): (BCP-47)
-- `country_name` (VARCHAR(100), NOT NULL)
+- `country_name` (VARCHAR(100), NULL)
 - `city_name` (VARCHAR(100), NULL)
 - `created_at` (DATETIME, NOT NULL)
 - `updated_at` (DATETIME, NOT NULL)
-**القيود:** UNIQUE KEY (`address_id`, `language_code`)
+**القيود:**
+  - PRIMARY KEY (`id`)
+  - UNIQUE (`address_id`, `language_code`)
+  - CHECK (`country_name` IS NOT NULL OR `city_name` IS NOT NULL)
 
 ### 13.5 `maa_orders_order_items`
 **الغرض:** سجلات العناصر المطلوبة.
-- `id` (BIGINT UNSIGNED, AUTO_INCREMENT, PK)
+- `id` (BIGINT UNSIGNED, AUTO_INCREMENT)
 - `order_id` (BIGINT UNSIGNED, NOT NULL)
   - FOREIGN KEY (`order_id`) REFERENCES `maa_orders_orders.id`
   - ON DELETE RESTRICT
@@ -327,18 +363,25 @@ Browser Cart
 - `product_code` (VARCHAR(100), NOT NULL)
 - `variant_id` (BIGINT UNSIGNED, NOT NULL): مرجع تاريخي لـ Catalog.
 - `sku` (VARCHAR(100), NOT NULL)
-- `base_unit_price` (DECIMAL(20,6), NOT NULL, CHECK >= 0)
-- `unit_price` (DECIMAL(20,6), NOT NULL, CHECK >= 0)
-- `quantity` (INT UNSIGNED, NOT NULL, CHECK > 0)
-- `line_total` (DECIMAL(20,6), NOT NULL, CHECK >= 0)
+- `base_unit_price` (DECIMAL(20,6), NOT NULL)
+- `unit_price` (DECIMAL(20,6), NOT NULL)
+- `quantity` (INT UNSIGNED, NOT NULL)
+- `line_total` (DECIMAL(20,6), NOT NULL)
 - `created_at` (DATETIME, NOT NULL)
 - `updated_at` (DATETIME, NOT NULL)
-**القيود:** UNIQUE KEY (`order_id`, `variant_id`)
+**القيود:**
+  - PRIMARY KEY (`id`)
+  - UNIQUE (`order_id`, `variant_id`)
+  - CHECK (`base_unit_price` >= 0)
+  - CHECK (`unit_price` >= 0)
+  - CHECK (`quantity` > 0)
+  - CHECK (`line_total` >= 0)
+
 **الفهارس:** `idx_order_items_order_id` (`order_id`)
 
 ### 13.6 `maa_orders_order_item_translations`
 **الغرض:** لقطة لجميع ترجمات المنتج المطلوبة.
-- `id` (BIGINT UNSIGNED, AUTO_INCREMENT, PK)
+- `id` (BIGINT UNSIGNED, AUTO_INCREMENT)
 - `order_item_id` (BIGINT UNSIGNED, NOT NULL)
   - FOREIGN KEY (`order_item_id`) REFERENCES `maa_orders_order_items.id`
   - ON DELETE RESTRICT
@@ -347,11 +390,13 @@ Browser Cart
 - `product_name` (VARCHAR(255), NOT NULL)
 - `created_at` (DATETIME, NOT NULL)
 - `updated_at` (DATETIME, NOT NULL)
-**القيود:** UNIQUE KEY (`order_item_id`, `language_code`)
+**القيود:**
+  - PRIMARY KEY (`id`)
+  - UNIQUE (`order_item_id`, `language_code`)
 
 ### 13.7 `maa_orders_order_item_option_values`
 **الغرض:** لقطة الخيارات المحددة للعنصر.
-- `id` (BIGINT UNSIGNED, AUTO_INCREMENT, PK)
+- `id` (BIGINT UNSIGNED, AUTO_INCREMENT)
 - `order_item_id` (BIGINT UNSIGNED, NOT NULL)
   - FOREIGN KEY (`order_item_id`) REFERENCES `maa_orders_order_items.id`
   - ON DELETE RESTRICT
@@ -363,31 +408,42 @@ Browser Cart
 - `price_adjustment` (DECIMAL(20,6), NOT NULL DEFAULT 0.00)
 - `created_at` (DATETIME, NOT NULL)
 - `updated_at` (DATETIME, NOT NULL)
-**القيود:** UNIQUE KEY (`order_item_id`, `option_id`)
+**القيود:**
+  - PRIMARY KEY (`id`)
+  - UNIQUE (`order_item_id`, `option_id`)
 
 ### 13.8 `maa_orders_order_item_option_value_translations`
 **الغرض:** لقطة ترجمات الخيارات والقيم للعنصر.
-- `id` (BIGINT UNSIGNED, AUTO_INCREMENT, PK)
+- `id` (BIGINT UNSIGNED, AUTO_INCREMENT)
 - `item_option_value_id` (BIGINT UNSIGNED, NOT NULL)
   - FOREIGN KEY (`item_option_value_id`) REFERENCES `maa_orders_order_item_option_values.id`
   - ON DELETE RESTRICT
   - ON UPDATE RESTRICT
 - `language_code` (VARCHAR(16), NOT NULL): (BCP-47)
-- `option_name` (VARCHAR(255), NOT NULL)
-- `option_value_name` (VARCHAR(255), NOT NULL)
+- `option_name` (VARCHAR(255), NULL)
+- `option_value_name` (VARCHAR(255), NULL)
 - `created_at` (DATETIME, NOT NULL)
 - `updated_at` (DATETIME, NOT NULL)
-**القيود:** UNIQUE KEY (`item_option_value_id`, `language_code`)
+**القيود:**
+  - PRIMARY KEY (`id`)
+  - UNIQUE (`item_option_value_id`, `language_code`)
+  - CHECK (`option_name` IS NOT NULL OR `option_value_name` IS NOT NULL)
 
 ### 13.9 `maa_orders_stock_reservations`
 **الغرض:** محرك حجز المخزون للعنصر.
-- `id` (BIGINT UNSIGNED, AUTO_INCREMENT, PK)
-- `order_item_id` (BIGINT UNSIGNED, NOT NULL, UNIQUE)
+- `id` (BIGINT UNSIGNED, AUTO_INCREMENT)
+- `order_item_id` (BIGINT UNSIGNED, NOT NULL)
   - FOREIGN KEY (`order_item_id`) REFERENCES `maa_orders_order_items.id`
   - ON DELETE RESTRICT
   - ON UPDATE RESTRICT
-- `quantity` (INT UNSIGNED, NOT NULL, CHECK > 0)
-- `status` (VARCHAR(32), NOT NULL, CHECK(status IN ('reserved', 'consumed', 'released', 'expired')))
+- `quantity` (INT UNSIGNED, NOT NULL)
+- `status` (VARCHAR(32), NOT NULL)
 - `created_at` (DATETIME, NOT NULL)
 - `updated_at` (DATETIME, NOT NULL)
+
+**القيود:**
+  - PRIMARY KEY (`id`)
+  - UNIQUE (`order_item_id`)
+  - CHECK (`quantity` > 0)
+  - CHECK (`status` IN ('reserved', 'consumed', 'released', 'expired'))
 **الفهارس:** `idx_reservations_status` (`status`)
