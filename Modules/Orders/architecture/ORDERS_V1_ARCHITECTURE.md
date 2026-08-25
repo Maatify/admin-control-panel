@@ -1,10 +1,10 @@
-# Orders V1 Database Architecture — Final Review Candidate
+# Orders V1 Database Architecture — Locked
 
 **Standalone Guest Order + Historical Commercial Snapshot + Stock Reservation Engine**
 
 هذه الوثيقة هي المرجع المعماري لـ **Orders V1**.
 
-نظرًا لوجود بعض القرارات المعمارية التي تحتاج إلى حسم (مثل متطلبات جهات الاتصال وعقود الشحن)، تعتبر هذه الوثيقة **مرشح مراجعة نهائي (Final Review Candidate)** وليست مقفولة بشكل تام بعد. يرجى مراجعة القسم الأخير الذي يسرد القرارات المعلقة.
+هذه الوثيقة مقفولة (Locked) وتمثل المرجع المعماري النهائي للموديول.
 
 ---
 
@@ -134,21 +134,25 @@ Browser Cart
   - أي تغييرات لاحقة في إعدادات مهلة الحجز في الـ Host **يجب ألا تؤثر** على الطلبات المنشأة بالفعل.
   - عمليات معالجة انتهاء المهلة (Expiry processing) تعتمد على الموعد المطلق المحفوظ في الطلب، وليس التكوين الحالي.
 - **دورة حياة الحجز (Lifecycle) ومتطلبات العمل:**
-  - عند إنشاء الحجز: يجب أن يُطرح الكمية المحجوزة **فورًا** من "الإتاحة القابلة للبيع للعملاء" (customer sellable availability) لمنع البيع المزدوج، وتصبح حالة الحجز `reserved`. (التأثير الملموس على جداول الكتالوج يظل غير محسوم حاليًا — انظر القرارات المعلقة).
-  - عند نجاح الدفع: تستهلك عملية الدفع الحجز مرة واحدة فقط (`reserved` → `consumed`).
-  - عند الإلغاء قبل الدفع: يتم تحرير الحجز مرة واحدة فقط (`reserved` → `released`).
-  - عند انتهاء الحجز: يتم تحرير الحجز مرة واحدة فقط (`reserved` → `expired`).
+  - عند إنشاء الحجز: يتم التحقق ذرياً من توفر المخزون الكافي، ويُطرح الكمية المحجوزة من `quantity_on_hand` في الكتالوج لمنع البيع المزدوج، وتصبح حالة الحجز `reserved`. ويجب أن تتم هاتان العمليتان في نفس الـ Transaction.
+  - عند نجاح الدفع: تستهلك عملية الدفع الحجز مرة واحدة فقط (`reserved` → `consumed`). **لا يتم** إنقاص المخزون في الكتالوج مرة أخرى.
+  - عند الإلغاء قبل الدفع: يتم تحرير الحجز مرة واحدة فقط (`reserved` → `released`) وتتم استعادة الكمية إلى `quantity_on_hand` في الكتالوج.
+  - عند انتهاء الحجز: يتم تحرير الحجز مرة واحدة فقط (`reserved` → `expired`) وتتم استعادة الكمية في الكتالوج.
 - **المتطلبات الأساسية (Invariants):**
-  - يُمنع البيع الزائد (No overselling): لا يُسمح بعمليات الدفع المتزامنة بتخطي المخزون المتاح.
+  - يُمنع البيع الزائد (No overselling): لا يُسمح بعمليات الدفع المتزامنة بتخطي المخزون المتاح، ويتطلب ذلك سلوك قفل الصفوف (Row-lock) أو معالجة ذرية.
   - جميع عمليات `consume/release/expire` يجب أن تكون غير قابلة للتكرار (idempotent) وتؤثر على إتاحة المخزون لمرة واحدة فقط.
-  - لا يجوز لـ Orders تحديث جداول Catalog بشكل مباشر (التنسيق مملوك لـ Host Coordinator).
+  - تعني `quantity_on_hand` في الكتالوج "رصيد المخزون المتاح للبيع للعملاء" (Current Sellable Inventory Balance).
+  - لا يجوز لـ Orders تحديث جداول Catalog بشكل مباشر، بل يتم عبر المنسق (Host Coordinator).
 
 ---
 
 ## 7. التنسيق بين الموديولات (Cross-Module Atomicity)
 
 يُمنع وصول Orders إلى جداول Catalog بشكل مباشر. كما يجب ألا يعلم Catalog بأي شيء عن الـ `order_id` أو الدفع.
-- يجب الاعتماد على منسق تطبيق/هوست (Host/Application Coordinator) ينسق عقود Orders ومخزون Catalog كعملية ذرية (Atomic transaction) باستخدام آلية الـ Transaction المدعومة فعليًا في بنية المشروع (مثل منسق معاملات مشترك).
+- تُدار جميع عمليات إنشاء الطلب (التدقيق، الحجز، التحديثات المشتركة، وإنشاء اللقطات) كعملية ذرية واحدة (All-or-nothing).
+- **التنسيق المشترك:** يمتلك منسق الدفع في التطبيق (Host/Application Checkout Coordinator) مسؤولية التنسيق المباشر.
+- **التجريد (Transaction abstraction):** يتم الاعتماد على مكتبة `maatify/persistence` لضمان أن التحديثات تشارك في نفس الـ PDO connection ونفس الـ Database transaction بشكل متداخل وآمن (Nested-safe participation).
+- يجب على أي موديول ينضم لمعاملة قائمة ألا يقوم بعمل `commit` أو `rollback` مستقل؛ المالك الوحيد (Coordinator) هو المتحكم النهائي في إتمام أو تراجع المعاملة.
 
 ---
 
@@ -193,7 +197,13 @@ Browser Cart
 ---
 
 ## 9. قواعد الاحتفاظ والحذف (Order Deletion / Retention)
-يجب التوفيق بين سياسات الحذف المرن (Soft-delete) الخاصة بالموديولات وبين كون الطلب سجلًا تجاريًا، بحيث قد يقتضي الأمر منع الحذف في وقت التشغيل والاحتفاظ به كسجل دائم.
+يُعتبر موديول Orders **سجلاً تجارياً تاريخياً غير قابل للحذف (Append-Only Historical Commercial Records)**. بناءً على ذلك:
+- لا يوجد حذف مرن (No soft delete) ولا حذف نهائي (No hard delete) للسجل ككل في وقت التشغيل.
+- لا يوجد عمود `deleted_at` في جداول الـ Orders.
+- السجلات واللقطات التاريخية (Child snapshots) لا تملك دورة حياة حذف مستقلة.
+- المعرفات مثل `order_reference` و `checkout_idempotency_key` لا يُعاد استخدامها أبداً.
+- دورة حياة الطلب تُمثل عبر `OrderStatusEnum` وليس بالحذف.
+- *ملاحظة:* إذا اقتضت الحاجة القانونية مسح بيانات حساسة (PII anonymization) أو إتلاف فعلي، فهذا يُدار كإجراء إداري منفصل (Administrative retention process) خارج نطاق معمارية التشغيل القياسية لـ Orders V1.
 
 ---
 
@@ -203,34 +213,24 @@ Browser Cart
 2. `maa_orders_order_contacts`
 3. `maa_orders_order_shipping_addresses`
 4. `maa_orders_order_shipping_address_translations`
-5. `maa_orders_order_items`
-6. `maa_orders_order_item_translations`
-7. `maa_orders_order_item_option_values`
-8. `maa_orders_order_item_option_value_translations`
-9. `maa_orders_stock_reservations`
-
-*(قد تتم إضافة جدول إضافي لوسيلة الشحن في حال تم حسم متطلباتها).*
+5. `maa_orders_order_shipping_methods`
+6. `maa_orders_order_shipping_method_translations`
+7. `maa_orders_order_items`
+8. `maa_orders_order_item_translations`
+9. `maa_orders_order_item_option_values`
+10. `maa_orders_order_item_option_value_translations`
+11. `maa_orders_stock_reservations`
 
 يجب أن تعتمد هذه الجداول محرك `InnoDB` بترميز `utf8mb4_unicode_ci`، واستخدام توقيتات UTC مدارة من التطبيق.
 
-*(ملاحظة: سياسة وجود عمود `deleted_at` للحذف المرن تبقى معلقة حتى حسم سياسة السجل التجاري المذكورة في القرارات المعلقة).*
 
 ---
 
-## 11. القرارات المعمارية المعلقة (Unresolved Decisions)
+## 11. القرارات المقفولة / متطلبات التنفيذ (Locked Decisions / Implementation Prerequisites)
 
-قبل أن يتم قفل هذا المرجع المعماري (Locked)، يجب حسم القرارات التالية عبر أدلة فعلية من مستودع الكود (Repository Evidence):
-
-1. **إلزامية جهات الاتصال (Contact Requiredness):**
-   هل البريد الإلكتروني (Email) و/أو الهاتف (Phone) إلزامي أم اختياري في الطلب بناءً على أعراف المستودع الحالية؟
-2. **عقد لقطة وسيلة الشحن (Shipping Method Snapshot Contract):**
-   بنية الجدول والبيانات التاريخية التي سيتم التقاطها لوسيلة الشحن (مثل `method code`, `provider`, `name translations`).
-3. **آلية التنسيق للمعاملات المشتركة (Cross-Module Atomic Transaction Mechanism):**
-   تحديد المنسق المشترك (Transaction Coordinator) الفعلي المعتمد في بنية التطبيق لربط عمليات Orders مع Catalog بشكل ذري.
-4. **سياسة الحذف كسجل تجاري (Commercial-Record Deletion/Soft-Delete Policy):**
-   التأكيد على استثناءات أو قواعد سياسة الحذف (Soft Delete vs Append Only) لهذه السجلات التجارية.
-5. **دلالات كمية المخزون / مرجعية الحجز (Inventory Quantity Semantics / Reservation Authority):**
-   حيث أن الكتالوج (Catalog V1) يحدد `quantity_on_hand` ككمية فعلية ولا يعلم عن الحجوزات، لا يزال من غير المحسوم ما إذا كان هذا الحقل هو المرجع القابل للبيع، أم سيبقى ككمية فعلية بينما يُحسب المتاح ديناميكيًا من الحجوزات النشطة، أم يتطلب مرجعية مخزون خارجية (بدون التعارض مع معمارية Catalog المقفولة).
+تم حسم جميع القرارات المعمارية وتم قفل المستند. تبقى الملاحظات التالية كمتطلبات للتنفيذ المستقبلي:
+- بناء دعم المعاملات الموزعة والتجريد في مكتبة `maatify/persistence` يظل خطوة تنفيذية قادمة ولن يتم تفصيل الـ API الخاصة به في هذه الوثيقة.
+- تنفيذ سير عمل التجهيز والشحن الفعلي (Shipping/Fulfillment runtime implementation) وتحديث الـ `shipment_reference` يُعتبر عملاً مستقبلياً خارج نطاق إنشاء السجل الأساسي V1 للطلب.
 
 
 ## 12. محددات قاعدة البيانات (Database Invariants)
@@ -303,14 +303,15 @@ Browser Cart
   - ON DELETE RESTRICT
   - ON UPDATE RESTRICT
 - `full_name` (VARCHAR(255), NOT NULL)
-- `email` (VARCHAR(255), NULL): *(ينتظر حسم الإلزامية)*
-- `phone` (VARCHAR(50), NULL): *(ينتظر حسم الإلزامية)*
+- `email` (VARCHAR(255), NULL)
+- `phone` (VARCHAR(50), NULL)
 - `created_at` (DATETIME, NOT NULL)
 - `updated_at` (DATETIME, NOT NULL)
 
 **القيود:**
   - PRIMARY KEY (`id`)
   - UNIQUE (`order_id`)
+  - CHECK (`email` IS NOT NULL OR `phone` IS NOT NULL)
 
 ### 13.3 `maa_orders_order_shipping_addresses`
 **الغرض:** لقطة عنوان الشحن المختار.
@@ -355,7 +356,43 @@ Browser Cart
   - UNIQUE (`address_id`, `language_code`)
   - CHECK (`country_name` IS NOT NULL OR `city_name` IS NOT NULL)
 
-### 13.5 `maa_orders_order_items`
+
+### 13.5 `maa_orders_order_shipping_methods`
+**الغرض:** لقطة طريقة الشحن المختارة وقت الطلب (يُمنع الـ FK لجداول الشحن الخارجية).
+- `id` (BIGINT UNSIGNED, AUTO_INCREMENT)
+- `order_id` (BIGINT UNSIGNED, NOT NULL)
+  - FOREIGN KEY (`order_id`) REFERENCES `maa_orders_orders.id`
+  - ON DELETE RESTRICT
+  - ON UPDATE RESTRICT
+- `method_code` (VARCHAR(100), NOT NULL)
+- `provider_code` (VARCHAR(100), NULL)
+- `service_code` (VARCHAR(100), NULL)
+- `method_name` (VARCHAR(255), NOT NULL)
+- `shipment_reference` (VARCHAR(100), NULL): يبدأ كـ `NULL` وقت الدفع ويتم تعبئته لاحقاً عبر عمليات التجهيز (لا تُضاف حالات أو سجلات شحنات أخرى ضمن Orders V1).
+- `created_at` (DATETIME, NOT NULL)
+- `updated_at` (DATETIME, NOT NULL)
+
+**القيود:**
+  - PRIMARY KEY (`id`)
+  - UNIQUE (`order_id`)
+
+### 13.6 `maa_orders_order_shipping_method_translations`
+**الغرض:** ترجمات اسم طريقة الشحن الفعلية وقت إنشاء الطلب (يُمنع التوليد التلقائي لترجمات غير موجودة).
+- `id` (BIGINT UNSIGNED, AUTO_INCREMENT)
+- `shipping_method_id` (BIGINT UNSIGNED, NOT NULL)
+  - FOREIGN KEY (`shipping_method_id`) REFERENCES `maa_orders_order_shipping_methods.id`
+  - ON DELETE RESTRICT
+  - ON UPDATE RESTRICT
+- `language_code` (VARCHAR(16), NOT NULL): (BCP-47)
+- `name` (VARCHAR(255), NOT NULL)
+- `created_at` (DATETIME, NOT NULL)
+- `updated_at` (DATETIME, NOT NULL)
+
+**القيود:**
+  - PRIMARY KEY (`id`)
+  - UNIQUE (`shipping_method_id`, `language_code`)
+
+### 13.7 `maa_orders_order_items`
 **الغرض:** سجلات العناصر المطلوبة.
 - `id` (BIGINT UNSIGNED, AUTO_INCREMENT)
 - `order_id` (BIGINT UNSIGNED, NOT NULL)
@@ -382,7 +419,7 @@ Browser Cart
 
 **الفهارس:** `idx_order_items_order_id` (`order_id`)
 
-### 13.6 `maa_orders_order_item_translations`
+### 13.8 `maa_orders_order_item_translations`
 **الغرض:** لقطة لجميع ترجمات المنتج المطلوبة.
 - `id` (BIGINT UNSIGNED, AUTO_INCREMENT)
 - `order_item_id` (BIGINT UNSIGNED, NOT NULL)
@@ -397,7 +434,7 @@ Browser Cart
   - PRIMARY KEY (`id`)
   - UNIQUE (`order_item_id`, `language_code`)
 
-### 13.7 `maa_orders_order_item_option_values`
+### 13.9 `maa_orders_order_item_option_values`
 **الغرض:** لقطة الخيارات المحددة للعنصر.
 - `id` (BIGINT UNSIGNED, AUTO_INCREMENT)
 - `order_item_id` (BIGINT UNSIGNED, NOT NULL)
@@ -415,7 +452,7 @@ Browser Cart
   - PRIMARY KEY (`id`)
   - UNIQUE (`order_item_id`, `option_id`)
 
-### 13.8 `maa_orders_order_item_option_value_translations`
+### 13.10 `maa_orders_order_item_option_value_translations`
 **الغرض:** لقطة ترجمات الخيارات والقيم للعنصر.
 - `id` (BIGINT UNSIGNED, AUTO_INCREMENT)
 - `item_option_value_id` (BIGINT UNSIGNED, NOT NULL)
@@ -432,7 +469,7 @@ Browser Cart
   - UNIQUE (`item_option_value_id`, `language_code`)
   - CHECK (`option_name` IS NOT NULL OR `option_value_name` IS NOT NULL)
 
-### 13.9 `maa_orders_stock_reservations`
+### 13.11 `maa_orders_stock_reservations`
 **الغرض:** محرك حجز المخزون للعنصر.
 - `id` (BIGINT UNSIGNED, AUTO_INCREMENT)
 - `order_item_id` (BIGINT UNSIGNED, NOT NULL)

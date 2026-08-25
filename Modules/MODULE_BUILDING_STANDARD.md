@@ -97,7 +97,9 @@ src/
 - Every table needs: `PRIMARY KEY (id)`, proper indexes, meaningful COMMENTs on columns
 - All policies (soft delete, display order, FK behavior, uniqueness) documented in the SQL header
 - No FK constraints on host tables — use `COMMENT 'Host-provided ID. No FK.'`
+
 - Soft delete: `deleted_at DATETIME NULL` — `NULL = active`, `NOT NULL = soft-deleted`
+  - **استثناء السجلات التجارية التاريخية (Historical Commercial Records Exception):** بينما يُعتبر الحذف المرن هو القاعدة العامة لمعظم الموديولات، يُسمح بإنشاء استثناء معماري صريح للموديولات التي تكون هويتها سجلات تجارية/محاسبية تاريخية غير قابلة للتغيير (Append-Only Historical Commercial Records)، مثل موديول الطلبات (Orders V1). في هذه الحالات، يُحظر استخدام الحذف المرن أو النهائي تماماً، ولا يُضاف عمود `deleted_at`، وتدار دورة حياة السجل عبر الحالات (Status Enums).
 - Hard delete: always in a transaction with any required cleanup (e.g. compact display_order)
 - Split schema into logical files if restrictions or addons exist separately
 
