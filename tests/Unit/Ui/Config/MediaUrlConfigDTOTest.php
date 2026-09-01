@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Ui\Config;
 
+use Dotenv\Dotenv;
 use Maatify\AdminKernel\Ui\Config\MediaUrlConfigDTO;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -41,5 +42,22 @@ final class MediaUrlConfigDTOTest extends TestCase
             'CDN_IMAGE_URL' => 'https://cdn.example.com/images',
             'ASSET_VERSION' => '2026.09.01',
         ]);
+    }
+
+    public function testCanonicalEnvironmentExampleProducesSafeDefaultImageUrl(): void
+    {
+        $environment = Dotenv::createArrayBacked(dirname(__DIR__, 4), '.env.example')->load();
+        $config = MediaUrlConfigDTO::fromArray($environment);
+
+        self::assertSame('http://localhost', $config->assetsCdnUrl);
+        self::assertSame('http://localhost', $config->cdnImageUrl);
+        self::assertSame(
+            'http://localhost/images/no-image-available.svg',
+            $config->buildImageUrl(null)
+        );
+        self::assertStringNotContainsString(
+            '/images/images/',
+            $config->buildImageUrl(null)
+        );
     }
 }
