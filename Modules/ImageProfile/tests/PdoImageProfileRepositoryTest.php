@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maatify\ImageProfile\Tests;
 
 use Maatify\ImageProfile\Command\CreateImageProfileCommand;
+use Maatify\ImageProfile\Command\UpdateImageProfileCommand;
 use Maatify\ImageProfile\Command\UpdateImageProfileStatusCommand;
 use Maatify\ImageProfile\DTO\ImageProfilePaginatedResultDTO;
 use Maatify\ImageProfile\Exception\ImageProfileCodeAlreadyExistsException;
@@ -113,5 +114,96 @@ final class PdoImageProfileRepositoryTest extends TestCase
 
         $this->expectException(ImageProfileCodeAlreadyExistsException::class);
         $commandRepo->create(new CreateImageProfileCommand(code: 'hero'));
+    }
+
+    public function testUpdatePersistsEveryMutableProfileField(): void
+    {
+        $commandRepo = new PdoImageProfileCommandRepository($this->pdo);
+        $queryReader = new PdoImageProfileQueryReader($this->pdo);
+        $created = $commandRepo->create(new CreateImageProfileCommand(code: 'original'));
+
+        $updated = $commandRepo->update(new UpdateImageProfileCommand(
+            id: $created->id,
+            code: 'updated',
+            displayName: 'Updated profile',
+            minWidth: 120,
+            minHeight: 130,
+            maxWidth: 1200,
+            maxHeight: 1300,
+            maxSizeBytes: 2048,
+            allowedExtensions: 'jpg,webp',
+            allowedMimeTypes: 'image/jpeg,image/webp',
+            isActive: false,
+            notes: 'Updated notes',
+            minAspectRatio: '1.2500',
+            maxAspectRatio: '2.0000',
+            requiresTransparency: true,
+            preferredFormat: 'webp',
+            preferredQuality: 85,
+            variants: '{"small":{"width":320}}',
+        ));
+
+        self::assertSame($created->id, $updated->id);
+        self::assertSame('updated', $updated->code);
+        self::assertSame('Updated profile', $updated->displayName);
+        self::assertSame(120, $updated->minWidth);
+        self::assertSame(130, $updated->minHeight);
+        self::assertSame(1200, $updated->maxWidth);
+        self::assertSame(1300, $updated->maxHeight);
+        self::assertSame(2048, $updated->maxSizeBytes);
+        self::assertSame('jpg,webp', $updated->allowedExtensions);
+        self::assertSame('image/jpeg,image/webp', $updated->allowedMimeTypes);
+        self::assertFalse($updated->isActive);
+        self::assertSame('Updated notes', $updated->notes);
+        self::assertSame('1.25', (string) (float) $updated->minAspectRatio);
+        self::assertSame('2', (string) (float) $updated->maxAspectRatio);
+        self::assertTrue($updated->requiresTransparency);
+        self::assertSame('webp', $updated->preferredFormat);
+        self::assertSame(85, $updated->preferredQuality);
+        self::assertSame('{"small":{"width":320}}', $updated->variants);
+
+        $found = $queryReader->findByCode('updated');
+        self::assertNotNull($found);
+        self::assertSame('Updated profile', $found->displayName);
+        self::assertSame('1.25', (string) (float) $found->minAspectRatio);
+    }
+
+    public function testListProfilesAppliesSearchFiltersAndPaginationBounds(): void
+    {
+        $commandRepo = new PdoImageProfileCommandRepository($this->pdo);
+        $queryReader = new PdoImageProfileQueryReader($this->pdo);
+        $commandRepo->create(new CreateImageProfileCommand(code: 'avatar', displayName: 'User avatar'));
+        $commandRepo->create(new CreateImageProfileCommand(code: 'cover', displayName: 'Cover image'));
+        $inactive = $commandRepo->create(new CreateImageProfileCommand(code: 'archived', displayName: 'Archived image'));
+        $commandRepo->updateStatus(new UpdateImageProfileStatusCommand($inactive->id, false));
+
+        $search = $queryReader->listProfiles(1, 20, 'avatar', []);
+        self::assertSame(1, $search->pagination->filtered);
+        self::assertSame('avatar', $search->data[0]->code);
+
+        $inactiveOnly = $queryReader->listProfiles(1, 20, null, ['is_active' => 0]);
+        self::assertSame(1, $inactiveOnly->pagination->filtered);
+        self::assertSame('archived', $inactiveOnly->data[0]->code);
+
+        $bounded = $queryReader->listProfiles(0, 500, null, ['code' => 'cover']);
+        self::assertSame(1, $bounded->pagination->page);
+        self::assertSame(200, $bounded->pagination->perPage);
+        self::assertSame(3, $bounded->pagination->total);
+        self::assertSame(1, $bounded->pagination->filtered);
+        self::assertSame('cover', $bounded->data[0]->code);
+    }
+
+    public function testListProfilesCanFilterByIdAndFindMissingRows(): void
+    {
+        $commandRepo = new PdoImageProfileCommandRepository($this->pdo);
+        $queryReader = new PdoImageProfileQueryReader($this->pdo);
+        $profile = $commandRepo->create(new CreateImageProfileCommand(code: 'avatar'));
+
+        $result = $queryReader->listProfiles(1, 20, null, ['id' => $profile->id]);
+
+        self::assertSame(1, $result->pagination->filtered);
+        self::assertSame($profile->id, $result->data[0]->id);
+        self::assertNull($queryReader->findById(999));
+        self::assertNull($queryReader->findByCode('missing'));
     }
 }

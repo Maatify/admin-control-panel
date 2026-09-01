@@ -48,8 +48,8 @@ final readonly class ImageProfileDTO implements JsonSerializable
             allowedMimeTypes: self::nullableString($row['allowed_mime_types'] ?? null),
             isActive: self::bool($row['is_active']),
             notes: self::nullableString($row['notes'] ?? null),
-            minAspectRatio: self::nullableString($row['min_aspect_ratio'] ?? null),
-            maxAspectRatio: self::nullableString($row['max_aspect_ratio'] ?? null),
+            minAspectRatio: self::nullableDecimal($row['min_aspect_ratio'] ?? null),
+            maxAspectRatio: self::nullableDecimal($row['max_aspect_ratio'] ?? null),
             requiresTransparency: self::bool($row['requires_transparency'] ?? null),
             preferredFormat: self::nullableString($row['preferred_format'] ?? null),
             preferredQuality: self::nullableInt($row['preferred_quality'] ?? null),
@@ -103,8 +103,11 @@ final readonly class ImageProfileDTO implements JsonSerializable
         if (is_bool($value)) {
             return $value;
         }
-        if (is_int($value) || is_string($value)) {
-            return (bool) $value;
+        if (is_int($value) && ($value === 0 || $value === 1)) {
+            return $value === 1;
+        }
+        if (is_string($value) && ($value === '0' || $value === '1')) {
+            return $value === '1';
         }
 
         throw ImageProfileInvalidArgumentException::unexpectedType('bool field', $value);
@@ -126,6 +129,21 @@ final readonly class ImageProfileDTO implements JsonSerializable
         }
 
         return self::string($value);
+    }
+
+    private static function nullableDecimal(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_string($value) || is_int($value) || is_float($value)) {
+            if (is_numeric($value)) {
+                return (string) $value;
+            }
+        }
+
+        throw ImageProfileInvalidArgumentException::unexpectedType('decimal field', $value);
     }
 
     private static function nullableInt(mixed $value): ?int
