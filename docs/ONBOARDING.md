@@ -100,9 +100,9 @@ composer install
   ```
   .env.example → .env
   ```
-* Configure database connection values (`DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`).
+* Configure database connection values (`ADMIN_DB_HOST`, `ADMIN_DB_NAME`, `ADMIN_DB_USER`, `ADMIN_DB_PASS`).
 * **Critical Security Keys:**
-  The system requires specific cryptographic keys to function (`ENCRYPTION_KEY`, `EMAIL_BLIND_INDEX_KEY`, `PASSWORD_PEPPER`).
+  The system requires specific Admin-owned security keys to function (`ADMIN_CRYPTO_KEYS`, `ADMIN_CRYPTO_ACTIVE_KEY_ID`, `ADMIN_EMAIL_BLIND_INDEX_KEY`, `ADMIN_PASSWORD_PEPPERS`, `ADMIN_PASSWORD_ACTIVE_PEPPER_ID`).
 
   > **Frontend Developers:** Do NOT modify these keys.
   >

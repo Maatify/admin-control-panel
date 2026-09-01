@@ -13,7 +13,7 @@ The login process is deterministic, fail-closed, and audit-bound.
 
 ### Conceptual Flow
 
-1. **Recovery Check**: System verifies if `RECOVERY_MODE` is active.
+1. **Recovery Check**: System verifies if `ADMIN_RECOVERY_MODE` is active.
    - If Active: Action `login` is blocked. `RecoveryLockException` is thrown.
 2. **Blind Index Calculation**: Email is converted to Blind Index (HMAC-SHA256).
 3. **Identity Lookup**: Blind Index is queried against the database.
@@ -125,8 +125,8 @@ A fail-safe state protecting the system during cryptographic compromise or envir
 
 ### Triggers
 1. **Manual**: DB state `RECOVERY_LOCKED`.
-2. **Environment**: `RECOVERY_MODE=true`.
-3. **Weak Crypto**: `EMAIL_BLIND_INDEX_KEY` is empty or too short.
+2. **Environment**: `ADMIN_RECOVERY_MODE=true`.
+3. **Weak Crypto**: `ADMIN_EMAIL_BLIND_INDEX_KEY` is empty or too short.
 
 ### Enforcement
 - **Blocked Actions**: Login, OTP Verify, OTP Resend, Step-Up, Role Assignment, Permission Change.
