@@ -21,4 +21,3 @@ final class DomainScopeViolationException extends I18nBusinessRuleException
         return I18nErrorCodeEnum::DOMAIN_SCOPE_VIOLATION;
     }
 }
-
