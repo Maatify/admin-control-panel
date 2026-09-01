@@ -2101,9 +2101,13 @@ class Container
                 return new AbuseCookieService($signatureProvider);
             },
 
+            // TODO [RateLimiter]:
+            // Populate 'login_failures' attribute from RateLimiter middleware
+            // before AbuseProtectionMiddleware runs.
+            // Until that integration exists, threshold 0 preserves the Admin hard gate.
             \Maatify\AbuseProtection\Contracts\AbuseDecisionInterface::class => function (ContainerInterface $c) {
                 return new LoginAbusePolicy(
-//                    challengeAfterFailures: 0,
+                    challengeAfterFailures: 0,
                 );
             },
 
