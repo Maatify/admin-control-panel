@@ -9,6 +9,7 @@ use Maatify\AdminKernel\Http\Middleware\AuthorizationGuardMiddleware;
 use Maatify\AdminKernel\Http\Middleware\SessionGuardMiddleware;
 use Maatify\AdminKernel\Http\Routes\Api\Features\AdminEmailApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\AdminsApiRoutes;
+use Maatify\AdminKernel\Http\Routes\Api\Features\AppSettingsApiRoutes;
 use Maatify\SettingsSlim\Admin\Http\Routes\SettingsApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\ContentDocumentsApiRoutes;
 use Maatify\AdminKernel\Http\Routes\Api\Features\I18nApiRoutes;
@@ -38,6 +39,8 @@ final class ApiProtectedRoutes
             AdminsApiRoutes::register($group);
 
             SessionsApiRoutes::register($group);
+
+            AppSettingsApiRoutes::register($group);
 
             SettingsApiRoutes::register($group);
 

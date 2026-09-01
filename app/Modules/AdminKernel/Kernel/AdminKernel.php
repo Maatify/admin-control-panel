@@ -47,7 +47,8 @@ final class AdminKernel
             $options->runtimeConfig,
             $options->builderHook,
             $options->templatesPath,
-            $options->assetsBaseUrl
+            $options->assetsBaseUrl,
+            $options->twigCachePath
         );
 
         // Create Slim App

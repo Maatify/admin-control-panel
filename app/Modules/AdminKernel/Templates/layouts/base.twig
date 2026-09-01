@@ -492,6 +492,7 @@ function setActiveNavItem() {
     const currentPath = window.location.pathname;
 
     const navLinks = document.querySelectorAll('nav a');
+    const hasExactMatch = Array.from(navLinks).some(link => link.getAttribute('href') === currentPath);
 
     navLinks.forEach(link => {
         link.parentElement.classList.remove('bg-blue-300/40', 'rounded-md', 'dark:bg-blue-900/40');
@@ -504,7 +505,7 @@ function setActiveNavItem() {
         if (linkPath === currentPath) {
             isActive = true;
             link.parentElement.classList.add('bg-blue-300/40', 'rounded-md', 'dark:bg-blue-900/40');
-        } else if (currentPath.startsWith(linkPath) && linkPath !== '/') {
+        } else if (!hasExactMatch && currentPath.startsWith(linkPath) && linkPath !== '/') {
             isActive = true;
             link.parentElement.classList.add('bg-blue-300/40', 'rounded-md', 'dark:bg-blue-900/40');
         }
