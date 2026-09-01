@@ -199,6 +199,28 @@ final class PdoCountryRepository implements CountryRepositoryInterface, CountryD
         );
     }
 
+    public function listAllCountries(?int $languageId = null): array
+    {
+        [$selectExtra, $join, $joinParams] = $this->buildTranslationJoin($languageId);
+
+        $stmt = $this->prepareOrFail("
+            SELECT c.*, {$selectExtra}
+            FROM   `geo_countries` AS c
+            {$join}
+            ORDER BY c.`display_order` ASC, c.`id` ASC
+        ");
+
+        $pos = 1;
+        foreach ($joinParams as $v) { $stmt->bindValue($pos++, $v, PDO::PARAM_INT); }
+        $stmt->execute();
+
+        /** @var list<CountryDTO> */
+        return array_map(
+            static fn (array $row): CountryDTO => CountryDTO::fromRow($row),
+            $this->fetchAllAssoc($stmt),
+        );
+    }
+
     public function listCountriesWithPhoneCode(?int $languageId = null): array
     {
         [$selectExtra, $join, $joinParams] = $this->buildTranslationJoin($languageId);

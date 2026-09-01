@@ -76,6 +76,16 @@ final class GeoQueryService
     }
 
     /**
+     * Returns all countries (active + inactive), ordered by display_order.
+     *
+     * @return list<CountryDTO>
+     */
+    public function allCountries(?int $languageId = null): array
+    {
+        return $this->countryDropdown->listAllCountries($languageId);
+    }
+
+    /**
      * Countries with a phone dial code — minimal payload for phone-number inputs.
      * SQL-level filter (phone_code IS NOT NULL) and projection (code, name, phone_code, flag only).
      *
