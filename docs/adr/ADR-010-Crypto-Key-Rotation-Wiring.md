@@ -129,18 +129,18 @@ Optional future migration can be handled by a **dedicated CLI tool**, not by run
 
 ### Environment Inputs
 
-* `CRYPTO_ACTIVE_KEY_ID` (required)
-* `CRYPTO_KEYS` (optional JSON array)
-* `EMAIL_ENCRYPTION_KEY` (legacy fallback only)
+* `ADMIN_CRYPTO_ACTIVE_KEY_ID` (required)
+* `ADMIN_CRYPTO_KEYS` (required JSON array)
+* `EMAIL_ENCRYPTION_KEY` (forbidden legacy source; no fallback)
 
 Example:
 
 ```env
-CRYPTO_KEYS='[
+ADMIN_CRYPTO_KEYS='[
   {"id":"v1","key":"...old..."},
   {"id":"v2","key":"...new..."}
 ]'
-CRYPTO_ACTIVE_KEY_ID=v2
+ADMIN_CRYPTO_ACTIVE_KEY_ID=v2
 ```
 
 Validation is strict and fail-closed.

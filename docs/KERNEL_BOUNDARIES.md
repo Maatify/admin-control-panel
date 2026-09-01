@@ -107,7 +107,7 @@ Container binding override.
 - Configuration DTO:  
   `Maatify\AdminKernel\Domain\DTO\Ui\UiConfigDTO`
 - Environment Variable:  
-  `ASSET_BASE_URL`
+  `ADMIN_ASSET_BASE_URL`
 
 Used to relocate assets to CDN or sub-path.
 

@@ -30,30 +30,30 @@ if (file_exists($rootPath . '/.env.test')) {
 // 2) Set DEFAULT test environment if not present
 // This ensures tests run even if .env is missing/incomplete in sandbox
 $defaults = [
-    'APP_ENV' => 'testing',
-    'APP_DEBUG' => 'true',
-    'APP_NAME' => 'AdminPanelTest',
+    'ADMIN_APP_ENV' => 'testing',
+    'ADMIN_APP_DEBUG' => 'true',
+    'ADMIN_APP_NAME' => 'AdminPanelTest',
     'ADMIN_URL' => 'http://localhost',
-    'DB_HOST' => '127.0.0.1',
-    'DB_NAME' => 'test_db',
-    'DB_USER' => 'root',
-    'DB_PASS' => 'dummy',
-    'PASSWORD_PEPPERS' => '{"1": "test-pepper-secret-must-be-32-chars-long"}',
-    'PASSWORD_ACTIVE_PEPPER_ID' => '1',
-    'PASSWORD_ARGON2_OPTIONS' => '{"memory_cost": 1024, "time_cost": 2, "threads": 2}',
-    'EMAIL_BLIND_INDEX_KEY' => 'test-blind-index-key-32-chars-exactly!!',
-    'APP_TIMEZONE' => 'Africa/Cairo',
-    'MAIL_HOST' => 'smtp.example.com',
-    'MAIL_PORT' => '1025',
-    'MAIL_USERNAME' => 'test',
-    'MAIL_PASSWORD' => 'test',
-    'MAIL_FROM_ADDRESS' => 'admin@example.com',
-    'MAIL_FROM_NAME' => 'Admin Panel',
-    'CRYPTO_KEYS' => '[{"id": "1", "key": "0000000000000000000000000000000000000000000000000000000000000000"}]',
-    'CRYPTO_ACTIVE_KEY_ID' => '1',
-    'TOTP_ISSUER' => 'AdminPanelTest',
-    'TOTP_ENROLLMENT_TTL_SECONDS' => '3600',
-    'RECOVERY_MODE' => 'false',
+    'ADMIN_DB_HOST' => '127.0.0.1',
+    'ADMIN_DB_NAME' => 'test_db',
+    'ADMIN_DB_USER' => 'root',
+    'ADMIN_DB_PASS' => 'dummy',
+    'ADMIN_PASSWORD_PEPPERS' => '{"1": "test-pepper-secret-must-be-32-chars-long"}',
+    'ADMIN_PASSWORD_ACTIVE_PEPPER_ID' => '1',
+    'ADMIN_PASSWORD_ARGON2_OPTIONS' => '{"memory_cost": 1024, "time_cost": 2, "threads": 2}',
+    'ADMIN_EMAIL_BLIND_INDEX_KEY' => 'test-blind-index-key-32-chars-exactly!!',
+    'ADMIN_APP_TIMEZONE' => 'Africa/Cairo',
+    'ADMIN_MAIL_HOST' => 'smtp.example.com',
+    'ADMIN_MAIL_PORT' => '1025',
+    'ADMIN_MAIL_USERNAME' => 'test',
+    'ADMIN_MAIL_PASSWORD' => 'test',
+    'ADMIN_MAIL_FROM_ADDRESS' => 'admin@example.com',
+    'ADMIN_MAIL_FROM_NAME' => 'Admin Panel',
+    'ADMIN_CRYPTO_KEYS' => '[{"id": "1", "key": "0000000000000000000000000000000000000000000000000000000000000000"}]',
+    'ADMIN_CRYPTO_ACTIVE_KEY_ID' => '1',
+    'ADMIN_TOTP_ISSUER' => 'AdminPanelTest',
+    'ADMIN_TOTP_ENROLLMENT_TTL_SECONDS' => '3600',
+    'ADMIN_RECOVERY_MODE' => 'false',
 ];
 
 foreach ($defaults as $key => $value) {
@@ -76,9 +76,9 @@ foreach ($_ENV as $key => $value) {
 // 4) Normalize environment value (PHPStan-safe)
 // ------------------------------------------------------------
 /** @var mixed $envRaw */
-$envRaw = $_ENV['APP_ENV'] ?? null;
+$envRaw = $_ENV['ADMIN_APP_ENV'] ?? null;
 if ($envRaw === null) {
-    $envRaw = getenv('APP_ENV');
+    $envRaw = getenv('ADMIN_APP_ENV');
 }
 if ($envRaw === false) {
     $envRaw = 'unknown';

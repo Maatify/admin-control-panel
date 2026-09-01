@@ -54,7 +54,7 @@ The project is a secure Admin Control Panel built with **PHP 8.2+, Slim 4, PHP-D
 
 ### 1. Observed Configuration Rules
 *   **Fail-Closed Environment**: Missing `.env` variables cause immediate crash in `Container.php` (via `$dotenv->required(...)->notEmpty()`).
-*   **Recovery Mode**: If `RECOVERY_MODE=true`, strict lock-down is enforced by `RecoveryStateService`.
+*   **Recovery Mode**: If `ADMIN_RECOVERY_MODE=true`, strict lock-down is enforced by `RecoveryStateService`.
 *   **Session State**: Sessions default to `PENDING_STEP_UP`. `ACTIVE` state requires `Scope::LOGIN`.
 
 ---
@@ -1117,8 +1117,8 @@ Rules:
 
 **Pepper Ring (LOCKED):**
 
-* `PASSWORD_PEPPERS` (JSON map of pepper_id → pepper_secret)
-* `PASSWORD_ACTIVE_PEPPER_ID`
+* `ADMIN_PASSWORD_PEPPERS` (JSON map of pepper_id → pepper_secret)
+* `ADMIN_PASSWORD_ACTIVE_PEPPER_ID`
 * Stored hashes retain their `pepper_id`
 * Verification uses stored `pepper_id` (NO trial across peppers)
 * Upgrade-on-login upgrades legacy/old pepper_id to active pepper_id
@@ -1133,11 +1133,11 @@ Rules:
 
 * Blind index derivation MUST occur ONLY inside `AdminIdentifierCryptoService`.
 * Controllers MUST NOT compute blind indexes.
-* Controllers MUST NOT receive `EMAIL_BLIND_INDEX_KEY` or any blind-index secret.
+* Controllers MUST NOT receive `ADMIN_EMAIL_BLIND_INDEX_KEY` or any blind-index secret.
 
 Key:
 
-* `EMAIL_BLIND_INDEX_KEY` (env) is read internally by `AdminIdentifierCryptoService` and is never injected into controllers.
+* `ADMIN_EMAIL_BLIND_INDEX_KEY` (env) is read internally by `AdminIdentifierCryptoService` and is never injected into controllers.
 
 ---
 
@@ -1162,11 +1162,11 @@ The application MUST fail-closed if required crypto or password env is missing o
 
 Required (conceptual):
 
-* `CRYPTO_KEYS`
-* `CRYPTO_ACTIVE_KEY_ID`
-* `EMAIL_BLIND_INDEX_KEY`
-* `PASSWORD_PEPPERS`
-* `PASSWORD_ACTIVE_PEPPER_ID`
+* `ADMIN_CRYPTO_KEYS`
+* `ADMIN_CRYPTO_ACTIVE_KEY_ID`
+* `ADMIN_EMAIL_BLIND_INDEX_KEY`
+* `ADMIN_PASSWORD_PEPPERS`
+* `ADMIN_PASSWORD_ACTIVE_PEPPER_ID`
 * Argon2 options / password hashing options as configured
 
 Legacy env sources MUST NOT be used:
@@ -1205,7 +1205,7 @@ Password hashing/verification is performed via the canonical password service:
 1. **Input:** Plaintext string + `CryptoContext::*` constant
 2. **Root Key Resolution:** `KeyRotationService` resolves current ACTIVE key from:
 
-  * `CRYPTO_KEYS` + `CRYPTO_ACTIVE_KEY_ID` (ONLY)
+  * `ADMIN_CRYPTO_KEYS` + `ADMIN_CRYPTO_ACTIVE_KEY_ID` (ONLY)
 3. **Key Derivation (HKDF):**
 
   * Uses `hash_hmac('sha256')` in the approved HKDF implementation

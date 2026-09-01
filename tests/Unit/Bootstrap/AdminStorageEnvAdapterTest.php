@@ -1,0 +1,60 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Unit\Bootstrap;
+
+use Maatify\AdminKernel\Bootstrap\AdminStorageEnvAdapter;
+use PHPUnit\Framework\TestCase;
+use RuntimeException;
+
+final class AdminStorageEnvAdapterTest extends TestCase
+{
+    public function testMapsAdminStorageKeysToTheReusableStorageContract(): void
+    {
+        $storageEnv = AdminStorageEnvAdapter::adapt([
+            'STORAGE_DRIVER' => 'do_spaces',
+            'ADMIN_LOCAL_BASE_PATH' => '/srv/admin/images',
+            'ADMIN_LOCAL_BASE_URL' => '/images',
+            'ADMIN_DO_SPACES_KEY' => 'key',
+            'ADMIN_DO_SPACES_SECRET' => 'secret',
+            'ADMIN_DO_SPACES_REGION' => 'fra1',
+            'ADMIN_DO_SPACES_ENDPOINT' => 'https://fra1.digitaloceanspaces.com',
+            'ADMIN_DO_SPACES_BUCKET' => 'admin',
+            'ADMIN_DO_SPACES_CDN_URL' => 'https://cdn.example.com',
+            'ADMIN_DO_SPACES_ACL' => 'private',
+        ]);
+
+        self::assertSame([
+            'STORAGE_DRIVER' => 'do_spaces',
+            'LOCAL_BASE_PATH' => '/srv/admin/images',
+            'LOCAL_BASE_URL' => '/images',
+            'DO_SPACES_KEY' => 'key',
+            'DO_SPACES_SECRET' => 'secret',
+            'DO_SPACES_REGION' => 'fra1',
+            'DO_SPACES_ENDPOINT' => 'https://fra1.digitaloceanspaces.com',
+            'DO_SPACES_BUCKET' => 'admin',
+            'DO_SPACES_CDN_URL' => 'https://cdn.example.com',
+            'DO_SPACES_ACL' => 'private',
+        ], $storageEnv);
+    }
+
+    public function testDoesNotFallbackToLegacyStorageKeys(): void
+    {
+        self::assertSame([], AdminStorageEnvAdapter::adapt([
+            'LOCAL_BASE_PATH' => '/legacy/images',
+            'LOCAL_BASE_URL' => '/legacy-images',
+            'DO_SPACES_BUCKET' => 'legacy',
+        ]));
+    }
+
+    public function testRejectsNonStringAdminStorageValues(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('ADMIN_LOCAL_BASE_PATH');
+
+        AdminStorageEnvAdapter::adapt([
+            'ADMIN_LOCAL_BASE_PATH' => 123,
+        ]);
+    }
+}

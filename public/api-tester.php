@@ -10,7 +10,7 @@ use Dotenv\Dotenv;
 $dotenv = Dotenv::createImmutable(__DIR__ . '/../');
 $dotenv->safeLoad();
 
-$appEnv = $_ENV['APP_ENV'] ?? $_ENV['APP_DEBUG_ENV'] ?? 'local';
+$appEnv = $_ENV['ADMIN_APP_ENV'] ?? 'local';
 $isLocalAllowed = in_array($appEnv, ['local', 'development', 'dev'], true);
 
 // Optional extra restriction for localhost access only

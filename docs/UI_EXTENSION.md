@@ -48,10 +48,10 @@ This defaults to `/`.
 
 ### How to Override
 
-Set the `ASSET_BASE_URL` environment variable in your `.env` file.
+Set the `ADMIN_ASSET_BASE_URL` environment variable in your `.env` file.
 
 ```dotenv
-ASSET_BASE_URL="https://cdn.example.com/admin-assets/"
+ADMIN_ASSET_BASE_URL="https://cdn.example.com/admin-assets/"
 ```
 
 **Note:** Ensure the URL ends with a trailing slash if it is a directory.
