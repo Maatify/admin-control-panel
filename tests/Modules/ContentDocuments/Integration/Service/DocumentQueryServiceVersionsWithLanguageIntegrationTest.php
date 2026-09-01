@@ -10,6 +10,7 @@ use Maatify\ContentDocuments\Domain\ValueObject\DocumentTypeKey;
 use Maatify\ContentDocuments\Domain\ValueObject\DocumentVersion;
 use Maatify\ContentDocuments\Infrastructure\Persistence\MySQL\PdoDocumentRepository;
 use Maatify\ContentDocuments\Infrastructure\Persistence\MySQL\PdoDocumentTranslationRepository;
+use Maatify\SharedCommon\Infrastructure\SystemClock;
 use PDO;
 use PHPUnit\Framework\TestCase;
 use Tests\Support\MySQLTestHelper;
@@ -38,7 +39,7 @@ final class DocumentQueryServiceVersionsWithLanguageIntegrationTest extends Test
         $this->pdo->exec("INSERT INTO document_types (id, `key`) VALUES (1, 'terms')");
 
         $docRepo = new PdoDocumentRepository($this->pdo);
-        $trRepo  = new PdoDocumentTranslationRepository($this->pdo);
+        $trRepo  = new PdoDocumentTranslationRepository($this->pdo, new SystemClock(new \DateTimeZone('UTC')));
 
         $typeKey = new DocumentTypeKey('terms');
 

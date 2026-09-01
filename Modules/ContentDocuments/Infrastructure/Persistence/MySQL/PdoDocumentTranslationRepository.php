@@ -9,6 +9,7 @@ use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTranslationRepos
 use Maatify\ContentDocuments\Domain\Entity\DocumentTranslation;
 use Maatify\ContentDocuments\Domain\Exception\DocumentTranslationAlreadyExistsException;
 use Maatify\ContentDocuments\Domain\Exception\DocumentTranslationNotFoundException;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 use PDO;
 use PDOException;
 
@@ -16,6 +17,7 @@ final readonly class PdoDocumentTranslationRepository implements DocumentTransla
 {
     public function __construct(
         private PDO $pdo,
+        private ClockInterface $clock,
     ) {}
 
     public function findByDocumentAndLanguage(
@@ -159,7 +161,7 @@ final readonly class PdoDocumentTranslationRepository implements DocumentTransla
                  meta_title = :meta_title,
                  meta_description = :meta_description,
                  content = :content,
-                 updated_at = CURRENT_TIMESTAMP
+                 updated_at = :now
              WHERE id = :id
                AND document_id = :document_id
                AND language_id = :language_id'
@@ -173,6 +175,7 @@ final readonly class PdoDocumentTranslationRepository implements DocumentTransla
             'meta_title'       => $translation->metaTitle,
             'meta_description' => $translation->metaDescription,
             'content'          => $translation->content,
+            'now'              => $this->clock->now()->format('Y-m-d H:i:s'),
         ]);
 
         if ($stmt->rowCount() === 0) {

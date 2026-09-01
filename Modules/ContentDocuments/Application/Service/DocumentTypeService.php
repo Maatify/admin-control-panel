@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Maatify\ContentDocuments\Application\Service;
 
-use DateTimeImmutable;
 use Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTypeRepositoryInterface;
 use Maatify\ContentDocuments\Domain\Contract\Service\DocumentTypeServiceInterface;
 use Maatify\ContentDocuments\Domain\DTO\DocumentTypeDTO;
@@ -12,11 +11,13 @@ use Maatify\ContentDocuments\Domain\Entity\DocumentType;
 use Maatify\ContentDocuments\Domain\Exception\DocumentTypeAlreadyExistsException;
 use Maatify\ContentDocuments\Domain\Exception\DocumentTypeNotFoundException;
 use Maatify\ContentDocuments\Domain\ValueObject\DocumentTypeKey;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 
 final readonly class DocumentTypeService implements DocumentTypeServiceInterface
 {
     public function __construct(
         private DocumentTypeRepositoryInterface $documentTypeRepository,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -54,12 +55,12 @@ final readonly class DocumentTypeService implements DocumentTypeServiceInterface
         bool $requiresAcceptanceDefault,
         bool $isSystem
     ): int {
-
+        // createdAt/updatedAt are DB-truth; entity is immutable, so we pass a placeholder timestamp.
         if ($this->documentTypeRepository->existsByKey($key)) {
             throw new DocumentTypeAlreadyExistsException();
         }
-        // createdAt/updatedAt are DB-truth; entity is immutable, so we pass a placeholder timestamp.
-        $now = new DateTimeImmutable('now');
+
+        $now = $this->clock->now();
 
         return $this->documentTypeRepository->create(
             new DocumentType(
@@ -71,6 +72,14 @@ final readonly class DocumentTypeService implements DocumentTypeServiceInterface
                 updatedAt: null
             )
         );
+    }
+
+    /**
+     * @return list<DocumentTypeKey>
+     */
+    public function listRegisteredKeys(): array
+    {
+        return $this->documentTypeRepository->findAllKeys();
     }
 
     public function update(
@@ -96,15 +105,6 @@ final readonly class DocumentTypeService implements DocumentTypeServiceInterface
             )
         );
     }
-
-    /**
-     * @return list<DocumentTypeKey>
-     */
-    public function listRegisteredKeys(): array
-    {
-        return $this->documentTypeRepository->findAllKeys();
-    }
-
 
     private function map(DocumentType $type): DocumentTypeDTO
     {

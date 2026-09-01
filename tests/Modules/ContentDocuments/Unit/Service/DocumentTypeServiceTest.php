@@ -10,6 +10,7 @@ use Maatify\ContentDocuments\Domain\Entity\DocumentType;
 use Maatify\ContentDocuments\Domain\Exception\DocumentTypeAlreadyExistsException;
 use Maatify\ContentDocuments\Domain\Exception\DocumentTypeNotFoundException;
 use Maatify\ContentDocuments\Domain\ValueObject\DocumentTypeKey;
+use Maatify\SharedCommon\Contracts\ClockInterface;
 use PHPUnit\Framework\TestCase;
 
 final class DocumentTypeServiceTest extends TestCase
@@ -37,7 +38,7 @@ final class DocumentTypeServiceTest extends TestCase
             ),
         ]);
 
-        $svc = new DocumentTypeService($repo);
+        $svc = new DocumentTypeService($repo, $this->createMock(ClockInterface::class));
         $out = $svc->list();
 
         self::assertCount(2, $out);
@@ -58,7 +59,7 @@ final class DocumentTypeServiceTest extends TestCase
         $repo = $this->createMock(DocumentTypeRepositoryInterface::class);
         $repo->method('findById')->with(10)->willReturn(null);
 
-        $svc = new DocumentTypeService($repo);
+        $svc = new DocumentTypeService($repo, $this->createMock(ClockInterface::class));
         self::assertNull($svc->getById(10));
     }
 
@@ -67,7 +68,7 @@ final class DocumentTypeServiceTest extends TestCase
         $repo = $this->createMock(DocumentTypeRepositoryInterface::class);
         $repo->method('findByKey')->willReturn(null);
 
-        $svc = new DocumentTypeService($repo);
+        $svc = new DocumentTypeService($repo, $this->createMock(ClockInterface::class));
         self::assertNull($svc->getByKey(new DocumentTypeKey('terms')));
     }
 
@@ -80,7 +81,7 @@ final class DocumentTypeServiceTest extends TestCase
             ->with($this->isInstanceOf(DocumentType::class))
             ->willReturn(123);
 
-        $svc = new DocumentTypeService($repo);
+        $svc = new DocumentTypeService($repo, $this->createMock(ClockInterface::class));
         $id = $svc->create(new DocumentTypeKey('terms'), true, true);
 
         self::assertSame(123, $id);
@@ -94,7 +95,7 @@ final class DocumentTypeServiceTest extends TestCase
             ->method('create')
             ->willThrowException(new DocumentTypeAlreadyExistsException());
 
-        $svc = new DocumentTypeService($repo);
+        $svc = new DocumentTypeService($repo, $this->createMock(ClockInterface::class));
 
         $this->expectException(DocumentTypeAlreadyExistsException::class);
         $svc->create(new DocumentTypeKey('terms'), true, true);
@@ -124,7 +125,7 @@ final class DocumentTypeServiceTest extends TestCase
                     && $dt->isSystem === false;
             }));
 
-        $svc = new DocumentTypeService($repo);
+        $svc = new DocumentTypeService($repo, $this->createMock(ClockInterface::class));
         $svc->update(7, true, false);
 
         self::assertTrue(true);
@@ -138,7 +139,7 @@ final class DocumentTypeServiceTest extends TestCase
 
         $repo->expects($this->never())->method('update');
 
-        $svc = new \Maatify\ContentDocuments\Application\Service\DocumentTypeService($repo);
+        $svc = new \Maatify\ContentDocuments\Application\Service\DocumentTypeService($repo, $this->createMock(\Maatify\SharedCommon\Contracts\ClockInterface::class));
 
         $this->expectException(\Maatify\ContentDocuments\Domain\Exception\DocumentTypeNotFoundException::class);
 

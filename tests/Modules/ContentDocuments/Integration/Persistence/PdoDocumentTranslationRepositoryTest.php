@@ -11,6 +11,7 @@ use Maatify\ContentDocuments\Domain\ValueObject\DocumentVersion;
 use Maatify\ContentDocuments\Infrastructure\Persistence\MySQL\PdoDocumentRepository;
 use Maatify\ContentDocuments\Infrastructure\Persistence\MySQL\PdoDocumentTranslationRepository;
 use Maatify\ContentDocuments\Infrastructure\Persistence\MySQL\PdoDocumentTypeRepository;
+use Maatify\SharedCommon\Infrastructure\SystemClock;
 use PDO;
 use PHPUnit\Framework\TestCase;
 use Tests\Support\ContentDocumentsTestHelper;
@@ -33,7 +34,7 @@ final class PdoDocumentTranslationRepositoryTest extends TestCase
     {
         $typeRepo = new PdoDocumentTypeRepository($this->pdo);
         $docRepo  = new PdoDocumentRepository($this->pdo);
-        $trRepo   = new PdoDocumentTranslationRepository($this->pdo);
+        $trRepo   = new PdoDocumentTranslationRepository($this->pdo, new SystemClock(new \DateTimeZone('UTC')));
 
         $typeId = $typeRepo->create(new DocumentType(
             id: 0,
