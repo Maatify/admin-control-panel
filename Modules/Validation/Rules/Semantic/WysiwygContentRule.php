@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Maatify\Validation\Rules\Semantic;
 
-use Maatify\Validation\Rules\Primitive\StringRule;
 use Respect\Validation\Validatable;
 use Respect\Validation\Validator as v;
 
@@ -13,7 +12,7 @@ final class WysiwygContentRule
     public static function required(int $min = 1, int $max = 65535): Validatable
     {
         return v::allOf(
-            StringRule::required($min, $max),
+            v::stringType()->length($min, $max),
             v::callback([self::class, 'isVisuallyNotEmpty'])
         );
     }

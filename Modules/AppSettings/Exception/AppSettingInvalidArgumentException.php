@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Maatify\AppSettings\Exception;
 
-abstract class AppSettingInvalidArgumentException extends AppSettingsValidationException
+use Maatify\Exceptions\Exception\Validation\InvalidArgumentMaatifyException;
+
+abstract class AppSettingInvalidArgumentException extends InvalidArgumentMaatifyException
 {
+
 }

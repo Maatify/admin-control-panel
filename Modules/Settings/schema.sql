@@ -59,4 +59,6 @@ VALUES
 
     ('default_language', '1', 'int', 1, 'Default language id'),
 
-    ('pre_cart_preparation_ttl_days', '15', 'int', 1, 'Clear pre-cart preparation drafts after X days');
+    ('pre_cart_preparation_ttl_days', '15', 'int', 1, 'Clear pre-cart preparation drafts after X days'),
+
+    ('registration_enabled', '1', 'bool', 1, 'Allow new user registrations. Set to 0 to close registration.');

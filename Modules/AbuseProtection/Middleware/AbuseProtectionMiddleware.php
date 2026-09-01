@@ -24,10 +24,6 @@ final readonly class AbuseProtectionMiddleware implements MiddlewareInterface
         RequestHandlerInterface $handler
     ): ResponseInterface {
 
-        // TODO [RateLimiter]:
-        // Populate 'login_failures' attribute from RateLimiter middleware
-        // before AbuseProtectionMiddleware runs.
-
         $failures = $request->getAttribute('login_failures');
         $failureCount = is_int($failures) ? $failures : 0;
 

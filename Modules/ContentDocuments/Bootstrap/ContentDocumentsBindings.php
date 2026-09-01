@@ -85,7 +85,9 @@ final class ContentDocumentsBindings
             \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTranslationRepositoryInterface::class => function (ContainerInterface $c) {
                 /** @var PDO $pdo*/
                 $pdo = $c->get(PDO::class);
-                return new \Maatify\ContentDocuments\Infrastructure\Persistence\MySQL\PdoDocumentTranslationRepository($pdo);
+                /** @var \Maatify\SharedCommon\Contracts\ClockInterface $clock */
+                $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
+                return new \Maatify\ContentDocuments\Infrastructure\Persistence\MySQL\PdoDocumentTranslationRepository($pdo, $clock);
             },
 
             \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTypeRepositoryInterface::class => function (ContainerInterface $c) {
@@ -197,7 +199,13 @@ final class ContentDocumentsBindings
             \Maatify\ContentDocuments\Domain\Contract\Service\DocumentTypeServiceInterface::class => function (ContainerInterface $c) {
                 /** @var \Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTypeRepositoryInterface $documentTypeRepository */
                 $documentTypeRepository = $c->get(\Maatify\ContentDocuments\Domain\Contract\Repository\DocumentTypeRepositoryInterface::class);
-                return new \Maatify\ContentDocuments\Application\Service\DocumentTypeService($documentTypeRepository);
+                $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
+                assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
+
+                return new \Maatify\ContentDocuments\Application\Service\DocumentTypeService(
+                    $documentTypeRepository,
+                    $clock,
+                );
             },
 
             \Maatify\ContentDocuments\Domain\Contract\Service\DocumentTranslationServiceInterface::class => function (ContainerInterface $c) {

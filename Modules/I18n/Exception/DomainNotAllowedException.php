@@ -19,4 +19,3 @@ final class DomainNotAllowedException extends I18nBusinessRuleException
         return I18nErrorCodeEnum::DOMAIN_NOT_ALLOWED;
     }
 }
-

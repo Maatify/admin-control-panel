@@ -25,9 +25,39 @@ final class ImageProfileDTOTest extends TestCase
         ImageProfileDTO::fromRow($this->baseRow(['is_active' => 'false']));
     }
 
+    public function testDecimalHydrationAcceptsDatabaseNumericRepresentations(): void
+    {
+        $dto = ImageProfileDTO::fromRow($this->baseRow([
+            'min_aspect_ratio' => 1,
+            'max_aspect_ratio' => 1.75,
+        ]));
+
+        self::assertSame('1', $dto->minAspectRatio);
+        self::assertSame('1.75', $dto->maxAspectRatio);
+    }
+
+    public function testJsonSerializationUsesThePublicFieldContract(): void
+    {
+        $dto = ImageProfileDTO::fromRow($this->baseRow([
+            'display_name' => 'Avatar',
+            'is_active' => '1',
+            'requires_transparency' => '1',
+            'min_aspect_ratio' => '1.0000',
+        ]));
+
+        $json = $dto->jsonSerialize();
+
+        self::assertSame(1, $json['id']);
+        self::assertSame('Avatar', $json['display_name']);
+        self::assertTrue($json['is_active']);
+        self::assertTrue($json['requires_transparency']);
+        self::assertSame('1.0000', $json['min_aspect_ratio']);
+        self::assertArrayHasKey('updated_at', $json);
+    }
+
     /**
-     * @param array<string, int|string|null> $override
-     * @return array<string, int|string|null>
+     * @param array<string, mixed> $override
+     * @return array<string, mixed>
      */
     private function baseRow(array $override = []): array
     {

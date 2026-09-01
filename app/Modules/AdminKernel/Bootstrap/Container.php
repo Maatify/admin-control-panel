@@ -243,7 +243,8 @@ class Container
         AdminRuntimeConfigDTO $runtime,
         ?callable $builderHook = null,
         ?string $templatesPath = null,
-        ?string $assetsBaseUrl = null
+        ?string $assetsBaseUrl = null,
+        ?string $twigCachePath = null
     ): ContainerInterface
     {
         $containerBuilder = new ContainerBuilder();
@@ -412,7 +413,7 @@ class Container
             \Maatify\AdminKernel\Domain\Contracts\Ui\NavigationProviderInterface::class => function (ContainerInterface $c) {
                 return new \Maatify\AdminKernel\Infrastructure\Ui\DefaultNavigationProvider();
             },
-            Twig::class                                               => function (ContainerInterface $c) use ($templatesPath, $assetsBaseUrl) {
+            Twig::class                                               => function (ContainerInterface $c) use ($templatesPath, $assetsBaseUrl, $twigCachePath) {
                 $uiConfigDTO = $c->get(UiConfigDTO::class);
                 assert($uiConfigDTO instanceof UiConfigDTO);
 
@@ -433,7 +434,7 @@ class Container
                 $loader->addPath($kernelPath);          // Main namespace (fallback)
                 $loader->addPath($kernelPath, 'admin'); // @admin namespace
 
-                $twig = new Twig($loader, ['cache' => false]);
+                $twig = new Twig($loader, ['cache' => $twigCachePath ?? false]);
 
                 $navProvider = $c->get(\Maatify\AdminKernel\Domain\Contracts\Ui\NavigationProviderInterface::class);
                 assert($navProvider instanceof \Maatify\AdminKernel\Domain\Contracts\Ui\NavigationProviderInterface);
@@ -446,10 +447,18 @@ class Container
                     'cdn_image_url'  => $mediaUrlConfig->cdnImageUrl,
                 ]);
 
-                $twig->getEnvironment()->addFunction(new \Twig\TwigFunction('asset', function (string $path) use ($uiConfigDTO, $assetsBaseUrl): string {
-                    $base = $assetsBaseUrl ?? $uiConfigDTO->adminAssetBaseUrl;
-                    return rtrim($base, '/') . '/' . ltrim($path, '/');
-                }));
+                $twig->getEnvironment()->addFunction(
+                    new \Twig\TwigFunction(
+                        'asset',
+                        static function (string $path) use ($assetsBaseUrl, $mediaUrlConfig): string {
+                            if ($assetsBaseUrl !== null) {
+                                return rtrim($assetsBaseUrl, '/') . '/' . ltrim($path, '/');
+                            }
+
+                            return $mediaUrlConfig->buildAssetUrl($path);
+                        }
+                    )
+                );
 
                 $twig->getEnvironment()->addFunction(new \Twig\TwigFunction(
                     'cdn_asset',
@@ -460,7 +469,7 @@ class Container
 
                 $twig->getEnvironment()->addFunction(new \Twig\TwigFunction(
                     'cdn_image',
-                    static function (string $path) use ($mediaUrlConfig): string {
+                    static function (?string $path) use ($mediaUrlConfig): string {
                         return $mediaUrlConfig->buildImageUrl($path);
                     }
                 ));
@@ -2101,9 +2110,13 @@ class Container
                 return new AbuseCookieService($signatureProvider);
             },
 
+            // TODO [RateLimiter]:
+            // Populate 'login_failures' attribute from RateLimiter middleware
+            // before AbuseProtectionMiddleware runs.
+            // Until that integration exists, threshold 0 preserves the Admin hard gate.
             \Maatify\AbuseProtection\Contracts\AbuseDecisionInterface::class => function (ContainerInterface $c) {
                 return new LoginAbusePolicy(
-//                    challengeAfterFailures: 0,
+                    challengeAfterFailures: 0,
                 );
             },
 

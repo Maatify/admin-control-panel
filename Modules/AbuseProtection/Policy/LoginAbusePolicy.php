@@ -15,7 +15,7 @@ use Maatify\AbuseProtection\DTO\AbuseContextDTO;
 final readonly class LoginAbusePolicy implements AbuseDecisionInterface
 {
     public function __construct(
-//        private int $challengeAfterFailures = 3
+        private int $challengeAfterFailures = 2,
     ) {}
 
     public function requiresChallenge(AbuseContextDTO $context): bool
@@ -28,14 +28,6 @@ final readonly class LoginAbusePolicy implements AbuseDecisionInterface
             return false;
         }
 
-        // TODO [RateLimiter]:
-        // Replace hard-gated challenge requirement with dynamic decision
-        // based on RateLimiter-provided failure counters and windows.
-        // This policy MUST remain pure and must NOT fetch counters itself.
-
-        // 🔒 Temporary hard gate until RateLimiter is integrated
-        return true;
-
-//        return $context->failureCount >= $this->challengeAfterFailures;
+        return $context->failureCount >= $this->challengeAfterFailures;
     }
 }

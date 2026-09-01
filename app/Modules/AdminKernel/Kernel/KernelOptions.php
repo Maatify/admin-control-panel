@@ -33,6 +33,14 @@ final class KernelOptions
     public ?string $assetsBaseUrl = null;
 
     /**
+     * Optional path for Twig compiled-template cache.
+     * If NULL, Twig caching is disabled.
+     *
+     * @var string|null
+     */
+    public ?string $twigCachePath = null;
+
+    /**
      * Register infrastructure middleware
      * (RequestId, RequestContext, Telemetry)
      *

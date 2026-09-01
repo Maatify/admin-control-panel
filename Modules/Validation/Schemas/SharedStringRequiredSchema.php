@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Maatify\Validation\Schemas;
 
 use Maatify\Validation\Enum\ValidationErrorCodeEnum;
-use Maatify\Validation\Rules\Primitive\StringRule;
+use Respect\Validation\Validator;
 
 final class SharedStringRequiredSchema extends AbstractSchema
 {
@@ -26,7 +26,9 @@ final class SharedStringRequiredSchema extends AbstractSchema
     {
         return [
             $this->field => [
-                StringRule::required($this->minLength, $this->maxLength),
+                Validator::stringType()
+                    ->notEmpty()
+                    ->length($this->minLength, $this->maxLength),
                 ValidationErrorCodeEnum::INVALID_FORMAT,
             ],
         ];

@@ -122,4 +122,9 @@ $options->builderHook = static function (ContainerBuilder $containerBuilder) use
 };
 
 // 5️⃣ Boot & Run
+// Enable Twig compiled-template caching only in production.
+if (($runtimeConfig->appEnv ?? 'local') === 'production') {
+    $options->twigCachePath = APP_ROOT . '/storage/twig';
+}
+
 AdminKernel::bootWithOptions($options)->run();

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Maatify\Storage\Config;
 
-final class LocalStorageConfig
+final readonly class LocalStorageConfig
 {
     public function __construct(
-        public readonly string $basePath,
-        public readonly string $baseUrl = '/images',
+        public string $basePath,
+        public string $baseUrl = '/images',
     ) {}
 }
