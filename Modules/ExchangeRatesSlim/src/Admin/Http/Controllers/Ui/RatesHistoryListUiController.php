@@ -6,6 +6,7 @@ namespace Maatify\ExchangeRatesSlim\Admin\Http\Controllers\Ui;
 
 use Maatify\AdminKernel\Application\Security\UiPermissionService;
 use Maatify\AdminKernel\Context\AdminContext;
+use Maatify\Currency\Contract\CurrencyDropdownQueryInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
@@ -13,6 +14,7 @@ use Slim\Views\Twig;
 final readonly class RatesHistoryListUiController
 {
     public function __construct(
+        private CurrencyDropdownQueryInterface $currencyDropdownQuery,
         private Twig $twig,
         private UiPermissionService $uiPermissionService,
     ) {}
@@ -36,6 +38,8 @@ final readonly class RatesHistoryListUiController
             [
                 'capabilities' => $capabilities,
                 'rate_id' => $args['rate_id'] ?? '',
+                'currencies' => $this->currencyDropdownQuery->listAllForDropdown(),
+
             ]
         );
     }
