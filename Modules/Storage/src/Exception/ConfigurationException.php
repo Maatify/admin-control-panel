@@ -2,8 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Maatify\Storage\Exceptions;
+namespace Maatify\Storage\Exception;
 
+/**
+ * Thrown when storage module configuration is invalid or incomplete.
+ *
+ * Per Maatify Module Building Standard section 6 - named constructors required.
+ */
 final class ConfigurationException extends StorageException
 {
     public static function missingEnvVariable(string $key): self

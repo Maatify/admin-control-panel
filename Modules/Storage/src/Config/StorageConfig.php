@@ -4,15 +4,48 @@ declare(strict_types=1);
 
 namespace Maatify\Storage\Config;
 
-use Maatify\Storage\Exceptions\ConfigurationException;
+use Maatify\Storage\Contracts\StorageConfigInterface;
+use Maatify\Storage\Exception\ConfigurationException;
 
-final class StorageConfig
+/**
+ * Default storage configuration.
+ *
+ * Reads from environment variables and provides single-driver setup.
+ * For multi-driver setups, projects should implement StorageConfigInterface.
+ *
+ * @see StorageConfigInterface for extending with custom configurations
+ */
+final readonly class StorageConfig implements StorageConfigInterface
 {
     public function __construct(
-        public readonly string $driver,
-        public readonly LocalStorageConfig|null $local = null,
-        public readonly DOSpacesConfig|null $doSpaces = null,
+        public string                  $driver,
+        public LocalStorageConfig|null $local = null,
+        public DOSpacesConfig|null     $doSpaces = null,
     ) {}
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getDriver(): string
+    {
+        return $this->driver;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getLocalConfig(): ?LocalStorageConfig
+    {
+        return $this->local;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getDoSpacesConfig(): ?DOSpacesConfig
+    {
+        return $this->doSpaces;
+    }
 
     /**
      * Build from raw $_ENV or any flat array

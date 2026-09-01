@@ -4,73 +4,77 @@ declare(strict_types=1);
 
 namespace Maatify\Storage\Services;
 
+use Maatify\Storage\Contracts\FileValidator;
 use Maatify\Storage\Contracts\StorageAdapterInterface;
-use Maatify\Storage\Exceptions\FileUploadException;
-use Maatify\Storage\Exceptions\InvalidFileException;
+use Maatify\Storage\DTO\StoredFile;
+use Maatify\Storage\Exception\FileUploadException;
 use Psr\Http\Message\UploadedFileInterface;
 
-final class FileUploadService
+/**
+ * Core file upload service.
+ *
+ * Handles the mechanics of uploading a file after validation.
+ * No hardcoded validation rules — validators are pluggable.
+ *
+ * Per Maatify Module Building Standard section 12 — services orchestrate,
+ * they don't validate directly.
+ */
+final readonly class FileUploadService
 {
-    private const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
-
     public function __construct(
-        private readonly StorageAdapterInterface $storage,
+        private StorageAdapterInterface $storage,
     ) {}
 
     /**
-     * @param UploadedFileInterface $uploadedFile
-     * @param string                $subfolder   e.g. "products" or "avatars/2025"
-     * @param string|null           $baseName    e.g. product slug — used as filename prefix
+     * Delete a stored file by its relative path.
      *
-     * @return string  Publicly accessible URL returned by the active storage adapter
+     * Delegates directly to the adapter. Silently ignores non-existent files.
+     *
+     * @param string $path The relative path returned by upload() (e.g. "products/slug-abc123.jpg").
      */
-    public function handleUpload(
-        UploadedFileInterface $uploadedFile,
-        string $subfolder,
-        ?string $baseName = null,
-    ): string {
-        $this->assertNoUploadError($uploadedFile);
-
-        $extension = $this->resolveAndValidateExtension($uploadedFile);
-        $filename  = $this->generateFilename($baseName, $extension);
-
-        $destinationPath = trim($subfolder, '/') . '/' . $filename;
-
-        return $this->storage->store($uploadedFile, $destinationPath);
+    public function delete(string $path): void
+    {
+        $this->storage->delete($path);
     }
 
+    /**
+     * Upload a file with optional validators.
+     *
+     * @param UploadedFileInterface $file The uploaded file from the request.
+     * @param string $destinationPath The destination path (e.g. "images/products/slug-abc123.jpg").
+     * @param FileValidator ...$validators Optional validators (if none, no validation is performed).
+     *
+     * @return StoredFile DTO containing the storage path and resolved URL.
+     *
+     * @throws \Maatify\Storage\Exception\FileUploadException If the file has a PHP upload error.
+     * @throws \Maatify\Storage\Exception\InvalidFileException If any validator fails.
+     */
+    public function upload(
+        UploadedFileInterface $file,
+        string $destinationPath,
+        FileValidator ...$validators
+    ): StoredFile {
+        // Check for PHP upload errors first
+        $this->assertNoUploadError($file);
+
+        // Apply all validators (if any provided)
+        foreach ($validators as $validator) {
+            $validator->validate($file);
+        }
+
+        // Store the file
+        return $this->storage->store($file, $destinationPath);
+    }
+
+    /**
+     * Check if file has a PHP upload error.
+     *
+     * @throws FileUploadException If upload error is present.
+     */
     private function assertNoUploadError(UploadedFileInterface $file): void
     {
         if ($file->getError() !== UPLOAD_ERR_OK) {
             throw FileUploadException::fromErrorCode($file->getError());
         }
-    }
-
-    private function resolveAndValidateExtension(UploadedFileInterface $file): string
-    {
-        $originalFilename = $file->getClientFilename();
-
-        if (!$originalFilename) {
-            throw InvalidFileException::missingFilename();
-        }
-
-        $extension = strtolower(pathinfo($originalFilename, PATHINFO_EXTENSION));
-
-        if (!in_array($extension, self::ALLOWED_EXTENSIONS, true)) {
-            throw InvalidFileException::unsupportedExtension($extension, self::ALLOWED_EXTENSIONS);
-        }
-
-        return $extension;
-    }
-
-    private function generateFilename(?string $baseName, string $extension): string
-    {
-        $sanitized  = $baseName
-            ? preg_replace('/[^a-z0-9-]/', '', strtolower($baseName))
-            : 'file';
-
-        $randomPart = bin2hex(random_bytes(8));
-
-        return sprintf('%s-%s.%s', $sanitized, $randomPart, $extension);
     }
 }

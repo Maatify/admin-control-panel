@@ -2,8 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Maatify\Storage\Exceptions;
+namespace Maatify\Storage\Exception;
 
+/**
+ * Thrown when file upload encounters a PHP-level error.
+ *
+ * Per Maatify Module Building Standard section 6 - named constructors required.
+ */
 final class FileUploadException extends StorageException
 {
     public static function fromErrorCode(int $code): self

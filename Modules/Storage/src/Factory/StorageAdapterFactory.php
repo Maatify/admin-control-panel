@@ -8,34 +8,42 @@ use Aws\S3\S3Client;
 use Maatify\SharedCommon\Path\AppPaths;
 use Maatify\Storage\Adapters\DOSpacesStorageAdapter;
 use Maatify\Storage\Adapters\LocalStorageAdapter;
-use Maatify\Storage\Config\StorageConfig;
 use Maatify\Storage\Contracts\StorageAdapterInterface;
-use Maatify\Storage\Exceptions\ConfigurationException;
+use Maatify\Storage\Contracts\StorageConfigInterface;
+use Maatify\Storage\Exception\ConfigurationException;
 
+/**
+ * Factory for creating storage adapters.
+ *
+ * Works with any StorageConfigInterface implementation,
+ * allowing projects to use custom configurations.
+ *
+ * @see StorageConfigInterface
+ */
 final class StorageAdapterFactory
 {
-    public static function create(AppPaths $paths, StorageConfig $config): StorageAdapterInterface
+    public static function create(AppPaths $paths, StorageConfigInterface $config): StorageAdapterInterface
     {
-        return match ($config->driver) {
+        return match ($config->getDriver()) {
             'local'     => self::createLocalAdapter($paths, $config),
             'do_spaces' => self::createDOSpacesAdapter($config),
-            default     => throw ConfigurationException::unsupportedDriver($config->driver),
+            default     => throw ConfigurationException::unsupportedDriver($config->getDriver()),
         };
     }
 
-    private static function createLocalAdapter(AppPaths $paths, StorageConfig $config): LocalStorageAdapter
+    private static function createLocalAdapter(AppPaths $paths, StorageConfigInterface $config): LocalStorageAdapter
     {
-        $local = $config->local;
+        $local = $config->getLocalConfig();
 
         return new LocalStorageAdapter(
-            basePath: $local?->basePath ?? $paths->publicImages(),
-            baseUrl:  $local?->baseUrl  ?? '/images',
+            basePath: $local?->basePath ?? $paths->publicPath(),
+            baseUrl:  $local?->baseUrl  ?? '',
         );
     }
 
-    private static function createDOSpacesAdapter(StorageConfig $config): DOSpacesStorageAdapter
+    private static function createDOSpacesAdapter(StorageConfigInterface $config): DOSpacesStorageAdapter
     {
-        $spaces = $config->doSpaces
+        $spaces = $config->getDoSpacesConfig()
                   ?? throw ConfigurationException::missingAdapterConfig('do_spaces');
 
         $client = new S3Client([

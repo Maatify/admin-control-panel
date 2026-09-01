@@ -1,0 +1,19 @@
+parameters:
+  level: max
+  paths:
+    - src/
+  excludePaths:
+    - src/Bootstrap/
+
+  checkOctaneCompatibility: false
+  checkModelProperties: true
+  checkMissingIterableValueType: true
+  checkMissingTypehints: true
+  checkImplicitMixed: true
+  reportUnmatchedIgnoredErrors: true
+
+  # Type declaration support
+  strictTypes: true
+
+includes:
+  - phpstan-baseline.neon
