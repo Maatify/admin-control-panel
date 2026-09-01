@@ -29,22 +29,22 @@ final class MySQLTestHelper
             return self::$pdo;
         }
 
-        $env = getenv('APP_ENV') ?: 'unknown';
+        $env = getenv('ADMIN_APP_ENV') ?: 'unknown';
 
         if ($env !== 'testing') {
             throw new RuntimeException(
-                'MySQLTestHelper can only be used when APP_ENV=testing. ' .
+                'MySQLTestHelper can only be used when ADMIN_APP_ENV=testing. ' .
                 'Current environment: ' . $env
             );
         }
 
-        $host = getenv('DB_HOST');
-        $name = getenv('DB_NAME');
-        $user = getenv('DB_USER');
-        $pass = getenv('DB_PASS');
+        $host = getenv('ADMIN_DB_HOST');
+        $name = getenv('ADMIN_DB_NAME');
+        $user = getenv('ADMIN_DB_USER');
+        $pass = getenv('ADMIN_DB_PASS');
 
         if ($host === false || $name === false || $user === false) {
-             throw new RuntimeException('Database environment variables (DB_HOST, DB_NAME, DB_USER) are not configured fully.');
+             throw new RuntimeException('Database environment variables (ADMIN_DB_HOST, ADMIN_DB_NAME, ADMIN_DB_USER) are not configured fully.');
         }
 
         $dsn = sprintf(
@@ -100,7 +100,7 @@ final class MySQLTestHelper
 
     public static function truncate(string $table): void
     {
-        $env = getenv('APP_ENV') ?: 'unknown';
+        $env = getenv('ADMIN_APP_ENV') ?: 'unknown';
 
         if ($env !== 'testing') {
             throw new RuntimeException(
