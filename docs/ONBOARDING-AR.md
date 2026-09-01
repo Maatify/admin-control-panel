@@ -103,12 +103,12 @@ composer install
   ```
 
 * اضبط بيانات الاتصال بقاعدة البيانات
-  (`DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`)
+  (`ADMIN_DB_HOST`, `ADMIN_DB_NAME`, `ADMIN_DB_USER`, `ADMIN_DB_PASS`)
 
 * **مفاتيح أمنية حرجة:**
 
   النظام يحتاج مفاتيح تشفير محددة ليعمل:
-  (`ENCRYPTION_KEY`, `EMAIL_BLIND_INDEX_KEY`, `PASSWORD_PEPPER`)
+  (`ADMIN_CRYPTO_KEYS`, `ADMIN_CRYPTO_ACTIVE_KEY_ID`, `ADMIN_EMAIL_BLIND_INDEX_KEY`, `ADMIN_PASSWORD_PEPPERS`, `ADMIN_PASSWORD_ACTIVE_PEPPER_ID`)
 
   > **مطورو الواجهة:** ممنوع تعديل هذه المفاتيح.
   >
