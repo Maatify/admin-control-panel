@@ -21,12 +21,12 @@ coding standards before opening a pull request.
 
 ## Local setup
 
-This package currently lives inside the `athar-admin` monorepo, not as a
+This package currently lives inside the `admin-control-panel` monorepo, not as a
 standalone repository:
 
 ```bash
-git clone https://github.com/Maatify/athar-admin.git
-cd athar-admin/Modules/ImageProfileLegacy
+git clone https://github.com/Maatify/admin-control-panel.git
+cd admin-control-panel/Modules/ImageProfileLegacy
 composer install
 ```
 

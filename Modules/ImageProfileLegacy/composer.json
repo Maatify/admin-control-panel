@@ -59,9 +59,9 @@
         "validation",
         "upload"
     ],
-    "homepage": "https://github.com/Maatify/athar-admin/tree/main/Modules/ImageProfileLegacy",
+    "homepage": "https://github.com/Maatify/admin-control-panel/tree/main/Modules/ImageProfileLegacy",
     "support": {
-        "source": "https://github.com/Maatify/athar-admin/tree/main/Modules/ImageProfileLegacy",
-        "issues": "https://github.com/Maatify/athar-admin/issues"
+        "source": "https://github.com/Maatify/admin-control-panel/tree/main/Modules/ImageProfileLegacy",
+        "issues": "https://github.com/Maatify/admin-control-panel/issues"
     }
 }

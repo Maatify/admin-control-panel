@@ -43,7 +43,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Fixed
 
 - A standalone `composer install` inside this module (independent of the
-  `athar-admin` host monorepo) previously could not run its own test suite
+  host monorepo) previously could not run its own test suite
   or static-analysis toolchain at all: `aws/aws-sdk-php` was only in
   `suggest`, not `require-dev`, so `DoSpacesImageStorageTest` (which mocks
   `Aws\S3\S3Client`) failed to autoload standalone; and `phpstan.neon`
