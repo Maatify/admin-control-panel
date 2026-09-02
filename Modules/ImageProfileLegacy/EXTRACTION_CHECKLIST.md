@@ -32,7 +32,7 @@ a standalone repository. Every item must be verified **green** before release.
 
 ## 3. Dependency Declaration (`composer.json`)
 
-- [x] `require` block lists **only** `php ^8.1` (plus PHP extensions as needed)
+- [x] `require` block lists **only** `php ^8.2` (plus PHP extensions as needed)
 - [x] `psr/http-message` is listed under `suggest`, NOT `require`
 - [x] `aws/aws-sdk-php` is listed under `suggest`, NOT `require`
 - [x] Both are in `require-dev` for test/development use

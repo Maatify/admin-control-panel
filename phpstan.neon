@@ -1,0 +1,18 @@
+parameters:
+	level: max
+	ignoreErrors:
+		-
+			message: '#^Attribute class PHPUnit\\Framework\\Attributes\\CoversClass is not repeatable but is already present above the class\.$#'
+			identifier: attribute.nonRepeatable
+			path: Modules/ImageProfileLegacy/tests/Contract/ImageProfileProviderInterfaceContractTest.php
+			reportUnmatched: false
+		-
+			message: '#^Attribute class PHPUnit\\Framework\\Attributes\\CoversClass is not repeatable but is already present above the class\.$#'
+			identifier: attribute.nonRepeatable
+			path: Modules/ImageProfileLegacy/tests/Integration/Validator/ImageProfileValidatorIntegrationTest.php
+			reportUnmatched: false
+		-
+			message: '#^Attribute class PHPUnit\\Framework\\Attributes\\CoversClass is not repeatable but is already present above the class\.$#'
+			identifier: attribute.nonRepeatable
+			path: Modules/ImageProfileLegacy/tests/Unit/Processor/NativeImageVariantGeneratorTest.php
+			reportUnmatched: false
