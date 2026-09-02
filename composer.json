@@ -56,11 +56,6 @@
       "Maatify\\CurrencySlim\\": "Modules/CurrencySlim/src",
       "Maatify\\Storage\\": "Modules/Storage/src",
       "Maatify\\ImageProfile\\": "Modules/ImageProfile/src",
-      "Maatify\\ImageProfileLegacy\\": "Modules/ImageProfileLegacy/src",
-      "Maatify\\ImageProfileLegacy\\Adapter\\": "Modules/ImageProfileLegacy/Adapter",
-      "Maatify\\ImageProfileLegacy\\Application\\": "Modules/ImageProfileLegacy/Application",
-      "Maatify\\ImageProfileLegacy\\Infrastructure\\": "Modules/ImageProfileLegacy/Infrastructure",
-      "Maatify\\ImageProfileLegacy\\Storage\\": "Modules/ImageProfileLegacy/Storage",
       "Maatify\\WebsiteUiTheme\\": "Modules/WebsiteUiTheme/src",
       "Maatify\\ExchangeRates\\": "Modules/ExchangeRates/src",
       "Maatify\\ExchangeRatesSlim\\": "Modules/ExchangeRatesSlim/src",
@@ -74,8 +69,7 @@
   "autoload-dev": {
     "psr-4": {
       "Tests\\": "tests/",
-      "Maatify\\Geo\\Tests\\": "Modules/geo/tests/",
-      "Maatify\\ImageProfileLegacy\\tests\\": "Modules/ImageProfileLegacy/tests"
+      "Maatify\\Geo\\Tests\\": "Modules/geo/tests/"
     }
   },
 
