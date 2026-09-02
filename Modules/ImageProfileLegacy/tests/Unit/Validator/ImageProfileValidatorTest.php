@@ -2,17 +2,17 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/image-profile
+ * @Library     maatify/image-profile-legacy
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-04-16
  */
 
 declare(strict_types=1);
 
-namespace ImageProfileLegacy\tests\Unit\Validator;
+namespace Maatify\ImageProfileLegacy\tests\Unit\Validator;
 
-use ImageProfileLegacy\tests\Fixtures\ImageProfileFixtureFactory;
-use ImageProfileLegacy\tests\Fixtures\TestImageFactory;
+use Maatify\ImageProfileLegacy\tests\Fixtures\ImageProfileFixtureFactory;
+use Maatify\ImageProfileLegacy\tests\Fixtures\TestImageFactory;
 use Maatify\ImageProfileLegacy\DTO\ImageFileInputDTO;
 use Maatify\ImageProfileLegacy\Enum\ValidationErrorCodeEnum;
 use Maatify\ImageProfileLegacy\Provider\ArrayImageProfileProvider;

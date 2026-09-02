@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace ImageProfileLegacy\Infrastructure\Repository\PDO;
+namespace Maatify\ImageProfileLegacy\Infrastructure\Repository\PDO;
 
-use ImageProfileLegacy\Application\Contract\ImageProfileRepositoryInterface;
-use ImageProfileLegacy\Application\DTO\CreateImageProfileRequest;
-use ImageProfileLegacy\Application\DTO\UpdateImageProfileRequest;
+use Maatify\ImageProfileLegacy\Application\Contract\ImageProfileRepositoryInterface;
+use Maatify\ImageProfileLegacy\Application\DTO\CreateImageProfileRequest;
+use Maatify\ImageProfileLegacy\Application\DTO\UpdateImageProfileRequest;
 use Maatify\ImageProfileLegacy\DTO\ImageProfileProcessingExtensionDTO;
 use Maatify\ImageProfileLegacy\DTO\VariantDefinitionCollectionDTO;
 use Maatify\ImageProfileLegacy\Entity\ImageProfileEntity;
@@ -74,7 +74,7 @@ final class PdoImageProfileRepository implements ImageProfileRepositoryInterface
                 ':preferred_format'      => $request->processing?->preferredFormat?->value,
                 ':preferred_quality'     => $request->processing?->preferredQuality,
                 ':variants'              => $this->serializeVariants(
-                    $request->processing?->variants ?? VariantDefinitionCollectionDTO::empty(),
+                    $request->processing !== null ? $request->processing->variants : VariantDefinitionCollectionDTO::empty(),
                 ),
             ]);
         } catch (PDOException $e) {
@@ -131,7 +131,7 @@ final class PdoImageProfileRepository implements ImageProfileRepositoryInterface
                 ':preferred_format'      => $request->processing?->preferredFormat?->value,
                 ':preferred_quality'     => $request->processing?->preferredQuality,
                 ':variants'              => $this->serializeVariants(
-                    $request->processing?->variants ?? VariantDefinitionCollectionDTO::empty(),
+                    $request->processing !== null ? $request->processing->variants : VariantDefinitionCollectionDTO::empty(),
                 ),
                 ':code'                  => $code,
             ]);
@@ -296,14 +296,15 @@ final class PdoImageProfileRepository implements ImageProfileRepositoryInterface
      * @param array{
      *     preferred_format?: string|null,
      *     preferred_quality?: int|string|null,
-     *     variants?: string|null
+     *     variants?: string|null,
+     *     ...
      * } $row
      */
     private function mapProcessing(array $row): ?ImageProfileProcessingExtensionDTO
     {
         $processing = new ImageProfileProcessingExtensionDTO(
             preferredFormat: isset($row['preferred_format'])
-                ? ImageFormatEnum::tryFrom((string) $row['preferred_format'])
+                ? ImageFormatEnum::tryFrom($row['preferred_format'])
                 : null,
             preferredQuality: isset($row['preferred_quality']) ? (int) $row['preferred_quality'] : null,
             variants: VariantDefinitionCollectionDTO::fromJsonString($row['variants'] ?? null),

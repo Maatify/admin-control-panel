@@ -1,5 +1,5 @@
 {
-    "name": "maatify/image-profile",
+    "name": "maatify/image-profile-legacy",
     "description": "Reusable image-profile definition and validation package — framework-agnostic core.",
     "type": "library",
     "license": "MIT",
@@ -12,29 +12,38 @@
         }
     ],
     "require": {
-        "php": "^8.1"
+        "php": "^8.2"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.0",
-        "phpstan/phpstan": "^1.10",
-        "psr/http-message": "^1.1 || ^2.0"
+        "phpstan/phpstan": "^2.2",
+        "phpstan/phpstan-strict-rules": "^2.0",
+        "psr/http-message": "^1.1 || ^2.0",
+        "aws/aws-sdk-php": "^3.0",
+        "ext-gd": "*",
+        "ext-fileinfo": "*",
+        "ext-pdo": "*",
+        "ext-pdo_sqlite": "*"
     },
     "suggest": {
         "psr/http-message": "Required to use SlimUploadedFileAdapter (PSR-7 upload objects).",
-        "aws/aws-sdk-php": "Required to use DoSpacesImageStorage (DigitalOcean Spaces / S3)."
+        "aws/aws-sdk-php": "Required to use DoSpacesImageStorage (DigitalOcean Spaces / S3).",
+        "ext-gd": "Required to use NativeImageProcessor / NativeImageVariantGenerator (resize, optimize, variant generation). Not needed for validation-only usage.",
+        "ext-fileinfo": "Required to use DoSpacesImageStorage, which detects MIME type via finfo before upload.",
+        "ext-pdo": "Required to use PdoImageProfileProvider / PdoImageProfileRepository (PDO-backed persistence). Use ArrayImageProfileProvider to avoid this dependency."
     },
     "autoload": {
         "psr-4": {
-            "Maatify\\ImageProfile\\": "src/",
-            "Maatify\\ImageProfile\\Application\\": "Application/",
-            "Maatify\\ImageProfile\\Infrastructure\\": "Infrastructure/",
-            "Maatify\\ImageProfile\\Adapter\\": "Adapter/",
-            "Maatify\\ImageProfile\\Storage\\": "Storage/"
+            "Maatify\\ImageProfileLegacy\\": "src/",
+            "Maatify\\ImageProfileLegacy\\Adapter\\": "Adapter/",
+            "Maatify\\ImageProfileLegacy\\Application\\": "Application/",
+            "Maatify\\ImageProfileLegacy\\Infrastructure\\": "Infrastructure/",
+            "Maatify\\ImageProfileLegacy\\Storage\\": "Storage/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Maatify\\ImageProfile\\Tests\\": "tests/"
+            "Maatify\\ImageProfileLegacy\\tests\\": "tests/"
         }
     },
     "minimum-stability": "stable",
@@ -50,9 +59,9 @@
         "validation",
         "upload"
     ],
-    "homepage": "https://github.com/Maatify/image-profile",
+    "homepage": "https://github.com/Maatify/athar-admin/tree/main/Modules/ImageProfileLegacy",
     "support": {
-        "source": "https://github.com/Maatify/image-profile",
-        "issues": "https://github.com/Maatify/image-profile/issues"
+        "source": "https://github.com/Maatify/athar-admin/tree/main/Modules/ImageProfileLegacy",
+        "issues": "https://github.com/Maatify/athar-admin/issues"
     }
 }

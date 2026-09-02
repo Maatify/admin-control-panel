@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ImageProfileLegacy\tests\Unit\DTO;
+namespace Maatify\ImageProfileLegacy\tests\Unit\DTO;
 
 use Maatify\ImageProfileLegacy\DTO\ImageProfileProcessingExtensionDTO;
 use Maatify\ImageProfileLegacy\DTO\ResizeOptionsDTO;

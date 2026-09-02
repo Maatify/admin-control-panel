@@ -2,7 +2,7 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/image-profile
+ * @Library     maatify/image-profile-legacy
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-04-17
  * @see         https://www.maatify.dev Maatify.dev
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ImageProfileLegacy\Storage;
+namespace Maatify\ImageProfileLegacy\Storage;
 
 use Maatify\ImageProfileLegacy\Exception\ImageProfileException;
 

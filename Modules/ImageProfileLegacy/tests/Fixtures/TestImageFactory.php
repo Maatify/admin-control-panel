@@ -2,14 +2,14 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/image-profile
+ * @Library     maatify/image-profile-legacy
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-04-16
  */
 
 declare(strict_types=1);
 
-namespace ImageProfileLegacy\tests\Fixtures;
+namespace Maatify\ImageProfileLegacy\tests\Fixtures;
 
 use RuntimeException;
 
@@ -58,7 +58,6 @@ final class TestImageFactory
             throw new RuntimeException("imagejpeg() failed writing to {$path}");
         }
 
-        imagedestroy($img);
         self::$tempFiles[] = $path;
 
         return $path;
@@ -87,7 +86,6 @@ final class TestImageFactory
             throw new RuntimeException("imagepng() failed writing to {$path}");
         }
 
-        imagedestroy($img);
         self::$tempFiles[] = $path;
 
         return $path;
@@ -120,7 +118,6 @@ final class TestImageFactory
             throw new RuntimeException("imagewebp() failed writing to {$path}");
         }
 
-        imagedestroy($img);
         self::$tempFiles[] = $path;
 
         return $path;
@@ -148,7 +145,6 @@ final class TestImageFactory
             throw new RuntimeException("imagegif() failed writing to {$path}");
         }
 
-        imagedestroy($img);
         self::$tempFiles[] = $path;
 
         return $path;

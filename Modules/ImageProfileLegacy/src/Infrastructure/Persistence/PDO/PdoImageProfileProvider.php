@@ -180,7 +180,7 @@ final class PdoImageProfileProvider implements ImageProfileProviderInterface
     private function mapProcessing(array $row): ?ImageProfileProcessingExtensionDTO
     {
         $preferredFormat = isset($row['preferred_format'])
-            ? ImageFormatEnum::tryFrom((string) $row['preferred_format'])
+            ? ImageFormatEnum::tryFrom($row['preferred_format'])
             : null;
         $preferredQuality = isset($row['preferred_quality']) ? (int) $row['preferred_quality'] : null;
         $variants = VariantDefinitionCollectionDTO::fromJsonString($row['variants'] ?? null);

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ImageProfileLegacy\tests\Unit\Service;
+namespace Maatify\ImageProfileLegacy\tests\Unit\Service;
 
-use ImageProfileLegacy\tests\Fixtures\ImageProfileFixtureFactory;
+use Maatify\ImageProfileLegacy\tests\Fixtures\ImageProfileFixtureFactory;
 use Maatify\ImageProfileLegacy\Contract\ImageProfileProviderInterface;
 use Maatify\ImageProfileLegacy\Contract\ImageProfileValidatorInterface;
 use Maatify\ImageProfileLegacy\DTO\ImageFileInputDTO;

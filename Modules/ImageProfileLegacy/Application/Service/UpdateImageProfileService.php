@@ -2,7 +2,7 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/image-profile
+ * @Library     maatify/image-profile-legacy
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-04-17
  * @see         https://www.maatify.dev Maatify.dev
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace ImageProfileLegacy\Application\Service;
+namespace Maatify\ImageProfileLegacy\Application\Service;
 
-use ImageProfileLegacy\Application\Contract\ImageProfileRepositoryInterface;
-use ImageProfileLegacy\Application\DTO\UpdateImageProfileRequest;
+use Maatify\ImageProfileLegacy\Application\Contract\ImageProfileRepositoryInterface;
+use Maatify\ImageProfileLegacy\Application\DTO\UpdateImageProfileRequest;
 use Maatify\ImageProfileLegacy\Entity\ImageProfileEntity;
 use Maatify\ImageProfileLegacy\Exception\ImageProfileNotFoundException;
 

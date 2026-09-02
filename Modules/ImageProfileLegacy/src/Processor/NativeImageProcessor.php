@@ -2,7 +2,7 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/image-profile
+ * @Library     maatify/image-profile-legacy
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-04-17
  */
@@ -202,6 +202,10 @@ final class NativeImageProcessor implements ImageProcessorInterface
 
     private function createTrueColourCanvas(int $width, int $height): GdImage
     {
+        if ($width < 1 || $height < 1) {
+            throw new class("Failed to allocate GD canvas {$width}×{$height}") extends ImageProfileException {};
+        }
+
         $canvas = imagecreatetruecolor($width, $height);
 
         if ($canvas === false) {
@@ -243,7 +247,7 @@ final class NativeImageProcessor implements ImageProcessorInterface
             throw ImageMetadataReadException::forPath($path);
         }
 
-        $mime   = (string) $info['mime'];
+        $mime   = $info['mime'];
         $format = ImageFormatEnum::fromString($mime);
 
         if ($format === null) {

@@ -2,7 +2,7 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/image-profile
+ * @Library     maatify/image-profile-legacy
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-04-16
  * @see         https://www.maatify.dev Maatify.dev
@@ -133,7 +133,7 @@ final class NativeImageMetadataReader implements ImageMetadataReaderInterface
     private function extensionFromOriginalName(string $originalName): ?string
     {
         $ext = pathinfo($originalName, PATHINFO_EXTENSION);
-        if (! is_string($ext) || $ext === '') {
+        if ($ext === '') {
             return null;
         }
         return strtolower($ext);

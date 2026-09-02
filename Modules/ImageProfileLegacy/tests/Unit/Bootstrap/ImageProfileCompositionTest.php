@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ImageProfileLegacy\tests\Unit\Bootstrap;
+namespace Maatify\ImageProfileLegacy\tests\Unit\Bootstrap;
 
-use ImageProfileLegacy\tests\Fixtures\ImageProfileFixtureFactory;
+use Maatify\ImageProfileLegacy\tests\Fixtures\ImageProfileFixtureFactory;
 use Maatify\ImageProfileLegacy\Bootstrap\ImageProfileComposition;
 use Maatify\ImageProfileLegacy\Provider\ArrayImageProfileProvider;
 use Maatify\ImageProfileLegacy\Reader\NativeImageMetadataReader;

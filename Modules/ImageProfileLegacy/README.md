@@ -1,4 +1,4 @@
-# maatify/image-profile
+# maatify/image-profile-legacy
 
 A reusable, framework-agnostic image-profile definition and validation package.
 
@@ -29,7 +29,7 @@ A reusable, framework-agnostic image-profile definition and validation package.
 
 ## Purpose
 
-`maatify/image-profile` is responsible for:
+`maatify/image-profile-legacy` is responsible for:
 
 - defining reusable, named image validation profiles
 - validating uploaded images against profile rules
@@ -50,13 +50,20 @@ but they are intentionally **not** part of the stable v1 validation path.
 
 ## Requirements
 
-- PHP `^8.1`
-- `ext-fileinfo` (for MIME detection in `NativeImageMetadataReader`)
-- `ext-gd` (optional — only required by `TestImageFactory` in tests)
-- No runtime dependencies beyond PHP itself
+- PHP `^8.2`
+- No runtime dependencies beyond PHP itself for the core validation path
+  (`NativeImageMetadataReader` reads metadata via `getimagesize()`, part of
+  PHP's core `standard` extension — no `ext-gd` or `ext-fileinfo` needed)
 
-Optional project dependencies:
+Optional, feature-gated dependencies (only needed if you use that specific
+class):
 
+- `ext-gd` — required to use `NativeImageProcessor` / `NativeImageVariantGenerator`
+  (resize, optimize, variant generation)
+- `ext-fileinfo` — required to use `DoSpacesImageStorage`, which detects MIME
+  type via `finfo` before upload
+- `ext-pdo` — required to use `PdoImageProfileProvider` / `PdoImageProfileRepository`;
+  use `ArrayImageProfileProvider` to avoid this dependency
 - `psr/http-message` — required to use `SlimUploadedFileAdapter`
 - `aws/aws-sdk-php` — required to use `DoSpacesImageStorage`
 
@@ -65,7 +72,7 @@ Optional project dependencies:
 ## Installation
 
 ```bash
-composer require maatify/image-profile
+composer require maatify/image-profile-legacy
 ```
 
 ---
@@ -132,20 +139,26 @@ $result->warnings          // ImageValidationWarningCollectionDTO
 
 ```sql
 CREATE TABLE `image_profiles` (
-    `id`                 INT UNSIGNED   NOT NULL AUTO_INCREMENT,
-    `code`               VARCHAR(64)    NOT NULL,
-    `display_name`       VARCHAR(128)   DEFAULT NULL,
-    `min_width`          INT UNSIGNED   DEFAULT NULL,
-    `min_height`         INT UNSIGNED   DEFAULT NULL,
-    `max_width`          INT UNSIGNED   DEFAULT NULL,
-    `max_height`         INT UNSIGNED   DEFAULT NULL,
-    `max_size_bytes`     BIGINT UNSIGNED DEFAULT NULL,
-    `allowed_extensions` VARCHAR(255)   DEFAULT NULL,
-    `allowed_mime_types` TEXT           DEFAULT NULL,
-    `is_active`          TINYINT(1)     NOT NULL DEFAULT 1,
-    `notes`              TEXT           DEFAULT NULL,
-    `created_at`         DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at`         DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `id`                    INT UNSIGNED     NOT NULL AUTO_INCREMENT,
+    `code`                  VARCHAR(64)      NOT NULL,
+    `display_name`          VARCHAR(128)     DEFAULT NULL,
+    `min_width`             INT UNSIGNED     DEFAULT NULL,
+    `min_height`            INT UNSIGNED     DEFAULT NULL,
+    `max_width`             INT UNSIGNED     DEFAULT NULL,
+    `max_height`            INT UNSIGNED     DEFAULT NULL,
+    `max_size_bytes`        BIGINT UNSIGNED  DEFAULT NULL,
+    `allowed_extensions`    VARCHAR(255)     DEFAULT NULL,
+    `allowed_mime_types`    TEXT             DEFAULT NULL,
+    `is_active`             TINYINT(1)       NOT NULL DEFAULT 1,
+    `notes`                 TEXT             DEFAULT NULL,
+    `min_aspect_ratio`      DECIMAL(8,4)     DEFAULT NULL,
+    `max_aspect_ratio`      DECIMAL(8,4)     DEFAULT NULL,
+    `requires_transparency` TINYINT(1)       NOT NULL DEFAULT 0,
+    `preferred_format`      VARCHAR(10)      DEFAULT NULL,
+    `preferred_quality`     TINYINT UNSIGNED DEFAULT NULL,
+    `variants`              JSON             DEFAULT NULL,
+    `created_at`            DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`            DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_image_profiles_code` (`code`),
     KEY `idx_image_profiles_is_active` (`is_active`)
@@ -372,7 +385,7 @@ Requires `aws/aws-sdk-php` in your project.
 
 ```php
 use Aws\S3\S3Client;
-use ImageProfileLegacy\Storage\DoSpacesImageStorage;
+use Maatify\ImageProfileLegacy\Storage\DoSpacesImageStorage;
 
 $s3 = new S3Client([
     'version'     => 'latest',
@@ -458,8 +471,8 @@ final class RedisImageProfileProvider implements ImageProfileProviderInterface
 Implement `ImageStorageInterface`:
 
 ```php
-use ImageProfileLegacy\Storage\ImageStorageInterface;
-use ImageProfileLegacy\Storage\StoredImageDTO;
+use Maatify\ImageProfileLegacy\Storage\ImageStorageInterface;
+use Maatify\ImageProfileLegacy\Storage\StoredImageDTO;
 
 final class S3ImageStorage implements ImageStorageInterface
 {

@@ -2,18 +2,18 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/image-profile
+ * @Library     maatify/image-profile-legacy
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-04-17
  */
 
 declare(strict_types=1);
 
-namespace ImageProfileLegacy\tests\Integration\Infrastructure\Repository;
+namespace Maatify\ImageProfileLegacy\tests\Integration\Infrastructure\Repository;
 
-use ImageProfileLegacy\Application\DTO\CreateImageProfileRequest;
-use ImageProfileLegacy\Application\DTO\UpdateImageProfileRequest;
-use ImageProfileLegacy\Infrastructure\Repository\PDO\PdoImageProfileRepository;
+use Maatify\ImageProfileLegacy\Application\DTO\CreateImageProfileRequest;
+use Maatify\ImageProfileLegacy\Application\DTO\UpdateImageProfileRequest;
+use Maatify\ImageProfileLegacy\Infrastructure\Repository\PDO\PdoImageProfileRepository;
 use Maatify\ImageProfileLegacy\Exception\ImageProfileNotFoundException;
 use Maatify\ImageProfileLegacy\ValueObject\AllowedExtensionCollection;
 use Maatify\ImageProfileLegacy\ValueObject\AllowedMimeTypeCollection;
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
  * database — no external database required.
  *
  */
-#[CoversClass(\ImageProfileLegacy\Infrastructure\Repository\PDO\PdoImageProfileRepository::class)]
+#[CoversClass(\Maatify\ImageProfileLegacy\Infrastructure\Repository\PDO\PdoImageProfileRepository::class)]
 final class PdoImageProfileRepositoryTest extends TestCase
 {
     private PDO                        $pdo;

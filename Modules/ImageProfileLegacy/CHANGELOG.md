@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to `maatify/image-profile` will be documented in this file.
+All notable changes to `maatify/image-profile-legacy` will be documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -8,6 +8,68 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ---
 
 ## [Unreleased]
+
+### Changed
+
+- **Package identity renamed** from `maatify/image-profile` to
+  `maatify/image-profile-legacy`, resolving a Composer package-name collision
+  with the newer `Modules/ImageProfile`. **Not backward compatible** for
+  anything requiring this package by its old name.
+- **Namespace normalized**: `Application\`, `Infrastructure\`, `Storage\`,
+  and `tests\` were re-namespaced from a bare form (no `Maatify\` prefix) to
+  `Maatify\ImageProfileLegacy\...`, matching `src/` and `Adapter\`, which
+  already used the correct prefix. Both `composer.json` PSR-4 maps
+  (this package's own and the host monorepo's) were updated to match.
+  **Not backward compatible**: any code referencing the old bare namespaces
+  will no longer autoload.
+- **Minimum PHP raised from `^8.1` to `^8.2`** in `composer.json`,
+  `phpstan.neon`, `README.md`, `CONTRIBUTING.md`, and this module's own CI
+  matrix. Every `src/DTO`/`src/Entity` class has used `final readonly class`
+  (a PHP 8.2+ feature) since it was written, so the `^8.1` claim was never
+  actually true on any PHP version — this corrects the declared constraint
+  to match the code, which itself is unchanged.
+- `composer.json`'s extension declarations now reflect actual usage:
+  `ext-gd` (used only by the optional `NativeImageProcessor` /
+  `NativeImageVariantGenerator`), `ext-fileinfo` (used only by the optional
+  `DoSpacesImageStorage`), and `ext-pdo` (used only by the optional
+  `PdoImageProfileProvider` / `PdoImageProfileRepository`) are now declared
+  under `suggest` — the core validation path needs none of them. All three,
+  plus `ext-pdo_sqlite`, are also declared under `require-dev`, since this
+  package's own test suite needs them regardless. `README.md`'s
+  "Requirements" section previously and incorrectly stated `ext-fileinfo`
+  was required for `NativeImageMetadataReader`; that class only calls
+  `getimagesize()`, part of PHP's core `standard` extension.
+
+### Fixed
+
+- A standalone `composer install` inside this module (independent of the
+  `athar-admin` host monorepo) previously could not run its own test suite
+  or static-analysis toolchain at all: `aws/aws-sdk-php` was only in
+  `suggest`, not `require-dev`, so `DoSpacesImageStorageTest` (which mocks
+  `Aws\S3\S3Client`) failed to autoload standalone; and `phpstan.neon`
+  requested `level: 10` while `composer.json` still required
+  `phpstan/phpstan: ^1.10` (level 10 needs PHPStan 2.0+), with
+  `phpstan/phpstan-strict-rules` (needed for the `strictRules` config key)
+  never declared at all. Both are corrected: the full suite (308 tests)
+  and PHPStan level 10 + strict rules (0 errors) now both pass from a
+  standalone install of this package alone.
+- `NativePhpUploadAdapter::fromSuperGlobal()` previously passed
+  `$_FILES[$fieldName]` straight into `fromFilesEntry()` with no shape
+  validation; a malformed entry (wrong field types, missing keys, or not an
+  array) would fail with an unguarded PHP warning/error rather than a clean
+  exception. It now validates the entry's shape explicitly and throws the
+  new `InvalidImageInputException::malformedFilesEntry()` on mismatch — a
+  production-visible behavior change for this previously-unguarded path.
+- 33 real PHPStan level-10 + strict-rules findings in production code,
+  never previously caught because `phpstan/phpstan-strict-rules` was never
+  actually installed. All were defensive-code/type-precision corrections
+  (redundant casts, one genuinely unreachable `is_string()` check, a PDO
+  row-shape annotation mismatch, and a `preg_split()` falsy-check cleanup)
+  with one deliberate exception: `NativeImageProcessor`'s canvas allocation
+  now rejects non-positive width/height explicitly before calling
+  `imagecreatetruecolor()`, throwing the same exception the existing
+  `$canvas === false` check already threw for this case — no call path's
+  outcome changes.
 
 ---
 

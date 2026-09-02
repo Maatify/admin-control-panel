@@ -1,4 +1,4 @@
-# Contributing to maatify/image-profile
+# Contributing to maatify/image-profile-legacy
 
 Thank you for your interest in contributing. This document explains how to set
 up your environment, run tests and static analysis, and follow the project's
@@ -10,7 +10,7 @@ coding standards before opening a pull request.
 
 | Tool | Minimum version |
 |------|----------------|
-| PHP | 8.1 |
+| PHP | 8.2 |
 | Composer | 2.x |
 | ext-gd | bundled with PHP |
 | ext-pdo | bundled with PHP |
@@ -21,9 +21,12 @@ coding standards before opening a pull request.
 
 ## Local setup
 
+This package currently lives inside the `athar-admin` monorepo, not as a
+standalone repository:
+
 ```bash
-git clone https://github.com/Maatify/image-profile.git
-cd image-profile
+git clone https://github.com/Maatify/athar-admin.git
+cd athar-admin/Modules/ImageProfileLegacy
 composer install
 ```
 

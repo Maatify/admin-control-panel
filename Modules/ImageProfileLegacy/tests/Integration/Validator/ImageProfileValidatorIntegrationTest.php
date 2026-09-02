@@ -2,7 +2,7 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/image-profile
+ * @Library     maatify/image-profile-legacy
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-04-17
  *
@@ -21,9 +21,9 @@
 
 declare(strict_types=1);
 
-namespace ImageProfileLegacy\tests\Integration\Validator;
+namespace Maatify\ImageProfileLegacy\tests\Integration\Validator;
 
-use ImageProfileLegacy\tests\Fixtures\TestImageFactory;
+use Maatify\ImageProfileLegacy\tests\Fixtures\TestImageFactory;
 use Maatify\ImageProfileLegacy\DTO\ImageFileInputDTO;
 use Maatify\ImageProfileLegacy\DTO\ImageValidationResultDTO;
 use Maatify\ImageProfileLegacy\Enum\ValidationErrorCodeEnum;
@@ -83,6 +83,12 @@ final class ImageProfileValidatorIntegrationTest extends TestCase
                 allowed_mime_types TEXT,
                 is_active          INTEGER NOT NULL DEFAULT 1,
                 notes              TEXT,
+                min_aspect_ratio    REAL    DEFAULT NULL,
+                max_aspect_ratio    REAL    DEFAULT NULL,
+                requires_transparency INTEGER NOT NULL DEFAULT 0,
+                preferred_format    TEXT    DEFAULT NULL,
+                preferred_quality   INTEGER DEFAULT NULL,
+                variants            TEXT    DEFAULT NULL,
                 created_at         TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at         TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             )"

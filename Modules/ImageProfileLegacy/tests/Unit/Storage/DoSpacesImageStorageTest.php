@@ -2,19 +2,19 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/image-profile
+ * @Library     maatify/image-profile-legacy
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-04-17
  */
 
 declare(strict_types=1);
 
-namespace ImageProfileLegacy\tests\Unit\Storage;
+namespace Maatify\ImageProfileLegacy\tests\Unit\Storage;
 
 use Aws\Exception\AwsException;
 use Aws\S3\S3Client;
-use ImageProfileLegacy\Storage\DoSpacesImageStorage;
-use ImageProfileLegacy\tests\Fixtures\TestImageFactory;
+use Maatify\ImageProfileLegacy\Storage\DoSpacesImageStorage;
+use Maatify\ImageProfileLegacy\tests\Fixtures\TestImageFactory;
 use Maatify\ImageProfileLegacy\Exception\ImageProfileException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -27,18 +27,20 @@ use PHPUnit\Framework\TestCase;
  * that either succeeds silently or throws an AwsException.
  *
  */
-#[CoversClass(\ImageProfileLegacy\Storage\DoSpacesImageStorage::class)]
+#[CoversClass(\Maatify\ImageProfileLegacy\Storage\DoSpacesImageStorage::class)]
 final class DoSpacesImageStorageTest extends TestCase
 {
     private S3Client&MockObject $s3;
 
     protected function setUp(): void
     {
-        // S3Client is final in AWS SDK v3 — mock with allowMockingFinalClasses
-        // or use the AWS mock handler. We create a partial mock here.
+        // putObject/deleteObject are dispatched via S3Client's magic __call()
+        // (not declared methods), so onlyMethods() can't mock them — use
+        // addMethods() for those and onlyMethods() for the real getEndpoint().
         $this->s3 = $this->getMockBuilder(S3Client::class)
                          ->disableOriginalConstructor()
-                         ->onlyMethods(['putObject', 'deleteObject', 'getEndpoint'])
+                         ->onlyMethods(['getEndpoint'])
+                         ->addMethods(['putObject', 'deleteObject'])
                          ->getMock();
 
         $this->s3->method('getEndpoint')
@@ -144,7 +146,6 @@ final class DoSpacesImageStorageTest extends TestCase
         $this->expectException(ImageProfileException::class);
 
         $awsException = $this->createMock(AwsException::class);
-        $awsException->method('getMessage')->willReturn('Connection refused');
         $awsException->method('getAwsErrorMessage')->willReturn('Access Denied');
 
         $this->s3->method('putObject')->willThrowException($awsException);
@@ -188,7 +189,6 @@ final class DoSpacesImageStorageTest extends TestCase
         $this->expectException(ImageProfileException::class);
 
         $awsException = $this->createMock(AwsException::class);
-        $awsException->method('getMessage')->willReturn('Not Found');
         $awsException->method('getAwsErrorMessage')->willReturn('NoSuchKey');
 
         $this->s3->method('deleteObject')->willThrowException($awsException);

@@ -2,7 +2,7 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/image-profile
+ * @Library     maatify/image-profile-legacy
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-04-17
  *
@@ -16,9 +16,9 @@
 
 declare(strict_types=1);
 
-namespace ImageProfileLegacy\tests\Contract;
+namespace Maatify\ImageProfileLegacy\tests\Contract;
 
-use ImageProfileLegacy\tests\Fixtures\ImageProfileFixtureFactory;
+use Maatify\ImageProfileLegacy\tests\Fixtures\ImageProfileFixtureFactory;
 use Maatify\ImageProfileLegacy\Contract\ImageProfileProviderInterface;
 use Maatify\ImageProfileLegacy\DTO\ImageProfileCollectionDTO;
 use Maatify\ImageProfileLegacy\Entity\ImageProfileEntity;
@@ -26,7 +26,6 @@ use Maatify\ImageProfileLegacy\Infrastructure\Persistence\PDO\PdoImageProfilePro
 use Maatify\ImageProfileLegacy\Provider\ArrayImageProfileProvider;
 use PDO;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(\Maatify\ImageProfileLegacy\Infrastructure\Persistence\PDO\PdoImageProfileProvider::class)]
@@ -55,6 +54,12 @@ final class ImageProfileProviderInterfaceContractTest extends TestCase
                 allowed_mime_types TEXT,
                 is_active          INTEGER NOT NULL DEFAULT 1,
                 notes              TEXT,
+                min_aspect_ratio    REAL    DEFAULT NULL,
+                max_aspect_ratio    REAL    DEFAULT NULL,
+                requires_transparency INTEGER NOT NULL DEFAULT 0,
+                preferred_format    TEXT    DEFAULT NULL,
+                preferred_quality   INTEGER DEFAULT NULL,
+                variants            TEXT    DEFAULT NULL,
                 created_at         TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at         TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             )"
@@ -116,120 +121,6 @@ final class ImageProfileProviderInterfaceContractTest extends TestCase
         ];
     }
 
-    // -------------------------------------------------------------------------
-    // findByCode — known code
-    // -------------------------------------------------------------------------
-
-    #[DataProvider('providerInstances')]
-    public function test_find_by_code_returns_image_profile(ImageProfileProviderInterface $provider): void
-    {
-        $result = $provider->findByCode('product_thumbnail');
-
-        self::assertInstanceOf(ImageProfileEntity::class, $result);
-    }
-
-    #[DataProvider('providerInstances')]
-    public function test_find_by_code_returns_correct_profile(ImageProfileProviderInterface $provider): void
-    {
-        $result = $provider->findByCode('product_thumbnail');
-
-        self::assertNotNull($result);
-        self::assertSame('product_thumbnail', $result->code);
-    }
-
-    // -------------------------------------------------------------------------
-    // findByCode — missing code
-    // -------------------------------------------------------------------------
-
-    #[DataProvider('providerInstances')]
-    public function test_find_by_code_returns_null_for_missing(ImageProfileProviderInterface $provider): void
-    {
-        self::assertNull($provider->findByCode('does_not_exist'));
-    }
-
-    // -------------------------------------------------------------------------
-    // findByCode — inactive code is NOT filtered
-    // -------------------------------------------------------------------------
-
-    #[DataProvider('providerInstances')]
-    public function test_find_by_code_does_not_filter_inactive(ImageProfileProviderInterface $provider): void
-    {
-        $result = $provider->findByCode('inactive_profile');
-
-        // The provider MUST return the profile — the validator owns is_active filtering.
-        self::assertNotNull($result);
-        self::assertFalse($result->isActive());
-    }
-
-    // -------------------------------------------------------------------------
-    // listAll — returns typed collection
-    // -------------------------------------------------------------------------
-
-    #[DataProvider('providerInstances')]
-    public function test_list_all_returns_collection_dto(ImageProfileProviderInterface $provider): void
-    {
-        self::assertInstanceOf(ImageProfileCollectionDTO::class, $provider->listAll());
-    }
-
-    #[DataProvider('providerInstances')]
-    public function test_list_all_includes_all_profiles(ImageProfileProviderInterface $provider): void
-    {
-        self::assertCount(2, $provider->listAll());
-    }
-
-    #[DataProvider('providerInstances')]
-    public function test_list_all_includes_inactive_profiles(ImageProfileProviderInterface $provider): void
-    {
-        $all    = $provider->listAll();
-        $codes  = [];
-        foreach ($all as $profile) {
-            $codes[] = $profile->code;
-        }
-
-        self::assertContains('inactive_profile', $codes);
-    }
-
-    // -------------------------------------------------------------------------
-    // listActive — only active profiles
-    // -------------------------------------------------------------------------
-
-    #[DataProvider('providerInstances')]
-    public function test_list_active_returns_collection_dto(ImageProfileProviderInterface $provider): void
-    {
-        self::assertInstanceOf(ImageProfileCollectionDTO::class, $provider->listActive());
-    }
-
-    #[DataProvider('providerInstances')]
-    public function test_list_active_excludes_inactive_profiles(ImageProfileProviderInterface $provider): void
-    {
-        $active = $provider->listActive();
-
-        foreach ($active as $profile) {
-            self::assertTrue($profile->isActive(), "Found inactive profile '{$profile->code}' in listActive()");
-        }
-    }
-
-    #[DataProvider('providerInstances')]
-    public function test_list_active_count_is_less_than_list_all(ImageProfileProviderInterface $provider): void
-    {
-        self::assertLessThan(count($provider->listAll()), count($provider->listActive()));
-    }
-
-    // -------------------------------------------------------------------------
-    // Data provider — one row per concrete implementation
-    // -------------------------------------------------------------------------
-
-    /**
-     * @return array<string, array{ImageProfileProviderInterface}>
-     */
-    public static function providerInstances(): array
-    {
-        // Data providers run before setUp(), so we build here lazily.
-        // We return closures resolved to providers in the test body — instead
-        // we build them directly since TestCase lifecycle allows it for static.
-        return []; // populated via buildProviders() — see workaround below
-    }
-
     /**
      * PHPUnit data providers are static, but our provider setup requires
      * instance methods. We use a workaround: run the contract assertions once
@@ -241,9 +132,9 @@ final class ImageProfileProviderInterfaceContractTest extends TestCase
     {
         foreach ($this->buildProviders() as $name => $provider) {
             // findByCode — known
-            $found = $provider->findByCode('product_thumbnail');
+            $found = $provider->findByCode('standard_profile');
             self::assertInstanceOf(ImageProfileEntity::class, $found, "$name: findByCode should return ImageProfile for known code");
-            self::assertSame('product_thumbnail', $found->code, "$name: returned profile has wrong code");
+            self::assertSame('standard_profile', $found->code, "$name: returned profile has wrong code");
 
             // findByCode — missing
             self::assertNull($provider->findByCode('does_not_exist'), "$name: findByCode should return null for missing code");

@@ -2,19 +2,19 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/image-profile
+ * @Library     maatify/image-profile-legacy
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-04-17
  */
 
 declare(strict_types=1);
 
-namespace ImageProfileLegacy\tests\Unit\Application\Service;
+namespace Maatify\ImageProfileLegacy\tests\Unit\Application\Service;
 
-use ImageProfileLegacy\Application\Contract\ImageProfileRepositoryInterface;
-use ImageProfileLegacy\Application\DTO\UpdateImageProfileRequest;
-use ImageProfileLegacy\Application\Service\UpdateImageProfileService;
-use ImageProfileLegacy\tests\Fixtures\ImageProfileFixtureFactory;
+use Maatify\ImageProfileLegacy\Application\Contract\ImageProfileRepositoryInterface;
+use Maatify\ImageProfileLegacy\Application\DTO\UpdateImageProfileRequest;
+use Maatify\ImageProfileLegacy\Application\Service\UpdateImageProfileService;
+use Maatify\ImageProfileLegacy\tests\Fixtures\ImageProfileFixtureFactory;
 use Maatify\ImageProfileLegacy\Exception\ImageProfileNotFoundException;
 use Maatify\ImageProfileLegacy\ValueObject\AllowedExtensionCollection;
 use Maatify\ImageProfileLegacy\ValueObject\AllowedMimeTypeCollection;
@@ -22,7 +22,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(\ImageProfileLegacy\Application\Service\UpdateImageProfileService::class)]
+#[CoversClass(\Maatify\ImageProfileLegacy\Application\Service\UpdateImageProfileService::class)]
 final class UpdateImageProfileServiceTest extends TestCase
 {
     private ImageProfileRepositoryInterface&MockObject $repository;

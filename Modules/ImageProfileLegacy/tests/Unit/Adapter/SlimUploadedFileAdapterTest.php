@@ -2,14 +2,14 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/image-profile
+ * @Library     maatify/image-profile-legacy
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-04-17
  */
 
 declare(strict_types=1);
 
-namespace ImageProfileLegacy\tests\Unit\Adapter;
+namespace Maatify\ImageProfileLegacy\tests\Unit\Adapter;
 
 use Maatify\ImageProfileLegacy\Adapter\SlimUploadedFileAdapter;
 use Maatify\ImageProfileLegacy\Exception\InvalidImageInputException;

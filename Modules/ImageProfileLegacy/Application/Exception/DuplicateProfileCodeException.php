@@ -2,7 +2,7 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/image-profile
+ * @Library     maatify/image-profile-legacy
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-04-17
  * @see         https://www.maatify.dev Maatify.dev
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace ImageProfileLegacy\Application\Exception;
+namespace Maatify\ImageProfileLegacy\Application\Exception;
 
 use Maatify\ImageProfileLegacy\Exception\ImageProfileException;
 use Throwable;
 
 /**
- * Thrown by {@see \ImageProfileLegacy\Application\Service\CreateImageProfileService}
+ * Thrown by {@see \Maatify\ImageProfileLegacy\Application\Service\CreateImageProfileService}
  * when an admin attempts to create a profile whose `code` already exists.
  *
  * This is a business-rule violation, not an infrastructure error.

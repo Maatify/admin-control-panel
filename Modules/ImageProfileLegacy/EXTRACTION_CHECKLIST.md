@@ -1,4 +1,4 @@
-# maatify/image-profile — Extraction Checklist
+# maatify/image-profile-legacy — Extraction Checklist
 
 Use this checklist before publishing the package to Packagist or moving it into
 a standalone repository. Every item must be verified **green** before release.
@@ -11,7 +11,7 @@ a standalone repository. Every item must be verified **green** before release.
       (e.g. no `App\`, no `AdminControlPanel\`, no `Maatify\AdminPanel\`)
 - [x] No class inside `src/` references `Adapter\` or `Storage\` namespaces —
       those live outside `src/` by design
-- [x] All `src/` files use the namespace root `Maatify\ImageProfile\` or a
+- [x] All `src/` files use the namespace root `Maatify\ImageProfileLegacy\` or a
       sub-namespace thereof (`Contract\`, `DTO\`, `Entity\`, `Enum\`,
       `Exception\`, `Infrastructure\`, `Provider\`, `Reader\`, `Validator\`,
       `ValueObject\`)
@@ -35,11 +35,13 @@ a standalone repository. Every item must be verified **green** before release.
 - [x] `require` block lists **only** `php ^8.1` (plus PHP extensions as needed)
 - [x] `psr/http-message` is listed under `suggest`, NOT `require`
 - [x] `aws/aws-sdk-php` is listed under `suggest`, NOT `require`
-- [ ] Both are in `require-dev` for test/development use
-- [x] `autoload.psr-4` maps `Maatify\ImageProfile\` → `src/`
-- [x] `autoload.psr-4` also maps `Application\` and `Infrastructure\`
-      namespaces for project-layer code
-- [x] `autoload-dev.psr-4` maps the test namespace `Maatify\ImageProfile\Tests\`
+- [x] Both are in `require-dev` for test/development use
+- [x] `autoload.psr-4` maps `Maatify\ImageProfileLegacy\` → `src/`
+- [x] `autoload.psr-4` also maps `Maatify\ImageProfileLegacy\Adapter\`,
+      `Maatify\ImageProfileLegacy\Application\`,
+      `Maatify\ImageProfileLegacy\Infrastructure\`, and
+      `Maatify\ImageProfileLegacy\Storage\` for project-layer code
+- [x] `autoload-dev.psr-4` maps the test namespace `Maatify\ImageProfileLegacy\tests\`
       → `tests/`
 
 ---
@@ -84,20 +86,20 @@ a standalone repository. Every item must be verified **green** before release.
 
 ## 7. Test Suite
 
-- [ ] All Unit tests pass: `./vendor/bin/phpunit --testsuite Unit`
-- [ ] All Integration tests pass: `./vendor/bin/phpunit --testsuite Integration`
-- [ ] All Contract tests pass: `./vendor/bin/phpunit --testsuite Contract`
+- [x] All Unit tests pass: `./vendor/bin/phpunit --testsuite Unit`
+- [x] All Integration tests pass: `./vendor/bin/phpunit --testsuite Integration`
+- [x] All Contract tests pass: `./vendor/bin/phpunit --testsuite Contract`
 - [x] No test requires an external database (SQLite in-memory only)
 - [x] No test leaks temp files (every test class using `TestImageFactory` calls
       `TestImageFactory::cleanup()` in `tearDown()`)
-- [ ] `ext-gd` available for Validator and Reader unit tests
-- [ ] `ext-pdo` + `ext-pdo_sqlite` available for Integration tests
+- [x] `ext-gd` available for Validator and Reader unit tests
+- [x] `ext-pdo` + `ext-pdo_sqlite` available for Integration tests
 
 ---
 
 ## 8. Static Analysis
 
-- [ ] PHPStan passes at level 10 with zero errors:
+- [x] PHPStan passes at level 10 with zero errors:
       `./vendor/bin/phpstan analyse`
 - [x] `phpstan.neon` covers all five source trees:
       `src/`, `Application/`, `Infrastructure/`, `Adapter/`, `Storage/`

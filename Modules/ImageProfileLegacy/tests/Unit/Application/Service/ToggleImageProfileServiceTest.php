@@ -2,24 +2,24 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/image-profile
+ * @Library     maatify/image-profile-legacy
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-04-17
  */
 
 declare(strict_types=1);
 
-namespace ImageProfileLegacy\tests\Unit\Application\Service;
+namespace Maatify\ImageProfileLegacy\tests\Unit\Application\Service;
 
-use ImageProfileLegacy\Application\Contract\ImageProfileRepositoryInterface;
-use ImageProfileLegacy\Application\Service\ToggleImageProfileService;
-use ImageProfileLegacy\tests\Fixtures\ImageProfileFixtureFactory;
+use Maatify\ImageProfileLegacy\Application\Contract\ImageProfileRepositoryInterface;
+use Maatify\ImageProfileLegacy\Application\Service\ToggleImageProfileService;
+use Maatify\ImageProfileLegacy\tests\Fixtures\ImageProfileFixtureFactory;
 use Maatify\ImageProfileLegacy\Exception\ImageProfileNotFoundException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(\ImageProfileLegacy\Application\Service\ToggleImageProfileService::class)]
+#[CoversClass(\Maatify\ImageProfileLegacy\Application\Service\ToggleImageProfileService::class)]
 final class ToggleImageProfileServiceTest extends TestCase
 {
     private ImageProfileRepositoryInterface&MockObject $repository;

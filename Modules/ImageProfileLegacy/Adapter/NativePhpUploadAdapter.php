@@ -2,7 +2,7 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/image-profile
+ * @Library     maatify/image-profile-legacy
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-04-17
  * @see         https://www.maatify.dev Maatify.dev
@@ -39,7 +39,8 @@ use Maatify\ImageProfileLegacy\Exception\InvalidImageInputException;
  *
  * The `type` field from `$_FILES` is treated as the client MIME type hint.
  * The actual MIME type is detected independently by
- * {@see \Maatify\ImageProfileLegacy\Reader\NativeImageMetadataReader} using `finfo`.
+ * {@see \Maatify\ImageProfileLegacy\Reader\NativeImageMetadataReader} using
+ * `getimagesize()`.
  */
 final class NativePhpUploadAdapter
 {
@@ -94,6 +95,36 @@ final class NativePhpUploadAdapter
             throw InvalidImageInputException::uploadError($fieldName, UPLOAD_ERR_NO_FILE);
         }
 
-        return self::fromFilesEntry($_FILES[$fieldName]);
+        return self::fromFilesEntry(self::assertValidEntry($fieldName, $_FILES[$fieldName]));
+    }
+
+    /**
+     * $_FILES is a superglobal with no static shape guarantee. Verify the
+     * entry actually has the shape fromFilesEntry() requires before trusting
+     * it, rather than assuming the standard PHP upload structure blindly.
+     *
+     * @return array{name: string, type: string, tmp_name: string, error: int, size: int}
+     */
+    private static function assertValidEntry(string $fieldName, mixed $entry): array
+    {
+        if (
+            ! is_array($entry)
+            || ! isset($entry['name'], $entry['type'], $entry['tmp_name'], $entry['error'], $entry['size'])
+            || ! is_string($entry['name'])
+            || ! is_string($entry['type'])
+            || ! is_string($entry['tmp_name'])
+            || ! is_int($entry['error'])
+            || ! is_int($entry['size'])
+        ) {
+            throw InvalidImageInputException::malformedFilesEntry($fieldName);
+        }
+
+        return [
+            'name'     => $entry['name'],
+            'type'     => $entry['type'],
+            'tmp_name' => $entry['tmp_name'],
+            'error'    => $entry['error'],
+            'size'     => $entry['size'],
+        ];
     }
 }

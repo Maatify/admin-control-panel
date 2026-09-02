@@ -2,14 +2,14 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/image-profile
+ * @Library     maatify/image-profile-legacy
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-04-16
  */
 
 declare(strict_types=1);
 
-namespace ImageProfileLegacy\tests\Unit\DTO;
+namespace Maatify\ImageProfileLegacy\tests\Unit\DTO;
 
 use Maatify\ImageProfileLegacy\DTO\ImageFileInputDTO;
 use Maatify\ImageProfileLegacy\Exception\InvalidImageInputException;

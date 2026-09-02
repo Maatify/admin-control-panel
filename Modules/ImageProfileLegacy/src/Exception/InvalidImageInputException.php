@@ -2,7 +2,7 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/image-profile
+ * @Library     maatify/image-profile-legacy
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-04-16
  * @see         https://www.maatify.dev Maatify.dev
@@ -46,6 +46,18 @@ final class InvalidImageInputException extends ImageProfileException
     {
         return new self(
             sprintf('Invalid processing option "%s": %s.', $field, $reason),
+            0,
+            $previous,
+        );
+    }
+
+    public static function malformedFilesEntry(string $fieldName, ?Throwable $previous = null): self
+    {
+        return new self(
+            sprintf(
+                '$_FILES["%s"] does not have the expected shape (name, type, tmp_name, error, size).',
+                $fieldName,
+            ),
             0,
             $previous,
         );

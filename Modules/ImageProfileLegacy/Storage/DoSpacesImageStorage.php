@@ -2,7 +2,7 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/image-profile
+ * @Library     maatify/image-profile-legacy
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-04-17
  * @see         https://www.maatify.dev Maatify.dev
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ImageProfileLegacy\Storage;
+namespace Maatify\ImageProfileLegacy\Storage;
 
 use Aws\Exception\AwsException;
 use Aws\S3\S3Client;
@@ -101,7 +101,7 @@ final class DoSpacesImageStorage implements ImageStorageInterface
                     $this->bucket,
                     $e->getAwsErrorMessage() ?? $e->getMessage(),
                 ),
-                (int) $e->getCode(),
+                $e->getCode(),
                 $e,
             ) extends ImageProfileException {};
         }
@@ -135,7 +135,7 @@ final class DoSpacesImageStorage implements ImageStorageInterface
                     $this->bucket,
                     $e->getAwsErrorMessage() ?? $e->getMessage(),
                 ),
-                (int) $e->getCode(),
+                $e->getCode(),
                 $e,
             ) extends ImageProfileException {};
         }

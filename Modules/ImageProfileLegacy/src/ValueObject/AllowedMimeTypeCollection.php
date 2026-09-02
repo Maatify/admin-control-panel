@@ -2,7 +2,7 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/image-profile
+ * @Library     maatify/image-profile-legacy
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-04-16
  * @see         https://www.maatify.dev Maatify.dev
@@ -73,9 +73,10 @@ final class AllowedMimeTypeCollection implements IteratorAggregate, Countable, J
         }
 
         $pattern = '/[' . preg_quote($delimiters, '/') . ']+/';
-        $parts   = preg_split($pattern, $trimmed) ?: [];
+        $split   = preg_split($pattern, $trimmed);
+        $parts   = $split !== false ? $split : [];
 
-        return new self(...array_values($parts));
+        return new self(...$parts);
     }
 
     public function has(string $mimeType): bool

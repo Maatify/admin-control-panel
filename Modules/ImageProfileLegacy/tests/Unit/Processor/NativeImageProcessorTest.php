@@ -2,16 +2,16 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/image-profile
+ * @Library     maatify/image-profile-legacy
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-04-17
  */
 
 declare(strict_types=1);
 
-namespace ImageProfileLegacy\tests\Unit\Processor;
+namespace Maatify\ImageProfileLegacy\tests\Unit\Processor;
 
-use ImageProfileLegacy\tests\Fixtures\TestImageFactory;
+use Maatify\ImageProfileLegacy\tests\Fixtures\TestImageFactory;
 use Maatify\ImageProfileLegacy\DTO\OptimizationOptionsDTO;
 use Maatify\ImageProfileLegacy\DTO\ProcessedImageDTO;
 use Maatify\ImageProfileLegacy\DTO\ResizeOptionsDTO;

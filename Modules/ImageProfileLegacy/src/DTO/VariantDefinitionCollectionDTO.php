@@ -2,7 +2,7 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/image-profile
+ * @Library     maatify/image-profile-legacy
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-04-17
  */
@@ -59,7 +59,7 @@ final class VariantDefinitionCollectionDTO implements IteratorAggregate, Countab
      * Malformed or missing elements are silently skipped to prevent a bad DB
      * row from taking down the entire provider.
      *
-     * @param array<int, array<string, mixed>> $rows
+     * @param array<int, mixed> $rows
      */
     public static function fromJsonArray(array $rows): self
     {
@@ -111,7 +111,7 @@ final class VariantDefinitionCollectionDTO implements IteratorAggregate, Countab
             return self::empty();
         }
 
-        return self::fromJsonArray($decoded);
+        return self::fromJsonArray(array_values($decoded));
     }
 
     /**

@@ -2,14 +2,14 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/image-profile
+ * @Library     maatify/image-profile-legacy
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-04-16
  */
 
 declare(strict_types=1);
 
-namespace ImageProfileLegacy\tests\Integration\Infrastructure\PDO;
+namespace Maatify\ImageProfileLegacy\tests\Integration\Infrastructure\PDO;
 
 use Maatify\ImageProfileLegacy\Infrastructure\Persistence\PDO\PdoImageProfileProvider;
 use PDO;
@@ -51,6 +51,12 @@ final class PdoImageProfileProviderTest extends TestCase
                 allowed_mime_types  TEXT    DEFAULT NULL,
                 is_active           INTEGER NOT NULL DEFAULT 1,
                 notes               TEXT    DEFAULT NULL,
+                min_aspect_ratio    REAL    DEFAULT NULL,
+                max_aspect_ratio    REAL    DEFAULT NULL,
+                requires_transparency INTEGER NOT NULL DEFAULT 0,
+                preferred_format    TEXT    DEFAULT NULL,
+                preferred_quality   INTEGER DEFAULT NULL,
+                variants            TEXT    DEFAULT NULL,
                 created_at          TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at          TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP
             )

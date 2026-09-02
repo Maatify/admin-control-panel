@@ -1,5 +1,6 @@
 includes:
     - vendor/phpstan/phpstan/conf/bleedingEdge.neon
+    - vendor/phpstan/phpstan-strict-rules/rules.neon
 
 parameters:
 
@@ -27,7 +28,7 @@ parameters:
     excludePaths:
         - vendor
         - tests
-        - build
+        - build (?)
 
     # -------------------------------------------------------------------------
     # Strict behaviour
@@ -35,15 +36,13 @@ parameters:
     strictRules:
         allRules: true
 
-    checkMissingIterableValueType: true
-    checkGenericClassInNonGenericObjectType: true
     reportUnmatchedIgnoredErrors: true
 
     # -------------------------------------------------------------------------
     # PHP version
-    # Must match the minimum requirement declared in composer.json (8.1).
+    # Must match the minimum requirement declared in composer.json (8.2).
     # -------------------------------------------------------------------------
-    phpVersion: 80100
+    phpVersion: 80200
 
     # -------------------------------------------------------------------------
     # Bootstrap
@@ -51,13 +50,3 @@ parameters:
     # -------------------------------------------------------------------------
     bootstrapFiles:
         - vendor/autoload.php
-
-    # -------------------------------------------------------------------------
-    # Ignore patterns
-    # Minimal — only suppress what cannot be fixed without breaking the design.
-    # -------------------------------------------------------------------------
-    ignoreErrors:
-        # getMockBuilder() calls inside tests are covered by the separate suite.
-        # S3Client is final in the AWS SDK; the mock is created via reflection
-        # which PHPStan cannot verify — ignored only in the Storage layer.
-        - '#Call to an undefined method Aws\\S3\\S3Client#'

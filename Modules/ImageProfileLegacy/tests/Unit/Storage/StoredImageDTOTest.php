@@ -2,20 +2,20 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/image-profile
+ * @Library     maatify/image-profile-legacy
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-04-17
  */
 
 declare(strict_types=1);
 
-namespace ImageProfileLegacy\tests\Unit\Storage;
+namespace Maatify\ImageProfileLegacy\tests\Unit\Storage;
 
-use ImageProfileLegacy\Storage\StoredImageDTO;
+use Maatify\ImageProfileLegacy\Storage\StoredImageDTO;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(\ImageProfileLegacy\Storage\StoredImageDTO::class)]
+#[CoversClass(\Maatify\ImageProfileLegacy\Storage\StoredImageDTO::class)]
 final class StoredImageDTOTest extends TestCase
 {
     private function makeDTO(): StoredImageDTO

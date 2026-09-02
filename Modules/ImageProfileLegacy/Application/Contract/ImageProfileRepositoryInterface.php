@@ -2,7 +2,7 @@
 
 /**
  * @copyright   ©2026 Maatify.dev
- * @Library     maatify/image-profile
+ * @Library     maatify/image-profile-legacy
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2026-04-17
  * @see         https://www.maatify.dev Maatify.dev
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace ImageProfileLegacy\Application\Contract;
+namespace Maatify\ImageProfileLegacy\Application\Contract;
 
-use ImageProfileLegacy\Application\DTO\CreateImageProfileRequest;
-use ImageProfileLegacy\Application\DTO\UpdateImageProfileRequest;
+use Maatify\ImageProfileLegacy\Application\DTO\CreateImageProfileRequest;
+use Maatify\ImageProfileLegacy\Application\DTO\UpdateImageProfileRequest;
 use Maatify\ImageProfileLegacy\Entity\ImageProfileEntity;
 
 /**
@@ -37,7 +37,7 @@ use Maatify\ImageProfileLegacy\Entity\ImageProfileEntity;
  *
  * Exception contract:
  *   - `save` must NOT throw for a duplicate code — callers check `existsByCode`
- *     first and then decide to throw {@see \ImageProfileLegacy\Application\Exception\DuplicateProfileCodeException}.
+ *     first and then decide to throw {@see \Maatify\ImageProfileLegacy\Application\Exception\DuplicateProfileCodeException}.
  *   - Infrastructure errors (query failure, constraint violation) propagate
  *     as {@see \Maatify\ImageProfileLegacy\Exception\ImageProfileException} or
  *     implementation-specific subclasses.
