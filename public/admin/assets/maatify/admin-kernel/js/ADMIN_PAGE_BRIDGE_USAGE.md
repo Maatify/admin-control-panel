@@ -12,8 +12,8 @@ It exists to:
 
 ## Files added
 
-- `public/assets/maatify/admin-kernel/js/admin-page-bridge.js`
-- `public/assets/maatify/admin-kernel/js/ADMIN_PAGE_BRIDGE_USAGE.md`
+- `public/admin/assets/maatify/admin-kernel/js/admin-page-bridge.js`
+- `public/admin/assets/maatify/admin-kernel/js/ADMIN_PAGE_BRIDGE_USAGE.md`
 
 ## Global API exposed
 

@@ -31,7 +31,7 @@ class HostNavigationProvider implements NavigationProviderInterface
 }
 ```
 
-**2. Bind in host bootstrap (in your `public/index.php` or bootstrap):**
+**2. Bind in host bootstrap (in your `public/admin/index.php` or bootstrap):**
 
 ```php
 $container = \Maatify\AdminKernel\Bootstrap\Container::create(function (ContainerBuilder $builder) {

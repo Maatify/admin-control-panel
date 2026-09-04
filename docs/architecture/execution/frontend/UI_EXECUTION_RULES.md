@@ -13,9 +13,9 @@
 
 Before applying any UI pattern, checklist, or component guidance, executors MUST start from verified runtime reality in this exact order:
 
-1. `public/assets/maatify/admin-kernel/js/admin-page-bridge.js`
-2. `public/assets/maatify/admin-kernel/js/ADMIN_PAGE_BRIDGE_USAGE.md`
-3. Target `*-v2.js` files for the feature under `public/assets/maatify/admin-kernel/js/pages/**`
+1. `public/admin/assets/maatify/admin-kernel/js/admin-page-bridge.js`
+2. `public/admin/assets/maatify/admin-kernel/js/ADMIN_PAGE_BRIDGE_USAGE.md`
+3. Target `*-v2.js` files for the feature under `public/admin/assets/maatify/admin-kernel/js/pages/**`
 4. Mounted Twig page(s) under `Modules/AdminKernel/Templates/pages/**`
 
 This order is mandatory for execution accuracy. Executors MUST NOT start from scattered old files, raw globals, or generic pattern templates before this runtime-first path is completed.
@@ -282,7 +282,7 @@ Inline HTML generation inside table configuration is FORBIDDEN. Raw HTML strings
 ---
 
 ## 9. JS Docs as Dynamic Source of Truth
-- The directory `public/assets/maatify/admin-kernel/js/docs/` is a **dynamic source of truth**.
+- The directory `public/admin/assets/maatify/admin-kernel/js/docs/` is a **dynamic source of truth**.
 - Before implementing any frontend component, consult all documentation files in `js/docs/`.
 - IGNORE the subdirectory `Admin_CRUD_Builder`.
 - If any rule in this document conflicts with documented behavior in `js/docs/`, the `js/docs/` implementation takes precedence.

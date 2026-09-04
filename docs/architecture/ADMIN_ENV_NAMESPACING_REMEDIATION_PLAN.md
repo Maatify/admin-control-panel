@@ -136,9 +136,9 @@
 عقد Media العامة (`ASSETS_CDN_URL`, `CDN_IMAGE_URL`, `ASSET_VERSION`) بعد
 التحويل، ولا تُنسب مفاتيح Media إلى `AdminRuntimeConfigDTO`.
 
-### public/index.php
+### public/admin/index.php
 
-يظل `public/index.php` حد تركيب المستضيف:
+يظل `public/admin/index.php` حد تركيب المستضيف:
 
 1. يمرر إعدادات Admin إلى `AdminKernel`.
 2. يبني Adapter محليًا لعقد الـKernel وعقد التخزين.
@@ -168,7 +168,7 @@ STORAGE_DRIVER           -> STORAGE_DRIVER
 
 ### api-tester وحدود الأمان
 
-تحديث `public/api-tester.php` ضمن التنفيذ المستقبلي ليستخدم `ADMIN_APP_ENV` في قرار السماح المحلي/المنع.
+تحديث `public/admin/api-tester.php` ضمن التنفيذ المستقبلي ليستخدم `ADMIN_APP_ENV` في قرار السماح المحلي/المنع.
 
 لا يجوز أن يعتمد هذا الحد الأمني على `APP_ENV` عام يخص تطبيقًا آخر. يجب الحفاظ على التعليقات والـTODOs الموجودة أثناء التنفيذ.
 
@@ -221,7 +221,7 @@ STORAGE_DRIVER           -> STORAGE_DRIVER
 2. عدم وجود fallback إلى أسماء Admin العامة القديمة.
 3. قراءة `AdminRuntimeConfigDTO` للعقد العامة بعد تحويل أسماء Admin عند الـhost.
 4. قراءة `MediaUrlConfigDTO` لعقد Media العامة بعد التحويل.
-5. استخدام `public/api-tester.php` لعقد Admin في بوابة الأمان.
+5. استخدام `public/admin/api-tester.php` لعقد Admin في بوابة الأمان.
 6. عمل Storage عبر Adapter حدود Admin دون تعديل `Modules/Storage`.
 7. صحة تهيئة Local Storage وDigitalOcean Spaces.
 8. بقاء `LOG_PATH` و`LOG_RETENTION_DAYS` و`LOG_TIMEZONE` و`STORAGE_DRIVER` دون تغيير.

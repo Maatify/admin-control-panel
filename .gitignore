@@ -25,5 +25,5 @@
 .env.test
 .env.testing
 /storage/
-public/storage/
+public/admin/storage/
 /internals/

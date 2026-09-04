@@ -15,13 +15,13 @@ The project is a secure Admin Control Panel built with **PHP 8.2+, Slim 4, PHP-D
 *   **`Modules/AdminKernel/Infrastructure/`**: Concrete implementations (Repositories, Mailers, Loggers, PDO adapters).
 *   **`Modules/AdminKernel/Http/`**: Application layer (Controllers, Middleware).
 *   **`Modules/AdminKernel/Bootstrap/`**: Dependency Injection (`Container.php`) and Configuration (`AdminConfigDTO`).
-*   **`public/`**: Web root. Entry point `index.php`.
+*   **`public/admin/`**: Admin web root. Entry point `index.php`.
 *   **`routes/`**: Route definitions (`web.php`).
 *   **`templates/`**: Twig views (`pages/`, `layouts/`, `components/`).
 *   **`docs/`**: Canonical documentation and architectural records.
 
 ### Key Entry Points
-*   **Web/API**: `public/index.php` -> `Maatify\AdminKernel\Kernel\AdminKernel`
+*   **Web/API**: `public/admin/index.php` -> `Maatify\AdminKernel\Kernel\AdminKernel`
 *   **CLI**: `scripts/bootstrap_admin.php` (System bootstrapping only)
 *   **Config**: `Maatify\AdminKernel\Bootstrap\Container.php` (Single source of configuration loading)
 

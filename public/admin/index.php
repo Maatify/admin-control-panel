@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-define('APP_ROOT', dirname(__DIR__));
+define('APP_ROOT', dirname(__DIR__, 2));
 
-require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '/../../vendor/autoload.php';
 
 use DI\ContainerBuilder;
 use Maatify\AdminControlPanel\Bootstrap\AdminEnvironmentAdapter;
@@ -25,7 +25,7 @@ use Maatify\Storage\Config\StorageConfig;
 //use Maatify\PsrLogger\LoggerFactory;
 
 // 1️⃣ Load ENV (HOST responsibility)
-$dotenv = Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
 $dotenv->safeLoad();
 
 //$logger = LoggerFactory::create('app/errors');
@@ -34,7 +34,11 @@ $dotenv->safeLoad();
 // 2️⃣ Build Runtime Config DTO
 $kernelEnv = AdminEnvironmentAdapter::forAdminKernel($_ENV);
 $runtimeConfig = AdminRuntimeConfigDTO::fromArray($kernelEnv);
-$storageConfig = StorageConfig::fromEnv(AdminStorageEnvAdapter::adapt($_ENV));
+$storageEnv = $_ENV;
+if (($storageEnv['ADMIN_LOCAL_BASE_PATH'] ?? '') === '') {
+    $storageEnv['ADMIN_LOCAL_BASE_PATH'] = 'public/admin/images';
+}
+$storageConfig = StorageConfig::fromEnv(AdminStorageEnvAdapter::adapt($storageEnv));
 $mediaUrlConfig = MediaUrlConfigDTO::fromArray($kernelEnv);
 
 // 3️⃣ Kernel options

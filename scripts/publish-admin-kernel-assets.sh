@@ -2,7 +2,7 @@
 set -e
 
 SOURCE_DIR="Modules/AdminKernel/UI/assets"
-TARGET_DIR="public/assets/maatify/admin-kernel"
+TARGET_DIR="public/admin/assets/maatify/admin-kernel"
 
 echo "Publishing AdminKernel assets..."
 echo "Source: $SOURCE_DIR"

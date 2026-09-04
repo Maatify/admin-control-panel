@@ -110,7 +110,7 @@ class SettingAdminPermissionPackage implements ProvidesPermissionMapsInterface {
 **How It Works**:
 1. Each package implements `ProvidesPermissionMapsInterface`
 2. Returns array of provider classes
-3. AdminKernel loads all packages from `public/index.php`
+3. AdminKernel loads all packages from `public/admin/index.php`
 4. For each route, checks permission map
 5. Compares route name with map to get required permission
 6. Verifies admin has that permission via database
@@ -1082,7 +1082,7 @@ if (result.success) {
 
 ### Step 9: Register with Main App
 
-**public/index.php**:
+**public/admin/index.php**:
 ```php
 use Maatify\SettingsSlim\Admin\Security\SettingAdminPermissionPackage;
 $permissionPackages = [new SettingAdminPermissionPackage()];
@@ -1339,7 +1339,7 @@ public function list(ListQueryDTO $dto): array {
 - [ ] `Modules/SettingsSlim/src/Admin/Http/Routes/SettingsApiRoutes.php`
 - [ ] `Modules/SettingsSlim/src/Admin/Http/Routes/SettingsUiRoutes.php`
 - [ ] `Modules/AdminKernel/Templates/pages/settings/settings_list.twig`
-- [ ] `public/assets/maatify/admin-kernel/js/pages/settings_list.js`
+- [ ] `public/admin/assets/maatify/admin-kernel/js/pages/settings_list.js`
 
 ### Core Module Updates
 - [ ] Updated Repository to support ListCapabilities filters
@@ -1353,7 +1353,7 @@ public function list(ListQueryDTO $dto): array {
 - [ ] Verified permissions in DB: `SELECT * FROM permissions WHERE name LIKE '[module].%'`
 
 ### Integration
-- [ ] Registered PermissionPackage in `public/index.php`
+- [ ] Registered PermissionPackage in `public/admin/index.php`
 - [ ] Registered API routes in `ApiProtectedRoutes.php`
 - [ ] Registered UI routes in `UiProtectedRoutes.php`
 - [ ] Base permissions exist in database
@@ -1595,8 +1595,8 @@ cat Modules/AdminKernel/Templates/pages/settings/settings_list.twig
 cat Modules/AdminKernel/Templates/pages/currencies/currencies_list.twig
 
 # Read both JS files
-cat public/assets/maatify/admin-kernel/js/pages/settings_list.js
-ls public/assets/maatify/admin-kernel/js/pages/currencies/
+cat public/admin/assets/maatify/admin-kernel/js/pages/settings_list.js
+ls public/admin/assets/maatify/admin-kernel/js/pages/currencies/
 ```
 
 ---
@@ -1984,4 +1984,3 @@ if (result.error === 'network') {
 - [ ] Missing ListCapabilities column stops filter chain
 - [ ] Concurrent edits produce last-write-wins
 - [ ] Network errors show proper messages
-
