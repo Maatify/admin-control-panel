@@ -8,8 +8,8 @@ require __DIR__ . '/../../vendor/autoload.php';
 
 use DI\ContainerBuilder;
 use Dotenv\Dotenv;
-use Maatify\AdminKernel\Bootstrap\AdminEnvironmentAdapter;
-use Maatify\AdminKernel\Bootstrap\AdminStorageEnvAdapter;
+use Maatify\AdminControlPanel\Bootstrap\AdminEnvironmentAdapter;
+use Maatify\AdminControlPanel\Bootstrap\AdminStorageEnvAdapter;
 use Maatify\AdminKernel\Bootstrap\AdminKernelPermissionBindings;
 use Maatify\AdminKernel\Kernel\AdminKernel;
 use Maatify\AdminKernel\Kernel\KernelOptions;
@@ -20,7 +20,6 @@ use Maatify\CurrencySlim\Admin\Security\CurrencyAdminPermissionPackage;
 use Maatify\ExchangeRatesSlim\Admin\Security\ExchangeRatesAdminPermissionPackage;
 use Maatify\GeoSlim\Admin\Security\GeoAdminPermissionPackage;
 use Maatify\Storage\Bootstrap\StorageBindings;
-use Maatify\Storage\Config\StorageConfig;
 
 //use Maatify\PsrLogger\LoggerFactory;
 
@@ -31,33 +30,12 @@ $dotenv->safeLoad();
 //$logger = LoggerFactory::create('app/errors');
 //$logger->alert('access');
 
-// LOCAL_BASE_PATH is the generic local-storage contract. It is kept separate
-// from the admin-specific storage contract below.
-$localBasePath = $_ENV['LOCAL_BASE_PATH'] ?? '';
-if ($localBasePath !== '' && !str_starts_with($localBasePath, '/')) {
-    $localBasePath = rtrim(APP_ROOT, '/') . '/' . ltrim($localBasePath, '/');
-    $_ENV['LOCAL_BASE_PATH'] = $localBasePath;
-    putenv('LOCAL_BASE_PATH=' . $localBasePath);
-}
-
-// The admin document root is public/admin, so an empty admin local-storage
-// value resolves to that host's documented default.
-$adminLocalBasePath = $_ENV['ADMIN_LOCAL_BASE_PATH'] ?? '';
-if ($adminLocalBasePath === '') {
-    $adminLocalBasePath = 'public/admin/images';
-}
-if (!str_starts_with($adminLocalBasePath, '/')) {
-    $adminLocalBasePath = rtrim(APP_ROOT, '/') . '/' . ltrim($adminLocalBasePath, '/');
-}
-$_ENV['ADMIN_LOCAL_BASE_PATH'] = $adminLocalBasePath;
-putenv('ADMIN_LOCAL_BASE_PATH=' . $adminLocalBasePath);
-
 $adminEnv = $_ENV;
 
 // 2️⃣ Build Runtime Config DTO
 $kernelEnv = AdminEnvironmentAdapter::forAdminKernel($adminEnv);
 $runtimeConfig = AdminRuntimeConfigDTO::fromArray($kernelEnv);
-$storageConfig = StorageConfig::fromEnv(AdminStorageEnvAdapter::adapt($adminEnv));
+$storageConfig = AdminStorageEnvAdapter::forStorage($adminEnv, APP_ROOT);
 $mediaUrlConfig = MediaUrlConfigDTO::fromArray($kernelEnv);
 
 // 3️⃣ Kernel options

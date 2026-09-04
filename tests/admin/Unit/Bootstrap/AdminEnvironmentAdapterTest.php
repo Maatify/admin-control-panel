@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Bootstrap;
 
-use Maatify\AdminKernel\Bootstrap\AdminEnvironmentAdapter;
+use Maatify\AdminControlPanel\Bootstrap\AdminEnvironmentAdapter;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 

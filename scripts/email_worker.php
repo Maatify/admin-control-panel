@@ -5,7 +5,7 @@ declare(strict_types=1);
 require __DIR__ . '/../vendor/autoload.php';
 
 use Dotenv\Dotenv;
-use Maatify\AdminKernel\Bootstrap\AdminEnvironmentAdapter;
+use Maatify\AdminControlPanel\Bootstrap\AdminEnvironmentAdapter;
 use Maatify\AdminKernel\Bootstrap\Container;
 use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
 use Maatify\Crypto\Contract\CryptoContextProviderInterface;

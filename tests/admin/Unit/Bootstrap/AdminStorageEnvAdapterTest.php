@@ -4,12 +4,40 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Bootstrap;
 
-use Maatify\AdminKernel\Bootstrap\AdminStorageEnvAdapter;
+use Maatify\AdminControlPanel\Bootstrap\AdminStorageEnvAdapter;
+use Maatify\Storage\Config\StorageConfig;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
 final class AdminStorageEnvAdapterTest extends TestCase
 {
+    public function testBuildsStorageConfigFromAdminOwnedKeys(): void
+    {
+        $config = AdminStorageEnvAdapter::forStorage([
+            'ADMIN_LOCAL_BASE_PATH' => 'storage/admin-images',
+            'ADMIN_LOCAL_BASE_URL' => '/images',
+        ], '/srv/admin-control-panel');
+
+        self::assertInstanceOf(StorageConfig::class, $config);
+        self::assertSame(
+            '/srv/admin-control-panel/storage/admin-images',
+            $config->local?->basePath,
+        );
+        self::assertSame('/images', $config->local?->baseUrl);
+    }
+
+    public function testUsesAdminDefaultStoragePathWhenAdminPathIsEmpty(): void
+    {
+        $config = AdminStorageEnvAdapter::forStorage([
+            'ADMIN_LOCAL_BASE_PATH' => '',
+        ], '/srv/admin-control-panel');
+
+        self::assertSame(
+            '/srv/admin-control-panel/public/admin/images',
+            $config->local?->basePath,
+        );
+    }
+
     public function testMapsAdminStorageKeysToTheReusableStorageContract(): void
     {
         $storageEnv = AdminStorageEnvAdapter::adapt([

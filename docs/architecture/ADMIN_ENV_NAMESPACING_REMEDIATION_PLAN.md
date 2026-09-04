@@ -134,8 +134,16 @@
 
 عقدة الـKernel الداخلية تقرأ الأسماء العامة الخاصة بالموديول (`APP_*`, `DB_*`,
 `MAIL_*` وغيرها)، ولا تقرأ `ADMIN_*` مباشرة. ملف
-`Maatify\AdminKernel\Bootstrap\AdminEnvironmentAdapter` يحول المفاتيح
+`Maatify\AdminControlPanel\Bootstrap\AdminEnvironmentAdapter` (ملك المشروع،
+تحت `app/Bootstrap/`، وليس جزءًا من `Modules/AdminKernel`) يحول المفاتيح
 المتعقبة ذات المقدمة `ADMIN_` إلى هذه الأسماء في مصفوفة محلية فقط.
+
+هذا الـAdapter مقصود بقاؤه خارج `Modules/AdminKernel` تحديدًا: البادئة
+`ADMIN_` قرار خاص بهذا المستضيف، وليست جزءًا من عقد الـKernel العام. لو عاش
+الملف داخل مجلد الـKernel، فأي نسخ أو مزامنة مستقبلية لـ`Modules/AdminKernel`
+(كما حدث مع Athar) كانت ستنقل معها افتراض `ADMIN_*` لمشروع قد لا يريده. أي
+مستضيف آخر يعيد استخدام الـKernel يكتب Adapter مكافئ في مساحته الخاصة به
+دون الحاجة لتعديل أي شيء داخل الـKernel.
 
 ويقرأ [MediaUrlConfigDTO.php](../../Modules/AdminKernel/Ui/Config/MediaUrlConfigDTO.php)
 عقد Media العامة (`ASSETS_CDN_URL`, `CDN_IMAGE_URL`, `ASSET_VERSION`) بعد

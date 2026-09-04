@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Tests\Support;
 
-use Maatify\AdminKernel\Bootstrap\AdminEnvironmentAdapter;
+use Maatify\AdminControlPanel\Bootstrap\AdminEnvironmentAdapter;
 use Maatify\AdminKernel\Kernel\AdminKernel;
 use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
 use Maatify\AdminKernel\Kernel\KernelOptions;

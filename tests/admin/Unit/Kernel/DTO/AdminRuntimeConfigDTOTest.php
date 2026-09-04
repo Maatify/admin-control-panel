@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Kernel\DTO;
 
 use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
-use Maatify\AdminKernel\Bootstrap\AdminEnvironmentAdapter;
+use Maatify\AdminControlPanel\Bootstrap\AdminEnvironmentAdapter;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
