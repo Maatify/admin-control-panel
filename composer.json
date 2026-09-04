@@ -41,7 +41,7 @@
 
   "autoload": {
     "psr-4": {
-      "Maatify\\AdminKernel\\": "app/Modules/AdminKernel/",
+      "Maatify\\AdminKernel\\": "Modules/AdminKernel/",
       "Maatify\\EmailDelivery\\": "Modules/EmailDelivery",
       "Maatify\\InputNormalization\\": "Modules/InputNormalization",
       "Maatify\\Validation\\": "Modules/Validation",
