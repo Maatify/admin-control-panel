@@ -30,6 +30,7 @@ by a newer ADR.
 | ADR-013 | Temporary RBAC Seeding Exception for Endpoint Tests                       | APPROVED (TEMPORARY) | Testing / Authorization |
 | ADR-014 | Verification Notification Dispatcher                                      | ACCEPTED             | Verification / Delivery |
 | ADR-015 | UI Extensibility Model (Templates & Theming)                              | PROPOSED             | UI / Kernel Boundary    |
+| ADR-019 | Host-Owned Environment Adapters Live Outside AdminKernel                  | ACCEPTED             | Kernel Boundary / Env   |
 ---
 
 ## 🧭 How to Use ADRs

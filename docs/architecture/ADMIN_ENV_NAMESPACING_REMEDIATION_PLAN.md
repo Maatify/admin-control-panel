@@ -145,6 +145,9 @@
 مستضيف آخر يعيد استخدام الـKernel يكتب Adapter مكافئ في مساحته الخاصة به
 دون الحاجة لتعديل أي شيء داخل الـKernel.
 
+هذا القرار موثّق رسميًا في
+[ADR-019](../adr/ADR-019-host-owned-env-adapters.md).
+
 ويقرأ [MediaUrlConfigDTO.php](../../Modules/AdminKernel/Ui/Config/MediaUrlConfigDTO.php)
 عقد Media العامة (`ASSETS_CDN_URL`, `CDN_IMAGE_URL`, `ASSET_VERSION`) بعد
 التحويل، ولا تُنسب مفاتيح Media إلى `AdminRuntimeConfigDTO`.
