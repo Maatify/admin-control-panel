@@ -10,6 +10,7 @@
  *  - Duplicate route mappings across providers are forbidden.
  *  - Every protected/admin named route is either mapped by a provider or intentionally uses canonical fallback when the route name exists in any permissions_seed.sql file.
  *  - Every permission referenced by provider definitions exists in one of the discovered permissions_seed.sql files.
+ *  - A canonical permission is declared in exactly one permissions_seed.sql file.
  *  - Provider definitions must not map routes to transport aliases; route == permission and unmapped route fallback are allowed when canonical in the DB seed.
  *  - Manual checkPermission()/requirePermission() calls must use canonical DB permissions, not route aliases.
  *
@@ -409,7 +410,7 @@ function permission_linter_read_workspace_seed_permissions(array $seedFiles): ar
 /**
  * @param array<string, list<string>> $seedSources
  */
-function permission_linter_warn_duplicate_seed_permissions(array $seedSources, string $projectRoot, LintReport $report): void
+function permission_linter_validate_duplicate_seed_permissions(array $seedSources, string $projectRoot, LintReport $report): void
 {
     foreach ($seedSources as $permission => $sources) {
         if (count($sources) <= 1) {
@@ -423,7 +424,7 @@ function permission_linter_warn_duplicate_seed_permissions(array $seedSources, s
             $sources
         );
 
-        $report->warning(
+        $report->error(
             $permission,
             'Permission is declared in multiple permissions_seed.sql files: ' . implode(', ', $relativeSources)
         );
@@ -921,17 +922,17 @@ function permission_linter_merge_provider_maps(array $runtimeMap, array $staticM
 }
 
 /**
- * A transport suffix identifies route variants, not business/canonical permissions.
+ * A transport suffix identifies HTTP route variants, not business/canonical permissions.
  *
  * Important nuance:
  *   routeName === permissionName is NOT automatically wrong.
  *   Some old canonical permissions intentionally share the same name as their route
  *   (for example: admin.email.add). That is valid when the value exists in the DB seed
- *   and does not end with an explicit transport suffix such as .api/.ui/.web/.id/.bulk.
+ *   and does not end with an explicit transport suffix such as .api/.ui/.web.
  */
 function permission_linter_has_transport_suffix(string $permission): bool
 {
-    return preg_match('/\.(api|ui|web|id|bulk)$/', $permission) === 1;
+    return preg_match('/\.(api|ui|web)$/', $permission) === 1;
 }
 
 /**
@@ -1213,6 +1214,116 @@ function permission_linter_validate_manual_permission_calls(
 }
 
 /**
+ * @return list<array{file:string, permission:string, call:string}>
+ */
+function permission_linter_scan_ui_permission_calls(string $root): array
+{
+    $calls = [];
+
+    foreach (permission_linter_php_files($root) as $file) {
+        $normalized = permission_linter_normalize_path($file);
+        $shouldScan = str_contains($normalized, '/AdminKernel/')
+                      || str_contains($normalized, '/Admin/')
+                      || str_contains($normalized, '/admin/');
+
+        if (!$shouldScan) {
+            continue;
+        }
+
+        $content = file_get_contents($file);
+        if ($content === false) {
+            continue;
+        }
+
+        $tokens = token_get_all($content);
+        $code = '';
+        foreach ($tokens as $token) {
+            if (is_array($token) && in_array($token[0], [T_COMMENT, T_DOC_COMMENT], true)) {
+                continue;
+            }
+
+            $code .= is_array($token) ? $token[1] : $token;
+        }
+
+        if (!str_contains($code, 'hasPermission')) {
+            continue;
+        }
+
+        preg_match_all('/\bhasPermission\s*\(([^)]*)\)/s', $code, $matches, PREG_SET_ORDER);
+        foreach ($matches as $match) {
+            preg_match_all('/[\'\"]([^\'\"]+)[\'\"]/', $match[1], $stringMatches);
+            foreach (($stringMatches[1] ?? []) as $literal) {
+                if ($literal === '' || str_contains($literal, '/') || str_contains($literal, '\\')) {
+                    continue;
+                }
+
+                if (!preg_match('/^[a-z0-9_.-]+$/i', $literal)) {
+                    continue;
+                }
+
+                $calls[] = [
+                    'file' => $file,
+                    'permission' => $literal,
+                    'call' => 'hasPermission',
+                ];
+            }
+        }
+    }
+
+    return $calls;
+}
+
+/**
+ * UI permission checks may use a canonical/variant DB permission or a mapped
+ * route/variant. A named route alone is not enough: PermissionMapperV2 falls
+ * back to the original name when no provider mapping exists.
+ *
+ * @param array<string, true> $dbPermissions
+ * @param array<string, object> $providerMap
+ */
+function permission_linter_validate_ui_permission_calls(
+    string $root,
+    array $dbPermissions,
+    array $providerMap,
+    LintReport $report
+): void {
+    foreach (permission_linter_scan_ui_permission_calls($root) as $call) {
+        $permission = $call['permission'];
+
+        if (isset($dbPermissions[$permission])) {
+            continue;
+        }
+
+        $isMapped = isset($providerMap[$permission]);
+        if ($isMapped) {
+            continue;
+        }
+
+        if (permission_linter_has_transport_suffix($permission)) {
+            $relativeFile = str_starts_with($call['file'], $root)
+                ? ltrim(substr($call['file'], strlen($root)), DIRECTORY_SEPARATOR)
+                : $call['file'];
+
+            $report->error(
+                $permission,
+                sprintf('hasPermission() in %s uses transport alias without a provider mapping.', $relativeFile)
+            );
+
+            continue;
+        }
+
+        $relativeFile = str_starts_with($call['file'], $root)
+            ? ltrim(substr($call['file'], strlen($root)), DIRECTORY_SEPARATOR)
+            : $call['file'];
+
+        $report->error(
+            $permission,
+            sprintf('hasPermission() in %s uses permission not found in DB seed or provider map.', $relativeFile)
+        );
+    }
+}
+
+/**
  * @param list<object> $providers
  */
 function permission_linter_run_native_provider_validator(array $providers, LintReport $report): void
@@ -1347,7 +1458,7 @@ if ($seedFiles === []) {
     $report->error('permissions_seed.sql', 'No permissions_seed.sql file was found in the project workspace.');
 }
 
-permission_linter_warn_duplicate_seed_permissions($seedSources, $projectRoot, $report);
+permission_linter_validate_duplicate_seed_permissions($seedSources, $projectRoot, $report);
 
 $routeNames = permission_linter_scan_route_names($scanRoots);
 $providers = permission_linter_discover_permission_providers($scanRoots);
@@ -1377,6 +1488,7 @@ permission_linter_validate_routes_are_mapped_or_canonical(
 );
 permission_linter_validate_mapped_routes_exist($routeNames, $providerMap, $report);
 permission_linter_validate_manual_permission_calls($projectRoot, $dbPermissions, $providerMap, $routeNames, $report);
+permission_linter_validate_ui_permission_calls($projectRoot, $dbPermissions, $providerMap, $report);
 permission_linter_validate_unused_seed_permissions($dbPermissions, $providerMap, $routeNames, $report);
 
 $report->info('scan_roots', 'Scanning roots: ' . implode(', ', $scanRoots));
