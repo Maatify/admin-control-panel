@@ -479,7 +479,7 @@ function permission_linter_is_admin_route_source(string $file): bool
            || str_contains($path, '/Admin/')
            || str_contains($path, '/admin/')
            || str_contains($path, '/Modules/Admin')
-           || str_contains($path, '/app/Modules/AdminKernel/');
+           || str_contains($path, '/Modules/AdminKernel/');
 }
 
 /**

@@ -33,63 +33,63 @@ The step-by-step pipeline for API list endpoints is observed uniformly:
 ## 5. Route & Permission Mapping
 API route names use the `.api` suffix, and UI route names use the `.ui` suffix.
 -   **Supporting File Paths:**
-    -   `app/Modules/AdminKernel/Http/Routes/Api/Features/SessionsApiRoutes.php`
-    -   `app/Modules/AdminKernel/Http/Routes/Api/Features/AdminsApiRoutes.php`
-    -   `app/Modules/AdminKernel/Http/Routes/Api/Features/PermissionsApiRoutes.php`
-    -   `app/Modules/AdminKernel/Http/Routes/Ui/Features/SessionsUiRoutes.php`
-    -   `app/Modules/AdminKernel/Http/Routes/Ui/Features/AdminsUiRoutes.php`
+    -   `Modules/AdminKernel/Http/Routes/Api/Features/SessionsApiRoutes.php`
+    -   `Modules/AdminKernel/Http/Routes/Api/Features/AdminsApiRoutes.php`
+    -   `Modules/AdminKernel/Http/Routes/Api/Features/PermissionsApiRoutes.php`
+    -   `Modules/AdminKernel/Http/Routes/Ui/Features/SessionsUiRoutes.php`
+    -   `Modules/AdminKernel/Http/Routes/Ui/Features/AdminsUiRoutes.php`
 
 These suffixes act as transport keys mapped directly to a single canonical permission (e.g., `sessions.list`, `admins.list`, `permissions.query`) defined in `PermissionMapperV2.php`.
 -   **Supporting File Paths:**
-    -   `app/Modules/AdminKernel/Domain/Security/PermissionMapperV2.php`
+    -   `Modules/AdminKernel/Domain/Security/PermissionMapperV2.php`
 
 `AuthorizationGuardMiddleware` intercepts the request, reads the route name, resolves it against `PermissionMapperV2`, and passes the resolved canonical requirement to `AuthorizationService`.
 -   **Supporting File Paths:**
-    -   `app/Modules/AdminKernel/Http/Middleware/AuthorizationGuardMiddleware.php`
-    -   `app/Modules/AdminKernel/Http/Routes/Api/ApiProtectedRoutes.php`
+    -   `Modules/AdminKernel/Http/Middleware/AuthorizationGuardMiddleware.php`
+    -   `Modules/AdminKernel/Http/Routes/Api/ApiProtectedRoutes.php`
 
 ## 6. Validation & DTO Flow
 Validation step using `SharedListQuerySchema` before DTO construction. Validated request payloads are passed to the static constructor `ListQueryDTO::fromArray()`.
 -   **Supporting File Paths:**
     -   `Modules/Validation/Schemas/SharedListQuerySchema.php`
-    -   `app/Modules/AdminKernel/Domain/List/ListQueryDTO.php`
-    -   `app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionQueryController.php`
-    -   `app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminQueryController.php`
-    -   `app/Modules/AdminKernel/Http/Controllers/Api/Permissions/PermissionsController.php`
+    -   `Modules/AdminKernel/Domain/List/ListQueryDTO.php`
+    -   `Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionQueryController.php`
+    -   `Modules/AdminKernel/Http/Controllers/Api/Admin/AdminQueryController.php`
+    -   `Modules/AdminKernel/Http/Controllers/Api/Permissions/PermissionsController.php`
 
 ## 7. Filter Resolution & Capabilities
 A `ListCapabilities` instance is either passed dynamically or instantiated (e.g. `AdminListCapabilities::define()`). This defines acceptable query column configurations. It is passed along with the `ListQueryDTO` into `ListFilterResolver->resolve()`, resulting in a `ResolvedListFilters` object.
 -   **Supporting File Paths:**
-    -   `app/Modules/AdminKernel/Infrastructure/Query/ListFilterResolver.php`
-    -   `app/Modules/AdminKernel/Domain/List/ListCapabilities.php`
-    -   `app/Modules/AdminKernel/Domain/List/AdminListCapabilities.php`
-    -   `app/Modules/AdminKernel/Domain/List/PermissionsCapabilities.php`
-    -   `app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionQueryController.php`
-    -   `app/Modules/AdminKernel/Http/Controllers/Api/Admin/AdminQueryController.php`
-    -   `app/Modules/AdminKernel/Http/Controllers/Api/Permissions/PermissionsController.php`
+    -   `Modules/AdminKernel/Infrastructure/Query/ListFilterResolver.php`
+    -   `Modules/AdminKernel/Domain/List/ListCapabilities.php`
+    -   `Modules/AdminKernel/Domain/List/AdminListCapabilities.php`
+    -   `Modules/AdminKernel/Domain/List/PermissionsCapabilities.php`
+    -   `Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionQueryController.php`
+    -   `Modules/AdminKernel/Http/Controllers/Api/Admin/AdminQueryController.php`
+    -   `Modules/AdminKernel/Http/Controllers/Api/Permissions/PermissionsController.php`
 
 ## 8. Reader & Data Access Pattern
 A domain-specific reader interface (implemented by a PDO reader) receives the `ListQueryDTO` and `ResolvedListFilters`. The reader performs database queries (see Reader implementations) and returns a domain-specific ResponseDTO containing an array of item DTOs and a `PaginationDTO`.
 -   **Supporting File Paths:**
-    -   `app/Modules/AdminKernel/Infrastructure/Reader/Session/PdoSessionListReader.php`
-    -   `app/Modules/AdminKernel/Infrastructure/Reader/Admin/PdoAdminQueryReader.php`
-    -   `app/Modules/AdminKernel/Infrastructure/Reader/PDOPermissionsReaderRepository.php`
-    -   `app/Modules/AdminKernel/Domain/DTO/Session/SessionListResponseDTO.php`
-    -   `app/Modules/AdminKernel/Domain/DTO/AdminList/AdminListResponseDTO.php`
-    -   `app/Modules/AdminKernel/Domain/DTO/Permission/PermissionsQueryResponseDTO.php`
+    -   `Modules/AdminKernel/Infrastructure/Reader/Session/PdoSessionListReader.php`
+    -   `Modules/AdminKernel/Infrastructure/Reader/Admin/PdoAdminQueryReader.php`
+    -   `Modules/AdminKernel/Infrastructure/Reader/PDOPermissionsReaderRepository.php`
+    -   `Modules/AdminKernel/Domain/DTO/Session/SessionListResponseDTO.php`
+    -   `Modules/AdminKernel/Domain/DTO/AdminList/AdminListResponseDTO.php`
+    -   `Modules/AdminKernel/Domain/DTO/Permission/PermissionsQueryResponseDTO.php`
 
 ## 9. UI Execution Flow (Observed)
 UI Controllers explicitly query the `UiPermissionService` with specific string keys representing discrete actions (e.g. `sessions.revoke.id`, `admins.profile.view`). The controllers construct an array of capabilities, which is passed to the Twig view data to determine frontend rendering states.
 -   **Supporting File Paths:**
-    -   `app/Modules/AdminKernel/Application/Security/UiPermissionService.php`
-    -   `app/Modules/AdminKernel/Http/Controllers/Ui/SessionListController.php`
-    -   `app/Modules/AdminKernel/Http/Controllers/Ui/Admin/UiAdminsController.php`
+    -   `Modules/AdminKernel/Application/Security/UiPermissionService.php`
+    -   `Modules/AdminKernel/Http/Controllers/Ui/SessionListController.php`
+    -   `Modules/AdminKernel/Http/Controllers/Ui/Admin/UiAdminsController.php`
 
 ## 10. Feature-Specific Variations
 -   **Inline Hard Data Scope Check:** `AuthorizationService->hasPermission()` is called inline within the API controller to determine if the query should be restricted by `$adminIdFilter` before calling the reader repository.
-    -   **Observed in:** Sessions LIST (`app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionQueryController.php`)
+    -   **Observed in:** Sessions LIST (`Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionQueryController.php`)
 -   **Best-effort Telemetry:** The API controller attempts to write an audit trail mapping the query shape, result count, and request context using `DiagnosticsTelemetryService` wrapped in a swallowed `try/catch`.
-    -   **Observed in:** Sessions LIST (`app/Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionQueryController.php`)
+    -   **Observed in:** Sessions LIST (`Modules/AdminKernel/Http/Controllers/Api/Sessions/SessionQueryController.php`)
 
 ## 11. Canonical vs Observed Reality
 -   **Observed behavior aligns with:** `docs/architecture/security/PERMISSION_STRATEGY.md`. `PermissionMapperV2.php` Observed mapping between route names and permissions via PermissionMapperV2.php separating routing transport definitions from canonical business capabilities. Observed: used in UI Controllers for `UiPermissionService`. Observed: used in API Controllers for `AuthorizationService`.
@@ -150,22 +150,22 @@ The following items are specific implementations that must not be abstracted int
 - `AuthorizationGuardMiddleware` resolves the route name to a canonical permission using `PermissionMapperV2.php` and executes an authorization check.
 - The associated UI controller (e.g., `SessionListController`, `UiAdminsController`) is invoked.
 - **Supporting File Paths:**
-  - `app/Modules/AdminKernel/Http/Routes/Ui/Features/SessionsUiRoutes.php`
-  - `app/Modules/AdminKernel/Http/Routes/Ui/Features/AdminsUiRoutes.php`
-  - `app/Modules/AdminKernel/Http/Controllers/Ui/SessionListController.php`
-  - `app/Modules/AdminKernel/Http/Controllers/Ui/Admin/UiAdminsController.php`
+  - `Modules/AdminKernel/Http/Routes/Ui/Features/SessionsUiRoutes.php`
+  - `Modules/AdminKernel/Http/Routes/Ui/Features/AdminsUiRoutes.php`
+  - `Modules/AdminKernel/Http/Controllers/Ui/SessionListController.php`
+  - `Modules/AdminKernel/Http/Controllers/Ui/Admin/UiAdminsController.php`
 
 ### 2. Permission Resolution (UI Layer)
 - The UI controller calls `UiPermissionService->hasPermission()` explicitly for each UI capability required on the page (e.g., `sessions.revoke.id`, `sessions.revoke.bulk`, `admin.create.api`, `admins.profile.view`).
 - These capabilities are grouped into a `$capabilities` array.
 - **Supporting File Paths:**
-  - `app/Modules/AdminKernel/Application/Security/UiPermissionService.php`
+  - `Modules/AdminKernel/Application/Security/UiPermissionService.php`
 
 ### 3. Twig Rendering
 - The UI controller calls the Twig renderer, passing the `$capabilities` array (and any other necessary data) to the template.
 - The Twig template outputs the UI shell and injects the capabilities into the frontend environment via a global JavaScript object (e.g., `window.sessionsCapabilities`).
 - **Supporting File Paths:**
-  - `app/Modules/AdminKernel/Templates/pages/sessions.twig`
+  - `Modules/AdminKernel/Templates/pages/sessions.twig`
 
 ### 4. Frontend Trigger (JS)
 - A specific page-level JavaScript file (e.g., `sessions.js`, `admins-list.js`) initializes on page load.

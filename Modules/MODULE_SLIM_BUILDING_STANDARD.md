@@ -455,9 +455,9 @@ class SettingsUiRoutes {
 
 ### Step 7: Create Twig Templates
 
-**📍 Location**: `app/Modules/AdminKernel/Templates/pages/[module]/[page].twig`
+**📍 Location**: `Modules/AdminKernel/Templates/pages/[module]/[page].twig`
 
-Example: `app/Modules/AdminKernel/Templates/pages/settings/settings_list.twig`
+Example: `Modules/AdminKernel/Templates/pages/settings/settings_list.twig`
 
 **📚 Template Inheritance Hierarchy**
 
@@ -1338,7 +1338,7 @@ public function list(ListQueryDTO $dto): array {
 - [ ] `Modules/SettingsSlim/src/Admin/Http/Controllers/Ui/SettingsListUiController.php`
 - [ ] `Modules/SettingsSlim/src/Admin/Http/Routes/SettingsApiRoutes.php`
 - [ ] `Modules/SettingsSlim/src/Admin/Http/Routes/SettingsUiRoutes.php`
-- [ ] `app/Modules/AdminKernel/Templates/pages/settings/settings_list.twig`
+- [ ] `Modules/AdminKernel/Templates/pages/settings/settings_list.twig`
 - [ ] `public/assets/maatify/admin-kernel/js/pages/settings_list.js`
 
 ### Core Module Updates
@@ -1591,8 +1591,8 @@ class SettingsDropdownController {
 diff -r Modules/SettingsSlim/src/ Modules/CurrencySlim/src/
 
 # Read both templates
-cat app/Modules/AdminKernel/Templates/pages/settings/settings_list.twig
-cat app/Modules/AdminKernel/Templates/pages/currencies/currencies_list.twig
+cat Modules/AdminKernel/Templates/pages/settings/settings_list.twig
+cat Modules/AdminKernel/Templates/pages/currencies/currencies_list.twig
 
 # Read both JS files
 cat public/assets/maatify/admin-kernel/js/pages/settings_list.js

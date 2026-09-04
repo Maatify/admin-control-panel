@@ -130,9 +130,9 @@
 
 ### AdminKernel
 
-تحديث [AdminRuntimeConfigDTO.php](../../app/Modules/AdminKernel/Kernel/DTO/AdminRuntimeConfigDTO.php) ليقرأ كل أسماء Admin النهائية أعلاه، بما فيها `APP_DEBUG` و`APP_TIMEZONE` و`APP_NAME` و`EMAIL_BLIND_INDEX_KEY` وCaptcha وRecovery.
+تحديث [AdminRuntimeConfigDTO.php](../../Modules/AdminKernel/Kernel/DTO/AdminRuntimeConfigDTO.php) ليقرأ كل أسماء Admin النهائية أعلاه، بما فيها `APP_DEBUG` و`APP_TIMEZONE` و`APP_NAME` و`EMAIL_BLIND_INDEX_KEY` وCaptcha وRecovery.
 
-تحديث [MediaUrlConfigDTO.php](../../app/Modules/AdminKernel/Ui/Config/MediaUrlConfigDTO.php) صراحةً؛ فهو القارئ الفعلي لمفاتيح:
+تحديث [MediaUrlConfigDTO.php](../../Modules/AdminKernel/Ui/Config/MediaUrlConfigDTO.php) صراحةً؛ فهو القارئ الفعلي لمفاتيح:
 
 - `ADMIN_ASSETS_CDN_URL`
 - `ADMIN_CDN_IMAGE_URL`

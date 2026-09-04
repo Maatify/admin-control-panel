@@ -15,7 +15,7 @@ $dbPermissions = array_unique($dbPermissions);
 sort($dbPermissions);
 
 // 2. Extract Route Permissions
-$files = shell_exec('find ' . __DIR__ . '/../app/Modules/AdminKernel/Http/Routes -type f -name "*.php"');
+$files = shell_exec('find ' . __DIR__ . '/../Modules/AdminKernel/Http/Routes -type f -name "*.php"');
 $filesArray = explode("\n", trim($files));
 $routePermissions = [];
 
@@ -35,7 +35,7 @@ $routePermissions = array_unique($routePermissions);
 sort($routePermissions);
 
 // 3. Extract Mapper rules
-$mapperContent = file_get_contents(__DIR__ . '/../app/Modules/AdminKernel/Domain/Security/PermissionMapperV2.php');
+$mapperContent = file_get_contents(__DIR__ . '/../Modules/AdminKernel/Domain/Security/PermissionMapperV2.php');
 preg_match_all("/\'([^\']+)\'\s*=>\s*\'([^\']+)\'/", $mapperContent, $simpleMatches);
 $mapper = [];
 for ($i=0; $i<count($simpleMatches[1]); $i++) {

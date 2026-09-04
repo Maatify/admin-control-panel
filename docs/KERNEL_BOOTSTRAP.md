@@ -13,7 +13,7 @@ It has strictly limited responsibilities:
 
 1.  Initialize the Container (via `Maatify\AdminKernel\Bootstrap\Container`).
 2.  Create the Slim App instance.
-3.  Delegate HTTP bootstrap to the host-provided logic (e.g. `app/Modules/AdminKernel/Bootstrap/http.php`).
+3.  Delegate HTTP bootstrap to the host-provided logic (e.g. `Modules/AdminKernel/Bootstrap/http.php`).
 
 The Kernel does **NOT**:
 *   Configure middleware.

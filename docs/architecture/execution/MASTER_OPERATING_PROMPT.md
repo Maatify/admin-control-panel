@@ -222,7 +222,7 @@ Before any UI implementation choice, the executor MUST complete this runtime pre
 1. `public/assets/maatify/admin-kernel/js/admin-page-bridge.js`
 2. `public/assets/maatify/admin-kernel/js/ADMIN_PAGE_BRIDGE_USAGE.md`
 3. target `*-v2.js` files under `public/assets/maatify/admin-kernel/js/pages/**`
-4. mounted Twig page(s) under `app/Modules/AdminKernel/Templates/pages/**`
+4. mounted Twig page(s) under `Modules/AdminKernel/Templates/pages/**`
 
 Then the executor MUST read UI authority docs in this order:
 
@@ -522,7 +522,7 @@ Audit ONLY the code created or modified in the current task.
 ### UI EXECUTION CHECKS
 
 #### 9.5 Mandatory Reference Verification
-Before generating any new UI feature (Twig or JS), the agent MUST identify a structurally similar existing 'Source of Truth' feature in the codebase (e.g., by scanning `app/Modules/AdminKernel/Templates/pages/`) and MUST perfectly replicate its layout grid, data context block, and JS initialization pattern. The agent MUST NOT invent minimalist layout structures.
+Before generating any new UI feature (Twig or JS), the agent MUST identify a structurally similar existing 'Source of Truth' feature in the codebase (e.g., by scanning `Modules/AdminKernel/Templates/pages/`) and MUST perfectly replicate its layout grid, data context block, and JS initialization pattern. The agent MUST NOT invent minimalist layout structures.
 
 #### 10. API Contract Compliance
 If a contract exists in `docs/API/`:
