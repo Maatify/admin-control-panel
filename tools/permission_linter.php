@@ -936,16 +936,6 @@ function permission_linter_has_transport_suffix(string $permission): bool
 }
 
 /**
- * These approved variants are resolved by PermissionMapperV2 before the UI
- * authorization check. They are not transport aliases and may also be stored
- * directly as assignable permissions when the application chooses to do so.
- */
-function permission_linter_has_mapped_variant_suffix(string $permission): bool
-{
-    return preg_match('/\.(id|bulk)$/', $permission) === 1;
-}
-
-/**
  * @param array<string, true> $dbPermissions
  * @param array<string, object> $providerMap
  * @param array<string, list<string>> $routeNames
@@ -1284,19 +1274,17 @@ function permission_linter_scan_ui_permission_calls(string $root): array
 }
 
 /**
- * UI permission checks may pass transport aliases such as `settings.get.api`
- * or `settings.list.ui`; the alias must still be a discovered route/provider
- * name, and canonical literals must exist in the discovered seed set.
+ * UI permission checks may use a canonical/variant DB permission or a mapped
+ * route/variant. A named route alone is not enough: PermissionMapperV2 falls
+ * back to the original name when no provider mapping exists.
  *
  * @param array<string, true> $dbPermissions
  * @param array<string, object> $providerMap
- * @param array<string, list<string>> $routeNames
  */
 function permission_linter_validate_ui_permission_calls(
     string $root,
     array $dbPermissions,
     array $providerMap,
-    array $routeNames,
     LintReport $report
 ): void {
     foreach (permission_linter_scan_ui_permission_calls($root) as $call) {
@@ -1306,26 +1294,21 @@ function permission_linter_validate_ui_permission_calls(
             continue;
         }
 
-        $isKnownRoute = permission_linter_is_known_route_name($permission, $providerMap, $routeNames);
-        if (permission_linter_has_transport_suffix($permission)) {
-            if (!$isKnownRoute) {
-                $relativeFile = str_starts_with($call['file'], $root)
-                    ? ltrim(substr($call['file'], strlen($root)), DIRECTORY_SEPARATOR)
-                    : $call['file'];
-
-                $report->error(
-                    $permission,
-                    sprintf('hasPermission() in %s uses transport alias not found in route/provider map.', $relativeFile)
-                );
-            }
-
+        $isMapped = isset($providerMap[$permission]);
+        if ($isMapped) {
             continue;
         }
 
-        // The current AdminKernel UI uses sessions.revoke.id/bulk. These are
-        // approved variants resolved by PermissionMapperV2 to sessions.revoke,
-        // so they are valid UI capabilities even when not separately seeded.
-        if (permission_linter_has_mapped_variant_suffix($permission) && $isKnownRoute) {
+        if (permission_linter_has_transport_suffix($permission)) {
+            $relativeFile = str_starts_with($call['file'], $root)
+                ? ltrim(substr($call['file'], strlen($root)), DIRECTORY_SEPARATOR)
+                : $call['file'];
+
+            $report->error(
+                $permission,
+                sprintf('hasPermission() in %s uses transport alias without a provider mapping.', $relativeFile)
+            );
+
             continue;
         }
 
@@ -1505,7 +1488,7 @@ permission_linter_validate_routes_are_mapped_or_canonical(
 );
 permission_linter_validate_mapped_routes_exist($routeNames, $providerMap, $report);
 permission_linter_validate_manual_permission_calls($projectRoot, $dbPermissions, $providerMap, $routeNames, $report);
-permission_linter_validate_ui_permission_calls($projectRoot, $dbPermissions, $providerMap, $routeNames, $report);
+permission_linter_validate_ui_permission_calls($projectRoot, $dbPermissions, $providerMap, $report);
 permission_linter_validate_unused_seed_permissions($dbPermissions, $providerMap, $routeNames, $report);
 
 $report->info('scan_roots', 'Scanning roots: ' . implode(', ', $scanRoots));
