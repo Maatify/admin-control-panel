@@ -2,15 +2,12 @@
 
 ## الحالة
 
-هذه PR توثيقية فقط.
-
-- الفرع: `codex/admin-env-namespacing-study`
-- لا يوجد فيها تعديل Runtime أو تعديل اختبار أو تعديل موديول.
-- التنفيذ يبدأ في مرحلة مستقلة بعد اعتماد هذه الخطة.
+الخطة معتمدة، والتنفيذ الجاري يطبقها مع فصل عقد الـKernel العامة عن أسماء
+الـhost namespaced.
 
 ## الهدف
 
-منع تعارض مفاتيح بيئة Admin عند تشغيله مع تطبيق آخر داخل نفس المستضيف أو نفس عملية التشغيل، مع إبقاء عقود الموديولات القابلة لإعادة الاستخدام كما هي.
+منع تعارض مفاتيح بيئة Admin عند تشغيله مع تطبيق آخر داخل نفس المستضيف أو نفس عملية التشغيل، مع إبقاء عقود الموديولات القابلة لإعادة الاستخدام عامة. التحويل من مفاتيح `ADMIN_*` إلى عقد الموديول يتم عند حد تركيب المستضيف فقط.
 
 ## قاعدة الملكية والتسمية
 
@@ -130,23 +127,35 @@
 
 ### AdminKernel
 
-تحديث [AdminRuntimeConfigDTO.php](../../Modules/AdminKernel/Kernel/DTO/AdminRuntimeConfigDTO.php) ليقرأ كل أسماء Admin النهائية أعلاه، بما فيها `APP_DEBUG` و`APP_TIMEZONE` و`APP_NAME` و`EMAIL_BLIND_INDEX_KEY` وCaptcha وRecovery.
+عقدة الـKernel الداخلية تقرأ الأسماء العامة الخاصة بالموديول (`APP_*`, `DB_*`,
+`MAIL_*` وغيرها)، ولا تقرأ `ADMIN_*` مباشرة. ملف
+`Maatify\AdminControlPanel\Bootstrap\AdminEnvironmentAdapter` يحول المفاتيح
+المتعقبة ذات المقدمة `ADMIN_` إلى هذه الأسماء في مصفوفة محلية فقط.
 
-تحديث [MediaUrlConfigDTO.php](../../Modules/AdminKernel/Ui/Config/MediaUrlConfigDTO.php) صراحةً؛ فهو القارئ الفعلي لمفاتيح:
-
-- `ADMIN_ASSETS_CDN_URL`
-- `ADMIN_CDN_IMAGE_URL`
-- `ADMIN_ASSET_VERSION`
-
-ولا تُنسب مفاتيح Media إلى `AdminRuntimeConfigDTO`.
+ويقرأ [MediaUrlConfigDTO.php](../../Modules/AdminKernel/Ui/Config/MediaUrlConfigDTO.php)
+عقد Media العامة (`ASSETS_CDN_URL`, `CDN_IMAGE_URL`, `ASSET_VERSION`) بعد
+التحويل، ولا تُنسب مفاتيح Media إلى `AdminRuntimeConfigDTO`.
 
 ### public/index.php
 
 يظل `public/index.php` حد تركيب المستضيف:
 
 1. يمرر إعدادات Admin إلى `AdminKernel`.
-2. يبني Adapter محليًا للتخزين.
-3. يترجم:
+2. يبني Adapter محليًا لعقد الـKernel وعقد التخزين.
+3. يترجم عقد الـKernel:
+
+```text
+ADMIN_APP_ENV          -> APP_ENV
+ADMIN_DB_*             -> DB_*
+ADMIN_PASSWORD_*       -> PASSWORD_*
+ADMIN_CRYPTO_*         -> CRYPTO_*
+ADMIN_MAIL_*           -> MAIL_*
+ADMIN_ASSETS_CDN_URL   -> ASSETS_CDN_URL
+ADMIN_CDN_IMAGE_URL    -> CDN_IMAGE_URL
+ADMIN_ASSET_VERSION    -> ASSET_VERSION
+```
+
+ويترجم عقد التخزين:
 
 ```text
 ADMIN_LOCAL_BASE_PATH   -> LOCAL_BASE_PATH
@@ -177,9 +186,10 @@ STORAGE_DRIVER           -> STORAGE_DRIVER
 
 ## قاعدة الموديولات القابلة لإعادة الاستخدام
 
-لا يتم تعديل أي ملف داخل `Modules/**`.
-
-الأسماء العامة التي يحتاجها الموديول تظل داخل عقده الداخلي فقط. التحويل من أسماء Admin إلى هذه الأسماء يحدث عند حد التركيب في `public/index.php`، وبذلك لا يتأثر استخراج الموديول أو استخدامه في تطبيق آخر.
+يظل `AdminKernel` مستقلًا عن أسماء الـhost. الأسماء العامة التي يحتاجها
+الموديول تظل داخل عقده الداخلي فقط، والتحويل من أسماء Admin إلى هذه الأسماء
+يحدث عند حد التركيب في الـhost قبل استدعاء الـKernel. بذلك لا يتأثر استخراج
+الموديول أو استخدامه في تطبيق آخر.
 
 ## حماية البيانات
 
@@ -195,15 +205,13 @@ STORAGE_DRIVER           -> STORAGE_DRIVER
 
 ## تسلسل التنفيذ
 
-1. تحديث `.env.example` كمرجع Canonical متعقب.
-2. تنفيذ ترحيل محلي لـ`.env` و`.env.test` دون اعتبارهما ملفات PR.
-3. تحديث `AdminRuntimeConfigDTO` وكل قراءاته داخل `AdminKernel`.
-4. تحديث `MediaUrlConfigDTO` بأسماء Media الجديدة.
-5. تحديث `public/index.php` وAdapter التخزين المحلي.
-6. تحديث `public/api-tester.php` وملفات Test infrastructure اللازمة.
-7. التأكد من عدم تعديل `Modules/**` أو مفاتيح Logging أو `STORAGE_DRIVER`.
-8. منع fallback للمفاتيح القديمة.
-9. تحديث مصادر الـDeployment في مرحلة لاحقة وبشكل متزامن.
+1. تثبيت `.env.example` كمرجع Canonical لمفاتيح `ADMIN_*`.
+2. تحديث `AdminRuntimeConfigDTO` و`MediaUrlConfigDTO` إلى عقد الموديول العامة.
+3. إضافة Adapter عند حد الـhost وتمرير ناتجه إلى كل entry points.
+4. تحديث ملفات Test infrastructure اللازمة.
+5. التأكد من عدم تعديل مفاتيح Logging أو `STORAGE_DRIVER`.
+6. منع fallback للمفاتيح القديمة.
+7. تحديث مصادر الـDeployment في مرحلة لاحقة وبشكل متزامن.
 
 ## معايير القبول
 
@@ -211,15 +219,15 @@ STORAGE_DRIVER           -> STORAGE_DRIVER
 
 1. نجاح Boot للـAdmin باستخدام أسماء Admin الجديدة فقط.
 2. عدم وجود fallback إلى أسماء Admin العامة القديمة.
-3. قراءة `AdminRuntimeConfigDTO` للأسماء المحسومة في هذه الوثيقة.
-4. قراءة `MediaUrlConfigDTO` لأسماء Media الجديدة.
+3. قراءة `AdminRuntimeConfigDTO` للعقد العامة بعد تحويل أسماء Admin عند الـhost.
+4. قراءة `MediaUrlConfigDTO` لعقد Media العامة بعد التحويل.
 5. استخدام `public/api-tester.php` لعقد Admin في بوابة الأمان.
 6. عمل Storage عبر Adapter حدود Admin دون تعديل `Modules/Storage`.
 7. صحة تهيئة Local Storage وDigitalOcean Spaces.
 8. بقاء `LOG_PATH` و`LOG_RETENTION_DAYS` و`LOG_TIMEZONE` و`STORAGE_DRIVER` دون تغيير.
 9. بقاء `ADMIN_URL` دون تغيير.
 10. اتباع Test infrastructure للأسماء الجديدة.
-11. عدم وجود قراءات Admin قديمة غير مقصودة في الفحص الساكن.
+11. عدم وجود قراءات مباشرة لمفاتيح `ADMIN_*` داخل عقد الـKernel، باستثناء الـhost adapter والحدود المتعمدة مثل `ADMIN_URL` وStorage.
 12. نجاح `composer analyse`.
 13. نجاح `composer test`.
 14. نجاح Permission Linter.

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Kernel\DTO;
 
 use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
+use Maatify\AdminControlPanel\Bootstrap\AdminEnvironmentAdapter;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -12,7 +13,9 @@ final class AdminRuntimeConfigDTOTest extends TestCase
 {
     public function testReadsTheAdminNamespacedEnvironmentContract(): void
     {
-        $config = AdminRuntimeConfigDTO::fromArray($this->validAdminEnvironment());
+        $config = AdminRuntimeConfigDTO::fromArray(
+            AdminEnvironmentAdapter::forAdminKernel($this->validAdminEnvironment())
+        );
 
         self::assertSame('testing', $config->appEnv);
         self::assertTrue($config->appDebug);
@@ -40,9 +43,11 @@ final class AdminRuntimeConfigDTOTest extends TestCase
         $environment['APP_ENV'] = 'testing';
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('ADMIN_APP_ENV');
+        $this->expectExceptionMessage('APP_ENV');
 
-        AdminRuntimeConfigDTO::fromArray($environment);
+        AdminRuntimeConfigDTO::fromArray(
+            AdminEnvironmentAdapter::forAdminKernel($environment)
+        );
     }
 
     /**

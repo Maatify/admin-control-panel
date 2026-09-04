@@ -5,6 +5,7 @@ declare(strict_types=1);
 require __DIR__ . '/../vendor/autoload.php';
 
 use Dotenv\Dotenv;
+use Maatify\AdminControlPanel\Bootstrap\AdminEnvironmentAdapter;
 use Maatify\AdminKernel\Bootstrap\Container;
 use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
 use Maatify\Crypto\Contract\CryptoContextProviderInterface;
@@ -32,7 +33,9 @@ try {
 |--------------------------------------------------------------------------
 */
 try {
-    $runtimeConfig = AdminRuntimeConfigDTO::fromArray($_ENV);
+    $runtimeConfig = AdminRuntimeConfigDTO::fromArray(
+        AdminEnvironmentAdapter::forAdminKernel($_ENV)
+    );
 } catch (Throwable $e) {
     fwrite(STDERR, "Runtime Config Invalid: {$e->getMessage()}" . PHP_EOL);
     exit(1);

@@ -7,6 +7,7 @@ define('APP_ROOT', dirname(__DIR__));
 require __DIR__ . '/../vendor/autoload.php';
 
 use DI\ContainerBuilder;
+use Maatify\AdminControlPanel\Bootstrap\AdminEnvironmentAdapter;
 use Maatify\AdminKernel\Bootstrap\AdminStorageEnvAdapter;
 use Maatify\AdminKernel\Bootstrap\AdminKernelPermissionBindings;
 use Maatify\AdminKernel\Kernel\AdminKernel;
@@ -31,9 +32,10 @@ $dotenv->safeLoad();
 //$logger->alert('access');
 
 // 2️⃣ Build Runtime Config DTO
-$runtimeConfig = AdminRuntimeConfigDTO::fromArray($_ENV);
+$kernelEnv = AdminEnvironmentAdapter::forAdminKernel($_ENV);
+$runtimeConfig = AdminRuntimeConfigDTO::fromArray($kernelEnv);
 $storageConfig = StorageConfig::fromEnv(AdminStorageEnvAdapter::adapt($_ENV));
-$mediaUrlConfig = MediaUrlConfigDTO::fromArray($_ENV);
+$mediaUrlConfig = MediaUrlConfigDTO::fromArray($kernelEnv);
 
 // 3️⃣ Kernel options
 $options = new KernelOptions();
