@@ -16,16 +16,18 @@
 
 ## 3. Permission Mapping Rules
 - All NEW routes with `->setName(...)` MUST be explicitly mapped in:
-  `app/Modules/AdminKernel/Domain/Security/PermissionMapperV2.php`
+  `Modules/AdminKernel/Domain/Security/PermissionMapperV2.php`
 - This requirement applies ONLY to NEW routes.
 - DO NOT modify existing mappings unless explicitly required.
 - Missing mapping will fail CI (permission-lint).
 
 ## 4. Twig Template Directory Rules
-- All new Twig templates MUST be created exclusively within the modular directory structure:
+- All new Twig templates for host modules MUST be created exclusively within the modular directory structure:
   `app/Modules/[Module]/Templates/...`
+- AdminKernel is the relocated kernel module and MUST use:
+  `Modules/AdminKernel/Templates/...`
 - Creating templates in the root `/templates` directory is STRICTLY FORBIDDEN.
-- Template paths MUST align exactly with their corresponding feature module (e.g., `app/Modules/AdminKernel/Templates/pages/ar-platform/products/`).
+- Template paths MUST align exactly with their corresponding feature module (e.g., `Modules/AdminKernel/Templates/pages/ar-platform/products/`).
 
 ## 5. Twig Layout Inheritance Rules
 - All Twig templates MUST extend the canonical base layout: `layouts/base.twig` (i.e., `{% extends "layouts/base.twig" %}`).

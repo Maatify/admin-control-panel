@@ -16,7 +16,7 @@ Before applying any UI pattern, checklist, or component guidance, executors MUST
 1. `public/assets/maatify/admin-kernel/js/admin-page-bridge.js`
 2. `public/assets/maatify/admin-kernel/js/ADMIN_PAGE_BRIDGE_USAGE.md`
 3. Target `*-v2.js` files for the feature under `public/assets/maatify/admin-kernel/js/pages/**`
-4. Mounted Twig page(s) under `app/Modules/AdminKernel/Templates/pages/**`
+4. Mounted Twig page(s) under `Modules/AdminKernel/Templates/pages/**`
 
 This order is mandatory for execution accuracy. Executors MUST NOT start from scattered old files, raw globals, or generic pattern templates before this runtime-first path is completed.
 

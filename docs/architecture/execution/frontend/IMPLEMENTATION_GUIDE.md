@@ -13,7 +13,7 @@ Before using this guide's implementation phases, complete this runtime-first rea
 1. `public/assets/maatify/admin-kernel/js/admin-page-bridge.js`
 2. `public/assets/maatify/admin-kernel/js/ADMIN_PAGE_BRIDGE_USAGE.md`
 3. target feature-family `*-v2.js` files under `public/assets/maatify/admin-kernel/js/pages/**`
-4. mounted Twig page contract under `app/Modules/AdminKernel/Templates/pages/**`
+4. mounted Twig page contract under `Modules/AdminKernel/Templates/pages/**`
 
 This guide reinforces approved authority. It does not replace policy ownership in:
 - `UI_EXECUTION_RULES.md`

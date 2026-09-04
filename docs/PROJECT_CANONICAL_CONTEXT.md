@@ -11,10 +11,10 @@
 The project is a secure Admin Control Panel built with **PHP 8.2+, Slim 4, PHP-DI, and Twig**. It follows a strictly layered **Domain-Driven Design (DDD)** architecture with a strong emphasis on security, auditing, and clean separation of concerns.
 
 ### Directory Map
-*   **`app/Modules/AdminKernel/Domain/`**: Pure business logic (Services, Contracts, DTOs, Enums). No infrastructure dependencies allowed.
-*   **`app/Modules/AdminKernel/Infrastructure/`**: Concrete implementations (Repositories, Mailers, Loggers, PDO adapters).
-*   **`app/Modules/AdminKernel/Http/`**: Application layer (Controllers, Middleware).
-*   **`app/Modules/AdminKernel/Bootstrap/`**: Dependency Injection (`Container.php`) and Configuration (`AdminConfigDTO`).
+*   **`Modules/AdminKernel/Domain/`**: Pure business logic (Services, Contracts, DTOs, Enums). No infrastructure dependencies allowed.
+*   **`Modules/AdminKernel/Infrastructure/`**: Concrete implementations (Repositories, Mailers, Loggers, PDO adapters).
+*   **`Modules/AdminKernel/Http/`**: Application layer (Controllers, Middleware).
+*   **`Modules/AdminKernel/Bootstrap/`**: Dependency Injection (`Container.php`) and Configuration (`AdminConfigDTO`).
 *   **`public/`**: Web root. Entry point `index.php`.
 *   **`routes/`**: Route definitions (`web.php`).
 *   **`templates/`**: Twig views (`pages/`, `layouts/`, `components/`).
@@ -716,7 +716,7 @@ Ad-hoc or convenience-based testing approaches are **NOT ACCEPTABLE**.
 
 ## ⚔️ L) CONFLICTS
 
-* **Web vs Ui Controllers**: `app/Modules/AdminKernel/Http/Controllers/Web/` contains legacy logic. `app/Modules/AdminKernel/Http/Controllers/Ui/` is the new standard.
+* **Web vs Ui Controllers**: `Modules/AdminKernel/Http/Controllers/Web/` contains legacy logic. `Modules/AdminKernel/Http/Controllers/Ui/` is the new standard.
 
   * *Conflict*: `LoginController` is in `Web` but wrapped by `UiLoginController`.
   * *Resolution*: Prefer `Ui` controllers for all new UI routes. Keep `Web` only for legacy support until fully migrated.
@@ -1237,7 +1237,7 @@ Further discussion/refactor on this topic is **FORBIDDEN** unless a new ADR is o
 
 * **Routing**: `routes/web.php`
 * **DI/Config**: `Maatify\AdminKernel\Bootstrap\Container.php`
-* **Session List Pattern**: `app/Modules/AdminKernel/Http/Controllers/Ui/SessionListController.php`, `app/Modules/AdminKernel/Http/Controllers/Api/SessionQueryController.php`
+* **Session List Pattern**: `Modules/AdminKernel/Http/Controllers/Ui/SessionListController.php`, `Modules/AdminKernel/Http/Controllers/Api/SessionQueryController.php`
 * **Audit Model**: ``maatify/event-logging``, `Maatify\AdminKernel\Domain\Contracts\AuthoritativeSecurityAuditWriterInterface.php`
 * **Canonical Template**: `docs/ADMIN_PANEL_CANONICAL_TEMPLATE.md`
 * **Placeholders**: `templates/pages/admins.twig`, `templates/pages/roles.twig`

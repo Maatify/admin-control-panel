@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-SOURCE_DIR="app/Modules/AdminKernel/UI/assets"
+SOURCE_DIR="Modules/AdminKernel/UI/assets"
 TARGET_DIR="public/assets/maatify/admin-kernel"
 
 echo "Publishing AdminKernel assets..."
