@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         bootstrap="tests/bootstrap.php"
+         bootstrap="tests/admin/bootstrap.php"
          colors="true"
          executionOrder="depends,defects"
          beStrictAboutTestsThatDoNotTestAnything="true"
@@ -11,7 +11,7 @@
     <!-- Test Suites -->
     <testsuites>
         <testsuite name="AdminControlPanel Test Suite">
-            <directory>tests</directory>
+            <directory>tests/admin</directory>
         </testsuite>
     </testsuites>
 

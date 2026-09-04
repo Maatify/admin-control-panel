@@ -25,7 +25,7 @@ Fields:
 ### Sensitive Fields
 - `cryptoKeys`:
   - `app/Bootstrap/Container.php`: Used to configure `KeyRotationService`.
-  - `tests/Canonical/Admins/AdminsQueryContractTest.php`: Mock usage.
+  - `tests/admin/Canonical/Admins/AdminsQueryContractTest.php`: Mock usage.
 - `passwordPeppers`:
   - `app/Bootstrap/Container.php`: Used to configure `PasswordPepperRing`.
 - `emailBlindIndexKey`:

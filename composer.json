@@ -69,7 +69,7 @@
 
   "autoload-dev": {
     "psr-4": {
-      "Tests\\": "tests/",
+      "Tests\\": "tests/admin/",
       "Maatify\\Geo\\Tests\\": "Modules/geo/tests/"
     }
   },

@@ -47,7 +47,7 @@ final class MediaUrlConfigDTOTest extends TestCase
 
     public function testCanonicalEnvironmentExampleProducesSafeDefaultImageUrl(): void
     {
-        $environment = Dotenv::createArrayBacked(dirname(__DIR__, 4), '.env.example')->load();
+        $environment = Dotenv::createArrayBacked(dirname(__DIR__, 5), '.env.example')->load();
         $config = MediaUrlConfigDTO::fromArray(
             AdminEnvironmentAdapter::forAdminKernel($environment)
         );

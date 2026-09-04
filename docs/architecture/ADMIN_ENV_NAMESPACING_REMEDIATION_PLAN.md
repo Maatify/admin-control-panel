@@ -176,8 +176,8 @@ STORAGE_DRIVER           -> STORAGE_DRIVER
 
 تحديث إعدادات الاختبار اللازمة لتستخدم العقد الجديدة باستمرار:
 
-- `tests/bootstrap.php`
-- `tests/Support/MySQLTestHelper.php`
+- `tests/admin/bootstrap.php`
+- `tests/admin/Support/MySQLTestHelper.php`
 - `phpunit.xml`
 
 لا تُقبل الاختبارات وهي مكسورة بسبب بقاء أسماء Admin القديمة، ولا تتم إعادة إدخال متغيرات Admin العامة كحل توافق.

@@ -16,7 +16,7 @@ declare(strict_types=1);
 // ------------------------------------------------------------
 use Dotenv\Dotenv;
 
-$rootPath = dirname(__DIR__);
+$rootPath = dirname(__DIR__, 2);
 
 // Prefer .env.test if exists, fallback to .env
 if (file_exists($rootPath . '/.env.test')) {
