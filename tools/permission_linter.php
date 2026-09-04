@@ -922,17 +922,27 @@ function permission_linter_merge_provider_maps(array $runtimeMap, array $staticM
 }
 
 /**
- * A transport suffix identifies route variants, not business/canonical permissions.
+ * A transport suffix identifies HTTP route variants, not business/canonical permissions.
  *
  * Important nuance:
  *   routeName === permissionName is NOT automatically wrong.
  *   Some old canonical permissions intentionally share the same name as their route
  *   (for example: admin.email.add). That is valid when the value exists in the DB seed
- *   and does not end with an explicit transport suffix such as .api/.ui/.web/.id/.bulk.
+ *   and does not end with an explicit transport suffix such as .api/.ui/.web.
  */
 function permission_linter_has_transport_suffix(string $permission): bool
 {
-    return preg_match('/\.(api|ui|web|id|bulk)$/', $permission) === 1;
+    return preg_match('/\.(api|ui|web)$/', $permission) === 1;
+}
+
+/**
+ * These approved variants are resolved by PermissionMapperV2 before the UI
+ * authorization check. They are not transport aliases and may also be stored
+ * directly as assignable permissions when the application chooses to do so.
+ */
+function permission_linter_has_mapped_variant_suffix(string $permission): bool
+{
+    return preg_match('/\.(id|bulk)$/', $permission) === 1;
 }
 
 /**
@@ -1292,8 +1302,13 @@ function permission_linter_validate_ui_permission_calls(
     foreach (permission_linter_scan_ui_permission_calls($root) as $call) {
         $permission = $call['permission'];
 
+        if (isset($dbPermissions[$permission])) {
+            continue;
+        }
+
+        $isKnownRoute = permission_linter_is_known_route_name($permission, $providerMap, $routeNames);
         if (permission_linter_has_transport_suffix($permission)) {
-            if (!permission_linter_is_known_route_name($permission, $providerMap, $routeNames)) {
+            if (!$isKnownRoute) {
                 $relativeFile = str_starts_with($call['file'], $root)
                     ? ltrim(substr($call['file'], strlen($root)), DIRECTORY_SEPARATOR)
                     : $call['file'];
@@ -1307,7 +1322,10 @@ function permission_linter_validate_ui_permission_calls(
             continue;
         }
 
-        if (isset($dbPermissions[$permission])) {
+        // The current AdminKernel UI uses sessions.revoke.id/bulk. These are
+        // approved variants resolved by PermissionMapperV2 to sessions.revoke,
+        // so they are valid UI capabilities even when not separately seeded.
+        if (permission_linter_has_mapped_variant_suffix($permission) && $isKnownRoute) {
             continue;
         }
 
