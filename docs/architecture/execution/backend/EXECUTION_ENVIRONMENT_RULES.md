@@ -22,8 +22,10 @@
 - Missing mapping will fail CI (permission-lint).
 
 ## 4. Twig Template Directory Rules
-- All new Twig templates MUST be created exclusively within the modular directory structure:
+- All new Twig templates for host modules MUST be created exclusively within the modular directory structure:
   `app/Modules/[Module]/Templates/...`
+- AdminKernel is the relocated kernel module and MUST use:
+  `Modules/AdminKernel/Templates/...`
 - Creating templates in the root `/templates` directory is STRICTLY FORBIDDEN.
 - Template paths MUST align exactly with their corresponding feature module (e.g., `Modules/AdminKernel/Templates/pages/ar-platform/products/`).
 
