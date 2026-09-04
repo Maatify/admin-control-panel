@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Ui\Config;
 
 use Dotenv\Dotenv;
-use Maatify\AdminControlPanel\Bootstrap\AdminEnvironmentAdapter;
+use Maatify\AdminKernel\Bootstrap\AdminEnvironmentAdapter;
 use Maatify\AdminKernel\Ui\Config\MediaUrlConfigDTO;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;

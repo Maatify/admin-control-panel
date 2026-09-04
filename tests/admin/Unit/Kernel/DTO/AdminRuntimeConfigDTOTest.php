@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Kernel\DTO;
 
 use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
-use Maatify\AdminControlPanel\Bootstrap\AdminEnvironmentAdapter;
+use Maatify\AdminKernel\Bootstrap\AdminEnvironmentAdapter;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -22,6 +22,7 @@ final class AdminRuntimeConfigDTOTest extends TestCase
         self::assertSame('Africa/Cairo', $config->appTimezone);
         self::assertSame('Admin Test', $config->appName);
         self::assertSame('https://admin.test', $config->adminUrl);
+        self::assertSame('storage/logs/admin', $config->logPath);
         self::assertSame('127.0.0.1', $config->dbHost);
         self::assertSame('admin_test', $config->dbName);
         self::assertSame('admin', $config->dbUser);
@@ -65,6 +66,7 @@ final class AdminRuntimeConfigDTOTest extends TestCase
             'ADMIN_DB_NAME' => 'admin_test',
             'ADMIN_DB_USER' => 'admin',
             'ADMIN_DB_PASS' => 'secret',
+            'ADMIN_LOG_PATH' => 'storage/logs/admin',
             'ADMIN_EMAIL_BLIND_INDEX_KEY' => 'blind-index-key',
             'ADMIN_PASSWORD_PEPPERS' => '{"p1":"pepper"}',
             'ADMIN_PASSWORD_ACTIVE_PEPPER_ID' => 'p1',

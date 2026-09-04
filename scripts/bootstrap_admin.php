@@ -3,7 +3,7 @@
 require __DIR__ . '/../vendor/autoload.php';
 
 use Dotenv\Dotenv;
-use Maatify\AdminControlPanel\Bootstrap\AdminEnvironmentAdapter;
+use Maatify\AdminKernel\Bootstrap\AdminEnvironmentAdapter;
 use Maatify\AdminKernel\Bootstrap\Container;
 use Maatify\AdminKernel\Domain\Contracts\Admin\AdminPasswordRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\Admin\AdminTotpSecretStoreInterface;

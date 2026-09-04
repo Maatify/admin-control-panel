@@ -15,10 +15,13 @@
 
 الاستثناءات العامة الوحيدة المقفلة هي:
 
-1. `LOG_PATH`
-2. `LOG_RETENTION_DAYS`
-3. `LOG_TIMEZONE`
-4. `STORAGE_DRIVER`
+1. `LOG_RETENTION_DAYS`
+2. `LOG_TIMEZONE`
+3. `STORAGE_DRIVER`
+
+`ADMIN_LOG_PATH` هو المفتاح الإداري المخصص لمسار سجلات لوحة الإدارة. يحوله
+حد AdminKernel داخليًا إلى عقد logger العامة `LOG_PATH` لأن مكتبة logger
+الحالية تقرأ `LOG_PATH` فقط.
 
 `ADMIN_URL` يظل كما هو لأنه بالفعل Admin-namespaced.
 
@@ -105,15 +108,17 @@
 | `CDN_IMAGE_URL` | `ADMIN_CDN_IMAGE_URL` |
 | `ASSET_VERSION` | `ADMIN_ASSET_VERSION` |
 
-### Logging — لا تغيير
+### Logging
 
 | الاسم | القرار |
 |---|---|
-| `LOG_PATH` | يظل كما هو |
+| `ADMIN_LOG_PATH` | المفتاح الخارجي المخصص لسجلات Admin |
+| `LOG_PATH` | عقد داخلي يضبطه AdminKernel من `ADMIN_LOG_PATH` |
 | `LOG_RETENTION_DAYS` | يظل كما هو |
 | `LOG_TIMEZONE` | يظل كما هو |
 
-لا يتم إعادة تسمية هذه المفاتيح أو تغيير قيمها أو نقل ملكيتها في هذه الخطة.
+لا يتم كشف `LOG_PATH` كمفتاح Admin خارجي. مصدر مسار سجلات لوحة الإدارة هو
+`ADMIN_LOG_PATH` فقط.
 
 ## حدود التنفيذ المستقبلي
 
@@ -129,7 +134,7 @@
 
 عقدة الـKernel الداخلية تقرأ الأسماء العامة الخاصة بالموديول (`APP_*`, `DB_*`,
 `MAIL_*` وغيرها)، ولا تقرأ `ADMIN_*` مباشرة. ملف
-`Maatify\AdminControlPanel\Bootstrap\AdminEnvironmentAdapter` يحول المفاتيح
+`Maatify\AdminKernel\Bootstrap\AdminEnvironmentAdapter` يحول المفاتيح
 المتعقبة ذات المقدمة `ADMIN_` إلى هذه الأسماء في مصفوفة محلية فقط.
 
 ويقرأ [MediaUrlConfigDTO.php](../../Modules/AdminKernel/Ui/Config/MediaUrlConfigDTO.php)
@@ -153,6 +158,7 @@ ADMIN_MAIL_*           -> MAIL_*
 ADMIN_ASSETS_CDN_URL   -> ASSETS_CDN_URL
 ADMIN_CDN_IMAGE_URL    -> CDN_IMAGE_URL
 ADMIN_ASSET_VERSION    -> ASSET_VERSION
+ADMIN_LOG_PATH         -> LOG_PATH (داخل AdminKernel فقط)
 ```
 
 ويترجم عقد التخزين:
@@ -224,7 +230,7 @@ STORAGE_DRIVER           -> STORAGE_DRIVER
 5. استخدام `public/admin/api-tester.php` لعقد Admin في بوابة الأمان.
 6. عمل Storage عبر Adapter حدود Admin دون تعديل `Modules/Storage`.
 7. صحة تهيئة Local Storage وDigitalOcean Spaces.
-8. بقاء `LOG_PATH` و`LOG_RETENTION_DAYS` و`LOG_TIMEZONE` و`STORAGE_DRIVER` دون تغيير.
+8. استخدام `ADMIN_LOG_PATH` كمصدر وحيد لمسار سجلات Admin، مع إبقاء `LOG_RETENTION_DAYS` و`LOG_TIMEZONE` و`STORAGE_DRIVER` دون تغيير.
 9. بقاء `ADMIN_URL` دون تغيير.
 10. اتباع Test infrastructure للأسماء الجديدة.
 11. عدم وجود قراءات مباشرة لمفاتيح `ADMIN_*` داخل عقد الـKernel، باستثناء الـhost adapter والحدود المتعمدة مثل `ADMIN_URL` وStorage.

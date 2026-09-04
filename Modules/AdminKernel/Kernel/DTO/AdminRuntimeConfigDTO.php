@@ -16,6 +16,7 @@ final class AdminRuntimeConfigDTO
     public string $appTimezone;
     public string $appName;
     public string $adminUrl;
+    public ?string $logPath;
 
     /* ─────────────────────────────
      * Database
@@ -110,6 +111,7 @@ final class AdminRuntimeConfigDTO
         $self->appTimezone  = self::reqString($data, 'APP_TIMEZONE');
         $self->appName      = self::reqString($data, 'APP_NAME');
         $self->adminUrl     = self::reqString($data, 'ADMIN_URL');
+        $self->logPath      = self::optString($data, 'LOG_PATH');
 
         // Database
         $self->dbHost       = self::reqString($data, 'DB_HOST');

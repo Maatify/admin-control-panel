@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminControlPanel\Bootstrap;
+namespace Maatify\AdminKernel\Bootstrap;
 
 use RuntimeException;
 
@@ -56,6 +56,7 @@ final class AdminEnvironmentAdapter
         'ADMIN_DB_NAME' => 'DB_NAME',
         'ADMIN_DB_USER' => 'DB_USER',
         'ADMIN_DB_PASS' => 'DB_PASS',
+        'ADMIN_LOG_PATH' => 'LOG_PATH',
         'ADMIN_ASSETS_CDN_URL' => 'ASSETS_CDN_URL',
         'ADMIN_CDN_IMAGE_URL' => 'CDN_IMAGE_URL',
         'ADMIN_ASSET_VERSION' => 'ASSET_VERSION',

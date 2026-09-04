@@ -249,6 +249,16 @@ class Container
     {
         $containerBuilder = new ContainerBuilder();
 
+        if ($runtime->logPath !== null && $runtime->logPath !== '') {
+            $logPath = $runtime->logPath;
+            if (!str_starts_with($logPath, '/')) {
+                $logPath = rtrim(dirname(__DIR__, 3), '/') . '/' . ltrim($logPath, '/');
+            }
+
+            $_ENV['LOG_PATH'] = $logPath;
+            putenv('LOG_PATH=' . $logPath);
+        }
+
         $cryptoRing = CryptoKeyRingConfig::fromEnv(
             CryptoKeyRingEnvAdapter::adapt($runtime)
         );

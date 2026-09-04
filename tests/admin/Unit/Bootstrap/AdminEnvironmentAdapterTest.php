@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Bootstrap;
 
-use Maatify\AdminControlPanel\Bootstrap\AdminEnvironmentAdapter;
+use Maatify\AdminKernel\Bootstrap\AdminEnvironmentAdapter;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -16,6 +16,7 @@ final class AdminEnvironmentAdapterTest extends TestCase
             'ADMIN_APP_ENV' => 'testing',
             'ADMIN_URL' => 'https://admin.test',
             'ADMIN_DB_NAME' => 'admin_test',
+            'ADMIN_LOG_PATH' => 'storage/logs/admin',
             'ADMIN_ASSETS_CDN_URL' => 'https://cdn.test/assets',
         ];
 
@@ -23,6 +24,7 @@ final class AdminEnvironmentAdapterTest extends TestCase
             'APP_ENV' => 'testing',
             'ADMIN_URL' => 'https://admin.test',
             'DB_NAME' => 'admin_test',
+            'LOG_PATH' => 'storage/logs/admin',
             'ASSETS_CDN_URL' => 'https://cdn.test/assets',
         ], AdminEnvironmentAdapter::forAdminKernel($environment));
         self::assertArrayNotHasKey('APP_ENV', $environment);

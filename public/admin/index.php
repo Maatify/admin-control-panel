@@ -7,13 +7,13 @@ define('APP_ROOT', dirname(__DIR__, 2));
 require __DIR__ . '/../../vendor/autoload.php';
 
 use DI\ContainerBuilder;
-use Maatify\AdminControlPanel\Bootstrap\AdminEnvironmentAdapter;
+use Dotenv\Dotenv;
+use Maatify\AdminKernel\Bootstrap\AdminEnvironmentAdapter;
 use Maatify\AdminKernel\Bootstrap\AdminStorageEnvAdapter;
 use Maatify\AdminKernel\Bootstrap\AdminKernelPermissionBindings;
 use Maatify\AdminKernel\Kernel\AdminKernel;
 use Maatify\AdminKernel\Kernel\KernelOptions;
 use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
-use Dotenv\Dotenv;
 use Maatify\SettingsSlim\Admin\Security\SettingAdminPermissionPackage;
 use Maatify\AdminKernel\Ui\Config\MediaUrlConfigDTO;
 use Maatify\CurrencySlim\Admin\Security\CurrencyAdminPermissionPackage;
@@ -25,20 +25,39 @@ use Maatify\Storage\Config\StorageConfig;
 //use Maatify\PsrLogger\LoggerFactory;
 
 // 1️⃣ Load ENV (HOST responsibility)
-$dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
+$dotenv = Dotenv::createImmutable(APP_ROOT);
 $dotenv->safeLoad();
 
 //$logger = LoggerFactory::create('app/errors');
 //$logger->alert('access');
 
-// 2️⃣ Build Runtime Config DTO
-$kernelEnv = AdminEnvironmentAdapter::forAdminKernel($_ENV);
-$runtimeConfig = AdminRuntimeConfigDTO::fromArray($kernelEnv);
-$storageEnv = $_ENV;
-if (($storageEnv['ADMIN_LOCAL_BASE_PATH'] ?? '') === '') {
-    $storageEnv['ADMIN_LOCAL_BASE_PATH'] = 'public/admin/images';
+// LOCAL_BASE_PATH is the generic local-storage contract. It is kept separate
+// from the admin-specific storage contract below.
+$localBasePath = $_ENV['LOCAL_BASE_PATH'] ?? '';
+if ($localBasePath !== '' && !str_starts_with($localBasePath, '/')) {
+    $localBasePath = rtrim(APP_ROOT, '/') . '/' . ltrim($localBasePath, '/');
+    $_ENV['LOCAL_BASE_PATH'] = $localBasePath;
+    putenv('LOCAL_BASE_PATH=' . $localBasePath);
 }
-$storageConfig = StorageConfig::fromEnv(AdminStorageEnvAdapter::adapt($storageEnv));
+
+// The admin document root is public/admin, so an empty admin local-storage
+// value resolves to that host's documented default.
+$adminLocalBasePath = $_ENV['ADMIN_LOCAL_BASE_PATH'] ?? '';
+if ($adminLocalBasePath === '') {
+    $adminLocalBasePath = 'public/admin/images';
+}
+if (!str_starts_with($adminLocalBasePath, '/')) {
+    $adminLocalBasePath = rtrim(APP_ROOT, '/') . '/' . ltrim($adminLocalBasePath, '/');
+}
+$_ENV['ADMIN_LOCAL_BASE_PATH'] = $adminLocalBasePath;
+putenv('ADMIN_LOCAL_BASE_PATH=' . $adminLocalBasePath);
+
+$adminEnv = $_ENV;
+
+// 2️⃣ Build Runtime Config DTO
+$kernelEnv = AdminEnvironmentAdapter::forAdminKernel($adminEnv);
+$runtimeConfig = AdminRuntimeConfigDTO::fromArray($kernelEnv);
+$storageConfig = StorageConfig::fromEnv(AdminStorageEnvAdapter::adapt($adminEnv));
 $mediaUrlConfig = MediaUrlConfigDTO::fromArray($kernelEnv);
 
 // 3️⃣ Kernel options
@@ -51,8 +70,8 @@ $options->runtimeConfig = $runtimeConfig;
 // $options->routes = fn ($app) => ...;
 
 $permissionPackages = [
-    new SettingAdminPermissionPackage(),
     new CurrencyAdminPermissionPackage(),
+    new SettingAdminPermissionPackage(),
     new ExchangeRatesAdminPermissionPackage(),
     new GeoAdminPermissionPackage(),
     // new PaymentMethodPackage(),
@@ -128,10 +147,10 @@ $options->builderHook = static function (ContainerBuilder $containerBuilder) use
     \Maatify\Geo\Bootstrap\GeoBindings::register($containerBuilder);
 };
 
-// 5️⃣ Boot & Run
-// Enable Twig compiled-template caching only in production.
+// 5️⃣ Twig compiled-template cache (production only)
 if (($runtimeConfig->appEnv ?? 'local') === 'production') {
-    $options->twigCachePath = APP_ROOT . '/storage/twig';
+    $options->twigCachePath = APP_ROOT . '/storage/twig/admin';
 }
 
+// 6️⃣ Boot & Run
 AdminKernel::bootWithOptions($options)->run();
