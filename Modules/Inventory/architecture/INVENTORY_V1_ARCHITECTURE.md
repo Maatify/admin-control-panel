@@ -3,7 +3,7 @@
 **Standalone Inventory Engine**
 
 هذه الوثيقة هي المرجع المعماري المقفول لـ **Inventory V1** بعد عملية إعادة الهيكلة وفصل الدومينات.
-الـ Inventory Module هو المالك الحصري لدومين المخزون وإدارة الكميات.
+الـ Inventory Module هو المالك الحصري لدومين المخزون وإدارة الكميات المجردة.
 
 ---
 
@@ -11,7 +11,7 @@
 
 ## 1.1 الهدف
 
-`Inventory V1` هو موديول مستقل مسؤول بالكامل عن تتبع المخزون وتحديث الكميات بشكل ذري (Atomic)، ويُستخدم لتحديد إتاحة المواد/العناصر. يعمل بشكل معزول تماماً عن Products أو Orders.
+`Inventory V1` هو موديول مستقل مسؤول بالكامل عن تتبع المخزون وتحديث الكميات بشكل ذري (Atomic)، ويُستخدم لتحديد إتاحة المواد/العناصر بمعزل تام عن الكيان التجاري الذي يُمثله هذا المخزون.
 
 ---
 
@@ -20,10 +20,12 @@
 يشمل V1:
 
 * Stock identity (Inventory row per reference).
+* Initial quantity.
 * Quantity tracking (`quantity_on_hand`).
 * Atomic increase/decrease semantics.
 * Negative stock protection.
-* Sources of truth for inventory.
+* Insufficient quantity behavior.
+* Lifecycle (Soft delete/restore).
 
 ---
 
@@ -31,33 +33,36 @@
 
 لا يحتوي V1 على:
 
-* Variants, Products, SKUs (لا يوجد `variant_id` كـ FK).
-* Reservations, Order IDs. الموديول يقوم بالإنقاص أو الزيادة، لكنه لا يدير دورة حياة الحجز نفسه.
-* Warehouses, Backorders, Inventory Movement History Ledger (خارج نطاق V1 كلياً).
-* Status flags (مفهوم الـ In-Stock / Out-Of-Stock تُحسب عبر الاستعلام، الموديول لا يملك `status` بوليانية).
+* Variants, Products, SKUs (المخزون لا يعلم ما هي الكيانات التي يُديرها).
+* Reservations tracking (حجوزات المخزون المؤقتة).
+* دلالات الطلبات أو المبيعات (لا يوجد ربط بموديولات الطلبات Orders).
+* Warehouses, Backorders, أو Movement History Ledger.
+* Status flags الخاصة بالكيان التجاري (مثل `In-Stock`).
 
 ---
 
-# 2. Host-Agnostic Boundaries
+# 2. Host-Agnostic Boundaries & Logical Reference Identity
 
-* **لا يوجد Foreign Keys إلى Product Module أو Orders Module.**
-* يمتلك Inventory V1 هويته الخاصة بربط السجلات بـ "Stock Subject" مجهول النوع للـ Host.
+* **لا يوجد Foreign Keys لأي جداول خارجية.**
+* يمتلك Inventory V1 هويته الخاصة بربط السجلات بـ "Stock Subject". للتوافق مع معايير הـ Base Module (Canonical Positive ID Contract)، يتم استخدام:
+  * `stock_subject_id BIGINT UNSIGNED NOT NULL`
 
 ---
 
 # 3. Stock Lifecycle & Identity
 
-* يتم إنشاء سجل Inventory للكيان المراد تتبع مخزونه (مثلاً `stock_subject_id`).
-* `quantity_on_hand = 0` عند الإنشاء الأولي (في حال لم تُعطى كمية مبدئية).
-* Soft Delete للـ Subject من قِبل الـ Host لا يستوجب حذف سجل الـ Inventory، ما لم يقم الـ Host بذلك صراحة، والموديول يدعم الـ `deleted_at`.
+* يتم إنشاء سجل Inventory برقم الهوية المعطى من قبل الـ Host.
+* `quantity_on_hand = 0` عند الإنشاء الأولي (ما لم تُمرر كمية ابتدائية مختلفة صراحة).
+* **Soft Delete & Restore:** الموديول يدعم الحذف المنطقي (`deleted_at`). عملية الحذف أو الاستعادة لا تصفر المخزون، بل تعتمد على السجل المحفوظ. السجل المحذوف لا يستقبل عمليات تعديل للكميات.
+* لا يتم تحرير הـ `stock_subject_id` لإعادة استخدامه كـ Identity جديدة عبر الحذف؛ الـ Restore يعيد نفس السجل.
 
 ---
 
-# 4. Quantity Rules
+# 4. Quantity Rules & Negative Stock Protection
 
-* `quantity_on_hand >= 0` بشكل قاطع.
+* `quantity_on_hand >= 0` بشكل قاطع مدعوم بالـ Database CHECK Constraint.
 * لا يوجد مخزون بالسالب (Negative Stock).
-* عمليات التحديث يجب أن تكون Atomic (تزيد أو تنقص بناءً على الكمية الحالية، وليس بعملية تعيين صريحة للكمية المطلقة إذا كان هناك Concurrency).
+* **Insufficient Quantity Behavior:** أي عملية إنقاص تؤدي إلى كمية أقل من صفر يجب أن ترفض بالكامل.
 
 ---
 
@@ -67,7 +72,7 @@
 | العمود               | النوع                            |
 | -------------------- | -------------------------------- |
 | `id`                 | `BIGINT UNSIGNED AUTO_INCREMENT` |
-| `stock_subject_id`   | `VARCHAR(255) NOT NULL`          |
+| `stock_subject_id`   | `BIGINT UNSIGNED NOT NULL`       |
 | `quantity_on_hand`   | `INT NOT NULL DEFAULT 0`         |
 | `created_at`         | `DATETIME NOT NULL`              |
 | `updated_at`         | `DATETIME NOT NULL`              |
@@ -79,21 +84,23 @@ PRIMARY KEY(id)
 UNIQUE(stock_subject_id)
 CHECK(quantity_on_hand >= 0)
 ```
-*(ملاحظة: `stock_subject_id` هو المعرف العام الذي يقدمه الـ Host، والذي كان سابقاً يمثل `variant_id`، ولا يعتمد على موديول Product هيكلياً)*
+*(لا توجد علاقات خارجية / FKs).*
 
 ---
 
 # 6. Database-Enforced Invariants
 
-* `quantity_on_hand >= 0`. (حماية المخزون السالب مدعومة من محرك قاعدة البيانات).
-* `UNIQUE(stock_subject_id)`.
+* حماية المخزون السالب مدعومة بالقيد `CHECK(quantity_on_hand >= 0)`.
+* فرادة المخزون لكل كيان مدعومة بالقيد `UNIQUE(stock_subject_id)`.
 
 ---
 
 # 7. Domain / Transaction-Enforced Invariants
 
-* التحديثات يجب أن تُنفذ باستخدام استعلامات نسبية `UPDATE maa_inventory_stocks SET quantity_on_hand = quantity_on_hand - X WHERE quantity_on_hand >= X` لضمان صحة التزامن (Concurrency).
-* الموديول لا يهتم بدلالات الحجز؛ عملية الاستهلاك (Consume) تنقص الرقم فوراً، وعملية الإلغاء (Release) تزيده فوراً.
+* **Atomic Increase/Decrease:** التحديثات يجب أن تُنفذ باستخدام عمليات نسبية لضمان التزامن وحل الـ Concurrency issues.
+  مثال لعملية الإنقاص: `UPDATE maa_inventory_stocks SET quantity_on_hand = quantity_on_hand - X WHERE quantity_on_hand >= X`. إذا أرجع الاستعلام `0` صفوف معدلة، ترفض العملية (Insufficient stock).
+* الموديول يوفر عمليات "الزيادة" و "النقصان" الذرية فقط ولا يسمي عملياته بـ "Reserve" أو "Cancel" لأن هذه دلالات تجارية تخص موديولات أخرى.
+* السجلات المحذوفة منطقيًا (`deleted_at IS NOT NULL`) تُمنع من أي تحديث للكميات.
 
 ---
 
@@ -102,11 +109,19 @@ CHECK(quantity_on_hand >= 0)
 ```text
 UNIQUE(stock_subject_id)
 ```
-يُعد هذا الفهرس كافياً للاستعلام وتحديث المخزون بناءً على الكيان المرتبط.
+يُعد هذا الفهرس كافيًا لمتطلبات الاستعلام والتحديث استنادًا إلى معرف הכیان.
 
 ---
 
-# 9. Unresolved Architectural Decisions
+# 9. Sources of Truth
 
-* **Reservations Tracking:** هل ينبغي للـ Inventory تتبع عمليات החجز (Reservation) مؤقتاً قبل الاستهلاك الفعلي (لتجنب الاعتماد على موديول Orders لبيانات الحجز)؟
-  * *القرار الحالي:* V1 لا يمتلك Reservations. أي إنقاص يعتبر نهائياً بالنسبة لـ Inventory، وعلى الـ Host/Coordinator (مثلاً موديول Orders) معالجة إرجاع الكميات في حال انتهاء مدة الحجز أو الإلغاء.
+مصادر الحقيقة الوحيدة هنا هي:
+* السجل وكميته المتوفرة `quantity_on_hand`.
+* `deleted_at`.
+
+---
+
+# 10. Architecture Status
+
+**Locked**
+القرارات المعمارية الداخلية الخاصة بتتبع المخزون والعمليات الذرية عليه محسومة بشكل كامل في هذه الوثيقة وتعمل دون أي معرفة بتفاصيل الدومينات الأخرى.

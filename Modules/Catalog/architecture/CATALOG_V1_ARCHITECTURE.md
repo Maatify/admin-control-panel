@@ -1,9 +1,9 @@
 # Catalog V1 Database Architecture — Locked
 
-**Host-Agnostic Product Catalog Engine**
+**Host-Agnostic Taxonomy Engine**
 
 هذه الوثيقة هي المرجع المعماري لـ **Catalog V1** بعد إعادة الهيكلة المستندة إلى الـ Domain Decomposition الحقيقي.
-في هذه المعمارية، الـ Catalog Module هو المالك الحصري لدومين الـ Taxonomy والتنظيم الهرمي (Hierarchy)، ولا يمتلك أية تفاصيل عن Products، Pricing، أو Inventory.
+في هذه المعمارية، الـ Catalog Module هو المالك الحصري لدومين الـ Taxonomy والتنظيم الهرمي (Hierarchy)، ولا يمتلك أية تفاصيل عن الدومينات الأخرى.
 
 أي تغيير لاحق على قرار معماري مثبت هنا يعتبر **تغييرًا معماريًا جديدًا** وليس مجرد تفصيل تنفيذ.
 
@@ -15,13 +15,14 @@
 
 `Catalog V1` هو:
 
-**Standalone, Extractable, Host-Agnostic Catalog/Taxonomy Engine**
+**Standalone, Extractable, Host-Agnostic Taxonomy Engine**
 
 ويجب أن يظل قابلًا للاستخراج مستقبلًا كمكتبة مستقلة دون الاعتماد على تفاصيل الـHost أو موديولات أخرى.
 
-### Catalog
+### Taxonomy Domain
 
-يمثل التصنيف الهرمي والتنظيمي للمحتويات أو الكيانات (مثل المنتجات، رغم أن المنتجات نفسها ليست جزءًا من هذا الدومين).
+يمثل التصنيف الهرمي والتنظيمي للمحتويات أو الكيانات (سواء كانت منتجات أو مقالات أو غيرها، رغم أن تلك الكيانات نفسها ليست جزءًا من هذا الدومين).
+*ملاحظة: لا توجد Entity مستقلة باسم Catalog في الـ schema الحالية؛ הـ Categories هي وحدة التنظيم الأساسية.*
 
 ---
 
@@ -32,12 +33,10 @@
 * Categories.
 * Category Hierarchy (Parent-Child).
 * Category Translations.
-* Catalog Identity.
-* Status & Visibility.
-* Display Ordering.
-* Lifecycle (Soft delete / restore).
-* Admin & Customer Consumption (Categories only).
-* Internal Domain/Transaction Invariants.
+* Category Status & Visibility.
+* Category Display Ordering.
+* Category Lifecycle (Soft delete / restore).
+* Internal Domain/Transaction Invariants (Cycle prevention).
 
 ---
 
@@ -47,21 +46,21 @@
 
 * Products, Variants, SKU, Barcode.
 * Product Options, Option Values.
-* Product ↔ Category Relations.
+* Product ↔ Category Relations. (العلاقة متروكة لـ Host/Integration Layer).
 * Monetary values, Prices, Adjustments.
 * Inventory, quantity_on_hand.
 * Media Metadata.
 * Customers, Orders, Payments, Shipping.
 * Promotions, Discounts.
 
-هذه مجالات مسؤولة عنها موديولات منفصلة (مثل Product, Pricing, Inventory). الـ Catalog يجب ألا يعرف أي شيء عنهم، وأي ربط بين الـ Catalog وهذه الكيانات يتم إدارته من خلال الـ Host/Integration Layer.
+الـ Catalog يجب ألا يعرف أي شيء عنهم، وأي ربط يتم إدارته بشكل Generic أو من خلال الـ Host/Integration Layer.
 
 ---
 
 # 2. Host-Agnostic Boundaries
 
 Catalog لا يعتمد على جداول الـHost.
-لا توجد Foreign Keys أو JOINs من Catalog إلى أي Module آخر (سواء AdminKernel، Product، إلخ).
+لا توجد Foreign Keys أو JOINs من Catalog إلى أي Module آخر.
 
 ---
 
@@ -167,7 +166,7 @@ CHECK (status IN ('active','inactive'))
 ```text
 display_order INT NOT NULL DEFAULT 0
 ```
-تُستخدم للـ Categories ضمن نفس הـ `parent_id`.
+تُستخدم للـ Categories ضمن نفس الـ `parent_id`.
 الترتيب الحتمي هو `ORDER BY display_order, id`.
 
 ---
@@ -178,7 +177,7 @@ Category ذات:
 ```text
 status = inactive
 ```
-لا تظهر للمستهلك. وإذا كان Parent inactive، فالـ Descendants لا تظهر عبر هذا المسار.
+لا تظهر للمستهلك. وإذا كان Parent inactive، فالـ Descendants لا تظهر عبر هذا المسار. هذه القاعدة تطبق فقط على هيكل الـ Categories نفسه، وليس على الكيانات المربوطة به خارجيًا.
 
 ---
 
@@ -291,8 +290,7 @@ maa_catalog_categories
 
 ---
 
-# 18. Unresolved Architectural Decisions
+# 18. Architecture Status
 
-لا يوجد قرارات معمارية معلقة تخص التصنيف بذاته. آلية الربط بين Catalog و Products تُركت لـ Host/Integration Layer عبر جدول منفصل (مثل `maa_product_categories`) الذي يجب ألا يكون مملوكاً حصراً لأي من الموديولين إذا استمر الاعتماد المتبادل.
-
----
+**Locked**
+جميع القرارات المعمارية الداخلية الخاصة بتصنيف الفئات وهيكليتها محسومة بشكل كامل في هذه الوثيقة. آليات التكامل والربط مع الكيانات الأخرى (مثل المنتجات) محددة صراحة كمسؤولية للـ Host/Integration Layer ولن تُعالج داخل هذا الموديول.
