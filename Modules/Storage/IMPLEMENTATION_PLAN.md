@@ -7,7 +7,8 @@
 
 ## ⚖️ MODULE_BUILDING_STANDARD Compliance
 
-This refactor **MUST** follow Maatify Module Building Standard v1:
+This refactor **MUST** follow the Maatify Module Building Standard v1 at
+`docs/standards/modules/MODULE_BUILDING_STANDARD.md`:
 
 ### ✅ Already Compliant
 - Namespace: `Maatify\Storage\`

@@ -2,7 +2,7 @@
 
 **Package:** `maatify/exchange-rates`
 **Namespace root:** `Maatify\ExchangeRates\`
-**Standard:** MODULE_BUILDING_STANDARD v1
+**Standard:** `docs/standards/modules/MODULE_BUILDING_STANDARD.md` v1
 **PHPStan:** level max, zero suppressions
 
 ---

@@ -14,20 +14,30 @@ Any human or AI working on this project **MUST** start here.
 
 ### Absolute Reading Order
 
-1. **docs/PROJECT_CANONICAL_CONTEXT.md**  
-   → Canonical Memory / Source of Truth  
+1. **docs/standards/AI_COLLABORATION_WORKFLOW_AR.md**
+   → General collaboration and execution workflow standard
+   → The pinned snapshot source is recorded in `docs/standards/STANDARDS_SOURCE.md`
+
+2. **docs/PROJECT_CANONICAL_CONTEXT.md**
+   → Canonical Memory / Source of Truth
    → Defines AS-IS behavior, security invariants, task playbooks
 
-2. **docs/ADMIN_PANEL_CANONICAL_TEMPLATE.md**  
-   → Target model for Pages & APIs (Phase 14+)  
+3. **docs/ADMIN_PANEL_CANONICAL_TEMPLATE.md**
+   → Target model for Pages & APIs (Phase 14+)
    → UI / API / Permission / LIST rules
 
-3. **docs/API.md**
-   → Authoritative API contract  
+4. **docs/API.md**
+   → Authoritative API contract
    → Any endpoint not documented here is considered **NON-EXISTENT**
 
-❌ Executing any task without reading the above is INVALID  
+❌ Executing any task without reading the above is INVALID
 ❌ Guessing or inferring behavior is FORBIDDEN
+
+The remaining engineering standards are available under `docs/standards/`:
+
+- `modules/` defines Base, Slim, and Project-Aware module profiles.
+- `packages/` defines package structure, Composer, CI, and presentation rules.
+- `STANDARDS_SOURCE.md` records the exact upstream snapshot used by this project.
 
 ---
 

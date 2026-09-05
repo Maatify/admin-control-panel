@@ -715,4 +715,4 @@ use Maatify\Settings\Exception\SettingsInvalidArgumentException;
 
 - `README.md` — quick start and usage examples
 - `schema.sql` — database schema with design notes
-- `MODULE_BUILDING_STANDARD.md` — module architecture and patterns
+- `docs/standards/modules/MODULE_BUILDING_STANDARD.md` — module architecture and patterns
