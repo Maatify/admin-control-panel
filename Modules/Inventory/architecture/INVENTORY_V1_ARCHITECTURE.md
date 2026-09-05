@@ -49,15 +49,27 @@
 * **Canonical Subject Type Contract:**
   * `stock_subject_type` هو `VARCHAR(100) NOT NULL`.
   * **Datatype & Limits:** نص لا يتجاوز 100 حرف.
-  * **Validation Pattern:** يجب أن يطابق نمط Machine Key `/^[a-zA-Z0-9_.-]+$/`.
+  * **Validation Pattern:** لضمان الـ Determinism بين طبقة الـ Application وقاعدة البيانات، يجب أن يطابق نمط Machine Key بأحرف صغيرة فقط `/^[a-z0-9_.-]+$/`.
+  * **Case-Sensitivity & Normalization:** يُفرض استخدام الأحرف الصغيرة فقط (lowercase-only) لمنع الاختلاف بين الـ Application (الذي قد يفرق بين `Product` و `product`) وقاعدة البيانات (التي قد تعتبرهما متطابقين بناءً على الـ collation الافتراضية). ولا يجوز استخدام Aliases لاختلاف الـ Case.
   * **Empty Values:** غير مسموح بنصوص فارغة أو تحتوي على Whitespace.
-  * **Case-Sensitivity:** تُعامل القيمة كـ Exact String Match Case-sensitive للتخزين وللـ Validation (بغض النظر عن الـ Collation الافتراضية). ولا يجوز استخدام Aliases لاختلاف الـ Case.
   * **Immutability:** لا يمكن تعديل الـ Type أو الـ ID لأي سجل مخزون بعد إنشائه.
   * **Uniqueness Handling:** في حالات الـ Soft Delete والـ Restore، يتم ضمان عدم تكرار الـ Identity (النوع + المعرف).
 
 ---
 
-# 3. Stock Lifecycle & Identity
+# 3. Timestamp Policy & Soft Delete
+
+التاريخ يُدار عبر التطبيق بنظام UTC. العقد الكامل:
+* Application-managed.
+* `created_at` تُحدد عند الإنشاء.
+* `updated_at` تُحدث عند أي mutation (تعديل).
+* `deleted_at` تُحدد عند الـ soft delete.
+* `updated_at` تُحدث أيضًا وقت الـ soft delete والـ restore.
+* `deleted_at IS NULL` تعني السجل فعّال، ولا يتم استخدام runtime hard-delete.
+
+---
+
+# 4. Stock Lifecycle & Identity
 
 * يتم إنشاء سجل Inventory بمعرف النوع والرقم المعطى من قبل الـ Host.
 * `quantity_on_hand = 0` عند الإنشاء الأولي (ما لم تُمرر كمية ابتدائية مختلفة صراحة).
@@ -66,7 +78,7 @@
 
 ---
 
-# 4. Quantity Rules & Negative Stock Protection
+# 5. Quantity Rules & Negative Stock Protection
 
 * `quantity_on_hand >= 0` بشكل قاطع مدعوم بالـ Database CHECK Constraint.
 * لا يوجد مخزون بالسالب (Negative Stock).
@@ -74,9 +86,9 @@
 
 ---
 
-# 5. Complete Database Schema — 1 Table
+# 6. Complete Database Schema — 1 Table
 
-## 5.1 `maa_inventory_stocks`
+## 6.1 `maa_inventory_stocks`
 | العمود               | النوع                            |
 | -------------------- | -------------------------------- |
 | `id`                 | `BIGINT UNSIGNED AUTO_INCREMENT` |
@@ -96,23 +108,26 @@ CHECK(quantity_on_hand >= 0)
 
 ---
 
-# 6. Database-Enforced Invariants
+# 7. Database-Enforced Invariants
 
 * حماية المخزون السالب مدعومة بالقيد `CHECK(quantity_on_hand >= 0)`.
 * فرادة المخزون لكل كيان مدعومة بالقيد `UNIQUE(stock_subject_type, stock_subject_id)`.
 
 ---
 
-# 7. Domain / Transaction-Enforced Invariants
+# 8. Domain / Transaction-Enforced Invariants
 
 * **Atomic Increase/Decrease:** التحديثات يجب أن تُنفذ باستخدام عمليات نسبية لضمان التزامن وحل الـ Concurrency issues.
-  مثال لعملية الإنقاص: `UPDATE maa_inventory_stocks SET quantity_on_hand = quantity_on_hand - X WHERE quantity_on_hand >= X`. إذا أرجع الاستعلام `0` صفوف معدلة، ترفض العملية (Insufficient stock).
+* **Atomic Decrease Contract:**
+  `UPDATE maa_inventory_stocks SET quantity_on_hand = quantity_on_hand - X WHERE stock_subject_type = ? AND stock_subject_id = ? AND quantity_on_hand >= X AND deleted_at IS NULL`.
+  إذا أرجع الاستعلام `0` صفوف معدلة، ترفض العملية (Insufficient stock or Soft-deleted).
+* **Atomic Increase Contract:**
+  `UPDATE maa_inventory_stocks SET quantity_on_hand = quantity_on_hand + X WHERE stock_subject_type = ? AND stock_subject_id = ? AND deleted_at IS NULL`.
 * الموديول يوفر عمليات "الزيادة" و "النقصان" الذرية فقط ولا يسمي عملياته بـ "Reserve" أو "Cancel" لأن هذه دلالات تجارية تخص موديولات أخرى.
-* السجلات المحذوفة منطقيًا (`deleted_at IS NOT NULL`) تُمنع من أي تحديث للكميات.
 
 ---
 
-# 8. Index Strategy
+# 9. Index Strategy
 
 ```text
 UNIQUE(stock_subject_type, stock_subject_id)
@@ -121,7 +136,7 @@ UNIQUE(stock_subject_type, stock_subject_id)
 
 ---
 
-# 9. Sources of Truth
+# 10. Sources of Truth
 
 مصادر الحقيقة الوحيدة هنا هي:
 * السجل وكميته المتوفرة `quantity_on_hand` لهوية الـ Subject (Type + ID).
@@ -129,7 +144,7 @@ UNIQUE(stock_subject_type, stock_subject_id)
 
 ---
 
-# 10. Architecture Status
+# 11. Architecture Status
 
 **Locked**
 القرارات المعمارية الداخلية الخاصة بتتبع المخزون والعمليات الذرية عليه محسومة بشكل كامل. الهوية الخارجية مدعومة بعقد صارم لـ `subject_type` لمنع الـ Collisions والغموض. وتعمل هذه البنية دون أي معرفة بتفاصيل الدومينات الأخرى.

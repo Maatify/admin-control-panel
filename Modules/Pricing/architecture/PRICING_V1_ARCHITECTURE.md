@@ -46,11 +46,11 @@
 * **Canonical Subject Type Contract:**
   * `subject_type` هو `VARCHAR(100) NOT NULL`.
   * **Datatype & Limits:** نص لا يتجاوز 100 حرف.
-  * **Validation Pattern:** يجب أن يطابق نمط Machine Key `/^[a-zA-Z0-9_.-]+$/`.
+  * **Validation Pattern:** لضمان الـ Determinism بين طبقة الـ Application وقاعدة البيانات، يجب أن يطابق نمط Machine Key بأحرف صغيرة فقط `/^[a-z0-9_.-]+$/`.
+  * **Case-Sensitivity & Normalization:** يُفرض استخدام الأحرف الصغيرة فقط (lowercase-only) لمنع الاختلاف بين الـ Application (الذي قد يفرق بين `Product` و `product`) وقاعدة البيانات (التي قد تعتبرهما متطابقين بناءً على الـ collation الافتراضية).
   * **Empty Values:** غير مسموح بنصوص فارغة أو تحتوي على Whitespace.
-  * **Case-Sensitivity:** تُعامل القيمة كـ Exact String Match. الـ Validation والتخزين يكون Case-sensitive (وإن كان الـ Collation الافتراضي قد يغطي التكرار، إلا أن الـ Application يفرض تطابقًا دقيقًا).
   * **Immutability:** لا يمكن تعديل `subject_type` أو `subject_id` لأي سجل تسعير بعد إنشائه.
-  * **Uniqueness Handling:** في حالات الـ Soft Delete والـ Restore، يجب التحقق من عدم تعارض الـ Identity (النوع + المعرف + العملة) مع سجل نشط آخر.
+  * **Uniqueness Handling:** في حالات الـ Soft Delete والـ Restore، يجب التحقق من عدم تعارض الـ Identity (النوع + المعرف + العملة) مع سجل نشط آخر. لا تُنشأ هويات بديلة للالتفاف على ذلك.
 
 ---
 
@@ -63,7 +63,19 @@
 
 ---
 
-# 4. Pricing Calculation Rules & Missing Data
+# 4. Timestamp Policy & Soft Delete
+
+التاريخ يُدار عبر التطبيق بنظام UTC. العقد الكامل:
+* Application-managed.
+* `created_at` تُحدد عند الإنشاء.
+* `updated_at` تُحدث عند أي mutation (تعديل).
+* `deleted_at` تُحدد عند الـ soft delete.
+* `updated_at` تُحدث أيضًا وقت الـ soft delete والـ restore.
+* `deleted_at IS NULL` تعني السجل فعّال، ولا يتم استخدام runtime hard-delete.
+
+---
+
+# 5. Pricing Calculation Rules & Missing Data
 
 * **Currency Consistency:** تُحسب جميع العمليات داخل نفس العملة (لا يجمع تعديل بعملة مختلفة).
 * **Missing Adjustment:** التعديل المفقود يُعتبر `0`.
@@ -71,9 +83,9 @@
 
 ---
 
-# 5. Complete Database Schema — 2 Tables
+# 6. Complete Database Schema — 2 Tables
 
-## 5.1 `maa_pricing_base_prices`
+## 6.1 `maa_pricing_base_prices`
 | العمود                 | النوع                            |
 | ---------------------- | -------------------------------- |
 | `id`                   | `BIGINT UNSIGNED AUTO_INCREMENT` |
@@ -94,7 +106,7 @@ CHECK(base_price >= 0)
 
 ---
 
-## 5.2 `maa_pricing_adjustments`
+## 6.2 `maa_pricing_adjustments`
 | العمود                 | النوع                            |
 | ---------------------- | -------------------------------- |
 | `id`                   | `BIGINT UNSIGNED AUTO_INCREMENT` |
@@ -114,21 +126,21 @@ UNIQUE(subject_type, subject_id, currency_code)
 
 ---
 
-# 6. Database-Enforced Invariants
+# 7. Database-Enforced Invariants
 
 * Primary Keys & `UNIQUE(subject_type, subject_id, currency_code)` لكل جدول لمنع تكرار السعر لنفس العملة والكيان.
 * `base_price >= 0`.
 
 ---
 
-# 7. Domain / Transaction-Enforced Invariants
+# 8. Domain / Transaction-Enforced Invariants
 
 * **Final Price Calculation:** يتم تطبيق قاعدة `Final Price >= 0` عند وقت القراءة (Read-time calculation) بواسطة الـ Service حين يُطلب تسعير مركب (Base + Adjustments). لم يعد Pricing مسؤولًا عن فرض الـ Pricing Safety Triggers عند وقت الحفظ (Write-time mutation rejection) لكيانات خارجية لا يعلم عنها شيئًا.
 * **Identity Reuse / Restore:** الـ Restore لنفس الـ `subject_type` و `subject_id` يجب أن يلتزم بنفس قيود الـ Unique constraints.
 
 ---
 
-# 8. Index Strategy
+# 9. Index Strategy
 
 ```text
 maa_pricing_base_prices:
@@ -140,7 +152,7 @@ UNIQUE(subject_type, subject_id, currency_code)
 
 ---
 
-# 9. Sources of Truth
+# 10. Sources of Truth
 
 مصادر الحقيقة الوحيدة هنا:
 * السعر الأساسي (`base_price`) لهوية الـ Subject (Type + ID) والعملة.
@@ -151,7 +163,7 @@ UNIQUE(subject_type, subject_id, currency_code)
 
 ---
 
-# 10. Architecture Status
+# 11. Architecture Status
 
 **Locked**
 القرارات المعمارية الداخلية الخاصة بهيكل التسعير محسومة. الـ External Reference Identity صُممت بحيث لا يحدث لها Collision بفضل العقد الصارم لـ `subject_type`. إسناد مسؤولية ضمان عدم بيع كيان بسعر سالب أثناء تفعيل الكيان نفسه أصبحت خارج نطاق الموديول وهي الآن مسؤولية الـ Host/Coordinator.

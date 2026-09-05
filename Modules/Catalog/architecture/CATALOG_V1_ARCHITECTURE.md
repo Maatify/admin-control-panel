@@ -81,6 +81,15 @@ language_code VARCHAR(16) NOT NULL
 
 كل Timestamps تدار بواسطة **Catalog Application Layer**.
 
+العقد الكامل يشمل:
+* Storage in UTC.
+* Application-managed.
+* `created_at` تُحدد عند الإنشاء.
+* `updated_at` تُحدث عند أي mutation (تعديل).
+* `deleted_at` تُحدد عند الـ soft delete.
+* `updated_at` تُحدث أيضًا وقت الـ soft delete والـ restore.
+* `deleted_at IS NULL` تعني السجل فعّال، ولا يتم استخدام runtime hard-delete للحذف العادي.
+
 كل جدول يحتوي:
 
 ```text
@@ -88,8 +97,6 @@ created_at DATETIME NOT NULL
 updated_at DATETIME NOT NULL
 deleted_at DATETIME NULL
 ```
-
-جميع القيم تخزن UTC، وتحديثها هو مسؤولية الـ Application.
 
 ---
 
@@ -111,6 +118,7 @@ deleted_at IS NULL
 # 5. Restore Policy
 
 الـ Restore يجب أن يلتزم بنفس قواعد إنشاء الـ Identity ولا يستخدم إضافة `deleted_at` للـ Unique Constraints.
+لا يتم توليد Identity جديدة؛ الاستعادة تُحيي نفس الهوية السابقة.
 
 ---
 

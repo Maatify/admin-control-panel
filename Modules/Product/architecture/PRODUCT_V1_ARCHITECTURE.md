@@ -54,10 +54,19 @@
 
 # 3. Timestamp Policy
 
-التاريخ يُدار عبر التطبيق بنظام UTC:
-* `created_at DATETIME NOT NULL`
-* `updated_at DATETIME NOT NULL`
-* `deleted_at DATETIME NULL`
+التاريخ يُدار عبر التطبيق بنظام UTC. العقد الكامل:
+* Application-managed.
+* `created_at` تُحدد عند الإنشاء.
+* `updated_at` تُحدث عند أي mutation (تعديل).
+* `deleted_at` تُحدد عند الـ soft delete.
+* `updated_at` تُحدث أيضًا وقت الـ soft delete والـ restore.
+* `deleted_at IS NULL` تعني السجل فعّال، ولا يتم استخدام runtime hard-delete.
+
+```text
+created_at DATETIME NOT NULL
+updated_at DATETIME NOT NULL
+deleted_at DATETIME NULL
+```
 
 ---
 
@@ -145,7 +154,7 @@ CHECK (status IN ('active','inactive'))
   * **Conflict Handling:** في حال فَقَدت صلاحيتها أو عند استعادة Variant محذوفة (Restore)، يتم حل الـ Conflict داخلياً بإزالة الـ Default القديم أو نقله في نفس الـ Transaction لضمان بقاء 1 بحد أقصى.
 
 * **Restore Safety:**
-  * الـ Restore ليس مجرد `deleted_at = NULL`. يجب أن يتم تقييم الـ Invariants الداخلية للمنتج والـ Variant (مثل Unique constraints و Composition Coverage و Default limits). إذا كانت الحالة المحفوظة لا تستوفي القيود الهيكلية الحالية، ترفض العملية ولا يُعدل التركيب تلقائيًا.
+  * الـ Restore ليس مجرد `deleted_at = NULL`. يجب أن يتم تقييم الـ Invariants الداخلية للمنتج والـ Variant (مثل Unique constraints و Composition Coverage و Default limits). إذا كانت الحالة المحفوظة لا تستوفي القيود الهيكلية الحالية، ترفض العملية ولا يُعدل التركيب تلقائيًا. لا تتولد هوية جديدة بل يُستعاد السجل السابق بالكامل.
 
 ---
 
@@ -507,4 +516,4 @@ UNIQUE(option_value_id, language_code)
 # 15. Architecture Status
 
 **Locked**
-تم حسم جميع القرارات المتعلقة بهيكل المنتجات وتشكيلاتها داخليًا، بما فيها دورة حياة الـ slug والـ barcode والـ staged composition. لا يُسمح بإضافة أية اشتراطات تعتمد على موديولات أخرى للتحقق من صحة الكيانات (مثل التحقق من السعر للتفعيل). التكامل الأوسع بين المنتجات والكيانات الأخرى متروك لطبقة الـ Host Coordinator أو عبر الأحداث.
+تم حسم جميع القرارات المتعلقة بهيكل المنتجات وتشكيلاتها داخليًا، بما فيها دورة حياة الـ slug والـ barcode والـ staged composition والـ timestamp contracts. لا يُسمح بإضافة أية اشتراطات تعتمد على موديولات أخرى للتحقق من صحة الكيانات. التكامل الأوسع بين المنتجات والكيانات الأخرى متروك لطبقة الـ Host Coordinator أو عبر الأحداث.
