@@ -88,6 +88,15 @@
 
 # 6. Complete Database Schema — 1 Table
 
+
+يجب أن تلتزم الجداول بالشروط الفيزيائية التالية:
+```text
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_unicode_ci
+```
+
+
 ## 6.1 `maa_inventory_stocks`
 | العمود               | النوع                            |
 | -------------------- | -------------------------------- |

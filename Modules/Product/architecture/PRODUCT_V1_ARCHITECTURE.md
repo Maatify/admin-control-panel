@@ -120,7 +120,7 @@ Variant ownership by `product_id` is immutable. لا يمكن نقل Variant م�
 * **Customer-Selectable Values:** القيم المتاحة للعميل لاختيارها تُستمد فقط من الـ Variants التي تعد Effectively Selectable بناءً على الهيكلية فقط.
 * **Simple Product:** منتج ليس لديه خيارات فعالة ويمتلك Exactly One Effectively Selectable Variant.
 * **Configurable Product:** منتج لديه خيارات فعالة.
-* **Direct Sellable Resolution:** النظام يمكنه تحديد Variant مباشرة بدون تدخل العميل (يتحقق في الـ Simple Product هيكليًا).
+* **Direct Sellable Resolution:** المنتجات البسيطة (Simple Products) يتم حلها مباشرة إلى Exactly One Effectively Selectable Variant (ولا يشترط أن تكون is_default). المخزون والتسعير لا يشاركان في هذه الخطوة (Stock does not participate in Direct Resolution).
 
 ---
 
@@ -172,6 +172,15 @@ Variant ownership by `product_id` is immutable. لا يمكن نقل Variant م�
 ---
 
 # 10. Complete Database Schema — 9 Tables
+
+
+يجب أن تلتزم الجداول بالشروط الفيزيائية التالية:
+```text
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_unicode_ci
+```
+
 
 ## 10.1 `maa_product_products`
 | العمود               | النوع                                     |

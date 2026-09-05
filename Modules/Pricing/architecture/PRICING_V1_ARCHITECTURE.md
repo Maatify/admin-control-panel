@@ -49,7 +49,7 @@
   * **Validation Pattern:** لضمان الـ Determinism بين طبقة الـ Application وقاعدة البيانات، يجب أن يطابق نمط Machine Key بأحرف صغيرة فقط `/^[a-z0-9_.-]+$/`.
   * **Case-Sensitivity & Normalization:** يُفرض استخدام الأحرف الصغيرة فقط (lowercase-only) لمنع الاختلاف بين الـ Application (الذي قد يفرق بين `Product` و `product`) وقاعدة البيانات (التي قد تعتبرهما متطابقين بناءً على الـ collation الافتراضية).
   * **Empty Values:** غير مسموح بنصوص فارغة أو تحتوي على Whitespace.
-  * **Immutability:** لا يمكن تعديل `subject_type` أو `subject_id` لأي سجل تسعير بعد إنشائه.
+  * **Immutability:** لا يمكن تعديل `subject_type`، `subject_id`، أو `currency_code` لأي سجل تسعير بعد إنشائه. الهوية المنطقية (Logical Identity) تتكون من هذه الأعمدة الثلاثة (subject_type, subject_id, currency_code) وهي Immutable. تغيير العملة يعني إنشاء سجل جديد بهوية جديدة وليس Update.
   * **Uniqueness Handling:** في حالات الـ Soft Delete والـ Restore، يجب التحقق من عدم تعارض الـ Identity (النوع + المعرف + العملة) مع سجل نشط آخر. لا تُنشأ هويات بديلة للالتفاف على ذلك.
 
 ---
