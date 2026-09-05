@@ -1,28 +1,37 @@
 # MODULE_PROJECT_AWARE_STANDARD
 
-**Maatify Project-Aware Slim Module Standard — v1**
+**Maatify Host Project Composition Standard — v1**
 
 This document extends `MODULE_BUILDING_STANDARD.md` and `MODULE_SLIM_BUILDING_STANDARD.md`.
 Read both fully before reading this document.
 
+This is a **host-composition guide**, not a third kind of reusable module. It does not
+override the standalone, extractable, and host-agnostic module contract. Code governed by
+this document belongs to the host project's integration layer and must not be published as
+an independently extractable `Modules/{Name}` Composer package. Core modules remain
+portable and must never depend on this host composition layer.
+
 ---
 
-## 1. What Is a Project-Aware Slim Module?
+## 1. What Is a Project-Aware Host Composition?
 
 A **standard Slim module** wraps exactly one core module and never touches tables outside that core module.
 
-A **project-aware Slim module** wraps cross-module concerns that only make sense within the host project.
+A **project-aware host composition** wraps cross-module concerns that only make sense within the host project.
 It may JOIN tables from multiple core modules in a single query because the host project owns all of them.
 
-| Aspect | Standard Slim | Project-Aware Slim |
+| Aspect | Standard Slim | Project-Aware Host Composition |
 |---|---|---|
 | Core module dependency | Exactly one | Multiple (or none) |
 | Cross-module JOINs | Never | Allowed — the project owns all tables |
-| Namespace | `Maatify\{CoreModule}Slim\` | `Maatify\{Feature}AdminSlim\` (e.g. `OrderAdminSlim`) |
-| Extractable as library? | Yes — ships with its core module | No — tied to the host project |
+| Namespace | `Maatify\{CoreModule}Slim\` | Host-owned namespace (not a reusable module namespace) |
+| Extractable as library? | Yes — ships with its core module | No — remains in the host project |
 | When to use | Wrapping a single core module for admin UI | Enriching entities with context from other modules (e.g. images + orders) |
 
-**Example**: `OrderAdminSlim` is project-aware because it JOINs `orders`, `order_subscriptions`, `arp_subscriptions`, `arp_catalogs`, and `arp_images` — tables that belong to different core modules.
+**Example**: a host-owned order composition may JOIN `orders`, `order_subscriptions`,
+`arp_subscriptions`, `arp_catalogs`, and `arp_images` — tables that belong to different
+core modules. The composition depends on those modules; none of those core modules depends
+on the composition.
 
 ---
 
@@ -95,7 +104,7 @@ The total count (unfiltered) stays on the base table only — no JOINs.
 
 ## 3. Endpoint Reuse
 
-A project-aware module can build frontend URLs that call endpoints from other modules without creating new backend routes.
+A project-aware host composition can build frontend URLs that call endpoints from other modules without creating new backend routes.
 
 **Example**: AR Image detail page uses download/replace endpoints from ArPlatformSlim:
 
@@ -489,7 +498,7 @@ renderReplaceAction(asset, ctx, cap) {
 
 ---
 
-## 9. Checklist: Project-Aware Slim Module
+## 9. Checklist: Project-Aware Host Composition
 
 ### Backend
 - [ ] DTOs: List item (summary) + Detail (full) — both `final readonly`, `JsonSerializable`
@@ -521,7 +530,7 @@ renderReplaceAction(asset, ctx, cap) {
 
 ## 10. Project-Aware Aggregation Pattern
 
-When a project-aware Slim module needs analytics that aggregate data from multiple core module tables (e.g. orders + order_items + order_payments + order_fulfillments), use the **Split INSERT + UPDATE** pattern.
+When a project-aware host composition needs analytics that aggregate data from multiple core module tables (e.g. orders + order_items + order_payments + order_fulfillments), use the **Split INSERT + UPDATE** pattern.
 
 ### 10.1 The Problem
 
@@ -640,7 +649,7 @@ public function aggregateDateRange(string $dateFrom, string $dateTo): int
 | Scenario | Pattern |
 |---|---|
 | Single core module table (e.g. `maa_tap_charges`) | Simple DELETE + INSERT (see `MODULE_BUILDING_STANDARD.md` §21) |
-| Multiple tables from different modules (project-aware) | **Split INSERT + UPDATE** (this section) |
+| Multiple tables from different modules (host composition) | **Split INSERT + UPDATE** (this section) |
 
 ### 10.6 Checklist
 

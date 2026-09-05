@@ -13,9 +13,9 @@ A **Slim Module** is a thin Admin UI wrapper around a core module that:
 
 Example: `SettingsSlim` wraps `Settings`
 
-> **Cross-module Slim Modules**: If your Slim module needs to JOIN tables from multiple core modules
+> **Cross-module composition**: If the host needs to JOIN tables from multiple core modules
 > (e.g. enriching images with order data), see `MODULE_PROJECT_AWARE_STANDARD.md` for the
-> project-aware pattern. This document covers single-core-module Slim modules only.
+> host-composition pattern. This document covers single-core-module Slim modules only.
 
 ---
 
@@ -782,10 +782,16 @@ Use **two layout modes** depending on data type:
 <pre id="json-container" class="text-sm font-mono whitespace-pre-wrap break-words"></pre>
 <script>
     try {
-        var parsed = JSON.parse({{ raw_json|json_encode|raw }});
+        var rawJson = {{ raw_json|json_encode(
+            constant('JSON_HEX_TAG')
+            b-or constant('JSON_HEX_AMP')
+            b-or constant('JSON_HEX_APOS')
+            b-or constant('JSON_HEX_QUOT')
+        )|raw }};
+        var parsed = JSON.parse(rawJson);
         document.getElementById('json-container').textContent = JSON.stringify(parsed, null, 2);
     } catch(e) {
-        document.getElementById('json-container').textContent = {{ raw_json|json_encode|raw }};
+        document.getElementById('json-container').textContent = rawJson;
     }
 </script>
 ```
@@ -1669,7 +1675,7 @@ public function list(ListQueryDTO $dto): array {
 - [ ] `Modules/SettingsSlim/src/Admin/Http/Routes/SettingsApiRoutes.php`
 - [ ] `Modules/SettingsSlim/src/Admin/Http/Routes/SettingsUiRoutes.php`
 - [ ] `Modules/AdminKernel/Templates/pages/settings/settings_list.twig`
-- [ ] `public/assets/maatify/admin-kernel/js/pages/settings_list.js`
+- [ ] `public/admin/assets/maatify/admin-kernel/js/pages/settings_list.js`
 
 ### Core Module Updates
 - [ ] Updated Repository to support ListCapabilities filters
@@ -1925,8 +1931,8 @@ cat Modules/AdminKernel/Templates/pages/settings/settings_list.twig
 cat Modules/AdminKernel/Templates/pages/currencies/currencies_list.twig
 
 # Read both JS files
-cat public/assets/maatify/admin-kernel/js/pages/settings_list.js
-ls public/assets/maatify/admin-kernel/js/pages/currencies/
+cat public/admin/assets/maatify/admin-kernel/js/pages/settings_list.js
+ls public/admin/assets/maatify/admin-kernel/js/pages/currencies/
 ```
 
 ---
