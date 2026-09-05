@@ -77,10 +77,18 @@
 * `Inventory Base Module`: يوجد سجل مخزون (Inventory identity/row) مرتبط بهذا الـ Variant. (ملاحظة: ليس شرطاً أن يكون `quantity_on_hand > 0` للتفعيل؛ المخزون الصفري يجعل المنتج Out of Stock ولكنه لا يمنع التفعيل).
 * `Pricing Base Module`: توجد تسعيرة أساسية (Base Price) واحدة على الأقل غير محذوفة، ويتم التحقق من أن حسابات التسعير (Pricing Safety) تفي بشروط عدم وجود أسعار نهائية سالبة.
 
-لأن الـ Product Base Module لا يمكنه قراءة جداول الـ Pricing أو الـ Inventory داخلياً، يتم التفعيل كعملية منسقة (Orchestrated Operation).
+### 5.4 Variant Activation Validation
+تفعيل الـ Variant بحد ذاتها يخضع لنفس مفهوم التنسيق المظلي (Package coordination):
+لا يتم تفعيل Variant ما لم تتجاوز التقييم الهيكلي (Structurally Valid & Coverage) بالإضافة لوجود سجل Inventory ومرورها باختبار الـ Pricing Safety.
 
-### 5.4 Active Product Base Price Continuity
+### 5.5 Option & Option Value Activation Safety
+تفعيل Option (خيار) أو Option Value (قيمة) قد يؤثر على الأسعار النهائية للـ Variants التي تعتمد عليهما. لذلك، يجب على طبقة الـ Package التحقق من الـ Pricing Safety (عدم ظهور أسعار نهائية سالبة) قبل إتمام عملية التفعيل.
+
+### 5.6 Package-Level Restore Safety
+استعادة (Restore) أي كيان (Product, Variant, Option, Option Value) من الحذف المنطقي قد تجعله فعّالاً (Active) بشكل مباشر إذا كانت حالته السابقة Active. يجب على الـ Package Layer التحقق من أن عملية الـ Restore لن تخترق قيود الـ Pricing Safety للكيانات المتعلقة بها.
+
+### 5.7 Active Product Base Price Continuity
 طالما أن المنتج في حالة التفعيل (Active)، يجب على طبقة الـ Package ضمان استمرارية وجود Base Price واحد غير محذوف على الأقل. لا يُسمح بعمل Soft Delete لآخر Base Price متبقي لمنتج Active، وهذا يتطلب تنسيقًا من الـ Package Coordinator.
 
-### 5.5 Category to Product Visibility
+### 5.8 Category to Product Visibility
 ظهور المنتج ضمن الـ Categories هو عملية تنسيق في طبقة الـ Package. يتم الربط (Mapping) خارج الـ Base Modules، وإذا توقف مسار الـ Category، فلا يؤثر ذلك داخلياً على الـ Product.

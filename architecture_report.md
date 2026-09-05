@@ -40,7 +40,7 @@
 | **Full Active Option Coverage** | **Preserved (Product)** | تحدد صحة الـ Effectively Selectable Variants هيكلياً. |
 | **Effectively Selectable Composition Rules** | **Preserved (Product)** | مُعرفة داخلياً بالكامل استناداً لـ Active Status لكل من Product, Variant, Option, و Value. |
 | **Replacement Flows (Options)** | **Preserved (Product)** | موثقة بالخطوات الذرية كـ Domain Invariant داخل المنتج. |
-| **Option/Value Delete Dependency** | **Preserved (Product)** | يمنع الـ Soft Delete لخيارات أو قيم مرتبطة بـ Variant فعالة. |
+| **Option/Value Delete Dependency** | **Preserved (Product)** | يمنع الـ Soft Delete لخيارات أو قيم مرتبطة بـ Variant غير محذوفة. |
 | **Option/Value Integrity** | **Preserved (Product)** | موجودة لضمان سلامة وارتباط القيم والخيارات. |
 | **Cross-Product Composition Prevention** | **Preserved (Product)** | Transactionally enforced لضمان التبعية لنفس المنتج. |
 | **Simple/Configurable Product** | **Preserved (Product)** | مبنية حصريًا على البنية الهيكلية للخيارات الفعالة. |
