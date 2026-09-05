@@ -7,7 +7,7 @@
 * **Catalog Package Architecture (`CATALOG_PACKAGE_ARCHITECTURE.md`):** هو الـ Source of Truth الحالي والحصري للتنسيق (Composition)، دمج الكيانات، و الـ Cross-domain Derived Rules التي تعتمد على أكثر من موديول. أما الـ PDF المرفق فيُعد مجرد `Historical Composite Reference` للاستئناس ولا يعول عليه لتجاوز هذا الملف المعماري المكتوب.
 * **Dependency Direction:** الـ Catalog Package يجمع ويعرف الموديولات، لكن الموديولات الأساسية لا تعرف الـ Package ولا تعرف بعضها البعض أبداً.
 
-تم إنشاء/تعديل الملفات التالية وتم حذف أي نص قديم منافس لتفادي وجود Source of Truth متضارب:
+تم إدراج الملفات المعمارية المشمولة/المعنية في هذه المرحلة وتم حذف أي نص قديم منافس لتفادي وجود Source of Truth متضارب:
 * `Modules/Catalog/architecture/Catalog_V1_Architecture_Locked.pdf` (تم الاحتفاظ به دون تغيير - Retained unchanged - كمرجع للتنسيق العام للـ Package).
 * `Modules/Catalog/architecture/CATALOG_PACKAGE_ARCHITECTURE.md` (جديد: يوضح دور الـ Package والـ PDF).
 * `Modules/Catalog/architecture/CATALOG_V1_ARCHITECTURE.md` (مخصص لـ Taxonomy Base Module).
@@ -89,7 +89,8 @@
 
 القرار الفعلي والنهائي لحالة كل موديول بناءً على اكتمال الـ schema والـ lifecycles:
 
-* **Catalog:** **[Candidate]** الـ Catalog Package كطبقة عليا واضحة، لكن الـ Base Module الداخلي (`Modules/Catalog`) كـ Taxonomy engine لا يحتوي على Entity حقيقية لتمثيل "الكتالوج" كحاوية عليا تملك الـ Categories. ولعدم حسم هذه الـ Entity داخلياً في المصادر الحالية، تُعتبر البنية الداخلية للـ Catalog Module غير مكتملة (Candidate) ولا يُدعى بأنها Locked. بالإضافة إلى ذلك، فإن آلية الـ Persistence لربط الـ Products بالـ Categories (هل هي عبر Generic IDs أم FKs صريحة) لا تزال Unresolved Package Decision.
+* **Catalog Base:** **[Candidate]** كـ Taxonomy engine لا يحتوي على Entity حقيقية لتمثيل "الكتالوج" كحاوية عليا تملك الـ Categories. ولعدم حسم هذه الـ Entity داخلياً في المصادر الحالية، تُعتبر البنية الداخلية للـ Catalog Module غير مكتملة ولا يُدعى بأنها Locked.
+* **Catalog Package:** **[Unresolved Package Decision]** آلية الـ Persistence لربط الـ Products بالـ Categories (هل هي عبر Generic IDs أم FKs صريحة) لا تزال غير محسومة على مستوى الـ Package Coordinator.
 * **Product:** **[Locked]** Schema كاملة (9 جداول بـ PKs/FKs)، Lifecycles (بما في ذلك Staged Composition، Slug/Barcode) و Restore semantics محددة، ولا توجد افتراضات مخفية.
 * **Pricing:** **[Locked]** Generic Identity محددة بدقة لتفادي الـ Collisions (عقد Canonical lowercase-only machine key)، وقواعد الحساب مطبقة داخلياً بمعزل عن الكيانات الأخرى.
 * **Inventory:** **[Locked]** Generic Identity محددة بدقة، والعمليات الذرية للحفاظ على الـ bounds واضحة في الـ Queries (بما فيها فحص الـ `deleted_at`)، ولا تعتمد على أي Domains خارجية.

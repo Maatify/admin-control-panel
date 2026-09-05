@@ -520,9 +520,10 @@ UNIQUE(option_value_id, language_code)
 
 * **Product-local Structural Validity (Structurally Valid Variant):** تعتمد صحة الـ Variant هيكلياً بشكل حصري على:
   - Product ownership (جميع المكونات تتبع نفس المنتج).
-  - Complete composition (تغطية جميع الخيارات الفعالة للمنتج).
   - Option/Value integrity (سلامة وارتباط الخيارات والقيم).
   - Duplicate combination prevention (عدم تكرار تركيبة الخيارات).
+  - Non-conflicting composition.
+  - Complete composition against the intended/target Option model (التركيبة مكتملة بناءً على نموذج الخيارات المستهدف، وهو ما يسمح بوجود Options غير مفعلة inactive خلال مرحلة الـ Staged Replacement).
   **توضيح صريح:** الـ Structural Validity هنا لا تعتمد على الـ Stock، الـ Base Price، أو الـ Visibility.
 * **Option/Value Delete Dependency:** منع Soft Delete إذا كانت مرتبطة بـ Variant غير محذوفة.
 * **Option/Value Integrity & Cross-Product Composition Prevention:** التأكد من تبعية القيم والخيارات لنفس المنتج الخاص بالـ Variant.

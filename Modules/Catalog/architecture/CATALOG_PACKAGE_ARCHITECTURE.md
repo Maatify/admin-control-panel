@@ -81,7 +81,7 @@
 
 ### 5.4 Variant Activation Validation
 تفعيل الـ Variant بحد ذاتها يخضع لنفس مفهوم التنسيق المظلي (Package coordination):
-لا يتم تفعيل Variant ما لم تتجاوز التقييم الهيكلي (Product-local Structural Validity) بالإضافة لوجود سجل Inventory ومرورها باختبار الـ Pricing Safety.
+لا يتم تفعيل Variant ما لم تتجاوز التقييم الهيكلي (Product-local Structural Validity + Full Active Option Coverage) بالإضافة لوجود سجل Inventory ومرورها باختبار الـ Pricing Safety.
 
 ### 5.5 Option & Option Value Activation Safety
 تفعيل Option (خيار) أو Option Value (قيمة) قد يؤثر على الأسعار النهائية للـ Variants التي تعتمد عليهما. لذلك، يجب على طبقة الـ Package التحقق من الـ Pricing Safety (عدم ظهور أسعار نهائية سالبة) قبل إتمام عملية التفعيل.
