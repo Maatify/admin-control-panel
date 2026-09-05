@@ -39,7 +39,7 @@
 | **Category Child Delete Dependency** | **Preserved inside Base Module (Catalog)** | موجودة بالكامل لمنع الـ Soft Delete للفئة إذا كان لديها أبناء غير محذوفين. |
 | **Variant Composition Immutable** | **Preserved inside Base Module (Product)** | التركيبة تعتبر Immutable بعد إنشاء الـ Variant. |
 | **Duplicate Variant Prevention** | **Preserved inside Base Module (Product)** | يتم منع التكرار Transactionally لـ الـ Composition. |
-| **Product-local Structural Validity** | **Rewritten inside Product Base / Catalog Package Rule** | تم تقسيم القاعدة الهيكلية: الـ Product-local Validity حُفظت داخل Product Base (تبعية، اكتمال خيارات، عدم تكرار)، بينما اشتراط Inventory identity كجزء من الهيكلية انتقل لـ Catalog Package Rule. |
+| **Structural Validity** | **Rewritten inside Product Base / Catalog Package Rule** | تم تقسيم القاعدة الهيكلية: الـ Product-local Validity حُفظت داخل Product Base (تبعية، اكتمال خيارات، عدم تكرار)، بينما اشتراط Inventory identity كجزء من الهيكلية انتقل لـ Catalog Package Rule. (كميات المخزون Stock quantity / Pricing / Visibility ليست جزءًا من Structural Validity). |
 | **Variant-Defining Options** | **Preserved inside Base Module (Product)** | الخيارات تعتبر إجبارية دائمًا (No `is_required`). |
 | **Full Active Option Coverage** | **Preserved inside Base Module (Product)** | تحدد صحة الـ Effectively Selectable Variants هيكلياً. |
 | **Effectively Selectable Composition Rules** | **Preserved inside Base Module (Product)** | مُعرفة داخلياً بالكامل استناداً لـ Active Status لكل من Variant, Option, و Value (بدون الاعتماد على حالة الـ Product نفسه). |
