@@ -146,7 +146,7 @@ UNIQUE(subject_type, subject_id, currency_code)
 # 8. Domain / Transaction-Enforced Invariants
 
 * **Final Price Calculation:** يتم تطبيق قاعدة `Final Price >= 0` عند وقت القراءة (Read-time calculation) بواسطة الـ Service حين يُطلب تسعير مركب (Base + Adjustments). لم يعد Pricing مسؤولًا عن فرض الـ Pricing Safety Triggers عند وقت الحفظ (Write-time mutation rejection) لكيانات خارجية لا يعلم عنها شيئًا.
-* **Identity Reuse / Restore:** الـ Restore لنفس الـ `subject_type` و `subject_id` يجب أن يلتزم بنفس قيود الـ Unique constraints.
+* **Identity Reuse / Restore:** الـ Restore للكيان يجب أن يتم لنفس الهوية الثلاثية بالكامل `(subject_type, subject_id, currency_code)` ويجب أن يلتزم بنفس قيود الـ Unique constraints، نظراً لأن العملة جزء من الهوية وغير قابلة للتعديل.
 
 ---
 

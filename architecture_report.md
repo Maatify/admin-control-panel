@@ -8,12 +8,15 @@
 * **Dependency Direction:** الـ Catalog Package يجمع ويعرف الموديولات، لكن الموديولات الأساسية لا تعرف الـ Package ولا تعرف بعضها البعض أبداً.
 
 تم إنشاء/تعديل الملفات التالية وتم حذف أي نص قديم منافس لتفادي وجود Source of Truth متضارب:
-* `Modules/Catalog/architecture/Catalog_V1_Architecture_Locked.pdf` (أُعيد كمرجع للتنسيق العام للـ Package).
+* `Modules/Catalog/architecture/Catalog_V1_Architecture_Locked.pdf` (تم الاحتفاظ به دون تغيير - Retained unchanged - كمرجع للتنسيق العام للـ Package).
 * `Modules/Catalog/architecture/CATALOG_PACKAGE_ARCHITECTURE.md` (جديد: يوضح دور الـ Package والـ PDF).
 * `Modules/Catalog/architecture/CATALOG_V1_ARCHITECTURE.md` (مخصص لـ Taxonomy Base Module).
 * `Modules/Product/architecture/PRODUCT_V1_ARCHITECTURE.md` (مستقل).
 * `Modules/Pricing/architecture/PRICING_V1_ARCHITECTURE.md` (مستقل).
 * `Modules/Inventory/architecture/INVENTORY_V1_ARCHITECTURE.md` (مستقل).
+* `Modules/Cart/architecture/CART_V1_ARCHITECTURE.md` (مستقل).
+* `Modules/Orders/architecture/ORDERS_V1_ARCHITECTURE.md` (مستقل).
+* `architecture_report.md` (هذا التقرير نفسه).
 
 ## 2. Domain ownership النهائي لكل Base Module
 * **Catalog:** يمتلك حصرياً التصنيف (Taxonomy)، الهرمية (Hierarchy)، وترجمات الفئات (Categories Translations).
@@ -36,6 +39,7 @@
 | **Category Child Delete Dependency** | **Preserved inside Base Module (Catalog)** | موجودة بالكامل لمنع الـ Soft Delete للفئة إذا كان لديها أبناء غير محذوفين. |
 | **Variant Composition Immutable** | **Preserved inside Base Module (Product)** | التركيبة تعتبر Immutable بعد إنشاء الـ Variant. |
 | **Duplicate Variant Prevention** | **Preserved inside Base Module (Product)** | يتم منع التكرار Transactionally لـ الـ Composition. |
+| **Product-local Structural Validity** | **Preserved inside Base Module (Product)** | تم الحفاظ على التعريف الهيكلي لصحة الـ Variant (التبعية، اكتمال الخيارات، وعدم التكرار) بشكل مستقل تماماً عن الـ Stock والـ Pricing كقاعدة محلية للمنتج. |
 | **Variant-Defining Options** | **Preserved inside Base Module (Product)** | الخيارات تعتبر إجبارية دائمًا (No `is_required`). |
 | **Full Active Option Coverage** | **Preserved inside Base Module (Product)** | تحدد صحة الـ Effectively Selectable Variants هيكلياً. |
 | **Effectively Selectable Composition Rules** | **Preserved inside Base Module (Product)** | مُعرفة داخلياً بالكامل استناداً لـ Active Status لكل من Product, Variant, Option, و Value. |
@@ -85,7 +89,7 @@
 
 القرار الفعلي والنهائي لحالة كل موديول بناءً على اكتمال الـ schema والـ lifecycles:
 
-* **Catalog:** **[Candidate]** الـ Catalog Package كطبقة عليا واضحة، لكن الـ Base Module الداخلي (`Modules/Catalog`) كـ Taxonomy engine لا يحتوي على Entity حقيقية لتمثيل "الكتالوج" كحاوية عليا تملك الـ Categories. ولعدم حسم هذه الـ Entity داخلياً في المصادر الحالية، تُعتبر البنية الداخلية للـ Catalog Module غير مكتملة (Candidate) ولا يُدعى بأنها Locked.
+* **Catalog:** **[Candidate]** الـ Catalog Package كطبقة عليا واضحة، لكن الـ Base Module الداخلي (`Modules/Catalog`) كـ Taxonomy engine لا يحتوي على Entity حقيقية لتمثيل "الكتالوج" كحاوية عليا تملك الـ Categories. ولعدم حسم هذه الـ Entity داخلياً في المصادر الحالية، تُعتبر البنية الداخلية للـ Catalog Module غير مكتملة (Candidate) ولا يُدعى بأنها Locked. بالإضافة إلى ذلك، فإن آلية الـ Persistence لربط الـ Products بالـ Categories (هل هي عبر Generic IDs أم FKs صريحة) لا تزال Unresolved Package Decision.
 * **Product:** **[Locked]** Schema كاملة (9 جداول بـ PKs/FKs)، Lifecycles (بما في ذلك Staged Composition، Slug/Barcode) و Restore semantics محددة، ولا توجد افتراضات مخفية.
 * **Pricing:** **[Locked]** Generic Identity محددة بدقة لتفادي الـ Collisions (عقد Canonical lowercase-only machine key)، وقواعد الحساب مطبقة داخلياً بمعزل عن الكيانات الأخرى.
 * **Inventory:** **[Locked]** Generic Identity محددة بدقة، والعمليات الذرية للحفاظ على الـ bounds واضحة في الـ Queries (بما فيها فحص الـ `deleted_at`)، ولا تعتمد على أي Domains خارجية.

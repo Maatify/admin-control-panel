@@ -62,9 +62,11 @@
 القواعد التي تحتاج معلومات من أكثر من Domain لتقييمها لا يملكها أي موديول أساسي منفرداً، بل تُعتبر **Catalog Package / Aggregation Layer Derived Rules**.
 
 ### 5.1 Sellable In Currency
-المنتج يعتبر قابلًا للبيع بعملة محددة إذا تحقق الآتي:
-* `Product Base Module`: الكيان مهيكليًا قابل للطلب.
-* `Pricing Base Module`: يمتلك تسعيرة نهائية غير سالبة بهذه العملة.
+القابلية للبيع بعملة محددة (Sellability in Currency) تعتمد حصريًا على التسعير (Pricing-only rule) ولا تختلط مع حالة المخزون أو تقييمات الـ Product-local الهيكلية. الكيان يعتبر Sellable In Currency إذا تحقق الآتي:
+* يمتلك تسعيرة أساسية (Base Price). إذا كانت Missing Base، فهو Not Sellable In This Currency.
+* غياب التعديلات (Missing Adjustment) يحسب كـ `0`.
+* السعر النهائي (Final Price = Base + Adjustments) يجب أن يكون غير سالب (`>= 0`).
+* **توضيح صريح:** حالة المخزون (Stock State) و التقييمات الهيكلية (Product orderability) منفصلة تمامًا ولا تشارك في تقييم הـ Sellable In Currency.
 
 ### 5.2 Stock State / In-Stock Variant
 المنتج يعتبر In-Stock إذا:
@@ -79,7 +81,7 @@
 
 ### 5.4 Variant Activation Validation
 تفعيل الـ Variant بحد ذاتها يخضع لنفس مفهوم التنسيق المظلي (Package coordination):
-لا يتم تفعيل Variant ما لم تتجاوز التقييم الهيكلي (Structurally Valid & Coverage) بالإضافة لوجود سجل Inventory ومرورها باختبار الـ Pricing Safety.
+لا يتم تفعيل Variant ما لم تتجاوز التقييم الهيكلي (Product-local Structural Validity) بالإضافة لوجود سجل Inventory ومرورها باختبار الـ Pricing Safety.
 
 ### 5.5 Option & Option Value Activation Safety
 تفعيل Option (خيار) أو Option Value (قيمة) قد يؤثر على الأسعار النهائية للـ Variants التي تعتمد عليهما. لذلك، يجب على طبقة الـ Package التحقق من الـ Pricing Safety (عدم ظهور أسعار نهائية سالبة) قبل إتمام عملية التفعيل.
@@ -146,7 +148,7 @@
 
 * **Variant Inventory Entity:** `stock_subject_type = 'variant'`, `stock_subject_id = variant.id`
 * **Lifecycle Rule:** Every non-deleted Variant participating in Catalog Package has exactly one Inventory identity.
-* **Creation:** عند إنشاء Variant، يجب أن يقوم المنسق (Package Coordinator) بإنشاء سجل مخزون مطابق في الـ Inventory Module، ويبدأ بكمية `0`.
+* **Creation (Atomicity):** إنشاء الـ Variant و سجل المخزون المرتبط بها يجب أن يتم كعملية "كل شيء أو لا شيء" (All-or-nothing Transaction) يتحكم بها الـ Package Coordinator. الـ Product والـ Inventory يشاركان في نفس الـ Coordinator-owned Transaction بدون Commits أو Rollbacks مستقلة، لضمان عدم وجود Variant محفوط (Committed) بدون Inventory Identity. تبدأ كمية المخزون بـ `0`.
 * **Restore:** عند عمل Restore لـ Variant، يعود نفس سجل الـ Inventory identity. لا تنشأ identity جديدة.
 * **Soft Delete:** عمل Soft Delete للـ Variant لا يمحو المخزون بشكل مستقل، ولكن المنسق يمنع حذف الـ Inventory بشكل مستقل طالما أن الـ Variant موجودة وغير محذوفة نهائياً.
 
