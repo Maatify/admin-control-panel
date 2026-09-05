@@ -45,6 +45,9 @@ abstract class UnifiedEndpointBase extends TestCase
         $options->builderHook = function ($containerBuilder): void {
             $tz = new DateTimeZone('Africa/Cairo');
 
+            // Keep the integration composition root aligned with public/admin/index.php.
+            \Maatify\Validation\Bootstrap\ValidationBindings::register($containerBuilder);
+
             $containerBuilder->addDefinitions([
                 ClockInterface::class => function () use ($tz) {
                     return new TestClock(
