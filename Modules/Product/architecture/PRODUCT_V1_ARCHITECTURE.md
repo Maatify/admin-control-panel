@@ -502,7 +502,7 @@ UNIQUE(option_value_id, language_code)
 
 ---
 
-# 12. Database-Enforced Invariants
+# 13. Database-Enforced Invariants
 
 * Primary Keys, Internal FKs.
 * `ON DELETE RESTRICT` و `ON UPDATE RESTRICT`.
@@ -516,8 +516,15 @@ UNIQUE(option_value_id, language_code)
 
 ---
 
-# 13. Domain / Transaction-Enforced Invariants
+# 14. Domain / Transaction-Enforced Invariants
 
+* **Product-local Structural Validity (Structurally Valid Variant):** تعتمد صحة الـ Variant هيكلياً بشكل حصري على:
+  - Product ownership (جميع المكونات تتبع نفس المنتج).
+  - Option/Value integrity (سلامة وارتباط الخيارات والقيم).
+  - Duplicate combination prevention (عدم تكرار تركيبة الخيارات).
+  - Non-conflicting composition.
+  - Complete composition against the intended/target Option model (التركيبة مكتملة بناءً على نموذج الخيارات المستهدف، وهو ما يسمح بوجود Options غير مفعلة inactive خلال مرحلة الـ Staged Replacement).
+  **توضيح صريح:** الـ Structural Validity هنا لا تعتمد على الـ Stock، الـ Base Price، أو الـ Visibility.
 * **Option/Value Delete Dependency:** منع Soft Delete إذا كانت مرتبطة بـ Variant غير محذوفة.
 * **Option/Value Integrity & Cross-Product Composition Prevention:** التأكد من تبعية القيم والخيارات لنفس المنتج الخاص بالـ Variant.
 * **Duplicate Variant Combination Prevention:** منع إنشاء Variants مختلفة بنفس تركيبة الخيارات Transactionally.
@@ -530,7 +537,7 @@ UNIQUE(option_value_id, language_code)
 
 ---
 
-# 14. Sources of Truth و Prohibited Duplicated Fields
+# 15. Sources of Truth و Prohibited Duplicated Fields
 
 لا يجوز إضافة مصادر حقيقة مكررة.
 مصادر الحقيقة المدعومة هنا حصراً:
@@ -543,7 +550,7 @@ UNIQUE(option_value_id, language_code)
 
 ---
 
-# 15. Architecture Status
+# 16. Architecture Status
 
 **Locked**
 تم حسم جميع القرارات المتعلقة بهيكل المنتجات وتشكيلاتها داخليًا، بما فيها دورة حياة الـ slug والـ barcode والـ staged composition والـ timestamp contracts. لا يُسمح بإضافة أية اشتراطات تعتمد على موديولات أخرى للتحقق من صحة الكيانات. التكامل الأوسع بين المنتجات والكيانات الأخرى متروك لطبقة الـ Host Coordinator أو عبر الأحداث.
