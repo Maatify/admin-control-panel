@@ -85,6 +85,8 @@
     "test:non-integration": "phpunit --configuration phpunit.admin.xml --exclude-filter Integration",
     "test:integration": "php scripts/dev/run_admin_integration_tests.php --mode=clone --refresh --",
     "analyse": "phpstan analyse app Modules --level=max --memory-limit=2G",
+    "analyse:app": "phpstan analyse app --level=max --memory-limit=2G",
+    "analyse:modules": "phpstan analyse Modules --level=max --memory-limit=2G",
     "permission-lint": "@php tools/permission_linter.php",
     "Permission Linter": "@permission-lint",
     "check:composer": "composer validate --strict",
