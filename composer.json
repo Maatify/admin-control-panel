@@ -97,6 +97,10 @@
       "git diff --cached --check",
       "if [ -n \"$CI_WHITESPACE_RANGE\" ]; then git diff --check \"$CI_WHITESPACE_RANGE\"; elif git diff --quiet && git diff --cached --quiet; then git show --check --format= --no-ext-diff HEAD; else git diff --check; git diff --cached --check; fi"
     ],
+    "check:module:image-profile": "phpunit --configuration Modules/ImageProfile/phpunit.xml.dist",
+    "check:module:settings": "phpunit --configuration Modules/Settings/phpunit.xml.dist --bootstrap vendor/autoload.php",
+    "check:module:storage": "phpunit --configuration Modules/Storage/tests/phpunit.xml",
+    "check:module:geo": "phpunit --configuration Modules/geo/phpunit.xml --bootstrap vendor/autoload.php",
     "check:all": [
       "@check:composer",
       "@check:analyse",
