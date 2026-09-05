@@ -460,10 +460,10 @@ class Container
                 $twig->getEnvironment()->addFunction(
                     new \Twig\TwigFunction(
                         'asset',
-                        static function (string $path) use ($assetsBaseUrl, $uiConfigDTO): string {
+                        static function (string $path) use ($assetsBaseUrl, $uiConfigDTO, $mediaUrlConfig): string {
                             $baseUrl = $assetsBaseUrl ?? $uiConfigDTO->adminAssetBaseUrl;
 
-                            return rtrim($baseUrl, '/') . '/' . ltrim($path, '/');
+                            return $mediaUrlConfig->buildAssetUrlFromBase($baseUrl, $path);
                         }
                     )
                 );

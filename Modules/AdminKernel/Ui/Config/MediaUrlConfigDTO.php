@@ -80,7 +80,12 @@ final class MediaUrlConfigDTO
 
     public function buildAssetUrl(string $path): string
     {
-        $url = $this->assetsCdnUrl . '/' . ltrim($path, '/');
+        return $this->buildAssetUrlFromBase($this->assetsCdnUrl, $path);
+    }
+
+    public function buildAssetUrlFromBase(string $baseUrl, string $path): string
+    {
+        $url = rtrim($baseUrl, '/') . '/' . ltrim($path, '/');
 
         if ($this->assetVersion === null) {
             return $url;
