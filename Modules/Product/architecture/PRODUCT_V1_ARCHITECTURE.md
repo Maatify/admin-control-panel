@@ -93,6 +93,9 @@ CHECK (status IN ('active','inactive'))
 * `option_value` (option_id)
 * `variant_option_value` (variant_id, option_id, option_value_id)
 
+**Variant Ownership Immutability:**
+Variant ownership by `product_id` is immutable. لا يمكن نقل Variant من Product إلى Product آخر تحت أي ظرف.
+
 **Stable Codes (Immutable):**
 الـ `code` والـ `SKU` هي هويات ثابتة (Stable & Immutable) ولا يعاد استخدامها بعد الحذف المنطقي.
 
@@ -170,7 +173,7 @@ CHECK (status IN ('active','inactive'))
 
 # 10. Complete Database Schema — 9 Tables
 
-## 10.1 `maa_products`
+## 10.1 `maa_product_products`
 | العمود               | النوع                                     |
 | -------------------- | ----------------------------------------- |
 | `id`                 | `BIGINT UNSIGNED AUTO_INCREMENT`          |
@@ -214,7 +217,7 @@ UNIQUE(product_id, language_code)
 ```
 FK:
 ```text
-product_id → maa_products.id
+product_id → maa_product_products.id
 ON DELETE RESTRICT
 ON UPDATE RESTRICT
 ```
@@ -241,7 +244,8 @@ CHECK(status IN ('active','inactive'))
 ```
 FK:
 ```text
-product_id → maa_products.id
+product_id → maa_product_products.id
+product_id → maa_product_products.id
 ON DELETE RESTRICT
 ON UPDATE RESTRICT
 ```
@@ -349,7 +353,7 @@ CHECK(status IN ('active','inactive'))
 ```
 FK:
 ```text
-product_id → maa_products.id
+product_id → maa_product_products.id
 ON DELETE RESTRICT
 ON UPDATE RESTRICT
 ```
@@ -413,7 +417,7 @@ CHECK(is_primary IN (0,1))
 ```
 FKs:
 ```text
-product_id → maa_products.id
+product_id → maa_product_products.id
 ON DELETE RESTRICT
 ON UPDATE RESTRICT
 
@@ -431,7 +435,7 @@ ON UPDATE RESTRICT
 
 ## Products
 ```text
-maa_products
+maa_product_products
 (status, deleted_at, display_order, id)
 ```
 

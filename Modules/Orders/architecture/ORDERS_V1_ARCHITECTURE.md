@@ -134,21 +134,20 @@ Browser Cart
   - أي تغييرات لاحقة في إعدادات مهلة الحجز في الـ Host **يجب ألا تؤثر** على الطلبات المنشأة بالفعل.
   - عمليات معالجة انتهاء المهلة (Expiry processing) تعتمد على الموعد المطلق المحفوظ في الطلب، وليس التكوين الحالي.
 - **دورة حياة الحجز (Lifecycle) ومتطلبات العمل:**
-  - عند إنشاء الحجز: يتم التحقق ذرياً من توفر المخزون الكافي، ويُطرح الكمية المحجوزة من `quantity_on_hand` في الكتالوج لمنع البيع المزدوج، وتصبح حالة الحجز `reserved`. ويجب أن تتم هاتان العمليتان في نفس الـ Transaction.
-  - عند نجاح الدفع: تستهلك عملية الدفع الحجز مرة واحدة فقط (`reserved` → `consumed`). **لا يتم** إنقاص المخزون في الكتالوج مرة أخرى.
-  - عند الإلغاء قبل الدفع: يتم تحرير الحجز مرة واحدة فقط (`reserved` → `released`) وتتم استعادة الكمية إلى `quantity_on_hand` في الكتالوج.
-  - عند انتهاء الحجز: يتم تحرير الحجز مرة واحدة فقط (`reserved` → `expired`) وتتم استعادة الكمية في الكتالوج.
+  - عند إنشاء الحجز: يتم التحقق ذرياً (عبر الـ Coordinator) من توفر المخزون الكافي، ويُطرح الكمية المحجوزة من الـ Inventory Module لمنع البيع المزدوج، وتصبح حالة الحجز `reserved`. ويجب أن تتم هاتان العمليتان في نفس الـ Transaction المشترك.
+  - عند نجاح الدفع: تستهلك عملية الدفع الحجز مرة واحدة فقط (`reserved` → `consumed`). **لا يتم** إنقاص المخزون في الـ Inventory Module مرة أخرى.
+  - عند الإلغاء قبل الدفع: يتم تحرير الحجز مرة واحدة فقط (`reserved` → `released`) وتتم استعادة الكمية في الـ Inventory Module (عبر الـ Coordinator).
+  - عند انتهاء الحجز: يتم تحرير الحجز مرة واحدة فقط (`reserved` → `expired`) وتتم استعادة الكمية في الـ Inventory Module.
 - **المتطلبات الأساسية (Invariants):**
-  - يُمنع البيع الزائد (No overselling): لا يُسمح بعمليات الدفع المتزامنة بتخطي المخزون المتاح، ويتطلب ذلك سلوك قفل الصفوف (Row-lock) أو معالجة ذرية.
+  - يُمنع البيع الزائد (No overselling): لا يُسمح بعمليات الدفع المتزامنة بتخطي المخزون المتاح، ويتطلب ذلك معالجة ذرية مع الـ Inventory Module.
   - جميع عمليات `consume/release/expire` يجب أن تكون غير قابلة للتكرار (idempotent) وتؤثر على إتاحة المخزون لمرة واحدة فقط.
-  - تعني `quantity_on_hand` في الكتالوج "رصيد المخزون المتاح للبيع للعملاء" (Current Sellable Inventory Balance).
-  - لا يجوز لـ Orders تحديث جداول Catalog بشكل مباشر، بل يتم عبر المنسق (Host Coordinator).
+  - لا يجوز لـ Orders تحديث جداول الـ Inventory بشكل مباشر، بل يتم دائمًا عبر المنسق (Host Coordinator).
 
 ---
 
 ## 7. التنسيق بين الموديولات (Cross-Module Atomicity)
 
-يُمنع وصول Orders إلى جداول Catalog بشكل مباشر. كما يجب ألا يعلم Catalog بأي شيء عن الـ `order_id` أو الدفع.
+يُمنع وصول Orders إلى جداول Product, Pricing, أو Inventory بشكل مباشر. كما يجب ألا تعلم هذه الموديولات بأي شيء عن الـ `order_id` أو الدفع.
 - تُدار جميع عمليات إنشاء الطلب (التدقيق، الحجز، التحديثات المشتركة، وإنشاء اللقطات) كعملية ذرية واحدة (All-or-nothing).
 - **التنسيق المشترك:** يمتلك منسق الدفع في التطبيق (Host/Application Checkout Coordinator) مسؤولية التنسيق المباشر.
 - **التجريد (Transaction abstraction):** سيتم الاعتماد مستقبلاً على مكتبة `maatify/persistence` لتوفير تجريد يضمن مشاركة التحديثات في نفس الـ PDO connection ونفس الـ Database transaction بشكل متداخل وآمن (Nested-safe participation). (هذا التجريد هو متطلب تنفيذ مستقبلي، ولا تقدم المكتبة هذه الميزة حاليًا).
@@ -160,11 +159,11 @@ Browser Cart
 ## 8. اللقطات التجارية (Snapshots)
 
 ### 8.1 اللقطة التجارية للمنتج (Commercial Snapshot)
-الطلب هو سجل تاريخي تجاري. لا يجوز الاعتماد على Catalog لإعادة بناء البيانات.
+الطلب هو سجل تاريخي تجاري. لا يجوز الاعتماد على الـ Product Module أو Pricing Module لإعادة بناء البيانات.
 لقطة العنصر `Order Item` تتضمن على الأقل:
-- مرجع `product_id` (تاريخي بدون FK).
+- مرجع `product_id` (مرجع تاريخي لـ Product Domain بدون FK).
 - `product_code`.
-- مرجع `variant_id` (تاريخي بدون FK).
+- مرجع `variant_id` (مرجع تاريخي لـ Product Domain بدون FK).
 - `sku`.
 - `base_unit_price`.
 - `unit_price`.
@@ -172,7 +171,7 @@ Browser Cart
 - `line_total`.
 
 ### 8.2 لقطة الترجمات الشاملة (All-Language Snapshot)
-- يجب حفظ **كل** الترجمات المتوفرة في الكتالوج وقت إنشاء الطلب لبيانات المنتج والخيارات والقيم.
+- يجب حفظ **كل** الترجمات المتوفرة (عبر الـ Product Domain) وقت إنشاء الطلب لبيانات المنتج والخيارات والقيم.
 - لقطة الترجمة يجب أن تكون جداول علائقية وليست JSON.
 - حقل `checkout_language_code` في الطلب يستخدم فقط كسياق تاريخي، ولا يحد من الترجمات الملتقطة.
 
@@ -400,9 +399,9 @@ Browser Cart
   - FOREIGN KEY (`order_id`) REFERENCES `maa_orders_orders.id`
   - ON DELETE RESTRICT
   - ON UPDATE RESTRICT
-- `product_id` (BIGINT UNSIGNED, NOT NULL): مرجع تاريخي لـ Catalog.
+- `product_id` (BIGINT UNSIGNED, NOT NULL): مرجع تاريخي لـ Product Domain.
 - `product_code` (VARCHAR(100), NOT NULL)
-- `variant_id` (BIGINT UNSIGNED, NOT NULL): مرجع تاريخي لـ Catalog.
+- `variant_id` (BIGINT UNSIGNED, NOT NULL): مرجع تاريخي لـ Product Domain.
 - `sku` (VARCHAR(100), NOT NULL)
 - `base_unit_price` (DECIMAL(20,6), NOT NULL)
 - `unit_price` (DECIMAL(20,6), NOT NULL)
@@ -421,7 +420,7 @@ Browser Cart
 **الفهارس:** `idx_order_items_order_id` (`order_id`)
 
 ### 13.8 `maa_orders_order_item_translations`
-**الغرض:** لقطة لجميع ترجمات المنتج المطلوبة.
+**الغرض:** لقطة لجميع ترجمات المنتج المطلوبة (Product Domain Snapshot).
 - `id` (BIGINT UNSIGNED, AUTO_INCREMENT)
 - `order_item_id` (BIGINT UNSIGNED, NOT NULL)
   - FOREIGN KEY (`order_item_id`) REFERENCES `maa_orders_order_items.id`

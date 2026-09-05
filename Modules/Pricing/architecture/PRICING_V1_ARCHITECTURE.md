@@ -90,7 +90,7 @@
 | ---------------------- | -------------------------------- |
 | `id`                   | `BIGINT UNSIGNED AUTO_INCREMENT` |
 | `subject_type`         | `VARCHAR(100) NOT NULL`          |
-| `subject_id`           | `BIGINT UNSIGNED NOT NULL`       |
+| `subject_id`           | `BIGINT UNSIGNED NOT NULL COMMENT 'Host-provided ID. No FK.'` |
 | `currency_code`        | `CHAR(3) NOT NULL`               |
 | `base_price`           | `DECIMAL(20,6) NOT NULL`         |
 | `created_at`           | `DATETIME NOT NULL`              |
@@ -111,7 +111,7 @@ CHECK(base_price >= 0)
 | ---------------------- | -------------------------------- |
 | `id`                   | `BIGINT UNSIGNED AUTO_INCREMENT` |
 | `subject_type`         | `VARCHAR(100) NOT NULL`          |
-| `subject_id`           | `BIGINT UNSIGNED NOT NULL`       |
+| `subject_id`           | `BIGINT UNSIGNED NOT NULL COMMENT 'Host-provided ID. No FK.'` |
 | `currency_code`        | `CHAR(3) NOT NULL`               |
 | `price_adjustment`     | `DECIMAL(20,6) NOT NULL`         |
 | `created_at`           | `DATETIME NOT NULL`              |

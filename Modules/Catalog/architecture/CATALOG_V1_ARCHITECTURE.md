@@ -294,7 +294,10 @@ maa_catalog_categories
 مصادر الحقيقة الوحيدة التي يملكها الموديول حالياً:
 * Entity Status (Categories)
 * deleted_at
-* Hierarchy Path
+* الـ `parent_id` (كمصدر الحقيقة الوحيد للهرمية).
+
+**الـ Derived State:**
+* الـ Hierarchy Path يعتبر مشتقاً (Derived State) من الـ `parent_id` ولا يعتبر مصدر حقيقة مستقل.
 
 ---
 

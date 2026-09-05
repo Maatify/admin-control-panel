@@ -93,7 +93,7 @@
 | -------------------- | -------------------------------- |
 | `id`                 | `BIGINT UNSIGNED AUTO_INCREMENT` |
 | `stock_subject_type` | `VARCHAR(100) NOT NULL`          |
-| `stock_subject_id`   | `BIGINT UNSIGNED NOT NULL`       |
+| `stock_subject_id`   | `BIGINT UNSIGNED NOT NULL COMMENT 'Host-provided ID. No FK.'` |
 | `quantity_on_hand`   | `INT NOT NULL DEFAULT 0`         |
 | `created_at`         | `DATETIME NOT NULL`              |
 | `updated_at`         | `DATETIME NOT NULL`              |
@@ -117,12 +117,21 @@ CHECK(quantity_on_hand >= 0)
 
 # 8. Domain / Transaction-Enforced Invariants
 
-* **Atomic Increase/Decrease:** التحديثات يجب أن تُنفذ باستخدام عمليات نسبية لضمان التزامن وحل الـ Concurrency issues.
+* **Atomic Increase/Decrease:** التحديثات يجب أن تُنفذ باستخدام عمليات نسبية لضمان التزامن وحل الـ Concurrency issues، ويجب دائمًا تحديث `updated_at` في نفس الاستعلام الذري.
+* **Quantity Input Contract:**
+  قيمة الـ Mutation (`X`) يجب أن تخضع لقواعد صارمة على مستوى الـ Application قبل الوصول لقاعدة البيانات:
+  * يجب أن تكون عددًا صحيحًا موجبًا أكبر قطعًا من الصفر (`X > 0`).
+  * الأرقام السالبة، الصفر، أو القيم العشرية (Float) مرفوضة تمامًا (لا يُسمح بتمرير `decrease(-5)` لتعمل كزيادة).
 * **Atomic Decrease Contract:**
-  `UPDATE maa_inventory_stocks SET quantity_on_hand = quantity_on_hand - X WHERE stock_subject_type = ? AND stock_subject_id = ? AND quantity_on_hand >= X AND deleted_at IS NULL`.
-  إذا أرجع الاستعلام `0` صفوف معدلة، ترفض العملية (Insufficient stock or Soft-deleted).
+  `UPDATE maa_inventory_stocks SET quantity_on_hand = quantity_on_hand - X, updated_at = ? WHERE stock_subject_type = ? AND stock_subject_id = ? AND quantity_on_hand >= X AND deleted_at IS NULL`.
 * **Atomic Increase Contract:**
-  `UPDATE maa_inventory_stocks SET quantity_on_hand = quantity_on_hand + X WHERE stock_subject_type = ? AND stock_subject_id = ? AND deleted_at IS NULL`.
+  `UPDATE maa_inventory_stocks SET quantity_on_hand = quantity_on_hand + X, updated_at = ? WHERE stock_subject_type = ? AND stock_subject_id = ? AND deleted_at IS NULL`.
+* **Result Semantics:**
+  الموديول يُفرق بوضوح بين نتائج الـ Mutation:
+  * `Success`: العملية تمت وتم تحديث صف واحد.
+  * `Insufficient Stock`: عند الـ Decrease، السجل موجود وفعّال لكن `quantity_on_hand < X`.
+  * `Soft-Deleted / Not Found`: السجل غير موجود أو يحمل `deleted_at IS NOT NULL`.
+  يجب عدم دمج هذه الحالات تحت رسالة خطأ واحدة إذا كان العقد العام يحتاج للتفريق بينها.
 * الموديول يوفر عمليات "الزيادة" و "النقصان" الذرية فقط ولا يسمي عملياته بـ "Reserve" أو "Cancel" لأن هذه دلالات تجارية تخص موديولات أخرى.
 
 ---
