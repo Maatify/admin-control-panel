@@ -97,9 +97,7 @@ src/
 - Every table needs: `PRIMARY KEY (id)`, proper indexes, meaningful COMMENTs on columns
 - All policies (soft delete, display order, FK behavior, uniqueness) documented in the SQL header
 - No FK constraints on host tables — use `COMMENT 'Host-provided ID. No FK.'`
-
 - Soft delete: `deleted_at DATETIME NULL` — `NULL = active`, `NOT NULL = soft-deleted`
-  - **Explicit Architecture Exception:** While soft delete remains the default rule for normal mutable CRUD-oriented module records, a module's own authoritative/locked architecture MAY explicitly define some records as append-only, immutable historical, ledger-like, or otherwise intentionally non-deletable at normal runtime. When such an explicit module architecture exists, `deleted_at` may intentionally be omitted for those records. Normal runtime soft delete and/or hard delete must follow the module-specific architecture; lifecycle, retention, anonymization, archival, or physical purge policy belongs to that module's own architecture.
 - Hard delete: always in a transaction with any required cleanup (e.g. compact display_order)
 - Split schema into logical files if restrictions or addons exist separately
 
@@ -328,6 +326,28 @@ public function getById(int $id): SomeDTO
     return $dto;
 }
 ```
+
+### ID/PK validation — `filter_var(FILTER_VALIDATE_INT)` not `is_numeric()`
+
+For **primary key / ID** column filters, always use `filter_var($value, FILTER_VALIDATE_INT)` instead of `is_numeric()` + `(int)`:
+
+```php
+// ❌ is_numeric accepts decimals and scientific notation
+$id = $columnFilters['id'] ?? null;
+if ((is_int($id) || is_string($id)) && is_numeric($id) && (int) $id > 0) {
+}
+
+// ✅ filter_var rejects non-integer values
+$id = $columnFilters['id'] ?? null;
+if ($id !== null && filter_var($id, FILTER_VALIDATE_INT) !== false && (int) $id > 0) {
+    $where[] = 't.`id` = :id';
+    $params['id'] = (int) $id;
+}
+```
+
+`is_numeric()` accepts `"1.5"` (truncated to `1`) and `"1e3"` (decoded to `1000`) — both are semantically wrong for a PK lookup. `FILTER_VALIDATE_INT` strictly requires an integer value.
+
+---
 
 ### Hydration — never cast `mixed` directly
 
@@ -799,7 +819,133 @@ private function findRawById(int $id): ?array
 
 ---
 
-## 20. The Module Is NOT Done Until
+## 20. Presentation vs Persistence Separation (CRITICAL)
+
+### The Rule
+
+**Persistence/Query layers NEVER transform data for display.**
+
+The `Repository`/`QueryReader` returns raw database values. Any formatting, encoding, pretty-printing, or display-oriented transformation belongs exclusively in the Presentation layer (Controller, Twig, JavaScript).
+
+### Why
+
+| Layer | Responsibility | Example |
+|---|---|---|
+| Query/Repository | Fetch raw data as stored | `metadata_json` returned as raw JSON string |
+| Controller | Business logic, permission aggregation | Pass raw DTO to Twig, inject capabilities |
+| Twig | Server-side rendering, structure | Output variables, control flow, inject data for JS |
+| JavaScript | Client-side formatting, interactivity | `JSON.parse` + `JSON.stringify(…, null, 2)` for pretty-print |
+
+### Anti-Pattern (DO NOT DO)
+
+```php
+// ❌ Query layer transforms data for display
+private function hydrate(array $row): DTO
+{
+    return new DTO(
+        metadata_json: json_encode(json_decode($row['metadata_json']), JSON_PRETTY_PRINT)
+    );
+}
+```
+
+### Correct Pattern
+
+```php
+// ✅ Query returns raw value
+metadata_json: is_string($row['metadata_json'] ?? null) ? $row['metadata_json'] : null,
+```
+
+```js
+// ✅ Presentation layer handles formatting
+// In Twig:
+try {
+    var parsed = JSON.parse(rawJson);
+    element.textContent = JSON.stringify(parsed, null, 2);
+} catch(e) {
+    element.textContent = rawJson; // fallback
+}
+```
+
+### Exceptions
+
+- **Trimming/Normalizing** user-provided strings before storage is persistence concern (data integrity).
+- **Type casting** (`(int) $id`, `(float) $amount`) is allowed in hydration to match DTO type declarations.
+- **Formatting for export** (CSV, PDF) belongs in dedicated Export services, not in query readers.
+- **Cross-table status subqueries** (e.g. `fulfillment_status` from `order_fulfillments`) are persistence concerns — they fetch a raw scalar value (`VARCHAR`) from a related table, not a transformation for display. The subquery belongs in `SAFE_SELECT`; the DTO stores it as a nullable raw string.
+
+---
+
+## 21. Pre-Aggregated Analytics Pattern
+
+When a module needs analytics (revenue trends, status breakdowns, daily stats), use a **pre-aggregated table** instead of querying live data on every page load.
+
+### 21.1 Schema
+
+Table name: `maa_{module}_daily_stats`
+
+Required columns:
+- `stat_date DATE` — aggregation date
+- `currency_code VARCHAR(3)` or `currency_id INT UNSIGNED` — **never sum across currencies**
+- `status VARCHAR(20)` — the status bucket
+- Metric columns: `count`, `total_amount`, `avg_amount`, `min_amount`, `max_amount`
+- `UNIQUE KEY (stat_date, currency, status)` — one row per bucket
+
+### 21.2 Aggregation — DELETE + INSERT (not UPSERT)
+
+**Never** use `INSERT...ON DUPLICATE KEY UPDATE` for aggregation. When a record changes status (e.g. `INITIATED → CAPTURED`), the old status bucket stays as a stale row.
+
+**Correct pattern**: DELETE the date range first, then INSERT fresh aggregations, all in one transaction:
+
+```php
+$this->pdo->beginTransaction();
+try {
+    // 1. Purge stale buckets
+    $this->pdo->prepare(
+        'DELETE FROM `maa_{module}_daily_stats` WHERE `stat_date` BETWEEN :from AND :to'
+    )->execute([...]);
+
+    // 2. Re-aggregate from source
+    $this->pdo->prepare('INSERT INTO `maa_{module}_daily_stats` ... SELECT ... GROUP BY ...')->execute([...]);
+
+    $this->pdo->commit();
+} catch (\Throwable $e) {
+    if ($this->pdo->inTransaction()) { $this->pdo->rollBack(); }
+    throw $e;
+}
+```
+
+### 21.3 Aggregation Service
+
+Three standard methods:
+
+| Method | Purpose |
+|---|---|
+| `aggregateYesterday()` | Daily cron job — runs once per day |
+| `aggregateDate(string $date)` | Re-aggregate a specific date on demand |
+| `backfillAll()` | One-time — populates from `MIN(created_at)` to today |
+
+### 21.4 Multi-Currency Rule
+
+**Never sum monetary amounts across different currencies.** Each KPI, chart, and table row must be scoped to a single currency. When displaying totals for multiple currencies, render one card/section per currency.
+
+### 21.5 Date Validation
+
+Always use `createFromFormat` with round-trip check — `new \DateTimeImmutable()` normalizes invalid dates silently:
+
+```php
+// ❌ WRONG — 2026-02-31 becomes 2026-03-03
+new \DateTimeImmutable($value);
+
+// ✅ CORRECT — 2026-02-31 is rejected
+$parsed = \DateTimeImmutable::createFromFormat('!Y-m-d', $value);
+if ($parsed === false || $parsed->format('Y-m-d') !== $value) {
+    throw ...;
+}
+```
+
+---
+
+## 22. The Module Is NOT Done Until
 
 - [ ] All PHPStan max errors resolved — zero errors, no suppressions
 - [ ] All schema files complete with header comments and column policies
@@ -813,3 +959,4 @@ private function findRawById(int $id): ?array
 - [ ] Transaction catch blocks rethrow the original `\Throwable` after rollback — never swallow
 - [ ] Business orchestration lives in Services, validation in Commands/filters, SQL in Repositories
 - [ ] No SQL outside Repository classes and module-local SQL support builders
+- [ ] No display formatting (pretty-print, encoding, escaping for HTML) in Query/Repository layer — all formatting lives in Presentation (Twig, JS, Controller)
