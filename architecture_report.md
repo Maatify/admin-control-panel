@@ -1,7 +1,7 @@
 # Cross-Module Independence Review Report & Traceability Matrix
 
 ## 1. الهيكلية المظلية والمراجع المعمارية (Umbrella vs Base Architectures)
-تم في هذا التحديث إرجاع الوثيقة المونوليثية كـ PDF تاريخي ليصبح مرجعاً مظلياً (Umbrella/Composite Architecture) لـ **Catalog Package** بالكامل (والذي يشمل جميع الموديولات).
+تم في هذا التحديث الاحتفاظ بالوثيقة المونوليثية (retained unchanged) كـ PDF تاريخي ليصبح مرجعاً مظلياً (Umbrella/Composite Architecture) لـ **Catalog Package** بالكامل (والذي يشمل جميع الموديولات).
 لضمان عدم تضارب مصادر الحقيقة، تم تعريف تسلسل هرمي واضح:
 * **Base Module Architectures (`.md`):** هي الـ Source of Truth الوحيد للتصميم الداخلي للموديول.
 * **Catalog Package Architecture (`CATALOG_PACKAGE_ARCHITECTURE.md`):** هو الـ Source of Truth الحالي والحصري للتنسيق (Composition)، دمج الكيانات، و الـ Cross-domain Derived Rules التي تعتمد على أكثر من موديول. أما الـ PDF المرفق فيُعد مجرد `Historical Composite Reference` للاستئناس ولا يعول عليه لتجاوز هذا الملف المعماري المكتوب.
@@ -39,10 +39,10 @@
 | **Category Child Delete Dependency** | **Preserved inside Base Module (Catalog)** | موجودة بالكامل لمنع الـ Soft Delete للفئة إذا كان لديها أبناء غير محذوفين. |
 | **Variant Composition Immutable** | **Preserved inside Base Module (Product)** | التركيبة تعتبر Immutable بعد إنشاء الـ Variant. |
 | **Duplicate Variant Prevention** | **Preserved inside Base Module (Product)** | يتم منع التكرار Transactionally لـ الـ Composition. |
-| **Product-local Structural Validity** | **Preserved inside Base Module (Product)** | تم الحفاظ على التعريف الهيكلي لصحة الـ Variant (التبعية، اكتمال الخيارات، وعدم التكرار) بشكل مستقل تماماً عن الـ Stock والـ Pricing كقاعدة محلية للمنتج. |
+| **Product-local Structural Validity** | **Rewritten inside Product Base / Catalog Package Rule** | تم تقسيم القاعدة الهيكلية: الـ Product-local Validity حُفظت داخل Product Base (تبعية، اكتمال خيارات، عدم تكرار)، بينما اشتراط Inventory identity كجزء من الهيكلية انتقل لـ Catalog Package Rule. |
 | **Variant-Defining Options** | **Preserved inside Base Module (Product)** | الخيارات تعتبر إجبارية دائمًا (No `is_required`). |
 | **Full Active Option Coverage** | **Preserved inside Base Module (Product)** | تحدد صحة الـ Effectively Selectable Variants هيكلياً. |
-| **Effectively Selectable Composition Rules** | **Preserved inside Base Module (Product)** | مُعرفة داخلياً بالكامل استناداً لـ Active Status لكل من Product, Variant, Option, و Value. |
+| **Effectively Selectable Composition Rules** | **Preserved inside Base Module (Product)** | مُعرفة داخلياً بالكامل استناداً لـ Active Status لكل من Variant, Option, و Value (بدون الاعتماد على حالة الـ Product نفسه). |
 | **Replacement Flows (Options)** | **Rewritten inside Base Module / Catalog Package Rule** | الجزء الهيكلي preserved داخل Product Base. أما الـ Orchestration والتأكد من Inventory Identity والـ Pricing Safety فهي Catalog Package Rule. |
 | **Option/Value Delete Dependency** | **Preserved inside Base Module (Product)** | يمنع الـ Soft Delete لخيارات أو قيم مرتبطة بـ Variant غير محذوفة. |
 | **Option/Value Integrity** | **Preserved inside Base Module (Product)** | موجودة لضمان سلامة وارتباط القيم والخيارات. |
@@ -104,4 +104,4 @@
 * تم توضيح الفرق في الـ Catalog Base بين الـ Source of Truth (مثل `parent_id`) والـ Derived State (مثل الـ Hierarchy Path).
 
 ## 7. الخاتمة
-تم إرجاع الـ PDF المونوليثي كمرجع مظلي (Umbrella Architecture) للـ Catalog Package بأكمله، بينما تم تخصيص الـ Markdown files كـ Source of Truth للموديولات الداخلية، لضمان استقلالية كل موديول وإمكانية استخراجه كـ Package منفصل. الحالات المتقاطعة (Cross-Domain States) وقواعد التفعيل المتقاطعة التي أُزيلت من الـ Base Modules صُنفت صراحة كمهام تنسيق في طبقة الـ Package. لا يدعي هذا التقرير إكمال جميع الـ Architectures بنجاح كامل؛ الـ Catalog Base Module لا يزال يحمل حالة `Candidate` لحين حسم الـ Catalog Entity. لا يوجد كود برمجي تم إنتاجه ضمن هذه المهمة.
+تم الاحتفاظ بالـ PDF المونوليثي دون تغيير (retained unchanged) كمرجع مظلي (Umbrella Architecture) للـ Catalog Package بأكمله، بينما تم تخصيص الـ Markdown files كـ Source of Truth للموديولات الداخلية، لضمان استقلالية كل موديول وإمكانية استخراجه كـ Package منفصل. الحالات المتقاطعة (Cross-Domain States) وقواعد التفعيل المتقاطعة التي أُزيلت من الـ Base Modules صُنفت صراحة كمهام تنسيق في طبقة الـ Package. لا يدعي هذا التقرير إكمال جميع الـ Architectures بنجاح كامل؛ الـ Catalog Base Module لا يزال يحمل حالة `Candidate` لحين حسم الـ Catalog Entity. لا يوجد كود برمجي تم إنتاجه ضمن هذه المهمة.

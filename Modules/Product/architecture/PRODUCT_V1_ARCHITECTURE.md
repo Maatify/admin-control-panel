@@ -116,7 +116,7 @@ Variant ownership by `product_id` is immutable. لا يمكن نقل Variant م�
 * **Variant Composition Immutable:** بعد الإنشاء، السجلات في `variant_option_values` لا تتغير. أي تغيير يتطلب Variant جديدة بـ SKU جديد.
 * **Variant-Defining Options:** كل الخيارات إجبارية في سياق تشكيل الـ Variant. لا يوجد حقل `is_required`.
 * **Full Active Option Coverage:** أي Variant فعّالة لمنتج Configurable يجب أن تغطي جميع الخيارات الفعّالة للمنتج (قيمة واحدة لكل Option فعال).
-* **Effectively Selectable Variant:** كيان يُعتبر قابلاً للاختيار هيكلياً فقط إذا كان Product, Variant, Option, و Option Value كلها `active` وغير محذوفة وتمتلك Coverage كامل. (هذا لا يأخذ بالاعتبار المخزون أو السعر، بل هو تقييم لهيكلية الـ Product).
+* **Effectively Selectable Variant:** كيان يُعتبر قابلاً للاختيار هيكلياً فقط إذا كان Variant, Option, و Option Value كلها `active` وغير محذوفة وتمتلك Coverage كامل. (لا يعتمد على حالة Product أو حذفه، ولا يأخذ بالاعتبار المخزون أو السعر، بل هو تقييم لهيكلية التكوين).
 * **Customer-Selectable Values:** القيم المتاحة للعميل لاختيارها تُستمد فقط من الـ Variants التي تعد Effectively Selectable بناءً على الهيكلية فقط.
 * **Simple Product:** منتج ليس لديه خيارات فعالة ويمتلك Exactly One Effectively Selectable Variant.
 * **Configurable Product:** منتج لديه خيارات فعالة.

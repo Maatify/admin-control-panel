@@ -81,7 +81,7 @@
 
 ### 5.4 Variant Activation Validation
 تفعيل الـ Variant بحد ذاتها يخضع لنفس مفهوم التنسيق المظلي (Package coordination):
-لا يتم تفعيل Variant ما لم تتجاوز التقييم الهيكلي (Product-local Structural Validity + Full Active Option Coverage) بالإضافة لوجود سجل Inventory ومرورها باختبار الـ Pricing Safety.
+لا يتم تفعيل Variant ما لم تتجاوز التقييم الهيكلي (`variant.deleted_at IS NULL` + Product-local Structural Validity + Full Active Option Coverage) بالإضافة لوجود سجل Inventory ومرورها باختبار الـ Pricing Safety.
 
 ### 5.5 Option & Option Value Activation Safety
 تفعيل Option (خيار) أو Option Value (قيمة) قد يؤثر على الأسعار النهائية للـ Variants التي تعتمد عليهما. لذلك، يجب على طبقة الـ Package التحقق من الـ Pricing Safety (عدم ظهور أسعار نهائية سالبة) قبل إتمام عملية التفعيل.
@@ -130,7 +130,7 @@
 * **الجهة المالكة:** Catalog Package / Host Application.
 * **الهوية المنطقية:** علاقة (Mapping) بين `category_id` و `product_id`.
 * **الـ Uniqueness:** يجب ألا تتكرر العلاقة لنفس الـ `(category_id, product_id)`.
-* **الـ Soft Delete:** يتبع الـ Lifecycle الخاص بالـ Package.
+* **الـ Soft Delete:** Soft delete does not release the `(category_id, product_id)` logical identity. Re-adding the same logical relation restores/reuses the existing relation identity rather than creating a replacement identity. `deleted_at` is not part of logical uniqueness.
 * **Display Order Scope:** خاص بكل `category_id`.
 * **Ordering Rule:** `ORDER BY display_order, id`.
 * **Visibility Semantics:**
