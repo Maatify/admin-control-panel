@@ -85,6 +85,15 @@
 
 # 6. Complete Database Schema — 2 Tables
 
+
+
+يجب أن تلتزم الجداول بالشروط الفيزيائية التالية:
+```text
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_unicode_ci
+```
+
 ## 6.1 `maa_pricing_base_prices`
 | العمود                 | النوع                            |
 | ---------------------- | -------------------------------- |

@@ -44,13 +44,13 @@
 | **Option/Value Integrity** | **Preserved inside Base Module (Product)** | موجودة لضمان سلامة وارتباط القيم والخيارات. |
 | **Cross-Product Composition Prevention** | **Preserved inside Base Module (Product)** | Transactionally enforced لضمان التبعية لنفس المنتج. |
 | **Simple/Configurable Product** | **Preserved inside Base Module (Product)** | مبنية حصريًا على البنية الهيكلية للخيارات الفعالة. |
-| **Direct Sellable Resolution** | **Rewritten inside Base Module (Product)** | قاصرة الآن على دلالة Simple Product هيكليًا (لا يتم تقييم Stock/Price هنا كما كان ضمنياً في الماضي). |
+| **Direct Sellable Resolution** | **Rewritten inside Base Module (Product)** | تم الحفاظ على القاعدة الهيكلية: No Active Options + Exactly One Effectively Selectable Variant (لا يشترط أن تكون default). Stock و Pricing لا يشاركان في خطوة الـ Resolution المباشرة. |
 | **Default Variant Conflict Handling**| **Preserved inside Base Module (Product)** | قاعدة الـ Maximum 1 وحل التعارض الداخلي عند الـ Restore موجودة. |
 | **Media Ownership** | **Preserved inside Base Module (Product)** | مُعرفة بوضوح للـ Product والـ Variant (Product Media vs Variant Media). |
 | **Primary Media Limits** | **Preserved inside Base Module (Product)** | القيود الخاصة بالـ Primary وحل تعارض الـ Restore موجودة بالكامل. |
 | **force_out_of_stock** | **Preserved inside Base Module (Product)** | Flag إداري هيكلي محفوظ في المنتج، ولا يتدخل لتقييم أو قراءة المخزون الفعلي، بل يفرض كـ Override هيكلي. |
 | **Product Visibility by Category** | **Catalog Package / Composite Rule** | لأن المنتج والكتالوج Base Modules منفصلان، الرؤية القائمة على الفئات أصبحت مهمة تنسيق في طبقة الـ Catalog Package ولا يمكن فرضها داخلياً. (وتم توضيحها كعلاقة غير محسومة الـ persistence على مستوى الـ Package). |
-| **Sellable In Currency State** | **Catalog Package / Composite Rule** | كانت تجمع Product Status + Base Price + Inventory. تم إزالتها من الـ Base Modules ونقلت لتصبح Derived Rule في الـ Catalog Package Layer. |
+| **Sellable In Currency State** | **Catalog Package / Composite Rule** | تم توضيح أن Sellable In Currency تعتمد فقط على الـ Base Price و Pricing rules منفصلة تماماً عن الـ Stock State، وتدار بواسطة الـ Package Coordinator. |
 | **Product Activation Completeness** | **Catalog Package / Composite Rule** | المنتج لا يمكنه قراءة الـ Pricing ولا الـ Inventory مباشرةً لضمان التفعيل. توفر السعر وسجل المخزون تُدار كـ Orchestrated Operation في طبقة الـ Package. |
 | **Variant Activation Validation** | **Catalog Package / Composite Rule** | تفعيل الـ Variant يستلزم تغطية خيارات، وسجل Inventory، وشروط تسعير، لذا التفعيل النهائي يتم تنسيقه من الـ Package. |
 | **Active Product Base Price Continuity**| **Catalog Package / Composite Rule** | قاعدة منع حذف آخر Base Price لمنتج مفعل. نُقلت كـ Orchestrated Rule لعدم تداخل الدومينات. |
@@ -61,8 +61,12 @@
 | **Same-Currency Pricing** | **Preserved inside Base Module (Pricing)** | مطبقة بالكامل كقاعدة أساسية لا يجمع تعديل بعملة مختلفة. |
 | **Missing Adjustment = 0** | **Preserved inside Base Module (Pricing)** | أي غياب لـ Adjustment في حساب السعر المركب يُعتبر `0`. |
 | **Missing Base Price = Not Sellable**| **Preserved inside Base Module (Pricing)** | غياب Base Price يعني أن الـ Subject المعني غير مسعر بهذه العملة. |
-| **Inventory 1:1 Identity** | **Rewritten inside Base Module (Inventory)** | الـ Inventory يلتزم بـ 1:1 لكل Subject خارجي مجرد عبر `stock_subject_type/id`، ولا يعرف أنه "Variant". |
-| **Inventory Lifecycle** | **Rewritten inside Base Module (Inventory)** | الـ Soft Delete والـ Restore للسجل يتم بشكل معزول ومجرد عن الـ Variant Lifecycle. |
+| **Inventory 1:1 Identity** | **Catalog Package Rule** | تم نقل التنسيق الخاص بالـ Variant 1:1 Lifecycle إلى الـ Catalog Package Coordinator، بينما الـ Inventory Base يحتفظ بالـ Identity المجردة. |
+| **Inventory Lifecycle** | **Catalog Package Rule** | دورة حياة مخزون الـ Variant (Soft delete, Restore, Replacement) محكومة ومنسقة بالكامل من Catalog Package Coordinator لمنع الحذف العشوائي وتوفير الـ Safety. |
+| **Product Display Order Contracts** | **Preserved inside Base Module (Product)** | تم تحديد النطاقات بدقة (Global للـ Products، per-Product، per-Option، الخ) وتأكيد الحتمية بـ `ORDER BY display_order, id`. |
+| **Physical DB Contract** | **Preserved (All)** | تم تثبيت Physical DB Contract (`ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`) في جميع الـ Architectures الأساسية. |
+| **Pricing Currency Immutability** | **Rewritten inside Base Module (Pricing)** | أصبحت الـ Logical Identity لـ Pricing تتضمن الـ `currency_code` وهي Immutable بالكامل، فتغيير العملة يعني إنشاء سجل جديد. |
+| **Variant ↔ Inventory Orchestration** | **Catalog Package / Composite Rule** | منسق الحزمة (Package Coordinator) يضمن أن كل Variant تملك مخزوناً، ويتحكم في إنشاء وحذف المخزون بناءً على استدامة الـ Variant. |
 | **Atomic Quantity Increments** | **Rewritten inside Base Module (Inventory)** | تم فرضها كقواعد Generic داخل Inventory باستخدام استعلامات صريحة تضمن `deleted_at IS NULL` وتمنع النزول تحت الصفر (Concurrency safe) مع تحديث `updated_at`، بمعزل تام عن دلالات الـ Orders والـ Reservations. |
 
 ## 4. إصلاحات الـ External Reference Identity
