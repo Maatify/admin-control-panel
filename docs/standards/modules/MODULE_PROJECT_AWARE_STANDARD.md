@@ -53,8 +53,22 @@ When a filter targets a column from the joined table (e.g. `order_id`), the JOIN
 
 ```php
 $filterOrderId = $columnFilters['order_id'] ?? null;
-$hasOrderFilter = (is_int($filterOrderId) || is_string($filterOrderId))
-    && is_numeric($filterOrderId) && (int) $filterOrderId > 0;
+$hasOrderFilter = false;
+if (is_int($filterOrderId)) {
+    $hasOrderFilter = $filterOrderId > 0;
+} elseif (
+    is_string($filterOrderId)
+    && preg_match('/^[1-9][0-9]*$/D', $filterOrderId) === 1
+    && (
+        strlen($filterOrderId) < strlen((string) PHP_INT_MAX)
+        || (
+            strlen($filterOrderId) === strlen((string) PHP_INT_MAX)
+            && strcmp($filterOrderId, (string) PHP_INT_MAX) <= 0
+        )
+    )
+) {
+    $hasOrderFilter = true;
+}
 
 $orderJoinSql = $hasOrderFilter
     ? 'INNER JOIN `order_subscriptions` os ON os.`subscription_id` = cat.`subscription_id`

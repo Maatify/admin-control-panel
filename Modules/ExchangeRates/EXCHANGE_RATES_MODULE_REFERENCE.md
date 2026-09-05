@@ -2,8 +2,14 @@
 
 **Package:** `maatify/exchange-rates`
 **Namespace root:** `Maatify\ExchangeRates\`
-**Standard:** `docs/standards/modules/MODULE_BUILDING_STANDARD.md` v1
+**Governing standard for future changes:** `docs/standards/modules/MODULE_BUILDING_STANDARD.md` v1
+**Implementation status:** LEGACY / AS-IS — this reference is not a compliance declaration.
 **PHPStan:** level max, zero suppressions
+
+This reference documents the current ExchangeRates implementation. Its
+historical contracts and deviations are retained for compatibility; future
+changes must follow the governing standard and
+`docs/standards/ADMIN_ADOPTION_POLICY.md`.
 
 ---
 

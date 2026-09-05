@@ -4,7 +4,7 @@
 > **Scope:** Entire Documentation Tree  
 > **Audience:** Humans & AI Executors  
 > **Purpose:** Single authoritative entry point for all documentation  
-> **Last Updated:** 2026-01-31
+> **Last Updated:** 2026-09-05
 
 ---
 
@@ -35,9 +35,11 @@ Any human or AI working on this project **MUST** start here.
 
 The remaining engineering standards are available under `docs/standards/`:
 
+- `ADMIN_ADOPTION_POLICY.md` defines Admin-specific precedence and explicit
+  compatibility decisions.
 - `modules/` defines Base, Slim, and Project-Aware module profiles.
 - `packages/` defines package structure, Composer, CI, and presentation rules.
-- `STANDARDS_SOURCE.md` records the exact upstream snapshot used by this project.
+- `STANDARDS_SOURCE.md` records the upstream snapshot and the local adoption delta used by this project.
 
 ---
 
@@ -53,13 +55,26 @@ Documentation is strictly layered.
 | **A1** | KERNEL_BOUNDARIES.md              | HIGH      | Core Kernel Security Boundaries         |
 | **A1** | docs/auth/                        | HIGH      | Authentication & Step-Up Specifications |
 | **A2** | API.md                            | HIGH      | API Contracts & Canonical LIST/QUERY    |
+| **A2** | docs/standards/ADMIN_ADOPTION_POLICY.md | HIGH | Admin-specific standard adoption and exceptions |
+| **A3** | docs/standards/modules/            | NORMATIVE | Generic module profiles                  |
+| **A3** | docs/standards/packages/            | NORMATIVE | Generic package and CI profiles           |
 | **B**  | docs/adr/                         | MEDIUM    | Architectural Decisions (WHY)           |
 | **C**  | docs/architecture/                | LOW       | Analysis & Explanations                 |
 | **G**  | docs/security/                    | LOW       | Derived Security Documentation          |
 | **H**  | docs/ui/                          | LOW       | UI & Frontend Notes (Non-authoritative) |
 
-📌 In case of conflict:  
-**PROJECT_CANONICAL_CONTEXT.md ALWAYS WINS**
+📌 Conflict resolution order, from highest to lowest, is:
+
+1. Current explicit owner instruction.
+2. Applicable `AGENTS.md` instructions.
+3. `PROJECT_CANONICAL_CONTEXT.md` and activated security/architecture decisions.
+4. `docs/API.md` and the Admin API/template contracts.
+5. `docs/standards/ADMIN_ADOPTION_POLICY.md` for the listed Admin-specific compatibility decisions.
+6. Generic standards under `docs/standards/modules/` and `docs/standards/packages/`.
+7. Supporting, explanatory, or historical documentation.
+
+`PROJECT_CANONICAL_CONTEXT.md` remains the highest project behavior and
+security authority; no lower document may silently override it.
 
 ---
 
@@ -189,30 +204,27 @@ PROJECT_CANONICAL_CONTEXT.md
 
 ## 🚀 Reading Paths (Role-Based)
 
+The following are continuation paths **after completing the mandatory reading
+order above**. They do not redefine the project starting point.
+
 ### Backend Developer
-1. docs/index.md
-2. PROJECT_CANONICAL_CONTEXT.md
-3. KERNEL_BOUNDARIES.md
-4. docs/auth/
-5. ADMIN_PANEL_CANONICAL_TEMPLATE.md
-6. API.md
-7. Relevant ADR
+1. Complete the mandatory reading order above.
+2. KERNEL_BOUNDARIES.md
+3. docs/auth/
+4. Relevant ADR
 
 ---
 
 ### AI Executor (STRICT)
-1. docs/index.md
-2. PROJECT_CANONICAL_CONTEXT.md
-3. KERNEL_BOUNDARIES.md
-4. docs/auth/
-5. ADMIN_PANEL_CANONICAL_TEMPLATE.md
-6. API.md
-7. Relevant ADR
+1. Complete the mandatory reading order above.
+2. KERNEL_BOUNDARIES.md
+3. docs/auth/
+4. Relevant ADR
 
 ---
 
 ### Reviewer / Auditor
-1. PROJECT_CANONICAL_CONTEXT.md
+1. Complete the mandatory reading order above.
 2. Relevant ADR
 3. Audit Reports
 

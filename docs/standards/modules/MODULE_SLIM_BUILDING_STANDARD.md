@@ -92,7 +92,9 @@ class SettingAdminPermissionMapProvider {
 - **route name** (left side) = what's passed to `Route.setName()`
 - **permission name** (right side) = what's in permissions database
 - UI routes need same permission as their API counterpart
-- Dropdown endpoint shares permission with list (used together)
+- Dropdown, autocomplete, and select datasets use a dedicated endpoint and
+  dedicated explicit permission (for example, `products.select`). A list or
+  mutation permission does not grant selection access implicitly.
 
 **SettingAdminPermissionPackage.php**: Provides permissions to AdminKernel
 
@@ -114,7 +116,7 @@ class SettingAdminPermissionPackage implements ProvidesPermissionMapsInterface {
 **How It Works**:
 1. Each package implements `ProvidesPermissionMapsInterface`
 2. Returns array of provider classes
-3. AdminKernel loads all packages from `public/index.php`
+3. AdminKernel loads all packages from `public/admin/index.php`
 4. For each route, checks permission map
 5. Compares route name with map to get required permission
 6. Verifies admin has that permission via database
@@ -316,7 +318,9 @@ Every public controller method (or `__invoke`) MUST have a docblock that serves 
 public function __invoke(Request $request, Response $response): Response
 ```
 
-This docblock is the **single source of truth** for frontend integration — no separate documentation needed.
+This docblock is supplementary implementation documentation. The official API
+contract remains `docs/API.md`; an endpoint is not official until it is
+documented there.
 
 **Controllers Required**:
 - `SettingsListController` - Query with filters/search (returns paginated results)
@@ -1412,7 +1416,7 @@ document.addEventListener('DOMContentLoaded', () => { window.EntityDetailsWithCo
 
 ### Step 9: Register with Main App
 
-**public/index.php**:
+**public/admin/index.php**:
 ```php
 use Maatify\SettingsSlim\Admin\Security\SettingAdminPermissionPackage;
 $permissionPackages = [new SettingAdminPermissionPackage()];
@@ -1683,7 +1687,7 @@ public function list(ListQueryDTO $dto): array {
 - [ ] Verified permissions in DB: `SELECT * FROM permissions WHERE name LIKE '[module].%'`
 
 ### Integration
-- [ ] Registered PermissionPackage in `public/index.php`
+- [ ] Registered PermissionPackage in `public/admin/index.php`
 - [ ] Registered API routes in `ApiProtectedRoutes.php`
 - [ ] Registered UI routes in `UiProtectedRoutes.php`
 - [ ] Base permissions exist in database
@@ -2728,7 +2732,7 @@ Every run must log via `LoggerInterface`:
 
 ### Container `$builderHook`
 
-The `Container::create()` method accepts an optional `$builderHook` callable. Cron scripts **must** use it to register module bindings that are normally registered in `public/index.php` — the cron script doesn't go through the HTTP bootstrap:
+The `Container::create()` method accepts an optional `$builderHook` callable. Cron scripts **must** use it to register module bindings that are normally registered in `public/admin/index.php` — the cron script doesn't go through the HTTP bootstrap:
 
 ```php
 $container = Container::create($runtimeConfig, static function (ContainerBuilder $builder): void {

@@ -10,10 +10,19 @@ from a floating branch at runtime.
 - **Local path:** `docs/standards/`
 - **Snapshot date:** `2026-09-05`
 
-The eight files under `docs/standards/` were copied from that commit. Only
-trailing whitespace and redundant blank lines at end-of-file were normalized
-locally so the files pass this repository's required whitespace gate; the
-standards' substantive content and rules were not changed.
+The eight standards files under `docs/standards/` were copied from that
+commit. The local path mapping is:
+
+- `standards/ai/AI_COLLABORATION_WORKFLOW_AR.md` → `docs/standards/AI_COLLABORATION_WORKFLOW_AR.md`
+- `standards/modules/*` → `docs/standards/modules/*`
+- `standards/packages/*` → `docs/standards/packages/*`
+
+Admin-specific compatibility corrections are applied only in the local copy
+and are listed in
+[`ADMIN_ADOPTION_POLICY.md`](ADMIN_ADOPTION_POLICY.md). They do not modify the
+upstream repository or claim that this local copy is byte-identical. Trailing
+whitespace and redundant end-of-file blank lines were also normalized so the
+files pass the repository's required whitespace gate.
 
 Any future upgrade must be handled by a separate reviewable change that
 records the new upstream commit and its impact on this project.
