@@ -21,22 +21,7 @@ on:
       - "phpunit.*.xml"
       - ".github/workflows/**"
   pull_request:
-    branches: ["**"]
-    paths:
-      - "app/**"
-      - "Modules/**"
-      - "public/**"
-      - "tests/**"
-      - "scripts/**"
-      - "bin/**"
-      - "tools/**"
-      - "database/**/*.sql"
-      - "composer.json"
-      - "composer.lock"
-      - "phpstan.neon"
-      - "phpstan.neon.dist"
-      - "phpunit.*.xml"
-      - ".github/workflows/**"
+    branches: ["main"]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
