@@ -13,6 +13,10 @@ A **Slim Module** is a thin Admin UI wrapper around a core module that:
 
 Example: `SettingsSlim` wraps `Settings`
 
+> **Cross-module composition**: If the host needs to JOIN tables from multiple core modules
+> (e.g. enriching images with order data), see `MODULE_PROJECT_AWARE_STANDARD.md` for the
+> host-composition pattern. This document covers single-core-module Slim modules only.
+
 ---
 
 ## 📁 Directory Structure
@@ -183,7 +187,7 @@ class SettingListCapabilities implements ProvidesListCapabilitiesInterface {
     public function searchableColumns(): array {
         return ['key', 'admin_note'];  // Searchable by global search
     }
-    
+
     public function filterableColumns(): array {
         return ['key', 'admin_note', 'value_type'];  // Can filter individually
     }
@@ -278,6 +282,41 @@ if (isset($columnFilters['value_type'])) {
 ### Step 4: Create API Controllers
 
 **Pattern**: Controllers handle HTTP layer, inject Services for logic
+
+**⚠️ MANDATORY: API Method Docblock**
+
+Every public controller method (or `__invoke`) MUST have a docblock that serves as a contract for the frontend team. The docblock must include:
+
+1. **HTTP method + endpoint path** — e.g. `POST /settings/update`
+2. **Description** — what the endpoint does (one sentence)
+3. **Request body** — expected fields with types, or `(none)` if empty
+4. **Response shape** — JSON example showing the exact structure
+5. **Permission** — the permission name required
+
+```php
+/**
+ * POST /settings/update
+ *
+ * Updates a single setting value by key.
+ *
+ * Request body:
+ * {
+ *   "setting_key": "string (required)",
+ *   "value": "string (required, may be empty)"
+ * }
+ *
+ * Response:
+ * {
+ *   "success": true,
+ *   "data": { "setting_key": "app_name", "value": "Athar" }
+ * }
+ *
+ * Permission: settings.edit
+ */
+public function __invoke(Request $request, Response $response): Response
+```
+
+This docblock is the **single source of truth** for frontend integration — no separate documentation needed.
 
 **Controllers Required**:
 - `SettingsListController` - Query with filters/search (returns paginated results)
@@ -381,6 +420,27 @@ class SettingsListUiController {
 - Each key = one permission check
 - Values = boolean true/false
 
+#### Cross-Module Capability Injection
+
+When your detail/list page links to **another module's detail page** (e.g. Invoice → Order, Cart → Subscription), always inject the **target module's specific detail permission** as a capability:
+
+```php
+$capabilities = [
+    // Own feature capabilities
+    'can_view' => $uiPermissionService->hasPermission($adminId, 'my.feature.list'),
+
+    // External module linking capabilities (target module's detail permission)
+    'can_view_orders'       => $uiPermissionService->hasPermission($adminId, 'orders.view'),
+    'can_view_subscriptions' => $uiPermissionService->hasPermission($adminId, 'ar_platform_subscriptions.details'),
+];
+```
+
+**Naming convention**: `can_view_{target_entity_plural}` (e.g. `can_view_orders`, `can_view_subscriptions`).
+
+**Permission key convention**: Use the **same permission key** that the target module's detail route requires (not the list permission).
+
+---
+
 ### Step 6: Create Routes
 
 **SettingsApiRoutes.php**: Register API endpoints
@@ -452,6 +512,33 @@ class SettingsUiRoutes {
 | Has middleware | Yes, AuthorizationGuard | Yes, AuthorizationGuard |
 | Uses permission check | Yes | Yes |
 | Example | GET /settings | POST /settings/query |
+
+**Detail UI Route** (when the module has a detail/show page):
+
+```php
+class SettingsUiRoutes {
+    public static function register(RouteCollectorProxy $group): void {
+        $group->get('/settings', SettingsListUiController::class)
+            ->setName('settings.list.ui')
+            ->add(AuthorizationGuardMiddleware::class);
+
+        // Detail page — renders entity detail with capabilities
+        $group->get('/settings/{id:[0-9]+}', SettingsDetailsUiController::class)
+            ->setName('settings.details.ui')
+            ->add(AuthorizationGuardMiddleware::class);
+    }
+}
+```
+
+**API GET Route** (for detail endpoints that return JSON):
+
+```php
+$group->get('/settings/{id:[0-9]+}', [SettingsGetController::class, '__invoke'])
+    ->setName('settings.get.api')
+    ->add(AuthorizationGuardMiddleware::class);
+```
+
+**Key difference**: POST endpoints receive body-based filters/data. GET endpoints receive ID via route parameter.
 
 ### Step 7: Create Twig Templates
 
@@ -540,6 +627,55 @@ pages/settings/settings_list.twig (your page)
 {% endblock %}
 ```
 
+**📄 Detail Page Template** (when the module has a detail/show page):
+
+```twig
+{% extends "layouts/base.twig" %}
+
+{% block title %}Setting #{{ entity.id }}{% endblock %}
+
+{% block content %}
+
+    <script>
+        {# Capabilities — always explicit extraction #}
+        window.entityCapabilities = {
+            can_edit: {{ capabilities.can_edit ?? false ? 'true' : 'false' }},
+        };
+
+        {# Entity context — MUST use JSON_HEX_* flags to prevent </script> injection #}
+        window.entityContext = {{ entity|json_encode(
+            constant('JSON_HEX_TAG')
+            b-or constant('JSON_HEX_AMP')
+            b-or constant('JSON_HEX_APOS')
+            b-or constant('JSON_HEX_QUOT')
+        )|raw }};
+    </script>
+
+    <!-- Breadcrumb: Home > List > #ID -->
+    <!-- Metadata section (rendered by JS) -->
+    <div id="entity-metadata"></div>
+
+    <!-- Feature sections (lazy-loaded by JS if needed) -->
+    <div id="entity-feature-container"></div>
+
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ asset('assets/maatify/admin-kernel/js/api_handler.js') }}"></script>
+    <script src="{{ asset('assets/maatify/admin-kernel/js/callback_handler.js') }}"></script>
+
+    {# Module Scripts (Pattern B) #}
+    <script src="{{ asset('assets/js/modules/feature/entity-details-helpers.js') }}"></script>
+    <script src="{{ asset('assets/js/modules/feature/entity-details-actions.js') }}"></script>
+    <script src="{{ asset('assets/js/modules/feature/entity-details.js') }}"></script>
+{% endblock %}
+```
+
+**⚠️ CRITICAL — Entity Context Injection**:
+- **Capabilities**: Use explicit `{{ capabilities.x ?? false ? 'true' : 'false' }}` per field — never `json_encode|raw`
+- **Entity objects**: Use `json_encode` with `JSON_HEX_TAG`, `JSON_HEX_AMP`, `JSON_HEX_APOS`, `JSON_HEX_QUOT` flags — prevents `</script>` injection from DB strings
+- **Never** use bare `{{ entity|json_encode|raw }}` — stored XSS risk
+
 **🔑 Key Twig Syntax & Features**
 
 | Syntax | Purpose | Example |
@@ -601,6 +737,66 @@ return $this->twig->render($response, 'pages/settings/settings_list.twig', [
     'ui' => [/*...*/],               // Global UI helpers (appName, adminUrl, etc)
 ]);
 ```
+
+#### 🧩 Detail Page Rendering Patterns
+
+Use **two layout modes** depending on data type:
+
+| Mode | When | Pattern |
+|---|---|---|
+| **Field Grid** | Displaying individual DB columns as labeled values | 3-column grid of `bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5` cards |
+| **Section Wrapper** | Grouping related content (metadata, lazy-loaded data, action panels) | Single `<section>` with the same border/shadow classes + `<h3>` title |
+
+**Field Grid example:**
+```twig
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+        <div class="text-sm text-gray-500 dark:text-gray-400 mb-1">Label</div>
+        <div class="text-lg font-semibold text-gray-900 dark:text-white">{{ value }}</div>
+    </div>
+    {# ... more cards #}
+</div>
+```
+
+**Section Wrapper example** (reference: `cart_details.twig`):
+```twig
+<section class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5 mb-8">
+    <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-4">Section Title</h3>
+    <div id="section-content" class="text-sm text-gray-500 dark:text-gray-400">...</div>
+</section>
+```
+
+**Permission-aware linking in detail pages:**
+```twig
+{%- if entity.foreign_id and capabilities.can_view_foreign -%}
+    <a href="{{ ui.adminUrl }}foreign/{{ entity.foreign_id }}" class="text-blue-600 dark:text-blue-400 hover:underline">#{{ entity.foreign_id }}</a>
+{%- else -%}
+    <span>{{ entity.foreign_id ?? '—' }}</span>
+{%- endif -%}
+```
+
+**Action buttons placement**: Permission-gated action buttons (download, edit, status) go at the **top of the page**, between breadcrumb and content grid, `flex justify-end` aligned.
+
+**JSON display in detail pages**: Always pretty-print client-side in a `<pre>` tag — never format in the query layer.
+```twig
+<pre id="json-container" class="text-sm font-mono whitespace-pre-wrap break-words"></pre>
+<script>
+    try {
+        var rawJson = {{ raw_json|json_encode(
+            constant('JSON_HEX_TAG')
+            b-or constant('JSON_HEX_AMP')
+            b-or constant('JSON_HEX_APOS')
+            b-or constant('JSON_HEX_QUOT')
+        )|raw }};
+        var parsed = JSON.parse(rawJson);
+        document.getElementById('json-container').textContent = JSON.stringify(parsed, null, 2);
+    } catch(e) {
+        document.getElementById('json-container').textContent = rawJson;
+    }
+</script>
+```
+
+---
 
 ### Step 8: Create JavaScript File
 
@@ -1030,6 +1226,47 @@ const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => 
 - Values get validated at API layer (Respect\Validation)
 - Store raw values in database as-is
 
+**🔗 URL Encoding — Different Context, Different Function**:
+
+| Context | Function | Example |
+|---------|----------|---------|
+| HTML content display | `escapeHtml(value)` | `<span>${escapeHtml(name)}</span>` |
+| URL parameter or path segment | `encodeURIComponent(value)` | `href="/orders/${encodeURIComponent(id)}"` |
+| External URL from DB as clickable link | Validate scheme first | See `safeExternalLink` below |
+
+```javascript
+// ❌ WRONG — escapeHtml does NOT encode URL-special characters
+href="/customers?id=${escapeHtml(v)}"
+
+// ✅ CORRECT — encodeURIComponent for URL context
+href="/customers?id=${encodeURIComponent(v)}"
+
+// ✅ Display text still uses escapeHtml
+<a href="/customers?id=${encodeURIComponent(v)}">${escapeHtml(v)}</a>
+```
+
+**External URLs from DB** — must validate scheme before rendering as `<a>`:
+
+```javascript
+safeExternalLink(url) {
+    let parsed;
+    try {
+        parsed = new URL(url);
+    } catch {
+        return '<span class="...">' + escapeHtml(url) + '</span>';
+    }
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+        return '<span class="...">' + escapeHtml(url) + '</span>';
+    }
+    return '<a href="' + escapeHtml(parsed.href) + '" target="_blank" rel="noopener noreferrer">'
+        + escapeHtml(url) + '</a>';
+}
+```
+
+- `parsed.href` (normalized) in the `href` attribute
+- Original `url` (escaped) as display text
+- Non-http(s) schemes (e.g. `javascript:`) render as plain text — prevents XSS
+
 **Pattern**: 
 - Use `createTable()` from shared infrastructure
 - Handle filter/search events
@@ -1079,6 +1316,105 @@ if (result.success) {
 // Database error
 { success: false, error: "Database error occurred" }
 ```
+
+#### 8.3: Detail Page JavaScript (Pattern B — 3 Files)
+
+When the module has a detail/show page, the JS follows **Pattern B** with 3 separate files:
+
+**File 1: `entity-details-helpers.js`** — Pure rendering, no events:
+
+```javascript
+const EntityDetailsHelpers = {
+    API_ROUTES: {
+        GET: 'endpoint/{entityId}',
+        // lazy-load endpoints with {placeholders}
+    },
+    escapeHtml(value) { /* ... */ },
+    field(label, value) {
+        return `<div class="border ... rounded-lg p-4">
+            <p class="text-xs uppercase ...">${this.escapeHtml(label)}</p>
+            <p class="mt-1 text-sm ...">${value != null ? value : '—'}</p>
+        </div>`;
+    },
+    badge(label, tone) { /* primary|success|danger|neutral */ },
+    link(url, label, allowed) {
+        // renders <a> if capability allows, otherwise plain text
+        return allowed
+            ? `<a href="${url}" class="...">${this.escapeHtml(label)}</a>`
+            : this.escapeHtml(label);
+    },
+    renderMetadata(ctx, cap) {
+        const container = document.getElementById('entity-metadata');
+        if (!container) return;
+        container.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            ${this.field('ID', '#' + this.escapeHtml(ctx.id))}
+            ${this.field('Name', this.escapeHtml(ctx.name))}
+            <!-- more fields -->
+        </div>`;
+    },
+};
+window.EntityDetailsHelpers = EntityDetailsHelpers;
+```
+
+**File 2: `entity-details-actions.js`** — Event listeners and async operations:
+
+```javascript
+const EntityDetailsActions = {
+    bindEvents() {
+        const ctx = window.entityContext;
+        const cap = window.entityCapabilities;
+        const h = window.EntityDetailsHelpers;
+        if (!ctx || !cap || !h) return;
+
+        // Lazy-load button
+        document.getElementById('btn-load-section')?.addEventListener('click', async function () {
+            if (!cap.can_view_section || !window.ApiHandler) return;
+            this.disabled = true;
+            // ... API call, render result, handle error
+            this.disabled = false;
+        });
+    },
+    init() { this.bindEvents(); }
+};
+window.EntityDetailsActions = EntityDetailsActions;
+```
+
+**File 3: `entity-details.js`** — Minimal init (with-components):
+
+```javascript
+const EntityDetailsWithComponents = {
+    init() {
+        const ctx = window.entityContext;
+        const cap = window.entityCapabilities;
+        const h = window.EntityDetailsHelpers;
+        if (!ctx || !cap || !h) return;
+
+        h.renderMetadata(ctx, cap);
+
+        if (window.EntityDetailsActions) {
+            window.EntityDetailsActions.init();
+        }
+    }
+};
+window.EntityDetailsWithComponents = EntityDetailsWithComponents;
+document.addEventListener('DOMContentLoaded', () => { window.EntityDetailsWithComponents.init(); });
+```
+
+**Load order in Twig** — helpers first, then actions, then init:
+```twig
+<script src="{{ asset('assets/js/modules/feature/entity-details-helpers.js') }}"></script>
+<script src="{{ asset('assets/js/modules/feature/entity-details-actions.js') }}"></script>
+<script src="{{ asset('assets/js/modules/feature/entity-details.js') }}"></script>
+```
+
+**Detail Page Testing Checklist**:
+- [ ] Page loads, metadata renders with correct data
+- [ ] Links respect capabilities (link vs plain text)
+- [ ] Lazy-load buttons call API and render result
+- [ ] Error states show user-friendly message
+- [ ] External URLs validated (non-http schemes render as plain text)
+- [ ] `encodeURIComponent` used in all URL parameters
+- [ ] `escapeHtml` used in all display text
 
 ### Step 9: Register with Main App
 
@@ -1778,6 +2114,81 @@ If core needs a feature, add to core. Don't simulate in Slim.
 
 ---
 
+## 📦 Cross-Table Status Columns in List Queries
+
+When a list page needs to display a status value from a related table (e.g. shipping/fulfillment status on the orders list):
+
+### Query Pattern
+Use a **correlated subquery** in `SAFE_SELECT` — never a `LEFT JOIN`:
+
+```sql
+(
+    SELECT of2.`status`
+    FROM `order_fulfillments` of2
+    WHERE of2.`order_id` = o.`id`
+    ORDER BY of2.`id` DESC
+    LIMIT 1
+) AS `fulfillment_status`
+```
+
+- Returns `NULL` when no related row exists (no fulfillment → no status)
+- Uses the existing index on `(order_id)` — no extra JOIN overhead
+- `ORDER BY ... DESC LIMIT 1` picks the latest row (most recent fulfillment)
+
+### Filter Pattern
+The filter MUST use the **same correlated subquery** as the SELECT — otherwise the filter matches any row while the display shows only the latest:
+
+```php
+$fulfillmentStatus = $columnFilters['fulfillment_status'] ?? null;
+if (is_string($fulfillmentStatus) && trim($fulfillmentStatus) !== '') {
+    $where[] = '(
+        SELECT of2.`status`
+        FROM `order_fulfillments` of2
+        WHERE of2.`order_id` = o.`id`
+        ORDER BY of2.`id` DESC
+        LIMIT 1
+    ) = :fulfillment_status';
+    $params['fulfillment_status'] = trim($fulfillmentStatus);
+}
+```
+
+- Orders without a related row never match the filter
+- The filter operates on the **same row** that the display column reads
+- No `GROUP BY` issues (correlated subquery in WHERE is scalar)
+
+**🚨 Critical**: Never use `EXISTS` to filter a cross-table status column. `EXISTS` matches any row in the related table, but the display shows only the latest. The filter and display must agree on which row they inspect.
+
+### DTO Pattern
+Add as a nullable property:
+
+```php
+public ?string $fulfillmentStatus = null,
+```
+
+In `fromRow()`:
+```php
+$fulfillmentStatus = $row['fulfillment_status'] ?? null;
+// ...
+fulfillmentStatus: self::nullableString($fulfillmentStatus),
+```
+
+In `jsonSerialize()`:
+```php
+'fulfillment_status' => $this->fulfillmentStatus,
+```
+
+### UI Pattern
+- **Display**: Badge with color per status value; show `—` for `null` (no related data)
+- **Filter**: `<select>` with all possible status values + `""` (All) option
+- The JS helper reads the filter via `v('filter-fulfillment-status')`
+
+### When NOT to use this pattern
+- If the related table has at most one row per parent (use a simple LEFT JOIN)
+- If the related table data is needed for sorting (use a JOIN + GROUP BY)
+- If the relationship is one-to-one and always present
+
+---
+
 ## 🛡️ Edge Cases & Error Handling
 
 ### Edge Case 1: Empty Search Results
@@ -1984,3 +2395,352 @@ if (result.error === 'network') {
 - [ ] Missing ListCapabilities column stops filter chain
 - [ ] Concurrent edits produce last-write-wins
 - [ ] Network errors show proper messages
+
+---
+
+## ⚠️ Exception Handling: Core Module → AdminKernel (Critical Pattern)
+
+### Why This Matters
+
+The **Core Module** (`Modules/AppRelease`, `Modules/PaymentMethod`, etc.) is **independent** — it knows nothing about the Slim layer or AdminKernel. It throws its own exceptions:
+
+| Core Module Exception | Example Message |
+|---|---|
+| `AppReleaseNotFoundException` | `App with id [5] not found.` |
+| `AppReleaseConflictException` | `Version with id [3] must be published.` |
+| `AppReleaseInvalidArgumentException` | `OS version [abc] must be numeric dotted format.` |
+| `AppReleaseCodeAlreadyExistsException` | `Channel with code [my-channel] already exists.` |
+| `PaymentMethodNotFoundException` | `PaymentMethod with id [10] not found.` |
+| `PaymentMethodFeeConflictException` | `Fee overlap detected.` |
+| `PaymentMethodInvalidArgumentException` | `Invalid fee_type [xyz].` |
+
+These exceptions all extend `\RuntimeException` directly — they are **NOT** handled by the global error middleware in `http.php`, so they fall through to the catch-all `Throwable` handler and return **HTTP 500 Internal Server Error** with no useful error message in production.
+
+### The Rule
+
+> **Slim controllers MUST catch all core module exceptions and rethrow them as AdminKernel exceptions.**
+
+This keeps the core module independent (no AdminKernel dependency) while giving the Slim layer proper HTTP error responses.
+
+### Exception Mapping Table
+
+| Core Exception | Category | AdminKernel Exception | HTTP Status | Error Code |
+|---|---|---|---|---|
+| `*NotFoundException` | Entity not found | `EntityNotFoundException` | 404 | `NOT_FOUND` |
+| `*ConflictException` | State/rule conflict | `InvalidOperationException` | 409 | `INVALID_OPERATION` |
+| `*InvalidArgumentException` | Validation/bad input | `InvalidIdentifierFormatException` | 400 | `BAD_REQUEST` |
+| `*CodeAlreadyExistsException` | Duplicate unique code | `EntityAlreadyExistsException` | 409 | `ENTITY_ALREADY_EXISTS` |
+| `*FeeConflictException` | Overlapping fee rule | `EntityAlreadyExistsException` | 409 | `ENTITY_ALREADY_EXISTS` |
+
+### Pattern: try-catch in Controller
+
+```php
+use Maatify\AdminKernel\Domain\Exception\EntityAlreadyExistsException;
+use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
+use Maatify\AdminKernel\Domain\Exception\InvalidIdentifierFormatException;
+use Maatify\AdminKernel\Domain\Exception\InvalidOperationException;
+use Maatify\AppRelease\Exception\AppReleaseCodeAlreadyExistsException;
+use Maatify\AppRelease\Exception\AppReleaseConflictException;
+use Maatify\AppRelease\Exception\AppReleaseInvalidArgumentException;
+use Maatify\AppRelease\Exception\AppReleaseNotFoundException;
+
+// In the controller method:
+try {
+    $this->commandService->create($command);
+} catch (AppReleaseNotFoundException) {
+    // Entity not found — use the entity being created/updated
+    throw new EntityNotFoundException('Target', $targetCode);
+} catch (AppReleaseCodeAlreadyExistsException) {
+    // Duplicate unique code
+    throw new EntityAlreadyExistsException('Target', 'target_code', $targetCode);
+} catch (AppReleaseConflictException $e) {
+    // Business rule violation
+    throw new InvalidOperationException('Target', 'create', $e->getMessage());
+} catch (AppReleaseInvalidArgumentException $e) {
+    // Validation error (bad input format)
+    throw new InvalidIdentifierFormatException($e->getMessage());
+}
+```
+
+### Pattern: Simple Controller (Only NotFound)
+
+For simple operations like `setActive`, `updateSortOrder`, `delete` that only throw `*NotFoundException`:
+
+```php
+use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
+use Maatify\AppRelease\Exception\AppReleaseNotFoundException;
+
+// In the controller method:
+try {
+    $this->commandService->updateStatus($command);
+} catch (AppReleaseNotFoundException) {
+    throw new EntityNotFoundException('Target', $id);
+}
+```
+
+### Pattern: Controller with Many Exceptions
+
+Complex controllers (e.g., Rules, Versions, Policies) can throw multiple exception types:
+
+```php
+try {
+    $this->commandService->publish($command);
+} catch (AppReleaseNotFoundException) {
+    throw new EntityNotFoundException('Version', $id);
+} catch (AppReleaseConflictException $e) {
+    throw new InvalidOperationException('Version', 'publish', $e->getMessage());
+}
+```
+
+### What NOT To Do
+
+| ❌ Wrong | ✅ Correct |
+|---|---|
+| Don't catch module exceptions → returns 500 | Catch and convert to AdminKernel exception |
+| `throw new EntityNotFoundException($e->getMessage(), ...)` — uses `$e->getMessage()` as entity name | Use a proper entity name from the controller context |
+| Import `PaymentMethodInvalidArgumentException` in `AppReleaseSlim` controller | Each Slim adapter only imports exceptions from its own core module: `AppReleaseSlim` → `AppRelease\Exception`, `PaymentMethodSlim` → `PaymentMethod\Exception`. Cross-module imports are wrong. |
+| Directly throw core module exceptions from controller (`throw new AppReleaseNotFoundException(...)`) | Always convert to AdminKernel exception |
+| Try to handle in global `http.php` middleware | Handle per-controller in the Slim layer — each controller knows which exceptions its service can throw |
+
+### Why Per-Controller, Not Global Middleware
+
+- Each controller knows which service it calls and what that service throws
+- Global middleware can't know the entity name, field name, or operation context
+- Per-controller handling keeps module isolation intact
+- The global error middleware in `http.php` already handles all AdminKernel exceptions properly
+
+### Testing Checklist
+
+- [ ] Every controller with a service call has a try-catch
+- [ ] All possible exceptions from the service are caught
+- [ ] Entity names match the domain (e.g., 'App', 'Platform', 'Version', 'UpdateRule')
+- [ ] `EntityNotFoundException` second parameter matches the identifier (int for id, string for code)
+- [ ] `InvalidIdentifierFormatException` passes the original message as-is
+- [ ] `InvalidOperationException` includes entity + operation + $e->getMessage() as reason
+- [ ] No core module exceptions leak to the global handler
+- [ ] All AdminKernel exceptions are imported correctly
+
+---
+
+## ⚠️ Analytics Page Pattern
+
+When a Slim module wraps a core module that has a pre-aggregated stats table (see `MODULE_BUILDING_STANDARD.md` §21), follow this pattern for the analytics UI page.
+
+### API Endpoint
+
+Use **GET** (not POST) with query parameters — analytics is a read-only query:
+
+```php
+/**
+ * GET /module/analytics/stats?date_from=YYYY-MM-DD&date_to=YYYY-MM-DD
+ *
+ * Permission: {module}.analytics
+ */
+public function __invoke(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+{
+    $params = $request->getQueryParams();
+    $dateFrom = isset($params['date_from']) && is_string($params['date_from']) ? trim($params['date_from']) : '';
+    $dateTo   = isset($params['date_to'])   && is_string($params['date_to'])   ? trim($params['date_to'])   : '';
+
+    if ($dateFrom === '' || $dateTo === '') {
+        throw new InvalidIdentifierFormatException('date_from and date_to are required (YYYY-MM-DD).');
+    }
+
+    try {
+        $result = $this->service->getAnalytics($dateFrom, $dateTo);
+    } catch (ModuleInvalidArgumentException $e) {
+        throw new InvalidIdentifierFormatException($e->getMessage());
+    }
+
+    return $this->responseFactory->data($response, $result);
+}
+```
+
+### Permission
+
+Dedicated permission `{module}.analytics` — separate from list/view:
+
+```php
+// PermissionMapProvider
+'module.analytics.ui'        => PermissionRequirementDefinition::single('module.analytics'),
+'module.analytics.stats.api' => PermissionRequirementDefinition::single('module.analytics'),
+```
+
+### Twig Template Structure
+
+```twig
+{# Capabilities — explicit booleans #}
+window.analyticsCap = {
+    can_view_entities: {{ capabilities.can_view_entities ?? false ? 'true' : 'false' }}
+};
+
+{# Date Range Filter — presets + custom range #}
+<div id="preset-buttons">
+    <button data-days="7">7D</button>
+    <button data-days="30">30D</button>
+    <button data-days="90">90D</button>
+    <button data-days="365">1Y</button>
+</div>
+
+{# Sections rendered by JS #}
+<div id="hero-stats"></div>      {# KPI cards per currency #}
+<canvas id="trendChart"></canvas> {# Line chart #}
+<canvas id="statusChart"></canvas> {# Doughnut chart #}
+<div id="status-breakdown"></div>  {# Status cards with hover #}
+<div id="daily-revenue"></div>     {# Daily table #}
+```
+
+### JavaScript Rules
+
+**Chart canvas — never replace innerHTML**:
+When there's no data, hide the canvas and insert a message alongside it. Never remove the `<canvas>` element from the DOM — the chart can't be re-created after the user changes the date range:
+
+```javascript
+// ❌ WRONG — canvas is lost
+container.innerHTML = '<p>No data.</p>';
+
+// ✅ CORRECT — canvas is preserved
+canvas.style.display = 'none';
+canvas.parentElement.insertAdjacentHTML('beforeend', '<p class="no-data-msg">No data.</p>');
+
+// When data returns:
+canvas.style.display = '';
+canvas.parentElement.querySelectorAll('.no-data-msg').forEach(el => el.remove());
+```
+
+**Multi-currency charts**: When multiple currencies exist, render one line per currency with a different color and show the legend. When single currency, fill under the line and hide the legend.
+
+**Reuse `DashboardCharts`**: Use the shared `dashboard-charts.js` for theme init, tooltip styles, and `STATUS_COLORS`. Include it in the scripts block before the analytics JS.
+
+**Preset buttons active state**: Highlight the active preset button and deactivate others on click.
+
+**Loading state**: Disable the Load button and show a spinner while the API call is in progress.
+
+**Tabs for complex pages**: When the analytics page has more than 4–5 sections (charts + breakdowns + tables + financial), split into tabs instead of vertical scrolling:
+
+```twig
+{# Tab bar #}
+<div class="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 w-fit" id="analytics-tabs">
+    <button data-tab="overview" class="analytics-tab px-5 py-2.5 rounded-lg text-sm font-medium">Overview</button>
+    <button data-tab="revenue"  class="analytics-tab px-5 py-2.5 rounded-lg text-sm font-medium">Revenue</button>
+    <button data-tab="details"  class="analytics-tab px-5 py-2.5 rounded-lg text-sm font-medium">Details</button>
+</div>
+
+{# Tab content — one div per tab, hidden by default except active #}
+<div id="tab-overview" class="analytics-tab-content">...</div>
+<div id="tab-revenue"  class="analytics-tab-content hidden">...</div>
+<div id="tab-details"  class="analytics-tab-content hidden">...</div>
+```
+
+Rules:
+- Hero KPIs and date filter stay **above** the tabs — always visible
+- Active tab gets `bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm`
+- Tab switch triggers `fadeSlideUp` animation
+- Recommended split: **Overview** (charts), **Revenue** (per-currency breakdowns), **Details** (status cards + daily table)
+
+---
+
+## 🔧 Migration File Rules
+
+**Never modify a migration file after it has been deployed.** Each schema change gets its own new migration file.
+
+### Why
+
+Migration files may have already been executed on staging/production. Modifying an existing file means the change won't run on environments that already executed it.
+
+### Naming
+
+Sequential numbering: `c039_...`, `c040_...`, `c041_...`
+
+### Rules
+
+| Scenario | Action |
+|---|---|
+| New table | `CREATE TABLE IF NOT EXISTS` in a new migration file |
+| New column on existing table | `ALTER TABLE ADD COLUMN` in a new migration file |
+| Multiple related changes in same release | Separate migration file per table/concern |
+| Fix to a migration that was already deployed | New migration file with the corrective ALTER, not an edit to the original |
+
+### Example
+
+```
+database/c039_analytics_daily_stats.sql     ← adds subscriptions_created
+database/c040_order_daily_stats_financial.sql ← adds base_total + shipping_charge_total
+```
+
+Not:
+```
+database/c039_analytics_daily_stats.sql  ← edited to include all three columns ❌
+```
+
+---
+
+## 🔧 Cron Script Pattern
+
+For modules with pre-aggregated stats, a cron script populates the stats table daily.
+
+### File Location
+
+`scripts/{module}_daily_stats_cron.php`
+
+### Structure
+
+```php
+declare(strict_types=1);
+require __DIR__ . '/../vendor/autoload.php';
+
+use DI\ContainerBuilder;
+use Dotenv\Dotenv;
+use Maatify\AdminKernel\Bootstrap\Container;
+use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
+use Psr\Log\LoggerInterface;
+
+// 1. Load ENV
+// 2. Build RuntimeConfig
+// 3. Bootstrap Container with $builderHook to register module bindings
+$container = Container::create($runtimeConfig, static function (ContainerBuilder $builder): void {
+    ModuleBindings::register($builder);  // or ::registerFromConfig(...)
+});
+
+// 4. Parse CLI args: --backfill | --date=YYYY-MM-DD | default=yesterday
+// 5. Resolve service + logger from container
+// 6. Run aggregation with timing
+// 7. Log result (info on success, error on failure with trace)
+```
+
+### CLI Arguments
+
+| Argument | Action |
+|---|---|
+| *(none)* | Aggregate yesterday |
+| `--backfill` | Full backfill from first record to today |
+| `--date=YYYY-MM-DD` | Aggregate a specific date |
+
+### Date Validation in CLI
+
+Validate `--date=` with `createFromFormat('!Y-m-d')` + round-trip check before passing to the service.
+
+### PSR Logger
+
+Every run must log via `LoggerInterface`:
+- `info` with mode + rows + elapsed on success
+- `error` with mode + message + trace on failure
+
+### Cron Setup
+
+```
+0 1 * * * php /path/scripts/{module}_daily_stats_cron.php
+```
+
+### Container `$builderHook`
+
+The `Container::create()` method accepts an optional `$builderHook` callable. Cron scripts **must** use it to register module bindings that are normally registered in `public/admin/index.php` — the cron script doesn't go through the HTTP bootstrap:
+
+```php
+$container = Container::create($runtimeConfig, static function (ContainerBuilder $builder): void {
+    \Maatify\Module\Bootstrap\ModuleBindings::registerFromConfig(
+        $builder,
+        \Maatify\Module\Bootstrap\ModuleConfig::fromArray($_ENV)
+    );
+});
+```
