@@ -1,8 +1,8 @@
 # Cross-Module Independence Review Report & Traceability Matrix
 
 ## 1. المجلدات والملفات التي تم إنشاؤها أو تعديلها
-تم إنشاء/تعديل الملفات التالية وتم حذف `original_catalog_arch.md` لضمان عدم وجود Source of Truth منافس:
-* `Modules/Catalog/architecture/CATALOG_V1_ARCHITECTURE.md` (أصبح مخصصاً للـ Taxonomy فقط).
+تم إنشاء/تعديل الملفات التالية وتم حذف النسخة المونوليثية السابقة بالكامل لضمان عدم وجود Source of Truth منافس:
+* `Modules/Catalog/architecture/CATALOG_V1_ARCHITECTURE.md` (مخصص للـ Taxonomy).
 * `Modules/Product/architecture/PRODUCT_V1_ARCHITECTURE.md` (مستقل).
 * `Modules/Pricing/architecture/PRICING_V1_ARCHITECTURE.md` (مستقل).
 * `Modules/Inventory/architecture/INVENTORY_V1_ARCHITECTURE.md` (مستقل).
@@ -15,59 +15,56 @@
 
 ## 3. مصفوفة تتبع القرارات المعمارية المقفولة (Traceability Matrix)
 
-فيما يلي تتبع دقيق وصريح لكل قرار في الوثيقة القديمة (Original Monolith) وأين استقر في المعماريات الجديدة لضمان عدم سقوط أي قرار.
+فيما يلي تتبع دقيق وصريح لكل قرار في الوثيقة القديمة (Original Monolith) وكيف تم التعامل معه في المعماريات الجديدة.
 
 | القرار القديم (Original Rule) | الحالة (Status) | التوضيح |
 | --- | --- | --- |
-| **Host-Agnostic Boundaries** | **Preserved (All)** | مطبقة كقاعدة أساسية في كل الموديولات الأربعة بشكل مستقل. |
-| **Timestamp Policy (UTC, Application-managed)** | **Preserved (All)** | مطبقة في كل جدول في الموديولات الأربعة. |
-| **Soft Delete Policy (deleted_at IS NULL)** | **Preserved (All)** | مطبقة في كل الموديولات. |
-| **Logical Identity Immutability** | **Preserved (Catalog, Product)** | هويات الكتالوج (Category Translation) بقيت في Catalog. هويات المنتج والـ Variants والـ Options بقيت في Product. |
-| **Product Slug & Barcode Lifecycle** | **Preserved (Product)** | تم توثيق قواعد الـ Mutable current values بدون حفظ הـ History في הـ Product. |
-| **Category Delete Dependency / Cycle Prevention** | **Preserved (Catalog)** | موجودة بالكامل في `CATALOG_V1_ARCHITECTURE.md`. |
-| **Variant Composition Immutable** | **Preserved (Product)** | موجودة كقاعدة صريحة (Composition Immutable after Variant creation). |
-| **Duplicate Variant Combination Prevention** | **Preserved (Product)** | Transactionally enforced داخل الـ Product Domain. |
-| **Variant-Defining Options / No is_required** | **Preserved (Product)** | الخيارات تعتبر إجبارية دائمًا عند تشكيل הـ Variants. |
-| **Full Active Option Coverage** | **Preserved (Product)** | مطبقة لتحديد صحة הـ Effectively Selectable Variants هيكلياً. |
-| **Replacement Flows (Add/Remove Options)** | **Preserved (Product)** | موثقة بالخطوات الذرية كـ Domain Invariant داخل الـ Product. |
-| **Simple / Configurable Product Rules** | **Preserved (Product)** | مبنية حصريًا على הـ Structural Options. |
-| **Direct Sellable Resolution** | **Rewritten (Product)** | قاصرة الآن على تعريف הـ Simple Product هيكليًا (لا تعتمد على Stock/Price كما كان مُضمنًا سابقًا). |
-| **Default Variant** | **Preserved (Product)** | `is_default` + `TINYINT(1)` مع قواعد حل التعارض (Conflict Handling) متواجدة بالكامل. |
-| **Media Ownership & Primary Limits** | **Preserved (Product)** | جداول الـ Media والقيود الخاصة بالـ Primary وقواعد الـ Restore Conflict Handling موجودة. |
-| **force_out_of_stock** | **Preserved (Product)** | Flag مملوك للمنتج وتم الإبقاء عليه مع توضيح صريح لكونه override إداري هيكلي لا يقرأ أو يحتاج حالة المخزون. |
-| **Product Visibility based on Category** | **Intentionally Retired (Host Concern)** | لأن الكتالوج لم يعد يعرف المنتج، هذه القاعدة أصبحت مسؤولية الـ Host/Mapping Module ولا تعيش كشرط Transactional داخل الكتالوج أو المنتج. |
-| **Sellable In Currency / In-Stock Variant** | **Intentionally Retired (Cross-Domain State)** | هذه القواعد كانت Derived States تجمع Product Status + Base Price + Inventory. تم سحبها لأنها تخالف الـ Independence. |
-| **Product Activation Completeness (needs Price)** | **Intentionally Retired (Host Concern)** | المنتج لا يمكنه قراءة جدول الـ Pricing للتحقق من وجود السعر عند التفعيل. يجب التنسيق عبر Coordinator/Events. |
-| **Final Price >= 0** | **Rewritten (Pricing - Read-Time)** | Pricing لا يمكنه التنبؤ أو الرفض عند تفعيل منتج. فُرِضت القاعدة في الـ Service كـ Read-time invariant عند الاستعلام عن الأسعار. |
-| **Missing Price/Adjustment = 0** | **Preserved (Pricing)** | مطبقة داخل قواعد Pricing المستقلة. |
-| **Atomic Quantity Increase/Decrease** | **Rewritten (Inventory)** | ذُكرت كقاعدة Generic داخل Inventory بمعزل عن مفاهيم Orders أو Reservations (والتي تم تصنيفها كـ Explicit Out-of-Scope). |
+| **Host-Agnostic Boundaries** | **Preserved (All)** | مطبقة كقاعدة أساسية في كل الموديولات بشكل مستقل. لا توجد External FKs أو JOINs. |
+| **Timestamp Policy (UTC)** | **Preserved (All)** | مطبقة في كل جدول في الموديولات. |
+| **Soft Delete Policy** | **Preserved (All)** | مطبقة باستخدام `deleted_at IS NULL` في كل الموديولات. |
+| **Logical Identity Immutability** | **Preserved (Catalog, Product)** | هويات الكتالوج (Translations) والمنتجات (Variants, Options) ثابتة ومحددة. |
+| **Product Slug & Barcode Lifecycle** | **Preserved (Product)** | تم توثيق قواعد الـ Mutable current values بدون حفظ الـ History ضمن الـ Product. |
+| **Category Cycle Prevention** | **Preserved (Catalog)** | موجودة بالكامل في `CATALOG_V1_ARCHITECTURE.md`. |
+| **Variant Composition Immutable** | **Preserved (Product)** | التركيبة تعتبر Immutable بعد إنشاء الـ Variant. |
+| **Duplicate Variant Prevention** | **Preserved (Product)** | يتم منع التكرار Transactionally لـ الـ Composition. |
+| **Variant-Defining Options** | **Preserved (Product)** | الخيارات تعتبر إجبارية دائمًا (No `is_required`). |
+| **Full Active Option Coverage** | **Preserved (Product)** | تحدد صحة الـ Effectively Selectable Variants هيكلياً. |
+| **Replacement Flows (Options)** | **Preserved (Product)** | موثقة بالخطوات الذرية كـ Domain Invariant داخل المنتج. |
+| **Simple/Configurable Product** | **Preserved (Product)** | مبنية حصريًا على البنية الهيكلية للخيارات الفعالة. |
+| **Direct Sellable Resolution** | **Rewritten (Product)** | قاصرة الآن على دلالة Simple Product هيكليًا (لا يتم تقييم Stock/Price هنا كما كان ضمنياً في الماضي). |
+| **Default Variant Conflict Handling**| **Preserved (Product)** | قاعدة الـ Maximum 1 وحل التعارض عند الـ Restore موجودة. |
+| **Primary Media Limits** | **Preserved (Product)** | القيود الخاصة بالـ Primary وحل تعارض الـ Restore موجودة بالكامل. |
+| **force_out_of_stock** | **Preserved (Product)** | Flag إداري هيكلي محفوظ في المنتج، ولا يتدخل لتقييم أو قراءة المخزون الفعلي بل يفرض كـ Override هيكلي. |
+| **Product Visibility by Category** | **Intentionally Retired (Host)** | لأن المنتج والكتالوج منفصلان، الرؤية القائمة على الفئات أصبحت مهمة تنسيق خارجي ولا يمكن فرضها داخلياً. |
+| **Sellable In Currency State** | **Intentionally Retired (Cross-Domain)**| كانت تجمع Product Status + Base Price + Inventory. تم إزالتها من الدومينات الداخلية لأنها تخالف الـ Independence. |
+| **Product Activation (Price check)**| **Intentionally Retired (Host)** | المنتج لا يملك قدرة على قراءة الـ Pricing. ضمان التسعير قبل التفعيل يجب أن يدار عبر Coordinator/Events خارجية. |
+| **Final Price >= 0** | **Rewritten (Pricing)** | أُعيدت صياغتها لتصبح Read-time invariant داخل Service التسعير عند حساب السعر المركب بدلاً من Write-time rejection للكيان. |
+| **Missing Adjustment = 0** | **Preserved (Pricing)** | أي غياب لـ Adjustment في حساب السعر المركب يُعتبر `0`. |
+| **Missing Base Price = Not Sellable**| **Preserved (Pricing)** | غياب Base Price يعني أن الـ Subject المعني غير مسعر بهذه العملة. |
+| **Atomic Quantity Increments** | **Rewritten (Inventory)** | ذُكرت كقاعدة Generic داخل Inventory بمعزل عن دلالات الـ Orders والـ Reservations. |
 
-## 4. إصلاحات الـ External Reference Identity بما يوافق الـ Standards
+## 4. إصلاحات الـ External Reference Identity
 
-* بناءً على معايير الـ Base Module (التي تفرض `int|string` وتفضل الهويات الرقمية الإيجابية)، ولمنع تضارب الهويات (Collisions) بين كيانات من مصادر متعددة، تم تصميم הـ Generic Identity كالتالي:
-  * في **Pricing**: إضافة `subject_type VARCHAR(100)` مع `subject_id BIGINT UNSIGNED`.
-  * في **Inventory**: إضافة `stock_subject_type VARCHAR(100)` مع `stock_subject_id BIGINT UNSIGNED`.
-* القيود (Constraints) والفهارس (Indexes) تم تحديثها لضمان הـ Uniqueness استنادًا إلى الـ Type + ID.
+بناءً على معايير الـ Base Module (التي تفرض `int|string` كـ canonical id)، ولمنع الـ Collisions عند تسعير أو جرد أنواع كيانات متعددة، تم تطبيق الـ Generic Subject Identity Contract التالي:
+* في **Pricing**: `subject_type` (VARCHAR) و `subject_id` (BIGINT UNSIGNED).
+* في **Inventory**: `stock_subject_type` (VARCHAR) و `stock_subject_id` (BIGINT UNSIGNED).
+* **Canonical Type Contract:** الـ Type يخضع لقواعد صارمة: نص لا يتجاوز 100 حرف، يتوافق مع Regex `/^[a-zA-Z0-9_.-]+$/`، الـ Whitespace مرفوض تمامًا، المطابقة Case-Sensitive حرفية (بدون Aliases)، وهو Immutable بعد الإنشاء.
 
-## 5. حالة הـ Unresolved Decisions والـ Architecture Status
+## 5. حالة الـ Unresolved Decisions والـ Architecture Status
 
-تمت مراجعة حالة كل موديول وتقييمها بناءً على اكتمال الـ schema والـ lifecycles:
-* **Catalog:** **[Candidate]** يوجد قرار داخلي غير محسوم حول ما إذا كان يجب وجود جدول يمثل "الكتالوج" ككيان يحمل הـ Categories، أم سيكتفي الموديول بالـ Taxonomy.
-* **Product:** **[Locked]** هويات داخلية محسومة، schema كاملة، lifecycles וـ restore semantics محددة، لا افتراضات مخفية عن الـ host.
-* **Pricing:** **[Locked]** הـ Generic identity محسومة، قواعد הـ Invariants مطبقة بشكل داخلي سليم (Read-time).
-* **Inventory:** **[Locked]** הـ Generic identity محسومة، العمليات الذرية للحفاظ على הـ bounds واضحة ولا تعتمد على أي Domains خارجية.
+القرار الفعلي والنهائي لحالة كل موديول بناءً على اكتمال الـ schema والـ lifecycles:
+
+* **Catalog:** **[Candidate]** يوجد قرار داخلي جوهري غير محسوم؛ وهو هل يحتاج الموديول إلى Entity حقيقية لتمثيل الـ `Catalog` ليكون حاوية للـ Categories (مما يبرر اسمه)، أم سيكتفي بكونه Taxonomy engine؟ ولعدم حسم هذه الـ Entity داخلياً، لا تعتبر البنية Locked.
+* **Product:** **[Locked]** Schema كاملة (9 جداول بـ PKs/FKs)، Lifecycles (بما في ذلك Staged Composition، Slug/Barcode) و Restore semantics محددة، ولا توجد افتراضات مخفية.
+* **Pricing:** **[Locked]** Generic Identity محددة بدقة لتفادي الـ Collisions، وقواعد الحساب مطبقة داخلياً بمعزل عن الكيانات الأخرى.
+* **Inventory:** **[Locked]** Generic Identity محددة بدقة، والعمليات الذرية للحفاظ على الـ bounds واضحة ولا تعتمد على أي Domains خارجية (كالحجوزات أو الطلبات).
 
 ## 6. تأكيد الـ Extraction Test (اختبار الاستخراج المستقل)
 
-كل موديول اجتاز بنجاح الـ Extraction Test الفعلي.
-*ملاحظة: ظهور كلمات مثل "Products" أو "Orders" في ملف الكتالوج أو المخزون هو محصور حصرياً داخل قسم `Explicit Out-of-Scope` كشرح نصي صريح لحدود الموديول، ولا يُشكّل أي Dependency معمارية أو Table/FK Coupling.*
-
-1. **Catalog:** Schema مكتملة (Categories + Translations). لا يوجد FKs أو جداول لـ Products.
-2. **Product:** 9 جداول كاملة بقيود `ON DELETE RESTRICT`، الفهارس الكاملة. الـ lifecycles لا تتطلب قراءة Pricing أو Inventory.
-3. **Pricing:** جدولان مجهزان بـ `subject_type` و `subject_id` لتوفير Generic Identity آمنة من הـ Collisions.
-4. **Inventory:** جدول وحيد بـ `stock_subject_type` و `stock_subject_id`. العمليات ذريّة مجردة.
-
-كل موديول الآن قابل للعمل كـ Package منفصل تماماً (Microservice/Standalone Library). لا توجد استعلامات، ولا دورات حياة، ولا transactions تعبر Boundaries هذه الموديولات.
+اجتازت كل البنى (Architectures) بنجاح اختبار الاستخراج:
+* *ملاحظة للاختبار:* لا يعتمد تقييم الـ Extraction Test على مجرد غياب الكلمات مفتاحية من المستند (فذكر كلمات كـ Products أو Orders في الـ `Explicit Out-of-Scope` هو لتوضيح حدود الموديول).
+* **الاعتمادية المعمارية (Architectural Dependency):** لا يوجد أي Cross-module FK، أو JOIN، أو Derived state يحتاج قراءة جداول من मوديول آخر، ولا توجد Transaction Workflow تتخطى حاجز الموديول.
+* يتم تطبيق الـ Generic IDs دون معرفة مسبقة بأسماء الجداول أو كلاسات الـ Host/Siblings.
 
 ## 7. الخاتمة
-الوثيقة القديمة لم تعد Source of Truth وتم حذفها، والملفات الجديدة الأربعة تعكس بأمانة الـ Domain Decomposed Architectures بدون فقدان للقواعد الأساسية التي تقع ضمن مسؤولية الدومين. الحالات المتقاطعة (Cross-Domain States) صُنفت صراحة كمهام تنسيق (Host Concerns). لا يوجد كود برمجي تشغيلي أو Roadmaps تم إنشاؤها ضمن هذه المهمة.
+تم حذف الوثيقة الأصلية للـ Monolith بشكل كامل لتفادي وجود مصادر حقيقة (Sources of Truth) متنافسة. تم صياغة المعماريات الأربعة لتكون حقاً Domain Decomposed Architectures تحترم استقلالية الدومين، وتم فرز الحالات المتقاطعة إلى مهام التنسيق في طبقة الـ Host. لا يدعي هذا التقرير أن جميع المعماريات انتهت؛ الـ Catalog ما زال يحمل حالة `Candidate` لحين حسم الـ Catalog Entity. لا يوجد كود برمجي تم إنتاجه ضمن هذا الـ Pull Request.

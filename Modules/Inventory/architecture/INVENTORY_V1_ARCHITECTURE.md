@@ -26,6 +26,7 @@
 * Negative stock protection.
 * Insufficient quantity behavior.
 * Lifecycle (Soft delete/restore).
+* Canonical Generic Subject Identity Contract.
 
 ---
 
@@ -44,9 +45,15 @@
 # 2. Host-Agnostic Boundaries & Logical Reference Identity
 
 * **لا يوجد Foreign Keys لأي جداول خارجية.**
-* يمتلك Inventory V1 هويته الخاصة بربط السجلات بـ "Stock Subject". لتجنب تضارب الهويات (Collisions) عند استخدام أرقام هويات متكررة لأنواع مختلفة من الكيانات، وللتوافق مع معايير הـ Base Module (Canonical Positive ID Contract)، يتم استخدام:
-  * `stock_subject_type VARCHAR(100) NOT NULL`: نوع الكيان المرتبط بالمخزون.
-  * `stock_subject_id BIGINT UNSIGNED NOT NULL`: رقم هوية الكيان.
+* يمتلك Inventory V1 هويته الخاصة بربط السجلات بـ "Stock Subject". لتجنب تضارب الهويات (Collisions)، وللتوافق مع معايير الـ Base Module، يتم استخدام `stock_subject_type` و `stock_subject_id`.
+* **Canonical Subject Type Contract:**
+  * `stock_subject_type` هو `VARCHAR(100) NOT NULL`.
+  * **Datatype & Limits:** نص لا يتجاوز 100 حرف.
+  * **Validation Pattern:** يجب أن يطابق نمط Machine Key `/^[a-zA-Z0-9_.-]+$/`.
+  * **Empty Values:** غير مسموح بنصوص فارغة أو تحتوي على Whitespace.
+  * **Case-Sensitivity:** تُعامل القيمة كـ Exact String Match Case-sensitive للتخزين وللـ Validation (بغض النظر عن الـ Collation الافتراضية). ولا يجوز استخدام Aliases لاختلاف الـ Case.
+  * **Immutability:** لا يمكن تعديل الـ Type أو الـ ID لأي سجل مخزون بعد إنشائه.
+  * **Uniqueness Handling:** في حالات الـ Soft Delete والـ Restore، يتم ضمان عدم تكرار الـ Identity (النوع + المعرف).
 
 ---
 
@@ -110,14 +117,14 @@ CHECK(quantity_on_hand >= 0)
 ```text
 UNIQUE(stock_subject_type, stock_subject_id)
 ```
-يُعد هذا الفهرس كافيًا لمتطلبات الاستعلام والتحديث استنادًا إلى نوع ومعرف الکيان.
+يُعد هذا الفهرس كافيًا لمتطلبات الاستعلام والتحديث استنادًا إلى نوع ومعرف الكيان.
 
 ---
 
 # 9. Sources of Truth
 
 مصادر الحقيقة الوحيدة هنا هي:
-* السجل وكميته المتوفرة `quantity_on_hand`.
+* السجل وكميته المتوفرة `quantity_on_hand` لهوية الـ Subject (Type + ID).
 * `deleted_at`.
 
 ---
@@ -125,4 +132,4 @@ UNIQUE(stock_subject_type, stock_subject_id)
 # 10. Architecture Status
 
 **Locked**
-القرارات المعمارية الداخلية الخاصة بتتبع المخزون والعمليات الذرية عليه محسومة بشكل كامل. الهوية الخارجية مدعومة بـ `subject_type` لمنع الـ Collisions. وتعمل هذه البنية دون أي معرفة بتفاصيل الدومينات الأخرى.
+القرارات المعمارية الداخلية الخاصة بتتبع المخزون والعمليات الذرية عليه محسومة بشكل كامل. الهوية الخارجية مدعومة بعقد صارم لـ `subject_type` لمنع الـ Collisions والغموض. وتعمل هذه البنية دون أي معرفة بتفاصيل الدومينات الأخرى.

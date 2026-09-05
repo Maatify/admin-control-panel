@@ -105,7 +105,7 @@ CHECK (status IN ('active','inactive'))
 * **Variant-Defining Options:** كل الخيارات إجبارية في سياق تشكيل الـ Variant. لا يوجد حقل `is_required`.
 * **Full Active Option Coverage:** أي Variant فعّالة لمنتج Configurable يجب أن تغطي جميع الخيارات الفعّالة للمنتج (قيمة واحدة لكل Option فعال).
 * **Effectively Selectable Variant:** كيان يُعتبر قابلاً للاختيار هيكلياً فقط إذا كان Product, Variant, Option, و Option Value كلها `active` وغير محذوفة وتمتلك Coverage كامل. (هذا لا يأخذ بالاعتبار المخزون أو السعر، بل هو تقييم لهيكلية الـ Product).
-* **Customer-Selectable Values:** القيم المتاحة للعميل לאختيارها تُستمد فقط من الـ Variants التي تعد Effectively Selectable بناءً على الهيكلية فقط.
+* **Customer-Selectable Values:** القيم المتاحة للعميل لاختيارها تُستمد فقط من الـ Variants التي تعد Effectively Selectable بناءً على الهيكلية فقط.
 * **Simple Product:** منتج ليس لديه خيارات فعالة ويمتلك Exactly One Effectively Selectable Variant.
 * **Configurable Product:** منتج لديه خيارات فعالة.
 * **Direct Sellable Resolution:** النظام يمكنه تحديد Variant مباشرة بدون تدخل العميل (يتحقق في الـ Simple Product هيكليًا).
@@ -114,7 +114,7 @@ CHECK (status IN ('active','inactive'))
 
 # 7. Lifecycles, Creation, and Replacement Flows
 
-* **Product/Variant Creation Lifecycle:** المنتجات والـ Variants والـ Options الجديدة تبدأ بـ `status = 'inactive'`، ويجوز إنشاؤها وتكوين הـ Composition (Staged Composition) حتى لو كانت الخيارات المرتبطة لا تزال غير مفعلة. لا تصبح Variant `active` إلا بعد أن تكتمل البنية ويكون كل شيء صحيحًا (Full Coverage).
+* **Product/Variant Creation Lifecycle:** المنتجات والـ Variants والـ Options الجديدة تبدأ بـ `status = 'inactive'`، ويجوز إنشاؤها وتكوين الـ Composition (Staged Composition) حتى لو كانت الخيارات المرتبطة لا تزال غير مفعلة. لا تصبح Variant `active` إلا بعد أن تكتمل البنية ويكون كل شيء صحيحًا (Full Coverage).
 * **Staged Composition:** Variant جديدة Inactive يمكن أثناء التجهيز أن تحتوي Composition تشير إلى Option ما زالت Inactive. يتم التفعيل في Atomic Operation واحد عند الجاهزية.
 
 **Replacement Flows (Add Option):**
@@ -136,16 +136,16 @@ CHECK (status IN ('active','inactive'))
 
 * **force_out_of_stock:**
   * Flag إداري `TINYINT(1)` مملوك للمنتج.
-  * معناه داخل دومين المنتج المستقل: "إشارة إدارية تقضي بحجب إتاحة المنتج بغض النظر عن حالته الفيزيائية". الـ Host هو الذي يدمج هذا הـ Flag مع مخزون الكيان الخارجي لإنتاج הـ Derived "Stock State".
+  * معناه داخل دومين المنتج المستقل: "إشارة إدارية تقضي بحجب إتاحة المنتج بغض النظر عن حالته الفيزيائية". الـ Host هو الذي يدمج هذا الـ Flag مع مخزون الكيان الخارجي لإنتاج الـ Derived "Stock State".
 
 * **Default Variant:**
   * `is_default TINYINT(1) NOT NULL DEFAULT 0`
   * كحد أقصى توجد Default Variant واحدة غير محذوفة لكل منتج.
   * يجب أن تكون Active و Effectively Selectable هيكليًا.
-  * **Conflict Handling:** في حال فَقَدت صلاحيتها أو عند استعادة Variant محذوفة (Restore)، يتم حل الـ Conflict داخلياً بإزالة הـ Default القديم أو نقله في نفس הـ Transaction لضمان بقاء 1 بحد أقصى.
+  * **Conflict Handling:** في حال فَقَدت صلاحيتها أو عند استعادة Variant محذوفة (Restore)، يتم حل الـ Conflict داخلياً بإزالة الـ Default القديم أو نقله في نفس الـ Transaction لضمان بقاء 1 بحد أقصى.
 
 * **Restore Safety:**
-  * الـ Restore ليس مجرد `deleted_at = NULL`. يجب أن يتم تقييم הـ Invariants الداخلية للمنتج والـ Variant (مثل Unique constraints و Composition Coverage و Default limits). إذا كانت الحالة المحفوظة لا تستوفي القيود الهيكلية الحالية، ترفض العملية ولا يُعدل التركيب تلقائيًا.
+  * الـ Restore ليس مجرد `deleted_at = NULL`. يجب أن يتم تقييم الـ Invariants الداخلية للمنتج والـ Variant (مثل Unique constraints و Composition Coverage و Default limits). إذا كانت الحالة المحفوظة لا تستوفي القيود الهيكلية الحالية، ترفض العملية ولا يُعدل التركيب تلقائيًا.
 
 ---
 
@@ -155,7 +155,7 @@ CHECK (status IN ('active','inactive'))
 * إذا كان `variant_id IS NULL` فهي Product Media.
 * إذا كان `variant_id IS NOT NULL` فهي Variant Media وتتبع نفس الـ `product_id`.
 * **Primary Limits:** بحد أقصى Primary Product Media واحدة غير محذوفة لكل Product، و Primary Variant Media واحدة غير محذوفة لكل Variant.
-* **Primary Restore Conflict Handling:** הـ Restore لأي Primary Media يجب أن يحل الـ Conflict داخلياً بتعطيل Primary السابقة إذا وُجدت في نفس הـ Transaction.
+* **Primary Restore Conflict Handling:** الـ Restore لأي Primary Media يجب أن يحل الـ Conflict داخلياً بتعطيل Primary السابقة إذا وُجدت في نفس الـ Transaction.
 
 ---
 
@@ -507,4 +507,4 @@ UNIQUE(option_value_id, language_code)
 # 15. Architecture Status
 
 **Locked**
-تم حسم جميع القرارات المتعلقة بهيكل المنتجات وتشكيلاتها داخليًا، بما فيها دورة حياة הـ slug والـ barcode والـ staged composition. لا يُسمح بإضافة أية اشتراطات تعتمد على موديولات أخرى للتحقق من صحة الكيانات (مثل التحقق من السعر للتفعيل). التكامل الأوسع בין المنتجات والكيانات الأخرى متروك לطبقة الـ Host Coordinator أو عبر الأحداث.
+تم حسم جميع القرارات المتعلقة بهيكل المنتجات وتشكيلاتها داخليًا، بما فيها دورة حياة الـ slug والـ barcode والـ staged composition. لا يُسمح بإضافة أية اشتراطات تعتمد على موديولات أخرى للتحقق من صحة الكيانات (مثل التحقق من السعر للتفعيل). التكامل الأوسع بين المنتجات والكيانات الأخرى متروك لطبقة الـ Host Coordinator أو عبر الأحداث.

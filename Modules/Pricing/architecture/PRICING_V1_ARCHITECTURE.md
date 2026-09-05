@@ -24,6 +24,7 @@
 * Price Calculation Rules (Same-currency consistency).
 * Pricing Invariants (Final Price >= 0).
 * Price Lifecycle (Soft delete/restore).
+* Canonical Generic Subject Identity Contract.
 
 ---
 
@@ -41,9 +42,15 @@
 # 2. Host-Agnostic Boundaries & Logical Reference Identity
 
 * **لا يوجد Foreign Keys إلى أي موديول آخر.**
-* الربط يتم باستخدام معرّفات عامة (Generic Identifiers). يتوافق الموديول مع معايير הـ Base Module من خلال الالتزام بعقد الـ Canonical Positive ID للهويات، مع إضافة `subject_type` لضمان عدم حدوث Collisions بين أنواع الكيانات المختلفة التي قد يقدمها الـ Host (مثل Products و Options).
-  * `subject_type VARCHAR(100) NOT NULL`: نوع الكيان المُسعّر.
-  * `subject_id BIGINT UNSIGNED NOT NULL`: رقم هوية الكيان المُسعّر.
+* الربط يتم باستخدام معرّفات عامة (Generic Identifiers). يتوافق الموديول مع معايير الـ Base Module من خلال الالتزام بعقد الـ Canonical Positive ID للهويات، مع إضافة `subject_type` لضمان عدم حدوث Collisions بين أنواع الكيانات المختلفة.
+* **Canonical Subject Type Contract:**
+  * `subject_type` هو `VARCHAR(100) NOT NULL`.
+  * **Datatype & Limits:** نص لا يتجاوز 100 حرف.
+  * **Validation Pattern:** يجب أن يطابق نمط Machine Key `/^[a-zA-Z0-9_.-]+$/`.
+  * **Empty Values:** غير مسموح بنصوص فارغة أو تحتوي على Whitespace.
+  * **Case-Sensitivity:** تُعامل القيمة كـ Exact String Match. الـ Validation والتخزين يكون Case-sensitive (وإن كان الـ Collation الافتراضي قد يغطي التكرار، إلا أن الـ Application يفرض تطابقًا دقيقًا).
+  * **Immutability:** لا يمكن تعديل `subject_type` أو `subject_id` لأي سجل تسعير بعد إنشائه.
+  * **Uniqueness Handling:** في حالات الـ Soft Delete والـ Restore، يجب التحقق من عدم تعارض الـ Identity (النوع + المعرف + العملة) مع سجل نشط آخر.
 
 ---
 
@@ -136,8 +143,8 @@ UNIQUE(subject_type, subject_id, currency_code)
 # 9. Sources of Truth
 
 مصادر الحقيقة الوحيدة هنا:
-* السعر الأساسي (`base_price`) لهوية הـ Subject والعملة.
-* التعديل (`price_adjustment`) لهوية الـ Subject والعملة.
+* السعر الأساسي (`base_price`) لهوية الـ Subject (Type + ID) والعملة.
+* التعديل (`price_adjustment`) لهوية الـ Subject (Type + ID) والعملة.
 * حالة الحذف المنطقي (`deleted_at`).
 
 لا يُخزّن السعر النهائي، بل يُحسب.
@@ -147,4 +154,4 @@ UNIQUE(subject_type, subject_id, currency_code)
 # 10. Architecture Status
 
 **Locked**
-القرارات المعمارية الداخلية الخاصة بهيكل التسعير محسومة. הـ External Reference Identity صُممت بحيث لا يحدث لها Collision (بفضل `subject_type`). إسناد مسؤولية ضمان عدم بيع كيان بسعر سالب أثناء تفعيل الكيان نفسه أصبحت خارج نطاق الموديول وهي الآن مسؤولية الـ Host/Coordinator.
+القرارات المعمارية الداخلية الخاصة بهيكل التسعير محسومة. الـ External Reference Identity صُممت بحيث لا يحدث لها Collision بفضل العقد الصارم لـ `subject_type`. إسناد مسؤولية ضمان عدم بيع كيان بسعر سالب أثناء تفعيل الكيان نفسه أصبحت خارج نطاق الموديول وهي الآن مسؤولية الـ Host/Coordinator.

@@ -22,7 +22,7 @@
 الوثيقة الأصلية ذكرت "Catalog Identity" ولم تحدد جدولًا منفصلًا باسم `maa_catalog_catalogs` أو ما شابه يمثل الـ Catalog ككيان مستقل (Entity)، بل اعتمدت على `Categories` كوحدة التنظيم الأساسية.
 **وبما أنه لا يجوز أن نطلق على الموديول اسم Catalog بينما هو لا يحتوي على كيان Catalog حقيقي، فقد تم تسجيل هذا القرار كـ Unresolved Decision (انظر القسم الأخير).**
 
-حتى يتم حسم ما إذا كان سيتم إضافة كيان Catalog مستقل يمتلك הـ Categories أم سيظل الـ Module عبارة عن Taxonomy/Categories فقط، تعتبر هذه الوثيقة **Candidate** وليست Locked.
+حتى يتم حسم ما إذا كان سيتم إضافة كيان Catalog مستقل يمتلك الـ Categories أم سيظل الـ Module عبارة عن Taxonomy/Categories فقط، تعتبر هذه الوثيقة **Candidate** وليست Locked.
 
 ---
 
@@ -292,7 +292,7 @@ maa_catalog_categories
 
 # 18. Unresolved Architectural Decisions
 
-* **Catalog Entity Identity:** الوثيقة الأصلية للـ Monolith ذُكر فيها "Catalog Identity" كمفهوم، ولكن المخطط الفعلي لا يحتوي على جدول يمثل "الكتالوج" (مثلاً `maa_catalog_catalogs`) كحاوية عليا تملك הـ Categories. هل يجب إضافة كيان Catalog حقيقي لتبرير اسم الموديول؟ أم يجب إعادة تسمية الموديول لاحقاً ليعكس كونه مجرد Taxonomy / Categories engine؟
+* **Catalog Entity Identity:** الوثيقة الأصلية للـ Monolith ذُكر فيها "Catalog Identity" كمفهوم، ولكن المخطط الفعلي لا يحتوي على جدول يمثل "الكتالوج" (مثلاً `maa_catalog_catalogs`) كحاوية عليا تملك الـ Categories. هل يجب إضافة كيان Catalog حقيقي لتبرير اسم الموديول؟ أم يجب إعادة تسمية الموديول لاحقاً ليعكس كونه مجرد Taxonomy / Categories engine؟
 هذا القرار الداخلي غير محسوم، وبالتالي الموديول ككل لا يمكن اعتباره Locked.
 
 # 19. Architecture Status
