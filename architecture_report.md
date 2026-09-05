@@ -44,7 +44,7 @@
 | **Option/Value Integrity** | **Preserved inside Base Module (Product)** | موجودة لضمان سلامة وارتباط القيم والخيارات. |
 | **Cross-Product Composition Prevention** | **Preserved inside Base Module (Product)** | Transactionally enforced لضمان التبعية لنفس المنتج. |
 | **Simple/Configurable Product** | **Preserved inside Base Module (Product)** | مبنية حصريًا على البنية الهيكلية للخيارات الفعالة. |
-| **Direct Sellable Resolution** | **Rewritten inside Base Module (Product)** | تم الحفاظ على القاعدة الهيكلية: No Active Options + Exactly One Effectively Selectable Variant (لا يشترط أن تكون default). Stock و Pricing لا يشاركان في خطوة الـ Resolution المباشرة. |
+| **Direct Sellable Resolution** | **Preserved inside Base Module (Product)** | تم الحفاظ على القاعدة الهيكلية: No Active Options + Exactly One Effectively Selectable Variant (لا يشترط أن تكون default). Stock و Pricing لا يشاركان في خطوة الـ Resolution المباشرة. |
 | **Default Variant Conflict Handling**| **Preserved inside Base Module (Product)** | قاعدة الـ Maximum 1 وحل التعارض الداخلي عند الـ Restore موجودة. |
 | **Media Ownership** | **Preserved inside Base Module (Product)** | مُعرفة بوضوح للـ Product والـ Variant (Product Media vs Variant Media). |
 | **Primary Media Limits** | **Preserved inside Base Module (Product)** | القيود الخاصة بالـ Primary وحل تعارض الـ Restore موجودة بالكامل. |
@@ -61,8 +61,8 @@
 | **Same-Currency Pricing** | **Preserved inside Base Module (Pricing)** | مطبقة بالكامل كقاعدة أساسية لا يجمع تعديل بعملة مختلفة. |
 | **Missing Adjustment = 0** | **Preserved inside Base Module (Pricing)** | أي غياب لـ Adjustment في حساب السعر المركب يُعتبر `0`. |
 | **Missing Base Price = Not Sellable**| **Preserved inside Base Module (Pricing)** | غياب Base Price يعني أن الـ Subject المعني غير مسعر بهذه العملة. |
-| **Inventory 1:1 Identity** | **Catalog Package Rule** | تم نقل التنسيق الخاص بالـ Variant 1:1 Lifecycle إلى الـ Catalog Package Coordinator، بينما الـ Inventory Base يحتفظ بالـ Identity المجردة. |
-| **Inventory Lifecycle** | **Catalog Package Rule** | دورة حياة مخزون الـ Variant (Soft delete, Restore, Replacement) محكومة ومنسقة بالكامل من Catalog Package Coordinator لمنع الحذف العشوائي وتوفير الـ Safety. |
+| **Inventory 1:1 Identity** | **Rewritten inside Inventory Base / Catalog Package Rule** | تم نقل التنسيق الخاص بالـ Variant 1:1 Lifecycle إلى الـ Catalog Package Coordinator، بينما الـ Inventory Base يحتفظ بالـ Identity المجردة. |
+| **Inventory Lifecycle** | **Rewritten inside Inventory Base / Catalog Package Rule** | دورة حياة مخزون الـ Variant (Soft delete, Restore, Replacement) محكومة ومنسقة بالكامل من Catalog Package Coordinator لمنع الحذف العشوائي وتوفير الـ Safety. |
 | **Product Display Order Contracts** | **Preserved inside Base Module (Product)** | تم تحديد النطاقات بدقة (Global للـ Products، per-Product، per-Option، الخ) وتأكيد الحتمية بـ `ORDER BY display_order, id`. |
 | **Physical DB Contract** | **Preserved (All)** | تم تثبيت Physical DB Contract (`ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`) في جميع الـ Architectures الأساسية. |
 | **Pricing Currency Immutability** | **Rewritten inside Base Module (Pricing)** | أصبحت الـ Logical Identity لـ Pricing تتضمن الـ `currency_code` وهي Immutable بالكامل، فتغيير العملة يعني إنشاء سجل جديد. |

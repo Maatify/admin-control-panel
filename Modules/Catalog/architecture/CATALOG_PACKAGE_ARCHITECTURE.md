@@ -119,6 +119,8 @@
 
 ---
 
+
+
 ## 7. الربط بين الفئات والمنتجات (Product ↔ Category Mapping Ownership)
 
 حيث أن Catalog Base لا يعرف Product، و Product لا يعرف Catalog، فإن ملكية الربط (Visibility / Mapping) تقع على عاتق الـ **Catalog Package / Host Application**.
@@ -127,21 +129,18 @@
 * **الهوية المنطقية:** علاقة (Mapping) بين `category_id` و `product_id`.
 * **الـ Uniqueness:** يجب ألا تتكرر العلاقة لنفس الـ `(category_id, product_id)`.
 * **الـ Soft Delete:** يتبع الـ Lifecycle الخاص بالـ Package.
+* **Display Order Scope:** خاص بكل `category_id`.
+* **Ordering Rule:** `ORDER BY display_order, id`.
+* **Visibility Semantics:**
+  * إذا كان Category A = inactive و Category B = active، والـ Product مرتبط بهما: تعطيل A يعطل مسار العرض (Classification Path) الخاص بـ A فقط. الـ Product تظل قابلة للظهور عبر B.
+  * حالة الـ Category لا تقوم بتعديل `Product.status`.
+  * حذف الـ Category أو تغيير حالته لا يعدل سجلات Product/Variant.
 * **Unresolved Package Decision:** بناءً على القيود الحالية لمنع الـ Cross-Module FKs، لم يتم الحسم معمارياً ما إذا كان سيتم فرض Foreign Keys في جدول الـ Mapping المظلي (Package-owned persistence) نحو الـ Base Modules، أم سيكتفي بهويات مجردة (Generic IDs). لذا تُعتبر تفاصيل الـ Persistence الدقيقة لهذا الربط Unresolved Decision على مستوى الـ Package.
 
 ---
 
-## 8. تدفقات الاستبدال عبر الـ Package (Package-Level Replacement Flows)
 
-عند إجراء تدفق استبدال (Replacement Flow) كإضافة أو إزالة Option، يُنفذ الـ Product Base Module التعديلات الهيكلية بإنشاء الـ Variants الجديدة محلياً. لكن الـ Package Coordinator هو المسؤول عن الـ Orchestration المتقاطع:
-* **Product:** ينشئ الـ Variants البديلة هيكلياً بشكل ذري (Atomic).
-* **Inventory:** يجب على الـ Package Coordinator تجهيز سجلات المخزون (Inventory identities) للـ Variants الجديدة المتولدة.
-* **Pricing:** يجب على الـ Package Coordinator إعادة التحقق من الـ Pricing Safety.
-* **الاستبدال (Cutover):** لا تكتمل عملية الاستبدال ولا يُسمح بترك الـ Product مفعلًا (Active) إذا كانت الـ Package Invariants غير متحققة. الـ Product Base لا يستدعي الـ Inventory مباشرة أبداً.
-
----
-
-## 7. Variant ↔ Inventory Lifecycle Orchestration
+## 8. Variant ↔ Inventory Lifecycle Orchestration
 
 الـ Inventory Base Module مستقل ولا يعرف الـ Variant. الـ Catalog Package يفرض التنسيق الخاص بالـ Variant كالتالي:
 
@@ -150,11 +149,10 @@
 * **Creation:** عند إنشاء Variant، يجب أن يقوم المنسق (Package Coordinator) بإنشاء سجل مخزون مطابق في الـ Inventory Module، ويبدأ بكمية `0`.
 * **Restore:** عند عمل Restore لـ Variant، يعود نفس سجل الـ Inventory identity. لا تنشأ identity جديدة.
 * **Soft Delete:** عمل Soft Delete للـ Variant لا يمحو المخزون بشكل مستقل، ولكن المنسق يمنع حذف الـ Inventory بشكل مستقل طالما أن الـ Variant موجودة وغير محذوفة نهائياً.
-* **Replacement:** عند إنشاء Replacement Variant نتيجة تغيير الـ Options، تنشأ Inventory identity جديدة للـ Variant الجديدة.
 
 ---
 
-## 8. Final Price Equation
+## 9. Final Price Equation
 
 الـ Pricing Base Module مستقل ولا يعرف الـ Product أو الـ Options. الـ Catalog Package يحدد طريقة تركيب السعر النهائي للـ Variant.
 
@@ -184,15 +182,10 @@ SUM(
 
 ---
 
-## 9. Product ↔ Category Contract
+## 10. تدفقات الاستبدال عبر الـ Package (Package-Level Replacement Flows)
 
-آلية الـ Persistence للربط بين المنتج والفئة متروكة Unresolved، لكن الـ Business Contract مقفول على النحو التالي:
-
-* **Logical Identity:** `(product_id, category_id)`
-* **Uniqueness:** لا يمكن تكرار نفس الربط لنفس `(product_id, category_id)`.
-* **Display Order Scope:** خاص بكل `category_id`.
-* **Ordering Rule:** `ORDER BY display_order, id`
-* **Visibility Semantics:**
-    * إذا كان Category A = inactive و Category B = active، والـ Product مرتبط بهما: تعطيل A يعطل مسار العرض (Classification Path) الخاص بـ A فقط. الـ Product تظل قابلة للظهور عبر B.
-    * حالة الـ Category لا تقوم بتعديل `Product.status`.
-    * حذف الـ Category أو تغيير حالته لا يعدل سجلات Product/Variant.
+عند إجراء تدفق استبدال (Replacement Flow) كإضافة أو إزالة Option، يُنفذ الـ Product Base Module التعديلات الهيكلية بإنشاء الـ Variants الجديدة محلياً. لكن الـ Package Coordinator هو المسؤول عن الـ Orchestration المتقاطع:
+* **Product:** ينشئ الـ Variants البديلة هيكلياً بشكل ذري (Atomic).
+* **Inventory:** يجب على الـ Package Coordinator تجهيز سجلات المخزون (Inventory identities) للـ Variants الجديدة المتولدة.
+* **Pricing:** يجب على الـ Package Coordinator إعادة التحقق من الـ Pricing Safety.
+* **الاستبدال (Cutover):** لا تكتمل عملية الاستبدال ولا يُسمح بترك الـ Product مفعلًا (Active) إذا كانت الـ Package Invariants غير متحققة. الـ Product Base لا يستدعي الـ Inventory مباشرة أبداً.
