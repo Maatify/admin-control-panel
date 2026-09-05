@@ -259,7 +259,7 @@ Browser Cart
 - **كل شيء أو لا شيء (All-or-nothing checkout):** إما اكتمال إنشاء الطلب وحجز كافة العناصر أو فشله بالكامل.
 - **استهلاك الحجز بدقة (Reservation consume/release/expire exactly once):** أي حجز يتأثر بمرة واحدة فقط، لتجنب تغييرات المخزون الخاطئة.
 - **عدم البيع الزائد (No overselling):** يمنع تأكيد حجز جديد إذا كان المخزون المتاح لا يكفي.
-- **الاحتفاظ بجميع الترجمات (All available translations captured at creation):** النظام ملزم بالتقاط جميع الترجمات الحالية من الكتالوج وعدم اختلاق ترجمات افتراضية غير موجودة.
+- **الاحتفاظ بجميع الترجمات (All available translations captured at creation):** النظام ملزم بالتقاط جميع الترجمات الحالية من Product Domain وعدم اختلاق ترجمات افتراضية غير موجودة.
 - **ثبات اللقطة التاريخية (Historical snapshot immutability):** بعد الإنشاء، يمنع تعديل بيانات العناصر والتسعير المرجعي.
 
 ### 12.3 محددات التنسيق بين الموديولات (Cross-module coordination invariants)

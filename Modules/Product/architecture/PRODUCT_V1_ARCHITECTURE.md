@@ -120,7 +120,7 @@ Variant ownership by `product_id` is immutable. لا يمكن نقل Variant م�
 * **Customer-Selectable Values:** القيم المتاحة للعميل لاختيارها تُستمد فقط من الـ Variants التي تعد Effectively Selectable بناءً على الهيكلية فقط.
 * **Simple Product:** منتج ليس لديه خيارات فعالة ويمتلك Exactly One Effectively Selectable Variant.
 * **Configurable Product:** منتج لديه خيارات فعالة.
-* **Direct Sellable Resolution:** النظام يمكنه تحديد Variant مباشرة بدون تدخل العميل (يتحقق في الـ Simple Product هيكليًا).
+* **Direct Sellable Resolution:** المنتجات البسيطة (Simple Products) يتم حلها مباشرة إلى Exactly One Effectively Selectable Variant (ولا يشترط أن تكون is_default). المخزون والتسعير لا يشاركان في هذه الخطوة (Stock does not participate in Direct Resolution).
 
 ---
 
@@ -171,9 +171,35 @@ Variant ownership by `product_id` is immutable. لا يمكن نقل Variant م�
 
 ---
 
-# 10. Complete Database Schema — 9 Tables
 
-## 10.1 `maa_product_products`
+
+# 10. Display Order Scopes
+
+كل Business-controlled list يجب أن يكون ترتيبها deterministic ويكون Scope-based:
+* **Products:** Global.
+* **Product Options:** per Product.
+* **Option Values:** per Option.
+* **Variants:** per Product.
+* **Product Media:** per Product.
+* **Variant Media:** per Variant.
+
+الترتيب الحتمي يُطبق عن طريق:
+```sql
+ORDER BY display_order, id
+```
+
+# 11. Complete Database Schema — 9 Tables
+
+
+يجب أن تلتزم الجداول بالشروط الفيزيائية التالية:
+```text
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_unicode_ci
+```
+
+
+## 11.1 `maa_product_products`
 | العمود               | النوع                                     |
 | -------------------- | ----------------------------------------- |
 | `id`                 | `BIGINT UNSIGNED AUTO_INCREMENT`          |
@@ -197,7 +223,7 @@ CHECK(force_out_of_stock IN (0,1))
 
 ---
 
-## 10.2 `maa_product_translations`
+## 11.2 `maa_product_translations`
 | العمود              | النوع                            |
 | ------------------- | -------------------------------- |
 | `id`                | `BIGINT UNSIGNED AUTO_INCREMENT` |
@@ -224,7 +250,7 @@ ON UPDATE RESTRICT
 
 ---
 
-## 10.3 `maa_product_options`
+## 11.3 `maa_product_options`
 | العمود          | النوع                                     |
 | --------------- | ----------------------------------------- |
 | `id`            | `BIGINT UNSIGNED AUTO_INCREMENT`          |
@@ -251,7 +277,7 @@ ON UPDATE RESTRICT
 
 ---
 
-## 10.4 `maa_product_option_translations`
+## 11.4 `maa_product_option_translations`
 | العمود          | النوع                            |
 | --------------- | -------------------------------- |
 | `id`            | `BIGINT UNSIGNED AUTO_INCREMENT` |
@@ -276,7 +302,7 @@ ON UPDATE RESTRICT
 
 ---
 
-## 10.5 `maa_product_option_values`
+## 11.5 `maa_product_option_values`
 | العمود          | النوع                                   |
 | --------------- | --------------------------------------- |
 | `id`            | `BIGINT UNSIGNED AUTO_INCREMENT`        |
@@ -303,7 +329,7 @@ ON UPDATE RESTRICT
 
 ---
 
-## 10.6 `maa_product_option_value_translations`
+## 11.6 `maa_product_option_value_translations`
 | العمود            | النوع                            |
 | ----------------- | -------------------------------- |
 | `id`              | `BIGINT UNSIGNED AUTO_INCREMENT` |
@@ -328,7 +354,7 @@ ON UPDATE RESTRICT
 
 ---
 
-## 10.7 `maa_product_variants`
+## 11.7 `maa_product_variants`
 | العمود          | النوع                                     |
 | --------------- | ----------------------------------------- |
 | `id`            | `BIGINT UNSIGNED AUTO_INCREMENT`          |
@@ -359,7 +385,7 @@ ON UPDATE RESTRICT
 
 ---
 
-## 10.8 `maa_product_variant_option_values`
+## 11.8 `maa_product_variant_option_values`
 | العمود            | النوع                            |
 | ----------------- | -------------------------------- |
 | `id`              | `BIGINT UNSIGNED AUTO_INCREMENT` |
@@ -392,7 +418,7 @@ ON UPDATE RESTRICT
 
 ---
 
-## 10.9 `maa_product_media`
+## 11.9 `maa_product_media`
 | العمود          | النوع                            |
 | --------------- | -------------------------------- |
 | `id`            | `BIGINT UNSIGNED AUTO_INCREMENT` |
@@ -428,7 +454,7 @@ ON UPDATE RESTRICT
 
 ---
 
-# 11. Index Strategy
+# 12. Index Strategy
 
 الـIndexes تكون Explicit ولا تضاف Redundant Indexes بلا Query Requirement.
 

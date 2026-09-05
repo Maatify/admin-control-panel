@@ -202,6 +202,15 @@ Domain تمنع العلاقات الدائرية (Cycle Prevention: A → B →
 
 # 13. Complete Database Schema — 2 Tables
 
+
+يجب أن تلتزم الجداول بالشروط الفيزيائية التالية:
+```text
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_unicode_ci
+```
+
+
 ## 13.1 `maa_catalog_categories`
 
 | العمود          | النوع                                   |
@@ -271,7 +280,7 @@ ON UPDATE RESTRICT
 # 15. Domain / Transaction-Enforced Invariants
 
 * Category Cycle Prevention.
-* Category Child Delete Dependency.
+* Category Child Delete Dependency: لا يمكن حذف تصنيف إذا كان لديه تصنيفات فرعية غير محذوفة (non-deleted children).
 
 ---
 
