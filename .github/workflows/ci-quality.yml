@@ -1,0 +1,193 @@
+name: Quality Gates CI
+
+on:
+  push:
+    # Pull requests run this workflow on every branch. Direct pushes only
+    # run it on main to avoid executing the same commit twice.
+    branches: ["main"]
+    paths:
+      - "app/**"
+      - "Modules/**"
+      - "public/**"
+      - "tests/**"
+      - "scripts/**"
+      - "bin/**"
+      - "tools/**"
+      - "database/**/*.sql"
+      - "composer.json"
+      - "composer.lock"
+      - "phpstan.neon"
+      - "phpstan.neon.dist"
+      - "phpunit.*.xml"
+      - ".github/workflows/**"
+  pull_request:
+    branches: ["main"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  PHP_VERSION: "8.2"
+
+jobs:
+  permission-lint:
+    name: Permission Linter
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: pdo, openssl, redis, bcmath, mbstring, curl, gd, fileinfo, intl, readline
+          tools: composer
+          cache: composer
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress --optimize-autoloader
+
+      - name: Permission linter
+        run: composer check:permissions
+
+  whitespace:
+    name: Whitespace Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check whitespace
+        env:
+          CI_EVENT_NAME: ${{ github.event_name }}
+          CI_BEFORE_SHA: ${{ github.event.before }}
+          CI_SHA: ${{ github.sha }}
+          CI_PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          CI_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ "$CI_EVENT_NAME" = "pull_request" ]; then
+            git diff --check "$CI_PR_BASE_SHA...$CI_PR_HEAD_SHA"
+          elif [ -n "$CI_BEFORE_SHA" ] && [ "$CI_BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
+            git diff --check "$CI_BEFORE_SHA...$CI_SHA"
+          elif git diff --quiet && git diff --cached --quiet; then
+            git show --check --format= --no-ext-diff HEAD
+          else
+            git diff --check
+            git diff --cached --check
+          fi
+
+  phpstan-app:
+    name: PHPStan (app)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: pdo, openssl, redis, bcmath, mbstring, curl, gd, fileinfo, intl, readline
+          tools: composer
+          cache: composer
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress --optimize-autoloader
+
+      - name: Static analysis (app)
+        run: composer analyse:app
+
+  phpstan-modules:
+    name: PHPStan (Modules)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: pdo, openssl, redis, bcmath, mbstring, curl, gd, fileinfo, intl, readline
+          tools: composer
+          cache: composer
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress --optimize-autoloader
+
+      - name: Static analysis (Modules)
+        run: composer analyse:modules
+
+  other-checks:
+    name: Other Quality Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: pdo, openssl, redis, bcmath, mbstring, curl, gd, fileinfo, intl, readline
+          tools: composer
+          cache: composer
+          coverage: none
+
+      - name: Validate composer.json
+        run: composer validate --strict
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress --optimize-autoloader
+
+      - name: Module gate - image-profile
+        run: composer check:module:image-profile
+      - name: Module gate - settings
+        run: composer check:module:settings
+      - name: Module gate - storage
+        run: composer check:module:storage
+      - name: Module gate - geo
+        run: composer check:module:geo
+
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    needs: [permission-lint, whitespace, phpstan-app, phpstan-modules, other-checks]
+    if: always()
+
+    steps:
+      - name: Check required jobs
+        run: |
+          if [ "${{ needs.permission-lint.result }}" != "success" ]; then
+            echo "permission-lint: ${{ needs.permission-lint.result }}"
+            exit 1
+          fi
+          if [ "${{ needs.whitespace.result }}" != "success" ]; then
+            echo "whitespace: ${{ needs.whitespace.result }}"
+            exit 1
+          fi
+          if [ "${{ needs.phpstan-app.result }}" != "success" ]; then
+            echo "phpstan-app: ${{ needs.phpstan-app.result }}"
+            exit 1
+          fi
+          if [ "${{ needs.phpstan-modules.result }}" != "success" ]; then
+            echo "phpstan-modules: ${{ needs.phpstan-modules.result }}"
+            exit 1
+          fi
+          if [ "${{ needs.other-checks.result }}" != "success" ]; then
+            echo "other-checks: ${{ needs.other-checks.result }}"
+            exit 1
+          fi
+          echo "All Quality Gates CI jobs passed."

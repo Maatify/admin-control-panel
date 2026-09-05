@@ -16,7 +16,6 @@ declare(strict_types=1);
 namespace Tests\Support;
 
 use PDO;
-use PDOException;
 use RuntimeException;
 
 final class MySQLTestHelper
@@ -39,6 +38,7 @@ final class MySQLTestHelper
         }
 
         $host = getenv('ADMIN_DB_HOST');
+        $port = getenv('ADMIN_DB_PORT') ?: '3306';
         $name = getenv('ADMIN_DB_NAME');
         $user = getenv('ADMIN_DB_USER');
         $pass = getenv('ADMIN_DB_PASS');
@@ -47,9 +47,14 @@ final class MySQLTestHelper
              throw new RuntimeException('Database environment variables (ADMIN_DB_HOST, ADMIN_DB_NAME, ADMIN_DB_USER) are not configured fully.');
         }
 
+        if (!str_ends_with($name, '_test')) {
+            throw new RuntimeException('Refusing to run Admin integration tests against a database without a _test suffix.');
+        }
+
         $dsn = sprintf(
-            'mysql:host=%s;dbname=%s;charset=utf8mb4',
+            'mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4',
             $host,
+            $port,
             $name
         );
 
@@ -63,39 +68,7 @@ final class MySQLTestHelper
             ]
         );
 
-        self::bootstrapDatabase(self::$pdo);
-
         return self::$pdo;
-    }
-
-    private static function bootstrapDatabase(PDO $pdo): void
-    {
-        $schemaPath = __DIR__ . '/../../../database/schema.sql';
-        if (!file_exists($schemaPath)) {
-            throw new RuntimeException('Schema file not found: ' . $schemaPath);
-        }
-
-        $sql = file_get_contents($schemaPath);
-        if ($sql === false) {
-            throw new RuntimeException('Failed to read schema file: ' . $schemaPath);
-        }
-
-        try {
-            // Disable FK checks during bootstrap
-            $pdo->exec('SET FOREIGN_KEY_CHECKS=0');
-
-            // Execute schema as-is (MySQL native)
-            $pdo->exec($sql);
-
-            $pdo->exec('SET FOREIGN_KEY_CHECKS=1');
-        } catch (PDOException $e) {
-            throw new RuntimeException(
-                "SQL Error in bootstrap while executing schema.sql\n" .
-                "Error: " . $e->getMessage(),
-                0,
-                $e
-            );
-        }
     }
 
     public static function truncate(string $table): void

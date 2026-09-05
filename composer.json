@@ -11,10 +11,12 @@
     "ext-fileinfo": "*",
     "ext-gd": "*",
     "ext-intl": "*",
+    "ext-mbstring": "*",
     "ext-openssl": "*",
     "ext-pdo": "*",
     "ext-readline": "*",
     "ext-redis": "*",
+    "aws/aws-sdk-php": "^3.0",
     "ezyang/htmlpurifier": "^4.19",
     "maatify/crypto": "^1.0",
     "maatify/event-logging": "^1.0",
@@ -35,8 +37,7 @@
 
   "require-dev": {
     "phpunit/phpunit": "^11.0",
-    "phpstan/phpstan": "^1.11",
-    "aws/aws-sdk-php": "^3.0"
+    "phpstan/phpstan": "^1.12"
   },
 
   "autoload": {
@@ -75,9 +76,41 @@
   },
 
   "scripts": {
+    "run-http:admin": [
+      "Composer\\Config::disableProcessTimeout",
+      "@php -S 0.0.0.0:8081 -t public/admin"
+    ],
     "test": "phpunit",
+    "test:admin": "phpunit --configuration phpunit.admin.xml",
+    "test:non-integration": "phpunit --configuration phpunit.admin.xml --exclude-filter Integration",
+    "test:integration": "php scripts/dev/run_admin_integration_tests.php --mode=clone --refresh --",
     "analyse": "phpstan analyse app Modules --level=max --memory-limit=2G",
-    "Permission Linter": "php tools/permission_linter.php"
+    "analyse:app": "phpstan analyse app --level=max --memory-limit=2G",
+    "analyse:modules": "phpstan analyse Modules --level=max --memory-limit=2G",
+    "permission-lint": "@php tools/permission_linter.php",
+    "Permission Linter": "@permission-lint",
+    "check:composer": "composer validate --strict",
+    "check:analyse": "@analyse",
+    "check:non-integration": "@test:non-integration",
+    "check:integration": "@test:integration",
+    "check:permissions": "@permission-lint",
+    "check:whitespace": [
+      "git diff --check",
+      "git diff --cached --check",
+      "if [ -n \"$CI_WHITESPACE_RANGE\" ]; then git diff --check \"$CI_WHITESPACE_RANGE\"; elif git diff --quiet && git diff --cached --quiet; then git show --check --format= --no-ext-diff HEAD; else git diff --check; git diff --cached --check; fi"
+    ],
+    "check:module:image-profile": "phpunit --configuration Modules/ImageProfile/phpunit.xml.dist",
+    "check:module:settings": "phpunit --configuration Modules/Settings/phpunit.xml.dist --bootstrap vendor/autoload.php",
+    "check:module:storage": "phpunit --configuration Modules/Storage/tests/phpunit.xml",
+    "check:module:geo": "phpunit --configuration Modules/geo/phpunit.xml --bootstrap vendor/autoload.php",
+    "check:all": [
+      "@check:composer",
+      "@check:analyse",
+      "@check:non-integration",
+      "@check:integration",
+      "@check:permissions",
+      "@check:whitespace"
+    ]
   },
 
   "config": {

@@ -18,6 +18,24 @@ use Dotenv\Dotenv;
 
 $rootPath = dirname(__DIR__, 2);
 
+// Preserve explicit process values first. The integration runner passes the
+// cloned database connection to PHPUnit through the environment; it must not
+// be replaced by a local .env.test file or by the fallback defaults below.
+$inheritedEnvironment = [];
+foreach ([
+    'ADMIN_APP_ENV',
+    'ADMIN_DB_HOST',
+    'ADMIN_DB_PORT',
+    'ADMIN_DB_NAME',
+    'ADMIN_DB_USER',
+    'ADMIN_DB_PASS',
+] as $key) {
+    $value = getenv($key);
+    if ($value !== false) {
+        $inheritedEnvironment[$key] = $value;
+    }
+}
+
 // Prefer .env.test if exists, fallback to .env
 if (file_exists($rootPath . '/.env.test')) {
     $dotenv = Dotenv::createImmutable($rootPath, '.env.test');
@@ -61,6 +79,11 @@ foreach ($defaults as $key => $value) {
         $_ENV[$key] = $value;
         putenv("$key=$value");
     }
+}
+
+foreach ($inheritedEnvironment as $key => $value) {
+    $_ENV[$key] = $value;
+    putenv($key . '=' . $value);
 }
 
 // ------------------------------------------------------------

@@ -81,7 +81,8 @@ CREATE TABLE `admin_emails` (
                                 `verification_status` varchar(20) COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'pending',
                                 `verified_at` datetime DEFAULT NULL,
                                 `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-                                `email_unique_guard` char(64) COLLATE utf8mb4_general_ci DEFAULT NULL
+                                `email_unique_guard` char(64) COLLATE utf8mb4_general_ci DEFAULT NULL,
+                                PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- On INSERT

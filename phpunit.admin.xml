@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         bootstrap="tests/admin/bootstrap.php"
+         colors="true"
+         executionOrder="depends,defects"
+         beStrictAboutTestsThatDoNotTestAnything="true"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.5/phpunit.xsd"
+         cacheDirectory=".phpunit.cache/admin">
+
+    <!-- Test Suites -->
+    <testsuites>
+        <testsuite name="AdminControlPanel Test Suite">
+            <directory>tests/admin</directory>
+        </testsuite>
+    </testsuites>
+
+    <php>
+        <env name="ADMIN_APP_ENV" value="testing"/>
+    </php>
+</phpunit>
