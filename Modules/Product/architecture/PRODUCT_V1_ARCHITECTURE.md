@@ -245,7 +245,6 @@ CHECK(status IN ('active','inactive'))
 FK:
 ```text
 product_id → maa_product_products.id
-product_id → maa_product_products.id
 ON DELETE RESTRICT
 ON UPDATE RESTRICT
 ```
