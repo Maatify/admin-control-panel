@@ -174,7 +174,7 @@ Admin → Role → Permissions (e.g., settings.list, settings.select, settings.e
 SELECT * FROM permissions WHERE name LIKE 'settings.%';
 ```
 
-Should return 3 rows with the permission names
+Should return 4 rows with the permission names
 
 ### Step 3: Define Domain Classes & Update Core Repository
 
