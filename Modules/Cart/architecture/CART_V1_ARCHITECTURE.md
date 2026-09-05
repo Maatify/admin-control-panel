@@ -4,7 +4,7 @@
 
 هذه الوثيقة هي المرجع المعماري المقفول لـ **Cart V1**.
 
-يحدد هذا المرجع ملكية الـ Cart، دورة الحياة، الهوية، وآلية التفاعل مع الـ Backend والـ Catalog أثناء الدفع (Checkout). أي تغيير لاحق على قرار معماري مثبت هنا يعتبر **تغييرًا معماريًا جديدًا** وليس مجرد تفصيل تنفيذ.
+يحدد هذا المرجع ملكية الـ Cart، دورة الحياة، الهوية، وآلية التفاعل مع الـ Backend والـ Catalog Package أثناء الدفع (Checkout). أي تغيير لاحق على قرار معماري مثبت هنا يعتبر **تغييرًا معماريًا جديدًا** وليس مجرد تفصيل تنفيذ.
 
 ---
 
@@ -77,19 +77,19 @@
 ## 3. العمليات والتكامل
 
 ### 3.1 الاستعادة والتحديث (Rehydration)
-عند عرض أو استعادة الـ Cart، يجب استدعاء الـ Backend (عبر الـ Catalog Package Coordinator) لتحديث وإعادة التحقق (Hydrate/Revalidate) من بيانات العرض والإتاحة الحالية للمنتجات.
+عند عرض أو استعادة الـ Cart، يجب استخدام بيانات الـ Product Domain والـ Pricing Domain الحالية لتحديث وإعادة التحقق (Hydrate/Revalidate) من بيانات العرض والإتاحة.
 
 ### 3.2 إتمام الطلب (Checkout)
 عند الدفع، يرسل المتصفح نية التسوق وبيانات الدفع إلى الـ Backend.
-**يجب على الـ Backend Coordinator إعادة التحقق (Revalidate) مما يلي بشكل صارم عن طريق التنسيق بين مجالات الكتالوج:**
-- وجود الـ Variant (عبر Product Domain).
-- إتاحة الـ Product والـ Variant (عبر Product Domain).
-- قابلية الاختيار الفعلية (Effective selectability) (عبر Product Domain).
-- المخزون الحالي (عبر Inventory Domain).
+**يجب على الـ Backend إعادة التحقق (Revalidate) مما يلي بشكل صارم:**
+- وجود الـ Variant.
+- إتاحة الـ Product والـ Variant (Availability).
+- قابلية الاختيار الفعلية (Effective selectability).
+- المخزون الحالي (Current stock).
 - الكمية المطلوبة (Requested quantity).
 - العملة المطلوبة (Requested currency).
-- التسعير الفعّال (عبر Pricing Domain).
-- السعر النهائي المحسوب (Final calculated price) (بتنسيق الـ Package Coordinator).
+- تسعير الـ Pricing Domain الحالي (Current Pricing Domain pricing).
+- السعر النهائي المحسوب (Final calculated price).
 
 **قاعدة:** الأسعار، المخزون، الأسماء، والمجاميع المرسلة من المتصفح لا يُوثق بها أبدًا.
 
