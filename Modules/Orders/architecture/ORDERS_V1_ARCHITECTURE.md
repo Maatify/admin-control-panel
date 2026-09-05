@@ -116,7 +116,7 @@ Browser Cart
 
 ## 6. حجز المخزون (Stock Reservation)
 
-إدارة حجز المخزون تابعة لموديول Orders وليس Catalog.
+إدارة حجز المخزون تابعة لموديول Orders وليس Product/Inventory/Pricing.
 يتم الحجز لكل (Order Item / Variant).
 
 الحالات المقفولة في `StockReservationStatusEnum`:
@@ -245,7 +245,8 @@ Browser Cart
 - **وحدانية الحجز (One logical reservation per Order Item):** يجب أن يكون هناك حجز نشط واحد فقط مرتبط بسطر الطلب.
 - **الكميات الإيجابية (Positive quantities):** كميات العناصر يجب أن تكون > 0 (CHECK constraint).
 - **القيم المالية (Nonnegative commercial money values):** جميع الحقول المالية (subtotal, shipping, total) يجب أن تكون >= 0 (CHECK constraint).
-- **عدم الاعتماد على جداول خارجية (No FK to host tables):** يمنع تمامًا وجود مفاتيح أجنبية لـ Catalog، Geo، Payment، أو Shipping.
+- **عدم الاعتماد على جداول خارجية (No FK to host tables):** يمنع تمامًا وجود مفاتيح أجنبية لـ Product، Inventory، Pricing، Geo، Payment، أو Shipping.
+- **Column Comments Requirement:** تطبيقًا للـ Package Building Standard، تلتزم كافة المخططات (Schemas) المذكورة هنا بتوفير تعليقات دلالية (Meaningful Comments) في مرحلة التنفيذ الفعلي (Implementation) توضح الغرض من كل عمود، خصوصًا الهويات الخارجية مثل التاريخية للـ Product أو الـ Geo.
 
 ### 12.2 محددات يفرضها التطبيق (Domain/application-enforced invariants)
 - **الانتقالات المسموحة (Allowed status transitions):** يمنع الانتقال للخلف، يمنع إحياء الطلب (No Order resurrection).

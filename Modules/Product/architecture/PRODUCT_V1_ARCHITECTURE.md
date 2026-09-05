@@ -487,6 +487,7 @@ UNIQUE(option_value_id, language_code)
 * Unique `(variant_id, option_id)`.
 * Status Constraints.
 * Boolean Constraints.
+* **Column Comments Requirement:** تطبيقًا للـ Package Building Standard، تلتزم كافة المخططات (Schemas) المذكورة هنا بتوفير تعليقات دلالية (Meaningful Comments) في مرحلة التنفيذ الفعلي (Implementation) توضح الغرض من كل عمود، خصوصًا الهويات الخارجية.
 
 ---
 

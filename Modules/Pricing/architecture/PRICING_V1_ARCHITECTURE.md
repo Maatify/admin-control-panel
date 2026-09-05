@@ -130,6 +130,7 @@ UNIQUE(subject_type, subject_id, currency_code)
 
 * Primary Keys & `UNIQUE(subject_type, subject_id, currency_code)` لكل جدول لمنع تكرار السعر لنفس العملة والكيان.
 * `base_price >= 0`.
+* **Column Comments Requirement:** تطبيقًا للـ Package Building Standard، تلتزم كافة المخططات (Schemas) المذكورة هنا بتوفير تعليقات دلالية (Meaningful Comments) في مرحلة التنفيذ الفعلي (Implementation) توضح الغرض من كل عمود، خصوصًا الهويات الخارجية مثل `COMMENT 'Host-provided ID. No FK.'`.
 
 ---
 

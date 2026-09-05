@@ -264,6 +264,7 @@ ON UPDATE RESTRICT
 * Unique Stable Codes, Unique Translation Identities.
 * Status constraints (active/inactive).
 * `parent_id <> id`.
+* **Column Comments Requirement:** تطبيقًا للـ Package Building Standard، تلتزم كافة المخططات (Schemas) المذكورة هنا بتوفير تعليقات دلالية (Meaningful Comments) في مرحلة التنفيذ الفعلي (Implementation) توضح الغرض من كل عمود، خصوصًا الهويات الخارجية إن وجدت.
 
 ---
 

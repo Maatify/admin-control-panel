@@ -4,7 +4,7 @@
 تم في هذا التحديث إرجاع الوثيقة المونوليثية كـ PDF تاريخي ليصبح مرجعاً مظلياً (Umbrella/Composite Architecture) لـ **Catalog Package** بالكامل (والذي يشمل جميع الموديولات).
 لضمان عدم تضارب مصادر الحقيقة، تم تعريف تسلسل هرمي واضح:
 * **Base Module Architectures (`.md`):** هي الـ Source of Truth الوحيد للتصميم الداخلي للموديول.
-* **Catalog Package Architecture (`CATALOG_PACKAGE_ARCHITECTURE.md` والـ PDF):** هي الـ Source of Truth حصرياً للتنسيق (Composition)، دمج الكيانات، و الـ Cross-domain Derived Rules التي تعتمد على أكثر من موديول. (مستثناة من قاعدة الـ Internal Architecture).
+* **Catalog Package Architecture (`CATALOG_PACKAGE_ARCHITECTURE.md`):** هو الـ Source of Truth الحالي والحصري للتنسيق (Composition)، دمج الكيانات، و الـ Cross-domain Derived Rules التي تعتمد على أكثر من موديول. أما الـ PDF المرفق فيُعد مجرد `Historical Composite Reference` للاستئناس ولا يعول عليه لتجاوز هذا الملف المعماري المكتوب.
 * **Dependency Direction:** الـ Catalog Package يجمع ويعرف الموديولات، لكن الموديولات الأساسية لا تعرف الـ Package ولا تعرف بعضها البعض أبداً.
 
 تم إنشاء/تعديل الملفات التالية وتم حذف أي نص قديم منافس لتفادي وجود Source of Truth متضارب:

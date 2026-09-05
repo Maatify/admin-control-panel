@@ -112,6 +112,7 @@ CHECK(quantity_on_hand >= 0)
 
 * حماية المخزون السالب مدعومة بالقيد `CHECK(quantity_on_hand >= 0)`.
 * فرادة المخزون لكل كيان مدعومة بالقيد `UNIQUE(stock_subject_type, stock_subject_id)`.
+* **Column Comments Requirement:** تطبيقًا للـ Package Building Standard، تلتزم كافة المخططات (Schemas) المذكورة هنا بتوفير تعليقات دلالية (Meaningful Comments) في مرحلة التنفيذ الفعلي (Implementation) توضح الغرض من كل عمود، خصوصًا الهويات الخارجية مثل `COMMENT 'Host-provided ID. No FK.'`.
 
 ---
 
@@ -123,14 +124,16 @@ CHECK(quantity_on_hand >= 0)
   * يجب أن تكون عددًا صحيحًا موجبًا أكبر قطعًا من الصفر (`X > 0`).
   * الأرقام السالبة، الصفر، أو القيم العشرية (Float) مرفوضة تمامًا (لا يُسمح بتمرير `decrease(-5)` لتعمل كزيادة).
 * **Atomic Decrease Contract:**
-  `UPDATE maa_inventory_stocks SET quantity_on_hand = quantity_on_hand - X, updated_at = ? WHERE stock_subject_type = ? AND stock_subject_id = ? AND quantity_on_hand >= X AND deleted_at IS NULL`.
+  `UPDATE maa_inventory_stocks SET quantity_on_hand = quantity_on_hand - :quantity, updated_at = :updated_at WHERE stock_subject_type = :stock_subject_type AND stock_subject_id = :stock_subject_id AND quantity_on_hand >= :quantity_check AND deleted_at IS NULL`.
+  (تُمرر قيمة الـ Mutation لكل من `:quantity` و `:quantity_check` بشكل منفصل كـ Unique named placeholders).
 * **Atomic Increase Contract:**
-  `UPDATE maa_inventory_stocks SET quantity_on_hand = quantity_on_hand + X, updated_at = ? WHERE stock_subject_type = ? AND stock_subject_id = ? AND deleted_at IS NULL`.
+  `UPDATE maa_inventory_stocks SET quantity_on_hand = quantity_on_hand + :quantity, updated_at = :updated_at WHERE stock_subject_type = :stock_subject_type AND stock_subject_id = :stock_subject_id AND deleted_at IS NULL`.
 * **Result Semantics:**
-  الموديول يُفرق بوضوح بين نتائج الـ Mutation:
+  الموديول يُفرق بوضوح بين نتائج الـ Mutation المختلفة:
   * `Success`: العملية تمت وتم تحديث صف واحد.
-  * `Insufficient Stock`: عند الـ Decrease، السجل موجود وفعّال لكن `quantity_on_hand < X`.
-  * `Soft-Deleted / Not Found`: السجل غير موجود أو يحمل `deleted_at IS NOT NULL`.
+  * `Insufficient Stock`: عند الـ Decrease، السجل موجود وفعّال (Not soft-deleted) لكن الـ `quantity_on_hand` المتاح أقل من الكمية المطلوبة.
+  * `Soft-Deleted`: السجل موجود في قاعدة البيانات لكنه يحمل `deleted_at IS NOT NULL` (لا يمكن التعديل عليه).
+  * `Not Found`: لا يوجد سجل يطابق الهوية (`subject_type` و `subject_id`) في قاعدة البيانات.
   يجب عدم دمج هذه الحالات تحت رسالة خطأ واحدة إذا كان العقد العام يحتاج للتفريق بينها.
 * الموديول يوفر عمليات "الزيادة" و "النقصان" الذرية فقط ولا يسمي عملياته بـ "Reserve" أو "Cancel" لأن هذه دلالات تجارية تخص موديولات أخرى.
 
