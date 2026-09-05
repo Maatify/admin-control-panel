@@ -672,7 +672,7 @@ No data rendering.
 ### JS Modules
 
 ```
-public/assets/js/pages/
+public/admin/assets/js/pages/
 ├── role-details-tabs.js
 ├── role-details-permissions.js
 └── role-details-admins.js

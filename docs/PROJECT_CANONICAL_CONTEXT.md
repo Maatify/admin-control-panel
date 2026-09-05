@@ -15,13 +15,13 @@ The project is a secure Admin Control Panel built with **PHP 8.2+, Slim 4, PHP-D
 *   **`Modules/AdminKernel/Infrastructure/`**: Concrete implementations (Repositories, Mailers, Loggers, PDO adapters).
 *   **`Modules/AdminKernel/Http/`**: Application layer (Controllers, Middleware).
 *   **`Modules/AdminKernel/Bootstrap/`**: Dependency Injection (`Container.php`) and Configuration (`AdminConfigDTO`).
-*   **`public/`**: Web root. Entry point `index.php`.
+*   **`public/admin/`**: Admin web root. Entry point `index.php`.
 *   **`routes/`**: Route definitions (`web.php`).
 *   **`templates/`**: Twig views (`pages/`, `layouts/`, `components/`).
 *   **`docs/`**: Canonical documentation and architectural records.
 
 ### Key Entry Points
-*   **Web/API**: `public/index.php` -> `Maatify\AdminKernel\Kernel\AdminKernel`
+*   **Web/API**: `public/admin/index.php` -> `Maatify\AdminKernel\Kernel\AdminKernel`
 *   **CLI**: `scripts/bootstrap_admin.php` (System bootstrapping only)
 *   **Config**: `Maatify\AdminKernel\Bootstrap\Container.php` (Single source of configuration loading)
 
@@ -56,6 +56,14 @@ The project is a secure Admin Control Panel built with **PHP 8.2+, Slim 4, PHP-D
 *   **Fail-Closed Environment**: Missing `.env` variables cause immediate crash in `Container.php` (via `$dotenv->required(...)->notEmpty()`).
 *   **Recovery Mode**: If `ADMIN_RECOVERY_MODE=true`, strict lock-down is enforced by `RecoveryStateService`.
 *   **Session State**: Sessions default to `PENDING_STEP_UP`. `ACTIVE` state requires `Scope::LOGIN`.
+*   **`ADMIN_*` Env Namespacing (LOCKED)**: Every env key this host owns is prefixed `ADMIN_*` (see
+    `.env.example`). `Modules/AdminKernel` never reads `ADMIN_*` directly — it only reads the
+    generic module contract (`APP_ENV`, `DB_HOST`, `STORAGE_DRIVER`, ...). Translating `ADMIN_*`
+    into that generic contract happens once, in `app/Bootstrap/AdminEnvironmentAdapter` and
+    `app/Bootstrap/AdminStorageEnvAdapter` — host-owned code, not part of the Kernel module.
+    A new class under `Modules/AdminKernel` must never read an `ADMIN_*` key directly.
+    See [ADR-019](adr/ADR-019-host-owned-env-adapters.md) and
+    [ADMIN_ENV_NAMESPACING_REMEDIATION_PLAN.md](architecture/ADMIN_ENV_NAMESPACING_REMEDIATION_PLAN.md).
 
 ---
 

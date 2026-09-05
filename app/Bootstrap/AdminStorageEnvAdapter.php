@@ -2,12 +2,38 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Bootstrap;
+namespace Maatify\AdminControlPanel\Bootstrap;
 
+use Maatify\Storage\Config\StorageConfig;
 use RuntimeException;
 
 final class AdminStorageEnvAdapter
 {
+    /**
+     * Build the reusable Storage configuration from the Admin-owned
+     * environment without exposing the reusable module's generic keys to the
+     * host composition root.
+     *
+     * @param array<string, mixed> $adminEnv
+     */
+    public static function forStorage(array $adminEnv, string $appRoot): StorageConfig
+    {
+        $storageEnv = self::adapt($adminEnv);
+        $localBasePath = $storageEnv['LOCAL_BASE_PATH'] ?? '';
+
+        if ($localBasePath === '') {
+            $localBasePath = 'public/admin/images';
+        }
+
+        if (!str_starts_with($localBasePath, '/')) {
+            $localBasePath = rtrim($appRoot, '/') . '/' . ltrim($localBasePath, '/');
+        }
+
+        $storageEnv['LOCAL_BASE_PATH'] = $localBasePath;
+
+        return StorageConfig::fromEnv($storageEnv);
+    }
+
     /**
      * Translate Admin-owned storage keys to the reusable Storage module contract.
      *

@@ -70,7 +70,7 @@ final class MySQLTestHelper
 
     private static function bootstrapDatabase(PDO $pdo): void
     {
-        $schemaPath = __DIR__ . '/../../database/schema.sql';
+        $schemaPath = __DIR__ . '/../../../database/schema.sql';
         if (!file_exists($schemaPath)) {
             throw new RuntimeException('Schema file not found: ' . $schemaPath);
         }

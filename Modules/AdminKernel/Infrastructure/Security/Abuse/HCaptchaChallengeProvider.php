@@ -53,8 +53,6 @@ final readonly class HCaptchaChallengeProvider implements ChallengeProviderInter
         $raw = curl_exec($ch);
         $errno = curl_errno($ch);
         $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
         if ($errno !== 0 || !is_string($raw) || $httpCode < 200 || $httpCode >= 300) {
             return new ChallengeResultDTO(false, 'verification_failed');
         }

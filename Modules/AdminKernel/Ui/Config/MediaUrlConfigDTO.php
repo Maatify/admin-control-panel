@@ -22,9 +22,9 @@ final class MediaUrlConfigDTO
      */
     public static function fromArray(array $env): self
     {
-        $assetsCdnUrl = self::requireNonEmptyString($env, 'ADMIN_ASSETS_CDN_URL');
-        $cdnImageUrl = self::requireNonEmptyString($env, 'ADMIN_CDN_IMAGE_URL');
-        $assetVersion = self::optionalTrimmedString($env, 'ADMIN_ASSET_VERSION');
+        $assetsCdnUrl = self::requireNonEmptyString($env, 'ASSETS_CDN_URL');
+        $cdnImageUrl = self::requireNonEmptyString($env, 'CDN_IMAGE_URL');
+        $assetVersion = self::optionalTrimmedString($env, 'ASSET_VERSION');
 
         return new self(
             assetsCdnUrl: self::normalizeBaseUrl($assetsCdnUrl),

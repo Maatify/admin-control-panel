@@ -8,9 +8,9 @@
 
 Complete before Step 0:
 
-- [ ] Read `public/assets/maatify/admin-kernel/js/admin-page-bridge.js`
-- [ ] Read `public/assets/maatify/admin-kernel/js/ADMIN_PAGE_BRIDGE_USAGE.md`
-- [ ] Read target feature-family `*-v2.js` files under `public/assets/maatify/admin-kernel/js/pages/**`
+- [ ] Read `public/admin/assets/maatify/admin-kernel/js/admin-page-bridge.js`
+- [ ] Read `public/admin/assets/maatify/admin-kernel/js/ADMIN_PAGE_BRIDGE_USAGE.md`
+- [ ] Read target feature-family `*-v2.js` files under `public/admin/assets/maatify/admin-kernel/js/pages/**`
 - [ ] Read mounted Twig page contract under `Modules/AdminKernel/Templates/pages/**`
 - [ ] Confirm default-priority path and classification from `UI_EXECUTION_RULES.md`
 

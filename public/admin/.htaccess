@@ -1,0 +1,9 @@
+RewriteEngine On
+
+# Prevent direct access to sensitive project files.
+RewriteRule ^(?:\.env|composer\.json|composer\.lock)$ - [F,L]
+
+# Delegate application routes to the Admin front controller.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA,L]

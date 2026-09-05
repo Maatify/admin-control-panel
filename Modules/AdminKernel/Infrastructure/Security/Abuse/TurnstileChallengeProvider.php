@@ -59,8 +59,6 @@ final readonly class TurnstileChallengeProvider implements ChallengeProviderInte
         $raw = curl_exec($ch);
         $errno = curl_errno($ch);
         $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
         if ($errno !== 0 || !is_string($raw) || $raw === '' || $httpCode < 200 || $httpCode >= 300) {
             // Security default: fail-closed when challenge is required
             return new ChallengeResultDTO(false, 'verification_failed');

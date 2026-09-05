@@ -172,8 +172,8 @@ The following items are specific implementations that must not be abstracted int
 - The JS file attaches event listeners for user input (search, filters, pagination).
 - It triggers an initial data load by calling an underlying table rendering mechanism (UNVERIFIED: source of `createTable` function).
 - **Supporting File Paths:**
-  - `public/assets/maatify/admin-kernel/js/pages/sessions.js`
-  - `public/assets/maatify/admin-kernel/js/pages/admins-list.js`
+  - `public/admin/assets/maatify/admin-kernel/js/pages/sessions.js`
+  - `public/admin/assets/maatify/admin-kernel/js/pages/admins-list.js`
 
 ### 5. API Interaction
 - The JavaScript function issues an asynchronous POST request to the corresponding API query endpoint (e.g., `/api/sessions/query`, `/api/admins/query`).
@@ -184,7 +184,7 @@ The following items are specific implementations that must not be abstracted int
 - The JS file receives this JSON and executes custom rendering functions (e.g., `statusRenderer`, `sessionIdRenderer`, `actionsRenderer`).
 - During rendering, the JS explicitly checks the injected `window.*Capabilities` object to determine whether to show or hide specific action buttons (e.g., Revoke, Edit, Delete).
 - **Supporting File Paths:**
-  - `public/assets/maatify/admin-kernel/js/pages/sessions.js`
+  - `public/admin/assets/maatify/admin-kernel/js/pages/sessions.js`
 
 ## 15. UI Interaction Depth (Observed)
 

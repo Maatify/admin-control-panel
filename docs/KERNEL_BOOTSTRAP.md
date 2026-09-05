@@ -41,16 +41,16 @@ When `AdminKernel::boot()` is called, it:
 
 Host applications mounting the Kernel can customize this behavior by providing their own bootstrap logic via `KernelOptions`, or by modifying the bootstrap file directly in their deployment.
 
-## `public/index.php`
+## `public/admin/index.php`
 
-The `public/index.php` file is a thin wrapper that delegates entirely to the Kernel.
+The `public/admin/index.php` file is a thin wrapper that delegates entirely to the Kernel.
 
 ```php
 <?php
 
 declare(strict_types=1);
 
-require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '/../../vendor/autoload.php';
 
 \Maatify\AdminKernel\Kernel\AdminKernel::boot()->run();
 ```

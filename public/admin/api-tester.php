@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '/../../vendor/autoload.php';
 
 use Dotenv\Dotenv;
 
-// Load ENV safely (same style as public/index.php)
-$dotenv = Dotenv::createImmutable(__DIR__ . '/../');
+// Load ENV safely (same style as public/admin/index.php)
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
 $dotenv->safeLoad();
 
 $appEnv = $_ENV['ADMIN_APP_ENV'] ?? 'local';

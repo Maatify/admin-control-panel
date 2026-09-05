@@ -1,7 +1,7 @@
 # Context Provider Request Refresh Regression Report
 
 ## What was tested
-A new regression test `tests/Integration/Context/HttpContextProviderRegressionTest.php` was added.
+A new regression test `tests/admin/Integration/Context/HttpContextProviderRegressionTest.php` was added.
 This test simulates the middleware pipeline involving `ContextProviderMiddleware` and `SessionGuardMiddleware` (with a mock `SessionValidationService`).
 It specifically tests that `HttpContextProvider`, when resolved from the DI container *after* the middleware pipeline runs, has access to the updated `ServerRequestInterface` containing the `admin_id` attribute.
 

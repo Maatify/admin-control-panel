@@ -35,9 +35,9 @@ Slim executes middleware in LIFO order (Last Added, First Executed).
     *   Execution: `SessionGuardMiddleware` runs (authenticates, sets `admin_id` attribute) -> `AdminContextMiddleware` runs (reads `admin_id`, sets `AdminContext`).
 
 ## Test Coverage
-*   `tests/Http/Middleware/RequestContextMiddlewareTest.php`: Verifies success path and hard-fail on missing `request_id`.
-*   `tests/Http/Middleware/AdminContextMiddlewareTest.php`: Verifies `AdminContext` creation when `admin_id` is present/absent.
-*   `tests/Http/Controllers/AuthControllerTest.php`: Verifies `login` logic uses `AdminContext` (constructed manually) and `RequestContext` (from attribute) for logging.
+*   `tests/admin/Http/Middleware/RequestContextMiddlewareTest.php`: Verifies success path and hard-fail on missing `request_id`.
+*   `tests/admin/Http/Middleware/AdminContextMiddlewareTest.php`: Verifies `AdminContext` creation when `admin_id` is present/absent.
+*   `tests/admin/Http/Controllers/AuthControllerTest.php`: Verifies `login` logic uses `AdminContext` (constructed manually) and `RequestContext` (from attribute) for logging.
 
 ## Final Grep Confirmation
 A final grep for `HttpContextProvider`, `ContextProviderInterface`, `Resolver`, and `ContextProviderMiddleware` returned ZERO hits.

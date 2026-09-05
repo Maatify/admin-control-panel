@@ -41,6 +41,7 @@
 
   "autoload": {
     "psr-4": {
+      "Maatify\\AdminControlPanel\\": "app/",
       "Maatify\\AdminKernel\\": "Modules/AdminKernel/",
       "Maatify\\EmailDelivery\\": "Modules/EmailDelivery",
       "Maatify\\InputNormalization\\": "Modules/InputNormalization",
@@ -68,14 +69,14 @@
 
   "autoload-dev": {
     "psr-4": {
-      "Tests\\": "tests/",
+      "Tests\\": "tests/admin/",
       "Maatify\\Geo\\Tests\\": "Modules/geo/tests/"
     }
   },
 
   "scripts": {
     "test": "phpunit",
-    "analyse": "phpstan analyse app Modules --level=max",
+    "analyse": "phpstan analyse app Modules --level=max --memory-limit=2G",
     "Permission Linter": "php tools/permission_linter.php"
   },
 

@@ -219,9 +219,9 @@ Do NOT include this classification in final output.
 
 Before any UI implementation choice, the executor MUST complete this runtime pre-read sequence:
 
-1. `public/assets/maatify/admin-kernel/js/admin-page-bridge.js`
-2. `public/assets/maatify/admin-kernel/js/ADMIN_PAGE_BRIDGE_USAGE.md`
-3. target `*-v2.js` files under `public/assets/maatify/admin-kernel/js/pages/**`
+1. `public/admin/assets/maatify/admin-kernel/js/admin-page-bridge.js`
+2. `public/admin/assets/maatify/admin-kernel/js/ADMIN_PAGE_BRIDGE_USAGE.md`
+3. target `*-v2.js` files under `public/admin/assets/maatify/admin-kernel/js/pages/**`
 4. mounted Twig page(s) under `Modules/AdminKernel/Templates/pages/**`
 
 Then the executor MUST read UI authority docs in this order:

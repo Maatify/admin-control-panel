@@ -16,6 +16,7 @@ final class AdminRuntimeConfigDTO
     public string $appTimezone;
     public string $appName;
     public string $adminUrl;
+    public ?string $logPath;
 
     /* ─────────────────────────────
      * Database
@@ -105,70 +106,71 @@ final class AdminRuntimeConfigDTO
         $self = new self();
 
         // Application
-        $self->appEnv       = self::reqString($data, 'ADMIN_APP_ENV');
-        $self->appDebug     = self::reqBool($data, 'ADMIN_APP_DEBUG');
-        $self->appTimezone  = self::reqString($data, 'ADMIN_APP_TIMEZONE');
-        $self->appName      = self::reqString($data, 'ADMIN_APP_NAME');
+        $self->appEnv       = self::reqString($data, 'APP_ENV');
+        $self->appDebug     = self::reqBool($data, 'APP_DEBUG');
+        $self->appTimezone  = self::reqString($data, 'APP_TIMEZONE');
+        $self->appName      = self::reqString($data, 'APP_NAME');
         $self->adminUrl     = self::reqString($data, 'ADMIN_URL');
+        $self->logPath      = self::optString($data, 'LOG_PATH');
 
         // Database
-        $self->dbHost       = self::reqString($data, 'ADMIN_DB_HOST');
-        $self->dbName       = self::reqString($data, 'ADMIN_DB_NAME');
-        $self->dbUser       = self::reqString($data, 'ADMIN_DB_USER');
-        $self->dbPassword   = self::reqString($data, 'ADMIN_DB_PASS');
+        $self->dbHost       = self::reqString($data, 'DB_HOST');
+        $self->dbName       = self::reqString($data, 'DB_NAME');
+        $self->dbUser       = self::reqString($data, 'DB_USER');
+        $self->dbPassword   = self::reqString($data, 'DB_PASS');
 
         // Security / Password
-        $self->emailBlindIndexKey        = self::reqString($data, 'ADMIN_EMAIL_BLIND_INDEX_KEY');
-        $self->passwordPeppers           = self::reqString($data, 'ADMIN_PASSWORD_PEPPERS');
-        $self->passwordActivePepperId    = self::reqString($data, 'ADMIN_PASSWORD_ACTIVE_PEPPER_ID');
+        $self->emailBlindIndexKey        = self::reqString($data, 'EMAIL_BLIND_INDEX_KEY');
+        $self->passwordPeppers           = self::reqString($data, 'PASSWORD_PEPPERS');
+        $self->passwordActivePepperId    = self::reqString($data, 'PASSWORD_ACTIVE_PEPPER_ID');
         $self->passwordArgon2Options = self::optStringNotNull(
             $data,
-            'ADMIN_PASSWORD_ARGON2_OPTIONS',
+            'PASSWORD_ARGON2_OPTIONS',
             '{"memory_cost":65536,"time_cost":4,"threads":1}'
         );
 
         // Crypto
-        $self->cryptoKeysJson    = self::reqString($data, 'ADMIN_CRYPTO_KEYS');
-        $self->cryptoActiveKeyId = self::reqString($data, 'ADMIN_CRYPTO_ACTIVE_KEY_ID');
+        $self->cryptoKeysJson    = self::reqString($data, 'CRYPTO_KEYS');
+        $self->cryptoActiveKeyId = self::reqString($data, 'CRYPTO_ACTIVE_KEY_ID');
 
         // TOTP
-        $self->totpIssuer               = self::reqString($data, 'ADMIN_TOTP_ISSUER');
-        $self->totpEnrollmentTtlSeconds = self::reqInt($data, 'ADMIN_TOTP_ENROLLMENT_TTL_SECONDS');
+        $self->totpIssuer               = self::reqString($data, 'TOTP_ISSUER');
+        $self->totpEnrollmentTtlSeconds = self::reqInt($data, 'TOTP_ENROLLMENT_TTL_SECONDS');
 
         // Mail
-        $self->mailHost        = self::reqString($data, 'ADMIN_MAIL_HOST');
-        $self->mailPort        = self::reqInt($data, 'ADMIN_MAIL_PORT');
-        $self->mailUsername    = self::reqString($data, 'ADMIN_MAIL_USERNAME');
-        $self->mailPassword    = self::reqString($data, 'ADMIN_MAIL_PASSWORD');
-        $self->mailFromAddress = self::reqString($data, 'ADMIN_MAIL_FROM_ADDRESS');
-        $self->mailFromName    = self::reqString($data, 'ADMIN_MAIL_FROM_NAME');
-        $self->mailEncryption  = self::optString($data, 'ADMIN_MAIL_ENCRYPTION');
-        $self->mailTimeoutSeconds = self::optInt($data, 'ADMIN_MAIL_TIMEOUT_SECONDS', 10);
-        $self->mailCharset        = self::optStringNotNull($data, 'ADMIN_MAIL_CHARSET', 'UTF-8');
-        $self->mailDebugLevel     = self::optInt($data, 'ADMIN_MAIL_DEBUG_LEVEL', 0);
+        $self->mailHost        = self::reqString($data, 'MAIL_HOST');
+        $self->mailPort        = self::reqInt($data, 'MAIL_PORT');
+        $self->mailUsername    = self::reqString($data, 'MAIL_USERNAME');
+        $self->mailPassword    = self::reqString($data, 'MAIL_PASSWORD');
+        $self->mailFromAddress = self::reqString($data, 'MAIL_FROM_ADDRESS');
+        $self->mailFromName    = self::reqString($data, 'MAIL_FROM_NAME');
+        $self->mailEncryption  = self::optString($data, 'MAIL_ENCRYPTION');
+        $self->mailTimeoutSeconds = self::optInt($data, 'MAIL_TIMEOUT_SECONDS', 10);
+        $self->mailCharset        = self::optStringNotNull($data, 'MAIL_CHARSET', 'UTF-8');
+        $self->mailDebugLevel     = self::optInt($data, 'MAIL_DEBUG_LEVEL', 0);
 
         // UI
-        $self->assetBaseUrl     = self::optStringNotNull($data, 'ADMIN_ASSET_BASE_URL', '/');
-        $self->logoUrl          = self::optString($data, 'ADMIN_LOGO_URL');
-        $self->hostTemplatePath = self::optString($data, 'ADMIN_HOST_TEMPLATE_PATH');
+        $self->assetBaseUrl     = self::optStringNotNull($data, 'ASSET_BASE_URL', '/');
+        $self->logoUrl          = self::optString($data, 'LOGO_URL');
+        $self->hostTemplatePath = self::optString($data, 'HOST_TEMPLATE_PATH');
 
         // Flags
-        $self->recoveryMode = self::optBool($data, 'ADMIN_RECOVERY_MODE', false);
+        $self->recoveryMode = self::optBool($data, 'RECOVERY_MODE', false);
 
         // Turnstile
-        $self->turnstileSiteKey = self::optString($data, 'ADMIN_TURNSTILE_SITE_KEY', '');
-        $self->turnstileSecretKey = self::optString($data, 'ADMIN_TURNSTILE_SECRET_KEY', '');
+        $self->turnstileSiteKey = self::optString($data, 'TURNSTILE_SITE_KEY', '');
+        $self->turnstileSecretKey = self::optString($data, 'TURNSTILE_SECRET_KEY', '');
 
         // HCaptcha
-        $self->hCaptchaSiteKey = self::optString($data, 'ADMIN_HCAPTCHA_SITE_KEY', '');
-        $self->hCaptchaSecretKey = self::optString($data, 'ADMIN_HCAPTCHA_SECRET_KEY', '');
+        $self->hCaptchaSiteKey = self::optString($data, 'HCAPTCHA_SITE_KEY', '');
+        $self->hCaptchaSecretKey = self::optString($data, 'HCAPTCHA_SECRET_KEY', '');
 
         // RecaptchaV2
-        $self->recaptchaV2SiteKey = self::optString($data, 'ADMIN_RECAPTCHA_V2_SITE_KEY', '');
-        $self->recaptchaV2SecretKey = self::optString($data, 'ADMIN_RECAPTCHA_V2_SECRET_KEY', '');
+        $self->recaptchaV2SiteKey = self::optString($data, 'RECAPTCHA_V2_SITE_KEY', '');
+        $self->recaptchaV2SecretKey = self::optString($data, 'RECAPTCHA_V2_SECRET_KEY', '');
 
         // Abuse Challenge Provider Selector
-        $self->abuseChallengeProvider = self::optStringNotNull($data, 'ADMIN_ABUSE_CHALLENGE_PROVIDER', 'none');
+        $self->abuseChallengeProvider = self::optStringNotNull($data, 'ABUSE_CHALLENGE_PROVIDER', 'none');
 
         return $self;
     }

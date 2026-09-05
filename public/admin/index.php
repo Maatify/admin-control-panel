@@ -2,38 +2,41 @@
 
 declare(strict_types=1);
 
-define('APP_ROOT', dirname(__DIR__));
+define('APP_ROOT', dirname(__DIR__, 2));
 
-require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '/../../vendor/autoload.php';
 
 use DI\ContainerBuilder;
-use Maatify\AdminKernel\Bootstrap\AdminStorageEnvAdapter;
+use Dotenv\Dotenv;
+use Maatify\AdminControlPanel\Bootstrap\AdminEnvironmentAdapter;
+use Maatify\AdminControlPanel\Bootstrap\AdminStorageEnvAdapter;
 use Maatify\AdminKernel\Bootstrap\AdminKernelPermissionBindings;
 use Maatify\AdminKernel\Kernel\AdminKernel;
 use Maatify\AdminKernel\Kernel\KernelOptions;
 use Maatify\AdminKernel\Kernel\DTO\AdminRuntimeConfigDTO;
-use Dotenv\Dotenv;
 use Maatify\SettingsSlim\Admin\Security\SettingAdminPermissionPackage;
 use Maatify\AdminKernel\Ui\Config\MediaUrlConfigDTO;
 use Maatify\CurrencySlim\Admin\Security\CurrencyAdminPermissionPackage;
 use Maatify\ExchangeRatesSlim\Admin\Security\ExchangeRatesAdminPermissionPackage;
 use Maatify\GeoSlim\Admin\Security\GeoAdminPermissionPackage;
 use Maatify\Storage\Bootstrap\StorageBindings;
-use Maatify\Storage\Config\StorageConfig;
 
 //use Maatify\PsrLogger\LoggerFactory;
 
 // 1️⃣ Load ENV (HOST responsibility)
-$dotenv = Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv = Dotenv::createImmutable(APP_ROOT);
 $dotenv->safeLoad();
 
 //$logger = LoggerFactory::create('app/errors');
 //$logger->alert('access');
 
+$adminEnv = $_ENV;
+
 // 2️⃣ Build Runtime Config DTO
-$runtimeConfig = AdminRuntimeConfigDTO::fromArray($_ENV);
-$storageConfig = StorageConfig::fromEnv(AdminStorageEnvAdapter::adapt($_ENV));
-$mediaUrlConfig = MediaUrlConfigDTO::fromArray($_ENV);
+$kernelEnv = AdminEnvironmentAdapter::forAdminKernel($adminEnv);
+$runtimeConfig = AdminRuntimeConfigDTO::fromArray($kernelEnv);
+$storageConfig = AdminStorageEnvAdapter::forStorage($adminEnv, APP_ROOT);
+$mediaUrlConfig = MediaUrlConfigDTO::fromArray($kernelEnv);
 
 // 3️⃣ Kernel options
 $options = new KernelOptions();
@@ -45,8 +48,8 @@ $options->runtimeConfig = $runtimeConfig;
 // $options->routes = fn ($app) => ...;
 
 $permissionPackages = [
-    new SettingAdminPermissionPackage(),
     new CurrencyAdminPermissionPackage(),
+    new SettingAdminPermissionPackage(),
     new ExchangeRatesAdminPermissionPackage(),
     new GeoAdminPermissionPackage(),
     // new PaymentMethodPackage(),
@@ -122,10 +125,10 @@ $options->builderHook = static function (ContainerBuilder $containerBuilder) use
     \Maatify\Geo\Bootstrap\GeoBindings::register($containerBuilder);
 };
 
-// 5️⃣ Boot & Run
-// Enable Twig compiled-template caching only in production.
+// 5️⃣ Twig compiled-template cache (production only)
 if (($runtimeConfig->appEnv ?? 'local') === 'production') {
-    $options->twigCachePath = APP_ROOT . '/storage/twig';
+    $options->twigCachePath = APP_ROOT . '/storage/twig/admin';
 }
 
+// 6️⃣ Boot & Run
 AdminKernel::bootWithOptions($options)->run();

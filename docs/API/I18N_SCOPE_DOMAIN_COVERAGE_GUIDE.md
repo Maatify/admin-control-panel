@@ -223,7 +223,7 @@ Rules:
 JS must exist under:
 
 ```
-public/assets/maatify/admin-kernel/js/pages/i18n/
+public/admin/assets/maatify/admin-kernel/js/pages/i18n/
 ```
 
 ---
