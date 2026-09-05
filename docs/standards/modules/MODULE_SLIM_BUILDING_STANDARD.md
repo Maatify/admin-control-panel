@@ -82,7 +82,7 @@ class SettingAdminPermissionMapProvider {
             'settings.list.api'     => PermissionRequirementDefinition::single('settings.list'),
             'settings.get.api'      => PermissionRequirementDefinition::single('settings.view'),
             'settings.update.api'   => PermissionRequirementDefinition::single('settings.edit'),
-            'settings.dropdown.api' => PermissionRequirementDefinition::single('settings.list'),
+            'settings.dropdown.api' => PermissionRequirementDefinition::single('settings.select'),
         ];
     }
 }
@@ -148,7 +148,8 @@ INSERT IGNORE INTO permissions (name, display_name, description)
 VALUES
     ('settings.list', 'List Settings', 'Allows list settings'),
     ('settings.view', 'View Settings', 'Allows view settings'),
-    ('settings.edit', 'Edit Settings', 'Allows edit settings');
+    ('settings.edit', 'Edit Settings', 'Allows edit settings'),
+    ('settings.select', 'Select Settings', 'Allows settings selection');
 ```
 
 **Key Points**:
@@ -160,7 +161,7 @@ VALUES
 
 **Flow**:
 ```
-Admin → Role → Permissions (e.g., settings.list, settings.edit)
+Admin → Role → Permissions (e.g., settings.list, settings.select, settings.edit)
 ```
 
 **How to Run**:
@@ -347,7 +348,14 @@ $this->validationGuard->check(new SettingUpdateSchema(), $body);
 
 ```php
 class SettingsListController {
-    public function __invoke(ServerRequestInterface $request): ResponseInterface {
+    public function __construct(
+        private JsonResponseFactory $json
+    ) {}
+
+    public function __invoke(
+        ServerRequestInterface $request,
+        ResponseInterface $response
+    ): ResponseInterface {
         // 1. Extract body
         $body = $request->getParsedBody();
 
@@ -361,7 +369,7 @@ class SettingsListController {
         $result = $this->settingQueryService->list($dto);
 
         // 5. Return response
-        return ApiHandler.json($response, [
+        return $this->json->data($response, [
             'data' => $result['data'],
             'pagination' => $result['pagination']
         ]);
@@ -388,14 +396,12 @@ class SettingsListUiController {
     public function __invoke(
         ServerRequestInterface $request,
         ResponseInterface $response,
-        AdminContext $adminContext,
         UiPermissionService $uiPermissionService
     ): ResponseInterface {
-        // 1. Extract admin ID from context
-        $adminId = $adminContext->getAdminId();
-        if (!$adminId) {
-            return ApiHandler.json($response, ['error' => 'Unauthorized'], 401);
-        }
+        // AdminContextMiddleware has already attached the authenticated context.
+        /** @var AdminContext $adminContext */
+        $adminContext = $request->getAttribute(AdminContext::class);
+        $adminId = $adminContext->adminId;
 
         // 2. Build capabilities based on admin's permissions
         $capabilities = [
@@ -411,9 +417,13 @@ class SettingsListUiController {
 }
 ```
 
-**AdminContext**: Provides authenticated admin information
-- `getAdminId()` - ID of logged-in admin
-- `getAdmin()` - Full admin object (name, email, etc)
+**AdminContext**: A readonly object attached to the request by
+`AdminContextMiddleware`
+- `$adminId` - ID of the logged-in admin
+- `$displayName` - Optional display name
+- `$avatarUrl` - Optional avatar URL
+- UI controllers read it from `$request->getAttribute(AdminContext::class)`;
+  they do not return a manual JSON 401 when the middleware has not attached it.
 
 **UiPermissionService**: Checks if admin has permission
 - `hasPermission($adminId, 'route.name.api')` - Returns boolean
@@ -546,9 +556,9 @@ $group->get('/settings/{id:[0-9]+}', [SettingsGetController::class, '__invoke'])
 
 ### Step 7: Create Twig Templates
 
-**📍 Location**: `app/Modules/AdminKernel/Templates/pages/[module]/[page].twig`
+**📍 Location**: `Modules/AdminKernel/Templates/pages/[module]/[page].twig`
 
-Example: `app/Modules/AdminKernel/Templates/pages/settings/settings_list.twig`
+Example: `Modules/AdminKernel/Templates/pages/settings/settings_list.twig`
 
 **📚 Template Inheritance Hierarchy**
 
@@ -1423,8 +1433,9 @@ $permissionPackages = [new SettingAdminPermissionPackage()];
 ```
 
 **Route Files**:
-- `ApiProtectedRoutes.php` → `SettingsApiRoutes::register($group);`
-- `UiProtectedRoutes.php` → `SettingsUiRoutes::register($group);`
+- `Modules/AdminKernel/Http/Routes/AdminRoutes.php` → `AdminRoutes::register($app);`
+- `Modules/AdminKernel/Http/Routes/Api/ApiProtectedRoutes.php` → `SettingsApiRoutes::register($group);`
+- `Modules/AdminKernel/Http/Routes/Ui/UiProtectedRoutes.php` → `SettingsUiRoutes::register($protectedGroup);`
 
 **Database**: Seed permissions
 
@@ -1443,10 +1454,10 @@ php -r "
 
 **Verify Permissions Were Created**:
 ```sql
-SELECT * FROM permissions WHERE name IN ('settings.list', 'settings.view', 'settings.edit');
+SELECT * FROM permissions WHERE name IN ('settings.list', 'settings.view', 'settings.edit', 'settings.select');
 ```
 
-Should return 3 rows. If empty → seed didn't run or had SQL error
+Should return 4 rows. If empty → seed didn't run or had SQL error
 
 ---
 
@@ -1672,8 +1683,8 @@ public function list(ListQueryDTO $dto): array {
 - [ ] `Modules/SettingsSlim/src/Admin/Http/Controllers/Ui/SettingsListUiController.php`
 - [ ] `Modules/SettingsSlim/src/Admin/Http/Routes/SettingsApiRoutes.php`
 - [ ] `Modules/SettingsSlim/src/Admin/Http/Routes/SettingsUiRoutes.php`
-- [ ] `app/Modules/AdminKernel/Templates/pages/settings/settings_list.twig`
-- [ ] `public/assets/maatify/admin-kernel/js/pages/settings_list.js`
+- [ ] `Modules/AdminKernel/Templates/pages/settings/settings_list.twig`
+- [ ] `public/admin/assets/maatify/admin-kernel/js/pages/settings_list.js`
 
 ### Core Module Updates
 - [ ] Updated Repository to support ListCapabilities filters
@@ -1688,8 +1699,9 @@ public function list(ListQueryDTO $dto): array {
 
 ### Integration
 - [ ] Registered PermissionPackage in `public/admin/index.php`
-- [ ] Registered API routes in `ApiProtectedRoutes.php`
-- [ ] Registered UI routes in `UiProtectedRoutes.php`
+- [ ] Registered the module through `Modules/AdminKernel/Http/Routes/AdminRoutes.php`
+- [ ] Registered API routes through `Modules/AdminKernel/Http/Routes/Api/ApiProtectedRoutes.php`
+- [ ] Registered UI routes through `Modules/AdminKernel/Http/Routes/Ui/UiProtectedRoutes.php`
 - [ ] Base permissions exist in database
 
 ### Testing & Verification
@@ -1706,8 +1718,8 @@ public function list(ListQueryDTO $dto): array {
 
 ```sql
 -- 1. Verify permissions exist in database
-SELECT * FROM permissions WHERE name IN ('settings.list', 'settings.view', 'settings.edit');
--- Should return 3 rows
+SELECT * FROM permissions WHERE name IN ('settings.list', 'settings.view', 'settings.edit', 'settings.select');
+-- Should return 4 rows
 
 -- 2. Create test role for settings
 INSERT INTO roles (name, display_name) VALUES ('settings_admin', 'Settings Admin');
@@ -1716,7 +1728,7 @@ INSERT INTO roles (name, display_name) VALUES ('settings_admin', 'Settings Admin
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
 FROM roles r, permissions p
-WHERE r.name = 'settings_admin' AND p.name IN ('settings.list', 'settings.view', 'settings.edit');
+WHERE r.name = 'settings_admin' AND p.name IN ('settings.list', 'settings.view', 'settings.edit', 'settings.select');
 
 -- 4. Assign role to test admin
 INSERT INTO admin_roles (admin_id, role_id)
@@ -1894,14 +1906,21 @@ Capabilities: 5 (can_create, can_update, can_active, can_update_sort, can_view_t
 **Dropdown Implementation**:
 ```php
 class SettingsDropdownController {
-    public function __invoke(ServerRequestInterface $request): ResponseInterface {
+    public function __construct(
+        private JsonResponseFactory $json
+    ) {}
+
+    public function __invoke(
+        ServerRequestInterface $request,
+        ResponseInterface $response
+    ): ResponseInterface {
         $body = $request->getParsedBody();
         $search = $body['search'] ?? '';
 
         // Get key-value pairs, optionally filtered by search
         $results = $this->settingService->dropdown($search);
 
-        return ApiHandler.json($response, [
+        return $this->json->data($response, [
             'data' => $results  // [{ value: 'key', label: 'Admin Note or Key' }, ...]
         ]);
     }
@@ -1925,12 +1944,12 @@ class SettingsDropdownController {
 diff -r Modules/SettingsSlim/src/ Modules/CurrencySlim/src/
 
 # Read both templates
-cat app/Modules/AdminKernel/Templates/pages/settings/settings_list.twig
-cat app/Modules/AdminKernel/Templates/pages/currencies/currencies_list.twig
+cat Modules/AdminKernel/Templates/pages/settings/settings_list.twig
+cat Modules/AdminKernel/Templates/pages/currencies/currencies_list.twig
 
 # Read both JS files
-cat public/assets/maatify/admin-kernel/js/pages/settings_list.js
-ls public/assets/maatify/admin-kernel/js/pages/currencies/
+cat public/admin/assets/maatify/admin-kernel/js/pages/settings_list.js
+ls public/admin/assets/maatify/admin-kernel/js/pages/currencies/
 ```
 
 ---
@@ -1945,13 +1964,17 @@ Controllers don't create services themselves. They receive them via constructor 
 class SettingsListController {
     public function __construct(
         private SettingQueryService $settingService,
-        private ValidationGuard $validationGuard
+        private ValidationGuard $validationGuard,
+        private JsonResponseFactory $json
     ) {}
 
-    public function __invoke(ServerRequestInterface $request): ResponseInterface {
+    public function __invoke(
+        ServerRequestInterface $request,
+        ResponseInterface $response
+    ): ResponseInterface {
         // Service already injected, just use it
         $result = $this->settingService->list($dto);
-        return ApiHandler.json($response, $result);
+        return $this->json->data($response, $result);
     }
 }
 ```
