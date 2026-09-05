@@ -13,9 +13,9 @@ A **Slim Module** is a thin Admin UI wrapper around a core module that:
 
 Example: `SettingsSlim` wraps `Settings`
 
-> **Cross-module composition**: If the host needs to JOIN tables from multiple core modules
+> **Cross-module Slim Modules**: If your Slim module needs to JOIN tables from multiple core modules
 > (e.g. enriching images with order data), see `MODULE_PROJECT_AWARE_STANDARD.md` for the
-> host-composition pattern. This document covers single-core-module Slim modules only.
+> project-aware pattern. This document covers single-core-module Slim modules only.
 
 ---
 
@@ -77,12 +77,12 @@ class SettingAdminPermissionMapProvider {
         return [
             // UI Route
             'settings.list.ui'      => PermissionRequirementDefinition::single('settings.list'),
-            
+
             // API Routes
             'settings.list.api'     => PermissionRequirementDefinition::single('settings.list'),
             'settings.get.api'      => PermissionRequirementDefinition::single('settings.view'),
             'settings.update.api'   => PermissionRequirementDefinition::single('settings.edit'),
-            'settings.dropdown.api' => PermissionRequirementDefinition::single('settings.list'),
+            'settings.dropdown.api' => PermissionRequirementDefinition::single('settings.select'),
         ];
     }
 }
@@ -92,7 +92,9 @@ class SettingAdminPermissionMapProvider {
 - **route name** (left side) = what's passed to `Route.setName()`
 - **permission name** (right side) = what's in permissions database
 - UI routes need same permission as their API counterpart
-- Dropdown endpoint shares permission with list (used together)
+- Dropdown, autocomplete, and select datasets use a dedicated endpoint and
+  dedicated explicit permission (for example, `products.select`). A list or
+  mutation permission does not grant selection access implicitly.
 
 **SettingAdminPermissionPackage.php**: Provides permissions to AdminKernel
 
@@ -146,7 +148,8 @@ INSERT IGNORE INTO permissions (name, display_name, description)
 VALUES
     ('settings.list', 'List Settings', 'Allows list settings'),
     ('settings.view', 'View Settings', 'Allows view settings'),
-    ('settings.edit', 'Edit Settings', 'Allows edit settings');
+    ('settings.edit', 'Edit Settings', 'Allows edit settings'),
+    ('settings.select', 'Select Settings', 'Allows settings selection');
 ```
 
 **Key Points**:
@@ -158,7 +161,7 @@ VALUES
 
 **Flow**:
 ```
-Admin → Role → Permissions (e.g., settings.list, settings.edit)
+Admin → Role → Permissions (e.g., settings.list, settings.select, settings.edit)
 ```
 
 **How to Run**:
@@ -171,7 +174,7 @@ Admin → Role → Permissions (e.g., settings.list, settings.edit)
 SELECT * FROM permissions WHERE name LIKE 'settings.%';
 ```
 
-Should return 3 rows with the permission names
+Should return 4 rows with the permission names
 
 ### Step 3: Define Domain Classes & Update Core Repository
 
@@ -316,7 +319,9 @@ Every public controller method (or `__invoke`) MUST have a docblock that serves 
 public function __invoke(Request $request, Response $response): Response
 ```
 
-This docblock is the **single source of truth** for frontend integration — no separate documentation needed.
+This docblock is supplementary implementation documentation. The official API
+contract remains `docs/API.md`; an endpoint is not official until it is
+documented there.
 
 **Controllers Required**:
 - `SettingsListController` - Query with filters/search (returns paginated results)
@@ -343,21 +348,28 @@ $this->validationGuard->check(new SettingUpdateSchema(), $body);
 
 ```php
 class SettingsListController {
-    public function __invoke(ServerRequestInterface $request): ResponseInterface {
+    public function __construct(
+        private JsonResponseFactory $json
+    ) {}
+
+    public function __invoke(
+        ServerRequestInterface $request,
+        ResponseInterface $response
+    ): ResponseInterface {
         // 1. Extract body
         $body = $request->getParsedBody();
-        
+
         // 2. Validate
         $this->validationGuard->check(new ListQuerySchema(), $body);
-        
+
         // 3. Build DTO
         $dto = new ListQueryDTO($body['page'] ?? 1, $body['per_page'] ?? 25, $body['search'] ?? []);
-        
+
         // 4. Call Service (NOT Repository directly)
         $result = $this->settingQueryService->list($dto);
-        
+
         // 5. Return response
-        return ApiHandler.json($response, [
+        return $this->json->data($response, [
             'data' => $result['data'],
             'pagination' => $result['pagination']
         ]);
@@ -384,21 +396,19 @@ class SettingsListUiController {
     public function __invoke(
         ServerRequestInterface $request,
         ResponseInterface $response,
-        AdminContext $adminContext,
         UiPermissionService $uiPermissionService
     ): ResponseInterface {
-        // 1. Extract admin ID from context
-        $adminId = $adminContext->getAdminId();
-        if (!$adminId) {
-            return ApiHandler.json($response, ['error' => 'Unauthorized'], 401);
-        }
-        
+        // AdminContextMiddleware has already attached the authenticated context.
+        /** @var AdminContext $adminContext */
+        $adminContext = $request->getAttribute(AdminContext::class);
+        $adminId = $adminContext->adminId;
+
         // 2. Build capabilities based on admin's permissions
         $capabilities = [
             'can_view' => $uiPermissionService->hasPermission($adminId, 'settings.get.api'),
             'can_edit' => $uiPermissionService->hasPermission($adminId, 'settings.update.api'),
         ];
-        
+
         // 3. Render template with capabilities
         return $this->twig->render($response, 'pages/settings/settings_list.twig', [
             'capabilities' => $capabilities,
@@ -407,9 +417,13 @@ class SettingsListUiController {
 }
 ```
 
-**AdminContext**: Provides authenticated admin information
-- `getAdminId()` - ID of logged-in admin
-- `getAdmin()` - Full admin object (name, email, etc)
+**AdminContext**: A readonly object attached to the request by
+`AdminContextMiddleware`
+- `$adminId` - ID of the logged-in admin
+- `$displayName` - Optional display name
+- `$avatarUrl` - Optional avatar URL
+- UI controllers read it from `$request->getAttribute(AdminContext::class)`;
+  they do not return a manual JSON 401 when the middleware has not attached it.
 
 **UiPermissionService**: Checks if admin has permission
 - `hasPermission($adminId, 'route.name.api')` - Returns boolean
@@ -463,15 +477,15 @@ class SettingsApiRoutes {
         $group->post('/settings/query', SettingsListController::class)
             ->setName('settings.list.api')
             ->add(AuthorizationGuardMiddleware::class);
-            
+
         $group->post('/settings/get', SettingsGetController::class)
             ->setName('settings.get.api')
             ->add(AuthorizationGuardMiddleware::class);
-            
+
         $group->post('/settings/update', SettingsUpdateController::class)
             ->setName('settings.update.api')
             ->add(AuthorizationGuardMiddleware::class);
-            
+
         $group->post('/settings/dropdown', SettingsDropdownController::class)
             ->setName('settings.dropdown.api')
             ->add(AuthorizationGuardMiddleware::class);
@@ -573,7 +587,7 @@ pages/settings/settings_list.twig (your page)
     <!-- Page Header -->
     <div class="flex items-center justify-between mb-6">
         <h2>Settings Management</h2>
-        
+
         <!-- Breadcrumb Navigation -->
         <nav>
             <ol class="flex gap-1">
@@ -602,7 +616,7 @@ pages/settings/settings_list.twig (your page)
             <!-- Each filter input's ID must match what JS reads -->
             <input id="filter-key" placeholder="..." />
             <input id="filter-admin-note" placeholder="..." />
-            
+
             <!-- Buttons -->
             <button type="submit">Search</button>
             <button type="button" id="settings-reset-filters">Reset</button>
@@ -611,7 +625,7 @@ pages/settings/settings_list.twig (your page)
 
     <!-- Global Search Bar -->
     <div class="bg-white rounded-lg p-4 mb-4">
-        <input id="settings-search" type="text" 
+        <input id="settings-search" type="text"
                placeholder="Quick search by key or admin note..." />
     </div>
 
@@ -782,16 +796,10 @@ Use **two layout modes** depending on data type:
 <pre id="json-container" class="text-sm font-mono whitespace-pre-wrap break-words"></pre>
 <script>
     try {
-        var rawJson = {{ raw_json|json_encode(
-            constant('JSON_HEX_TAG')
-            b-or constant('JSON_HEX_AMP')
-            b-or constant('JSON_HEX_APOS')
-            b-or constant('JSON_HEX_QUOT')
-        )|raw }};
-        var parsed = JSON.parse(rawJson);
+        var parsed = JSON.parse({{ raw_json|json_encode|raw }});
         document.getElementById('json-container').textContent = JSON.stringify(parsed, null, 2);
     } catch(e) {
-        document.getElementById('json-container').textContent = rawJson;
+        document.getElementById('json-container').textContent = {{ raw_json|json_encode|raw }};
     }
 </script>
 ```
@@ -879,18 +887,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterForm = document.getElementById('settings-filter-form');
     const globalSearchInput = document.getElementById('settings-search');
     const tableContainer = document.getElementById('settings-table-container');
-    
+
     // 2. Initialize state
     let currentPage = 1;
     let currentPerPage = 25;
-    
+
     // 3. Define table structure
     const headers = ['Key', 'Admin Note', 'Value', 'Type', 'Actions'];
     const rowKeys = ['setting_key', 'admin_note', 'setting_value', 'value_type', 'actions'];
-    
+
     // 4. Define how to render each cell (escape HTML for security)
     const customRenderers = { ... };
-    
+
     // 5. Load table for first time
     loadTable();
 });
@@ -946,27 +954,27 @@ const loadTable = () => {
         admin_note: document.getElementById('filter-admin-note').value,
         value_type: document.getElementById('filter-value-type').value
     };
-    
+
     // 2. Remove empty filters
     Object.keys(filters).forEach(k => filters[k] === "" && delete filters[k]);
-    
+
     // 3. Gather search term
     const globalSearch = globalSearchInput.value.trim();
-    
+
     // 4. Build request object
     const params = {
         page: currentPage,
         per_page: currentPerPage
     };
-    
+
     const search = {};
     if (globalSearch) search.global = globalSearch;
     if (Object.keys(filters).length > 0) search.columns = filters;
-    
+
     if (Object.keys(search).length > 0) {
         params.search = search;
     }
-    
+
     // 5. Call API
     createTable(
         window.settingsApi.query,  // Endpoint: '/settings/query'
@@ -999,7 +1007,7 @@ window.openEditModal = (key, value, type, adminNote) => {
     // 1. Escape values for HTML safety
     const safeKey = escapeHtml(key);
     const safeValue = escapeHtml(value);
-    
+
     // 2. Build HTML modal with escaped values
     const modalContent = `
         <div class="p-6">
@@ -1009,20 +1017,20 @@ window.openEditModal = (key, value, type, adminNote) => {
             </form>
         </div>
     `;
-    
+
     // 3. Insert modal into DOM
     document.body.insertAdjacentHTML('beforeend', modalHtml);
-    
+
     // 4. Listen to Save button
     submitBtn.addEventListener('click', async () => {
         const newValue = valueInput.value;  // NO trim()!
-        
+
         // 5. Call update API
         const result = await ApiHandler.call(window.settingsApi.update, {
             setting_key: key,
             value: newValue
         });
-        
+
         // 6. Handle response
         if (result.success) {
             ApiHandler.showAlert('success', 'Updated!');
@@ -1213,7 +1221,7 @@ const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => 
    const safeKey = escapeHtml(key);
    const safeValue = escapeHtml(value);
    const safeAdminNote = escapeHtml(adminNote);
-   
+
    const modalContent = `
        <input type="text" value="${safeKey}" disabled>
        <textarea>${safeValue}</textarea>
@@ -1267,7 +1275,7 @@ safeExternalLink(url) {
 - Original `url` (escaped) as display text
 - Non-http(s) schemes (e.g. `javascript:`) render as plain text — prevents XSS
 
-**Pattern**: 
+**Pattern**:
 - Use `createTable()` from shared infrastructure
 - Handle filter/search events
 - Modal using `AdminUIComponents.buildModalTemplate()`
@@ -1425,8 +1433,9 @@ $permissionPackages = [new SettingAdminPermissionPackage()];
 ```
 
 **Route Files**:
-- `ApiProtectedRoutes.php` → `SettingsApiRoutes::register($group);`
-- `UiProtectedRoutes.php` → `SettingsUiRoutes::register($group);`
+- `Modules/AdminKernel/Http/Routes/AdminRoutes.php` → `AdminRoutes::register($app);`
+- `Modules/AdminKernel/Http/Routes/Api/ApiProtectedRoutes.php` → `SettingsApiRoutes::register($group);`
+- `Modules/AdminKernel/Http/Routes/Ui/UiProtectedRoutes.php` → `SettingsUiRoutes::register($protectedGroup);`
 
 **Database**: Seed permissions
 
@@ -1445,10 +1454,10 @@ php -r "
 
 **Verify Permissions Were Created**:
 ```sql
-SELECT * FROM permissions WHERE name IN ('settings.list', 'settings.view', 'settings.edit');
+SELECT * FROM permissions WHERE name IN ('settings.list', 'settings.view', 'settings.edit', 'settings.select');
 ```
 
-Should return 3 rows. If empty → seed didn't run or had SQL error
+Should return 4 rows. If empty → seed didn't run or had SQL error
 
 ---
 
@@ -1474,7 +1483,7 @@ Can access routes that match those permissions
 
 1. **Admin tries to access route** (e.g., GET `/settings`)
 2. **Route has middleware**: `AuthorizationGuardMiddleware`
-3. **Middleware checks**: 
+3. **Middleware checks**:
    - Is user authenticated? ✓
    - Does user's role have the required permission?
      - Look up route name: `settings.list.ui`
@@ -1506,7 +1515,7 @@ Can access routes that match those permissions
 ```
 User Input (JS Filter Form)
     ↓
-JavaScript builds: 
+JavaScript builds:
 {
     page: 1,
     per_page: 25,
@@ -1642,10 +1651,10 @@ $dto = new ListQueryDTO(
 public function list(ListQueryDTO $dto): array {
     $columnFilters = $dto->search['columns'] ?? [];
     $globalSearch = $dto->search['global'] ?? '';
-    
+
     // Validate filters against ListCapabilities
     $filters = $this->filterResolver->resolve($columnFilters);
-    
+
     // Pass to repository
     return $this->repository->list(
         page: $dto->page,
@@ -1690,8 +1699,9 @@ public function list(ListQueryDTO $dto): array {
 
 ### Integration
 - [ ] Registered PermissionPackage in `public/admin/index.php`
-- [ ] Registered API routes in `ApiProtectedRoutes.php`
-- [ ] Registered UI routes in `UiProtectedRoutes.php`
+- [ ] Registered the module through `Modules/AdminKernel/Http/Routes/AdminRoutes.php`
+- [ ] Registered API routes through `Modules/AdminKernel/Http/Routes/Api/ApiProtectedRoutes.php`
+- [ ] Registered UI routes through `Modules/AdminKernel/Http/Routes/Ui/UiProtectedRoutes.php`
 - [ ] Base permissions exist in database
 
 ### Testing & Verification
@@ -1708,17 +1718,17 @@ public function list(ListQueryDTO $dto): array {
 
 ```sql
 -- 1. Verify permissions exist in database
-SELECT * FROM permissions WHERE name IN ('settings.list', 'settings.view', 'settings.edit');
--- Should return 3 rows
+SELECT * FROM permissions WHERE name IN ('settings.list', 'settings.view', 'settings.edit', 'settings.select');
+-- Should return 4 rows
 
 -- 2. Create test role for settings
 INSERT INTO roles (name, display_name) VALUES ('settings_admin', 'Settings Admin');
 
 -- 3. Assign permissions to role
 INSERT INTO role_permissions (role_id, permission_id)
-SELECT r.id, p.id 
-FROM roles r, permissions p 
-WHERE r.name = 'settings_admin' AND p.name IN ('settings.list', 'settings.view', 'settings.edit');
+SELECT r.id, p.id
+FROM roles r, permissions p
+WHERE r.name = 'settings_admin' AND p.name IN ('settings.list', 'settings.view', 'settings.edit', 'settings.select');
 
 -- 4. Assign role to test admin
 INSERT INTO admin_roles (admin_id, role_id)
@@ -1730,7 +1740,7 @@ SELECT [test_admin_id], id FROM roles WHERE name = 'settings_admin';
    - Can see settings page ✓
    - Can filter/search ✓
    - Can edit settings ✓
-   
+
 2. **Without permissions**: Log in as admin without settings
    - GET /settings → 403 Forbidden
    - POST /settings/query → 403 Forbidden
@@ -1896,14 +1906,21 @@ Capabilities: 5 (can_create, can_update, can_active, can_update_sort, can_view_t
 **Dropdown Implementation**:
 ```php
 class SettingsDropdownController {
-    public function __invoke(ServerRequestInterface $request): ResponseInterface {
+    public function __construct(
+        private JsonResponseFactory $json
+    ) {}
+
+    public function __invoke(
+        ServerRequestInterface $request,
+        ResponseInterface $response
+    ): ResponseInterface {
         $body = $request->getParsedBody();
         $search = $body['search'] ?? '';
-        
+
         // Get key-value pairs, optionally filtered by search
         $results = $this->settingService->dropdown($search);
-        
-        return ApiHandler.json($response, [
+
+        return $this->json->data($response, [
             'data' => $results  // [{ value: 'key', label: 'Admin Note or Key' }, ...]
         ]);
     }
@@ -1947,13 +1964,17 @@ Controllers don't create services themselves. They receive them via constructor 
 class SettingsListController {
     public function __construct(
         private SettingQueryService $settingService,
-        private ValidationGuard $validationGuard
+        private ValidationGuard $validationGuard,
+        private JsonResponseFactory $json
     ) {}
-    
-    public function __invoke(ServerRequestInterface $request): ResponseInterface {
+
+    public function __invoke(
+        ServerRequestInterface $request,
+        ResponseInterface $response
+    ): ResponseInterface {
         // Service already injected, just use it
         $result = $this->settingService->list($dto);
-        return ApiHandler.json($response, $result);
+        return $this->json->data($response, $result);
     }
 }
 ```
@@ -2369,7 +2390,7 @@ try {
     ApiHandler.call('/settings/update', {...})
     // Network fails after request sent
     // Update may or may not have completed
-} 
+}
 
 // JavaScript doesn't know if update happened
 // Shows "error" but setting might be changed
@@ -2524,7 +2545,7 @@ try {
 
 ## ⚠️ Analytics Page Pattern
 
-When a Slim module wraps a core module that has a pre-aggregated stats table (see `MODULE_BUILDING_STANDARD.md` §21), follow this pattern for the analytics UI page.
+When a Slim module wraps a core module that has a pre-aggregated stats table (see `MODULE_BUILDING_STANDARD.md` §12), follow this pattern for the analytics UI page.
 
 ### API Endpoint
 
