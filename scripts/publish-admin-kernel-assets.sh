@@ -13,6 +13,17 @@ if [ ! -d "$SOURCE_DIR" ]; then
   exit 1
 fi
 
+# Refuse to wipe the published target when the Kernel-owned source has no real
+# assets yet (only .gitkeep or nothing at all). Assets are still host-owned at
+# this stage, ahead of the Kernel's asset migration; publishing from an empty
+# source would delete the live assets under $TARGET_DIR without replacing them.
+REAL_SOURCE_FILES=$(find "$SOURCE_DIR" -type f ! -name '.gitkeep' | head -n1)
+if [ -z "$REAL_SOURCE_FILES" ]; then
+  echo "ERROR: $SOURCE_DIR has no real assets yet (only .gitkeep or empty)."
+  echo "Refusing to wipe $TARGET_DIR. Populate the Kernel's own assets first."
+  exit 1
+fi
+
 mkdir -p "$TARGET_DIR"
 
 # Clean target directory before copy (safe because it's kernel-owned assets only)
