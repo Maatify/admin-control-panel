@@ -71,10 +71,15 @@
 * `Inventory Base Module`: الكمية المتاحة لتلك الـ Variants أكبر من صفر (`quantity_on_hand > 0`).
 
 ### 5.3 Product Activation Completeness
-لتفعيل المنتج تجارياً بالكامل يجب على الـ Package Layer التأكد من:
-* وجود تسعيرة فعلية في الـ Pricing.
-* استيفاء قواعد المخزون والهيكلة الأساسية.
-(الـ Product Base Module لا يمكنه قراءة جداول التسعير، لذلك يتم التفعيل الكامل كعملية منسقة (Orchestrated Operation)).
+لتفعيل المنتج تجارياً بالكامل يجب على الـ Package Layer التأكد من توفر جميع شروط الإتاحة الهيكلية والتجارية في وقت واحد:
+* `Product Base Module`: يوجد على الأقل Variant واحد غير محذوف، Active، و Structurally Valid.
+* `Inventory Base Module`: يوجد سجل مخزون (Inventory identity/row) مرتبط بهذا الـ Variant. (ملاحظة: ليس شرطاً أن يكون `quantity_on_hand > 0` للتفعيل؛ المخزون الصفري يجعل المنتج Out of Stock ولكنه لا يمنع التفعيل).
+* `Pricing Base Module`: توجد تسعيرة أساسية (Base Price) واحدة على الأقل غير محذوفة، ويتم التحقق من أن حسابات التسعير (Pricing Safety) تفي بشروط عدم وجود أسعار نهائية سالبة.
 
-### 5.4 Category to Product Visibility
+لأن الـ Product Base Module لا يمكنه قراءة جداول الـ Pricing أو الـ Inventory داخلياً، يتم التفعيل كعملية منسقة (Orchestrated Operation).
+
+### 5.4 Active Product Base Price Continuity
+طالما أن المنتج في حالة التفعيل (Active)، يجب على طبقة الـ Package ضمان استمرارية وجود Base Price واحد غير محذوف على الأقل. لا يُسمح بعمل Soft Delete لآخر Base Price متبقي لمنتج Active، وهذا يتطلب تنسيقًا من الـ Package Coordinator.
+
+### 5.5 Category to Product Visibility
 ظهور المنتج ضمن الـ Categories هو عملية تنسيق في طبقة الـ Package. يتم الربط (Mapping) خارج الـ Base Modules، وإذا توقف مسار الـ Category، فلا يؤثر ذلك داخلياً على الـ Product.

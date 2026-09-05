@@ -45,10 +45,16 @@
 | **force_out_of_stock** | **Preserved (Product)** | Flag إداري هيكلي محفوظ في المنتج، ولا يتدخل لتقييم أو قراءة المخزون الفعلي، بل يفرض كـ Override هيكلي. |
 | **Product Visibility by Category** | **Catalog Package Rule** | لأن المنتج والكتالوج Base Modules منفصلان، الرؤية القائمة على الفئات أصبحت مهمة تنسيق في طبقة الـ Catalog Package ولا يمكن فرضها داخلياً. |
 | **Sellable In Currency State** | **Catalog Package Rule** | كانت تجمع Product Status + Base Price + Inventory. تم إزالتها من الـ Base Modules ونقلت لتصبح Derived Rule في الـ Catalog Package Layer. |
-| **Product Activation Completeness** | **Catalog Package Rule** | المنتج لا يمكنه قراءة الـ Pricing. ضمان التسعير قبل التفعيل يدار كـ Orchestrated Operation في طبقة الـ Package. |
-| **Final Price >= 0** | **Rewritten (Pricing)** | أُعيدت صياغتها لتصبح Read-time invariant داخل Service التسعير عند حساب السعر المركب بدلاً من Write-time rejection للكيان المُسعَّر. |
+| **Product Activation Completeness** | **Catalog Package Rule** | المنتج لا يمكنه قراءة الـ Pricing ولا الـ Inventory مباشرةً لضمان التفعيل. توفر السعر وسجل المخزون تُدار كـ Orchestrated Operation في طبقة الـ Package. |
+| **Variant Activation Validation** | **Catalog Package Rule** | تفعيل الـ Variant يستلزم تغطية خيارات، وسجل Inventory، وشروط تسعير، لذا التفعيل النهائي يتم تنسيقه من الـ Package. |
+| **Active Product Base Price Continuity**| **Catalog Package Rule** | قاعدة منع حذف آخر Base Price لمنتج مفعل. نُقلت كـ Orchestrated Rule لعدم تداخل الدومينات. |
+| **Option/Value Activation Safety** | **Catalog Package Rule** | تفعيل الخيارات أو القيم يستوجب تحقق Pricing Safety، ما يفرض تنسيقًا بين Product و Pricing في طبقة الـ Package. |
+| **Restore Safety (Product/Variant)** | **Rewritten (Product / Package)** | الـ Restore Safety الهيكلية (Coverage و Unique constraints) محفوظة داخل Product. أما الـ Restore Safety المرتبطة بالتسعير فنقلت للـ Package. |
+| **Pricing Safety (Final Price >= 0)**| **Rewritten (Pricing)** | أُعيدت صياغتها لتصبح Read-time invariant داخل Service التسعير عند حساب السعر المركب بدلاً من Write-time rejection للكيانات الخارجية. |
 | **Missing Adjustment = 0** | **Preserved (Pricing)** | أي غياب لـ Adjustment في حساب السعر المركب يُعتبر `0`. |
 | **Missing Base Price = Not Sellable**| **Preserved (Pricing)** | غياب Base Price يعني أن الـ Subject المعني غير مسعر بهذه العملة. |
+| **Inventory 1:1 Identity** | **Rewritten (Inventory)** | الـ Inventory يلتزم بـ 1:1 لكل Subject خارجي مجرد، ولا يعرف أنه "Variant". |
+| **Inventory Lifecycle** | **Rewritten (Inventory)** | الـ Soft Delete والـ Restore للسجل يتم بشكل معزول ومجرد عن الـ Variant Lifecycle. |
 | **Atomic Quantity Increments** | **Rewritten (Inventory)** | تم فرضها كقواعد Generic داخل Inventory باستخدام استعلامات صريحة تضمن `deleted_at IS NULL` وتمنع النزول تحت الصفر (Concurrency safe)، بمعزل تام عن دلالات الـ Orders والـ Reservations. |
 
 ## 4. إصلاحات الـ External Reference Identity
@@ -56,11 +62,11 @@
 لمنع الـ Collisions عند تسعير أو جرد كيانات من مصادر متعددة، تم تطبيق الـ Generic Subject Identity Contract التالي:
 * في **Pricing**: `subject_type` (VARCHAR) و `subject_id` (BIGINT UNSIGNED).
 * في **Inventory**: `stock_subject_type` (VARCHAR) و `stock_subject_id` (BIGINT UNSIGNED).
-* **Canonical Type Contract:** الـ Type يخضع لقواعد صارمة لتحقيق Determinism تام بين التطبيق وقاعدة البيانات:
+* **Canonical Type Contract:** الـ Type يخضع لقواعد صارمة (Canonical lowercase-only machine key) لتحقيق Determinism تام بين التطبيق وقاعدة البيانات:
   * نص لا يتجاوز 100 حرف.
-  * يتوافق مع Regex لأحرف صغيرة فقط: `/^[a-z0-9_.-]+$/`.
+  * يتوافق حصرياً مع النمط: `/^[a-z0-9_.-]+$/`.
   * الـ Whitespace مرفوض تمامًا.
-  * لا يجوز استخدام Aliases أو الاعتماد على الـ Collation لتحقيق الـ Case-insensitivity (فُرض الـ Lowercase-only normalization).
+  * لا يجوز استخدام Aliases أو الاعتماد على الـ Collation لتحقيق الـ Case-insensitivity (النمط مفروض كأحرف صغيرة فقط).
   * الـ Type والـ ID ثابتان (Immutable) بعد الإنشاء.
 
 ## 5. حالة الـ Unresolved Decisions والـ Architecture Status
@@ -69,7 +75,7 @@
 
 * **Catalog:** **[Candidate]** الـ Catalog Package كطبقة عليا واضحة، لكن الـ Base Module الداخلي (`Modules/Catalog`) كـ Taxonomy engine لا يحتوي على Entity حقيقية لتمثيل "الكتالوج" كحاوية عليا تملك الـ Categories. ولعدم حسم هذه الـ Entity داخلياً في المصادر الحالية، تُعتبر البنية الداخلية للـ Catalog Module غير مكتملة (Candidate) ولا يُدعى بأنها Locked.
 * **Product:** **[Locked]** Schema كاملة (9 جداول بـ PKs/FKs)، Lifecycles (بما في ذلك Staged Composition، Slug/Barcode) و Restore semantics محددة، ولا توجد افتراضات مخفية.
-* **Pricing:** **[Locked]** Generic Identity محددة بدقة لتفادي الـ Collisions (عقد Case-sensitive strict)، وقواعد الحساب مطبقة داخلياً بمعزل عن الكيانات الأخرى.
+* **Pricing:** **[Locked]** Generic Identity محددة بدقة لتفادي الـ Collisions (عقد Canonical lowercase-only machine key)، وقواعد الحساب مطبقة داخلياً بمعزل عن الكيانات الأخرى.
 * **Inventory:** **[Locked]** Generic Identity محددة بدقة، والعمليات الذرية للحفاظ على الـ bounds واضحة في الـ Queries (بما فيها فحص الـ `deleted_at`)، ولا تعتمد على أي Domains خارجية.
 
 ## 6. تأكيد الـ Extraction Test (اختبار الاستخراج المستقل)
@@ -80,4 +86,4 @@
 * أي ذكر لأسماء موديولات أخرى في ملفات الـ Base Architecture محصور حصرياً ضمن أقسام `Explicit Out-of-Scope` كإعلان نصي بحدود الموديول.
 
 ## 7. الخاتمة
-تم إرجاع الـ PDF المونوليثي كمرجع مظلي (Umbrella Architecture) للـ Catalog Package بأكمله، بينما تم تخصيص الـ Markdown files كـ Source of Truth للموديولات الداخلية، لضمان استقلالية كل موديول وإمكانية استخراجه كـ Package منفصل. الحالات المتقاطعة (Cross-Domain States) التي أُزيلت من الـ Base Modules صُنفت صراحة كمهام تنسيق في طبقة الـ Package. لا يدعي هذا التقرير إكمال جميع الـ Architectures بنجاح كامل؛ الـ Catalog Base Module لا يزال يحمل حالة `Candidate` لحين حسم الـ Catalog Entity. لا يوجد كود برمجي تم إنتاجه ضمن هذه المهمة.
+تم إرجاع الـ PDF المونوليثي كمرجع مظلي (Umbrella Architecture) للـ Catalog Package بأكمله، بينما تم تخصيص الـ Markdown files كـ Source of Truth للموديولات الداخلية، لضمان استقلالية كل موديول وإمكانية استخراجه كـ Package منفصل. الحالات المتقاطعة (Cross-Domain States) وقواعد التفعيل المتقاطعة التي أُزيلت من الـ Base Modules صُنفت صراحة كمهام تنسيق في طبقة الـ Package. لا يدعي هذا التقرير إكمال جميع الـ Architectures بنجاح كامل؛ الـ Catalog Base Module لا يزال يحمل حالة `Candidate` لحين حسم الـ Catalog Entity. لا يوجد كود برمجي تم إنتاجه ضمن هذه المهمة.
