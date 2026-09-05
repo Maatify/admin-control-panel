@@ -79,6 +79,7 @@
 
 * **Currency Consistency:** تُحسب جميع العمليات داخل نفس العملة (لا يجمع تعديل بعملة مختلفة).
 * **Missing Adjustment:** التعديل المفقود يُعتبر `0`.
+* **Adjustment Signed Contract:** يُسمح صراحةً بأن تكون التعديلات (Adjustments) إيجابية (positive)، أو صفرية (zero)، أو سلبية (negative).
 * **Missing Base Price:** غياب السعر الأساسي للكيان يعني "غير مُسعّر بهذه العملة" ولا يوجد افتراض للسعر.
 
 ---
