@@ -29,10 +29,11 @@
 لتفادي التناقضات بين التصميم المجمع والتصميم المستقل، يجب الالتزام بالتسلسل التالي:
 
 ### 3.1 Module Internal Architectures (أعلى أولوية للتصميم الداخلي)
-أي ملف داخل `Modules/{Module}/architecture/` (مثل `PRODUCT_V1_ARCHITECTURE.md` أو `PRICING_V1_ARCHITECTURE.md`) هو المرجع الحصري الوحيد (Source of Truth) للتصميم الداخلي للموديول، الـ Schema، الـ Invariants، والـ Lifecycles الخاصة به.
+أي ملف يمثل المرجعية الداخلية لموديول ويحمل اسمه (مثل `CATALOG_V1_ARCHITECTURE.md`, `PRODUCT_V1_ARCHITECTURE.md`, إلخ) داخل مسار `Modules/{Module}/architecture/` هو المرجع الحصري الوحيد (Source of Truth) للتصميم الداخلي للموديول، الـ Schema، الـ Invariants، والـ Lifecycles الخاصة به.
+**(يُستثنى من هذه القاعدة المستند الحالي `CATALOG_PACKAGE_ARCHITECTURE.md` وملف الـ PDF `Catalog_V1_Architecture_Locked.pdf` حيث أنهما يمثلان الـ Package-level Umbrella ولا ينتميان للتصميم الداخلي لموديول الـ Taxonomy).**
 
 ### 3.2 Catalog Package Architecture (المرجع التنسيقي المظلي)
-هذا الملف (والمستندات الملحقة به كالـ PDF القديم) يعتبر المرجع (Source of Truth) فقط لـ:
+هذا الملف يعتبر المرجع (Source of Truth) فقط لـ:
 * الـ Composition.
 * الـ Domain Map.
 * الـ Integration Ownership.
@@ -41,7 +42,7 @@
 
 ### 3.3 Historical Composite Reference (الـ PDF الأصلي)
 الملف `Catalog_V1_Architecture_Locked.pdf` تم الاحتفاظ به كمرجع تاريخي شامل يعرض الصورة العامة والتنسيق والربط بين المجالات.
-* **ممنوع** استخدام الـ PDF كمرجع داخلي لتجاوز قرارات الـ Base Modules (كإعادة إدخال FKs أو Cross-module dependencies داخل الـ Base Modules). في حال التعارض حول التفاصيل الداخلية لموديول، تكون الأولوية لـ Module Architecture (`.md` file).
+* **ممنوع** استخدام الـ PDF كمرجع داخلي لتجاوز قرارات الـ Base Modules (كإعادة إدخال FKs أو Cross-module dependencies داخل الـ Base Modules). في حال التعارض حول التفاصيل الداخلية لموديول، تكون الأولوية لـ Module Internal Architecture (`.md` file).
 
 ---
 
