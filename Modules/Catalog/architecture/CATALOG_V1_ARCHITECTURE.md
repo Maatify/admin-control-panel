@@ -1,11 +1,9 @@
-# Catalog V1 Database Architecture — Locked
+# Catalog V1 Database Architecture — Candidate
 
-**Host-Agnostic Taxonomy Engine**
+**Host-Agnostic Catalog Engine**
 
 هذه الوثيقة هي المرجع المعماري لـ **Catalog V1** بعد إعادة الهيكلة المستندة إلى الـ Domain Decomposition الحقيقي.
-في هذه المعمارية، الـ Catalog Module هو المالك الحصري لدومين الـ Taxonomy والتنظيم الهرمي (Hierarchy)، ولا يمتلك أية تفاصيل عن الدومينات الأخرى.
-
-أي تغيير لاحق على قرار معماري مثبت هنا يعتبر **تغييرًا معماريًا جديدًا** وليس مجرد تفصيل تنفيذ.
+في هذه المعمارية، الـ Catalog Module هو المالك الحصري لدومين الـ Catalog والتنظيم الهرمي (Hierarchy)، ولا يمتلك أية تفاصيل عن الدومينات الأخرى (مثل Products, Pricing, Inventory).
 
 ---
 
@@ -15,20 +13,22 @@
 
 `Catalog V1` هو:
 
-**Standalone, Extractable, Host-Agnostic Taxonomy Engine**
+**Standalone, Extractable, Host-Agnostic Catalog Engine**
 
 ويجب أن يظل قابلًا للاستخراج مستقبلًا كمكتبة مستقلة دون الاعتماد على تفاصيل الـHost أو موديولات أخرى.
 
-### Taxonomy Domain
+### Catalog Domain
 
-يمثل التصنيف الهرمي والتنظيمي للمحتويات أو الكيانات (سواء كانت منتجات أو مقالات أو غيرها، رغم أن تلك الكيانات نفسها ليست جزءًا من هذا الدومين).
-*ملاحظة: لا توجد Entity مستقلة باسم Catalog في الـ schema الحالية؛ הـ Categories هي وحدة التنظيم الأساسية.*
+الوثيقة الأصلية ذكرت "Catalog Identity" ولم تحدد جدولًا منفصلًا باسم `maa_catalog_catalogs` أو ما شابه يمثل الـ Catalog ككيان مستقل (Entity)، بل اعتمدت على `Categories` كوحدة التنظيم الأساسية.
+**وبما أنه لا يجوز أن نطلق على الموديول اسم Catalog بينما هو لا يحتوي على كيان Catalog حقيقي، فقد تم تسجيل هذا القرار كـ Unresolved Decision (انظر القسم الأخير).**
+
+حتى يتم حسم ما إذا كان سيتم إضافة كيان Catalog مستقل يمتلك הـ Categories أم سيظل الـ Module عبارة عن Taxonomy/Categories فقط، تعتبر هذه الوثيقة **Candidate** وليست Locked.
 
 ---
 
 ## 1.2 النطاق المشمول
 
-يشمل V1:
+يشمل V1 (حتى الآن بناءً على الهيكلية المعروفة):
 
 * Categories.
 * Category Hierarchy (Parent-Child).
@@ -46,14 +46,14 @@
 
 * Products, Variants, SKU, Barcode.
 * Product Options, Option Values.
-* Product ↔ Category Relations. (العلاقة متروكة لـ Host/Integration Layer).
+* Product ↔ Category Relations. (متروكة لـ Host/Integration Layer).
 * Monetary values, Prices, Adjustments.
 * Inventory, quantity_on_hand.
 * Media Metadata.
 * Customers, Orders, Payments, Shipping.
 * Promotions, Discounts.
 
-الـ Catalog يجب ألا يعرف أي شيء عنهم، وأي ربط يتم إدارته بشكل Generic أو من خلال الـ Host/Integration Layer.
+الـ Catalog يجب ألا يعرف أي شيء عنهم، وأي ربط خارجي يُدار من خلال الـ Host/Integration Layer.
 
 ---
 
@@ -283,14 +283,19 @@ maa_catalog_categories
 
 # 17. Sources of Truth
 
-مصادر الحقيقة الوحيدة التي يملكها الكتالوج:
-* Entity Status
+مصادر الحقيقة الوحيدة التي يملكها الموديول حالياً:
+* Entity Status (Categories)
 * deleted_at
 * Hierarchy Path
 
 ---
 
-# 18. Architecture Status
+# 18. Unresolved Architectural Decisions
 
-**Locked**
-جميع القرارات المعمارية الداخلية الخاصة بتصنيف الفئات وهيكليتها محسومة بشكل كامل في هذه الوثيقة. آليات التكامل والربط مع الكيانات الأخرى (مثل المنتجات) محددة صراحة كمسؤولية للـ Host/Integration Layer ولن تُعالج داخل هذا الموديول.
+* **Catalog Entity Identity:** الوثيقة الأصلية للـ Monolith ذُكر فيها "Catalog Identity" كمفهوم، ولكن المخطط الفعلي لا يحتوي على جدول يمثل "الكتالوج" (مثلاً `maa_catalog_catalogs`) كحاوية عليا تملك הـ Categories. هل يجب إضافة كيان Catalog حقيقي لتبرير اسم الموديول؟ أم يجب إعادة تسمية الموديول لاحقاً ليعكس كونه مجرد Taxonomy / Categories engine؟
+هذا القرار الداخلي غير محسوم، وبالتالي الموديول ككل لا يمكن اعتباره Locked.
+
+# 19. Architecture Status
+
+**Candidate**
+بسبب وجود قرار معماري داخلي غير محسوم حول "Catalog Entity" وهويتها، لا يمكن اعتبار هذه البنية Locked.

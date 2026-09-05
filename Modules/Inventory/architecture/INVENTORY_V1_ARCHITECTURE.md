@@ -44,17 +44,18 @@
 # 2. Host-Agnostic Boundaries & Logical Reference Identity
 
 * **لا يوجد Foreign Keys لأي جداول خارجية.**
-* يمتلك Inventory V1 هويته الخاصة بربط السجلات بـ "Stock Subject". للتوافق مع معايير הـ Base Module (Canonical Positive ID Contract)، يتم استخدام:
-  * `stock_subject_id BIGINT UNSIGNED NOT NULL`
+* يمتلك Inventory V1 هويته الخاصة بربط السجلات بـ "Stock Subject". لتجنب تضارب الهويات (Collisions) عند استخدام أرقام هويات متكررة لأنواع مختلفة من الكيانات، وللتوافق مع معايير הـ Base Module (Canonical Positive ID Contract)، يتم استخدام:
+  * `stock_subject_type VARCHAR(100) NOT NULL`: نوع الكيان المرتبط بالمخزون.
+  * `stock_subject_id BIGINT UNSIGNED NOT NULL`: رقم هوية الكيان.
 
 ---
 
 # 3. Stock Lifecycle & Identity
 
-* يتم إنشاء سجل Inventory برقم الهوية المعطى من قبل الـ Host.
+* يتم إنشاء سجل Inventory بمعرف النوع والرقم المعطى من قبل الـ Host.
 * `quantity_on_hand = 0` عند الإنشاء الأولي (ما لم تُمرر كمية ابتدائية مختلفة صراحة).
 * **Soft Delete & Restore:** الموديول يدعم الحذف المنطقي (`deleted_at`). عملية الحذف أو الاستعادة لا تصفر المخزون، بل تعتمد على السجل المحفوظ. السجل المحذوف لا يستقبل عمليات تعديل للكميات.
-* لا يتم تحرير הـ `stock_subject_id` لإعادة استخدامه كـ Identity جديدة عبر الحذف؛ الـ Restore يعيد نفس السجل.
+* لا يتم تحرير الـ Identity (النوع + الـ ID) لإعادة استخدامها كـ Identity جديدة عبر الحذف؛ الـ Restore يعيد نفس السجل بنفس الكمية.
 
 ---
 
@@ -72,6 +73,7 @@
 | العمود               | النوع                            |
 | -------------------- | -------------------------------- |
 | `id`                 | `BIGINT UNSIGNED AUTO_INCREMENT` |
+| `stock_subject_type` | `VARCHAR(100) NOT NULL`          |
 | `stock_subject_id`   | `BIGINT UNSIGNED NOT NULL`       |
 | `quantity_on_hand`   | `INT NOT NULL DEFAULT 0`         |
 | `created_at`         | `DATETIME NOT NULL`              |
@@ -81,17 +83,16 @@
 Constraints:
 ```text
 PRIMARY KEY(id)
-UNIQUE(stock_subject_id)
+UNIQUE(stock_subject_type, stock_subject_id)
 CHECK(quantity_on_hand >= 0)
 ```
-*(لا توجد علاقات خارجية / FKs).*
 
 ---
 
 # 6. Database-Enforced Invariants
 
 * حماية المخزون السالب مدعومة بالقيد `CHECK(quantity_on_hand >= 0)`.
-* فرادة المخزون لكل كيان مدعومة بالقيد `UNIQUE(stock_subject_id)`.
+* فرادة المخزون لكل كيان مدعومة بالقيد `UNIQUE(stock_subject_type, stock_subject_id)`.
 
 ---
 
@@ -107,9 +108,9 @@ CHECK(quantity_on_hand >= 0)
 # 8. Index Strategy
 
 ```text
-UNIQUE(stock_subject_id)
+UNIQUE(stock_subject_type, stock_subject_id)
 ```
-يُعد هذا الفهرس كافيًا لمتطلبات الاستعلام والتحديث استنادًا إلى معرف הכیان.
+يُعد هذا الفهرس كافيًا لمتطلبات الاستعلام والتحديث استنادًا إلى نوع ومعرف الکيان.
 
 ---
 
@@ -124,4 +125,4 @@ UNIQUE(stock_subject_id)
 # 10. Architecture Status
 
 **Locked**
-القرارات المعمارية الداخلية الخاصة بتتبع المخزون والعمليات الذرية عليه محسومة بشكل كامل في هذه الوثيقة وتعمل دون أي معرفة بتفاصيل الدومينات الأخرى.
+القرارات المعمارية الداخلية الخاصة بتتبع المخزون والعمليات الذرية عليه محسومة بشكل كامل. الهوية الخارجية مدعومة بـ `subject_type` لمنع الـ Collisions. وتعمل هذه البنية دون أي معرفة بتفاصيل الدومينات الأخرى.

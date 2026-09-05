@@ -41,8 +41,9 @@
 # 2. Host-Agnostic Boundaries & Logical Reference Identity
 
 * **لا يوجد Foreign Keys إلى أي موديول آخر.**
-* الربط يتم باستخدام معرّفات عامة (Generic Identifiers). يتوافق الموديول مع معايير הـ Base Module من خلال الالتزام بعقد الـ Canonical Positive ID:
-  * `subject_id BIGINT UNSIGNED NOT NULL`: يمثل هوية الشيء المُسعَّر أو المُعدِّل.
+* الربط يتم باستخدام معرّفات عامة (Generic Identifiers). يتوافق الموديول مع معايير הـ Base Module من خلال الالتزام بعقد الـ Canonical Positive ID للهويات، مع إضافة `subject_type` لضمان عدم حدوث Collisions بين أنواع الكيانات المختلفة التي قد يقدمها الـ Host (مثل Products و Options).
+  * `subject_type VARCHAR(100) NOT NULL`: نوع الكيان المُسعّر.
+  * `subject_id BIGINT UNSIGNED NOT NULL`: رقم هوية الكيان المُسعّر.
 
 ---
 
@@ -69,6 +70,7 @@
 | العمود                 | النوع                            |
 | ---------------------- | -------------------------------- |
 | `id`                   | `BIGINT UNSIGNED AUTO_INCREMENT` |
+| `subject_type`         | `VARCHAR(100) NOT NULL`          |
 | `subject_id`           | `BIGINT UNSIGNED NOT NULL`       |
 | `currency_code`        | `CHAR(3) NOT NULL`               |
 | `base_price`           | `DECIMAL(20,6) NOT NULL`         |
@@ -79,10 +81,9 @@
 Constraints:
 ```text
 PRIMARY KEY(id)
-UNIQUE(subject_id, currency_code)
+UNIQUE(subject_type, subject_id, currency_code)
 CHECK(base_price >= 0)
 ```
-*(ملاحظة: `subject_id` لا يمثل FK لأي جدول، بل هو مرجع خارجي)*
 
 ---
 
@@ -90,6 +91,7 @@ CHECK(base_price >= 0)
 | العمود                 | النوع                            |
 | ---------------------- | -------------------------------- |
 | `id`                   | `BIGINT UNSIGNED AUTO_INCREMENT` |
+| `subject_type`         | `VARCHAR(100) NOT NULL`          |
 | `subject_id`           | `BIGINT UNSIGNED NOT NULL`       |
 | `currency_code`        | `CHAR(3) NOT NULL`               |
 | `price_adjustment`     | `DECIMAL(20,6) NOT NULL`         |
@@ -100,15 +102,14 @@ CHECK(base_price >= 0)
 Constraints:
 ```text
 PRIMARY KEY(id)
-UNIQUE(subject_id, currency_code)
+UNIQUE(subject_type, subject_id, currency_code)
 ```
-*(التعديل يمكن أن يكون سالبًا أو موجبًا أو صفرًا)*
 
 ---
 
 # 6. Database-Enforced Invariants
 
-* Primary Keys & `UNIQUE(subject_id, currency_code)` لكل جدول لمنع تكرار السعر لنفس العملة.
+* Primary Keys & `UNIQUE(subject_type, subject_id, currency_code)` لكل جدول لمنع تكرار السعر لنفس العملة والكيان.
 * `base_price >= 0`.
 
 ---
@@ -116,6 +117,7 @@ UNIQUE(subject_id, currency_code)
 # 7. Domain / Transaction-Enforced Invariants
 
 * **Final Price Calculation:** يتم تطبيق قاعدة `Final Price >= 0` عند وقت القراءة (Read-time calculation) بواسطة الـ Service حين يُطلب تسعير مركب (Base + Adjustments). لم يعد Pricing مسؤولًا عن فرض الـ Pricing Safety Triggers عند وقت الحفظ (Write-time mutation rejection) لكيانات خارجية لا يعلم عنها شيئًا.
+* **Identity Reuse / Restore:** الـ Restore لنفس الـ `subject_type` و `subject_id` يجب أن يلتزم بنفس قيود الـ Unique constraints.
 
 ---
 
@@ -123,20 +125,19 @@ UNIQUE(subject_id, currency_code)
 
 ```text
 maa_pricing_base_prices:
-UNIQUE(subject_id, currency_code)
+UNIQUE(subject_type, subject_id, currency_code)
 
 maa_pricing_adjustments:
-UNIQUE(subject_id, currency_code)
+UNIQUE(subject_type, subject_id, currency_code)
 ```
-يُعد هذا الفهرس كافيًا لمتطلبات الاستعلام والتحديث داخل الموديول.
 
 ---
 
 # 9. Sources of Truth
 
 مصادر الحقيقة الوحيدة هنا:
-* السعر الأساسي (`base_price`) للـ `subject_id` والعملة.
-* التعديل (`price_adjustment`) للـ `subject_id` والعملة.
+* السعر الأساسي (`base_price`) لهوية הـ Subject والعملة.
+* التعديل (`price_adjustment`) لهوية الـ Subject والعملة.
 * حالة الحذف المنطقي (`deleted_at`).
 
 لا يُخزّن السعر النهائي، بل يُحسب.
@@ -146,4 +147,4 @@ UNIQUE(subject_id, currency_code)
 # 10. Architecture Status
 
 **Locked**
-القرارات المعمارية الداخلية الخاصة بهيكل التسعير محسومة. إسناد مسؤولية ضمان عدم بيع كيان بسعر سالب أثناء تفعيل الكيان نفسه أصبحت خارج نطاق الموديول وهي الآن مسؤولية الـ Host/Coordinator.
+القرارات المعمارية الداخلية الخاصة بهيكل التسعير محسومة. הـ External Reference Identity صُممت بحيث لا يحدث لها Collision (بفضل `subject_type`). إسناد مسؤولية ضمان عدم بيع كيان بسعر سالب أثناء تفعيل الكيان نفسه أصبحت خارج نطاق الموديول وهي الآن مسؤولية الـ Host/Coordinator.

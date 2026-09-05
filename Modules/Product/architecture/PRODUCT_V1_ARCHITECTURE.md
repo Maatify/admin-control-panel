@@ -75,7 +75,7 @@ CHECK (status IN ('active','inactive'))
 
 ---
 
-# 5. Logical Identity Immutability
+# 5. Logical Identity Immutability & Reference Lifecycles
 
 هويات الربط لا تتغير بعد الإنشاء:
 * `product_translation` (product_id, language_code)
@@ -84,7 +84,18 @@ CHECK (status IN ('active','inactive'))
 * `option_value` (option_id)
 * `variant_option_value` (variant_id, option_id, option_value_id)
 
-**Exceptions:** `product.slug` و `barcode` قابلان للتعديل (لا نحتفظ بتارييخهما هنا). الـ `code` والـ `SKU` ثابتان (Immutable).
+**Stable Codes (Immutable):**
+الـ `code` والـ `SKU` هي هويات ثابتة (Stable & Immutable) ولا يعاد استخدامها بعد الحذف المنطقي.
+
+**Product Slug Lifecycle:**
+* `slug` هي قيمة مسار (Routing Value) يمكن تغييرها (Mutable).
+* لا يحتفظ V1 بتاريخ الـ Slugs القديمة.
+* تظل الـ records المحذوفة منطقيًا تحتفظ بالـ Unique Constraint للـ `slug`.
+
+**Barcode Lifecycle:**
+* `barcode` هي قيمة فريدة، يمكن تغييرها (Mutable)، وتسمح بالـ `NULL`.
+* لا يحتفظ V1 بتاريخ الـ Barcodes القديمة.
+* تظل الـ records المحذوفة منطقيًا تحتفظ بالـ Unique Constraint للـ `barcode`.
 
 ---
 
@@ -94,32 +105,63 @@ CHECK (status IN ('active','inactive'))
 * **Variant-Defining Options:** كل الخيارات إجبارية في سياق تشكيل الـ Variant. لا يوجد حقل `is_required`.
 * **Full Active Option Coverage:** أي Variant فعّالة لمنتج Configurable يجب أن تغطي جميع الخيارات الفعّالة للمنتج (قيمة واحدة لكل Option فعال).
 * **Effectively Selectable Variant:** كيان يُعتبر قابلاً للاختيار هيكلياً فقط إذا كان Product, Variant, Option, و Option Value كلها `active` وغير محذوفة وتمتلك Coverage كامل. (هذا لا يأخذ بالاعتبار المخزون أو السعر، بل هو تقييم لهيكلية الـ Product).
-* **Customer-Selectable Values:** القيم المتاحة للعميل لاختيارها تُستمد فقط من الـ Variants التي تعد Effectively Selectable.
+* **Customer-Selectable Values:** القيم المتاحة للعميل לאختيارها تُستمد فقط من الـ Variants التي تعد Effectively Selectable بناءً على الهيكلية فقط.
 * **Simple Product:** منتج ليس لديه خيارات فعالة ويمتلك Exactly One Effectively Selectable Variant.
 * **Configurable Product:** منتج لديه خيارات فعالة.
-* **Direct Sellable Resolution:** النظام يمكنه تحديد Variant مباشرة بدون تدخل العميل (يتحقق في الـ Simple Product).
-* **Replacement Flow:** عند إضافة/حذف Option من منتج قائم، يجب إنشاء Variants جديدة وعمل Cutover، مع إبقاء الـ Variants القديمة كهويات غير محذوفة (لأغراض تاريخية).
-* **Default Variant:**
-  * `is_default TINYINT(1) NOT NULL DEFAULT 0`
-  * كحد أقصى توجد Default Variant واحدة غير محذوفة لكل منتج.
-  * يجب أن تكون Active و Effectively Selectable.
-  * في حال فَقَدت صلاحيتها، يُزال الـ Default أو يُنقل خلال نفس المعاملة (Transaction).
+* **Direct Sellable Resolution:** النظام يمكنه تحديد Variant مباشرة بدون تدخل العميل (يتحقق في الـ Simple Product هيكليًا).
 
 ---
 
-# 7. Media Ownership
+# 7. Lifecycles, Creation, and Replacement Flows
+
+* **Product/Variant Creation Lifecycle:** المنتجات والـ Variants والـ Options الجديدة تبدأ بـ `status = 'inactive'`، ويجوز إنشاؤها وتكوين הـ Composition (Staged Composition) حتى لو كانت الخيارات المرتبطة لا تزال غير مفعلة. لا تصبح Variant `active` إلا بعد أن تكتمل البنية ويكون كل شيء صحيحًا (Full Coverage).
+* **Staged Composition:** Variant جديدة Inactive يمكن أثناء التجهيز أن تحتوي Composition تشير إلى Option ما زالت Inactive. يتم التفعيل في Atomic Operation واحد عند الجاهزية.
+
+**Replacement Flows (Add Option):**
+1. Create new Option as inactive.
+2. Create Option Values.
+3. Create replacement Variants (with new SKUs, full combination) as inactive.
+4. Validate replacements.
+5. Atomic Cutover: deactivate old Variants, activate new Option, activate replacement Variants.
+6. Preserve old Variant identities unchanged.
+
+**Replacement Flows (Remove Option):**
+1. Prepare replacement Variants without the Option (new SKUs).
+2. Validate replacements.
+3. Atomic Cutover: deactivate old Variants, deactivate removed Option, activate replacement Variants.
+
+---
+
+# 8. Override & Conflict Handling Concepts
+
+* **force_out_of_stock:**
+  * Flag إداري `TINYINT(1)` مملوك للمنتج.
+  * معناه داخل دومين المنتج المستقل: "إشارة إدارية تقضي بحجب إتاحة المنتج بغض النظر عن حالته الفيزيائية". الـ Host هو الذي يدمج هذا הـ Flag مع مخزون الكيان الخارجي لإنتاج הـ Derived "Stock State".
+
+* **Default Variant:**
+  * `is_default TINYINT(1) NOT NULL DEFAULT 0`
+  * كحد أقصى توجد Default Variant واحدة غير محذوفة لكل منتج.
+  * يجب أن تكون Active و Effectively Selectable هيكليًا.
+  * **Conflict Handling:** في حال فَقَدت صلاحيتها أو عند استعادة Variant محذوفة (Restore)، يتم حل الـ Conflict داخلياً بإزالة הـ Default القديم أو نقله في نفس הـ Transaction لضمان بقاء 1 بحد أقصى.
+
+* **Restore Safety:**
+  * الـ Restore ليس مجرد `deleted_at = NULL`. يجب أن يتم تقييم הـ Invariants الداخلية للمنتج والـ Variant (مثل Unique constraints و Composition Coverage و Default limits). إذا كانت الحالة المحفوظة لا تستوفي القيود الهيكلية الحالية، ترفض العملية ولا يُعدل التركيب تلقائيًا.
+
+---
+
+# 9. Media Ownership & Primary Limits
 
 يخزن الموديول مراجع الميديا (بدون ملفات حقيقية):
 * إذا كان `variant_id IS NULL` فهي Product Media.
 * إذا كان `variant_id IS NOT NULL` فهي Variant Media وتتبع نفس الـ `product_id`.
-* بحد أقصى: Primary Product Media واحدة غير محذوفة لكل Product، و Primary Variant Media واحدة غير محذوفة لكل Variant.
-* الـ Restore لأي Primary Media يجب أن يحل الـ Conflict داخلياً.
+* **Primary Limits:** بحد أقصى Primary Product Media واحدة غير محذوفة لكل Product، و Primary Variant Media واحدة غير محذوفة لكل Variant.
+* **Primary Restore Conflict Handling:** הـ Restore لأي Primary Media يجب أن يحل الـ Conflict داخلياً بتعطيل Primary السابقة إذا وُجدت في نفس הـ Transaction.
 
 ---
 
-# 8. Complete Database Schema — 9 Tables
+# 10. Complete Database Schema — 9 Tables
 
-## 8.1 `maa_products`
+## 10.1 `maa_products`
 | العمود               | النوع                                     |
 | -------------------- | ----------------------------------------- |
 | `id`                 | `BIGINT UNSIGNED AUTO_INCREMENT`          |
@@ -143,7 +185,7 @@ CHECK(force_out_of_stock IN (0,1))
 
 ---
 
-## 8.2 `maa_product_translations`
+## 10.2 `maa_product_translations`
 | العمود              | النوع                            |
 | ------------------- | -------------------------------- |
 | `id`                | `BIGINT UNSIGNED AUTO_INCREMENT` |
@@ -170,7 +212,7 @@ ON UPDATE RESTRICT
 
 ---
 
-## 8.3 `maa_product_options`
+## 10.3 `maa_product_options`
 | العمود          | النوع                                     |
 | --------------- | ----------------------------------------- |
 | `id`            | `BIGINT UNSIGNED AUTO_INCREMENT`          |
@@ -197,7 +239,7 @@ ON UPDATE RESTRICT
 
 ---
 
-## 8.4 `maa_product_option_translations`
+## 10.4 `maa_product_option_translations`
 | العمود          | النوع                            |
 | --------------- | -------------------------------- |
 | `id`            | `BIGINT UNSIGNED AUTO_INCREMENT` |
@@ -222,7 +264,7 @@ ON UPDATE RESTRICT
 
 ---
 
-## 8.5 `maa_product_option_values`
+## 10.5 `maa_product_option_values`
 | العمود          | النوع                                   |
 | --------------- | --------------------------------------- |
 | `id`            | `BIGINT UNSIGNED AUTO_INCREMENT`        |
@@ -249,7 +291,7 @@ ON UPDATE RESTRICT
 
 ---
 
-## 8.6 `maa_product_option_value_translations`
+## 10.6 `maa_product_option_value_translations`
 | العمود            | النوع                            |
 | ----------------- | -------------------------------- |
 | `id`              | `BIGINT UNSIGNED AUTO_INCREMENT` |
@@ -274,7 +316,7 @@ ON UPDATE RESTRICT
 
 ---
 
-## 8.7 `maa_product_variants`
+## 10.7 `maa_product_variants`
 | العمود          | النوع                                     |
 | --------------- | ----------------------------------------- |
 | `id`            | `BIGINT UNSIGNED AUTO_INCREMENT`          |
@@ -305,7 +347,7 @@ ON UPDATE RESTRICT
 
 ---
 
-## 8.8 `maa_product_variant_option_values`
+## 10.8 `maa_product_variant_option_values`
 | العمود            | النوع                            |
 | ----------------- | -------------------------------- |
 | `id`              | `BIGINT UNSIGNED AUTO_INCREMENT` |
@@ -335,11 +377,10 @@ option_value_id → maa_product_option_values.id
 ON DELETE RESTRICT
 ON UPDATE RESTRICT
 ```
-*Composition is Immutable after Variant creation.*
 
 ---
 
-## 8.9 `maa_product_media`
+## 10.9 `maa_product_media`
 | العمود          | النوع                            |
 | --------------- | -------------------------------- |
 | `id`            | `BIGINT UNSIGNED AUTO_INCREMENT` |
@@ -375,7 +416,7 @@ ON UPDATE RESTRICT
 
 ---
 
-# 9. Index Strategy
+# 11. Index Strategy
 
 الـIndexes تكون Explicit ولا تضاف Redundant Indexes بلا Query Requirement.
 
@@ -423,7 +464,7 @@ UNIQUE(option_value_id, language_code)
 
 ---
 
-# 10. Database-Enforced Invariants
+# 12. Database-Enforced Invariants
 
 * Primary Keys, Internal FKs.
 * `ON DELETE RESTRICT` و `ON UPDATE RESTRICT`.
@@ -436,21 +477,21 @@ UNIQUE(option_value_id, language_code)
 
 ---
 
-# 11. Domain / Transaction-Enforced Invariants
+# 13. Domain / Transaction-Enforced Invariants
 
 * **Option/Value Delete Dependency:** منع Soft Delete إذا كانت مرتبطة بـ Variant غير محذوفة.
 * **Option/Value Integrity & Cross-Product Composition Prevention:** التأكد من تبعية القيم والخيارات لنفس المنتج الخاص بالـ Variant.
-* **Duplicate Variant Combination Prevention:** منع إنشاء Variants مختلفة بنفس تركيبة الخيارات.
-* **Immutable Variant Composition:** لا يجوز التعديل على سجلات التركيبة لـ Variant قائمة.
-* **Full Active Option Coverage:** التفعيل يتطلب تغطية تامة للخيارات.
-* **Replacement Flows:** عند التعديل الهيكلي على خيارات المنتج.
-* **Restore Safety:** ضمان الـ Invariants عند الـ Restore.
+* **Duplicate Variant Combination Prevention:** منع إنشاء Variants مختلفة بنفس تركيبة الخيارات Transactionally.
+* **Immutable Variant Composition.**
+* **Full Active Option Coverage.**
+* **Replacement Flows Atomic Steps.**
+* **Restore Safety Validation.**
 * **Max one valid Default Variant & Conflict Handling.**
-* **Media Ownership & Primary Media Limits / Conflict Handling.**
+* **Primary Media Limits & Primary Restore Conflict Handling.**
 
 ---
 
-# 12. Sources of Truth و Prohibited Duplicated Fields
+# 14. Sources of Truth و Prohibited Duplicated Fields
 
 لا يجوز إضافة مصادر حقيقة مكررة.
 مصادر الحقيقة المدعومة هنا حصراً:
@@ -463,8 +504,7 @@ UNIQUE(option_value_id, language_code)
 
 ---
 
-# 13. Architecture Status
+# 15. Architecture Status
 
 **Locked**
-تم حسم جميع القرارات المتعلقة بهيكل المنتجات وتشكيلاتها داخليًا.
-لا يُسمح بإضافة أية اشتراطات تعتمد على موديولات أخرى للتحقق من صحة الكيانات (مثل التحقق من السعر للتفعيل). التكامل الأوسع بين المنتجات والكيانات الأخرى متروك لطبقة الـ Host Coordinator أو عبر الأحداث.
+تم حسم جميع القرارات المتعلقة بهيكل المنتجات وتشكيلاتها داخليًا، بما فيها دورة حياة הـ slug والـ barcode والـ staged composition. لا يُسمح بإضافة أية اشتراطات تعتمد على موديولات أخرى للتحقق من صحة الكيانات (مثل التحقق من السعر للتفعيل). التكامل الأوسع בין المنتجات والكيانات الأخرى متروك לطبقة الـ Host Coordinator أو عبر الأحداث.
