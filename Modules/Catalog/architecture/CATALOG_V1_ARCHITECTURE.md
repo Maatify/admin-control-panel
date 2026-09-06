@@ -195,7 +195,13 @@ Root:
 ```text
 parent_id = NULL
 ```
-DB تمنع: `CHECK (parent_id IS NULL OR parent_id <> id)`
+بما أن MySQL لا تسمح لـ `CHECK` بالرجوع إلى عمود يحمل `AUTO_INCREMENT`، يفرض
+الـDB نفس invariant عبر triggerين مملوكين للموديول:
+
+* Trigger على `INSERT` يرفض `parent_id = id` بعد تخصيص الـ`AUTO_INCREMENT` identity.
+* Trigger على `UPDATE` يرفض أي حالة يصبح فيها `parent_id = id`.
+
+تظل القاعدة الدلالية ثابتة: `parent_id IS NULL OR parent_id <> id`.
 Domain تمنع العلاقات الدائرية (Cycle Prevention: A → B → C → A).
 
 ---
@@ -229,7 +235,7 @@ Constraints:
 PRIMARY KEY(id)
 UNIQUE(code)
 CHECK(status IN ('active','inactive'))
-CHECK(parent_id IS NULL OR parent_id <> id)
+Package-owned INSERT/UPDATE triggers reject parent_id = id
 ```
 FK:
 ```text
@@ -273,6 +279,8 @@ ON UPDATE RESTRICT
 * Unique Stable Codes, Unique Translation Identities.
 * Status constraints (active/inactive).
 * `parent_id <> id`.
+* Package-owned Category triggers enforce `parent_id <> id` on INSERT and UPDATE;
+  MySQL cannot express this invariant as a CHECK while `id` is AUTO_INCREMENT.
 * **Column Comments Requirement:** تطبيقًا للـ Package Building Standard، تلتزم كافة المخططات (Schemas) المذكورة هنا بتوفير تعليقات دلالية (Meaningful Comments) في مرحلة التنفيذ الفعلي (Implementation) توضح الغرض من كل عمود، خصوصًا الهويات الخارجية إن وجدت.
 
 ---
