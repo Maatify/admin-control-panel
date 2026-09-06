@@ -23,6 +23,11 @@ final class CategoryPersistenceException extends SystemMaatifyException
         return new self(sprintf('Catalog query failed for %s.', $resource));
     }
 
+    public static function invalidAutoIncrementIdentity(): self
+    {
+        return new self('Catalog Category AUTO_INCREMENT did not return a valid identity.');
+    }
+
     public static function invalidStorageValue(string $column, ?Throwable $previous = null): self
     {
         return new self(
