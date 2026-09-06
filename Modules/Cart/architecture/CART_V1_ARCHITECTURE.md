@@ -4,7 +4,7 @@
 
 هذه الوثيقة هي المرجع المعماري المقفول لـ **Cart V1**.
 
-يحدد هذا المرجع ملكية الـ Cart، دورة الحياة، الهوية، وآلية التفاعل مع الـ Backend والـ Catalog أثناء الدفع (Checkout). أي تغيير لاحق على قرار معماري مثبت هنا يعتبر **تغييرًا معماريًا جديدًا** وليس مجرد تفصيل تنفيذ.
+يحدد هذا المرجع ملكية الـ Cart، دورة الحياة، الهوية، وآلية التفاعل مع الـ Backend Coordinator والـ Catalog Package أثناء الدفع (Checkout). أي تغيير لاحق على قرار معماري مثبت هنا يعتبر **تغييرًا معماريًا جديدًا** وليس مجرد تفصيل تنفيذ.
 
 ---
 
@@ -40,7 +40,7 @@
 - `variant_id`
 - `quantity`
 
-يجب أن يستخدم الـ Cart هوية الـ Variant وليس الـ Product، حيث أن Catalog V1 يعرف كل وحدة بيع حقيقية من خلال Variant (بما في ذلك Simple Products).
+يجب أن يستخدم الـ Cart هوية الـ Variant وليس الـ Product، حيث أن Product Domain يعرف كل وحدة بيع حقيقية من خلال Variant (بما في ذلك Simple Products).
 
 ### 2.2 التعامل مع التكرار (Duplicate Variant Behavior)
 يمثل الـ Variant الواحد سطرًا منطقيًا واحدًا في الـ Cart.
@@ -77,19 +77,19 @@
 ## 3. العمليات والتكامل
 
 ### 3.1 الاستعادة والتحديث (Rehydration)
-عند عرض أو استعادة الـ Cart، يجب استخدام بيانات الـ Catalog الحالية لتحديث وإعادة التحقق (Hydrate/Revalidate) من بيانات العرض والإتاحة.
+عند عرض أو استعادة الـ Cart، يجب استدعاء الـ Backend (عبر الـ Catalog Package Coordinator) لتحديث وإعادة التحقق (Hydrate/Revalidate) من بيانات العرض والإتاحة الحالية للمنتجات.
 
 ### 3.2 إتمام الطلب (Checkout)
 عند الدفع، يرسل المتصفح نية التسوق وبيانات الدفع إلى الـ Backend.
-**يجب على الـ Backend إعادة التحقق (Revalidate) مما يلي بشكل صارم:**
-- وجود الـ Variant.
-- إتاحة الـ Product والـ Variant (Availability).
-- قابلية الاختيار الفعلية (Effective selectability).
-- المخزون الحالي (Current stock).
+**يجب على الـ Backend Coordinator إعادة التحقق (Revalidate) مما يلي بشكل صارم عن طريق التنسيق بين مجالات الكتالوج:**
+- وجود الـ Variant (عبر Product Domain).
+- إتاحة الـ Product والـ Variant (عبر Product Domain).
+- قابلية الاختيار الفعلية (Effective selectability) (عبر Product Domain).
+- المخزون الحالي (عبر Inventory Domain).
 - الكمية المطلوبة (Requested quantity).
 - العملة المطلوبة (Requested currency).
-- تسعير الـ Catalog الحالي (Current Catalog pricing).
-- السعر النهائي المحسوب (Final calculated price).
+- التسعير الفعّال (عبر Pricing Domain).
+- السعر النهائي المحسوب (Final calculated price) (بتنسيق الـ Package Coordinator).
 
 **قاعدة:** الأسعار، المخزون، الأسماء، والمجاميع المرسلة من المتصفح لا يُوثق بها أبدًا.
 
