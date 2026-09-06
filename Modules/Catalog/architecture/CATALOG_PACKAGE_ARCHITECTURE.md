@@ -98,11 +98,12 @@
 
 ### 5.8 Pricing Safety Write-Time Guarantees
 موديول Pricing الأساسي لا يعلم بحالة Product ولا الـ lifecycle الخاصة به. لذلك، مسؤولية منع الأسعار النهائية السالبة عند التعديل (Write-time validation) تقع على الـ Catalog Package Coordinator.
-إذا أدى أي من الإجراءات التالية إلى جعل السعر النهائي (Final Price) أقل من صفر لتركيبة (Combination) فعّالة (Active)، **يجب رفض العملية (Mutation Rejected)** بواسطة الـ Package Coordinator:
+يُطبق التحقق على النحو التالي: لكل عملة (Currency) تمتلك Base Price موجودة وغير محذوفة (non-deleted)، يتم التحقق من كل الـ combinations المتأثرة التي تعتبر (أو ستصبح بسبب هذه العملية) Effectively Selectable.
+إذا أدى أي من الإجراءات التالية إلى جعل السعر النهائي (Final Price) أقل من صفر في أي من هذه الحالات، **يجب رفض العملية بالكامل (Mutation Rejected)** بواسطة الـ Package Coordinator:
 * إنشاء أو تعديل أو استعادة Base Price.
 * إنشاء أو تعديل أو حذف منطقي (Soft Delete) أو استعادة Adjustment.
 * تفعيل أو استعادة Product, Variant, Option, Option Value.
-لا يُسمح للمنتج الفعّال (Active) بالدخول في حالة تسعير غير صالحة (Negative Final Price).
+لا يُسمح لأي تركيبة قابلة للاختيار (Effectively Selectable) بالدخول في حالة تسعير غير صالحة (Negative Final Price).
 
 ---
 
