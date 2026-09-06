@@ -11,3 +11,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - Category and category-translation foundation types.
 - Category and category-translation schema tables.
+- Category domain/application operation DTOs, contracts, and business service
+  for hierarchy, lifecycle, status, ordering, and translation invariants.

@@ -35,6 +35,7 @@
     }
   },
   "require": {
+    "ext-mbstring": "*",
     "maatify/exceptions": "^1.0",
     "php": ">=8.2"
   },

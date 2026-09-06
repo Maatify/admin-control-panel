@@ -5,9 +5,9 @@ V1 categories and category translations. It is not currently published as an
 independent Composer repository; the package name is reserved for a future
 extractable distribution.
 
-## Phase 1 scope
+## Phase 1 and Phase 2 scope
 
-This phase defines only the stable Category/Taxonomy data foundation:
+Phase 1 defines the stable Category/Taxonomy data foundation:
 
 - Category identity, immutable code, nullable parent identity, status, display
   order, application-managed timestamps, and soft-delete representation.
@@ -17,8 +17,20 @@ This phase defines only the stable Category/Taxonomy data foundation:
   `maa_catalog_category_translations`.
 
 Catalog entity identity is not defined here. Product, pricing, inventory,
-media, HTTP, framework integration, dependency-injection bindings, and
-orchestration services are outside this phase.
+media, HTTP, framework integration, and dependency-injection bindings remain
+outside the package.
+
+Phase 2 adds the framework-neutral Category domain/application contracts:
+
+- Self-validating operation DTOs for creation, parent movement, lifecycle,
+  status, display-order, and translation-content mutations.
+- `CategoryCommandService` orchestration for stable-code uniqueness, parent
+  existence, complete ancestor-chain cycle prevention, non-deleted-child
+  deletion dependency, and mutation not-found handling.
+- Repository/query ports only; no PDO repository implementation is included in
+  this phase. Persistence adapters remain responsible for application-managed
+  timestamps and for delegating display-order mechanics to the approved
+  persistence capability.
 
 ## Runtime API
 
@@ -84,16 +96,48 @@ The constructor accepts only positive `id` and `categoryId` values. Validation
 of BCP-47 language codes remains the Host responsibility, as required by the
 Catalog architecture.
 
+### Category operation DTOs
+
+The following `final readonly` DTOs validate operation inputs and normalize
+canonical positive IDs:
+
+- `CategoryIdDTO`
+- `CreateCategoryDTO`
+- `MoveCategoryDTO`
+- `SoftDeleteCategoryDTO`
+- `RestoreCategoryDTO`
+- `UpdateCategoryStatusDTO`
+- `UpdateCategoryDisplayOrderDTO`
+- `UpdateCategoryTranslationDTO`
+
+`UpdateCategoryTranslationDTO` accepts only translation content, so the logical
+identity `(category_id, language_code)` cannot be changed through the mutation
+contract. Category mutation DTOs do not expose `code`; the stable Category code
+is immutable after creation.
+
 ### Exceptions and contracts
 
 - `Maatify\Catalog\Exception\CatalogExceptionInterface` is the package marker
   contract and extends `Throwable`.
 - `Maatify\Catalog\Category\Exception\CategoryInvalidArgumentException`
   represents invalid Category DTO identity input.
+- `Maatify\Catalog\Category\Exception\CategoryNotFoundException`
+- `Maatify\Catalog\Category\Exception\CategoryTranslationNotFoundException`
+- `Maatify\Catalog\Category\Exception\CategoryCodeAlreadyExistsException`
+- `Maatify\Catalog\Category\Exception\CategoryCycleException`
+- `Maatify\Catalog\Category\Exception\CategoryHasNonDeletedChildrenException`
 
-No repository, service, command, HTTP, or other orchestration interface is
-defined in Phase 1 because the architecture does not establish those public
-APIs yet.
+### Category contracts and service
+
+- `CategoryQueryReaderInterface` reads Categories, stable codes, child
+  dependency state, and translation identities.
+- `CategoryCommandRepositoryInterface` defines the Category write port.
+- `CategoryTranslationCommandRepositoryInterface` defines translation-content
+  updates without logical-identity changes.
+- `CategoryCommandServiceInterface` is the public mutation orchestration
+  contract.
+- `CategoryCommandService` implements cycle prevention by walking the complete
+  parent chain before delegating a move.
 
 ## Persistence contract
 
@@ -130,9 +174,6 @@ test setup rather than a skipped verification.
 
 The following remain separate future phases and are intentionally absent:
 
-- Category cycle-prevention service.
-- Category move orchestration.
-- Child-delete dependency orchestration.
-- Restore orchestration.
-- CRUD services and PDO repositories.
+- PDO repositories and database transaction implementations.
+- Query/list contracts beyond the mutation-supporting read port.
 - Slim/Admin integration.
