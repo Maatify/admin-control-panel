@@ -15,7 +15,7 @@ final class CategoryPersistenceException extends SystemMaatifyException
 {
     protected function defaultErrorCode(): ErrorCodeEnum
     {
-        return ErrorCodeEnum::DATABASE_CONNECTION_FAILED;
+        return ErrorCodeEnum::MAATIFY_ERROR;
     }
 
     public static function queryFailed(string $resource): self
