@@ -36,7 +36,10 @@
   },
   "require": {
     "ext-mbstring": "*",
+    "ext-pdo": "*",
     "maatify/exceptions": "^1.0",
+    "maatify/persistence": "^1.0",
+    "maatify/shared-common": "^1.0",
     "php": ">=8.2"
   },
   "require-dev": {

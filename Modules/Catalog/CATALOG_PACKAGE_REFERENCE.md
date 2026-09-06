@@ -27,10 +27,11 @@ Phase 2 adds the framework-neutral Category domain/application contracts:
 - `CategoryCommandService` orchestration for stable-code uniqueness, parent
   existence, complete ancestor-chain cycle prevention, non-deleted-child
   deletion dependency, and mutation not-found handling.
-- Repository/query ports only; no PDO repository implementation is included in
-  this phase. Persistence adapters remain responsible for application-managed
-  timestamps and for delegating display-order mechanics to the approved
-  persistence capability.
+- A transaction port owned by the application service, with PDO transaction and
+  row-locking adapters for move, create, restore, and soft-delete invariants.
+- PDO Category persistence adapters. They persist timestamps supplied by the
+  application and delegate non-root display-order movement to the stable
+  `maatify/persistence` Ordering API.
 
 ## Runtime API
 
@@ -126,18 +127,26 @@ is immutable after creation.
 - `Maatify\Catalog\Category\Exception\CategoryCodeAlreadyExistsException`
 - `Maatify\Catalog\Category\Exception\CategoryCycleException`
 - `Maatify\Catalog\Category\Exception\CategoryHasNonDeletedChildrenException`
+- `Maatify\Catalog\Category\Exception\CategoryTransactionException`
 
 ### Category contracts and service
 
 - `CategoryQueryReaderInterface` reads Categories, stable codes, child
-  dependency state, and translation identities.
+  dependency state, and translation identities. `findById()` includes
+  soft-deleted rows; `findActiveById()` excludes them; the `ForUpdate` methods
+  explicitly lock rows for the current application transaction.
 - `CategoryCommandRepositoryInterface` defines the Category write port.
 - `CategoryTranslationCommandRepositoryInterface` defines translation-content
   updates without logical-identity changes.
+- `CategoryTransactionInterface` defines the transaction boundary used by the
+  application service.
 - `CategoryCommandServiceInterface` is the public mutation orchestration
-  contract.
-- `CategoryCommandService` implements cycle prevention by walking the complete
-  parent chain before delegating a move.
+  contract. It obtains application time from
+  `Maatify\SharedCommon\Contracts\ClockInterface` and passes that timestamp to
+  persistence adapters.
+- `CategoryCommandService` locks the complete parent chain before a move and
+  locks the category plus its non-deleted children before soft delete. The
+  transaction is rolled back when a domain rule rejects the mutation.
 
 ## Persistence contract
 
@@ -151,7 +160,9 @@ exactly the two Phase 1 tables and enforces:
 - `active|inactive` status `CHECK` and package-owned INSERT/UPDATE triggers for
   `parent_id <> id`.
 - Explicit category hierarchy indexes.
-- Application-managed UTC timestamps without database timestamp defaults.
+- Application-managed UTC timestamps without database timestamp defaults;
+  `ClockInterface` belongs to the Catalog application layer and repositories
+  only persist the supplied value.
 - Soft-delete representation through nullable `deleted_at`.
 - `InnoDB`, `utf8mb4`, and `utf8mb4_unicode_ci`.
 - Package-owned self-parent triggers are installed after the two tables because
@@ -164,8 +175,9 @@ The package does not create foreign keys or joins to Host tables.
 The `integration` PHPUnit suite executes `schema/catalog.sql` against a real
 MySQL 8.0.16+ engine. It verifies installation of exactly two tables and both
 package-owned triggers, repeatable cleanup with no trigger residue, storage
-settings, valid inserts, foreign-key restrictions, `CHECK` constraints, and
-both unique constraints. Configure `CATALOG_TEST_DSN`,
+settings, valid inserts, foreign-key restrictions, `CHECK` constraints, both
+unique constraints, application-owned timestamps, and transaction row-locking
+behavior for hierarchy/lifecycle mutations. Configure `CATALOG_TEST_DSN`,
 `CATALOG_TEST_DB_USER`, and `CATALOG_TEST_DB_PASSWORD` before running
 `composer test:integration`; missing configuration is treated as a failed
 test setup rather than a skipped verification.
@@ -174,6 +186,5 @@ test setup rather than a skipped verification.
 
 The following remain separate future phases and are intentionally absent:
 
-- PDO repositories and database transaction implementations.
 - Query/list contracts beyond the mutation-supporting read port.
 - Slim/Admin integration.

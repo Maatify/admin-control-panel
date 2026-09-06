@@ -28,9 +28,12 @@ Composer repository.
 - Translation-content mutation with immutable logical identity.
 - MySQL Category schema with internal restricted foreign keys and package-owned
   self-parent triggers.
+- PDO persistence adapters with application-owned timestamps, transaction
+  locking for hierarchy/lifecycle invariants, and shared persistence ordering
+  integration.
 
-Product, pricing, inventory, media, Admin/Slim integration, and PDO repository
-implementations are not part of this phase.
+Product, pricing, inventory, media, Admin/Slim integration, and query/list APIs
+are not part of this phase.
 
 ## Requirements
 
@@ -71,7 +74,7 @@ $category = new CategoryDTO(
 
 ## Quality Status
 
-The Phase 1 package checks are defined by `composer.json`, `phpstan.neon`, and
+The package checks are defined by `composer.json`, `phpstan.neon`, and
 `phpunit.xml.dist`. Run them from `Modules/Catalog/`:
 
 ```bash
