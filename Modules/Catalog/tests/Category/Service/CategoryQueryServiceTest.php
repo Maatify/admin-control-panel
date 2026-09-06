@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Maatify\Catalog\Tests\Category\Service;
 
 use DateTimeImmutable;
-use Maatify\Catalog\Category\Contract\CategoryQueryReaderInterface;
+use Maatify\Catalog\Category\Contract\CategoryReadQueryInterface;
 use Maatify\Catalog\Category\DTO\CategoryCollectionDTO;
 use Maatify\Catalog\Category\DTO\CategoryDTO;
 use Maatify\Catalog\Category\DTO\CategoryTranslationCollectionDTO;
@@ -21,7 +21,7 @@ final class CategoryQueryServiceTest extends TestCase
     public function testGetByIdReturnsOnlyTheVisibleCategoryFromTheReader(): void
     {
         $category = $this->category(7);
-        $reader = $this->createMock(CategoryQueryReaderInterface::class);
+        $reader = $this->createMock(CategoryReadQueryInterface::class);
         $reader->expects(self::once())
             ->method('findVisibleById')
             ->with(7)
@@ -34,7 +34,7 @@ final class CategoryQueryServiceTest extends TestCase
 
     public function testGetByIdRejectsAnUnavailableCategory(): void
     {
-        $reader = $this->createMock(CategoryQueryReaderInterface::class);
+        $reader = $this->createMock(CategoryReadQueryInterface::class);
         $reader->method('findVisibleById')->willReturn(null);
 
         $this->expectException(CategoryNotFoundException::class);
@@ -46,14 +46,14 @@ final class CategoryQueryServiceTest extends TestCase
     {
         $this->expectException(CategoryInvalidArgumentException::class);
 
-        (new CategoryQueryService($this->createMock(CategoryQueryReaderInterface::class)))->getById(0);
+        (new CategoryQueryService($this->createMock(CategoryReadQueryInterface::class)))->getById(0);
     }
 
     public function testListOperationsReturnTypedCollectionsFromTheReader(): void
     {
         $categories = new CategoryCollectionDTO([$this->category(1)]);
         $translations = new CategoryTranslationCollectionDTO([$this->translation(2)]);
-        $reader = $this->createMock(CategoryQueryReaderInterface::class);
+        $reader = $this->createMock(CategoryReadQueryInterface::class);
         $reader->expects(self::once())->method('listVisibleRootCategories')->willReturn($categories);
         $reader->expects(self::once())->method('listVisibleChildren')->with(1)->willReturn($categories);
         $reader->expects(self::once())->method('listVisibleTranslations')->with(1)->willReturn($translations);

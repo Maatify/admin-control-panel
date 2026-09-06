@@ -11,6 +11,7 @@ use Maatify\Catalog\Category\DTO\UpdateCategoryStatusDTO;
 use Maatify\Catalog\Category\Enum\CategoryStatusEnum;
 use Maatify\Catalog\Category\Infrastructure\Repository\PdoCategoryCommandRepository;
 use Maatify\Catalog\Category\Infrastructure\Repository\PdoCategoryQueryReader;
+use Maatify\Catalog\Category\Infrastructure\Repository\PdoCategoryReadQuery;
 use Maatify\Catalog\Category\Infrastructure\Repository\PdoCategoryTranslationCommandRepository;
 use Maatify\Catalog\Category\Infrastructure\Transaction\PdoCategoryTransaction;
 use Maatify\Catalog\Category\Service\CategoryCommandService;
@@ -40,7 +41,7 @@ final class CategoryQueryIntegrationTest extends CatalogMySqlIntegrationTestCase
         $this->setDisplayOrder($connection, $inactiveId, 0);
         $this->setDisplayOrder($connection, $deletedId, 0);
 
-        $reader = new PdoCategoryQueryReader($connection);
+        $reader = new PdoCategoryReadQuery($connection);
         $queryService = new CategoryQueryService($reader);
 
         self::assertSame($secondId, $queryService->getById($secondId)->id);
@@ -69,7 +70,7 @@ final class CategoryQueryIntegrationTest extends CatalogMySqlIntegrationTestCase
         $this->setDisplayOrder($connection, $inactiveChildId, 0);
         $this->setDisplayOrder($connection, $deletedChildId, 0);
 
-        $reader = new PdoCategoryQueryReader($connection);
+        $reader = new PdoCategoryReadQuery($connection);
         $queryService = new CategoryQueryService($reader);
 
         self::assertSame(
@@ -101,7 +102,7 @@ final class CategoryQueryIntegrationTest extends CatalogMySqlIntegrationTestCase
         $this->insertTranslation($connection, $inactiveId, 'en-US', 'Inactive', null, null);
         $this->insertTranslation($connection, $deletedId, 'en-US', 'Deleted', null, null);
 
-        $queryService = new CategoryQueryService(new PdoCategoryQueryReader($connection));
+        $queryService = new CategoryQueryService(new PdoCategoryReadQuery($connection));
         $visibleTranslations = $queryService->listTranslations($visibleId);
         $languages = [];
         foreach ($visibleTranslations as $translation) {

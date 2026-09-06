@@ -158,12 +158,17 @@ validation and fallback selection remain Host responsibilities.
 
 ### Category contracts and service
 
-- `CategoryQueryReaderInterface` reads Categories, stable codes, child
-  dependency state, and translation identities. `findById()` includes
-  soft-deleted rows; `findActiveById()` excludes them; the `ForUpdate` methods
-  explicitly lock rows for the current application transaction. Its visible
-  query methods exclude soft-deleted/inactive rows and enforce active complete
-  ancestor paths for identity, child-list, and translation reads.
+- `CategoryQueryReaderInterface` is the mutation-support read port for
+  Categories, stable codes, child dependency state, and translation identities.
+  `findById()` includes soft-deleted rows; `findActiveById()` excludes them;
+  the `ForUpdate` methods explicitly lock rows for the current application
+  transaction. It is not the public visible query port.
+- `CategoryReadQueryInterface` is the dedicated public query port. It exposes
+  visible identity, root-list, direct-child-list, and Translation reads while
+  excluding soft-deleted/inactive rows and enforcing active complete ancestor
+  paths. `PdoCategoryQueryReader` is the mutation-support PDO adapter;
+  `PdoCategoryReadQuery` is the separate recursive-CTE query adapter and has no
+  mutation locking methods.
 - `CategoryCommandRepositoryInterface` defines the Category write port.
 - `CategoryTranslationCommandRepositoryInterface` defines translation-content
   updates without logical-identity changes.

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Maatify\Catalog\Category\Service;
 
-use Maatify\Catalog\Category\Contract\CategoryQueryReaderInterface;
+use Maatify\Catalog\Category\Contract\CategoryReadQueryInterface;
 use Maatify\Catalog\Category\Contract\CategoryQueryServiceInterface;
 use Maatify\Catalog\Category\DTO\CategoryCollectionDTO;
 use Maatify\Catalog\Category\DTO\CategoryDTO;
@@ -15,7 +15,7 @@ use Maatify\Catalog\Category\Exception\CategoryNotFoundException;
 /** Coordinates the public visible Category read contract. */
 final readonly class CategoryQueryService implements CategoryQueryServiceInterface
 {
-    public function __construct(private CategoryQueryReaderInterface $reader) {}
+    public function __construct(private CategoryReadQueryInterface $reader) {}
 
     public function getById(int $categoryId): CategoryDTO
     {
