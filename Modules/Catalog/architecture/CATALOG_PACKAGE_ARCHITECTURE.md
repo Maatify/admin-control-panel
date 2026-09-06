@@ -81,28 +81,29 @@
 
 ### 5.4 Variant Activation Validation
 تفعيل الـ Variant بحد ذاتها يخضع لنفس مفهوم التنسيق المظلي (Package coordination):
-لا يتم تفعيل Variant ما لم تتجاوز التقييم الهيكلي (Product-local Structural Validity + Full Active Option Coverage) بالإضافة لوجود سجل Inventory ومرورها باختبار الـ Pricing Safety.
+لا يتم تفعيل Variant ما لم تتجاوز التقييم الهيكلي (`variant.deleted_at IS NULL` + Product-local Structural Validity + Full Active Option Coverage) بالإضافة لوجود سجل Inventory ومرورها باختبار الـ Pricing Safety.
 
 ### 5.5 Option & Option Value Activation Safety
 تفعيل Option (خيار) أو Option Value (قيمة) قد يؤثر على الأسعار النهائية للـ Variants التي تعتمد عليهما. لذلك، يجب على طبقة الـ Package التحقق من الـ Pricing Safety (عدم ظهور أسعار نهائية سالبة) قبل إتمام عملية التفعيل.
 
 ### 5.6 Package-Level Restore Safety
 هناك فرق واضح بين الـ **Base Module restore validation** (الذي يتأكد من القيود الهيكلية للموديول) والـ **Package orchestration restore validation** (الذي ينسق الحالات المتقاطعة).
-استعادة (Restore) أي كيان من الحذف المنطقي قد تجعله فعّالاً (Active) بشكل مباشر إذا كانت حالته السابقة Active. يفرض الـ Package Coordinator التحققات التالية:
-* **استعادة Product:** يجب التأكد من وجود Active Valid Variant، سجل Inventory مرتبط، Base Price واحدة على الأقل، وعدم اختراق Pricing Safety.
-* **استعادة Variant:** يجب التأكد من الصلاحية الهيكلية (Product structural validity)، توفر سجل Inventory، وسلامة التسعير (Pricing Safety)، بالإضافة إلى القيود المحلية للمنتج.
-* **استعادة Option أو Option Value:** التأكد من التغطية الهيكلية (Product-local coverage/selectability) بالإضافة إلى الـ Pricing Safety في طبقة الـ Package لتجنب إنتاج أسعار نهائية سالبة.
+استعادة (Restore) أي كيان من الحذف المنطقي قد تجعله فعّالاً (Active) بشكل مباشر إذا كانت حالته السابقة Active. يفرض الـ Package Coordinator التحققات التالية **فقط إذا كانت حالة الكيان المحفوظة (saved status) هي `active`** (الكيانات الـ `inactive` يمكن استعادتها بدون هذه التحققات المتقاطعة):
+* **استعادة Product (إذا كان `active`):** يجب التأكد من وجود Active Valid Variant، سجل Inventory مرتبط، Base Price واحدة على الأقل، وعدم اختراق Pricing Safety.
+* **استعادة Variant (إذا كانت `active`):** يجب التأكد من الصلاحية الهيكلية (Product structural validity)، توفر سجل Inventory، وسلامة التسعير (Pricing Safety)، بالإضافة إلى القيود المحلية للمنتج.
+* **استعادة Option أو Option Value (إذا كان `active`):** التأكد من التغطية الهيكلية (Product-local coverage/selectability) بالإضافة إلى الـ Pricing Safety في طبقة الـ Package لتجنب إنتاج أسعار نهائية سالبة.
 
 ### 5.7 Active Product Base Price Continuity
 طالما أن المنتج في حالة التفعيل (Active)، يجب على طبقة الـ Package ضمان استمرارية وجود Base Price واحد غير محذوف على الأقل. لا يُسمح بعمل Soft Delete لآخر Base Price متبقي لمنتج Active، وهذا يتطلب تنسيقًا من الـ Package Coordinator.
 
 ### 5.8 Pricing Safety Write-Time Guarantees
 موديول Pricing الأساسي لا يعلم بحالة Product ولا الـ lifecycle الخاصة به. لذلك، مسؤولية منع الأسعار النهائية السالبة عند التعديل (Write-time validation) تقع على الـ Catalog Package Coordinator.
-إذا أدى أي من الإجراءات التالية إلى جعل السعر النهائي (Final Price) أقل من صفر لتركيبة (Combination) فعّالة (Active)، **يجب رفض العملية (Mutation Rejected)** بواسطة الـ Package Coordinator:
+يُطبق التحقق على النحو التالي: لكل عملة (Currency) تمتلك Base Price موجودة وغير محذوفة (non-deleted)، يتم التحقق من كل الـ combinations المتأثرة التي تعتبر (أو ستصبح بسبب هذه العملية) Effectively Selectable.
+إذا أدى أي من الإجراءات التالية إلى جعل السعر النهائي (Final Price) أقل من صفر في أي من هذه الحالات، **يجب رفض العملية بالكامل (Mutation Rejected)** بواسطة الـ Package Coordinator:
 * إنشاء أو تعديل أو استعادة Base Price.
 * إنشاء أو تعديل أو حذف منطقي (Soft Delete) أو استعادة Adjustment.
 * تفعيل أو استعادة Product, Variant, Option, Option Value.
-لا يُسمح للمنتج الفعّال (Active) بالدخول في حالة تسعير غير صالحة (Negative Final Price).
+لا يُسمح لأي تركيبة قابلة للاختيار (Effectively Selectable) بالدخول في حالة تسعير غير صالحة (Negative Final Price).
 
 ---
 
@@ -130,7 +131,7 @@
 * **الجهة المالكة:** Catalog Package / Host Application.
 * **الهوية المنطقية:** علاقة (Mapping) بين `category_id` و `product_id`.
 * **الـ Uniqueness:** يجب ألا تتكرر العلاقة لنفس الـ `(category_id, product_id)`.
-* **الـ Soft Delete:** يتبع الـ Lifecycle الخاص بالـ Package.
+* **الـ Soft Delete:** Soft delete does not release the `(category_id, product_id)` logical identity. Re-adding the same logical relation restores/reuses the existing relation identity rather than creating a replacement identity. `deleted_at` is not part of logical uniqueness.
 * **Display Order Scope:** خاص بكل `category_id`.
 * **Ordering Rule:** `ORDER BY display_order, id`.
 * **Visibility Semantics:**
@@ -148,7 +149,7 @@
 
 * **Variant Inventory Entity:** `stock_subject_type = 'variant'`, `stock_subject_id = variant.id`
 * **Lifecycle Rule:** Every non-deleted Variant participating in Catalog Package has exactly one Inventory identity.
-* **Creation (Atomicity):** إنشاء الـ Variant و سجل المخزون المرتبط بها يجب أن يتم كعملية "كل شيء أو لا شيء" (All-or-nothing Transaction) يتحكم بها الـ Package Coordinator. الـ Product والـ Inventory يشاركان في نفس الـ Coordinator-owned Transaction بدون Commits أو Rollbacks مستقلة، لضمان عدم وجود Variant محفوط (Committed) بدون Inventory Identity. تبدأ كمية المخزون بـ `0`.
+* **Creation (Atomicity):** إنشاء الـ Variant يجب أن يتم كعملية "كل شيء أو لا شيء" (All-or-nothing Transaction) يتحكم بها الـ Package Coordinator. الـ Product (بإنشاء الـ Variant و سجلات الـ Composition `variant_option_values`) والـ Inventory يشاركان في نفس الـ Coordinator-owned Transaction بدون Commits أو Rollbacks مستقلة. هذا يضمن عدم إتمام (Commit) سجل Variant بدون اكتمال التكوين (Composition) الخاص به وبدون Inventory Identity الخاصة به. تبدأ كمية المخزون بـ `0`.
 * **Restore:** عند عمل Restore لـ Variant، يعود نفس سجل الـ Inventory identity. لا تنشأ identity جديدة.
 * **Soft Delete:** عمل Soft Delete للـ Variant لا يمحو المخزون بشكل مستقل، ولكن المنسق يمنع حذف الـ Inventory بشكل مستقل طالما أن الـ Variant موجودة وغير محذوفة نهائياً.
 

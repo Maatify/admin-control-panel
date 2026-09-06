@@ -116,10 +116,10 @@ Variant ownership by `product_id` is immutable. لا يمكن نقل Variant م�
 * **Variant Composition Immutable:** بعد الإنشاء، السجلات في `variant_option_values` لا تتغير. أي تغيير يتطلب Variant جديدة بـ SKU جديد.
 * **Variant-Defining Options:** كل الخيارات إجبارية في سياق تشكيل الـ Variant. لا يوجد حقل `is_required`.
 * **Full Active Option Coverage:** أي Variant فعّالة لمنتج Configurable يجب أن تغطي جميع الخيارات الفعّالة للمنتج (قيمة واحدة لكل Option فعال).
-* **Effectively Selectable Variant:** كيان يُعتبر قابلاً للاختيار هيكلياً فقط إذا كان Product, Variant, Option, و Option Value كلها `active` وغير محذوفة وتمتلك Coverage كامل. (هذا لا يأخذ بالاعتبار المخزون أو السعر، بل هو تقييم لهيكلية الـ Product).
+* **Effectively Selectable Variant:** كيان يُعتبر قابلاً للاختيار هيكلياً فقط إذا كان Variant, Option, و Option Value كلها `active` وغير محذوفة وتمتلك Coverage كامل. (لا يعتمد على حالة Product أو حذفه، ولا يأخذ بالاعتبار المخزون أو السعر، بل هو تقييم لهيكلية التكوين).
 * **Customer-Selectable Values:** القيم المتاحة للعميل لاختيارها تُستمد فقط من الـ Variants التي تعد Effectively Selectable بناءً على الهيكلية فقط.
 * **Simple Product:** منتج ليس لديه خيارات فعالة ويمتلك Exactly One Effectively Selectable Variant.
-* **Configurable Product:** منتج لديه خيارات فعالة.
+* **Configurable Product:** منتج لديه خيارات فعالة. (No Cartesian requirement: فقط التكوينات - Combinations - الموجودة فعليًا كـ Variants تعتبر موجودة، ولا يُشترط إنشاء كل الاحتمالات الممكنة للخيارات).
 * **Direct Sellable Resolution:** المنتجات البسيطة (Simple Products) يتم حلها مباشرة إلى Exactly One Effectively Selectable Variant (ولا يشترط أن تكون is_default). المخزون والتسعير لا يشاركان في هذه الخطوة (Stock does not participate in Direct Resolution).
 
 ---
@@ -141,6 +141,10 @@ Variant ownership by `product_id` is immutable. لا يمكن نقل Variant م�
 1. Prepare replacement Variants without the Option (new SKUs).
 2. Validate replacements.
 3. Atomic Cutover: deactivate old Variants, deactivate removed Option, activate replacement Variants.
+
+**Option Deactivate without Replacement:**
+* يُسمح صراحةً بتعطيل Option بدون توفير بدائل.
+* ينتج عن ذلك أن الـ Variants المرتبطة به تصبح غير Effectively Selectable.
 
 ---
 
@@ -527,12 +531,12 @@ UNIQUE(option_value_id, language_code)
   **توضيح صريح:** الـ Structural Validity هنا لا تعتمد على الـ Stock، الـ Base Price، أو الـ Visibility.
 * **Option/Value Delete Dependency:** منع Soft Delete إذا كانت مرتبطة بـ Variant غير محذوفة.
 * **Option/Value Integrity & Cross-Product Composition Prevention:** التأكد من تبعية القيم والخيارات لنفس المنتج الخاص بالـ Variant.
-* **Duplicate Variant Combination Prevention:** منع إنشاء Variants مختلفة بنفس تركيبة الخيارات Transactionally.
+* **Duplicate Variant Combination Prevention:** منع وجود أكثر من Variant **غير محذوفة (non-deleted)** بنفس تركيبة الخيارات لنفس المنتج Transactionally. يمكن إنشاء Variant جديدة بنفس التركيبة إذا كانت السابقة soft-deleted.
 * **Immutable Variant Composition.**
 * **Full Active Option Coverage.**
 * **Replacement Flows Atomic Steps.**
 * **Restore Safety Validation.**
-* **Max one valid Default Variant & Conflict Handling.**
+* **Max one valid Default Variant & Conflict Handling:** `is_default` يُعتبر `Optional Preferred / Initial Selection Hint`، وهو ليس Sellability، ولا Fallback، ولا Customer Consent، ولا Simple Product، ولا يحدد الـ Direct Resolution، ولا يُشترط أن يكون `Stock > 0`.
 * **Primary Media Limits & Primary Restore Conflict Handling.**
 
 ---
