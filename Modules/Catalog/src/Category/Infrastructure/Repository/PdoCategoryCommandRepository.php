@@ -12,10 +12,10 @@ use Maatify\Catalog\Category\DTO\RestoreCategoryDTO;
 use Maatify\Catalog\Category\DTO\SoftDeleteCategoryDTO;
 use Maatify\Catalog\Category\DTO\UpdateCategoryDisplayOrderDTO;
 use Maatify\Catalog\Category\DTO\UpdateCategoryStatusDTO;
+use Maatify\Catalog\Category\Exception\CategoryPersistenceException;
 use Maatify\Persistence\Pdo\Ordering\ScopedOrderingConfig;
 use Maatify\Persistence\Pdo\Ordering\ScopedOrderingManager;
 use PDO;
-use RuntimeException;
 
 /** PDO write adapter for the Category persistence port. */
 final readonly class PdoCategoryCommandRepository implements CategoryCommandRepositoryInterface
@@ -45,7 +45,7 @@ final readonly class PdoCategoryCommandRepository implements CategoryCommandRepo
 
         $id = $this->pdo->lastInsertId();
         if ($id === false || !ctype_digit($id) || (int) $id < 1) {
-            throw new RuntimeException('Catalog Category AUTO_INCREMENT did not return a valid identity.');
+            throw CategoryPersistenceException::invalidAutoIncrementIdentity();
         }
 
         return (int) $id;
