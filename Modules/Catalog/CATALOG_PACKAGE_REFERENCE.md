@@ -155,6 +155,9 @@ validation and fallback selection remain Host responsibilities.
 - `Maatify\Catalog\Category\Exception\CategoryCycleException`
 - `Maatify\Catalog\Category\Exception\CategoryHasNonDeletedChildrenException`
 - `Maatify\Catalog\Category\Exception\CategoryTransactionException`
+- `Maatify\Catalog\Category\Exception\CategoryPersistenceException` for
+  Catalog-owned persistence/storage-shape failures; external `PDOException`
+  instances propagate unchanged.
 
 ### Category contracts and service
 

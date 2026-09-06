@@ -12,8 +12,8 @@ use Maatify\Catalog\Category\DTO\CategoryDTO;
 use Maatify\Catalog\Category\DTO\CategoryTranslationCollectionDTO;
 use Maatify\Catalog\Category\DTO\CategoryTranslationDTO;
 use Maatify\Catalog\Category\Enum\CategoryStatusEnum;
+use Maatify\Catalog\Category\Exception\CategoryPersistenceException;
 use PDO;
-use RuntimeException;
 
 /** Dedicated PDO adapter for visible Category query behavior. */
 final readonly class PdoCategoryReadQuery implements CategoryReadQueryInterface
@@ -71,7 +71,7 @@ final readonly class PdoCategoryReadQuery implements CategoryReadQueryInterface
             . 'ORDER BY `display_order` ASC, `id` ASC',
         );
         if ($statement === false) {
-            throw new RuntimeException('Unable to query visible root Categories.');
+            throw CategoryPersistenceException::queryFailed('visible root Categories');
         }
 
         /** @var list<array<string, mixed>> $rows */
@@ -167,19 +167,24 @@ final readonly class PdoCategoryReadQuery implements CategoryReadQueryInterface
     {
         $status = $row['status'] ?? null;
         if (!is_string($status)) {
-            throw new RuntimeException('Catalog Category status storage value is invalid.');
+            throw CategoryPersistenceException::unexpectedColumnType('status');
         }
 
         $parentId = $row['parent_id'] ?? null;
         if ($parentId !== null && !is_int($parentId) && !is_string($parentId)) {
-            throw new RuntimeException('Catalog Category parent identity storage value is invalid.');
+            throw CategoryPersistenceException::unexpectedColumnType('parent_id');
+        }
+        try {
+            $categoryStatus = CategoryStatusEnum::from($status);
+        } catch (\ValueError $exception) {
+            throw CategoryPersistenceException::invalidStorageValue('status', $exception);
         }
 
         return new CategoryDTO(
             id: $this->integerValue($row, 'id'),
             parentId: $parentId === null ? null : (int) $parentId,
             code: $this->stringValue($row, 'code'),
-            status: CategoryStatusEnum::from($status),
+            status: $categoryStatus,
             displayOrder: $this->integerValue($row, 'display_order'),
             createdAt: $this->timestampValue($row, 'created_at'),
             updatedAt: $this->timestampValue($row, 'updated_at'),
@@ -231,7 +236,7 @@ final readonly class PdoCategoryReadQuery implements CategoryReadQueryInterface
     {
         $value = $row[$column] ?? null;
         if (!is_int($value) && !is_string($value)) {
-            throw new RuntimeException(sprintf('Catalog storage column "%s" is invalid.', $column));
+            throw CategoryPersistenceException::unexpectedColumnType($column);
         }
 
         return (int) $value;
@@ -242,7 +247,7 @@ final readonly class PdoCategoryReadQuery implements CategoryReadQueryInterface
     {
         $value = $row[$column] ?? null;
         if (!is_string($value)) {
-            throw new RuntimeException(sprintf('Catalog storage column "%s" is invalid.', $column));
+            throw CategoryPersistenceException::unexpectedColumnType($column);
         }
 
         return $value;
@@ -253,7 +258,7 @@ final readonly class PdoCategoryReadQuery implements CategoryReadQueryInterface
     {
         $value = $row[$column] ?? null;
         if ($value !== null && !is_string($value)) {
-            throw new RuntimeException(sprintf('Catalog storage column "%s" is invalid.', $column));
+            throw CategoryPersistenceException::unexpectedColumnType($column);
         }
 
         return $value;
@@ -264,7 +269,11 @@ final readonly class PdoCategoryReadQuery implements CategoryReadQueryInterface
     {
         $value = $this->stringValue($row, $column);
 
-        return new DateTimeImmutable($value, new DateTimeZone('UTC'));
+        try {
+            return new DateTimeImmutable($value, new DateTimeZone('UTC'));
+        } catch (\Exception $exception) {
+            throw CategoryPersistenceException::invalidStorageValue($column, $exception);
+        }
     }
 
     /** @param array<string, mixed> $row */
@@ -275,9 +284,13 @@ final readonly class PdoCategoryReadQuery implements CategoryReadQueryInterface
             return null;
         }
         if (!is_string($value)) {
-            throw new RuntimeException(sprintf('Catalog storage column "%s" is invalid.', $column));
+            throw CategoryPersistenceException::unexpectedColumnType($column);
         }
 
-        return new DateTimeImmutable($value, new DateTimeZone('UTC'));
+        try {
+            return new DateTimeImmutable($value, new DateTimeZone('UTC'));
+        } catch (\Exception $exception) {
+            throw CategoryPersistenceException::invalidStorageValue($column, $exception);
+        }
     }
 }
