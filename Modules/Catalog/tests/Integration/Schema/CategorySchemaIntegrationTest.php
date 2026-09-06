@@ -13,6 +13,8 @@ final class CategorySchemaIntegrationTest extends TestCase
 {
     private const CATEGORY_TABLE = 'maa_catalog_categories';
     private const TRANSLATION_TABLE = 'maa_catalog_category_translations';
+    private const INSERT_TRIGGER = 'trg_maa_catalog_categories_parent_not_self_ai';
+    private const UPDATE_TRIGGER = 'trg_maa_catalog_categories_parent_not_self_bu';
 
     private static ?PDO $connection = null;
 
@@ -46,19 +48,38 @@ final class CategorySchemaIntegrationTest extends TestCase
     protected function tearDown(): void
     {
         $this->dropSchema();
+        self::assertSame([], $this->tableNames());
+        self::assertSame([], $this->triggerNames());
     }
 
     public function testSchemaCanBeInstalledAndCleanedUpRepeatedly(): void
     {
-        self::assertSame(2, $this->tableCount());
+        self::assertSame([
+            self::CATEGORY_TABLE,
+            self::TRANSLATION_TABLE,
+        ], $this->tableNames());
+        self::assertSame([
+            self::INSERT_TRIGGER,
+            self::UPDATE_TRIGGER,
+        ], $this->triggerNames());
+        $this->assertTrigger(self::INSERT_TRIGGER, 'AFTER', 'INSERT');
+        $this->assertTrigger(self::UPDATE_TRIGGER, 'BEFORE', 'UPDATE');
         $this->assertTableStorage(self::CATEGORY_TABLE);
         $this->assertTableStorage(self::TRANSLATION_TABLE);
 
         $this->dropSchema();
-        self::assertSame(0, $this->tableCount());
+        self::assertSame([], $this->tableNames());
+        self::assertSame([], $this->triggerNames());
 
         $this->installSchema();
-        self::assertSame(2, $this->tableCount());
+        self::assertSame([
+            self::CATEGORY_TABLE,
+            self::TRANSLATION_TABLE,
+        ], $this->tableNames());
+        self::assertSame([
+            self::INSERT_TRIGGER,
+            self::UPDATE_TRIGGER,
+        ], $this->triggerNames());
         $this->assertTableStorage(self::CATEGORY_TABLE);
         $this->assertTableStorage(self::TRANSLATION_TABLE);
     }
@@ -96,10 +117,20 @@ final class CategorySchemaIntegrationTest extends TestCase
         $this->insertCategory(1, null, 'clothing', 'archived');
     }
 
-    public function testParentCheckRejectsSelfParenting(): void
+    public function testSelfParentIsRejectedOnInsert(): void
     {
         $this->expectException(PDOException::class);
         $this->insertCategory(1, 1, 'clothing', 'active');
+    }
+
+    public function testSelfParentIsRejectedOnUpdate(): void
+    {
+        $this->insertCategory(1, null, 'clothing', 'active');
+
+        $this->expectException(PDOException::class);
+        $this->connection()->exec(
+            'UPDATE `' . self::CATEGORY_TABLE . '` SET `parent_id` = `id` WHERE `id` = 1',
+        );
     }
 
     public function testTranslationForeignKeyRejectsMissingCategory(): void
@@ -147,24 +178,59 @@ final class CategorySchemaIntegrationTest extends TestCase
             throw new RuntimeException('Unable to read the canonical Catalog schema.');
         }
 
-        $statements = preg_split('/;\s*(?=CREATE TABLE)/i', trim($schema));
+        $schema = preg_replace(
+            [
+                '/^[ \t]*--[^\r\n]*(?:\r\n|\n|$)/m',
+                '/^[ \t]*DELIMITER[ \t]+\S+[ \t]*$/mi',
+            ],
+            '',
+            $schema,
+        );
 
-        if (!is_array($statements) || count($statements) !== 2) {
-            throw new RuntimeException('The canonical Catalog schema must contain exactly two CREATE TABLE statements.');
+        if ($schema === null) {
+            throw new RuntimeException('Unable to normalize the canonical Catalog schema.');
         }
+
+        $statements = preg_split(
+            '/;\s*(?=CREATE\s+(?:TABLE|TRIGGER)\b)/i',
+            str_replace('$$', ';', trim($schema)),
+            -1,
+            PREG_SPLIT_NO_EMPTY,
+        );
+
+        if (!is_array($statements) || count($statements) !== 4) {
+            throw new RuntimeException('The canonical Catalog schema must contain exactly two tables and two triggers.');
+        }
+
+        $tableStatements = 0;
+        $triggerStatements = 0;
 
         foreach ($statements as $statement) {
             if (trim($statement) === '') {
                 throw new RuntimeException('The canonical Catalog schema contains an empty statement.');
             }
 
+            if (preg_match('/(?:^|\n)[ \t]*CREATE\s+TABLE\b/i', $statement) === 1) {
+                $tableStatements++;
+            } elseif (preg_match('/(?:^|\n)[ \t]*CREATE\s+TRIGGER\b/i', $statement) === 1) {
+                $triggerStatements++;
+            } else {
+                throw new RuntimeException('The canonical Catalog schema contains an unexpected statement.');
+            }
+
             $this->connection()->exec($statement);
+        }
+
+        if ($tableStatements !== 2 || $triggerStatements !== 2) {
+            throw new RuntimeException('The canonical Catalog schema must contain exactly two tables and two triggers.');
         }
     }
 
     private function dropSchema(): void
     {
         $connection = $this->connection();
+        $connection->exec('DROP TRIGGER IF EXISTS `' . self::INSERT_TRIGGER . '`');
+        $connection->exec('DROP TRIGGER IF EXISTS `' . self::UPDATE_TRIGGER . '`');
         $connection->exec('DROP TABLE IF EXISTS `' . self::TRANSLATION_TABLE . '`');
         $connection->exec('DROP TABLE IF EXISTS `' . self::CATEGORY_TABLE . '`');
     }
@@ -207,20 +273,64 @@ final class CategorySchemaIntegrationTest extends TestCase
         ]);
     }
 
-    private function tableCount(): int
+    /** @return list<string> */
+    private function tableNames(): array
     {
         $statement = $this->connection()->query(
-            'SELECT COUNT(*) FROM information_schema.TABLES '
+            'SELECT TABLE_NAME FROM information_schema.TABLES '
             . 'WHERE TABLE_SCHEMA = DATABASE() '
             . 'AND TABLE_NAME IN ('
-            . "'" . self::CATEGORY_TABLE . "', '" . self::TRANSLATION_TABLE . "')",
+            . "'" . self::CATEGORY_TABLE . "', '" . self::TRANSLATION_TABLE . "')"
+            . ' ORDER BY TABLE_NAME',
         );
 
         if ($statement === false) {
-            throw new RuntimeException('Unable to count the Catalog schema tables.');
+            throw new RuntimeException('Unable to inspect the Catalog schema tables.');
         }
 
-        return (int) $statement->fetchColumn();
+        /** @var list<array<string, mixed>> $rows */
+        $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
+        $names = [];
+
+        foreach ($rows as $row) {
+            if (!isset($row['TABLE_NAME']) || !is_string($row['TABLE_NAME'])) {
+                throw new RuntimeException('Catalog table metadata is incomplete.');
+            }
+
+            $names[] = $row['TABLE_NAME'];
+        }
+
+        return $names;
+    }
+
+    /** @return list<string> */
+    private function triggerNames(): array
+    {
+        $statement = $this->connection()->query(
+            'SELECT TRIGGER_NAME FROM information_schema.TRIGGERS '
+            . 'WHERE TRIGGER_SCHEMA = DATABASE() '
+            . 'AND TRIGGER_NAME IN ('
+            . "'" . self::INSERT_TRIGGER . "', '" . self::UPDATE_TRIGGER . "')"
+            . ' ORDER BY TRIGGER_NAME',
+        );
+
+        if ($statement === false) {
+            throw new RuntimeException('Unable to inspect the Catalog schema triggers.');
+        }
+
+        /** @var list<array<string, mixed>> $rows */
+        $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
+        $names = [];
+
+        foreach ($rows as $row) {
+            if (!isset($row['TRIGGER_NAME']) || !is_string($row['TRIGGER_NAME'])) {
+                throw new RuntimeException('Catalog trigger metadata is incomplete.');
+            }
+
+            $names[] = $row['TRIGGER_NAME'];
+        }
+
+        return $names;
     }
 
     private function rowCount(string $table): int
@@ -255,6 +365,32 @@ final class CategorySchemaIntegrationTest extends TestCase
 
         self::assertSame('InnoDB', $row['ENGINE']);
         self::assertSame('utf8mb4_unicode_ci', $row['TABLE_COLLATION']);
+    }
+
+    private function assertTrigger(string $name, string $timing, string $event): void
+    {
+        $statement = $this->connection()->prepare(
+            'SELECT TRIGGER_NAME, ACTION_TIMING, EVENT_MANIPULATION, EVENT_OBJECT_TABLE '
+            . 'FROM information_schema.TRIGGERS '
+            . 'WHERE TRIGGER_SCHEMA = DATABASE() AND TRIGGER_NAME = :trigger',
+        );
+        $statement->execute(['trigger' => $name]);
+        $row = $statement->fetch(PDO::FETCH_ASSOC);
+
+        if (!is_array($row)) {
+            throw new RuntimeException(sprintf('Trigger %s was not created.', $name));
+        }
+
+        foreach (['TRIGGER_NAME', 'ACTION_TIMING', 'EVENT_MANIPULATION', 'EVENT_OBJECT_TABLE'] as $column) {
+            if (!isset($row[$column]) || !is_string($row[$column])) {
+                throw new RuntimeException(sprintf('Trigger metadata for %s is incomplete.', $name));
+            }
+        }
+
+        self::assertSame($name, $row['TRIGGER_NAME']);
+        self::assertSame($timing, $row['ACTION_TIMING']);
+        self::assertSame($event, $row['EVENT_MANIPULATION']);
+        self::assertSame(self::CATEGORY_TABLE, $row['EVENT_OBJECT_TABLE']);
     }
 
     private function connection(): PDO

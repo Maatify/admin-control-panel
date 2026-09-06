@@ -23,7 +23,8 @@ standalone Composer repository.
 - `active` / `inactive` status enum.
 - Nullable parent identity for category hierarchy.
 - Application-managed timestamp and soft-delete representation.
-- MySQL-compatible Category schema with internal restricted foreign keys.
+- MySQL Category schema with internal restricted foreign keys and package-owned
+  self-parent triggers.
 
 Product, pricing, inventory, media, Admin/Slim integration, repositories, and
 orchestration services are not part of this phase.
@@ -32,6 +33,7 @@ orchestration services are not part of this phase.
 
 - PHP 8.2 or later.
 - Composer.
+- MySQL 8.0 or later for Integration verification.
 
 ## Distribution status
 

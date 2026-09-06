@@ -4,7 +4,8 @@
 -- =============================================================================
 --
 -- Scope:
---   - This file contains only Category and Category Translation tables.
+--   - This file contains only Category and Category Translation tables plus
+--     the package-owned triggers required for the Category self-parent rule.
 --   - It does not define Catalog, Product, Pricing, Inventory, Media, or Host
 --     tables and has no relationship to any Host-owned table.
 --
@@ -38,7 +39,6 @@ CREATE TABLE `maa_catalog_categories`
     UNIQUE KEY `uq_maa_catalog_categories_code` (`code`),
     KEY `idx_maa_catalog_categories_parent_status_deleted_order` (`parent_id`, `status`, `deleted_at`, `display_order`, `id`),
     CONSTRAINT `chk_maa_catalog_categories_status` CHECK (`status` IN ('active', 'inactive')),
-    CONSTRAINT `chk_maa_catalog_categories_parent_not_self` CHECK (`parent_id` IS NULL OR `parent_id` <> `id`),
     CONSTRAINT `fk_maa_catalog_categories_parent` FOREIGN KEY (`parent_id`)
         REFERENCES `maa_catalog_categories` (`id`)
         ON DELETE RESTRICT
@@ -71,3 +71,30 @@ ENGINE = InnoDB
 DEFAULT CHARSET = utf8mb4
 COLLATE = utf8mb4_unicode_ci
 COMMENT = 'Localized category names and descriptions keyed by category and BCP-47 language code';
+
+-- MySQL does not permit a CHECK expression to reference an AUTO_INCREMENT
+-- column. These package-owned triggers preserve the parent_id <> id invariant
+-- after INSERT identity allocation and on every Category UPDATE.
+DELIMITER $$
+
+CREATE TRIGGER `trg_maa_catalog_categories_parent_not_self_ai`
+AFTER INSERT ON `maa_catalog_categories`
+FOR EACH ROW
+BEGIN
+    IF NEW.`parent_id` IS NOT NULL AND NEW.`parent_id` = NEW.`id` THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Category parent_id cannot equal id';
+    END IF;
+END$$
+
+CREATE TRIGGER `trg_maa_catalog_categories_parent_not_self_bu`
+BEFORE UPDATE ON `maa_catalog_categories`
+FOR EACH ROW
+BEGIN
+    IF NEW.`parent_id` IS NOT NULL AND NEW.`parent_id` = NEW.`id` THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Category parent_id cannot equal id';
+    END IF;
+END$$
+
+DELIMITER ;

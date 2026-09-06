@@ -40,8 +40,8 @@
   },
   "require-dev": {
     "ext-pdo_mysql": "*",
-    "phpstan/phpstan": "^1.12",
-    "phpunit/phpunit": "^11.0"
+    "phpstan/phpstan": "^2.2.13",
+    "phpunit/phpunit": "^11.5.56"
   },
   "scripts": {
     "analyse": "phpstan analyse src tests --level=max",

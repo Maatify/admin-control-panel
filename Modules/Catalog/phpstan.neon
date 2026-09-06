@@ -7,8 +7,6 @@ parameters:
         - src
         - tests
     phpVersion: 80200
-    checkMissingIterableValueType: true
-    checkGenericClassInNonGenericObjectType: true
     reportUnmatchedIgnoredErrors: true
     bootstrapFiles:
         - vendor/autoload.php

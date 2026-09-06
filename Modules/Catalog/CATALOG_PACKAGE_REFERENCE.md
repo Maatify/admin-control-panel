@@ -104,20 +104,24 @@ exactly the two Phase 1 tables and enforces:
 - `ON DELETE RESTRICT` and `ON UPDATE RESTRICT` on internal relationships.
 - Stable unique category codes.
 - Unique `(category_id, language_code)` translation identities.
-- `active|inactive` status and `parent_id <> id` checks.
+- `active|inactive` status `CHECK` and package-owned INSERT/UPDATE triggers for
+  `parent_id <> id`.
 - Explicit category hierarchy indexes.
 - Application-managed UTC timestamps without database timestamp defaults.
 - Soft-delete representation through nullable `deleted_at`.
 - `InnoDB`, `utf8mb4`, and `utf8mb4_unicode_ci`.
+- Package-owned self-parent triggers are installed after the two tables because
+  MySQL cannot use an `AUTO_INCREMENT` column in a `CHECK` expression.
 
 The package does not create foreign keys or joins to Host tables.
 
 ## Integration verification
 
 The `integration` PHPUnit suite executes `schema/catalog.sql` against a real
-MySQL-compatible engine. It verifies installation and repeatable cleanup,
-storage settings, valid inserts, foreign-key restrictions, `CHECK` constraints,
-and both unique constraints. Configure `CATALOG_TEST_DSN`,
+MySQL engine. It verifies installation of exactly two tables and both
+package-owned triggers, repeatable cleanup with no trigger residue, storage
+settings, valid inserts, foreign-key restrictions, `CHECK` constraints, and
+both unique constraints. Configure `CATALOG_TEST_DSN`,
 `CATALOG_TEST_DB_USER`, and `CATALOG_TEST_DB_PASSWORD` before running
 `composer test:integration`; missing configuration is treated as a failed
 test setup rather than a skipped verification.

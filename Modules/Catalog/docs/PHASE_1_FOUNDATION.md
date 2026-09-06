@@ -9,11 +9,14 @@ Catalog V1 decisions.
 
 ## Implemented boundary
 
-Phase 1 contains only framework-neutral package foundation types and the two
-Category tables:
+Phase 1 contains only framework-neutral package foundation types, the two
+Category tables, and the two package-owned triggers required by the Category
+self-parent invariant:
 
 - `maa_catalog_categories`
 - `maa_catalog_category_translations`
+- `trg_maa_catalog_categories_parent_not_self_ai`
+- `trg_maa_catalog_categories_parent_not_self_bu`
 
 The PHP foundation exposes immutable DTOs and the status enum needed by later
 phases. It does not expose repository, service, command, HTTP, or Host
@@ -35,9 +38,11 @@ CRUD behavior remain deferred to later phases.
 ## Integration verification
 
 The package `integration` test suite runs the canonical schema against a real
-MySQL-compatible engine. It covers schema installation and repeatable cleanup,
-storage settings, valid category/translation inserts, foreign-key restrictions,
-`CHECK` constraints, and the category and translation unique constraints.
+MySQL engine. It covers installation of exactly two tables and both triggers,
+repeatable cleanup without trigger residue, storage settings, valid
+category/translation inserts, foreign-key restrictions, `CHECK` constraints,
+trigger-enforced self-parent rejection, and the category and translation unique
+constraints.
 Configure `CATALOG_TEST_DSN`, `CATALOG_TEST_DB_USER`, and
 `CATALOG_TEST_DB_PASSWORD` to run it. Missing configuration fails setup instead
 of silently skipping the database contract.
