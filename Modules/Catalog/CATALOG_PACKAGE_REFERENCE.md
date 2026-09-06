@@ -1,7 +1,9 @@
 # Catalog Package Reference
 
-`maatify/catalog` is a standalone, host-agnostic foundation for Catalog V1
-categories and category translations.
+`maatify/catalog` is the repository-local, host-agnostic foundation for Catalog
+V1 categories and category translations. It is not currently published as an
+independent Composer repository; the package name is reserved for a future
+extractable distribution.
 
 ## Phase 1 scope
 
@@ -20,7 +22,7 @@ orchestration services are outside this phase.
 
 ## Runtime API
 
-### `Maatify\Catalog\Category\Enum\CatalogStatusEnum`
+### `Maatify\Catalog\Category\Enum\CategoryStatusEnum`
 
 String-backed enum values:
 
@@ -35,13 +37,13 @@ soft deletion.
 Immutable category record:
 
 ```php
-final readonly class CategoryDTO implements \JsonSerializable
+final readonly class CategoryDTO
 {
     public function __construct(
         public int $id,
         public ?int $parentId,
         public string $code,
-        public CatalogStatusEnum $status,
+        public CategoryStatusEnum $status,
         public int $displayOrder,
         public \DateTimeImmutable $createdAt,
         public \DateTimeImmutable $updatedAt,
@@ -55,16 +57,15 @@ category, but it may not equal `id`. `displayOrder` remains an integer; its
 ordering scope and tie-breaker are database/domain concerns documented by the
 Catalog architecture.
 
-JSON serialization uses the schema field names. Timestamps are serialized as
-UTC-compatible `Y-m-d H:i:s` values, and status is serialized as its backed
-string value.
+The DTO is a typed domain data contract. Presentation concerns are intentionally
+outside this Base foundation.
 
 ### `Maatify\Catalog\Category\DTO\CategoryTranslationDTO`
 
 Immutable category translation record:
 
 ```php
-final readonly class CategoryTranslationDTO implements \JsonSerializable
+final readonly class CategoryTranslationDTO
 {
     public function __construct(
         public int $id,
@@ -110,6 +111,16 @@ exactly the two Phase 1 tables and enforces:
 - `InnoDB`, `utf8mb4`, and `utf8mb4_unicode_ci`.
 
 The package does not create foreign keys or joins to Host tables.
+
+## Integration verification
+
+The `integration` PHPUnit suite executes `schema/catalog.sql` against a real
+MySQL-compatible engine. It verifies installation and repeatable cleanup,
+storage settings, valid inserts, foreign-key restrictions, `CHECK` constraints,
+and both unique constraints. Configure `CATALOG_TEST_DSN`,
+`CATALOG_TEST_DB_USER`, and `CATALOG_TEST_DB_PASSWORD` before running
+`composer test:integration`; missing configuration is treated as a failed
+test setup rather than a skipped verification.
 
 ## Deferred capabilities
 

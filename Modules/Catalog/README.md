@@ -4,7 +4,7 @@
 
 ![Maatify.dev](https://www.maatify.dev/assets/img/img/maatify_logo_white.svg)
 
-Standalone category taxonomy foundation for Maatify Catalog V1.
+In-repository category taxonomy foundation for Maatify Catalog V1.
 
 </div>
 
@@ -12,8 +12,10 @@ Standalone category taxonomy foundation for Maatify Catalog V1.
 
 ## Package Summary
 
-`maatify/catalog` provides the framework-neutral Category and Category
-Translation foundation for a future extractable Catalog package.
+The Catalog module provides the framework-neutral Category and Category
+Translation foundation for a future extractable package. It currently lives
+inside the `maatify/admin-control-panel` repository and is not published as a
+standalone Composer repository.
 
 ## Key Features
 
@@ -31,23 +33,22 @@ orchestration services are not part of this phase.
 - PHP 8.2 or later.
 - Composer.
 
-## Installation
+## Distribution status
 
-```bash
-composer require maatify/catalog
-```
+This phase is repository-local. Do not use a standalone `composer require`
+command for it until an independently published package repository exists.
 
 ## Quick Usage
 
 ```php
 use Maatify\Catalog\Category\DTO\CategoryDTO;
-use Maatify\Catalog\Category\Enum\CatalogStatusEnum;
+use Maatify\Catalog\Category\Enum\CategoryStatusEnum;
 
 $category = new CategoryDTO(
     id: 1,
     parentId: null,
     code: 'clothing',
-    status: CatalogStatusEnum::ACTIVE,
+    status: CategoryStatusEnum::ACTIVE,
     displayOrder: 0,
     createdAt: new DateTimeImmutable('2026-01-01 00:00:00 UTC'),
     updatedAt: new DateTimeImmutable('2026-01-01 00:00:00 UTC'),
@@ -72,7 +73,10 @@ The Phase 1 package checks are defined by `composer.json`, `phpstan.neon`, and
 composer validate --strict
 composer dump-autoload --optimize --strict-psr
 composer analyse
-composer test
+composer test:unit
+CATALOG_TEST_DSN='mysql:host=127.0.0.1;port=3306;dbname=catalog_test;charset=utf8mb4' \
+CATALOG_TEST_DB_USER='catalog_test' CATALOG_TEST_DB_PASSWORD='secret' \
+composer test:integration
 ```
 
 ## License

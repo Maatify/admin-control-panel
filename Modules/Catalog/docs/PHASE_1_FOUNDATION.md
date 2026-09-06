@@ -31,3 +31,13 @@ validated without persistence or orchestration:
 BCP-47 language-code validation remains the Host responsibility. Category cycle
 prevention, move orchestration, restore safety, delete dependencies, and all
 CRUD behavior remain deferred to later phases.
+
+## Integration verification
+
+The package `integration` test suite runs the canonical schema against a real
+MySQL-compatible engine. It covers schema installation and repeatable cleanup,
+storage settings, valid category/translation inserts, foreign-key restrictions,
+`CHECK` constraints, and the category and translation unique constraints.
+Configure `CATALOG_TEST_DSN`, `CATALOG_TEST_DB_USER`, and
+`CATALOG_TEST_DB_PASSWORD` to run it. Missing configuration fails setup instead
+of silently skipping the database contract.

@@ -6,7 +6,7 @@ namespace Maatify\Catalog\Tests\Category\DTO;
 
 use DateTimeImmutable;
 use Maatify\Catalog\Category\DTO\CategoryDTO;
-use Maatify\Catalog\Category\Enum\CatalogStatusEnum;
+use Maatify\Catalog\Category\Enum\CategoryStatusEnum;
 use Maatify\Catalog\Category\Exception\CategoryInvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
@@ -22,7 +22,7 @@ final class CategoryDTOTest extends TestCase
             id: 7,
             parentId: 3,
             code: 'shirts',
-            status: CatalogStatusEnum::INACTIVE,
+            status: CategoryStatusEnum::INACTIVE,
             displayOrder: 4,
             createdAt: $createdAt,
             updatedAt: $updatedAt,
@@ -32,36 +32,11 @@ final class CategoryDTOTest extends TestCase
         self::assertSame(7, $category->id);
         self::assertSame(3, $category->parentId);
         self::assertSame('shirts', $category->code);
-        self::assertSame(CatalogStatusEnum::INACTIVE, $category->status);
+        self::assertSame(CategoryStatusEnum::INACTIVE, $category->status);
         self::assertSame(4, $category->displayOrder);
         self::assertSame($createdAt, $category->createdAt);
         self::assertSame($updatedAt, $category->updatedAt);
         self::assertSame($deletedAt, $category->deletedAt);
-    }
-
-    public function testItSerializesUsingSchemaFieldNames(): void
-    {
-        $category = new CategoryDTO(
-            id: 1,
-            parentId: null,
-            code: 'root',
-            status: CatalogStatusEnum::ACTIVE,
-            displayOrder: 0,
-            createdAt: new DateTimeImmutable('2026-01-01 00:00:00 UTC'),
-            updatedAt: new DateTimeImmutable('2026-01-01 00:00:00 UTC'),
-            deletedAt: null,
-        );
-
-        self::assertSame([
-            'id' => 1,
-            'parent_id' => null,
-            'code' => 'root',
-            'status' => 'active',
-            'display_order' => 0,
-            'created_at' => '2026-01-01 00:00:00',
-            'updated_at' => '2026-01-01 00:00:00',
-            'deleted_at' => null,
-        ], $category->jsonSerialize());
     }
 
     public function testItRejectsANonPositiveCategoryId(): void
@@ -72,7 +47,7 @@ final class CategoryDTOTest extends TestCase
             id: 0,
             parentId: null,
             code: 'root',
-            status: CatalogStatusEnum::ACTIVE,
+            status: CategoryStatusEnum::ACTIVE,
             displayOrder: 0,
             createdAt: new DateTimeImmutable('2026-01-01 00:00:00 UTC'),
             updatedAt: new DateTimeImmutable('2026-01-01 00:00:00 UTC'),
@@ -88,7 +63,7 @@ final class CategoryDTOTest extends TestCase
             id: 7,
             parentId: 7,
             code: 'root',
-            status: CatalogStatusEnum::ACTIVE,
+            status: CategoryStatusEnum::ACTIVE,
             displayOrder: 0,
             createdAt: new DateTimeImmutable('2026-01-01 00:00:00 UTC'),
             updatedAt: new DateTimeImmutable('2026-01-01 00:00:00 UTC'),

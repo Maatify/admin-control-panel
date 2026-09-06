@@ -32,31 +32,6 @@ final class CategoryTranslationDTOTest extends TestCase
         self::assertNull($translation->deletedAt);
     }
 
-    public function testItSerializesUsingSchemaFieldNames(): void
-    {
-        $translation = new CategoryTranslationDTO(
-            id: 11,
-            categoryId: 7,
-            languageCode: 'en-US',
-            name: 'Shirts',
-            description: null,
-            createdAt: new DateTimeImmutable('2026-01-01 00:00:00 UTC'),
-            updatedAt: new DateTimeImmutable('2026-01-01 00:00:00 UTC'),
-            deletedAt: null,
-        );
-
-        self::assertSame([
-            'id' => 11,
-            'category_id' => 7,
-            'language_code' => 'en-US',
-            'name' => 'Shirts',
-            'description' => null,
-            'created_at' => '2026-01-01 00:00:00',
-            'updated_at' => '2026-01-01 00:00:00',
-            'deleted_at' => null,
-        ], $translation->jsonSerialize());
-    }
-
     public function testItRejectsANonPositiveCategoryId(): void
     {
         $this->expectException(CategoryInvalidArgumentException::class);

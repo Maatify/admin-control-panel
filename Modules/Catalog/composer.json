@@ -1,6 +1,6 @@
 {
   "name": "maatify/catalog",
-  "description": "Standalone catalog category taxonomy foundation with translations.",
+  "description": "In-repository Catalog category taxonomy foundation with translations.",
   "keywords": [
     "category",
     "taxonomy",
@@ -10,7 +10,7 @@
     "pdo",
     "maatify"
   ],
-  "homepage": "https://github.com/Maatify/catalog",
+  "homepage": "https://github.com/Maatify/admin-control-panel",
   "type": "library",
   "license": "MIT",
   "authors": [
@@ -21,8 +21,8 @@
     }
   ],
   "support": {
-    "issues": "https://github.com/Maatify/catalog/issues",
-    "source": "https://github.com/Maatify/catalog"
+    "issues": "https://github.com/Maatify/admin-control-panel/issues",
+    "source": "https://github.com/Maatify/admin-control-panel"
   },
   "autoload": {
     "psr-4": {
@@ -39,13 +39,15 @@
     "php": ">=8.2"
   },
   "require-dev": {
+    "ext-pdo_mysql": "*",
     "phpstan/phpstan": "^1.12",
     "phpunit/phpunit": "^11.0"
   },
   "scripts": {
     "analyse": "phpstan analyse src tests --level=max",
     "test": "phpunit",
-    "test:unit": "phpunit --testsuite unit"
+    "test:unit": "phpunit --testsuite unit",
+    "test:integration": "phpunit --testsuite integration"
   },
   "config": {
     "optimize-autoloader": true,
