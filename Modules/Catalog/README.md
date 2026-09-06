@@ -33,7 +33,7 @@ orchestration services are not part of this phase.
 
 - PHP 8.2 or later.
 - Composer.
-- MySQL 8.0 or later for Integration verification.
+- MySQL 8.0.16 or later for Integration verification.
 
 ## Distribution status
 

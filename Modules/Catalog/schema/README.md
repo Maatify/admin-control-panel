@@ -3,6 +3,9 @@
 This directory contains the Phase 1 persistence contract for the Category
 taxonomy foundation.
 
+Integration verification requires MySQL 8.0.16 or later so the database
+`CHECK` constraints are enforced.
+
 ## Included tables
 
 - `maa_catalog_categories`

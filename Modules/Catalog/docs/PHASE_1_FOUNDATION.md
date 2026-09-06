@@ -38,7 +38,7 @@ CRUD behavior remain deferred to later phases.
 ## Integration verification
 
 The package `integration` test suite runs the canonical schema against a real
-MySQL engine. It covers installation of exactly two tables and both triggers,
+MySQL 8.0.16+ engine. It covers installation of exactly two tables and both triggers,
 repeatable cleanup without trigger residue, storage settings, valid
 category/translation inserts, foreign-key restrictions, `CHECK` constraints,
 trigger-enforced self-parent rejection, and the category and translation unique

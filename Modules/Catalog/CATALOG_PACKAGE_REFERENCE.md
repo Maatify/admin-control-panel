@@ -118,7 +118,7 @@ The package does not create foreign keys or joins to Host tables.
 ## Integration verification
 
 The `integration` PHPUnit suite executes `schema/catalog.sql` against a real
-MySQL engine. It verifies installation of exactly two tables and both
+MySQL 8.0.16+ engine. It verifies installation of exactly two tables and both
 package-owned triggers, repeatable cleanup with no trigger residue, storage
 settings, valid inserts, foreign-key restrictions, `CHECK` constraints, and
 both unique constraints. Configure `CATALOG_TEST_DSN`,

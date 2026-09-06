@@ -117,10 +117,26 @@ final class CategorySchemaIntegrationTest extends TestCase
         $this->insertCategory(1, null, 'clothing', 'archived');
     }
 
-    public function testSelfParentIsRejectedOnInsert(): void
+    public function testSelfParentIsRejectedOnInsertWithExplicitIdentity(): void
     {
         $this->expectException(PDOException::class);
         $this->insertCategory(1, 1, 'clothing', 'active');
+    }
+
+    public function testSelfParentIsRejectedOnInsertWithGeneratedIdentity(): void
+    {
+        $generatedId = $this->insertGeneratedCategory(null, 'clothing', 'active');
+        self::assertSame(1, $generatedId);
+
+        $nextId = $this->nextAutoIncrementId();
+        self::assertSame(2, $nextId);
+
+        try {
+            $this->insertGeneratedCategory($nextId, 'self-parent', 'active');
+            self::fail('The AFTER INSERT trigger must reject a generated self-parent identity.');
+        } catch (PDOException $exception) {
+            self::assertStringContainsString('Category parent_id cannot equal id', $exception->getMessage());
+        }
     }
 
     public function testSelfParentIsRejectedOnUpdate(): void
@@ -252,6 +268,57 @@ final class CategorySchemaIntegrationTest extends TestCase
             'updated_at' => '2026-01-01 00:00:00',
             'deleted_at' => null,
         ]);
+    }
+
+    private function insertGeneratedCategory(?int $parentId, string $code, string $status): int
+    {
+        $statement = $this->connection()->prepare(
+            'INSERT INTO `' . self::CATEGORY_TABLE . '` '
+            . '(`parent_id`, `code`, `status`, `display_order`, `created_at`, `updated_at`, `deleted_at`) '
+            . 'VALUES (:parent_id, :code, :status, :display_order, :created_at, :updated_at, :deleted_at)',
+        );
+        $statement->execute([
+            'parent_id' => $parentId,
+            'code' => $code,
+            'status' => $status,
+            'display_order' => 0,
+            'created_at' => '2026-01-01 00:00:00',
+            'updated_at' => '2026-01-01 00:00:00',
+            'deleted_at' => null,
+        ]);
+
+        $generatedId = $this->connection()->lastInsertId();
+        if (!is_string($generatedId) || $generatedId === '' || !ctype_digit($generatedId)) {
+            throw new RuntimeException('Catalog AUTO_INCREMENT did not return a numeric generated identity.');
+        }
+
+        $id = (int) $generatedId;
+        if ($id < 1) {
+            throw new RuntimeException('Catalog AUTO_INCREMENT returned an invalid generated identity.');
+        }
+
+        return $id;
+    }
+
+    private function nextAutoIncrementId(): int
+    {
+        $statement = $this->connection()->prepare(
+            'SELECT AUTO_INCREMENT FROM information_schema.TABLES '
+            . 'WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :table',
+        );
+        $statement->execute(['table' => self::CATEGORY_TABLE]);
+        $value = $statement->fetchColumn();
+
+        if (!is_int($value) && !is_string($value)) {
+            throw new RuntimeException('Catalog AUTO_INCREMENT metadata is unavailable.');
+        }
+
+        $nextId = (int) $value;
+        if ($nextId < 1) {
+            throw new RuntimeException('Catalog AUTO_INCREMENT metadata is invalid.');
+        }
+
+        return $nextId;
     }
 
     private function insertTranslation(int $id, int $categoryId, string $languageCode): void
