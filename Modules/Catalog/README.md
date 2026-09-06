@@ -4,7 +4,7 @@
 
 ![Maatify.dev](https://www.maatify.dev/assets/img/img/maatify_logo_white.svg)
 
-In-repository category taxonomy foundation for Maatify Catalog V1.
+In-repository category taxonomy domain foundation for Maatify Catalog V1.
 
 </div>
 
@@ -12,10 +12,10 @@ In-repository category taxonomy foundation for Maatify Catalog V1.
 
 ## Package Summary
 
-The Catalog module provides the framework-neutral Category and Category
-Translation foundation for a future extractable package. It currently lives
-inside the `maatify/admin-control-panel` repository and is not published as a
-standalone Composer repository.
+The Catalog module provides framework-neutral Category and Category Translation
+domain/application contracts. It currently lives inside the
+`maatify/admin-control-panel` repository and is not published as a standalone
+Composer repository.
 
 ## Key Features
 
@@ -23,11 +23,18 @@ standalone Composer repository.
 - `active` / `inactive` status enum.
 - Nullable parent identity for category hierarchy.
 - Application-managed timestamp and soft-delete representation.
+- Category creation, parent movement, cycle prevention, lifecycle, status, and
+  display-order mutation contracts.
+- Translation-content mutation with immutable logical identity.
 - MySQL Category schema with internal restricted foreign keys and package-owned
   self-parent triggers.
+- PDO persistence adapters with application-owned timestamps, transaction
+  locking for hierarchy/lifecycle invariants, and shared persistence ordering
+  integration for both root and nested scopes, including atomic order/timestamp
+  mutation.
 
-Product, pricing, inventory, media, Admin/Slim integration, repositories, and
-orchestration services are not part of this phase.
+Product, pricing, inventory, media, Admin/Slim integration, and query/list APIs
+are not part of this phase.
 
 ## Requirements
 
@@ -68,7 +75,7 @@ $category = new CategoryDTO(
 
 ## Quality Status
 
-The Phase 1 package checks are defined by `composer.json`, `phpstan.neon`, and
+The package checks are defined by `composer.json`, `phpstan.neon`, and
 `phpunit.xml.dist`. Run them from `Modules/Catalog/`:
 
 ```bash

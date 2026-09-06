@@ -11,3 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - Category and category-translation foundation types.
 - Category and category-translation schema tables.
+- Category domain/application operation DTOs, contracts, and business service
+  for hierarchy, lifecycle, status, ordering, and translation invariants.
+- PDO Category persistence and transaction adapters with explicit soft-delete
+  read semantics, application-owned ClockInterface timestamps, row-locking
+  integration tests, and shared Ordering API consumption for nullable root
+  scopes with atomic display-order timestamps.
