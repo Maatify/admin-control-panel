@@ -12,7 +12,6 @@ use Maatify\Catalog\Category\DTO\RestoreCategoryDTO;
 use Maatify\Catalog\Category\DTO\SoftDeleteCategoryDTO;
 use Maatify\Catalog\Category\DTO\UpdateCategoryDisplayOrderDTO;
 use Maatify\Catalog\Category\DTO\UpdateCategoryStatusDTO;
-use Maatify\Catalog\Category\Exception\CategoryTransactionException;
 use Maatify\Persistence\Pdo\Ordering\ScopedOrderingConfig;
 use Maatify\Persistence\Pdo\Ordering\ScopedOrderingManager;
 use PDO;
@@ -125,21 +124,16 @@ final readonly class PdoCategoryCommandRepository implements CategoryCommandRepo
             return false;
         }
 
-        $moved = $parentId === null
-            ? $this->moveWithinRootScope($command->categoryId, $command->displayOrder)
-            : $this->orderingManager->moveWithinScope(
-                $this->pdo,
-                $this->orderingConfig(),
-                $parentId,
-                $command->categoryId,
-                $command->displayOrder,
-            );
+        $moved = $this->orderingManager->moveWithinScope(
+            $this->pdo,
+            $this->orderingConfig(),
+            $parentId,
+            $command->categoryId,
+            $command->displayOrder,
+            $this->formatTimestamp($occurredAt),
+        );
 
-        if (!$moved) {
-            return false;
-        }
-
-        return $this->markDisplayOrderMutation($command->categoryId, $occurredAt);
+        return $moved;
     }
 
     private function activeParentId(int $categoryId): int|false|null
@@ -168,124 +162,9 @@ final readonly class PdoCategoryCommandRepository implements CategoryCommandRepo
             idColumn: 'id',
             orderColumn: 'display_order',
             deletedAtColumn: 'deleted_at',
+            nullableScope: true,
+            updatedAtColumn: 'updated_at',
         );
-    }
-
-    private function markDisplayOrderMutation(int $categoryId, DateTimeImmutable $occurredAt): bool
-    {
-        $timestampStatement = $this->pdo->prepare(
-            'UPDATE `' . self::CATEGORY_TABLE . '` '
-            . 'SET `updated_at` = :updated_at '
-            . 'WHERE `id` = :id AND `deleted_at` IS NULL',
-        );
-        $timestampStatement->execute([
-            'updated_at' => $this->formatTimestamp($occurredAt),
-            'id' => $categoryId,
-        ]);
-
-        if ($timestampStatement->rowCount() > 0) {
-            return true;
-        }
-
-        // MySQL reports zero when the application timestamp is unchanged;
-        // confirm that the ordered active row still exists in that case.
-        $existsStatement = $this->pdo->prepare(
-            'SELECT 1 FROM `' . self::CATEGORY_TABLE . '` '
-            . 'WHERE `id` = :id AND `deleted_at` IS NULL LIMIT 1',
-        );
-        $existsStatement->execute(['id' => $categoryId]);
-
-        return $existsStatement->fetchColumn() !== false;
-    }
-
-    /**
-     * The stable Ordering API models non-null scopes. Category roots use the
-     * schema's nullable parent scope, so this adapter applies the same
-     * domain-specific root translation while all non-root movement delegates
-     * to ScopedOrderingManager.
-     */
-    private function moveWithinRootScope(int $categoryId, int $newOrder): bool
-    {
-        if ($this->pdo->inTransaction()) {
-            throw CategoryTransactionException::alreadyActive();
-        }
-
-        $this->pdo->beginTransaction();
-
-        try {
-            $lock = $this->pdo->query(
-                'SELECT `id` FROM `' . self::CATEGORY_TABLE . '` '
-                . 'WHERE `parent_id` IS NULL AND `deleted_at` IS NULL '
-                . 'ORDER BY `display_order`, `id` FOR UPDATE',
-            );
-            if ($lock === false) {
-                throw new RuntimeException('Unable to lock Catalog root ordering scope.');
-            }
-
-            $currentStatement = $this->pdo->prepare(
-                'SELECT `display_order` FROM `' . self::CATEGORY_TABLE . '` '
-                . 'WHERE `id` = :id AND `parent_id` IS NULL AND `deleted_at` IS NULL '
-                . 'LIMIT 1 FOR UPDATE',
-            );
-            $currentStatement->execute(['id' => $categoryId]);
-            $current = $currentStatement->fetchColumn();
-            if ($current === false) {
-                $this->pdo->rollBack();
-
-                return false;
-            }
-
-            $maxStatement = $this->pdo->query(
-                'SELECT COALESCE(MAX(`display_order`), 0) FROM `' . self::CATEGORY_TABLE . '` '
-                . 'WHERE `parent_id` IS NULL AND `deleted_at` IS NULL',
-            );
-            if ($maxStatement === false) {
-                throw new RuntimeException('Unable to read Catalog root ordering scope.');
-            }
-
-            $currentOrder = (int) $current;
-            $maxOrder = (int) $maxStatement->fetchColumn();
-            $targetOrder = min($newOrder, max(1, $maxOrder));
-
-            if ($currentOrder !== $targetOrder) {
-                if ($targetOrder < $currentOrder) {
-                    $shift = $this->pdo->prepare(
-                        'UPDATE `' . self::CATEGORY_TABLE . '` '
-                        . 'SET `display_order` = `display_order` + 1 '
-                        . 'WHERE `parent_id` IS NULL AND `deleted_at` IS NULL '
-                        . 'AND `display_order` >= :new_order AND `display_order` < :current_order',
-                    );
-                } else {
-                    $shift = $this->pdo->prepare(
-                        'UPDATE `' . self::CATEGORY_TABLE . '` '
-                        . 'SET `display_order` = `display_order` - 1 '
-                        . 'WHERE `parent_id` IS NULL AND `deleted_at` IS NULL '
-                        . 'AND `display_order` <= :new_order AND `display_order` > :current_order',
-                    );
-                }
-                $shift->execute([
-                    'new_order' => $targetOrder,
-                    'current_order' => $currentOrder,
-                ]);
-
-                $target = $this->pdo->prepare(
-                    'UPDATE `' . self::CATEGORY_TABLE . '` '
-                    . 'SET `display_order` = :display_order '
-                    . 'WHERE `id` = :id AND `parent_id` IS NULL AND `deleted_at` IS NULL',
-                );
-                $target->execute([
-                    'display_order' => $targetOrder,
-                    'id' => $categoryId,
-                ]);
-            }
-
-            $this->pdo->commit();
-
-            return true;
-        } catch (\Throwable $exception) {
-            $this->pdo->rollBack();
-            throw $exception;
-        }
     }
 
     private function formatTimestamp(DateTimeImmutable $occurredAt): string

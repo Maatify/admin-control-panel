@@ -30,7 +30,8 @@ Composer repository.
   self-parent triggers.
 - PDO persistence adapters with application-owned timestamps, transaction
   locking for hierarchy/lifecycle invariants, and shared persistence ordering
-  integration.
+  integration for both root and nested scopes, including atomic order/timestamp
+  mutation.
 
 Product, pricing, inventory, media, Admin/Slim integration, and query/list APIs
 are not part of this phase.

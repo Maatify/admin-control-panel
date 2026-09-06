@@ -30,8 +30,10 @@ Phase 2 adds the framework-neutral Category domain/application contracts:
 - A transaction port owned by the application service, with PDO transaction and
   row-locking adapters for move, create, restore, and soft-delete invariants.
 - PDO Category persistence adapters. They persist timestamps supplied by the
-  application and delegate non-root display-order movement to the stable
-  `maatify/persistence` Ordering API.
+  application and delegate all display-order locking, shifting, transaction
+  ownership, and target timestamp mutation to the stable
+  `maatify/persistence` Ordering API. Category roots use its nullable scope
+  capability (`parent_id IS NULL`).
 
 ## Runtime API
 

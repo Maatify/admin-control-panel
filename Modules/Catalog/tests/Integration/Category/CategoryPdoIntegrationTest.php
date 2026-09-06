@@ -22,6 +22,8 @@ use Maatify\Persistence\Pdo\Ordering\ScopedOrderingManager;
 use Maatify\Catalog\Category\DTO\UpdateCategoryDisplayOrderDTO;
 use PDO;
 use PDOException;
+use RuntimeException;
+use Throwable;
 
 final class CategoryPdoIntegrationTest extends CatalogMySqlIntegrationTestCase
 {
@@ -109,6 +111,79 @@ final class CategoryPdoIntegrationTest extends CatalogMySqlIntegrationTestCase
         $orders = $ordersStatement->fetchAll(PDO::FETCH_KEY_PAIR);
         self::assertSame(1, (int) $orders[$secondId]);
         self::assertSame(2, (int) $orders[$firstId]);
+    }
+
+    public function testSharedOrderingApiMovesRootRowsAndUpdatesTimestampAtomically(): void
+    {
+        $connection = $this->connection();
+        $createService = $this->service($connection, new FixedCatalogClock('2026-01-03 00:00:00 UTC'));
+        $firstId = $createService->create(new CreateCategoryDTO('root-ordering-first'));
+        $secondId = $createService->create(new CreateCategoryDTO('root-ordering-second'));
+
+        $statement = $connection->prepare(
+            'UPDATE `maa_catalog_categories` '
+            . 'SET `display_order` = :display_order, `updated_at` = :updated_at WHERE `id` = :id',
+        );
+        $statement->execute([
+            'display_order' => 1,
+            'updated_at' => '2026-01-01 00:00:00',
+            'id' => $firstId,
+        ]);
+        $statement->execute([
+            'display_order' => 2,
+            'updated_at' => '2026-01-01 00:00:00',
+            'id' => $secondId,
+        ]);
+
+        $updateService = $this->service($connection, new FixedCatalogClock('2026-01-04 00:00:00 UTC'));
+        $updateService->updateDisplayOrder(new UpdateCategoryDisplayOrderDTO($secondId, 1));
+
+        $ordersStatement = $connection->query(
+            'SELECT `id`, `display_order` FROM `maa_catalog_categories` '
+            . 'WHERE `parent_id` IS NULL ORDER BY `display_order`, `id`',
+        );
+        if ($ordersStatement === false) {
+            self::fail('Unable to inspect root Category ordering.');
+        }
+        /** @var array<int|string, int|string> $orders */
+        $orders = $ordersStatement->fetchAll(PDO::FETCH_KEY_PAIR);
+        self::assertSame(1, (int) $orders[$secondId]);
+        self::assertSame(2, (int) $orders[$firstId]);
+
+        $timestampStatement = $connection->prepare(
+            'SELECT `updated_at` FROM `maa_catalog_categories` WHERE `id` = :id',
+        );
+        $timestampStatement->execute(['id' => $secondId]);
+        self::assertSame('2026-01-04 00:00:00', $timestampStatement->fetchColumn());
+    }
+
+    public function testTransactionPreservesTheOriginalThrowableWhenTransactionIsAlreadyClosed(): void
+    {
+        $transaction = new PdoCategoryTransaction($this->connection());
+        $original = new RuntimeException('original transaction failure');
+
+        $thrown = null;
+        try {
+            $transaction->run(function () use ($original): void {
+                throw $original;
+            });
+        } catch (Throwable $thrown) {
+        }
+        self::assertSame($original, $thrown);
+        self::assertFalse($this->connection()->inTransaction());
+
+        $thrown = null;
+        try {
+            $transaction->run(function () use ($original): void {
+                // Simulate a driver/operation that closes the transaction before
+                // reporting its failure to the transaction adapter.
+                $this->connection()->commit();
+                throw $original;
+            });
+        } catch (Throwable $thrown) {
+        }
+        self::assertSame($original, $thrown);
+        self::assertFalse($this->connection()->inTransaction());
     }
 
     public function testMoveWaitsOnLockedParentAndThenSucceedsAfterTheTransactionReleasesIt(): void

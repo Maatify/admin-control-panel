@@ -15,4 +15,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   for hierarchy, lifecycle, status, ordering, and translation invariants.
 - PDO Category persistence and transaction adapters with explicit soft-delete
   read semantics, application-owned ClockInterface timestamps, row-locking
-  integration tests, and shared Ordering API consumption.
+  integration tests, and shared Ordering API consumption for nullable root
+  scopes with atomic display-order timestamps.

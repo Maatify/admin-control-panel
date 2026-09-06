@@ -21,15 +21,21 @@ final readonly class PdoCategoryTransaction implements CategoryTransactionInterf
             throw CategoryTransactionException::alreadyActive();
         }
 
-        $this->pdo->beginTransaction();
+        $transactionStarted = false;
 
         try {
+            $this->pdo->beginTransaction();
+            $transactionStarted = true;
+
             $result = $operation();
             $this->pdo->commit();
+            $transactionStarted = false;
 
             return $result;
         } catch (Throwable $exception) {
-            $this->pdo->rollBack();
+            if ($transactionStarted && $this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
 
             throw $exception;
         }
