@@ -33,11 +33,20 @@ final readonly class PdoCategoryTransaction implements CategoryTransactionInterf
 
             return $result;
         } catch (Throwable $exception) {
-            if ($transactionStarted && $this->pdo->inTransaction()) {
-                $this->pdo->rollBack();
-            }
+            $this->rollbackIfActive($transactionStarted);
 
             throw $exception;
+        }
+    }
+
+    private function rollbackIfActive(bool $transactionStarted): void
+    {
+        if (!$transactionStarted) {
+            return;
+        }
+
+        if ($this->pdo->inTransaction()) {
+            $this->pdo->rollBack();
         }
     }
 }
