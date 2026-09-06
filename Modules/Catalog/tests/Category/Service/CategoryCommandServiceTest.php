@@ -11,7 +11,9 @@ use Maatify\Catalog\Category\Contract\CategoryTransactionInterface;
 use Maatify\Catalog\Category\Contract\CategoryCommandRepositoryInterface;
 use Maatify\Catalog\Category\Contract\CategoryQueryReaderInterface;
 use Maatify\Catalog\Category\Contract\CategoryTranslationCommandRepositoryInterface;
+use Maatify\Catalog\Category\DTO\CategoryCollectionDTO;
 use Maatify\Catalog\Category\DTO\CategoryDTO;
+use Maatify\Catalog\Category\DTO\CategoryTranslationCollectionDTO;
 use Maatify\Catalog\Category\DTO\CategoryTranslationDTO;
 use Maatify\Catalog\Category\DTO\CreateCategoryDTO;
 use Maatify\Catalog\Category\DTO\MoveCategoryDTO;
@@ -281,6 +283,42 @@ final class InMemoryCategoryQueryReader implements CategoryQueryReaderInterface
         }
 
         return null;
+    }
+
+    public function findVisibleById(int $categoryId): ?CategoryDTO
+    {
+        $category = $this->findActiveById($categoryId);
+        if ($category === null || $category->status !== CategoryStatusEnum::ACTIVE) {
+            return null;
+        }
+
+        $current = $category;
+        while ($current->parentId !== null) {
+            $current = $this->findById($current->parentId);
+            if ($current === null
+                || $current->deletedAt !== null
+                || $current->status !== CategoryStatusEnum::ACTIVE
+            ) {
+                return null;
+            }
+        }
+
+        return $category;
+    }
+
+    public function listVisibleRootCategories(): CategoryCollectionDTO
+    {
+        return new CategoryCollectionDTO([]);
+    }
+
+    public function listVisibleChildren(int $parentId): CategoryCollectionDTO
+    {
+        return new CategoryCollectionDTO([]);
+    }
+
+    public function listVisibleTranslations(int $categoryId): CategoryTranslationCollectionDTO
+    {
+        return new CategoryTranslationCollectionDTO([]);
     }
 
     public function findByCode(string $code): ?CategoryDTO

@@ -17,3 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   read semantics, application-owned ClockInterface timestamps, row-locking
   integration tests, and shared Ordering API consumption for nullable root
   scopes with atomic display-order timestamps.
+- Public Category query/list contracts with typed collection DTOs, deterministic
+  `display_order, id` ordering, active/non-deleted visibility, complete
+  ancestor-path filtering, and Category Translation reads without Host language
+  fallback logic.

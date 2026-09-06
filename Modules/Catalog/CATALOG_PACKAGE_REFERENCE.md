@@ -5,7 +5,7 @@ V1 categories and category translations. It is not currently published as an
 independent Composer repository; the package name is reserved for a future
 extractable distribution.
 
-## Phase 1 and Phase 2 scope
+## Phase 1 through Phase 3 scope
 
 Phase 1 defines the stable Category/Taxonomy data foundation:
 
@@ -34,6 +34,19 @@ Phase 2 adds the framework-neutral Category domain/application contracts:
   ownership, and target timestamp mutation to the stable
   `maatify/persistence` Ordering API. Category roots use its nullable scope
   capability (`parent_id IS NULL`).
+
+Phase 3 adds the framework-neutral Category query/list contract:
+
+- Visible Category lookup by identity.
+- Deterministically ordered root and direct-child lists using
+  `display_order, id`.
+- Visible Category Translation reads without choosing a language or applying a
+  fallback.
+- MySQL recursive ancestor visibility filtering that excludes soft-deleted or
+  inactive Categories and hides descendants below any inactive or deleted
+  ancestor.
+- Typed collection DTOs; query contracts do not expose associative arrays or
+  presentation serialization.
 
 ## Runtime API
 
@@ -118,6 +131,18 @@ identity `(category_id, language_code)` cannot be changed through the mutation
 contract. Category mutation DTOs do not expose `code`; the stable Category code
 is immutable after creation.
 
+### Category query DTOs
+
+The following typed collection DTOs are used by public query contracts:
+
+- `CategoryCollectionDTO`
+- `CategoryTranslationCollectionDTO`
+
+They expose typed iteration and count/empty checks only. They do not expose an
+associative-array response shape or presentation serialization. Category query
+results include all stored language rows for a visible Category; language-code
+validation and fallback selection remain Host responsibilities.
+
 ### Exceptions and contracts
 
 - `Maatify\Catalog\Exception\CatalogExceptionInterface` is the package marker
@@ -136,7 +161,9 @@ is immutable after creation.
 - `CategoryQueryReaderInterface` reads Categories, stable codes, child
   dependency state, and translation identities. `findById()` includes
   soft-deleted rows; `findActiveById()` excludes them; the `ForUpdate` methods
-  explicitly lock rows for the current application transaction.
+  explicitly lock rows for the current application transaction. Its visible
+  query methods exclude soft-deleted/inactive rows and enforce active complete
+  ancestor paths for identity, child-list, and translation reads.
 - `CategoryCommandRepositoryInterface` defines the Category write port.
 - `CategoryTranslationCommandRepositoryInterface` defines translation-content
   updates without logical-identity changes.
@@ -149,6 +176,10 @@ is immutable after creation.
 - `CategoryCommandService` locks the complete parent chain before a move and
   locks the category plus its non-deleted children before soft delete. The
   transaction is rolled back when a domain rule rejects the mutation.
+- `CategoryQueryServiceInterface` and `CategoryQueryService` expose the public
+  visible read contract: `getById()`, root listing, direct-child listing, and
+  Category Translation listing. Root and child lists are ordered by
+  `display_order, id`; no local pagination or language fallback is applied.
 
 ## Persistence contract
 
@@ -179,7 +210,9 @@ MySQL 8.0.16+ engine. It verifies installation of exactly two tables and both
 package-owned triggers, repeatable cleanup with no trigger residue, storage
 settings, valid inserts, foreign-key restrictions, `CHECK` constraints, both
 unique constraints, application-owned timestamps, and transaction row-locking
-behavior for hierarchy/lifecycle mutations. Configure `CATALOG_TEST_DSN`,
+behavior for hierarchy/lifecycle mutations. The query integration coverage
+also verifies visible identity reads, root/child ordering, inactive ancestor
+filtering, soft-delete filtering, and translation reads. Configure `CATALOG_TEST_DSN`,
 `CATALOG_TEST_DB_USER`, and `CATALOG_TEST_DB_PASSWORD` before running
 `composer test:integration`; missing configuration is treated as a failed
 test setup rather than a skipped verification.
@@ -188,5 +221,5 @@ test setup rather than a skipped verification.
 
 The following remain separate future phases and are intentionally absent:
 
-- Query/list contracts beyond the mutation-supporting read port.
 - Slim/Admin integration.
+- HTTP/API pagination and presentation response envelopes.

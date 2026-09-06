@@ -32,9 +32,12 @@ Composer repository.
   locking for hierarchy/lifecycle invariants, and shared persistence ordering
   integration for both root and nested scopes, including atomic order/timestamp
   mutation.
+- Public Category query/list contracts for visible identity reads, ordered root
+  and child lists, and visible Category Translation reads with complete
+  ancestor-path filtering.
 
-Product, pricing, inventory, media, Admin/Slim integration, and query/list APIs
-are not part of this phase.
+Product, pricing, inventory, media, Admin/Slim integration, HTTP endpoints, and
+presentation response envelopes are not part of this phase.
 
 ## Requirements
 
