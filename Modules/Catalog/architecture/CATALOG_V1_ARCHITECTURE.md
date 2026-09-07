@@ -1,9 +1,9 @@
-# Catalog V1 Database Architecture — Candidate
+# Catalog V1 / Category Package Database Architecture — Candidate
 
-**Host-Agnostic Catalog Engine**
+**Host-Agnostic Category Package Reference**
 
-هذه الوثيقة هي المرجع المعماري لـ **Catalog V1** بعد إعادة الهيكلة المستندة إلى الـ Domain Decomposition الحقيقي.
-في هذه المعمارية، الـ Catalog Module هو المالك الحصري لدومين الـ Catalog والتنظيم الهرمي (Hierarchy)، ولا يمتلك أية تفاصيل عن الدومينات الأخرى (مثل Products, Pricing, Inventory).
+هذه الوثيقة هي مرجع معماري مرَحلي لتكامل **Catalog V1** مع مكتبة الـ Category المستقلة.
+المرجع الداخلي الحاكم لتنفيذ الـ Category وSchema وInvariants هو توثيق مكتبة `maatify/category`؛ أما `Modules/Catalog` في مشروع الـ Admin فليس مالكًا لتطبيق أو Persistence الـ Category.
 
 ---
 
@@ -11,24 +11,24 @@
 
 ## 1.1 الهدف
 
-`Catalog V1` هو:
+`maatify/category` هو:
 
-**Standalone, Extractable, Host-Agnostic Catalog Engine**
+**Standalone, Reusable, Host-Agnostic Category Package**
 
-ويجب أن يظل قابلًا للاستخراج مستقبلًا كمكتبة مستقلة دون الاعتماد على تفاصيل الـHost أو موديولات أخرى.
+ويمكن استهلاكه بواسطة Catalog أو Navigation أو أي Host آخر دون الاعتماد على تفاصيل الـHost أو موديولات أخرى.
 
-### Catalog Domain
+### Category Domain
 
 الوثيقة الأصلية ذكرت "Catalog Identity" ولم تحدد جدولًا منفصلًا باسم `maa_catalog_catalogs` أو ما شابه يمثل الـ Catalog ككيان مستقل (Entity)، بل اعتمدت على `Categories` كوحدة التنظيم الأساسية.
-**وبما أنه لا يجوز أن نطلق على الموديول اسم Catalog بينما هو لا يحتوي على كيان Catalog حقيقي، فقد تم تسجيل هذا القرار كـ Unresolved Decision (انظر القسم الأخير).**
+**وبما أنه لا يجوز أن نطلق على الـ Category package اسم Catalog بينما هو لا يحتوي على كيان Catalog حقيقي، فقد تم تسجيل هذا القرار كـ Unresolved Decision (انظر القسم الأخير).**
 
-حتى يتم حسم ما إذا كان سيتم إضافة كيان Catalog مستقل يمتلك الـ Categories أم سيظل الـ Module عبارة عن Taxonomy/Categories فقط، تعتبر هذه الوثيقة **Candidate** وليست Locked.
+حتى يتم حسم ما إذا كان سيتم إضافة كيان Catalog مستقل يمتلك الـ Categories في طبقة التكامل أم سيظل النظام يستخدم Taxonomy/Categories package فقط، تعتبر هذه الوثيقة **Candidate** وليست Locked.
 
 ---
 
 ## 1.2 النطاق المشمول
 
-يشمل V1 (حتى الآن بناءً على الهيكلية المعروفة):
+يشمل Category V1 (حتى الآن بناءً على الهيكلية المعروفة):
 
 * Categories.
 * Category Hierarchy (Parent-Child).
@@ -42,7 +42,7 @@
 
 ## 1.3 خارج النطاق صراحة (Explicit Out-of-Scope)
 
-لا يحتوي V1 ولا يجب توسيع مخططه من أجل دعم ما يخص الـ Domains الأخرى:
+لا تحتوي مكتبة Category V1 ولا يجب توسيع مخططها من أجل دعم ما يخص الـ Domains الأخرى:
 
 * Products, Variants, SKU, Barcode.
 * Product Options, Option Values.
@@ -53,20 +53,20 @@
 * Customers, Orders, Payments, Shipping.
 * Promotions, Discounts.
 
-الـ Catalog يجب ألا يعرف أي شيء عنهم، وأي ربط خارجي يُدار من خلال الـ Host/Integration Layer.
+مكتبة Category يجب ألا تعرف أي شيء عنهم، وأي ربط خارجي يُدار من خلال الـ Host/Integration Layer.
 
 ---
 
 # 2. Host-Agnostic Boundaries
 
-Catalog لا يعتمد على جداول الـHost.
-لا توجد Foreign Keys أو JOINs من Catalog إلى أي Module آخر.
+مكتبة Category لا تعتمد على جداول الـHost.
+لا توجد Foreign Keys أو JOINs من Category إلى أي Module آخر.
 
 ---
 
 ## 2.1 اللغات
 
-يخزن Catalog:
+تخزن مكتبة Category:
 
 ```text
 language_code VARCHAR(16) NOT NULL
@@ -79,7 +79,7 @@ language_code VARCHAR(16) NOT NULL
 
 # 3. Timestamp Policy
 
-كل Timestamps تدار بواسطة **Catalog Application Layer**.
+كل Timestamps تدار بواسطة **Category Application Layer**.
 
 العقد الكامل يشمل:
 * Storage in UTC.
@@ -102,7 +102,7 @@ deleted_at DATETIME NULL
 
 # 4. Soft Delete Policy
 
-كل جداول Catalog تستخدم Soft Delete.
+كل جداول مكتبة Category تستخدم Soft Delete.
 
 ```text
 deleted_at IS NULL
@@ -144,7 +144,7 @@ category_translation:
 
 # 8. Foreign Key Policy
 
-كل Foreign Keys الداخلية تستخدم:
+كل Foreign Keys الداخلية في مكتبة Category تستخدم:
 
 ```text
 ON DELETE RESTRICT
@@ -167,6 +167,8 @@ status VARCHAR(20) NOT NULL
 CHECK (status IN ('active','inactive'))
 ```
 
+يتطلب هذا العقد MySQL `8.0.16+` لأن الإصدارات الأقدم من MySQL 8 كانت تقبل صياغة `CHECK` دون تنفيذها فعليًا.
+
 ---
 
 # 10. Display Order
@@ -174,7 +176,7 @@ CHECK (status IN ('active','inactive'))
 ```text
 display_order INT NOT NULL DEFAULT 0
 ```
-تُستخدم للـ Categories ضمن نفس الـ `parent_id`.
+تُستخدم للـ Categories ضمن نفس الـ `parent_id` داخل مكتبة Category.
 الترتيب الحتمي هو `ORDER BY display_order, id`.
 
 ---
@@ -195,12 +197,13 @@ Root:
 ```text
 parent_id = NULL
 ```
-DB تمنع: `CHECK (parent_id IS NULL OR parent_id <> id)`
+لا تسمح MySQL بأن يشير `CHECK` إلى عمود `AUTO_INCREMENT` بهذه الصورة، لذلك لا تستخدم `CHECK` لهذا الشرط.
+بدلًا من ذلك، تفرض مكتبة `maatify/category` invariant `parent_id <> id` عبر triggers مملوكة للحزمة: `AFTER INSERT` بعد توليد الـ identity، و`BEFORE UPDATE`.
 Domain تمنع العلاقات الدائرية (Cycle Prevention: A → B → C → A).
 
 ---
 
-# 13. Complete Database Schema — 2 Tables
+# 13. Complete Category Package Database Schema — 2 Tables
 
 
 يجب أن تلتزم الجداول بالشروط الفيزيائية التالية:
@@ -211,7 +214,7 @@ COLLATE=utf8mb4_unicode_ci
 ```
 
 
-## 13.1 `maa_catalog_categories`
+## 13.1 `maa_category_categories`
 
 | العمود          | النوع                                   |
 | --------------- | --------------------------------------- |
@@ -229,18 +232,18 @@ Constraints:
 PRIMARY KEY(id)
 UNIQUE(code)
 CHECK(status IN ('active','inactive'))
-CHECK(parent_id IS NULL OR parent_id <> id)
+Package-owned INSERT/UPDATE triggers reject `parent_id = id`
 ```
 FK:
 ```text
-parent_id → maa_catalog_categories.id
+parent_id → maa_category_categories.id
 ON DELETE RESTRICT
 ON UPDATE RESTRICT
 ```
 
 ---
 
-## 13.2 `maa_catalog_category_translations`
+## 13.2 `maa_category_category_translations`
 
 | العمود          | النوع                            |
 | --------------- | -------------------------------- |
@@ -260,7 +263,7 @@ UNIQUE(category_id, language_code)
 ```
 FK:
 ```text
-category_id → maa_catalog_categories.id
+category_id → maa_category_categories.id
 ON DELETE RESTRICT
 ON UPDATE RESTRICT
 ```
@@ -272,7 +275,7 @@ ON UPDATE RESTRICT
 * Primary Keys, Internal FKs (ON DELETE/UPDATE RESTRICT).
 * Unique Stable Codes, Unique Translation Identities.
 * Status constraints (active/inactive).
-* `parent_id <> id`.
+* Package-owned `AFTER INSERT` and `BEFORE UPDATE` triggers enforce `parent_id <> id` after generated identity allocation and on updates; this is not represented as a `CHECK` constraint.
 * **Column Comments Requirement:** تطبيقًا للـ Package Building Standard، تلتزم كافة المخططات (Schemas) المذكورة هنا بتوفير تعليقات دلالية (Meaningful Comments) في مرحلة التنفيذ الفعلي (Implementation) توضح الغرض من كل عمود، خصوصًا الهويات الخارجية إن وجدت.
 
 ---
@@ -288,7 +291,7 @@ ON UPDATE RESTRICT
 
 ## Categories
 ```text
-maa_catalog_categories
+maa_category_categories
 (parent_id, status, deleted_at, display_order, id)
 ```
 
@@ -301,7 +304,7 @@ maa_catalog_categories
 
 # 17. Sources of Truth
 
-مصادر الحقيقة الوحيدة التي يملكها الموديول حالياً:
+مصادر الحقيقة الوحيدة التي تملكها مكتبة Category حالياً:
 * Entity Status (Categories)
 * deleted_at
 * الـ `parent_id` (كمصدر الحقيقة الوحيد للهرمية).
@@ -313,10 +316,10 @@ maa_catalog_categories
 
 # 18. Unresolved Architectural Decisions
 
-* **Catalog Entity Identity:** الوثيقة الأصلية للـ Monolith ذُكر فيها "Catalog Identity" كمفهوم، ولكن المخطط الفعلي لا يحتوي على جدول يمثل "الكتالوج" (مثلاً `maa_catalog_catalogs`) كحاوية عليا تملك الـ Categories. هل يجب إضافة كيان Catalog حقيقي لتبرير اسم الموديول؟ أم يجب إعادة تسمية الموديول لاحقاً ليعكس كونه مجرد Taxonomy / Categories engine؟
-هذا القرار الداخلي غير محسوم، وبالتالي الموديول ككل لا يمكن اعتباره Locked.
+* **Catalog Entity Identity:** الوثيقة الأصلية للـ Monolith ذُكر فيها "Catalog Identity" كمفهوم، ولكن المخطط الفعلي لا يحتوي على جدول يمثل "الكتالوج" (مثلاً `maa_catalog_catalogs`) كحاوية عليا تملك الـ Categories. هل يجب إضافة كيان Catalog حقيقي في طبقة الـ Catalog/Host؟ أم يجب الاكتفاء بمكتبة Category مستقلة مع طبقة تكامل؟
+هذا القرار على مستوى تكامل الـ Catalog غير محسوم، ولذلك لا يمكن اعتبار هذه الوثيقة Locked.
 
 # 19. Architecture Status
 
 **Candidate**
-بسبب وجود قرار معماري داخلي غير محسوم حول "Catalog Entity" وهويتها، لا يمكن اعتبار هذه البنية Locked.
+بسبب وجود قرار معماري غير محسوم على مستوى "Catalog Entity" وهويتها، لا يمكن اعتبار هذه البنية Locked.
