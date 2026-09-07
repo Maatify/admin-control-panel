@@ -19,7 +19,7 @@
 > **Catalog Package knows and composes the modules.**
 > **The modules do not know the Catalog Package and do not know each other.**
 
-* الـ Package/Aggregator: يعرف Catalog, Product, Pricing, و Inventory، ويدير الربط بينها.
+* الـ Package/Aggregator: يعرف Category, Product, Pricing, و Inventory، ويدير الربط بينها.
 * الـ Base Modules: لا تعرف بعضها، ولا تعرف أنها جزء من Catalog Package.
 
 ---
@@ -129,7 +129,7 @@
 
 ## 7. الربط بين الفئات والمنتجات (Product ↔ Category Mapping Ownership)
 
-حيث أن Catalog Base لا يعرف Product، و Product لا يعرف Catalog، فإن ملكية الربط (Visibility / Mapping) تقع على عاتق الـ **Catalog Package / Host Application**.
+حيث أن **Category Base Package** لا يعرف **Product Base Module**، و**Product Base Module** لا يعرف **Category Base Package**، فإن ملكية الربط (Visibility / Mapping) تقع على عاتق الـ **Catalog Package / Host Application**.
 
 * **الجهة المالكة:** Catalog Package / Host Application.
 * **الهوية المنطقية:** علاقة (Mapping) بين `category_id` و `product_id`.
