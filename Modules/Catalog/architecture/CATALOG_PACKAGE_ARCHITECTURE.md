@@ -19,7 +19,7 @@
 > **Catalog Package knows and composes the modules.**
 > **The modules do not know the Catalog Package and do not know each other.**
 
-* الـ Package/Aggregator: يعرف Catalog, Product, Pricing, و Inventory، ويدير الربط بينها.
+* الـ Package/Aggregator: يعرف Category, Product, Pricing, و Inventory، ويدير الربط بينها.
 * الـ Base Modules: لا تعرف بعضها، ولا تعرف أنها جزء من Catalog Package.
 
 ---
@@ -29,8 +29,11 @@
 لتفادي التناقضات بين التصميم المجمع والتصميم المستقل، يجب الالتزام بالتسلسل التالي:
 
 ### 3.1 Module Internal Architectures (أعلى أولوية للتصميم الداخلي)
-أي ملف يمثل المرجعية الداخلية لموديول ويحمل اسمه (مثل `CATALOG_V1_ARCHITECTURE.md`, `PRODUCT_V1_ARCHITECTURE.md`, إلخ) داخل مسار `Modules/{Module}/architecture/` هو المرجع الحصري الوحيد (Source of Truth) للتصميم الداخلي للموديول، الـ Schema، الـ Invariants، والـ Lifecycles الخاصة به.
-**(يُستثنى من هذه القاعدة المستند الحالي `CATALOG_PACKAGE_ARCHITECTURE.md` وملف الـ PDF `Catalog_V1_Architecture_Locked.pdf` حيث أنهما يمثلان الـ Package-level Umbrella ولا ينتميان للتصميم الداخلي لموديول الـ Taxonomy).**
+أي ملف يمثل المرجعية الداخلية لموديول ويحمل اسمه (مثل `PRODUCT_V1_ARCHITECTURE.md` وما شابه) داخل مسار `Modules/{Module}/architecture/` هو المرجع الحصري الوحيد (Source of Truth) للتصميم الداخلي للموديول، الـ Schema، الـ Invariants، والـ Lifecycles الخاصة به.
+
+لم تعد `Modules/Catalog` مالكًا لتطبيق أو Schema الـ Category. المرجع الداخلي الحالي لدومين الـ Category هو توثيق المكتبة المستقلة `maatify/category`، وبالأخص `CATEGORY_PACKAGE_REFERENCE.md` و`docs/architecture/CATEGORY_ARCHITECTURE.md` داخل مستودعها. الملفات المحتفظ بها تحت `Modules/Catalog/architecture/` هي مرجع Umbrella/تاريخي لتنسيق الـ Catalog ولا تنقل ملكية الـ Category إلى الـ Admin.
+
+**(يُستثنى من هذه القاعدة المستند الحالي `CATALOG_PACKAGE_ARCHITECTURE.md` وملف الـ PDF `Catalog_V1_Architecture_Locked.pdf` حيث أنهما يمثلان الـ Package-level Umbrella ولا ينتميان للتصميم الداخلي لموديول الـ Category).**
 
 ### 3.2 Catalog Package Architecture (المرجع التنسيقي المظلي)
 هذا الملف يعتبر المرجع (Source of Truth) فقط لـ:
@@ -50,7 +53,7 @@
 
 يجمع الـ Catalog Package الموديولات التالية:
 
-1. **Catalog Base Module (`Modules/Catalog`):** يملك الـ Taxonomy، الهرمية، والـ Categories.
+1. **Category Base Package (`maatify/category`):** يملك الـ Taxonomy، الهرمية، والـ Categories وترجماتها وPersistence الخاصة بها.
 2. **Product Base Module (`Modules/Product`):** يملك المنتجات، الـ Variants، الـ Options، والميديا المرتبطة بها.
 3. **Pricing Base Module (`Modules/Pricing`):** يملك الأسعار الأساسية والتعديلات، والعمليات الحسابية للعملات.
 4. **Inventory Base Module (`Modules/Inventory`):** يملك المخزون والعمليات الذرية لتغيير الكميات المتاحة.
@@ -126,7 +129,7 @@
 
 ## 7. الربط بين الفئات والمنتجات (Product ↔ Category Mapping Ownership)
 
-حيث أن Catalog Base لا يعرف Product، و Product لا يعرف Catalog، فإن ملكية الربط (Visibility / Mapping) تقع على عاتق الـ **Catalog Package / Host Application**.
+حيث أن **Category Base Package** لا يعرف **Product Base Module**، و**Product Base Module** لا يعرف **Category Base Package**، فإن ملكية الربط (Visibility / Mapping) تقع على عاتق الـ **Catalog Package / Host Application**.
 
 * **الجهة المالكة:** Catalog Package / Host Application.
 * **الهوية المنطقية:** علاقة (Mapping) بين `category_id` و `product_id`.
