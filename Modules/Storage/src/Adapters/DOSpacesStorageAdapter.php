@@ -8,6 +8,7 @@ use Aws\S3\S3Client;
 use Maatify\Storage\Contracts\StorageAdapterInterface;
 use Maatify\Storage\DTO\StoredFile;
 use Maatify\Storage\Exception\AdapterException;
+use Maatify\Storage\Exception\ConfigurationException;
 use Maatify\Storage\Exception\FileUploadException;
 use Psr\Http\Message\UploadedFileInterface;
 
@@ -22,17 +23,39 @@ use Psr\Http\Message\UploadedFileInterface;
 final class DOSpacesStorageAdapter implements StorageAdapterInterface
 {
     /**
+     * Canned ACLs supported by DigitalOcean Spaces. Spaces implements only these two of the S3 canned ACLs, so a
+     * configured value outside the set is a configuration error that must never reach the API.
+     *
+     * @see https://docs.digitalocean.com/products/spaces/reference/s3-compatibility/
+     */
+    private const ALLOWED_ACLS = [
+        'private',
+        'public-read',
+    ];
+
+    /** @var 'private'|'public-read' */
+    private readonly string $acl;
+
+    /**
      * @param S3Client $client S3-compatible client configured for DigitalOcean Spaces.
      * @param string   $bucket Target Spaces bucket name.
      * @param string|null $cdnUrl Base CDN URL used to resolve public URLs (null for private uploads).
-     * @param string   $acl    Canned ACL applied to uploaded objects (default: public-read).
+     * @param string   $acl    Canned ACL applied to uploaded objects: 'public-read' (default) or 'private'.
+     *
+     * @throws ConfigurationException If $acl is not a canned ACL supported by DigitalOcean Spaces.
      */
     public function __construct(
         private readonly S3Client $client,
         private readonly string $bucket,
         private readonly ?string $cdnUrl,
-        private readonly string $acl = 'public-read',
-    ) {}
+        string $acl = 'public-read',
+    ) {
+        if (!in_array($acl, self::ALLOWED_ACLS, true)) {
+            throw ConfigurationException::unsupportedAcl($acl, self::ALLOWED_ACLS);
+        }
+
+        $this->acl = $acl;
+    }
 
     /**
      * {@inheritDoc}
@@ -47,7 +70,6 @@ final class DOSpacesStorageAdapter implements StorageAdapterInterface
      */
     public function store(UploadedFileInterface $file, string $destinationPath): StoredFile
     {
-        $acl    = $this->resolveAcl();
         $key    = ltrim($destinationPath, '/');
         $stream = $file->getStream()->detach();
 
@@ -59,7 +81,7 @@ final class DOSpacesStorageAdapter implements StorageAdapterInterface
             'Bucket'      => $this->bucket,
             'Key'         => $key,
             'Body'        => $stream,
-            'ACL'         => $acl,
+            'ACL'         => $this->acl,
             'ContentType' => $this->resolveMimeFromPath($key),
         ]);
 
@@ -95,7 +117,6 @@ final class DOSpacesStorageAdapter implements StorageAdapterInterface
      */
     public function storeFromPath(string $localPath, string $destinationPath): StoredFile
     {
-        $acl    = $this->resolveAcl();
         $key    = ltrim($destinationPath, '/');
         $stream = @fopen($localPath, 'rb');
 
@@ -108,7 +129,7 @@ final class DOSpacesStorageAdapter implements StorageAdapterInterface
                 'Bucket'      => $this->bucket,
                 'Key'         => $key,
                 'Body'        => $stream,
-                'ACL'         => $acl,
+                'ACL'         => $this->acl,
                 'ContentType' => $this->resolveMimeFromPath($key),
             ]);
         } finally {
@@ -175,29 +196,6 @@ final class DOSpacesStorageAdapter implements StorageAdapterInterface
             'Bucket' => $this->bucket,
             'Key'    => ltrim($path, '/'),
         ]);
-    }
-
-    /**
-     * Narrows the configured ACL to the closed set the S3 API accepts. An
-     * unknown value fails loudly instead of falling back to another ACL, so a
-     * typo can never silently turn a private upload public.
-     *
-     * @return 'authenticated-read'|'aws-exec-read'|'bucket-owner-full-control'|'bucket-owner-read'|'private'|'public-read'|'public-read-write'
-     *
-     * @throws AdapterException If the configured ACL is not a supported canned ACL.
-     */
-    private function resolveAcl(): string
-    {
-        return match ($this->acl) {
-            'authenticated-read'        => 'authenticated-read',
-            'aws-exec-read'             => 'aws-exec-read',
-            'bucket-owner-full-control' => 'bucket-owner-full-control',
-            'bucket-owner-read'         => 'bucket-owner-read',
-            'private'                   => 'private',
-            'public-read'               => 'public-read',
-            'public-read-write'         => 'public-read-write',
-            default                     => throw AdapterException::unsupportedAcl($this->acl),
-        };
     }
 
     /**

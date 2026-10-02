@@ -10,6 +10,7 @@ use Aws\S3\S3Client;
 use Maatify\Storage\Adapters\DOSpacesStorageAdapter;
 use Maatify\Storage\DTO\StoredFile;
 use Maatify\Storage\Exception\AdapterException;
+use Maatify\Storage\Exception\ConfigurationException;
 use Maatify\Storage\Tests\Unit\StorageModuleTestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -21,8 +22,8 @@ use PHPUnit\Framework\Attributes\Test;
  * - url(): returns '' for private adapters (cdnUrl = null), CDN URL for public
  * - presign(): returns presigned URL for private, CDN URL for public
  * - storeFromPath(): uploads via putObject, closes stream in finally
- * - ACL: every supported canned ACL reaches putObject from store() and storeFromPath(),
- *   the default is 'public-read', and an unsupported value is rejected before any request
+ * - ACL: only the two canned ACLs DigitalOcean Spaces supports are accepted, both reach putObject from
+ *   store() and storeFromPath(), the default is 'public-read', and anything else fails at construction
  */
 final class DOSpacesStorageAdapterTest extends StorageModuleTestCase
 {
@@ -202,23 +203,7 @@ final class DOSpacesStorageAdapterTest extends StorageModuleTestCase
     }
 
     /**
-     * @return list<string>
-     */
-    private static function supportedAcls(): array
-    {
-        return [
-            'private',
-            'public-read',
-            'public-read-write',
-            'authenticated-read',
-            'aws-exec-read',
-            'bucket-owner-read',
-            'bucket-owner-full-control',
-        ];
-    }
-
-    /**
-     * Every supported canned ACL on both upload paths.
+     * The only canned ACLs DigitalOcean Spaces supports, on both upload paths.
      *
      * @return array<string, array{0: string, 1: string}>
      */
@@ -226,7 +211,7 @@ final class DOSpacesStorageAdapterTest extends StorageModuleTestCase
     {
         $cases = [];
         foreach (['store', 'storeFromPath'] as $method) {
-            foreach (self::supportedAcls() as $acl) {
+            foreach (['private', 'public-read'] as $acl) {
                 $cases["{$method}() with {$acl}"] = [$method, $acl];
             }
         }
@@ -235,31 +220,28 @@ final class DOSpacesStorageAdapterTest extends StorageModuleTestCase
     }
 
     /**
-     * Values that must never reach the S3 API, on both upload paths. Matching is exact: no trimming
-     * and no case folding, so a typo can never silently select another ACL.
+     * Values the adapter must refuse to be constructed with. The five AWS-only canned ACLs are valid for S3 but
+     * not for Spaces, which implements only `private` and `public-read`. Matching is exact: no trimming and no
+     * case folding, so a typo can never silently select another ACL.
      *
-     * @return array<string, array{0: string, 1: string}>
+     * @return array<string, array{0: string}>
      */
-    public static function unsupportedAclOnEveryUploadPath(): array
+    public static function unsupportedAcls(): array
     {
-        $unsupported = [
-            'typo'                       => 'privte',
-            'empty string'               => '',
-            'wrong case'                 => 'Public-Read',
-            'upper case'                 => 'PRIVATE',
-            'surrounded by whitespace'   => ' private ',
-            'prefix of a valid value'    => 'public',
-            'unknown value'              => 'everyone-read',
+        return [
+            'typo'                                  => ['privte'],
+            'empty string'                          => [''],
+            'wrong case'                            => ['Public-Read'],
+            'upper case'                            => ['PRIVATE'],
+            'surrounded by whitespace'              => [' private '],
+            'prefix of a valid value'               => ['public'],
+            'unknown value'                         => ['everyone-read'],
+            'AWS-only public-read-write'            => ['public-read-write'],
+            'AWS-only authenticated-read'           => ['authenticated-read'],
+            'AWS-only aws-exec-read'                => ['aws-exec-read'],
+            'AWS-only bucket-owner-read'            => ['bucket-owner-read'],
+            'AWS-only bucket-owner-full-control'    => ['bucket-owner-full-control'],
         ];
-
-        $cases = [];
-        foreach (['store', 'storeFromPath'] as $method) {
-            foreach ($unsupported as $label => $acl) {
-                $cases["{$method}() with {$label}"] = [$method, $acl];
-            }
-        }
-
-        return $cases;
     }
 
     /**
@@ -307,25 +289,20 @@ final class DOSpacesStorageAdapterTest extends StorageModuleTestCase
     }
 
     #[Test]
-    #[DataProvider('unsupportedAclOnEveryUploadPath')]
-    public function upload_rejectsAnUnsupportedAclBeforeAnyRequest(string $method, string $acl): void
+    #[DataProvider('unsupportedAcls')]
+    public function constructor_rejectsAnUnsupportedAcl(string $acl): void
     {
-        $sentAcls = new \ArrayObject();
-        $adapter  = new DOSpacesStorageAdapter(
-            client: $this->makeRecordingClient($sentAcls),
+        $this->expectException(ConfigurationException::class);
+        $this->expectExceptionMessage(
+            'Unsupported DigitalOcean Spaces ACL [' . $acl . ']. Allowed values: private, public-read.'
+        );
+
+        new DOSpacesStorageAdapter(
+            client: $this->makeClient(),
             bucket: 'test-bucket',
             cdnUrl: null,
             acl:    $acl,
         );
-
-        try {
-            $this->uploadVia($method, $adapter);
-            $this->fail('An unsupported ACL must be rejected.');
-        } catch (AdapterException $e) {
-            $this->assertSame('Unsupported canned ACL: ' . $acl, $e->getMessage());
-        }
-
-        $this->assertCount(0, $sentAcls, 'No putObject request may be sent for an unsupported ACL.');
     }
 
     // ── storeFromPath() ───────────────────────────────────────────────────────

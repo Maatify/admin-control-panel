@@ -44,14 +44,14 @@ cd /path/to/project
 | Reader Adapters | 18 | ✅ PASS |
 | Reader Services | 10 | ✅ PASS |
 | Validators | 42 | ✅ PASS |
-| Storage Adapters | 52 | ✅ PASS |
-| Exceptions | 13 | ✅ PASS |
+| Storage Adapters | 40 | ✅ PASS |
+| Exceptions | 14 | ✅ PASS |
 | Configuration | 9 | ✅ PASS |
-| **Total** | **192** | **✅ PASS** |
+| **Total** | **181** | **✅ PASS** |
 
 ## Test Suites
 
-### 1. Storage Adapter Tests (52 tests)
+### 1. Storage Adapter Tests (40 tests)
 
 #### LocalStorageAdapterTest (10 tests)
 - ✅ `storeFromPath_copiesFileToDestination` - Copies source file to configured storage root
@@ -65,7 +65,7 @@ cd /path/to/project
 - ✅ `url_prependsBaseUrlToRelativePath` - `/files` + `products/image.jpg` → `/files/products/image.jpg`
 - ✅ `url_stripsLeadingSlashFromRelativePath` - Leading slash on path is normalised
 
-#### DOSpacesStorageAdapterTest (42 tests)
+#### DOSpacesStorageAdapterTest (30 tests)
 
 Uses `\Aws\MockHandler` + `\Aws\Result` (AWS SDK's own mock — not Guzzle).
 
@@ -80,10 +80,10 @@ Uses `\Aws\MockHandler` + `\Aws\Result` (AWS SDK's own mock — not Guzzle).
 - ✅ `presign_forPublicAdapterReturnsCdnUrlWithoutSigning` - CDN URL returned as-is; no `X-Amz-` params
 - ✅ `presign_expiryIsReflectedInSignedUrl` - `X-Amz-Expires=86400` in signed URL
 
-**ACL** (each test runs on both `store()` and `storeFromPath()`; matching is exact, no trimming or case folding)
-- ✅ `upload_sendsTheConfiguredAclToPutObject` - Each of the 7 supported canned ACLs reaches `putObject` unchanged (14 cases)
-- ✅ `upload_defaultsToPublicReadWhenNoAclIsConfigured` - No `acl` argument sends `public-read`
-- ✅ `upload_rejectsAnUnsupportedAclBeforeAnyRequest` - Typo, empty, wrong case, upper case, surrounding whitespace, prefix and unknown values throw `AdapterException` and send no request (14 cases)
+**ACL** (DigitalOcean Spaces supports only `private` and `public-read`; matching is exact, no trimming or case folding)
+- ✅ `upload_sendsTheConfiguredAclToPutObject` - `private` and `public-read` each reach `putObject` unchanged from `store()` and `storeFromPath()` (4 cases)
+- ✅ `upload_defaultsToPublicReadWhenNoAclIsConfigured` - No `acl` argument sends `public-read` on both paths
+- ✅ `constructor_rejectsAnUnsupportedAcl` - Construction fails with `ConfigurationException` for a typo, empty, wrong or upper case, surrounding whitespace, a prefix, an unknown value and each of the five AWS-only canned ACLs (`public-read-write`, `authenticated-read`, `aws-exec-read`, `bucket-owner-read`, `bucket-owner-full-control`) (12 cases)
 
 **storeFromPath()**
 - ✅ `storeFromPath_uploadsFileAndReturnsStoredFile` - Calls `putObject`, returns `StoredFile` with correct path
@@ -252,12 +252,13 @@ Uses `\Aws\MockHandler` + `\Aws\Result` (AWS SDK's own mock — not Guzzle).
 - ✅ **`testAcceptsNormalizedVariantsOfExtensions`** - Extension variant handling
   - All variants ('mp3', 'MP3', '.mp3', '.MP3') are normalized and accepted
 
-### 6. Exception Tests (13 tests)
+### 6. Exception Tests (14 tests)
 
-#### ExceptionTest (13 tests)
+#### ExceptionTest (14 tests)
 - ✅ `testConfigurationExceptionMissingEnvVariable` - Missing env vars
 - ✅ `testConfigurationExceptionUnsupportedDriver` - Invalid drivers
 - ✅ `testConfigurationExceptionMissingAdapterConfig` - Missing adapter config
+- ✅ `testConfigurationExceptionUnsupportedAcl` - Unsupported Spaces ACL message lists the allowed values
 - ✅ `testFileUploadExceptionFromErrorCode` - PHP upload error codes
 - ✅ `testFileUploadExceptionUnreadableStream` - Stream read failures
 - ✅ `testInvalidFileExceptionFileTooLarge` - Size violations
@@ -453,7 +454,7 @@ This module includes its own PHPUnit configuration but uses the bootstrap parame
 
 - [ ] Integration tests with actual storage adapters
 - [ ] Performance benchmarks
-- [x] S3/DO Spaces storage adapter tests (DOSpacesStorageAdapterTest — 42 tests)
+- [x] S3/DO Spaces storage adapter tests (DOSpacesStorageAdapterTest — 30 tests)
 - [ ] Concurrent upload stress tests
 - [ ] Large file handling (GB+)
 
