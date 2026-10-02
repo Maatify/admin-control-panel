@@ -89,6 +89,15 @@ JSON-based login for API clients.
 
 ## 2) Step-Up / MFA
 
+### Web Step-Up (Page)
+**Endpoint:** `GET /2fa/verify`
+**Auth Required:** Yes
+
+Renders the OTP form. Query parameters:
+*   `scope` (optional): Requested scope (default `login`).
+*   `r` (optional): opaque signed return-target token issued by the server. When present it is used as-is.
+*   `return_to` (optional, used by frontend pages that hit `STEP_UP_REQUIRED` from an API call): an **untrusted** internal path such as `/admins/create`. It is never used as a redirect target. Only when `r` is absent, the server offers it to `maatify/php-return-target`; if accepted, the form carries the resulting signed token as `r`, otherwise the form carries no `r` and the user lands on `/dashboard`. Unsafe values (external URL, `//host`, `/login`, control characters, dot segments, `#`, backslash) never produce a token.
+
 ### Web Step-Up (Form)
 **Endpoint:** `POST /2fa/verify`
 **Auth Required:** Yes
