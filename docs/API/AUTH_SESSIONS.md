@@ -48,10 +48,13 @@ Submits credentials to establish a session (Cookie-based).
 **Parameters (Form Data):**
 *   `email` (required): Admin email.
 *   `password` (required): Admin password.
+*   `r` (optional): opaque signed return-target token. May also be sent as the `?r=` query parameter; the form field takes precedence. The server issues it when it redirects an unauthenticated visitor to `/login?r=...`; clients must not build it themselves.
 
 **Response:**
-*   **Success (302):** Redirects to `/dashboard` (or `/verify-email`).
-*   **Error (200):** Renders page with error message.
+*   **Success (302):** Redirects to the verified `r` target, or `/dashboard` when `r` is absent, invalid, tampered, expired, or points to an unsafe target (external URL, `//host`, `/login`, control characters). The redirect target is never taken from client-supplied raw paths. (A pending e-mail verification or forced password change redirects to `/verify-email` or `/auth/change-password` instead.)
+*   **Error (200):** Renders page with error message; `r` is kept in the form so the retry still returns to the original page.
+
+**Return-target token:** issued and verified by `maatify/php-return-target` (audience `admin-auth`, lifetime 300 seconds). The token is signed, not encrypted, and must be treated as opaque. After login, a session that still needs 2FA is sent to `/2fa/verify?r=...` carrying a fresh token for the same target.
 
 ---
 
