@@ -422,6 +422,9 @@ final class LoginReturnTargetE2ETest extends UnifiedEndpointBase
             'several parameters' => ['/admins?tab=audit&page=2&per_page=50'],
             'encoded slash and unicode' => ['/admins?q=a%2Fb&name=%E2%9C%93'],
             'plus as space' => ['/admins?q=two+words&sort=a+b'],
+            'encoded space (rc.2 query-space boundary)' => ['/admins?q=two%20words'],
+            'several encoded spaces with other parameters' => ['/admins?q=a%20b%20c&tab=audit&page=2'],
+            'trailing encoded space' => ['/admins?q=a%20'],
             'nested path' => ['/roles/5/permissions?filter=direct'],
             'query that merely mentions /login' => ['/admins?next=/login'],
             'query that carries an external url' => ['/admins?back=https://evil.example/x'],
@@ -456,8 +459,8 @@ final class LoginReturnTargetE2ETest extends UnifiedEndpointBase
     }
 
     /**
-     * The library refuses some query strings outright (encoded whitespace, encoded # or backslash,
-     * raw brackets, > 2048 bytes, ...). The user should still come back to the right page, only
+     * The library refuses some query strings outright (encoded # or backslash, raw brackets,
+     * second-stage escapes, > 2048 bytes, ...). The user should still come back to the right page, only
      * without the query, rather than being sent to /dashboard.
      *
      * @return array<string, array{0: string, 1: string}>
@@ -465,8 +468,9 @@ final class LoginReturnTargetE2ETest extends UnifiedEndpointBase
     public static function queryDroppedProvider(): array
     {
         return [
-            'encoded space' => ['/admins?q=two%20words', '/admins'],
-            'trailing encoded space' => ['/admins?q=a%20', '/admins'],
+            'raw space in the query' => ['/admins?q=two words', '/admins'],
+            'second-stage escape' => ['/admins?q=%2520', '/admins'],
+            'encoded control character' => ['/admins?q=a%0Ab', '/admins'],
             'encoded hash' => ['/admins?q=a%23b', '/admins'],
             'encoded backslash' => ['/admins?q=a%5Cb', '/admins'],
             'raw brackets' => ['/roles/5?ids[]=1', '/roles/5'],
@@ -528,6 +532,8 @@ final class LoginReturnTargetE2ETest extends UnifiedEndpointBase
             'javascript scheme with query' => ['javascript:alert(1)?x=1'],
             'dot segments with query' => ['/admins/../login?x=1'],
             'starts with query' => ['?x=1'],
+            'encoded space in the path' => ['/admins%20x?q=1'],
+            'encoded space in the path, no query' => ['/admins%20x'],
         ];
     }
 

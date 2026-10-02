@@ -220,9 +220,9 @@ readonly class TwoFactorController
      * then carries the resulting signed token (or nothing). POST /2fa/verify keeps
      * verifying that token, so a forged or unsafe value cannot become a redirect.
      *
-     * The frontend sends `pathname + search`. The return-target service refuses some
-     * otherwise harmless query strings (encoded whitespace, encoded `#`, raw brackets,
-     * targets over 2048 bytes, ...). In that case the path alone is offered, so the
+     * The frontend sends `pathname + search`. The return-target service still refuses
+     * some otherwise harmless query strings (encoded `#` or backslash, raw brackets,
+     * second-stage escapes, targets over 2048 bytes, ...). In that case the path alone is offered, so the
      * user comes back to the right page without its filters instead of `/dashboard`.
      * The shorter target goes through the same validation and policy, so nothing the
      * service would refuse as a path (external URL, `//host`, `/login`, ...) is let in.
