@@ -263,15 +263,18 @@ final class LoginReturnTargetE2ETest extends UnifiedEndpointBase
         self::assertSame('/dashboard?tab=audit', $response->getHeaderLine('Location'));
     }
 
-    public function test_step_up_verify_ignores_tampered_target(): void
+    #[DataProvider('invalidTokenProvider')]
+    public function test_step_up_verify_ignores_invalid_token(callable $mutate): void
     {
         $cookie = $this->loginAndGetCookie();
+
+        $valid = $this->tokenProvider()->issue('/dashboard?tab=audit');
 
         $response = $this->app->handle(
             $this->request('POST', '/2fa/verify', [
                 'code' => $this->currentTotp(),
                 'scope' => 'login',
-                'r' => $this->tokenProvider()->issue('https://evil.example/'),
+                'r' => $mutate($valid),
             ])->withCookieParams(['auth_token' => $cookie])
         );
 
