@@ -8,6 +8,7 @@ use Aws\S3\S3Client;
 use Maatify\Storage\Contracts\StorageAdapterInterface;
 use Maatify\Storage\DTO\StoredFile;
 use Maatify\Storage\Exception\AdapterException;
+use Maatify\Storage\Exception\ConfigurationException;
 use Maatify\Storage\Exception\FileUploadException;
 use Psr\Http\Message\UploadedFileInterface;
 
@@ -22,17 +23,38 @@ use Psr\Http\Message\UploadedFileInterface;
 final class DOSpacesStorageAdapter implements StorageAdapterInterface
 {
     /**
+     * Canned ACLs supported by DigitalOcean Spaces (a subset of the S3 canned ACLs).
+     *
+     * @see https://docs.digitalocean.com/products/spaces/reference/s3-compatibility/
+     */
+    private const ALLOWED_ACLS = [
+        'private',
+        'public-read',
+    ];
+
+    /** @var 'private'|'public-read' */
+    private readonly string $acl;
+
+    /**
      * @param S3Client $client S3-compatible client configured for DigitalOcean Spaces.
      * @param string   $bucket Target Spaces bucket name.
      * @param string|null $cdnUrl Base CDN URL used to resolve public URLs (null for private uploads).
-     * @param string   $acl    Canned ACL applied to uploaded objects (default: public-read).
+     * @param string   $acl    Canned ACL applied to uploaded objects: 'public-read' (default) or 'private'.
+     *
+     * @throws ConfigurationException If $acl is not a canned ACL supported by DigitalOcean Spaces.
      */
     public function __construct(
         private readonly S3Client $client,
         private readonly string $bucket,
         private readonly ?string $cdnUrl,
-        private readonly string $acl = 'public-read',
-    ) {}
+        string $acl = 'public-read',
+    ) {
+        if (!in_array($acl, self::ALLOWED_ACLS, true)) {
+            throw ConfigurationException::unsupportedAcl($acl, self::ALLOWED_ACLS);
+        }
+
+        $this->acl = $acl;
+    }
 
     /**
      * {@inheritDoc}
