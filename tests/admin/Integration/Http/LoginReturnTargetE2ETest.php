@@ -410,6 +410,107 @@ final class LoginReturnTargetE2ETest extends UnifiedEndpointBase
     }
 
     /**
+     * Targets as the frontend builds them: encodeURIComponent(pathname + search).
+     * The query string must survive step-up exactly as it was.
+     *
+     * @return array<string, array{0: string}>
+     */
+    public static function pathWithQueryProvider(): array
+    {
+        return [
+            'single parameter' => ['/admins?tab=audit'],
+            'several parameters' => ['/admins?tab=audit&page=2&per_page=50'],
+            'encoded slash and unicode' => ['/admins?q=a%2Fb&name=%E2%9C%93'],
+            'plus as space' => ['/admins?q=two+words&sort=a+b'],
+            'encoded space (rc.2 query-space boundary)' => ['/admins?q=two%20words'],
+            'several encoded spaces with other parameters' => ['/admins?q=a%20b%20c&tab=audit&page=2'],
+            'trailing encoded space' => ['/admins?q=a%20'],
+            'nested path' => ['/roles/5/permissions?filter=direct'],
+            'query that merely mentions /login' => ['/admins?next=/login'],
+            'query that carries an external url' => ['/admins?back=https://evil.example/x'],
+            'empty value' => ['/admins?search='],
+        ];
+    }
+
+    #[DataProvider('pathWithQueryProvider')]
+    public function test_step_up_keeps_the_query_string_of_the_original_page(string $target): void
+    {
+        $cookie = $this->loginAndGetCookie();
+
+        $page = $this->app->handle(
+            $this->request('GET', '/2fa/verify?scope=login&return_to=' . rawurlencode($target))
+                ->withCookieParams(['auth_token' => $cookie])
+        );
+        self::assertSame(200, $page->getStatusCode(), (string) $page->getBody());
+
+        $token = $this->formToken((string) $page->getBody());
+        self::assertNotNull($token, 'A safe path with a query must receive a token: ' . $target);
+
+        $response = $this->app->handle(
+            $this->request('POST', '/2fa/verify', [
+                'code' => $this->currentTotp(),
+                'scope' => 'login',
+                'r' => $token,
+            ])->withCookieParams(['auth_token' => $cookie])
+        );
+
+        self::assertSame(302, $response->getStatusCode(), (string) $response->getBody());
+        self::assertSame($target, $response->getHeaderLine('Location'));
+    }
+
+    /**
+     * The library refuses some query strings outright (encoded # or backslash, raw brackets,
+     * second-stage escapes, > 2048 bytes, ...). The user should still come back to the right page, only
+     * without the query, rather than being sent to /dashboard.
+     *
+     * @return array<string, array{0: string, 1: string}>
+     */
+    public static function queryDroppedProvider(): array
+    {
+        return [
+            'raw space in the query' => ['/admins?q=two words', '/admins'],
+            'second-stage escape' => ['/admins?q=%2520', '/admins'],
+            'encoded control character' => ['/admins?q=a%0Ab', '/admins'],
+            'encoded hash' => ['/admins?q=a%23b', '/admins'],
+            'encoded backslash' => ['/admins?q=a%5Cb', '/admins'],
+            'raw brackets' => ['/roles/5?ids[]=1', '/roles/5'],
+            'raw fragment in query' => ['/admins?tab=a#top', '/admins'],
+            'newline in query' => ["/admins?tab=a\r\nSet-Cookie: x=1", '/admins'],
+            'query over 2048 bytes' => ['/admins?q=' . '%s', '/admins'],
+        ];
+    }
+
+    #[DataProvider('queryDroppedProvider')]
+    public function test_step_up_keeps_the_page_but_drops_a_query_the_library_refuses(string $target, string $expected): void
+    {
+        if (str_contains($target, '%s')) {
+            $target = sprintf($target, str_repeat('a', 2100));
+        }
+
+        $cookie = $this->loginAndGetCookie();
+
+        $page = $this->app->handle(
+            $this->request('GET', '/2fa/verify?scope=login&return_to=' . rawurlencode($target))
+                ->withCookieParams(['auth_token' => $cookie])
+        );
+        $token = $this->formToken((string) $page->getBody());
+        self::assertNotNull($token);
+        self::assertSame($expected, $this->returnTarget()->verify($token)?->target);
+
+        $response = $this->app->handle(
+            $this->request('POST', '/2fa/verify', [
+                'code' => $this->currentTotp(),
+                'scope' => 'login',
+                'r' => $token,
+            ])->withCookieParams(['auth_token' => $cookie])
+        );
+
+        self::assertSame($expected, $response->getHeaderLine('Location'));
+        self::assertStringNotContainsString('#', $response->getHeaderLine('Location'));
+        self::assertStringNotContainsString("\n", $response->getHeaderLine('Location'));
+    }
+
+    /**
      * @return array<string, array{0: string}>
      */
     public static function unsafeReturnToProvider(): array
@@ -425,6 +526,14 @@ final class LoginReturnTargetE2ETest extends UnifiedEndpointBase
             'fragment' => ['/admins#top'],
             'backslash' => ['/admins\\evil'],
             'empty' => [''],
+            'login page with query' => ['/login?x=1'],
+            'external url with query' => ['https://evil.example/?x=1'],
+            'protocol-relative url with query' => ['//evil.example/x?y=1'],
+            'javascript scheme with query' => ['javascript:alert(1)?x=1'],
+            'dot segments with query' => ['/admins/../login?x=1'],
+            'starts with query' => ['?x=1'],
+            'encoded space in the path' => ['/admins%20x?q=1'],
+            'encoded space in the path, no query' => ['/admins%20x'],
         ];
     }
 

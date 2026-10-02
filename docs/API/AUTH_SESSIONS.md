@@ -96,7 +96,12 @@ JSON-based login for API clients.
 Renders the OTP form. Query parameters:
 *   `scope` (optional): Requested scope (default `login`).
 *   `r` (optional): opaque signed return-target token issued by the server. When present it is used as-is.
-*   `return_to` (optional, used by frontend pages that hit `STEP_UP_REQUIRED` from an API call): an **untrusted** internal path such as `/admins/create`. It is never used as a redirect target. Only when `r` is absent, the server offers it to `maatify/php-return-target`; if accepted, the form carries the resulting signed token as `r`, otherwise the form carries no `r` and the user lands on `/dashboard`. Unsafe values (external URL, `//host`, `/login`, control characters, dot segments, `#`, backslash) never produce a token.
+*   `return_to` (optional, used by frontend pages that hit `STEP_UP_REQUIRED` from an API call): an **untrusted** internal page path with its query string, as the browser has it (`window.location.pathname + window.location.search`, e.g. `/admins?tab=audit&page=2`). It is never used as a redirect target. It is only considered when `r` is absent: the server offers it to `maatify/php-return-target`, and the form carries the resulting signed token as `r`. There are three outcomes:
+    1.  **Path and query accepted** -> a token for the full target; after 2FA the user returns to the same page with its query, exactly as sent.
+    2.  **Path acceptable, query refused** -> the server retries with the path alone (same validation and `/login` policy); the token is for the path, and the user returns to the same page **without** the query. This is best-effort preservation.
+    3.  **Path refused** (external URL, `//host`, `/login`, dot segments, control characters, `#`, backslash, an encoded space in the path, over 2048 bytes, ...) -> no token; the form carries no `r` and the user lands on `/dashboard`.
+
+    With `maatify/php-return-target` `1.0.0-rc.2`, a query is accepted when it uses encoded spaces (`?q=two%20words`), `+`, encoded `/` `&` `=` `%25`, or UTF-8 sequences. It is refused (outcome 2) when it contains encoded `#` (`%23`) or backslash (`%5C`), raw `[` `]` (e.g. `ids[]=1`), second-stage escapes (`%2520`), encoded control characters, a raw space, a raw `#` or newline, or pushes the target over 2048 bytes.
 
 ### Web Step-Up (Form)
 **Endpoint:** `POST /2fa/verify`

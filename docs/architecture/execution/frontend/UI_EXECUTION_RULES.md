@@ -334,7 +334,8 @@ Inline HTML generation inside table configuration is FORBIDDEN. Raw HTML strings
 ## 13. Step-Up / 2FA Handling Rules
 - HTTP 403 responses indicating Step-Up authentication MUST be handled via the `ErrorNormalizer` bridge.
 - UI MUST redirect to the 2FA flow: `/2fa/verify?scope={scope}&return_to={path}`.
-- `{path}` MUST be the current internal path (e.g. `window.location.pathname`), URL-encoded. It is untrusted input: the server never redirects to it directly. `GET /2fa/verify` converts it into an opaque signed return-target token (`r`) when it is a safe internal path, and `POST /2fa/verify` redirects only to a verified token (otherwise `/dashboard`).
+- `{path}` MUST be the current internal path **including its query string** (`window.location.pathname + window.location.search`), passed through `encodeURIComponent`. It is untrusted input: the server never redirects to it directly. `GET /2fa/verify` converts it into an opaque signed return-target token (`r`), and `POST /2fa/verify` redirects only to a verified token (otherwise `/dashboard`).
+- Returning to the same view is **best-effort**: the full path + query is preserved when the return-target service accepts it; if only the query is refused (for example encoded `#`, raw `[` `]`), the user returns to the same page **without** the query; if the path is refused, the user lands on `/dashboard`. UI code MUST NOT rely on the query surviving. See `docs/API/AUTH_SESSIONS.md` (`GET /2fa/verify`) for the exact outcomes.
 - UI MUST NOT build or send `r` itself; `r` is issued by the server only.
 - Ignoring Step-Up flows is FORBIDDEN.
 
