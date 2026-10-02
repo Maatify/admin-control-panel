@@ -375,6 +375,118 @@ final class LoginReturnTargetE2ETest extends UnifiedEndpointBase
     }
 
     // ------------------------------------------------------------------
+    // 7. Frontend-triggered step-up: /2fa/verify?scope=..&return_to=<path>
+    //
+    // The JS pages redirect here with a raw path. The server must never
+    // redirect to that raw value; it may only turn it into a signed token
+    // (through issue()) which POST /2fa/verify then verifies.
+    // ------------------------------------------------------------------
+
+    public function test_step_up_page_turns_return_to_into_a_signed_token_and_lands_on_it(): void
+    {
+        $cookie = $this->loginAndGetCookie();
+
+        $page = $this->app->handle(
+            $this->request('GET', '/2fa/verify?scope=login&return_to=' . urlencode('/admins/create'))
+                ->withCookieParams(['auth_token' => $cookie])
+        );
+        self::assertSame(200, $page->getStatusCode(), (string) $page->getBody());
+
+        $token = $this->formToken((string) $page->getBody());
+        self::assertNotNull($token, 'The verify form must carry a signed r token.');
+        self::assertNotSame('/admins/create', $token, 'The raw path must never be used as the token.');
+        self::assertSame('/admins/create', $this->returnTarget()->verify($token)?->target);
+
+        $response = $this->app->handle(
+            $this->request('POST', '/2fa/verify', [
+                'code' => $this->currentTotp(),
+                'scope' => 'login',
+                'r' => $token,
+            ])->withCookieParams(['auth_token' => $cookie])
+        );
+
+        self::assertSame(302, $response->getStatusCode(), (string) $response->getBody());
+        self::assertSame('/admins/create', $response->getHeaderLine('Location'));
+    }
+
+    /**
+     * @return array<string, array{0: string}>
+     */
+    public static function unsafeReturnToProvider(): array
+    {
+        return [
+            'absolute external url' => ['https://evil.example/phish'],
+            'protocol-relative url' => ['//evil.example/x'],
+            'login page' => ['/login'],
+            'javascript scheme' => ['javascript:alert(1)'],
+            'relative path' => ['admins/create'],
+            'CRLF injection' => ["/admins\r\nSet-Cookie: x=1"],
+            'dot segments' => ['/admins/../login'],
+            'fragment' => ['/admins#top'],
+            'backslash' => ['/admins\\evil'],
+            'empty' => [''],
+        ];
+    }
+
+    #[DataProvider('unsafeReturnToProvider')]
+    public function test_step_up_page_never_issues_a_token_for_an_unsafe_return_to(string $returnTo): void
+    {
+        $cookie = $this->loginAndGetCookie();
+
+        $page = $this->app->handle(
+            $this->request('GET', '/2fa/verify?scope=login&return_to=' . urlencode($returnTo))
+                ->withCookieParams(['auth_token' => $cookie])
+        );
+        self::assertSame(200, $page->getStatusCode(), (string) $page->getBody());
+        self::assertNull($this->formToken((string) $page->getBody()), 'No token may be issued for: ' . $returnTo);
+
+        $response = $this->app->handle(
+            $this->request('POST', '/2fa/verify', ['code' => $this->currentTotp(), 'scope' => 'login'])
+                ->withCookieParams(['auth_token' => $cookie])
+        );
+
+        self::assertSame('/dashboard', $response->getHeaderLine('Location'));
+    }
+
+    public function test_step_up_page_prefers_an_explicit_signed_token_over_return_to(): void
+    {
+        $cookie = $this->loginAndGetCookie();
+        $explicit = $this->issueToken('/admins/create');
+
+        $page = $this->app->handle(
+            $this->request(
+                'GET',
+                '/2fa/verify?scope=login&r=' . urlencode($explicit) . '&return_to=' . urlencode('/permissions')
+            )->withCookieParams(['auth_token' => $cookie])
+        );
+
+        self::assertSame($explicit, $this->formToken((string) $page->getBody()));
+    }
+
+    public function test_step_up_page_does_not_let_return_to_rescue_an_invalid_token(): void
+    {
+        $cookie = $this->loginAndGetCookie();
+
+        $page = $this->app->handle(
+            $this->request(
+                'GET',
+                '/2fa/verify?scope=login&r=not-a-token&return_to=' . urlencode('/admins/create')
+            )->withCookieParams(['auth_token' => $cookie])
+        );
+        $token = $this->formToken((string) $page->getBody());
+
+        $response = $this->app->handle(
+            $this->request('POST', '/2fa/verify', array_filter([
+                'code' => $this->currentTotp(),
+                'scope' => 'login',
+                'r' => $token,
+            ]))->withCookieParams(['auth_token' => $cookie])
+        );
+
+        self::assertSame('/dashboard', $response->getHeaderLine('Location'));
+    }
+
+    // ------------------------------------------------------------------
     // Helpers
     // ------------------------------------------------------------------
 
@@ -457,6 +569,18 @@ final class LoginReturnTargetE2ETest extends UnifiedEndpointBase
         self::assertNotNull($cookie, 'Login must set auth_token.');
 
         return $cookie;
+    }
+
+    /**
+     * The value of the hidden "r" input in the rendered verify form, if any.
+     */
+    private function formToken(string $html): ?string
+    {
+        if (preg_match('/<input[^>]*name="r"[^>]*value="([^"]*)"/', $html, $m) !== 1) {
+            return null;
+        }
+
+        return html_entity_decode($m[1], ENT_QUOTES | ENT_HTML5);
     }
 
     private function authCookie(ResponseInterface $response): ?string

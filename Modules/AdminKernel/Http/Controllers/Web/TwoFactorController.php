@@ -95,7 +95,7 @@ readonly class TwoFactorController
 
         // ADDITIVE START
         $scope = $this->resolveRequestedScope($request);
-$redirectToken = $this->resolveRedirectToken($request);
+        $redirectToken = $this->resolveRedirectToken($request) ?? $this->issueFromReturnTo($request);
         // ADDITIVE END
 
         return $this->view->render($response, $template, [
@@ -210,6 +210,24 @@ $redirectToken = $this->resolveRedirectToken($request);
         }
 
         return Scope::LOGIN;
+    }
+
+    /**
+     * Frontend step-up pages redirect here with a raw `return_to` path.
+     *
+     * That value is untrusted input: it is never used as a redirect target. It is only
+     * offered to the return-target service, which accepts or rejects it, and the form
+     * then carries the resulting signed token (or nothing). POST /2fa/verify keeps
+     * verifying that token, so a forged or unsafe value cannot become a redirect.
+     */
+    private function issueFromReturnTo(Request $request): ?string
+    {
+        $returnTo = $request->getQueryParams()['return_to'] ?? null;
+        if (!is_string($returnTo) || $returnTo === '') {
+            return null;
+        }
+
+        return $this->returnTargetService->issue($returnTo);
     }
 
     private function resolveRedirectToken(Request $request): ?string
