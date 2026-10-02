@@ -177,10 +177,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (stepUp) {
                     console.log('🔐 Step-Up 2FA Required:', {
                         scope: stepUp.scope,
-                        return_to: window.location.pathname
+                        return_to: window.location.pathname + window.location.search
                     });
                     const scope = encodeURIComponent(stepUp.scope || 'admin.email.add');
-                    const returnTo = encodeURIComponent(window.location.pathname);
+                    const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
                     window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
                     return;
                 }
@@ -323,10 +323,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log('🔐 Step-Up 2FA Required:', {
                         action: action,
                         scope: stepUp.scope,
-                        return_to: window.location.pathname
+                        return_to: window.location.pathname + window.location.search
                     });
                     const scope = encodeURIComponent(stepUp.scope || `admin.email.${action}`);
-                    const returnTo = encodeURIComponent(window.location.pathname);
+                    const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
                     window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
                     return;
                 }

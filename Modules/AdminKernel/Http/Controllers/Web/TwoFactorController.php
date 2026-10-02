@@ -219,6 +219,13 @@ readonly class TwoFactorController
      * offered to the return-target service, which accepts or rejects it, and the form
      * then carries the resulting signed token (or nothing). POST /2fa/verify keeps
      * verifying that token, so a forged or unsafe value cannot become a redirect.
+     *
+     * The frontend sends `pathname + search`. The return-target service refuses some
+     * otherwise harmless query strings (encoded whitespace, encoded `#`, raw brackets,
+     * targets over 2048 bytes, ...). In that case the path alone is offered, so the
+     * user comes back to the right page without its filters instead of `/dashboard`.
+     * The shorter target goes through the same validation and policy, so nothing the
+     * service would refuse as a path (external URL, `//host`, `/login`, ...) is let in.
      */
     private function issueFromReturnTo(Request $request): ?string
     {
@@ -227,7 +234,17 @@ readonly class TwoFactorController
             return null;
         }
 
-        return $this->returnTargetService->issue($returnTo);
+        $token = $this->returnTargetService->issue($returnTo);
+        if ($token !== null) {
+            return $token;
+        }
+
+        $queryStart = strpos($returnTo, '?');
+        if ($queryStart === false) {
+            return null;
+        }
+
+        return $this->returnTargetService->issue(substr($returnTo, 0, $queryStart));
     }
 
     private function resolveRedirectToken(Request $request): ?string

@@ -411,7 +411,7 @@
                 const stepUp = window.ErrorNormalizer.getLegacyStepUpView(data);
                 if (stepUp) {
                     const scope    = encodeURIComponent(stepUp.scope || `roles.permissions.${action}`);
-                    const returnTo = encodeURIComponent(window.location.pathname);
+                    const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
                     window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
                     return;
                 }

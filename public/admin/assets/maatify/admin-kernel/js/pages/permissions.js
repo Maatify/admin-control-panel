@@ -595,7 +595,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const stepUp = window.ErrorNormalizer.getLegacyStepUpView(data);
                 if (stepUp) {
                     const scope = encodeURIComponent(stepUp.scope || 'permissions.metadata.update');
-                    const returnTo = encodeURIComponent(window.location.pathname);
+                    const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
                     window.location.href = `/2fa/verify?scope=${scope}&return_to=${returnTo}`;
                     return;
                 }
