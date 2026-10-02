@@ -43,6 +43,8 @@ abstract class UnifiedEndpointBase extends TestCase
         $options->strictInfrastructure = true;
 
         $options->builderHook = function ($containerBuilder): void {
+            $this->configureContainer($containerBuilder);
+
             $tz = new DateTimeZone('Africa/Cairo');
 
             // Keep the integration composition root aligned with public/admin/index.php.
@@ -69,6 +71,14 @@ abstract class UnifiedEndpointBase extends TestCase
 
         // 6️⃣ Reset database state
         $this->cleanDatabase();
+    }
+
+    /**
+     * Extension point for tests that need extra host-level DI bindings
+     * (e.g. UI/Twig bindings that public/admin/index.php provides).
+     */
+    protected function configureContainer(\DI\ContainerBuilder $containerBuilder): void
+    {
     }
 
     protected function cleanDatabase(): void
