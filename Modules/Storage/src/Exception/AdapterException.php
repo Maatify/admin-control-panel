@@ -35,16 +35,4 @@ final class AdapterException extends StorageException
     {
         return new self("Failed to copy file from [{$source}] to [{$destination}].");
     }
-
-    /**
-     * @param list<string> $allowed
-     */
-    public static function invalidAcl(string $acl, array $allowed): self
-    {
-        return new self(sprintf(
-            'Unsupported storage ACL [%s]. Allowed values: %s.',
-            $acl,
-            implode(', ', $allowed)
-        ));
-    }
 }

@@ -10,6 +10,7 @@ use Aws\S3\S3Client;
 use Maatify\Storage\Adapters\DOSpacesStorageAdapter;
 use Maatify\Storage\DTO\StoredFile;
 use Maatify\Storage\Exception\AdapterException;
+use Maatify\Storage\Exception\ConfigurationException;
 use Maatify\Storage\Tests\Unit\StorageModuleTestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -85,13 +86,8 @@ final class DOSpacesStorageAdapterTest extends StorageModuleTestCase
     public static function supportedAcls(): array
     {
         return [
-            'private'                   => ['private'],
-            'public-read'               => ['public-read'],
-            'public-read-write'         => ['public-read-write'],
-            'authenticated-read'        => ['authenticated-read'],
-            'aws-exec-read'             => ['aws-exec-read'],
-            'bucket-owner-read'         => ['bucket-owner-read'],
-            'bucket-owner-full-control' => ['bucket-owner-full-control'],
+            'private'     => ['private'],
+            'public-read' => ['public-read'],
         ];
     }
 
@@ -110,11 +106,19 @@ final class DOSpacesStorageAdapterTest extends StorageModuleTestCase
     }
 
     #[Test]
+    public function constructor_defaultsToPublicRead(): void
+    {
+        $adapter = new DOSpacesStorageAdapter($this->makeClient(), 'test-bucket', 'https://cdn.example.com');
+
+        $this->assertSame('https://cdn.example.com/a.jpg', $adapter->url('a.jpg'));
+    }
+
+    #[Test]
     #[DataProvider('unsupportedAcls')]
     public function constructor_rejectsUnsupportedAcl(string $acl): void
     {
-        $this->expectException(AdapterException::class);
-        $this->expectExceptionMessage('Unsupported storage ACL');
+        $this->expectException(ConfigurationException::class);
+        $this->expectExceptionMessage('Unsupported DigitalOcean Spaces ACL');
 
         new DOSpacesStorageAdapter(
             client: $this->makeClient(),
@@ -130,10 +134,15 @@ final class DOSpacesStorageAdapterTest extends StorageModuleTestCase
     public static function unsupportedAcls(): array
     {
         return [
-            'empty'          => [''],
-            'unknown'        => ['public'],
-            'wrong case'     => ['Public-Read'],
-            'surrounded'     => [' private '],
+            'empty'                     => [''],
+            'unknown'                   => ['public'],
+            'wrong case'                => ['Public-Read'],
+            'surrounded by whitespace'  => [' private '],
+            'aws-only public-read-write'         => ['public-read-write'],
+            'aws-only authenticated-read'        => ['authenticated-read'],
+            'aws-only aws-exec-read'             => ['aws-exec-read'],
+            'aws-only bucket-owner-read'         => ['bucket-owner-read'],
+            'aws-only bucket-owner-full-control' => ['bucket-owner-full-control'],
         ];
     }
 
