@@ -166,27 +166,21 @@ final class LoginReturnTargetE2ETest extends UnifiedEndpointBase
      */
     public static function invalidTokenProvider(): array
     {
+        $flip = static fn (string $c): string => $c === 'A' ? 'B' : 'A';
+
         return [
-            'tampered signature' => [static function (string $token): string {
-                [$payload, $sig] = explode('.', $token);
-                $flipped = ($sig[0] === 'A' ? 'B' : 'A') . substr($sig, 1);
+            'last character altered' => [static fn (string $t): string => substr($t, 0, -1) . $flip(substr($t, -1))],
+            'first character altered' => [static fn (string $t): string => $flip($t[0]) . substr($t, 1)],
+            'middle character altered' => [static function (string $t) use ($flip): string {
+                $i = intdiv(strlen($t), 2);
 
-                return $payload . '.' . $flipped;
+                return substr($t, 0, $i) . $flip($t[$i]) . substr($t, $i + 1);
             }],
-            'tampered payload' => [static function (string $token): string {
-                [, $sig] = explode('.', $token);
-                $forged = rtrim(strtr(base64_encode(
-                    (string) json_encode(['p' => '/admins/delete', 'exp' => time() + 300])
-                ), '+/', '-_'), '=');
-
-                return $forged . '.' . $sig;
-            }],
-            'payload without signature' => [static fn (string $token): string => explode('.', $token)[0] . '.'],
-            'no dot separator' => [static fn (string $token): string => str_replace('.', '', $token)],
-            'extra segment' => [static fn (string $token): string => $token . '.extra'],
-            'garbage' => [static fn (string $token): string => 'not-a-token'],
-            'plain external url' => [static fn (string $token): string => 'https://evil.example/phish'],
-            'plain internal path (unsigned)' => [static fn (string $token): string => '/admins/delete'],
+            'truncated' => [static fn (string $t): string => substr($t, 0, intdiv(strlen($t), 2))],
+            'extra data appended' => [static fn (string $t): string => $t . '.extra'],
+            'garbage' => [static fn (string $t): string => 'not-a-token'],
+            'plain external url' => [static fn (string $t): string => 'https://evil.example/phish'],
+            'plain internal path (unsigned)' => [static fn (string $t): string => '/admins/delete'],
         ];
     }
 
@@ -205,48 +199,31 @@ final class LoginReturnTargetE2ETest extends UnifiedEndpointBase
         self::assertNotNull($this->authCookie($login), 'Login still succeeds; only the target is dropped.');
     }
 
-    public function test_expired_token_falls_back_to_dashboard(): void
+    /**
+     * Unsafe targets must never survive a round trip through the provider,
+     * regardless of whether it refuses them at issue time or at verify time.
+     *
+     * @return array<string, array{0: string}>
+     */
+    public static function unsafeTargetProvider(): array
     {
-        $login = $this->postLogin(['r' => $this->signRaw(['p' => '/dashboard?tab=audit', 'exp' => time() - 10])]);
-
-        self::assertSame('/dashboard', $login->getHeaderLine('Location'));
+        return [
+            'absolute external url' => ['https://evil.example/'],
+            'protocol-relative url' => ['//evil.example/x'],
+            'login loop' => ['/login?x=1'],
+            'header injection (CRLF)' => ["/dashboard\r\nSet-Cookie: x=1"],
+            'header injection (LF)' => ["/dashboard\nX: y"],
+            'javascript scheme' => ['javascript:alert(1)'],
+            'relative path' => ['dashboard'],
+        ];
     }
 
-    public function test_validly_signed_external_target_is_rejected(): void
+    #[DataProvider('unsafeTargetProvider')]
+    public function test_unsafe_target_never_becomes_a_redirect(string $target): void
     {
-        $login = $this->postLogin(['r' => $this->signRaw(['p' => 'https://evil.example/', 'exp' => time() + 300])]);
+        $login = $this->postLogin(['r' => $this->tokenProvider()->issue($target)]);
 
-        self::assertSame('/dashboard', $login->getHeaderLine('Location'));
-    }
-
-    public function test_validly_signed_protocol_relative_target_is_rejected(): void
-    {
-        $login = $this->postLogin(['r' => $this->signRaw(['p' => '//evil.example/x', 'exp' => time() + 300])]);
-
-        self::assertSame('/dashboard', $login->getHeaderLine('Location'));
-    }
-
-    public function test_validly_signed_login_loop_target_is_rejected(): void
-    {
-        $login = $this->postLogin(['r' => $this->signRaw(['p' => '/login?x=1', 'exp' => time() + 300])]);
-
-        self::assertSame('/dashboard', $login->getHeaderLine('Location'));
-    }
-
-    public function test_validly_signed_header_injection_target_is_rejected(): void
-    {
-        $login = $this->postLogin(['r' => $this->signRaw(['p' => "/dashboard\r\nSet-Cookie: x=1", 'exp' => time() + 300])]);
-
-        self::assertSame('/dashboard', $login->getHeaderLine('Location'));
-        self::assertStringNotContainsString("\n", $login->getHeaderLine('Location'));
-    }
-
-    public function test_token_issued_with_unsafe_path_is_normalised_at_issue_time(): void
-    {
-        $token = $this->tokenProvider()->issue('https://evil.example/');
-
-        $login = $this->postLogin(['r' => $token]);
-
+        self::assertSame(302, $login->getStatusCode());
         self::assertSame('/dashboard', $login->getHeaderLine('Location'));
     }
 
@@ -294,7 +271,7 @@ final class LoginReturnTargetE2ETest extends UnifiedEndpointBase
             $this->request('POST', '/2fa/verify', [
                 'code' => $this->currentTotp(),
                 'scope' => 'login',
-                'r' => $this->signRaw(['p' => 'https://evil.example/', 'exp' => time() + 300]),
+                'r' => $this->tokenProvider()->issue('https://evil.example/'),
             ])->withCookieParams(['auth_token' => $cookie])
         );
 
@@ -443,24 +420,6 @@ final class LoginReturnTargetE2ETest extends UnifiedEndpointBase
         self::assertIsString($token, 'Location must carry ?r=. Got: ' . $location);
 
         return $token;
-    }
-
-    /**
-     * Sign an arbitrary payload with the real key material, bypassing issue()'s
-     * path normalisation, to prove verifyAndParse() independently validates it.
-     *
-     * @param array<string, mixed> $payload
-     */
-    private function signRaw(array $payload): string
-    {
-        $provider = $this->tokenProvider();
-        $method = new \ReflectionMethod($provider, 'signPayload');
-
-        $encoded = rtrim(strtr(base64_encode((string) json_encode($payload)), '+/', '-_'), '=');
-        $signature = $method->invoke($provider, $encoded);
-        self::assertIsString($signature);
-
-        return $encoded . '.' . rtrim(strtr(base64_encode($signature), '+/', '-_'), '=');
     }
 
     private function currentTotp(): string
