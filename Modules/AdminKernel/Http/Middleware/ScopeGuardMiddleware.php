@@ -9,7 +9,7 @@ use Maatify\AdminKernel\Domain\Security\ScopeRegistry;
 use Maatify\AdminKernel\Context\RequestContext;
 use Maatify\AdminKernel\Domain\Service\StepUpService;
 use Maatify\AdminKernel\Http\Auth\AuthSurface;
-use Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface;
+use Maatify\ReturnTarget\Service\ReturnTargetServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -21,7 +21,7 @@ class ScopeGuardMiddleware implements MiddlewareInterface
 {
     public function __construct(
         private StepUpService $stepUpService,
-        private RedirectTokenProviderInterface $redirectTokenProvider
+        private ReturnTargetServiceInterface $returnTargetService
     ) {
     }
 
@@ -138,8 +138,10 @@ class ScopeGuardMiddleware implements MiddlewareInterface
 
         if ($path !== '/login') {
             $target = $query !== '' ? $path . '?' . $query : $path;
-            $token = $this->redirectTokenProvider->issue($target);
-            $location .= '&r=' . urlencode($token);
+            $token = $this->returnTargetService->issue($target);
+            if ($token !== null) {
+                $location .= '&r=' . urlencode($token);
+            }
         }
 
         $response = new \Slim\Psr7\Response();

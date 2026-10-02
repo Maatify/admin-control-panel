@@ -196,6 +196,11 @@ use Maatify\Crypto\DX\CryptoDirectFactory;
 use Maatify\Crypto\DX\CryptoProvider;
 use Maatify\Crypto\HKDF\HKDFService;
 use Maatify\Crypto\KeyRotation\DTO\CryptoKeyDTO;
+use Maatify\Crypto\KeyRotation\KeyProviderInterface;
+use Maatify\ReturnTarget\Config\ReturnTargetConfig;
+use Maatify\ReturnTarget\Service\HmacReturnTargetService;
+use Maatify\ReturnTarget\Service\ReturnTargetServiceInterface;
+use Maatify\AdminKernel\Infrastructure\ReturnTarget\AdminReturnTargetRestrictionPolicy;
 use Maatify\Crypto\KeyRotation\KeyRotationService;
 use Maatify\Crypto\KeyRotation\KeyStatusEnum;
 use Maatify\Crypto\KeyRotation\Policy\StrictSingleActiveKeyPolicy;
@@ -861,17 +866,17 @@ class Container
                 $adminLoginService = $c->get(AdminLoginService::class);
                 $view = $c->get(Twig::class);
                 $challengeRenderer = $c->get(ChallengeWidgetRendererInterface::class);
-                $redirectTokenProvider = $c->get(\Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface::class);
+                $returnTargetService = $c->get(ReturnTargetServiceInterface::class);
                 assert($adminLoginService instanceof AdminLoginService);
                 assert($view instanceof Twig);
                 assert($challengeRenderer instanceof ChallengeWidgetRendererInterface);
-                assert($redirectTokenProvider instanceof \Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface);
+                assert($returnTargetService instanceof ReturnTargetServiceInterface);
 
                 return new LoginController(
                     $adminLoginService,
                     $view,
                     $challengeRenderer,
-                    $redirectTokenProvider
+                    $returnTargetService
                 );
             },
             \Maatify\AdminKernel\Application\Auth\AdminLogoutService::class                              => function (ContainerInterface $c) {
@@ -1117,14 +1122,14 @@ class Container
                 $enrollmentService = $c->get(\Maatify\AdminKernel\Application\Auth\TwoFactorEnrollmentService::class);
                 $verificationService = $c->get(\Maatify\AdminKernel\Application\Auth\TwoFactorVerificationService::class);
                 $view = $c->get(Twig::class);
-                $redirectTokenProvider = $c->get(\Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface::class);
+                $returnTargetService = $c->get(ReturnTargetServiceInterface::class);
 
                 assert($enrollmentService instanceof \Maatify\AdminKernel\Application\Auth\TwoFactorEnrollmentService);
                 assert($verificationService instanceof \Maatify\AdminKernel\Application\Auth\TwoFactorVerificationService);
                 assert($view instanceof Twig);
-                assert($redirectTokenProvider instanceof \Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface);
+                assert($returnTargetService instanceof ReturnTargetServiceInterface);
 
-                return new TwoFactorController($enrollmentService, $verificationService, $view, $redirectTokenProvider);
+                return new TwoFactorController($enrollmentService, $verificationService, $view, $returnTargetService);
             },
             AdminNotificationPreferenceController::class => function (ContainerInterface $c) {
                 $reader = $c->get(AdminNotificationPreferenceReaderInterface::class);
@@ -1329,18 +1334,18 @@ class Container
             SessionStateGuardMiddleware::class => function (ContainerInterface $c) {
                 $service = $c->get(StepUpService::class);
                 $repo = $c->get(AdminTotpSecretStoreInterface::class);
-                $redirectTokenProvider = $c->get(\Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface::class);
+                $returnTargetService = $c->get(ReturnTargetServiceInterface::class);
                 assert($service instanceof StepUpService);
                 assert($repo instanceof AdminTotpSecretStoreInterface);
-                assert($redirectTokenProvider instanceof \Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface);
-                return new SessionStateGuardMiddleware($service, $repo, $redirectTokenProvider);
+                assert($returnTargetService instanceof ReturnTargetServiceInterface);
+                return new SessionStateGuardMiddleware($service, $repo, $returnTargetService);
             },
             ScopeGuardMiddleware::class => function (ContainerInterface $c) {
                 $service = $c->get(StepUpService::class);
-                $redirectTokenProvider = $c->get(\Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface::class);
+                $returnTargetService = $c->get(ReturnTargetServiceInterface::class);
                 assert($service instanceof StepUpService);
-                assert($redirectTokenProvider instanceof \Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface);
-                return new ScopeGuardMiddleware($service, $redirectTokenProvider);
+                assert($returnTargetService instanceof ReturnTargetServiceInterface);
+                return new ScopeGuardMiddleware($service, $returnTargetService);
             },
             \Maatify\AdminKernel\Http\Controllers\StepUpController::class => function (ContainerInterface $c) {
                 $stepUpService = $c->get(\Maatify\AdminKernel\Domain\Service\StepUpService::class);
@@ -1413,7 +1418,7 @@ class Container
                 $registry->register(new Aes256GcmAlgorithm());
                 return $registry;
             },
-            KeyRotationService::class => function (ContainerInterface $c) use ($cryptoRing) {
+            KeyProviderInterface::class => function (ContainerInterface $c) use ($cryptoRing) {
                 $config = $c->get(AdminConfigDTO::class);
                 assert($config instanceof AdminConfigDTO);
 
@@ -1476,10 +1481,13 @@ class Container
                     throw new \Exception("Crypto Configuration Error: Exactly ONE active key is required. Found: {$activeCount}");
                 }
 
-                $provider = new InMemoryKeyProvider($keys);
-                $policy = new StrictSingleActiveKeyPolicy();
+                return new InMemoryKeyProvider($keys);
+            },
+            KeyRotationService::class => function (ContainerInterface $c) {
+                $provider = $c->get(KeyProviderInterface::class);
+                assert($provider instanceof KeyProviderInterface);
 
-                return new KeyRotationService($provider, $policy);
+                return new KeyRotationService($provider, new StrictSingleActiveKeyPolicy());
             },
             HKDFService::class => function (ContainerInterface $c) {
                 return new HKDFService();
@@ -2079,25 +2087,31 @@ class Container
                 return new \Maatify\AdminKernel\Infrastructure\Repository\Permissions\PdoPermissionAdminsQueryRepository($pdo);
             },
 
-            \Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface::class => function (ContainerInterface $c) {
-                $keyRotation = $c->get(KeyRotationService::class);
-                $hkdf = $c->get(HKDFService::class);
-                assert($keyRotation instanceof KeyRotationService);
-                assert($hkdf instanceof HKDFService);
-                return new \Maatify\AdminKernel\Infrastructure\Crypto\RedirectTokenCryptoSignatureProvider($keyRotation, $hkdf);
+            ReturnTargetServiceInterface::class => function (ContainerInterface $c) {
+                $keyProvider = $c->get(KeyProviderInterface::class);
+                $clock = $c->get(\Maatify\SharedCommon\Contracts\ClockInterface::class);
+                assert($keyProvider instanceof KeyProviderInterface);
+                assert($clock instanceof \Maatify\SharedCommon\Contracts\ClockInterface);
+
+                return new HmacReturnTargetService(
+                    new ReturnTargetConfig('admin-auth', 300),
+                    $keyProvider,
+                    $clock,
+                    new AdminReturnTargetRestrictionPolicy()
+                );
             },
 
             \Maatify\AdminKernel\Http\Middleware\SessionGuardMiddleware::class => function (ContainerInterface $c) {
                 $sessionValidationService = $c->get(\Maatify\AdminKernel\Domain\Service\SessionValidationService::class);
                 $rememberMeService = $c->get(RememberMeService::class);
                 $cookieFactory = $c->get(\Maatify\AdminKernel\Http\Cookie\CookieFactoryService::class);
-                $redirectTokenProvider = $c->get(\Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface::class);
+                $returnTargetService = $c->get(ReturnTargetServiceInterface::class);
                 assert($sessionValidationService instanceof \Maatify\AdminKernel\Domain\Service\SessionValidationService);
                 assert($rememberMeService instanceof RememberMeService);
                 assert($cookieFactory instanceof \Maatify\AdminKernel\Http\Cookie\CookieFactoryService);
-                assert($redirectTokenProvider instanceof \Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface);
+                assert($returnTargetService instanceof ReturnTargetServiceInterface);
 
-                return new \Maatify\AdminKernel\Http\Middleware\SessionGuardMiddleware($sessionValidationService, $rememberMeService, $cookieFactory, $redirectTokenProvider);
+                return new \Maatify\AdminKernel\Http\Middleware\SessionGuardMiddleware($sessionValidationService, $rememberMeService, $cookieFactory, $returnTargetService);
             },
 
             \Maatify\AbuseProtection\Contracts\AbuseSignatureProviderInterface::class => function (ContainerInterface $c) {

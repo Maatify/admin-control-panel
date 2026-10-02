@@ -95,10 +95,10 @@ Submits OTP to elevate session scope.
 **Parameters (Form Data):**
 *   `code` (required): 6-digit OTP.
 *   `scope` (optional): Requested scope (default `login`).
-*   `return_to` (optional): URL to redirect to on success.
+*   `r` (optional): opaque signed return-target token (issued by the server via `maatify/php-return-target`); an invalid, expired, or unsafe token is ignored and the user lands on `/dashboard`.
 
 **Response:**
-*   **Success (302):** Redirects to `return_to` or `/dashboard`.
+*   **Success (302):** Redirects to the verified `r` target or `/dashboard`.
 *   **Error (200):** Renders page with error.
 
 ---

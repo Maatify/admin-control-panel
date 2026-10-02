@@ -10,7 +10,7 @@ use Maatify\AdminKernel\Domain\Enum\Scope;
 use Maatify\AdminKernel\Domain\Enum\SessionState;
 use Maatify\AdminKernel\Domain\Service\StepUpService;
 use Maatify\AdminKernel\Http\Auth\AuthSurface;
-use Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface;
+use Maatify\ReturnTarget\Service\ReturnTargetServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -22,7 +22,7 @@ readonly class SessionStateGuardMiddleware implements MiddlewareInterface
     public function __construct(
         private StepUpService $stepUpService,
         private AdminTotpSecretStoreInterface $totpSecretStore,
-        private RedirectTokenProviderInterface $redirectTokenProvider
+        private ReturnTargetServiceInterface $returnTargetService
     ) {
     }
 
@@ -136,7 +136,10 @@ readonly class SessionStateGuardMiddleware implements MiddlewareInterface
         }
 
         $target = $query !== '' ? $path . '?' . $query : $path;
-        $token = $this->redirectTokenProvider->issue($target);
+        $token = $this->returnTargetService->issue($target);
+        if ($token === null) {
+            return $basePath;
+        }
 
         return $basePath . '?r=' . urlencode($token);
     }

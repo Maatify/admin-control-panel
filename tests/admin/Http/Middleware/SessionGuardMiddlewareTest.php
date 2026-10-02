@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Http\Middleware;
 
 use Maatify\AdminKernel\Context\RequestContext;
-use Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface;
+use Maatify\ReturnTarget\Service\ReturnTargetServiceInterface;
 use Maatify\AdminKernel\Domain\Service\RememberMeService;
 use Maatify\AdminKernel\Domain\Service\SessionValidationService;
 use Maatify\AdminKernel\Http\Cookie\CookieFactoryService;
@@ -21,14 +21,14 @@ final class SessionGuardMiddlewareTest extends TestCase
     private SessionValidationService&MockObject $sessionValidationService;
     private RememberMeService&MockObject $rememberMeService;
     private CookieFactoryService&MockObject $cookieFactory;
-    private RedirectTokenProviderInterface&MockObject $redirectTokenProvider;
+    private ReturnTargetServiceInterface&MockObject $returnTargetService;
 
     protected function setUp(): void
     {
         $this->sessionValidationService = $this->createMock(SessionValidationService::class);
         $this->rememberMeService = $this->createMock(RememberMeService::class);
         $this->cookieFactory = $this->createMock(CookieFactoryService::class);
-        $this->redirectTokenProvider = $this->createMock(RedirectTokenProviderInterface::class);
+        $this->returnTargetService = $this->createMock(ReturnTargetServiceInterface::class);
     }
 
     public function testWebSessionFailureRedirectsToLoginWithTokenAndPreservesQuery(): void
@@ -37,10 +37,10 @@ final class SessionGuardMiddlewareTest extends TestCase
             $this->sessionValidationService,
             $this->rememberMeService,
             $this->cookieFactory,
-            $this->redirectTokenProvider
+            $this->returnTargetService
         );
 
-        $this->redirectTokenProvider->expects($this->once())
+        $this->returnTargetService->expects($this->once())
             ->method('issue')
             ->with('/dashboard?tab=security')
             ->willReturn('signed-token');
@@ -54,16 +54,39 @@ final class SessionGuardMiddlewareTest extends TestCase
         self::assertSame('/login?r=signed-token', $response->getHeaderLine('Location'));
     }
 
-    public function testApiSessionFailureReturns401WithoutRedirectToken(): void
+    public function testWebSessionFailureRedirectsToPlainLoginWhenTargetIsNotIssuable(): void
     {
         $middleware = new SessionGuardMiddleware(
             $this->sessionValidationService,
             $this->rememberMeService,
             $this->cookieFactory,
-            $this->redirectTokenProvider
+            $this->returnTargetService
         );
 
-        $this->redirectTokenProvider->expects($this->never())->method('issue');
+        $this->returnTargetService->expects($this->once())
+            ->method('issue')
+            ->with('/dashboard?tab=security')
+            ->willReturn(null);
+
+        $request = (new ServerRequestFactory())->createServerRequest('GET', '/dashboard?tab=security')
+            ->withAttribute(RequestContext::class, new RequestContext('r', '127.0.0.1', 'ua'));
+
+        $response = $middleware->process($request, $this->createMock(RequestHandlerInterface::class));
+
+        self::assertSame(302, $response->getStatusCode());
+        self::assertSame('/login', $response->getHeaderLine('Location'));
+    }
+
+    public function testApiSessionFailureReturns401WithoutReturnTargetToken(): void
+    {
+        $middleware = new SessionGuardMiddleware(
+            $this->sessionValidationService,
+            $this->rememberMeService,
+            $this->cookieFactory,
+            $this->returnTargetService
+        );
+
+        $this->returnTargetService->expects($this->never())->method('issue');
 
         $request = (new ServerRequestFactory())->createServerRequest('GET', '/api/v1/admins')
             ->withAttribute(RequestContext::class, new RequestContext('r', '127.0.0.1', 'ua'));
@@ -81,7 +104,7 @@ final class SessionGuardMiddlewareTest extends TestCase
             $this->sessionValidationService,
             $this->rememberMeService,
             $this->cookieFactory,
-            $this->redirectTokenProvider
+            $this->returnTargetService
         );
 
         $this->rememberMeService->expects($this->once())
@@ -96,7 +119,7 @@ final class SessionGuardMiddlewareTest extends TestCase
         $this->cookieFactory->method('createSessionCookie')->willReturn('auth_token=new-auth; Path=/');
         $this->cookieFactory->method('createRememberMeCookie')->willReturn('remember_me=new-rm; Path=/');
 
-        $this->redirectTokenProvider->expects($this->never())->method('issue');
+        $this->returnTargetService->expects($this->never())->method('issue');
 
         $request = (new ServerRequestFactory())->createServerRequest('GET', '/dashboard')
             ->withAttribute(RequestContext::class, new RequestContext('r', '127.0.0.1', 'ua'))

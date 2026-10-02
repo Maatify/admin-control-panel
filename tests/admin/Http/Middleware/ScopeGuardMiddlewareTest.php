@@ -6,7 +6,7 @@ namespace Tests\Http\Middleware;
 
 use Maatify\AdminKernel\Context\AdminContext;
 use Maatify\AdminKernel\Context\RequestContext;
-use Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface;
+use Maatify\ReturnTarget\Service\ReturnTargetServiceInterface;
 use Maatify\AdminKernel\Domain\Enum\Scope;
 use Maatify\AdminKernel\Domain\Service\StepUpService;
 use Maatify\AdminKernel\Http\Middleware\ScopeGuardMiddleware;
@@ -24,16 +24,16 @@ use Slim\Routing\RoutingResults;
 class ScopeGuardMiddlewareTest extends TestCase
 {
     private StepUpService&MockObject $stepUpService;
-    private RedirectTokenProviderInterface&MockObject $redirectTokenProvider;
+    private ReturnTargetServiceInterface&MockObject $returnTargetService;
     private ScopeGuardMiddleware $middleware;
 
     protected function setUp(): void
     {
         $this->stepUpService = $this->createMock(StepUpService::class);
-        $this->redirectTokenProvider = $this->createMock(RedirectTokenProviderInterface::class);
+        $this->returnTargetService = $this->createMock(ReturnTargetServiceInterface::class);
         $this->middleware = new ScopeGuardMiddleware(
             $this->stepUpService,
-            $this->redirectTokenProvider,
+            $this->returnTargetService,
         );
     }
 

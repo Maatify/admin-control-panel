@@ -31,6 +31,11 @@ final class TestClock implements ClockInterface
         return $this->now;
     }
 
+    public function advance(int $seconds): void
+    {
+        $this->now = $this->now->modify(sprintf('%+d seconds', $seconds));
+    }
+
     public function getTimezone(): DateTimeZone
     {
         return $this->tz;

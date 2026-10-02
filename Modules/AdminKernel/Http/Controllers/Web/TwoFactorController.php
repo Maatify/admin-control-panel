@@ -11,7 +11,7 @@ use Maatify\AdminKernel\Application\Auth\TwoFactorVerificationService;
 use Maatify\AdminKernel\Context\AdminContext;
 use Maatify\AdminKernel\Context\RequestContext;
 use Maatify\AdminKernel\Domain\Enum\Scope;
-use Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface;
+use Maatify\ReturnTarget\Service\ReturnTargetServiceInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
@@ -22,7 +22,7 @@ readonly class TwoFactorController
         private TwoFactorEnrollmentService $enrollmentService,
         private TwoFactorVerificationService $verificationService,
         private Twig $view,
-        private RedirectTokenProviderInterface $redirectTokenProvider,
+        private ReturnTargetServiceInterface $returnTargetService,
     ) {
     }
 
@@ -157,9 +157,9 @@ $redirectToken = $this->resolveRedirectToken($request);
         if ($result->success) {
             // ADDITIVE START
             if ($redirectToken !== null) {
-                $parsed = $this->redirectTokenProvider->verifyAndParse($redirectToken);
-                if ($parsed !== null) {
-                    return $response->withHeader('Location', $parsed->path)->withStatus(302);
+                $verified = $this->returnTargetService->verify($redirectToken);
+                if ($verified !== null) {
+                    return $response->withHeader('Location', $verified->target)->withStatus(302);
                 }
             }
             // ADDITIVE END

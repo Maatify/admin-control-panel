@@ -12,7 +12,7 @@ use Maatify\AdminKernel\Domain\Exception\InvalidCredentialsException;
 use Maatify\AdminKernel\Domain\Exception\InvalidSessionException;
 use Maatify\AdminKernel\Domain\Exception\ExpiredSessionException;
 use Maatify\AdminKernel\Domain\Exception\RevokedSessionException;
-use Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface;
+use Maatify\ReturnTarget\Service\ReturnTargetServiceInterface;
 use Maatify\AdminKernel\Http\Cookie\CookieFactoryService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -35,7 +35,7 @@ readonly class SessionGuardMiddleware implements MiddlewareInterface
         private SessionValidationService $sessionValidationService,
         private RememberMeService $rememberMeService,
         private CookieFactoryService $cookieFactory,
-        private RedirectTokenProviderInterface $redirectTokenProvider
+        private ReturnTargetServiceInterface $returnTargetService
     ) {}
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
@@ -206,7 +206,7 @@ readonly class SessionGuardMiddleware implements MiddlewareInterface
 
         return (new \Slim\Psr7\Response())
             ->withHeader('Set-Cookie', $clearCookie)
-            ->withHeader('Location', $this->buildLoginLocationWithRedirectToken($request))
+            ->withHeader('Location', $this->buildLoginLocationWithReturnTarget($request))
             ->withStatus(302);
     }
 
@@ -224,11 +224,11 @@ readonly class SessionGuardMiddleware implements MiddlewareInterface
         }
 
         return (new \Slim\Psr7\Response())
-            ->withHeader('Location', $this->buildLoginLocationWithRedirectToken($request))
+            ->withHeader('Location', $this->buildLoginLocationWithReturnTarget($request))
             ->withStatus(302);
     }
 
-    private function buildLoginLocationWithRedirectToken(ServerRequestInterface $request): string
+    private function buildLoginLocationWithReturnTarget(ServerRequestInterface $request): string
     {
         $uri = $request->getUri();
         $path = $uri->getPath();
@@ -243,7 +243,10 @@ readonly class SessionGuardMiddleware implements MiddlewareInterface
         }
 
         $target = $query !== '' ? $path . '?' . $query : $path;
-        $token = $this->redirectTokenProvider->issue($target);
+        $token = $this->returnTargetService->issue($target);
+        if ($token === null) {
+            return '/login';
+        }
 
         return '/login?r=' . urlencode($token);
     }

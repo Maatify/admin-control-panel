@@ -8,10 +8,12 @@ use DateTimeImmutable;
 use DI\Container as DIContainer;
 use DI\ContainerBuilder;
 use Maatify\AdminKernel\Ui\Config\MediaUrlConfigDTO;
+use Maatify\ReturnTarget\Service\ReturnTargetServiceInterface;
+use Maatify\SharedCommon\Contracts\ClockInterface;
+use Tests\Support\TestClock;
 use Maatify\AdminKernel\Application\Crypto\AdminIdentifierCryptoServiceInterface;
 use Maatify\AdminKernel\Domain\Contracts\Admin\AdminPasswordRepositoryInterface;
 use Maatify\AdminKernel\Domain\Contracts\Admin\AdminTotpSecretStoreInterface;
-use Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface;
 use Maatify\AdminKernel\Domain\Contracts\TotpServiceInterface;
 use Maatify\AdminKernel\Domain\Service\PasswordService;
 use Maatify\AdminKernel\Infrastructure\Repository\AdminEmailRepository;
@@ -26,7 +28,7 @@ use Tests\Support\UnifiedEndpointBase;
  * End-to-end baseline for the "return to the page I wanted after login" flow.
  *
  * Nothing in the redirect path is mocked: the real kernel, middleware stack,
- * controllers, HMAC token provider (RedirectTokenCryptoSignatureProvider) and
+ * controllers, the maatify/php-return-target service (HmacReturnTargetService) and
  * database are used. This is the behavioural contract that must keep passing
  * when the HMAC provider is replaced by maatify/php-return-target.
  *
@@ -71,21 +73,21 @@ final class LoginReturnTargetE2ETest extends UnifiedEndpointBase
         $location = $response->getHeaderLine('Location');
         self::assertStringStartsWith('/login?r=', $location);
 
-        $parsed = $this->tokenProvider()->verifyAndParse($this->extractToken($location));
-        self::assertNotNull($parsed, 'Issued token must verify with the real provider.');
-        self::assertSame('/dashboard', $parsed->path);
+        $verified = $this->returnTarget()->verify($this->extractToken($location));
+        self::assertNotNull($verified, 'Issued token must verify with the real service.');
+        self::assertSame('/dashboard', $verified->target);
     }
 
     public function test_query_string_of_original_target_is_preserved_in_token(): void
     {
         $response = $this->get('/dashboard?tab=audit&page=2');
 
-        $parsed = $this->tokenProvider()->verifyAndParse(
+        $verified = $this->returnTarget()->verify(
             $this->extractToken($response->getHeaderLine('Location'))
         );
 
-        self::assertNotNull($parsed);
-        self::assertSame('/dashboard?tab=audit&page=2', $parsed->path);
+        self::assertNotNull($verified);
+        self::assertSame('/dashboard?tab=audit&page=2', $verified->target);
     }
 
     public function test_login_page_itself_never_produces_a_token(): void
@@ -98,7 +100,7 @@ final class LoginReturnTargetE2ETest extends UnifiedEndpointBase
 
     public function test_login_page_carries_token_into_form_as_hidden_field(): void
     {
-        $token = $this->tokenProvider()->issue('/dashboard?tab=audit');
+        $token = $this->issueToken('/dashboard?tab=audit');
 
         $response = $this->get('/login?r=' . urlencode($token));
 
@@ -124,7 +126,7 @@ final class LoginReturnTargetE2ETest extends UnifiedEndpointBase
 
     public function test_token_submitted_via_query_string_is_honoured(): void
     {
-        $token = $this->tokenProvider()->issue('/dashboard?tab=audit');
+        $token = $this->issueToken('/dashboard?tab=audit');
 
         $login = $this->postLogin([], '/login?r=' . urlencode($token));
 
@@ -134,8 +136,8 @@ final class LoginReturnTargetE2ETest extends UnifiedEndpointBase
 
     public function test_body_token_takes_precedence_over_query_token(): void
     {
-        $body = $this->tokenProvider()->issue('/dashboard?from=body');
-        $query = $this->tokenProvider()->issue('/dashboard?from=query');
+        $body = $this->issueToken('/dashboard?from=body');
+        $query = $this->issueToken('/dashboard?from=query');
 
         $login = $this->postLogin(['r' => $body], '/login?r=' . urlencode($query));
 
@@ -190,7 +192,7 @@ final class LoginReturnTargetE2ETest extends UnifiedEndpointBase
     #[DataProvider('invalidTokenProvider')]
     public function test_invalid_token_falls_back_to_dashboard(callable $mutate): void
     {
-        $valid = $this->tokenProvider()->issue('/dashboard?tab=audit');
+        $valid = $this->issueToken('/dashboard?tab=audit');
 
         $login = $this->postLogin(['r' => $mutate($valid)]);
 
@@ -211,6 +213,7 @@ final class LoginReturnTargetE2ETest extends UnifiedEndpointBase
             'absolute external url' => ['https://evil.example/'],
             'protocol-relative url' => ['//evil.example/x'],
             'login loop' => ['/login?x=1'],
+            'login loop (bare)' => ['/login'],
             'header injection (CRLF)' => ["/dashboard\r\nSet-Cookie: x=1"],
             'header injection (LF)' => ["/dashboard\nX: y"],
             'javascript scheme' => ['javascript:alert(1)'],
@@ -219,12 +222,46 @@ final class LoginReturnTargetE2ETest extends UnifiedEndpointBase
     }
 
     #[DataProvider('unsafeTargetProvider')]
-    public function test_unsafe_target_never_becomes_a_redirect(string $target): void
+    public function test_unsafe_target_is_never_issued_and_login_lands_on_dashboard(string $target): void
     {
-        $login = $this->postLogin(['r' => $this->tokenProvider()->issue($target)]);
+        self::assertNull($this->returnTarget()->issue($target), 'Unsafe target must not receive a token.');
+
+        $login = $this->postLogin();
 
         self::assertSame(302, $login->getStatusCode());
         self::assertSame('/dashboard', $login->getHeaderLine('Location'));
+    }
+
+    public function test_token_is_accepted_before_expiry_and_rejected_after(): void
+    {
+        $token = $this->issueToken('/dashboard?tab=audit');
+
+        $this->clock()->advance(299);
+        self::assertSame('/dashboard?tab=audit', $this->postLogin(['r' => $token])->getHeaderLine('Location'));
+
+        $this->clock()->advance(2);
+        $expired = $this->postLogin(['r' => $token]);
+        self::assertSame(302, $expired->getStatusCode());
+        self::assertSame('/dashboard', $expired->getHeaderLine('Location'));
+    }
+
+    public function test_expired_token_is_ignored_by_step_up_verify(): void
+    {
+        $cookie = $this->loginAndGetCookie();
+        $token = $this->issueToken('/dashboard?tab=audit');
+
+        $this->clock()->advance(301);
+
+        $response = $this->app->handle(
+            $this->request('POST', '/2fa/verify', [
+                'code' => $this->currentTotp(),
+                'scope' => 'login',
+                'r' => $token,
+            ])->withCookieParams(['auth_token' => $cookie])
+        );
+
+        self::assertSame(302, $response->getStatusCode(), (string) $response->getBody());
+        self::assertSame('/dashboard', $response->getHeaderLine('Location'));
     }
 
     // ------------------------------------------------------------------
@@ -233,7 +270,7 @@ final class LoginReturnTargetE2ETest extends UnifiedEndpointBase
 
     public function test_failed_login_does_not_redirect_and_keeps_token_in_form(): void
     {
-        $token = $this->tokenProvider()->issue('/dashboard?tab=audit');
+        $token = $this->issueToken('/dashboard?tab=audit');
 
         $login = $this->postLogin(['r' => $token, 'password' => 'wrong-password']);
 
@@ -250,7 +287,7 @@ final class LoginReturnTargetE2ETest extends UnifiedEndpointBase
     {
         $cookie = $this->loginAndGetCookie();
 
-        $token = $this->tokenProvider()->issue('/dashboard?tab=audit');
+        $token = $this->issueToken('/dashboard?tab=audit');
         $response = $this->app->handle(
             $this->request('POST', '/2fa/verify', [
                 'code' => $this->currentTotp(),
@@ -268,7 +305,7 @@ final class LoginReturnTargetE2ETest extends UnifiedEndpointBase
     {
         $cookie = $this->loginAndGetCookie();
 
-        $valid = $this->tokenProvider()->issue('/dashboard?tab=audit');
+        $valid = $this->issueToken('/dashboard?tab=audit');
 
         $response = $this->app->handle(
             $this->request('POST', '/2fa/verify', [
@@ -313,9 +350,9 @@ final class LoginReturnTargetE2ETest extends UnifiedEndpointBase
         self::assertSame(302, $hop4->getStatusCode());
         $stepUpUrl = $hop4->getHeaderLine('Location');
         self::assertStringStartsWith('/2fa/verify', $stepUpUrl);
-        $parsed = $this->tokenProvider()->verifyAndParse($this->extractToken($stepUpUrl));
-        self::assertNotNull($parsed);
-        self::assertSame('/dashboard?tab=audit', $parsed->path);
+        $verified = $this->returnTarget()->verify($this->extractToken($stepUpUrl));
+        self::assertNotNull($verified);
+        self::assertSame('/dashboard?tab=audit', $verified->target);
 
         // Hop 5: valid TOTP -> back to the deep link again.
         $hop5 = $this->app->handle(
@@ -339,12 +376,28 @@ final class LoginReturnTargetE2ETest extends UnifiedEndpointBase
     // Helpers
     // ------------------------------------------------------------------
 
-    private function tokenProvider(): RedirectTokenProviderInterface
+    private function returnTarget(): ReturnTargetServiceInterface
     {
-        $provider = $this->container()->get(RedirectTokenProviderInterface::class);
-        self::assertInstanceOf(RedirectTokenProviderInterface::class, $provider);
+        $service = $this->container()->get(ReturnTargetServiceInterface::class);
+        self::assertInstanceOf(ReturnTargetServiceInterface::class, $service);
 
-        return $provider;
+        return $service;
+    }
+
+    private function issueToken(string $target): string
+    {
+        $token = $this->returnTarget()->issue($target);
+        self::assertNotNull($token, 'Safe target must be issued a token: ' . $target);
+
+        return $token;
+    }
+
+    private function clock(): TestClock
+    {
+        $clock = $this->container()->get(ClockInterface::class);
+        self::assertInstanceOf(TestClock::class, $clock);
+
+        return $clock;
     }
 
     private function container(): DIContainer
