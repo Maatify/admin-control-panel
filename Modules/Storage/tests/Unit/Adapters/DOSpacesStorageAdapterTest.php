@@ -106,14 +106,6 @@ final class DOSpacesStorageAdapterTest extends StorageModuleTestCase
     }
 
     #[Test]
-    public function constructor_defaultsToPublicRead(): void
-    {
-        $adapter = new DOSpacesStorageAdapter($this->makeClient(), 'test-bucket', 'https://cdn.example.com');
-
-        $this->assertSame('https://cdn.example.com/a.jpg', $adapter->url('a.jpg'));
-    }
-
-    #[Test]
     #[DataProvider('unsupportedAcls')]
     public function constructor_rejectsUnsupportedAcl(string $acl): void
     {
@@ -146,8 +138,27 @@ final class DOSpacesStorageAdapterTest extends StorageModuleTestCase
         ];
     }
 
+    /**
+     * Every upload path x {explicit private, explicit public-read, implicit default}.
+     * The default must stay 'public-read'.
+     *
+     * @return array<string, array{0: string, 1: string|null, 2: string}>
+     */
+    public static function aclUploadMatrix(): array
+    {
+        return [
+            'storeFromPath explicit private'     => ['storeFromPath', 'private', 'private'],
+            'storeFromPath explicit public-read' => ['storeFromPath', 'public-read', 'public-read'],
+            'storeFromPath default'              => ['storeFromPath', null, 'public-read'],
+            'store explicit private'             => ['store', 'private', 'private'],
+            'store explicit public-read'         => ['store', 'public-read', 'public-read'],
+            'store default'                      => ['store', null, 'public-read'],
+        ];
+    }
+
     #[Test]
-    public function store_sendsConfiguredAclToTheClient(): void
+    #[DataProvider('aclUploadMatrix')]
+    public function upload_sendsExpectedAclToTheClient(string $method, ?string $acl, string $expected): void
     {
         $captured = null;
         $mock = new AwsMockHandler();
@@ -163,19 +174,27 @@ final class DOSpacesStorageAdapterTest extends StorageModuleTestCase
             'credentials' => ['key' => 'test-key', 'secret' => 'test-secret'],
             'handler'     => $mock,
         ]);
-        $adapter = new DOSpacesStorageAdapter($client, 'test-bucket', null, 'private');
 
-        $source = tempnam(sys_get_temp_dir(), 'acl');
-        $this->assertIsString($source);
-        file_put_contents($source, 'x');
+        // Omit $acl entirely for the default case so the constructor default is what is exercised.
+        $adapter = $acl === null
+            ? new DOSpacesStorageAdapter($client, 'test-bucket', null)
+            : new DOSpacesStorageAdapter($client, 'test-bucket', null, $acl);
 
-        try {
-            $adapter->storeFromPath($source, 'a/b.txt');
-        } finally {
-            unlink($source);
+        if ($method === 'store') {
+            $adapter->store($this->createMockUploadedFile(), 'a/b.jpg');
+        } else {
+            $source = tempnam(sys_get_temp_dir(), 'acl');
+            $this->assertIsString($source);
+            file_put_contents($source, 'x');
+
+            try {
+                $adapter->storeFromPath($source, 'a/b.txt');
+            } finally {
+                unlink($source);
+            }
         }
 
-        $this->assertSame('private', $captured);
+        $this->assertSame($expected, $captured);
     }
 
     // ── url() ─────────────────────────────────────────────────────────────────
