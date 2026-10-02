@@ -118,7 +118,7 @@ Guards that redirect a browser (`SessionGuardMiddleware` to `/login`, `SessionSt
 
 - `POST /login` and `POST /2fa/verify` redirect to the verified target; the page is only reached after the session is fully authorised (login, then step-up, then the original page).
 - If the target cannot be issued (unsafe or `/login`), `r` is omitted. If a token is missing, invalid, tampered, or expired, the user lands on `/dashboard`.
-- Redirect targets are never taken from raw client paths. Frontend pages that receive `STEP_UP_REQUIRED` from an API call send `GET /2fa/verify?scope=...&return_to=<path>`; the server treats `return_to` as untrusted, converts a safe internal path into a signed token (`r`) in the form, and ignores anything else.
+- Redirect targets are never taken from raw client paths. Frontend pages that receive `STEP_UP_REQUIRED` from an API call send `GET /2fa/verify?scope=...&return_to=<path+query>`; the server treats `return_to` as untrusted and converts it into a signed token (`r`) in the form: the full path and query when accepted, the path alone when only the query is refused (best-effort), and no token (landing on `/dashboard`) when the path itself is refused.
 
 ### Forbidden Behavior
 - No "Verified" flag is stored in the PHP Session.
