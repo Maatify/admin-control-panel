@@ -25,12 +25,14 @@ use Slim\Psr7\Factory\ServerRequestFactory;
 use Tests\Support\UnifiedEndpointBase;
 
 /**
- * End-to-end baseline for the "return to the page I wanted after login" flow.
+ * End-to-end contract for the "return to the page I wanted after login" flow.
  *
  * Nothing in the redirect path is mocked: the real kernel, middleware stack,
- * controllers, the maatify/php-return-target service (HmacReturnTargetService) and
- * database are used. This is the behavioural contract that must keep passing
- * when the HMAC provider is replaced by maatify/php-return-target.
+ * controllers, the maatify/php-return-target service (HmacReturnTargetService)
+ * and the database are used. The suite was first proven against the previous
+ * in-house HMAC provider and then kept, with unchanged expectations, as the
+ * regression contract for maatify/php-return-target. It only touches the public
+ * ReturnTargetServiceInterface and treats tokens as opaque strings.
  *
  * Flow under test:
  *   protected page -> 302 /login?r=<signed token> -> POST /login -> 302 <original page>
