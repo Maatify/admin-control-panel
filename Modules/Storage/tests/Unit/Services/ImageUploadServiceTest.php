@@ -14,7 +14,7 @@ use Maatify\Storage\Tests\Unit\StorageModuleTestCase;
  * Tests for ImageUploadService
  *
  * Tests include validation of:
- * - Default allowed extensions (jpg, jpeg, png, webp)
+ * - Default allowed extensions (jpg, jpeg, png, webp, heic, heif)
  * - Custom size limits
  * - Custom dimensions constraints
  * - Semantic basename generation (business context in filenames)
@@ -51,6 +51,39 @@ final class ImageUploadServiceTest extends StorageModuleTestCase
 
         $this->assertStringStartsWith('products/', $path->path);
         $this->assertStringEndsWith('.jpg', $path->path);
+    }
+
+    public function testUploadsHeicImageWithDefaults(): void
+    {
+        $file = $this->createMockUploadedFile(
+            pack('N', 16) . 'ftypheic' . pack('N', 0) . str_repeat("\x00", 64),
+            'photo.heic',
+            'image/heic',
+        );
+
+        $path = $this->service->upload($file, 'products');
+
+        $this->assertStringEndsWith('.heic', $path->path);
+    }
+
+    public function testGifAndBmpAreNotEnabledByGlobalDefaults(): void
+    {
+        $files = [
+            'image.gif' => "GIF89a" . str_repeat("\x00", 64),
+            'image.bmp' => 'BM' . str_repeat("\x00", 64),
+        ];
+
+        foreach ($files as $filename => $content) {
+            try {
+                $this->service->upload(
+                    $this->createMockUploadedFile($content, $filename),
+                    'products',
+                );
+                self::fail("{$filename} should require an explicit extension allowlist.");
+            } catch (\Maatify\Storage\Exception\InvalidFileException) {
+                self::assertTrue(true);
+            }
+        }
     }
 
     public function testUploadsImageWithCustomBaseName(): void

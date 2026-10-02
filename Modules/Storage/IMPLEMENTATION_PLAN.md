@@ -1,24 +1,25 @@
 # Storage Module - Implementation Plan v2.0
 
-**Status:** LEGACY / HISTORICAL — NOT A COMPLIANCE DECLARATION
+**Status:** Historical record - not a compliance declaration
 **Last Updated:** 2025-05-07
 
 ---
 
 ## Historical standard references (not current compliance rules)
 
-This implementation plan predates the pinned standards snapshot. It is
-retained as an historical record of the Storage implementation and its
-planned adjustments; it does not claim compliance with the current module
-profile. Future Storage changes are governed by the current local standards
-and `docs/standards/ADMIN_ADOPTION_POLICY.md`.
+This implementation plan predates the engineering-standards snapshot the Maatify
+packages are reviewed against today. It is kept as a record of how the Storage
+module was implemented and of the adjustments planned at the time. It does not
+claim compliance with any current module profile, and it does not track the
+items below as pending work. For the module's current behavior see `README.md`
+and `CHANGELOG.md`.
 
 ### Historical implementation notes (as-is)
 - Namespace: `Maatify\Storage\`
 - Standalone & extractable (PSR-4 autoload)
 - PHPStan level: max
 
-### Historical planned adjustments (not completed by this document)
+### Historical planned adjustments (status not tracked here)
 - **Exception folder:** Rename `Exceptions/` → `Exception/` (per section 4)
 - **Exception interface:** Create `StorageExceptionInterface` (per section 6)
 - **All exceptions:** Implement interface + use named constructors (per section 6)

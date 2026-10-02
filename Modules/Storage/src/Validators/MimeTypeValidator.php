@@ -25,6 +25,8 @@ use Psr\Http\Message\UploadedFileInterface;
  * - image/webp  (.webp)
  * - image/gif   (.gif)
  * - image/bmp   (.bmp)
+ * - image/heic  (.heic)
+ * - image/heif  (.heif)
  * - image/x-icon (.ico)
  *
  * Supported MIME types for videos:
@@ -44,6 +46,9 @@ use Psr\Http\Message\UploadedFileInterface;
  * - audio/mpeg  (.mp3)
  * - audio/wav   (.wav)
  * - audio/ogg   (.ogg, .oga)
+ * - audio/mp4   (.m4a)
+ * - audio/aac   (.aac)
+ * - audio/x-caf (.caf)
  */
 final class MimeTypeValidator implements FileValidator
 {
@@ -63,6 +68,20 @@ final class MimeTypeValidator implements FileValidator
      */
     public function validate(UploadedFileInterface $file): void
     {
+        $this->validateAndDetect($file);
+    }
+
+    /**
+     * Detects the content MIME type and validates it against this validator's allowlist.
+     *
+     * Returning the detected type lets callers make content-authoritative decisions
+     * after the same validation that protects the upload boundary. Client filename and
+     * client-provided MIME metadata are never consulted.
+     *
+     * @throws InvalidFileException If MIME type is not allowed or cannot be determined.
+     */
+    public function validateAndDetect(UploadedFileInterface $file): string
+    {
         $mimeType = $this->detectMimeType($file);
 
         if (!in_array($mimeType, $this->allowedMimeTypes, true)) {
@@ -71,6 +90,8 @@ final class MimeTypeValidator implements FileValidator
                 $this->allowedMimeTypes
             );
         }
+
+        return $mimeType;
     }
 
     /**
@@ -133,22 +154,20 @@ final class MimeTypeValidator implements FileValidator
             }
         }
 
-        // MP4: 66 74 79 70 (ftyp) at offset 4
+        // ISO Base Media File Format: MP4, MOV, M4A, HEIC and HEIF.
         if ($byte1 === 0x00 && $byte2 === 0x00 && $byte3 === 0x00) {
-            $stream->seek(4);
-            $ftypSig = $stream->read(4);
-            $stream->rewind();
-            if ($ftypSig === 'ftyp') {
-                return 'video/mp4';
+            $isoBmffMimeType = $this->detectIsoBmffMimeType($header);
+            if ($isoBmffMimeType !== null) {
+                return $isoBmffMimeType;
             }
         }
 
-        // MOV (QuickTime): 00 00 00 XX 66 74 79 70
+        // MOV legacy atoms: 00 00 00 XX mdat/wide.
         if ($byte1 === 0x00 && $byte2 === 0x00 && $byte3 === 0x00) {
             $stream->seek(4);
             $sig = $stream->read(4);
             $stream->rewind();
-            if (str_starts_with($sig, 'mdat') || str_starts_with($sig, 'ftyp') || str_starts_with($sig, 'wide')) {
+            if (str_starts_with($sig, 'mdat') || str_starts_with($sig, 'wide')) {
                 return 'video/quicktime';
             }
         }
@@ -180,6 +199,11 @@ final class MimeTypeValidator implements FileValidator
 
         // ─── AUDIO FORMATS ──────────────────────────────────────────────────
 
+        // AAC: ADTS frame header (FFF1/FFF9 and compatible MPEG-2 variants).
+        if ($byte1 === 0xFF && ($byte2 & 0xF6) === 0xF0) {
+            return 'audio/aac';
+        }
+
         // MP3: ID3 tag (49 44 33 = "ID3") or MPEG frame header
         // ID3 is MORE COMMON in real MP3 files - most actual MP3s start with ID3v2 tag
         if ($byte1 === 0x49 && $byte2 === 0x44 && $byte3 === 0x33) {
@@ -207,8 +231,67 @@ final class MimeTypeValidator implements FileValidator
             return 'audio/ogg';
         }
 
+        // CAF: Core Audio Format.
+        if (substr($header, 0, 4) === 'caff') {
+            return 'audio/x-caf';
+        }
+
         // Unknown type
         return 'application/octet-stream';
+    }
+
+    /**
+     * Classify an ISO-BMFF file from its ftyp major and compatible brands.
+     *
+     * HEIC/HEIF files can use a generic major brand while carrying the
+     * identifying HEIF brand only in the compatible-brands list, so checking
+     * the major brand alone would incorrectly classify them as MP4.
+     */
+    private function detectIsoBmffMimeType(string $header): ?string
+    {
+        if (strlen($header) < 12 || substr($header, 4, 4) !== 'ftyp') {
+            return null;
+        }
+
+        $sizeParts = unpack('NboxSize', substr($header, 0, 4));
+        if ($sizeParts === false) {
+            return null;
+        }
+
+        $boxSize = (int) $sizeParts['boxSize'];
+        if ($boxSize !== 0 && $boxSize !== 1 && $boxSize < 16) {
+            return null;
+        }
+
+        $boxEnd  = $boxSize === 0 || $boxSize === 1
+            ? strlen($header)
+            : min($boxSize, strlen($header));
+
+        $brands = [substr($header, 8, 4)];
+        if ($boxEnd >= 16) {
+            for ($offset = 16; $offset + 4 <= $boxEnd; $offset += 4) {
+                $brands[] = substr($header, $offset, 4);
+            }
+        }
+
+        // HEIC-specific brands take precedence over generic HEIF brands.
+        if (array_intersect($brands, ['heic', 'heis', 'heix', 'hevc', 'hevs', 'hevx']) !== []) {
+            return 'image/heic';
+        }
+
+        if (array_intersect($brands, ['mif1', 'msf1']) !== []) {
+            return 'image/heif';
+        }
+
+        if (array_intersect($brands, ['M4A ', 'M4B ', 'M4P ']) !== []) {
+            return 'audio/mp4';
+        }
+
+        if (in_array('qt  ', $brands, true)) {
+            return 'video/quicktime';
+        }
+
+        return 'video/mp4';
     }
 
     /**
@@ -224,6 +307,8 @@ final class MimeTypeValidator implements FileValidator
             'image/webp',
             'image/gif',
             'image/bmp',
+            'image/heic',
+            'image/heif',
         ];
     }
 
@@ -254,6 +339,9 @@ final class MimeTypeValidator implements FileValidator
             'audio/mpeg',
             'audio/wav',
             'audio/ogg',
+            'audio/mp4',
+            'audio/aac',
+            'audio/x-caf',
         ];
     }
 }

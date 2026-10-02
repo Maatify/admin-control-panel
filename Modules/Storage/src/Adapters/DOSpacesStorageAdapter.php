@@ -23,7 +23,8 @@ use Psr\Http\Message\UploadedFileInterface;
 final class DOSpacesStorageAdapter implements StorageAdapterInterface
 {
     /**
-     * Canned ACLs supported by DigitalOcean Spaces (a subset of the S3 canned ACLs).
+     * Canned ACLs supported by DigitalOcean Spaces. Spaces implements only these two of the S3 canned ACLs, so a
+     * configured value outside the set is a configuration error that must never reach the API.
      *
      * @see https://docs.digitalocean.com/products/spaces/reference/s3-compatibility/
      */
@@ -211,8 +212,11 @@ final class DOSpacesStorageAdapter implements StorageAdapterInterface
         return match (strtolower(pathinfo($path, PATHINFO_EXTENSION))) {
             'jpg', 'jpeg' => 'image/jpeg',
             'png'         => 'image/png',
+            'bmp'         => 'image/bmp',
             'webp'        => 'image/webp',
             'gif'         => 'image/gif',
+            'heic'        => 'image/heic',
+            'heif'        => 'image/heif',
             'mp4'         => 'video/mp4',
             'webm'        => 'video/webm',
             'mov'         => 'video/quicktime',
@@ -221,6 +225,9 @@ final class DOSpacesStorageAdapter implements StorageAdapterInterface
             'mp3'         => 'audio/mpeg',
             'wav'         => 'audio/wav',
             'ogg'         => 'audio/ogg',
+            'm4a'         => 'audio/mp4',
+            'aac'         => 'audio/aac',
+            'caf'         => 'audio/x-caf',
             default       => 'application/octet-stream',
         };
     }

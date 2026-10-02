@@ -44,6 +44,17 @@ final class ExceptionTest extends TestCase
         $this->assertStringContainsString('do_spaces', $exception->getMessage());
     }
 
+    public function testConfigurationExceptionUnsupportedAcl(): void
+    {
+        $exception = ConfigurationException::unsupportedAcl('privte', ['private', 'public-read']);
+
+        $this->assertInstanceOf(ConfigurationException::class, $exception);
+        $this->assertSame(
+            'Unsupported DigitalOcean Spaces ACL [privte]. Allowed values: private, public-read.',
+            $exception->getMessage()
+        );
+    }
+
     public function testFileUploadExceptionFromErrorCode(): void
     {
         $exception = FileUploadException::fromErrorCode(UPLOAD_ERR_NO_FILE);

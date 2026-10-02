@@ -9,16 +9,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `DOSpacesStorageAdapter` validates the configured canned ACL in its constructor against the two ACLs
+  DigitalOcean Spaces supports, `private` and `public-read`, and throws
+  `ConfigurationException::unsupportedAcl()` for anything else. A bad `DO_SPACES_ACL` therefore fails when the
+  adapter is built instead of on the first upload, and every upload path is covered without relying on each
+  method to check. Previously any string was forwarded to S3, which also failed static analysis against newer
+  `aws-sdk-php` typings. `private` and `public-read` behave exactly as before.
+
 ### Changed
 
-- `DOSpacesStorageAdapter` now validates `$acl` in its constructor against the canned ACLs DigitalOcean Spaces
-  supports (`private`, `public-read`) and throws `ConfigurationException::unsupportedAcl()` otherwise. Previously an
-  unsupported value (for example a typo in `DO_SPACES_ACL`, or an AWS-only ACL such as `public-read-write`) only failed
-  later, on the first upload. This also narrows the property type so static analysis passes against recent
-  `aws/aws-sdk-php` releases, whose `putObject()` shape types `ACL` as a literal union.
-- ⚠️ Configurations that set `DO_SPACES_ACL` to an AWS-only canned ACL (`public-read-write`, `authenticated-read`,
-  `aws-exec-read`, `bucket-owner-read`, `bucket-owner-full-control`) now fail at construction instead of at upload;
-  Spaces does not support them.
+- **Corrects the ACL contract that earlier `[Unreleased]` entries and the `#177` / `#189` changes described.**
+  Those described seven S3 canned ACLs as supported and checked the value only when uploading, with
+  `AdapterException::unsupportedAcl()`. Spaces supports only `private` and `public-read`, so the five AWS-only
+  values (`public-read-write`, `authenticated-read`, `aws-exec-read`, `bucket-owner-read`,
+  `bucket-owner-full-control`) must be rejected locally. `AdapterException::unsupportedAcl()` is removed.
+- ⚠️ A configuration that sets `DO_SPACES_ACL` to one of those five values now fails at construction with
+  `ConfigurationException` (it would have failed at upload with an error from Spaces). The documented
+  configuration values were already only `public-read` and `private`.
+
+### Tests
+
+- `DOSpacesStorageAdapterTest` proves the contract: `private` and `public-read` reach `putObject` from both
+  `store()` and `storeFromPath()`, the default is `public-read`, and construction fails for a typo, an empty
+  string, wrong or upper case, surrounding whitespace, a prefix of a valid value, an unknown value and each of the
+  five AWS-only ACLs. `ExceptionTest` covers `ConfigurationException::unsupportedAcl()`.
+
+### Documentation
+
+- `IMPLEMENTATION_PLAN.md` is now labelled a historical record instead of a module-standard compliance
+  declaration, and no longer states that the module "MUST follow" a standard or refers to host-specific documents.
 
 ---
 

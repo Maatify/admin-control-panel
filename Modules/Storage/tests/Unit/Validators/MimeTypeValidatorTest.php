@@ -226,13 +226,62 @@ final class MimeTypeValidatorTest extends TestCase
     {
         $validator = new MimeTypeValidator(['video/mp4']);
 
-        // Real MP4: 00 00 00 XX ftyp
-        $mp4Content = "\x00\x00\x00\x20ftypisom";
+        $mp4Content = $this->createIsoBmffContent('isom', ['isom', 'iso2']);
 
         $file = $this->createMockFile($mp4Content);
 
         $validator->validate($file);
         $this->assertTrue(true); // No exception thrown
+    }
+
+    public function testValidatesHeicAndHeifByContainerBrand(): void
+    {
+        $heicValidator = new MimeTypeValidator(['image/heic']);
+        $heicFile = $this->createMockFile($this->createIsoBmffContent('heic'), 'photo.heic');
+        $heicValidator->validate($heicFile);
+
+        $heifValidator = new MimeTypeValidator(['image/heif']);
+        $heifFile = $this->createMockFile($this->createIsoBmffContent('mif1'), 'photo.heif');
+        $heifValidator->validate($heifFile);
+
+        $this->assertTrue(true);
+    }
+
+    public function testValidatesHeicWhenBrandAppearsInCompatibleBrands(): void
+    {
+        $validator = new MimeTypeValidator(['image/heic']);
+        $content = $this->createIsoBmffContent('isom', ['isom', 'heis']);
+
+        $validator->validate($this->createMockFile($content, 'photo.heic'));
+        $this->assertTrue(true);
+    }
+
+    public function testValidatesM4aByContainerBrand(): void
+    {
+        $validator = new MimeTypeValidator(['audio/mp4']);
+        $m4aContent = $this->createIsoBmffContent('M4A ');
+
+        $validator->validate($this->createMockFile($m4aContent, 'voice.m4a'));
+        $this->assertTrue(true);
+    }
+
+    public function testValidatesMovByQuickTimeBrand(): void
+    {
+        $validator = new MimeTypeValidator(['video/quicktime']);
+
+        $validator->validate($this->createMockFile($this->createIsoBmffContent('qt  '), 'video.mov'));
+        $this->assertTrue(true);
+    }
+
+    public function testValidatesAacAndCafByMagicBytes(): void
+    {
+        $aacValidator = new MimeTypeValidator(['audio/aac']);
+        $aacValidator->validate($this->createMockFile("\xFF\xF1" . str_repeat("\x00", 64), 'voice.aac'));
+
+        $cafValidator = new MimeTypeValidator(['audio/x-caf']);
+        $cafValidator->validate($this->createMockFile('caff' . str_repeat("\x00", 64), 'voice.caf'));
+
+        $this->assertTrue(true);
     }
 
     /**
@@ -261,7 +310,9 @@ final class MimeTypeValidatorTest extends TestCase
         $this->assertContains('image/jpeg', $types);
         $this->assertContains('image/png', $types);
         $this->assertContains('image/webp', $types);
-        $this->assertCount(5, $types);
+        $this->assertContains('image/heic', $types);
+        $this->assertContains('image/heif', $types);
+        $this->assertCount(7, $types);
     }
 
     /**
@@ -286,7 +337,10 @@ final class MimeTypeValidatorTest extends TestCase
         $this->assertContains('audio/mpeg', $types);
         $this->assertContains('audio/wav', $types);
         $this->assertContains('audio/ogg', $types);
-        $this->assertCount(3, $types);
+        $this->assertContains('audio/mp4', $types);
+        $this->assertContains('audio/aac', $types);
+        $this->assertContains('audio/x-caf', $types);
+        $this->assertCount(6, $types);
     }
 
     /**
@@ -376,8 +430,22 @@ final class MimeTypeValidatorTest extends TestCase
     }
 
     /**
-     * Create a mock UploadedFileInterface with content.
+     * Build a compact but structurally valid ftyp box for the test fixture.
+     *
+     * @param list<string> $compatibleBrands
      */
+    private function createIsoBmffContent(string $majorBrand, array $compatibleBrands = []): string
+    {
+        $boxSize = 16 + (count($compatibleBrands) * 4);
+
+        return pack('N', $boxSize)
+            . 'ftyp'
+            . $majorBrand
+            . pack('N', 0)
+            . implode('', $compatibleBrands)
+            . str_repeat("\x00", 64);
+    }
+
     private function createMockFile(string $content, string $filename = 'test.jpg'): \Psr\Http\Message\UploadedFileInterface
     {
         $stream = fopen('php://memory', 'r+');
