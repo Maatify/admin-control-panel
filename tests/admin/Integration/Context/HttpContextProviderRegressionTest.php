@@ -10,7 +10,7 @@ use Maatify\AdminKernel\Domain\Contracts\Admin\AdminSessionRepositoryInterface;
 use Maatify\AdminKernel\Domain\Service\SessionValidationService;
 use Maatify\AdminKernel\Http\Middleware\AdminContextMiddleware;
 use Maatify\AdminKernel\Http\Middleware\SessionGuardMiddleware;
-use Maatify\AdminKernel\Domain\Contracts\Auth\RedirectTokenProviderInterface;
+use Maatify\ReturnTarget\Service\ReturnTargetServiceInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -29,13 +29,13 @@ final class HttpContextProviderRegressionTest extends TestCase
         $rememberMeService = $this->createMock(\Maatify\AdminKernel\Domain\Service\RememberMeService::class);
         $cookieFactory = $this->createMock(\Maatify\AdminKernel\Http\Cookie\CookieFactoryService::class);
 
-        $redirectTokenProvider = $this->createMock(RedirectTokenProviderInterface::class);
+        $returnTargetService = $this->createMock(ReturnTargetServiceInterface::class);
 
         $sessionGuard = new SessionGuardMiddleware(
             $sessionValidationService,
             $rememberMeService,
             $cookieFactory,
-            $redirectTokenProvider
+            $returnTargetService
         );
 
         $sessionRepo = $this->createMock(AdminSessionRepositoryInterface::class);

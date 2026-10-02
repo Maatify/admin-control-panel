@@ -110,7 +110,15 @@ Step-Up is a secondary verification layer for high-risk actions.
    - If Missing or Mismatch: `SessionState::PENDING_STEP_UP`.
 3. **Enforcement**:
    - API: Returns 403 `STEP_UP_REQUIRED`.
-   - Web: Redirects to `/2fa/verify`.
+   - Web: Redirects to `/2fa/verify?r=<return-target token>` (`ScopeGuardMiddleware` adds `&scope=<scope>`).
+
+### Return Target (Web)
+
+Guards that redirect a browser (`SessionGuardMiddleware` to `/login`, `SessionStateGuardMiddleware` and `ScopeGuardMiddleware` to `/2fa/verify`) attach the page the user asked for as an opaque, signed, expiring token in `r`, issued by `maatify/php-return-target` (audience `admin-auth`, 300 seconds).
+
+- `POST /login` and `POST /2fa/verify` redirect to the verified target; the page is only reached after the session is fully authorised (login, then step-up, then the original page).
+- If the target cannot be issued (unsafe or `/login`), `r` is omitted. If a token is missing, invalid, tampered, or expired, the user lands on `/dashboard`.
+- Redirect targets are never taken from raw client paths.
 
 ### Forbidden Behavior
 - No "Verified" flag is stored in the PHP Session.

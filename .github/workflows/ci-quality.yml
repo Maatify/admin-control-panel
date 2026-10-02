@@ -28,7 +28,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PHP_VERSION: "8.2"
+  PHP_VERSION: "8.4"
 
 jobs:
   permission-lint:

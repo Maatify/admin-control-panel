@@ -2,7 +2,7 @@
 
 **المشروع:** لوحة تحكم الإدارة (Admin Control Panel)
 **الحالة:** الوضع الحالي — Infrastructure-First
-**التقنية:** PHP 8.2 (Slim Framework) + Twig + MySQL
+**التقنية:** PHP 8.4 (Slim Framework) + Twig + MySQL
 **الجمهور المستهدف:** مطورو الـ Backend ومطورو الواجهة (Twig)
 
 ---
@@ -72,7 +72,7 @@ git pull origin main --rebase
 
 ### المتطلبات
 
-* PHP 8.2 أو أحدث
+* PHP 8.4 أو أحدث
 * الإضافات:
 
   * pdo
@@ -195,7 +195,7 @@ php -S 0.0.0.0:8080 -t public
 
 * الوصول عبر: `http://localhost:8080`
 * مخصص **للتطوير المحلي فقط**
-* يتطلب PHP 8.2+
+* يتطلب PHP 8.4+
 
 ---
 

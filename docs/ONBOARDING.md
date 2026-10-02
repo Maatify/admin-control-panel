@@ -2,7 +2,7 @@
 
 **Project:** Admin Control Panel
 **Status:** Current State — Infrastructure-First
-**Stack:** PHP 8.2 (Slim Framework) + Twig + MySQL
+**Stack:** PHP 8.4 (Slim Framework) + Twig + MySQL
 **Audience:** Backend Developers & Frontend (Twig) Developers
 
 ---
@@ -72,7 +72,7 @@ git pull origin main --rebase
 
 ### Requirements
 
-* PHP 8.2+
+* PHP 8.4+
 * Extensions:
     * pdo
     * openssl
@@ -183,7 +183,7 @@ php -S 0.0.0.0:8080 -t public
 
 *   Access the application at: `http://localhost:8080`
 *   This command is for **local development only**.
-*   It assumes PHP 8.2+ is available in your shell.
+*   It assumes PHP 8.4+ is available in your shell.
 
 ---
 

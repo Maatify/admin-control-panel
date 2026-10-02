@@ -8,7 +8,7 @@
 
 ## 🏗️ A) Project Snapshot (AS-IS)
 
-The project is a secure Admin Control Panel built with **PHP 8.2+, Slim 4, PHP-DI, and Twig**. It follows a strictly layered **Domain-Driven Design (DDD)** architecture with a strong emphasis on security, auditing, and clean separation of concerns.
+The project is a secure Admin Control Panel built with **PHP 8.4+, Slim 4, PHP-DI, and Twig**. It follows a strictly layered **Domain-Driven Design (DDD)** architecture with a strong emphasis on security, auditing, and clean separation of concerns.
 
 ### Directory Map
 *   **`Modules/AdminKernel/Domain/`**: Pure business logic (Services, Contracts, DTOs, Enums). No infrastructure dependencies allowed.

@@ -1,12 +1,12 @@
 # .idx/dev.nix
 { pkgs, ... }: {
   # تحديث القناة لنسخة أحدث لضمان توافق أفضل
-  channel = "stable-24.05";
+  channel = "stable-25.05";
 
-  # الحزم: قمت بتوحيد النسخ (PHP 8.2) وإضافة unzip الضروري لـ Composer
+  # الحزم: قمت بتوحيد النسخ (PHP 8.4) وإضافة unzip الضروري لـ Composer
   packages = [
-    pkgs.php82
-    pkgs.php82Packages.composer
+    pkgs.php84
+    pkgs.php84Packages.composer
     pkgs.git
     pkgs.unzip  # مهم جدًا: بدونه يفشل Composer في فك ضغط المكتبات ويعلق النظام
     pkgs.curl
