@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Changed
+
+- `DOSpacesStorageAdapter` now validates `$acl` in its constructor against the canned ACLs supported by the S3 API
+  (`private`, `public-read`, `public-read-write`, `authenticated-read`, `aws-exec-read`, `bucket-owner-read`,
+  `bucket-owner-full-control`) and throws `AdapterException::invalidAcl()` otherwise. Previously an unsupported value
+  (for example a typo in `DO_SPACES_ACL`) only failed later, on the first upload. This also narrows the property type
+  so static analysis passes against recent `aws/aws-sdk-php` releases, whose `putObject()` shape types `ACL` as a literal union.
+
+---
+
 ## [1.7.0] - 2026-05-20
 
 ### 🔐 Server-Side File Transfer & Presigned URL Support

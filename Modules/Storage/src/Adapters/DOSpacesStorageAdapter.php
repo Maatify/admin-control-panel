@@ -22,17 +22,41 @@ use Psr\Http\Message\UploadedFileInterface;
 final class DOSpacesStorageAdapter implements StorageAdapterInterface
 {
     /**
+     * Canned ACLs accepted by the S3 API (and therefore by Spaces' S3-compatible endpoint).
+     */
+    private const ALLOWED_ACLS = [
+        'private',
+        'public-read',
+        'public-read-write',
+        'authenticated-read',
+        'aws-exec-read',
+        'bucket-owner-read',
+        'bucket-owner-full-control',
+    ];
+
+    /** @var 'private'|'public-read'|'public-read-write'|'authenticated-read'|'aws-exec-read'|'bucket-owner-read'|'bucket-owner-full-control' */
+    private readonly string $acl;
+
+    /**
      * @param S3Client $client S3-compatible client configured for DigitalOcean Spaces.
      * @param string   $bucket Target Spaces bucket name.
      * @param string|null $cdnUrl Base CDN URL used to resolve public URLs (null for private uploads).
      * @param string   $acl    Canned ACL applied to uploaded objects (default: public-read).
+     *
+     * @throws AdapterException If $acl is not a canned ACL supported by the S3 API.
      */
     public function __construct(
         private readonly S3Client $client,
         private readonly string $bucket,
         private readonly ?string $cdnUrl,
-        private readonly string $acl = 'public-read',
-    ) {}
+        string $acl = 'public-read',
+    ) {
+        if (!in_array($acl, self::ALLOWED_ACLS, true)) {
+            throw AdapterException::invalidAcl($acl, self::ALLOWED_ACLS);
+        }
+
+        $this->acl = $acl;
+    }
 
     /**
      * {@inheritDoc}

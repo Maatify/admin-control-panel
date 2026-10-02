@@ -11,6 +11,7 @@ use Maatify\Storage\Adapters\DOSpacesStorageAdapter;
 use Maatify\Storage\DTO\StoredFile;
 use Maatify\Storage\Exception\AdapterException;
 use Maatify\Storage\Tests\Unit\StorageModuleTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
@@ -74,6 +75,98 @@ final class DOSpacesStorageAdapterTest extends StorageModuleTestCase
             cdnUrl: 'https://cdn.example.com',
             acl:    'public-read',
         );
+    }
+
+    // ── ACL validation ────────────────────────────────────────────────────────
+
+    /**
+     * @return array<string, array{0: string}>
+     */
+    public static function supportedAcls(): array
+    {
+        return [
+            'private'                   => ['private'],
+            'public-read'               => ['public-read'],
+            'public-read-write'         => ['public-read-write'],
+            'authenticated-read'        => ['authenticated-read'],
+            'aws-exec-read'             => ['aws-exec-read'],
+            'bucket-owner-read'         => ['bucket-owner-read'],
+            'bucket-owner-full-control' => ['bucket-owner-full-control'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('supportedAcls')]
+    public function constructor_acceptsSupportedCannedAcl(string $acl): void
+    {
+        $adapter = new DOSpacesStorageAdapter(
+            client: $this->makeClient(),
+            bucket: 'test-bucket',
+            cdnUrl: null,
+            acl:    $acl,
+        );
+
+        $this->assertSame('', $adapter->url('any/path.jpg'));
+    }
+
+    #[Test]
+    #[DataProvider('unsupportedAcls')]
+    public function constructor_rejectsUnsupportedAcl(string $acl): void
+    {
+        $this->expectException(AdapterException::class);
+        $this->expectExceptionMessage('Unsupported storage ACL');
+
+        new DOSpacesStorageAdapter(
+            client: $this->makeClient(),
+            bucket: 'test-bucket',
+            cdnUrl: null,
+            acl:    $acl,
+        );
+    }
+
+    /**
+     * @return array<string, array{0: string}>
+     */
+    public static function unsupportedAcls(): array
+    {
+        return [
+            'empty'          => [''],
+            'unknown'        => ['public'],
+            'wrong case'     => ['Public-Read'],
+            'surrounded'     => [' private '],
+        ];
+    }
+
+    #[Test]
+    public function store_sendsConfiguredAclToTheClient(): void
+    {
+        $captured = null;
+        $mock = new AwsMockHandler();
+        $mock->append(function (\Aws\CommandInterface $cmd) use (&$captured) {
+            $captured = $cmd['ACL'];
+
+            return new Result([]);
+        });
+        $client = new S3Client([
+            'version'     => 'latest',
+            'region'      => 'fra1',
+            'endpoint'    => 'https://fra1.digitaloceanspaces.com',
+            'credentials' => ['key' => 'test-key', 'secret' => 'test-secret'],
+            'handler'     => $mock,
+        ]);
+        $adapter = new DOSpacesStorageAdapter($client, 'test-bucket', null, 'private');
+
+        $source = tempnam(sys_get_temp_dir(), 'acl');
+        $this->assertIsString($source);
+        file_put_contents($source, 'x');
+
+        try {
+            $adapter->storeFromPath($source, 'a/b.txt');
+        } finally {
+            unlink($source);
+        }
+
+        $this->assertSame('private', $captured);
     }
 
     // ── url() ─────────────────────────────────────────────────────────────────
