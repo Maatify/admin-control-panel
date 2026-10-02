@@ -27,13 +27,16 @@ use Psr\Http\Message\UploadedFileInterface;
 final class AudioUploadService
 {
     /** @var array<string> */
-    private const ALLOWED_EXTENSIONS = ['mp3', 'wav', 'ogg'];
+    private const ALLOWED_EXTENSIONS = ['mp3', 'wav', 'ogg', 'm4a', 'aac', 'caf'];
 
     /** @var array<string, string> Maps file extensions to their corresponding MIME types */
     private const EXTENSION_TO_MIME = [
         'mp3' => 'audio/mpeg',
         'wav' => 'audio/wav',
         'ogg' => 'audio/ogg',
+        'm4a' => 'audio/mp4',
+        'aac' => 'audio/aac',
+        'caf' => 'audio/x-caf',
     ];
 
     public function __construct(
@@ -59,7 +62,7 @@ final class AudioUploadService
      *
      * @param UploadedFileInterface $file The uploaded audio file.
      * @param string $subfolder Destination subfolder (e.g. "podcasts", "music", "voiceovers").
-     * @param array<string>|null $allowedExtensions null = use defaults (mp3, wav, ogg).
+     * @param array<string>|null $allowedExtensions null = use defaults (mp3, wav, ogg, m4a, aac, caf).
      *                                               Each extension maps to a specific MIME type.
      * @param int|null $maxSizeBytes null = no size validation.
      * @param string|null $customBaseName null = auto-generate from original filename. Semantic basename for business context.
@@ -79,7 +82,7 @@ final class AudioUploadService
         $validators = [];
 
         // Normalize and validate extensions
-        // User may provide: ['MP3'], ['.mp3'], ['mp3'], or unsupported ['aac']
+        // User may provide: ['MP3'], ['.mp3'], ['mp3'], or another supported format such as ['m4a'].
         // We normalize to lowercase without dots, then validate and map to MIME types
         $extensions = $allowedExtensions ?? self::ALLOWED_EXTENSIONS;
 

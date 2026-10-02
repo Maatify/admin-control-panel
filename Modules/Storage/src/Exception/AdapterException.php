@@ -11,6 +11,11 @@ namespace Maatify\Storage\Exception;
  */
 final class AdapterException extends StorageException
 {
+    public static function unsupportedAcl(string $acl): self
+    {
+        return new self('Unsupported canned ACL: ' . $acl);
+    }
+
     public static function failedToCreateDirectory(string $directory): self
     {
         return new self('Failed to create directory: ' . $directory);

@@ -40,18 +40,18 @@ cd /path/to/project
 
 | Suite | Tests | Status |
 |-------|-------|--------|
-| Upload Services | 45 | ✅ PASS |
+| Upload Services | 48 | ✅ PASS |
 | Reader Adapters | 18 | ✅ PASS |
-| Validators | 37 | ✅ PASS |
-| Storage Adapters | 22 | ✅ PASS |
+| Reader Services | 10 | ✅ PASS |
+| Validators | 42 | ✅ PASS |
+| Storage Adapters | 52 | ✅ PASS |
 | Exceptions | 13 | ✅ PASS |
 | Configuration | 9 | ✅ PASS |
-| Factories | 10 | ✅ PASS |
-| **Total** | **154** | **✅ PASS** |
+| **Total** | **192** | **✅ PASS** |
 
 ## Test Suites
 
-### 1. Storage Adapter Tests (22 tests)
+### 1. Storage Adapter Tests (52 tests)
 
 #### LocalStorageAdapterTest (10 tests)
 - ✅ `storeFromPath_copiesFileToDestination` - Copies source file to configured storage root
@@ -65,7 +65,7 @@ cd /path/to/project
 - ✅ `url_prependsBaseUrlToRelativePath` - `/files` + `products/image.jpg` → `/files/products/image.jpg`
 - ✅ `url_stripsLeadingSlashFromRelativePath` - Leading slash on path is normalised
 
-#### DOSpacesStorageAdapterTest (12 tests)
+#### DOSpacesStorageAdapterTest (42 tests)
 
 Uses `\Aws\MockHandler` + `\Aws\Result` (AWS SDK's own mock — not Guzzle).
 
@@ -80,6 +80,11 @@ Uses `\Aws\MockHandler` + `\Aws\Result` (AWS SDK's own mock — not Guzzle).
 - ✅ `presign_forPublicAdapterReturnsCdnUrlWithoutSigning` - CDN URL returned as-is; no `X-Amz-` params
 - ✅ `presign_expiryIsReflectedInSignedUrl` - `X-Amz-Expires=86400` in signed URL
 
+**ACL** (each test runs on both `store()` and `storeFromPath()`; matching is exact, no trimming or case folding)
+- ✅ `upload_sendsTheConfiguredAclToPutObject` - Each of the 7 supported canned ACLs reaches `putObject` unchanged (14 cases)
+- ✅ `upload_defaultsToPublicReadWhenNoAclIsConfigured` - No `acl` argument sends `public-read`
+- ✅ `upload_rejectsAnUnsupportedAclBeforeAnyRequest` - Typo, empty, wrong case, upper case, surrounding whitespace, prefix and unknown values throw `AdapterException` and send no request (14 cases)
+
 **storeFromPath()**
 - ✅ `storeFromPath_uploadsFileAndReturnsStoredFile` - Calls `putObject`, returns `StoredFile` with correct path
 - ✅ `storeFromPath_preservesSourceFile` - Source file still exists after upload
@@ -87,9 +92,9 @@ Uses `\Aws\MockHandler` + `\Aws\Result` (AWS SDK's own mock — not Guzzle).
 - ✅ `storeFromPath_throwsAdapterExceptionWhenSourceMissing` - Throws before attempting upload
 - ✅ `storeFromPath_closesStreamEvenWhenUploadFails` - `finally` block closes file handle on AWS exception
 
-### 3. Validators Tests (37 tests)
+### 3. Validators Tests (42 tests)
 
-#### MimeTypeValidatorTest (23 tests) - **NEW: Security Validation**
+#### MimeTypeValidatorTest (28 tests) - **NEW: Security Validation**
 - ✅ `testValidatesJpegByMagicBytes` - JPEG magic bytes (FF D8 FF)
 - ✅ `testValidatesPngByMagicBytes` - PNG magic bytes (89 50 4E 47)
 - ✅ `testValidatesGifByMagicBytes` - GIF magic bytes (47 49 46)
@@ -104,6 +109,10 @@ Uses `\Aws\MockHandler` + `\Aws\Result` (AWS SDK's own mock — not Guzzle).
 - ✅ `testRejectsUnknownMimeType` - Rejects random data
 - ✅ `testHandlesShortFiles` - Handles < 4 byte files gracefully
 - ✅ `testValidatesMp4ByMagicBytes` - MP4 magic bytes (ftyp)
+- ✅ `testValidatesHeicAndHeifByContainerBrand` - HEIC and generic HEIF major brands
+- ✅ `testValidatesHeicWhenBrandAppearsInCompatibleBrands` - HEIC compatible brand with a generic major brand
+- ✅ `testValidatesM4aByContainerBrand` - M4A container brand (audio/mp4)
+- ✅ `testValidatesMovByQuickTimeBrand` - QuickTime/MOV container brand
 - ✅ `testValidatesAviByMagicBytes` - AVI magic bytes (RIFF + AVI)
 - ✅ `testImageTypesHelper` - Static helper for image MIME types
 - ✅ `testVideoTypesHelper` - Static helper for video MIME types
@@ -111,6 +120,7 @@ Uses `\Aws\MockHandler` + `\Aws\Result` (AWS SDK's own mock — not Guzzle).
 - ✅ **`testValidatesMp3WithId3Tag`** - **CRITICAL**: MP3 with ID3v2 tag (how REAL MP3s start!)
 - ✅ `testValidatesWavByMagicBytes` - WAV magic bytes (RIFF + WAVE)
 - ✅ `testValidatesOggByMagicBytes` - OGG magic bytes (OggS)
+- ✅ `testValidatesAacAndCafByMagicBytes` - AAC ADTS and CAF signatures
 - ✅ `testRejectsExecutableDisguisedAsAudio` - **SECURITY**: Blocks `song.mp3` (PE executable)
 - ✅ `testAudioTypesHelper` - Static helper for audio MIME types
 
@@ -177,10 +187,18 @@ Uses `\Aws\MockHandler` + `\Aws\Result` (AWS SDK's own mock — not Guzzle).
 - Critical security tests prevent path traversal attacks
 - Ensures lazy validation (getAccessUrl() doesn't check existence, by design)
 
-### 5. Services Tests (45 tests)
+### 5. Services Tests (58 tests)
 
-#### ImageUploadServiceTest (12 tests)
+#### FileReaderServiceTest (7 tests)
+- ✅ Delegation, default expiration, metadata, and file-not-found propagation
+
+#### ImageReaderPublicServiceTest (3 tests)
+- ✅ Public image URL, existence, and metadata delegation
+
+#### ImageUploadServiceTest (14 tests)
 - ✅ `testUploadsImageWithDefaults` - Basic upload with all defaults
+- ✅ `testUploadsHeicImageWithDefaults` - HEIC remains enabled in the default allowlist
+- ✅ `testGifAndBmpAreNotEnabledByGlobalDefaults` - GIF/BMP require an explicit extension allowlist
 - ✅ `testUploadsImageWithCustomBaseName` - **Semantic naming**: `premium-tier-product-abc123def456.jpg`
 - ✅ `testSemanticNamingPreservesBusinessContext` - Tests semantic context:
   - Product slugs: `awesome-product-v2-abc123def456.jpg`
@@ -211,12 +229,13 @@ Uses `\Aws\MockHandler` + `\Aws\Result` (AWS SDK's own mock — not Guzzle).
 - ✅ `testHandlesSpecialCharactersInBaseName` - Sanitization
 - ✅ `testLargeFilesWithSemanticNaming` - Combined constraints
 
-#### AudioUploadServiceTest (19 tests) - **NEW: Audio Upload Support**
+#### AudioUploadServiceTest (20 tests) - **NEW: Audio Upload Support**
 - ✅ `testUploadsAudioWithDefaults` - Basic audio upload
 - ✅ `testUploadsAudioWithCustomBaseName` - **Semantic naming**: `dua-001-abc123def456.mp3`
 - ✅ `testSemanticNamingForPodcasts` - `episode-15-understanding-quran-abc123def456.mp3`
 - ✅ `testSemanticNamingForMusic` - `nasheed-beautiful-morning-abc123def456.mp3`
 - ✅ `testUploadsMultipleFormats` - Multiple format support (mp3, wav, ogg)
+- ✅ `testUploadsAppleAudioFormats` - M4A, AAC, and CAF default uploads
 - ✅ `testUploadsAudioWithCustomSizeLimit` - Large file handling (100MB+)
 - ✅ `testRejectsAudioExceedingSizeLimit` - Enforces size limits (fixed: now tests actual size)
 - ✅ `testRejectsDisallowedFormat` - Format validation
@@ -226,7 +245,7 @@ Uses `\Aws\MockHandler` + `\Aws\Result` (AWS SDK's own mock — not Guzzle).
   - allowedExtensions: ['mp3'] rejects WAV content even if filename is .mp3
   - Prevents mismatch between extension and actual MIME type
 - ✅ **`testRejectsUnsupportedCustomExtensionCleanly`** - **CRITICAL**: Extension normalization validation
-  - Rejects unsupported extensions (e.g., 'aac') with proper exception
+  - Rejects unsupported extensions (e.g., 'flac') with proper exception
   - Not PHP warning/error but InvalidFileException
 - ✅ **`testNormalizesCustomAllowedExtensions`** - Extension normalization
   - Accepts `.MP3` (uppercase with dot) and normalizes to `mp3`
@@ -252,13 +271,16 @@ Uses `\Aws\MockHandler` + `\Aws\Result` (AWS SDK's own mock — not Guzzle).
 
 ### 7. Configuration Tests (9 tests)
 
-#### StorageConfigTest (3 tests)
+#### StorageConfigTest (9 tests)
 - ✅ `testCreatesLocalStorageConfig` - Local storage configuration
 - ✅ `testCreatesDigitalOceanSpacesConfig` - DO Spaces configuration
 - ✅ `testFromEnvWithLocalDriver` - Environment-based configuration
+- ✅ `testFromEnvDefaultsToLocal` - Defaults to the local driver
 - ✅ `testFromEnvWithDigitalOceanSpaces` - DO Spaces from env
-- ✅ Missing env variables throw ConfigurationException
-- ✅ Configuration properties are readonly
+- ✅ `testFromEnvThrowsOnMissingDoSpacesKey` - Requires the Spaces key
+- ✅ `testFromEnvThrowsOnMissingDoSpacesBucket` - Requires the Spaces bucket
+- ✅ `testFromEnvUsesDefaultAclForSpaces` - Applies the default Spaces ACL
+- ✅ `testIsReadonly` - Configuration properties are readonly
 
 ## Key Features Tested
 
@@ -431,7 +453,7 @@ This module includes its own PHPUnit configuration but uses the bootstrap parame
 
 - [ ] Integration tests with actual storage adapters
 - [ ] Performance benchmarks
-- [x] S3/DO Spaces storage adapter tests (DOSpacesStorageAdapterTest — 12 tests)
+- [x] S3/DO Spaces storage adapter tests (DOSpacesStorageAdapterTest — 42 tests)
 - [ ] Concurrent upload stress tests
 - [ ] Large file handling (GB+)
 

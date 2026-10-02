@@ -29,7 +29,7 @@ use Psr\Http\Message\UploadedFileInterface;
 final class ImageUploadService
 {
     /** @var array<string> */
-    private const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
+    private const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'];
 
     /** @var array<string> */
     private const ALLOWED_MIME_TYPES = [
@@ -38,6 +38,8 @@ final class ImageUploadService
         'image/webp',
         'image/gif',
         'image/bmp',
+        'image/heic',
+        'image/heif',
     ];
 
     public function __construct(
@@ -59,7 +61,7 @@ final class ImageUploadService
      *
      * @param UploadedFileInterface $file The uploaded image file.
      * @param string $subfolder Destination subfolder (e.g. "products", "avatars").
-     * @param array<string>|null $allowedExtensions null = use defaults (jpg, jpeg, png, webp).
+     * @param array<string>|null $allowedExtensions null = use defaults (jpg, jpeg, png, webp, heic, heif).
      * @param int|null $maxSizeBytes null = no size validation.
      * @param ImageDimensions|null $dimensions null = no dimension validation.
      * @param string|null $customBaseName null = auto-generate from original filename. Semantic basename for business context.

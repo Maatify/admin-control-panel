@@ -13,7 +13,7 @@ use Maatify\Storage\Tests\Unit\StorageModuleTestCase;
  * Tests for AudioUploadService
  *
  * Tests include validation of:
- * - Default allowed extensions (mp3, wav, ogg)
+ * - Default allowed extensions (mp3, wav, ogg, m4a, aac, caf)
  * - Custom size limits
  * - Semantic basename generation (business context in filenames)
  */
@@ -117,6 +117,33 @@ final class AudioUploadServiceTest extends StorageModuleTestCase
                 $file,
                 'audio'
             );
+
+            $this->assertStringEndsWith(".{$format}", $path->path);
+        }
+    }
+
+    public function testUploadsAppleAudioFormats(): void
+    {
+        $fileCreators = [
+            'm4a' => fn() => $this->createMockUploadedFile(
+                "\x00\x00\x00\x20ftypM4A " . str_repeat("\x00", 64),
+                'voice.m4a',
+                'audio/mp4',
+            ),
+            'aac' => fn() => $this->createMockUploadedFile(
+                "\xFF\xF1" . str_repeat("\x00", 64),
+                'voice.aac',
+                'audio/aac',
+            ),
+            'caf' => fn() => $this->createMockUploadedFile(
+                'caff' . str_repeat("\x00", 64),
+                'voice.caf',
+                'audio/x-caf',
+            ),
+        ];
+
+        foreach ($fileCreators as $format => $creator) {
+            $path = $this->service->upload($creator(), 'audio');
 
             $this->assertStringEndsWith(".{$format}", $path->path);
         }
@@ -306,7 +333,7 @@ final class AudioUploadServiceTest extends StorageModuleTestCase
         $this->service->upload(
             $file,
             'audio',
-            allowedExtensions: ['aac']  // AAC not supported
+            allowedExtensions: ['flac']  // FLAC is not supported
         );
     }
 

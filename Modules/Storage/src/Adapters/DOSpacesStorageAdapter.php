@@ -8,7 +8,6 @@ use Aws\S3\S3Client;
 use Maatify\Storage\Contracts\StorageAdapterInterface;
 use Maatify\Storage\DTO\StoredFile;
 use Maatify\Storage\Exception\AdapterException;
-use Maatify\Storage\Exception\ConfigurationException;
 use Maatify\Storage\Exception\FileUploadException;
 use Psr\Http\Message\UploadedFileInterface;
 
@@ -23,38 +22,17 @@ use Psr\Http\Message\UploadedFileInterface;
 final class DOSpacesStorageAdapter implements StorageAdapterInterface
 {
     /**
-     * Canned ACLs supported by DigitalOcean Spaces (a subset of the S3 canned ACLs).
-     *
-     * @see https://docs.digitalocean.com/products/spaces/reference/s3-compatibility/
-     */
-    private const ALLOWED_ACLS = [
-        'private',
-        'public-read',
-    ];
-
-    /** @var 'private'|'public-read' */
-    private readonly string $acl;
-
-    /**
      * @param S3Client $client S3-compatible client configured for DigitalOcean Spaces.
      * @param string   $bucket Target Spaces bucket name.
      * @param string|null $cdnUrl Base CDN URL used to resolve public URLs (null for private uploads).
-     * @param string   $acl    Canned ACL applied to uploaded objects: 'public-read' (default) or 'private'.
-     *
-     * @throws ConfigurationException If $acl is not a canned ACL supported by DigitalOcean Spaces.
+     * @param string   $acl    Canned ACL applied to uploaded objects (default: public-read).
      */
     public function __construct(
         private readonly S3Client $client,
         private readonly string $bucket,
         private readonly ?string $cdnUrl,
-        string $acl = 'public-read',
-    ) {
-        if (!in_array($acl, self::ALLOWED_ACLS, true)) {
-            throw ConfigurationException::unsupportedAcl($acl, self::ALLOWED_ACLS);
-        }
-
-        $this->acl = $acl;
-    }
+        private readonly string $acl = 'public-read',
+    ) {}
 
     /**
      * {@inheritDoc}
@@ -69,6 +47,7 @@ final class DOSpacesStorageAdapter implements StorageAdapterInterface
      */
     public function store(UploadedFileInterface $file, string $destinationPath): StoredFile
     {
+        $acl    = $this->resolveAcl();
         $key    = ltrim($destinationPath, '/');
         $stream = $file->getStream()->detach();
 
@@ -80,7 +59,7 @@ final class DOSpacesStorageAdapter implements StorageAdapterInterface
             'Bucket'      => $this->bucket,
             'Key'         => $key,
             'Body'        => $stream,
-            'ACL'         => $this->acl,
+            'ACL'         => $acl,
             'ContentType' => $this->resolveMimeFromPath($key),
         ]);
 
@@ -116,6 +95,7 @@ final class DOSpacesStorageAdapter implements StorageAdapterInterface
      */
     public function storeFromPath(string $localPath, string $destinationPath): StoredFile
     {
+        $acl    = $this->resolveAcl();
         $key    = ltrim($destinationPath, '/');
         $stream = @fopen($localPath, 'rb');
 
@@ -128,7 +108,7 @@ final class DOSpacesStorageAdapter implements StorageAdapterInterface
                 'Bucket'      => $this->bucket,
                 'Key'         => $key,
                 'Body'        => $stream,
-                'ACL'         => $this->acl,
+                'ACL'         => $acl,
                 'ContentType' => $this->resolveMimeFromPath($key),
             ]);
         } finally {
@@ -198,6 +178,29 @@ final class DOSpacesStorageAdapter implements StorageAdapterInterface
     }
 
     /**
+     * Narrows the configured ACL to the closed set the S3 API accepts. An
+     * unknown value fails loudly instead of falling back to another ACL, so a
+     * typo can never silently turn a private upload public.
+     *
+     * @return 'authenticated-read'|'aws-exec-read'|'bucket-owner-full-control'|'bucket-owner-read'|'private'|'public-read'|'public-read-write'
+     *
+     * @throws AdapterException If the configured ACL is not a supported canned ACL.
+     */
+    private function resolveAcl(): string
+    {
+        return match ($this->acl) {
+            'authenticated-read'        => 'authenticated-read',
+            'aws-exec-read'             => 'aws-exec-read',
+            'bucket-owner-full-control' => 'bucket-owner-full-control',
+            'bucket-owner-read'         => 'bucket-owner-read',
+            'private'                   => 'private',
+            'public-read'               => 'public-read',
+            'public-read-write'         => 'public-read-write',
+            default                     => throw AdapterException::unsupportedAcl($this->acl),
+        };
+    }
+
+    /**
      * Resolves the MIME type from the file extension in the given path.
      *
      * Falls back to "application/octet-stream" for unrecognized extensions.
@@ -211,8 +214,11 @@ final class DOSpacesStorageAdapter implements StorageAdapterInterface
         return match (strtolower(pathinfo($path, PATHINFO_EXTENSION))) {
             'jpg', 'jpeg' => 'image/jpeg',
             'png'         => 'image/png',
+            'bmp'         => 'image/bmp',
             'webp'        => 'image/webp',
             'gif'         => 'image/gif',
+            'heic'        => 'image/heic',
+            'heif'        => 'image/heif',
             'mp4'         => 'video/mp4',
             'webm'        => 'video/webm',
             'mov'         => 'video/quicktime',
@@ -221,6 +227,9 @@ final class DOSpacesStorageAdapter implements StorageAdapterInterface
             'mp3'         => 'audio/mpeg',
             'wav'         => 'audio/wav',
             'ogg'         => 'audio/ogg',
+            'm4a'         => 'audio/mp4',
+            'aac'         => 'audio/aac',
+            'caf'         => 'audio/x-caf',
             default       => 'application/octet-stream',
         };
     }

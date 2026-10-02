@@ -32,16 +32,4 @@ final class ConfigurationException extends StorageException
     {
         return new self('Failed to resolve project root directory.');
     }
-
-    /**
-     * @param list<string> $allowed
-     */
-    public static function unsupportedAcl(string $acl, array $allowed): self
-    {
-        return new self(sprintf(
-            'Unsupported DigitalOcean Spaces ACL [%s]. Allowed values: %s.',
-            $acl,
-            implode(', ', $allowed)
-        ));
-    }
 }

@@ -9,16 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
+### Fixed
 
-- `DOSpacesStorageAdapter` now validates `$acl` in its constructor against the canned ACLs DigitalOcean Spaces
-  supports (`private`, `public-read`) and throws `ConfigurationException::unsupportedAcl()` otherwise. Previously an
-  unsupported value (for example a typo in `DO_SPACES_ACL`, or an AWS-only ACL such as `public-read-write`) only failed
-  later, on the first upload. This also narrows the property type so static analysis passes against recent
-  `aws/aws-sdk-php` releases, whose `putObject()` shape types `ACL` as a literal union.
-- ⚠️ Configurations that set `DO_SPACES_ACL` to an AWS-only canned ACL (`public-read-write`, `authenticated-read`,
-  `aws-exec-read`, `bucket-owner-read`, `bucket-owner-full-control`) now fail at construction instead of at upload;
-  Spaces does not support them.
+- `DOSpacesStorageAdapter` now validates the configured canned ACL against the closed set the S3 API accepts
+  (`private`, `public-read`, ...) before `store()` / `storeFromPath()` upload, and throws
+  `AdapterException::unsupportedAcl()` for anything else. Previously any string was forwarded to S3, which also
+  failed static analysis against newer `aws-sdk-php` typings. Valid ACLs behave exactly as before.
+
+### Tests
+
+- `DOSpacesStorageAdapterTest` now proves the ACL contract on both `store()` and `storeFromPath()`: each of the
+  seven supported canned ACLs reaches `putObject` unchanged, the default is `public-read`, and unsupported values
+  (typo, empty, wrong or upper case, surrounding whitespace, a prefix of a valid value) are rejected with
+  `AdapterException::unsupportedAcl()` before any request is sent. Previously only `storeFromPath()` was covered,
+  with one explicit ACL and one typo, and the default was not tested.
+
+### Documentation
+
+- `IMPLEMENTATION_PLAN.md` is now labelled a historical record instead of a module-standard compliance
+  declaration, and no longer states that the module "MUST follow" a standard or refers to host-specific documents.
 
 ---
 
