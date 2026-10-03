@@ -144,9 +144,9 @@ There is:
 
 ## 5) Keys Coverage (What this table represents)
 
-This table is a **coverage report** over `i18n_keys` for a given `(scope,domain)`:
+This table is a **coverage report** over `maa_i18n_keys` for a given `(scope,domain)`:
 
-* Row identity: `i18n_keys.id`
+* Row identity: `maa_i18n_keys.id`
 * Computed metrics:
 
     * `total_languages` (depends on language filters)
@@ -348,7 +348,7 @@ POST /api/i18n/scopes/1/domains/2/keys/query
 
 Notes:
 
-* `id` is the key id (`i18n_keys.id`)
+* `id` is the key id (`maa_i18n_keys.id`)
 * `total_languages` depends on `language_id` + `language_is_active`
 * `missing_count` depends on the same rules
 

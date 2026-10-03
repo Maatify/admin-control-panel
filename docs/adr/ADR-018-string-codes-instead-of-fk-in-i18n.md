@@ -1,5 +1,10 @@
 # ADR-018: Use String Codes Instead of Foreign Keys for Scope/Domain in I18n
 
+> **Naming note (current namespace).** This record was written when the tables were unprefixed (`i18n_*`).
+> The Package-owned tables are now `maa_i18n_scopes`, `maa_i18n_domains`, `maa_i18n_domain_scopes`,
+> `maa_i18n_keys`, `maa_i18n_translations`, `maa_i18n_domain_language_summary`, `maa_i18n_key_stats`.
+> The decision below is unchanged.
+
 **Status:** ACCEPTED
 **Date:** 2026-02-12
 **Decision ID:** ADR-018

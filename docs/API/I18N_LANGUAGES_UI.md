@@ -277,7 +277,12 @@ This is enforced centrally via `PermissionMapperV2`.
 ### Request Body
 
 *   `language_id` (int, required)
-*   `code` (string, required)
+*   `code` (string, required, 1–16 characters — the I18n storage contract)
+
+### Logic (ADR-019)
+*   The language code is the identity under which I18n stores translations, so this endpoint is an **atomic identity migration**, not a plain update: `LanguageCodeChangeService` changes the LanguageCore code **and** re-keys every I18n translation and derived summary row of the old code to the new code in one database transaction.
+*   If the new code already owns I18n translations (`LanguageCodeAlreadyInUseException`, 409), or any step fails, nothing is changed (no half-rename, no orphaned translations).
+*   Sending the current code is a no-op.
 
 ---
 

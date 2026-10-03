@@ -200,7 +200,7 @@ Recommended placeholder:
 
 ### Pagination Meanings (REQUIRED)
 
-* `total`: total records in `i18n_keys` (no filters applied, global table count)
+* `total`: total records in `maa_i18n_keys` (no filters applied, global table count, before the mandatory scope constraint). `filtered`: keys of the requested scope after the optional filters. Pagination mechanics come from `maatify/persistence` (via the I18n package)
 * `filtered`: total records after applying scope + filters
 * When no filters are applied, `filtered` MAY equal `total`
 
