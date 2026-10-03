@@ -35,7 +35,7 @@
 --  default) and take a backup first.
 --
 -- Derived data: nothing in the derived tables changes meaning, so no rebuild is
--- required; `php scripts/admin/i18n_rebuild_summary.php` remains the
+-- required; `php scripts/i18n_rebuild_summary.php` remains the
 -- deterministic way to prove equivalence at any time.
 
 -- 0) Guard: fail early, before any rename, when the ADR-019 shape is missing.

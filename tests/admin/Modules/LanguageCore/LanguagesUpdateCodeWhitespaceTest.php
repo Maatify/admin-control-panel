@@ -23,7 +23,7 @@ use Slim\Psr7\Factory\ServerRequestFactory;
 
 /**
  * The admin "update language code" endpoint passes `code` through unchanged:
- * the request schema only checks 1..32 characters and no middleware trims it.
+ * the request schema only checks 1..16 characters (the storage contract) and no middleware trims it.
  * The code is identity data (it keys the I18n translations), so a code with
  * surrounding whitespace is rejected before anything is touched: no
  * transaction is opened, no row is locked, no LanguageCore update and no I18n
