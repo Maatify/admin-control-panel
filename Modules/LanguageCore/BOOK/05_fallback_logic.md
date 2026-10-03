@@ -33,7 +33,7 @@ $service->clearFallbackLanguage($gbId);
 ## 3. Rules & Constraints
 
 ### Single Level Support
-While the database structure technically allows infinite chains (`A -> B -> C`), the `LanguageCore` design and typical Host consumer implementation are optimized for **Single Level Fallback**. Applying the fallback is the consumer's job: `I18n` never reads `fallback_language_id` and performs no fallback.
+While the database structure technically allows infinite chains (`A -> B -> C`), the `LanguageCore` design and typical consumer implementation (like `I18n`) are optimized for **Single Level Fallback**.
 
 *   **Supported:** `Region -> Base` (e.g., `fr-CA` -> `fr-FR`).
 *   **Discouraged:** `Region -> Base -> Default` (e.g., `fr-CA` -> `fr-FR` -> `en-US`).
