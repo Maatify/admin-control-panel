@@ -1,7 +1,6 @@
 /*
  * Title: Permission Baseline Seed - Exchange Rates
  * Version: v1.2 (Post-Audit Stabilization)
- * Project: maatify/admin-control-panel
  *
  * Description:
  * - Generated from ACTUAL runtime usage (Audit Logs)
