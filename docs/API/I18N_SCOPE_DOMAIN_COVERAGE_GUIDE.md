@@ -38,13 +38,15 @@ Scope Domain Coverage is:
 Granularity:
 
 ```
-(scope, domain, language)
+(scope, domain, language_code)
 ```
+
+(exact code owned by the Host; sparse rows — an absent row means `translated_count = 0`. `language_id` in routes is Host identity, resolved to the code by the Admin Host. See ADR-019.)
 
 Primary Data Source:
 
 ```
-i18n_domain_language_summary
+maa_i18n_domain_language_summary
 ```
 
 ---
@@ -141,11 +143,11 @@ Must be inside protected group:
 The API MUST:
 
 * Filter by `scope`
-* Filter by `language_id`
-* Join `i18n_domain_scopes`
-* Join `i18n_domains`
-* Use only summary table for metrics
-* NOT join `i18n_translations`
+* Resolve `language_id` (Host) to the exact language code and read that code's summary row
+* Join `maa_i18n_domain_scopes`
+* Join `maa_i18n_domains`
+* Use only the summary table for translated metrics (an absent row = 0 translated; `total_keys` comes from `maa_i18n_keys`)
+* NOT join `maa_i18n_translations`
 
 ---
 

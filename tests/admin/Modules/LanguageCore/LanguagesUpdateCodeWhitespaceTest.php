@@ -4,44 +4,60 @@ declare(strict_types=1);
 
 namespace Tests\Modules\LanguageCore;
 
+use Maatify\AdminKernel\Infrastructure\I18n\Language\PdoLanguageCodeChange;
 use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesUpdateCodeController;
+use Maatify\I18n\Management\Service\TranslationWriteService;
 use Maatify\LanguageCore\Contract\LanguageRepositoryInterface;
 use Maatify\LanguageCore\Contract\LanguageSettingsRepositoryInterface;
-use Maatify\LanguageCore\DTO\LanguageDTO;
 use Maatify\LanguageCore\Exception\LanguageUpdateFailedException;
 use Maatify\LanguageCore\Service\LanguageManagementService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Maatify\Validation\Validator\RespectValidator;
+use PDO;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 use Slim\Psr7\Factory\ResponseFactory;
 use Slim\Psr7\Factory\ServerRequestFactory;
 
 /**
  * The admin "update language code" endpoint passes `code` through unchanged:
- * the request schema only checks 1..32 characters and no middleware trims it.
- * LanguageCore therefore decides what happens to a code with surrounding
- * whitespace. It is identity data, so it is rejected, never silently trimmed
- * and stored.
+ * the request schema only checks 1..16 characters (the storage contract) and no middleware trims it.
+ * The code is identity data (it keys the I18n translations), so a code with
+ * surrounding whitespace is rejected before anything is touched: no
+ * transaction is opened, no row is locked, no LanguageCore update and no I18n
+ * re-key happens. It is never silently trimmed and stored.
  *
  * Runs the real controller, the real request schema/validator and the real
- * LanguageManagementService; only the repositories are doubles.
+ * PdoLanguageCodeChange (the LanguageCodeChangeInterface implementation); only the collaborators it must NOT reach are
+ * doubles. The positive path (an exact code is renamed atomically together
+ * with its I18n translations) needs a database and is covered by
+ * I18nAdminHostLanguageBoundaryIntegrationTest.
  */
 final class LanguagesUpdateCodeWhitespaceTest extends TestCase
 {
+    private PDO&MockObject $pdo;
     private LanguageRepositoryInterface&MockObject $languages;
     private LanguagesUpdateCodeController $controller;
 
     protected function setUp(): void
     {
+        $this->pdo = $this->createMock(PDO::class);
         $this->languages = $this->createMock(LanguageRepositoryInterface::class);
-        $this->languages->method('getById')->willReturn(
-            new LanguageDTO(7, 'English', 'en', true, null, '2026-01-01 00:00:00', null)
-        );
 
-        $service = new LanguageManagementService(
+        // TranslationWriteService is final: an uninitialised instance is enough because
+        // the rejection happens before it is ever used (a call would fatally error).
+        $translationWriter = (new ReflectionClass(TranslationWriteService::class))->newInstanceWithoutConstructor();
+
+        $service = new PdoLanguageCodeChange(
+            $this->pdo,
             $this->languages,
-            $this->createMock(LanguageSettingsRepositoryInterface::class)
+            new LanguageManagementService(
+                $this->languages,
+                $this->createMock(LanguageSettingsRepositoryInterface::class)
+            ),
+            $translationWriter
         );
 
         $this->controller = new LanguagesUpdateCodeController(
@@ -61,48 +77,24 @@ final class LanguagesUpdateCodeWhitespaceTest extends TestCase
             'leading space'               => [' en'],
             'trailing tab'                => ["en\t"],
             'trailing newline'            => ["en\n"],
+            'whitespace only'             => ['   '],
         ];
     }
 
-    #[\PHPUnit\Framework\Attributes\DataProvider('codesWithSurroundingWhitespace')]
-    public function testCodeWithSurroundingWhitespaceIsRejectedAndNeverStored(string $code): void
+    #[DataProvider('codesWithSurroundingWhitespace')]
+    public function testCodeWithSurroundingWhitespaceIsRejectedBeforeAnythingIsTouched(string $code): void
     {
-        $this->languages->expects($this->never())->method('updateCode');
-        $this->languages->expects($this->never())->method('getByCode');
-
-        $this->expectException(LanguageUpdateFailedException::class);
-
-        $this->invoke($code);
-    }
-
-    public function testWhitespaceOnlyCodeIsRejectedAndNeverStored(): void
-    {
+        $this->pdo->expects($this->never())->method('beginTransaction');
+        $this->pdo->expects($this->never())->method('inTransaction');
+        $this->languages->expects($this->never())->method('getByIdForUpdate');
         $this->languages->expects($this->never())->method('updateCode');
 
         $this->expectException(LanguageUpdateFailedException::class);
 
-        $this->invoke('   ');
-    }
-
-    public function testExactCodeIsStoredAsSupplied(): void
-    {
-        $this->languages->method('getByCode')->willReturn(null);
-        $this->languages->expects($this->once())
-            ->method('updateCode')
-            ->with(7, 'en-GB')
-            ->willReturn(true);
-
-        $response = $this->invoke('en-GB');
-
-        self::assertSame(200, $response->getStatusCode());
-    }
-
-    private function invoke(string $code): \Psr\Http\Message\ResponseInterface
-    {
         $request = (new ServerRequestFactory())
             ->createServerRequest('POST', '/api/languages/update-code')
             ->withParsedBody(['language_id' => 7, 'code' => $code]);
 
-        return ($this->controller)($request, (new ResponseFactory())->createResponse());
+        ($this->controller)($request, (new ResponseFactory())->createResponse());
     }
 }

@@ -16,7 +16,7 @@ declare(strict_types=1);
 namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages;
 
 use Maatify\AdminKernel\Domain\I18n\Language\Validation\LanguageUpdateCodeSchema;
-use Maatify\LanguageCore\Service\LanguageManagementService;
+use Maatify\AdminKernel\Domain\I18n\Language\LanguageCodeChangeInterface;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -25,7 +25,7 @@ use RuntimeException;
 final readonly class LanguagesUpdateCodeController
 {
     public function __construct(
-        private LanguageManagementService $languageService,
+        private LanguageCodeChangeInterface $languageCodeChange,
         private ValidationGuard $validationGuard
     )
     {
@@ -48,9 +48,10 @@ final readonly class LanguagesUpdateCodeController
             throw new RuntimeException('Invalid validated payload.');
         }
 
-        $this->languageService->updateLanguageCode(
+        // Host-owned atomic identity migration: LanguageCore code + I18n re-key.
+        $this->languageCodeChange->changeCode(
             languageId: $languageId,
-            code      : $code
+            newCode   : $code
         );
 
         return $response->withStatus(200);

@@ -63,9 +63,7 @@ use Maatify\AdminKernel\Domain\Contracts\TotpServiceInterface;
 use Maatify\AdminKernel\Domain\DTO\AdminConfigDTO;
 use Maatify\AdminKernel\Domain\DTO\TotpEnrollmentConfig;
 use Maatify\AdminKernel\Domain\DTO\Ui\UiConfigDTO;
-use Maatify\AdminKernel\Domain\I18n\Keys\I18nKeyInterface;
 use Maatify\AdminKernel\Domain\I18n\Language\LanguageQueryReaderInterface;
-use Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsInterface;
 use Maatify\AdminKernel\Domain\Ownership\SystemOwnershipRepositoryInterface;
 use Maatify\AdminKernel\Domain\Security\Crypto\AdminCryptoContextProvider;
 use Maatify\AdminKernel\Domain\Security\Crypto\CryptoKeyRingConfig;
@@ -151,11 +149,7 @@ use Maatify\AdminKernel\Infrastructure\Repository\AdminRoleRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\AdminSessionRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\AdminTotpSecretRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\FailedNotificationRepository;
-use Maatify\AdminKernel\Infrastructure\Repository\I18n\Domains\PdoI18nDomainCreate;
-use Maatify\AdminKernel\Infrastructure\Repository\I18n\Domains\PdoI18nDomainsQueryReader;
-use Maatify\AdminKernel\Infrastructure\Repository\I18n\Keys\I18nKeyRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\I18n\Languages\PdoLanguageQueryReader;
-use Maatify\AdminKernel\Infrastructure\Repository\I18n\ScopeDomains\I18nScopeDomainsRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\NotificationReadRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\PdoAdminDirectPermissionRepository;
 use Maatify\AdminKernel\Infrastructure\Repository\PdoAdminNotificationHistoryReader;
@@ -214,8 +208,8 @@ use Maatify\EmailDelivery\Renderer\EmailRendererInterface;
 use Maatify\EmailDelivery\Renderer\TwigEmailRenderer;
 use Maatify\EmailDelivery\Transport\EmailTransportInterface;
 use Maatify\EmailDelivery\Transport\SmtpEmailTransport;
-use Maatify\I18n\Contract\TranslationKeyRepositoryInterface;
-use Maatify\I18n\Contract\TranslationRepositoryInterface;
+use Maatify\I18n\Repository\TranslationKeyRepositoryInterface;
+use Maatify\I18n\Repository\TranslationRepositoryInterface;
 use Maatify\InputNormalization\Contracts\InputNormalizerInterface;
 use Maatify\InputNormalization\Middleware\InputNormalizationMiddleware;
 use Maatify\InputNormalization\Normalizer\InputNormalizer;
@@ -2357,25 +2351,62 @@ class Container
                 );
             },
 
-            LanguagesUpdateCodeController::class => function (ContainerInterface $c) {
+            // Host-owned atomic language-code identity migration (ADR-019 §6):
+            // LanguageCore code change + I18n re-key in one transaction. The contract is Domain,
+            // the PDO implementation (it owns the transaction) is Infrastructure.
+            \Maatify\AdminKernel\Domain\I18n\Language\LanguageCodeChangeInterface::class => function (ContainerInterface $c) {
+                $pdo = $c->get(PDO::class);
+                $languageRepository = $c->get(LanguageRepositoryInterface::class);
                 $languageService = $c->get(LanguageManagementService::class);
+                $translationWriter = $c->get(\Maatify\I18n\Management\Service\TranslationWriteService::class);
+
+                assert($pdo instanceof PDO);
+                assert($languageRepository instanceof LanguageRepositoryInterface);
+                assert($languageService instanceof LanguageManagementService);
+                assert($translationWriter instanceof \Maatify\I18n\Management\Service\TranslationWriteService);
+
+                return new \Maatify\AdminKernel\Infrastructure\I18n\Language\PdoLanguageCodeChange(
+                    $pdo,
+                    $languageRepository,
+                    $languageService,
+                    $translationWriter
+                );
+            },
+
+            // Host resolves the Admin route language ID to the exact code; the ID never enters I18n.
+            \Maatify\AdminKernel\Domain\I18n\Language\LanguageCodeResolver::class => function (ContainerInterface $c) {
+                $languageRepository = $c->get(LanguageRepositoryInterface::class);
+                assert($languageRepository instanceof LanguageRepositoryInterface);
+
+                return new \Maatify\AdminKernel\Domain\I18n\Language\LanguageCodeResolver($languageRepository);
+            },
+
+            \Maatify\AdminKernel\Domain\I18n\Dashboard\I18nDashboardLanguageStatsComposer::class => function (ContainerInterface $c) {
+                $stats = $c->get(\Maatify\I18n\Management\Service\I18nOperationalReadService::class);
+                $languageRepository = $c->get(LanguageRepositoryInterface::class);
+
+                assert($stats instanceof \Maatify\I18n\Management\Service\I18nOperationalReadService);
+                assert($languageRepository instanceof LanguageRepositoryInterface);
+
+                return new \Maatify\AdminKernel\Domain\I18n\Dashboard\I18nDashboardLanguageStatsComposer(
+                    $stats,
+                    $languageRepository
+                );
+            },
+
+            LanguagesUpdateCodeController::class => function (ContainerInterface $c) {
+                $languageCodeChange = $c->get(\Maatify\AdminKernel\Domain\I18n\Language\LanguageCodeChangeInterface::class);
                 $validationGuard = $c->get(ValidationGuard::class);
 
-                assert($languageService instanceof LanguageManagementService);
+                assert($languageCodeChange instanceof \Maatify\AdminKernel\Domain\I18n\Language\LanguageCodeChangeInterface);
                 assert($validationGuard instanceof ValidationGuard);
 
                 return new LanguagesUpdateCodeController(
-                    $languageService,
+                    $languageCodeChange,
                     $validationGuard
                 );
             },
 
-            \Maatify\AdminKernel\Domain\I18n\LanguageTranslationValue\LanguageTranslationValueQueryReaderInterface::class => function (\Psr\Container\ContainerInterface $c) {
-                $pdo = $c->get(\PDO::class);
-                \assert($pdo instanceof \PDO);
-
-                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\PdoLanguageTranslationValueQueryReader($pdo);
-            },
 
             LanguageDropdownController::class => function (\Psr\Container\ContainerInterface $c) {
                 $languageRepository = $c->get(LanguageRepositoryInterface::class);
@@ -2385,23 +2416,8 @@ class Container
                 return new LanguageDropdownController($languageRepository, $settingsRepository);
             },
 
-            \Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopesQueryReaderInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Scope\PdoI18nScopesQueryReader($pdo);
-            },
 
-            \Maatify\AdminKernel\Domain\I18n\Scope\Writer\I18nScopeUpdaterInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Scope\PdoI18nScopeUpdater($pdo);
-            },
 
-            \Maatify\AdminKernel\Domain\I18n\Scope\Writer\I18nScopeCreateWriterInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Scope\PdoI18nScopeCreateWriter($pdo);
-            },
 
             \Maatify\AdminKernel\Domain\AppSettings\Reader\AppSettingsQueryReaderInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
@@ -2433,9 +2449,7 @@ class Container
             return new \Maatify\AdminKernel\Http\Controllers\Ui\AppSettings\AppSettingsListUiController($twig, $authorizationService);
             },
 
-            \Maatify\I18n\Service\TranslationDomainReadService::class => function (ContainerInterface $c) {
-                $languageRepository = $c->get(LanguageRepositoryInterface::class);
-                assert($languageRepository instanceof LanguageRepositoryInterface);
+            \Maatify\I18n\Consumer\Service\TranslationDomainReadService::class => function (ContainerInterface $c) {
                 $keyRepository = $c->get(TranslationKeyRepositoryInterface::class);
                 assert($keyRepository instanceof TranslationKeyRepositoryInterface);
                 $translationRepository = $c->get(TranslationRepositoryInterface::class);
@@ -2448,8 +2462,7 @@ class Container
                  * Governance policy is used for boundary validation only.
                  * Invalid scope/domain will result in empty output, never an exception.
                  */
-                return new \Maatify\I18n\Service\TranslationDomainReadService(
-                    $languageRepository,
+                return new \Maatify\I18n\Consumer\Service\TranslationDomainReadService(
                     $keyRepository,
                     $translationRepository,
                     $policyService,
@@ -2470,60 +2483,29 @@ class Container
                 );
             },
 
-            \Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainsQueryReaderInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new PdoI18nDomainsQueryReader($pdo);
-            },
 
-            \Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainCreateInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new PdoI18nDomainCreate($pdo);
-            },
 
-            \Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainUpdaterInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Domains\PdoI18nDomainUpdater($pdo);
-            },
 
-            \Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopeDetailsRepositoryInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Scope\PdoI18nScopeDetailsReader($pdo);
-            },
 
-            I18nScopeDomainsInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new I18nScopeDomainsRepository($pdo);
-            },
 
-            I18nKeyInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new I18nKeyRepository($pdo);
-            },
 
-            \Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsQueryReaderInterface::class
-            => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\ScopeDomains\PdoI18nScopeDomainsQueryReader($pdo);
-            },
 
-            \Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsWriterInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\ScopeDomains\PdoI18nScopeDomainsWriter($pdo);
-            },
 
-            \Maatify\AdminKernel\Domain\I18n\Keys\I18nScopeKeysQueryReaderInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Keys\PdoI18nScopeKeysQueryReader($pdo);
-            },
+
+            // ── I18n read side: Host contracts served by the I18n package's public API ──
+            // (no Host SQL over package tables; ADR-019 composition happens in these readers)
+            \Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopesQueryReaderInterface::class => \DI\get(\Maatify\AdminKernel\Infrastructure\I18n\Reader\PackageI18nScopeReader::class),
+            \Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopeDetailsRepositoryInterface::class => \DI\get(\Maatify\AdminKernel\Infrastructure\I18n\Reader\PackageI18nScopeReader::class),
+            \Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopeDropdownReaderInterface::class => \DI\get(\Maatify\AdminKernel\Infrastructure\I18n\Reader\PackageI18nScopeReader::class),
+            \Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainsQueryReaderInterface::class => \DI\get(\Maatify\AdminKernel\Infrastructure\I18n\Reader\PackageI18nDomainReader::class),
+            \Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainDetailsReaderInterface::class => \DI\get(\Maatify\AdminKernel\Infrastructure\I18n\Reader\PackageI18nDomainReader::class),
+            \Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsListReaderInterface::class => \DI\get(\Maatify\AdminKernel\Infrastructure\I18n\Reader\PackageI18nScopeDomainsReader::class),
+            \Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsQueryReaderInterface::class => \DI\get(\Maatify\AdminKernel\Infrastructure\I18n\Reader\PackageI18nScopeDomainsReader::class),
+            \Maatify\AdminKernel\Domain\I18n\Keys\I18nScopeKeysQueryReaderInterface::class => \DI\get(\Maatify\AdminKernel\Infrastructure\I18n\Reader\PackageI18nScopeKeysReader::class),
+            \Maatify\AdminKernel\Domain\I18n\Translations\I18nScopeDomainKeysSummaryQueryReaderInterface::class => \DI\get(\Maatify\AdminKernel\Infrastructure\I18n\Reader\PackageI18nTranslationsReader::class),
+            \Maatify\AdminKernel\Domain\I18n\Translations\I18nScopeDomainTranslationsQueryReaderInterface::class => \DI\get(\Maatify\AdminKernel\Infrastructure\I18n\Reader\PackageI18nTranslationsReader::class),
+            \Maatify\AdminKernel\Domain\I18n\LanguageTranslationValue\LanguageTranslationValueQueryReaderInterface::class => \DI\get(\Maatify\AdminKernel\Infrastructure\I18n\Reader\PackageI18nLanguageTranslationValueReader::class),
+            \Maatify\AdminKernel\Domain\I18n\Coverage\I18nScopeCoverageReaderInterface::class => \DI\get(\Maatify\AdminKernel\Infrastructure\I18n\Reader\PackageI18nScopeCoverageReader::class),
 
             \Maatify\AdminKernel\Domain\I18n\Language\LanguageLookupInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
@@ -2531,41 +2513,11 @@ class Container
                 return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Languages\PdoLanguageLookup($pdo);
             },
 
-            \Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsListReaderInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\ScopeDomains\PdoI18nScopeDomainsListReader($pdo);
-            },
 
-            \Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopeDropdownReaderInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Scope\PdoI18nScopeDropdownReader($pdo);
-            },
 
-            \Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainDetailsReaderInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Domains\PdoI18nDomainDetailsReader($pdo);
-            },
 
-            \Maatify\AdminKernel\Domain\I18n\Translations\I18nScopeDomainKeysSummaryQueryReaderInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Translations\PdoI18nScopeDomainKeysSummaryQueryReader($pdo);
-            },
 
-            \Maatify\AdminKernel\Domain\I18n\Translations\I18nScopeDomainTranslationsQueryReaderInterface::class => function (ContainerInterface $c) {
-            $pdo = $c->get(PDO::class);
-            assert($pdo instanceof PDO);
-            return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Translations\PdoI18nScopeDomainTranslationsQueryReader($pdo);
-            },
 
-            \Maatify\AdminKernel\Domain\I18n\Coverage\I18nScopeCoverageReaderInterface::class => function (ContainerInterface $c) {
-                $pdo = $c->get(PDO::class);
-                assert($pdo instanceof PDO);
-                return new \Maatify\AdminKernel\Infrastructure\Repository\I18n\Coverage\PdoI18nScopeCoverageReader($pdo);
-            },
 
             \Maatify\AdminKernel\Http\Controllers\Api\I18n\Coverage\I18nScopeCoverageByLanguageController::class => function (ContainerInterface $c) {
                 $reader = $c->get(\Maatify\AdminKernel\Domain\I18n\Coverage\I18nScopeCoverageReaderInterface::class);

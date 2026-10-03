@@ -20,7 +20,7 @@ final class LanguageUpdateCodeSchema extends AbstractSchema
             ],
 
             'code' => [
-                v::stringType()->length(1, 32),
+                v::stringType()->length(1, 16),
                 ValidationErrorCodeEnum::REQUIRED_FIELD
             ],
         ];

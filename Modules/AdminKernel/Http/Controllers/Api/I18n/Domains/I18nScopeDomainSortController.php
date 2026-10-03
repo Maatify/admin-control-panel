@@ -5,7 +5,7 @@
  * @Library     maatify/admin-control-panel
  * @Project     maatify:admin-control-panel
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
- * @since       2026-02-08 12:43
+ * @since       2026-10-01 00:00
  * @see         https://www.maatify.dev Maatify.dev
  * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
  * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
@@ -15,10 +15,9 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\Domains;
 
-use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
-use Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainUpdaterInterface;
-use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
 use Maatify\AdminKernel\Domain\I18n\Domain\Validation\I18nDomainUpdateSortSchema;
+use Maatify\AdminKernel\Domain\I18n\Service\I18nDomainCommandService;
+use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -26,7 +25,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 final readonly class I18nScopeDomainSortController
 {
     public function __construct(
-        private I18nDomainUpdaterInterface $writer,
+        private I18nDomainCommandService $service,
         private ValidationGuard $validationGuard,
         private JsonResponseFactory $json,
     ) {}
@@ -48,12 +47,8 @@ final readonly class I18nScopeDomainSortController
             $position = (int)$body['position'];
         }
 
-
-        if (! $this->writer->existsById($id)) {
-            throw new EntityNotFoundException('I18nDomain', (string)$id);
-        }
-
-        $this->writer->repositionSortOrder($id, $position);
+        // ordering is delegated by the I18n package to maatify/persistence
+        $this->service->moveToPosition($id, $position);
 
         return $this->json->data($response, ['status' => 'ok']);
     }

@@ -89,7 +89,7 @@ $options->builderHook = static function (ContainerBuilder $containerBuilder) use
     \Maatify\LanguageCore\Bootstrap\LanguageCoreBindings::register($containerBuilder);
 
     // Register Maatify\I18n modules
-    \Maatify\I18n\Bootstrap\I18nBindings::register($containerBuilder);
+    \Maatify\I18n\Adapter\PhpDi\I18nBindings::register($containerBuilder);
 
     // Register Maatify\ContentDocuments modules
     \Maatify\ContentDocuments\Bootstrap\ContentDocumentsBindings::register($containerBuilder);

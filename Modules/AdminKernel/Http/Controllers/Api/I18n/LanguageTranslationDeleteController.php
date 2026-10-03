@@ -15,9 +15,10 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\I18n;
 
+use Maatify\AdminKernel\Domain\I18n\Language\LanguageCodeResolver;
 use Maatify\AdminKernel\Domain\I18n\LanguageTranslationValue\Validation\LanguageTranslationValueDeleteSchema;
 use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
-use Maatify\I18n\Service\TranslationWriteService;
+use Maatify\I18n\Management\Service\TranslationWriteService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -26,6 +27,7 @@ final readonly class LanguageTranslationDeleteController
 {
     public function __construct(
         private TranslationWriteService $translationWriteService,
+        private LanguageCodeResolver $languageCodeResolver,
         private ValidationGuard $validationGuard,
         private JsonResponseFactory $json,
     )
@@ -46,13 +48,16 @@ final readonly class LanguageTranslationDeleteController
         /** @var array{key_id: int} $body */
         $this->validationGuard->check(new LanguageTranslationValueDeleteSchema(), $body);
 
-        // 2) Call domain service only
+        // 2) Host resolves the route ID to the exact code; the ID never crosses into I18n
+        $languageCode = $this->languageCodeResolver->resolveCode($languageId);
+
+        // 3) Call domain service only
         $this->translationWriteService->deleteTranslation(
-            languageId: $languageId,
+            languageCode: $languageCode,
             keyId     : (int)$body['key_id']
         );
 
-        // 3) Response
+        // 4) Response
         return $this->json->success($response);
 
     }

@@ -5,7 +5,7 @@
  * @Library     maatify/admin-control-panel
  * @Project     maatify:admin-control-panel
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
- * @since       2026-02-07 18:26
+ * @since       2026-10-01 00:00
  * @see         https://www.maatify.dev Maatify.dev
  * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
  * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
@@ -15,10 +15,9 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\Scope;
 
-use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\AdminKernel\Domain\I18n\Scope\Validation\I18nScopeSetActiveSchema;
+use Maatify\AdminKernel\Domain\I18n\Service\I18nScopeCommandService;
 use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
-use Maatify\AdminKernel\Domain\I18n\Scope\Writer\I18nScopeUpdaterInterface;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -26,7 +25,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 final readonly class I18nScopeSetActiveController
 {
     public function __construct(
-        private I18nScopeUpdaterInterface $writer,
+        private I18nScopeCommandService $service,
         private ValidationGuard $validationGuard,
         private JsonResponseFactory $json,
     ) {
@@ -46,14 +45,10 @@ final readonly class I18nScopeSetActiveController
         }
 
         $isActive = isset($body['is_active']) && is_bool($body['is_active'])
-            ? (int)$body['is_active']
-            : 1;
+            ? $body['is_active']
+            : true;
 
-        if (! $this->writer->existsById($id)) {
-            throw new EntityNotFoundException('I18nScope', (string)$id);
-        }
-
-        $this->writer->setActive($id, $isActive);
+        $this->service->setActive($id, $isActive);
 
         return $this->json->data($response, ['status' => 'ok']);
     }

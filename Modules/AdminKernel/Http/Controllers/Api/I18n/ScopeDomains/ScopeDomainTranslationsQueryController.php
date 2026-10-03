@@ -17,7 +17,7 @@ namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\ScopeDomains;
 
 use Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainDetailsReaderInterface;
 use Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopeDetailsRepositoryInterface;
-use Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsInterface;
+use Maatify\I18n\Management\Service\I18nManagementReadService;
 use Maatify\AdminKernel\Domain\I18n\Translations\I18nScopeDomainTranslationsQueryReaderInterface;
 use Maatify\AdminKernel\Domain\I18n\Translations\List\I18nScopeDomainTranslationsListCapabilities;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
@@ -35,7 +35,7 @@ final readonly class ScopeDomainTranslationsQueryController
         private I18nScopeDomainTranslationsQueryReaderInterface $reader,
         private I18nScopeDetailsRepositoryInterface $scopeDetailsReader,
         private I18nDomainDetailsReaderInterface $domainDetailsReader,
-        private I18nScopeDomainsInterface $scopeDomainsReader,
+        private I18nManagementReadService $scopeDomainsReader,
         private ValidationGuard $validationGuard,
         private ListFilterResolver $filterResolver,
         private JsonResponseFactory $json,
@@ -85,7 +85,7 @@ final readonly class ScopeDomainTranslationsQueryController
         $domain = $this->domainDetailsReader->getDomainDetailsById($domainId);
         $domainCode = $domain->code;
 
-        if(!$this->scopeDomainsReader->isAssigned($scopeCode, $domainCode)){
+        if(!$this->scopeDomainsReader->isDomainAssigned($scopeCode, $domainCode)){
             throw new DomainScopeViolationException($scopeCode, $domainCode);
         }
 

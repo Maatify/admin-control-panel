@@ -15,9 +15,11 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\I18n;
 
+use Maatify\AdminKernel\Domain\I18n\Language\LanguageCodeResolver;
 use Maatify\AdminKernel\Domain\I18n\LanguageTranslationValue\Validation\LanguageTranslationValueUpsertSchema;
 use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
-use Maatify\I18n\Service\TranslationWriteService;
+use Maatify\I18n\Management\Command\UpsertTranslationCommand;
+use Maatify\I18n\Management\Service\TranslationWriteService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -26,6 +28,7 @@ final readonly class LanguageTranslationUpsertController
 {
     public function __construct(
         private TranslationWriteService $translationWriteService,
+        private LanguageCodeResolver $languageCodeResolver,
         private ValidationGuard $validationGuard,
         private JsonResponseFactory $json,
     ) {
@@ -44,11 +47,19 @@ final readonly class LanguageTranslationUpsertController
         // 1) Validate payload
         $this->validationGuard->check(new LanguageTranslationValueUpsertSchema(), $body);
 
+        // 2) Host resolves the route ID to the exact code; the ID never crosses into I18n
+        $languageCode = $this->languageCodeResolver->resolveCode($languageId);
+
         // 3) Call domain service (no logic here)
         $this->translationWriteService->upsertTranslation(
-            languageId: $languageId,
-            keyId: (int)$body['key_id'],
-            value: $body['value']
+            new UpsertTranslationCommand(
+                languageCode: $languageCode,
+                keyId: (int)$body['key_id'],
+                value: $body['value'],
+                // The admin API does not manage translation `type` metadata yet (ADR-020 of
+                // maatify/php-i18n); the package requires it to be stated explicitly.
+                type: null
+            )
         );
 
         // 4) Response

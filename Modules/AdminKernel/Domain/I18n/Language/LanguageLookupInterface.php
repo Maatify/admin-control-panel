@@ -21,4 +21,14 @@ interface LanguageLookupInterface
 {
     public function getById(int $id): ?LanguageListItemDTO;
 
+    /**
+     * Every Host language (identity + display metadata), ordered by id.
+     *
+     * The Host owns the language universe; I18n only ever receives the exact
+     * codes taken from here.
+     *
+     * @return list<LanguageListItemDTO>
+     */
+    public function listAll(): array;
+
 }

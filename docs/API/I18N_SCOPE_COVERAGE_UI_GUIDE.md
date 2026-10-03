@@ -28,7 +28,7 @@ If it is not defined here, it is **not supported**.
 Scope Coverage is:
 
 * ✅ **Read-only**
-* ✅ Based on `i18n_domain_language_summary`
+* ✅ Based on `maa_i18n_domain_language_summary`
 * ✅ Derived (non-authoritative)
 * ❌ Not part of Scopes CRUD
 * ❌ Not allowed to mutate data
@@ -44,13 +44,13 @@ It exists to improve translator workflow and visual clarity.
 Primary Table:
 
 ```
-i18n_domain_language_summary
+maa_i18n_domain_language_summary
 ```
 
-Granularity:
+Granularity (ADR-019, I18n owns no language list):
 
 ```
-(scope, domain, language_id)
+(scope, domain, language_code)      -- exact code, NULL = unlocalized scope
 ```
 
 Columns:
@@ -59,8 +59,10 @@ Columns:
 * translated_count
 * missing_count
 
+Rows are **sparse**: a row exists only where at least one translation of that exact code exists. The Admin Host composes its own `languages` list with these rows by `language_code`; a language with no row is `translated_count = 0`, `missing_count = total_keys`. `language_id` in the routes/DTOs is Host (LanguageCore) identity only — the Host matches it to the I18n rows through `languages.code`.
+
 This table is maintained by backend services.
-UI MUST NOT assume or recompute values from `i18n_translations`.
+UI MUST NOT assume or recompute values from `maa_i18n_translations`.
 
 ---
 
@@ -159,9 +161,10 @@ Authenticated admin only
 ### Semantics
 
 * Aggregates ALL domains assigned to the scope
-* Uses SUM over summary table
-* Must join `i18n_domain_scopes`
-* Must NOT count via `i18n_translations`
+* Lists EVERY Host language (LEFT JOIN of `languages` with the summary by `language_code`), including languages that have no summary row yet
+* `total_keys` = keys of the scope's assigned domains; `translated_count` = SUM over the summary rows of that language code
+* Must join `maa_i18n_domain_scopes`
+* Must NOT count via `maa_i18n_translations`
 * Must NOT ignore policy mapping
 
 ---
@@ -205,9 +208,10 @@ GET /api/i18n/scopes/{scope_id}/coverage/languages/{language_id}
   missing_count DESC
   sort_order ASC
   ```
-* Must join `i18n_domain_scopes`
+* Must join `maa_i18n_domain_scopes`
 * Must filter by scope
-* Must filter by language_id
+* Must resolve `language_id` (Host) to its exact language code and read that code's summary row; a domain with no row for the code is `translated_count = 0`
+* Only domains that have keys are listed
 
 ---
 
@@ -303,7 +307,7 @@ Must not:
 Coverage must:
 
 * Use summary table
-* Avoid scanning i18n_translations
+* Avoid scanning maa_i18n_translations
 * Avoid heavy joins
 * Be O(domains × languages)
 
@@ -355,7 +359,7 @@ The following are NOT supported:
 * Modifying summary table from UI
 * Recomputing coverage client-side
 * Bypassing scope-domain policy
-* Using i18n_key_stats for language-based coverage
+* Using maa_i18n_key_stats for language-based coverage
 
 ---
 

@@ -5,7 +5,7 @@
  * @Library     maatify/admin-control-panel
  * @Project     maatify:admin-control-panel
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
- * @since       2026-02-08 12:51
+ * @since       2026-10-01 00:00
  * @see         https://www.maatify.dev Maatify.dev
  * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
  * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
@@ -15,11 +15,9 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\Domains;
 
-use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
-use Maatify\AdminKernel\Domain\Exception\InvalidOperationException;
-use Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainUpdaterInterface;
-use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
 use Maatify\AdminKernel\Domain\I18n\Domain\Validation\I18nDomainUpdateMetadataSchema;
+use Maatify\AdminKernel\Domain\I18n\Service\I18nDomainCommandService;
+use Maatify\AdminKernel\Http\Response\JsonResponseFactory;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -27,7 +25,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 final readonly class I18nDomainUpdateMetadataController
 {
     public function __construct(
-        private I18nDomainUpdaterInterface $writer,
+        private I18nDomainCommandService $service,
         private ValidationGuard $validationGuard,
         private JsonResponseFactory $json,
     ) {}
@@ -52,25 +50,13 @@ final readonly class I18nDomainUpdateMetadataController
             $name = $body['name'];
         }
 
-        if (! $this->writer->existsById($id)) {
-            throw new EntityNotFoundException('I18nDomain', (string) $id);
-        }
-
         $description = null;
         if (isset($body['description']) && is_string($body['description'])) {
             $description = $body['description'];
         }
 
-        // must update at least one field
-        if ($name === null && $description === null) {
-            throw new InvalidOperationException(
-                'I18nDomain',
-                'update-metadata',
-                'At least one field (name or description) must be provided'
-            );
-        }
-
-        $this->writer->updateMetadata($id, $name, $description);
+        // at least one field; existence is decided under lock by the I18n package
+        $this->service->updateMetadata($id, $name, $description);
 
         return $this->json->data($response, ['status' => 'ok']);
     }
