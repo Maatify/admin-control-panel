@@ -2352,8 +2352,9 @@ class Container
             },
 
             // Host-owned atomic language-code identity migration (ADR-019 §6):
-            // LanguageCore code change + I18n re-key in one transaction.
-            \Maatify\AdminKernel\Domain\I18n\Language\LanguageCodeChangeService::class => function (ContainerInterface $c) {
+            // LanguageCore code change + I18n re-key in one transaction. The contract is Domain,
+            // the PDO implementation (it owns the transaction) is Infrastructure.
+            \Maatify\AdminKernel\Domain\I18n\Language\LanguageCodeChangeInterface::class => function (ContainerInterface $c) {
                 $pdo = $c->get(PDO::class);
                 $languageRepository = $c->get(LanguageRepositoryInterface::class);
                 $languageService = $c->get(LanguageManagementService::class);
@@ -2364,7 +2365,7 @@ class Container
                 assert($languageService instanceof LanguageManagementService);
                 assert($translationWriter instanceof \Maatify\I18n\Management\Service\TranslationWriteService);
 
-                return new \Maatify\AdminKernel\Domain\I18n\Language\LanguageCodeChangeService(
+                return new \Maatify\AdminKernel\Infrastructure\I18n\Language\PdoLanguageCodeChange(
                     $pdo,
                     $languageRepository,
                     $languageService,
@@ -2394,10 +2395,10 @@ class Container
             },
 
             LanguagesUpdateCodeController::class => function (ContainerInterface $c) {
-                $languageCodeChange = $c->get(\Maatify\AdminKernel\Domain\I18n\Language\LanguageCodeChangeService::class);
+                $languageCodeChange = $c->get(\Maatify\AdminKernel\Domain\I18n\Language\LanguageCodeChangeInterface::class);
                 $validationGuard = $c->get(ValidationGuard::class);
 
-                assert($languageCodeChange instanceof \Maatify\AdminKernel\Domain\I18n\Language\LanguageCodeChangeService);
+                assert($languageCodeChange instanceof \Maatify\AdminKernel\Domain\I18n\Language\LanguageCodeChangeInterface);
                 assert($validationGuard instanceof ValidationGuard);
 
                 return new LanguagesUpdateCodeController(

@@ -70,7 +70,7 @@ UNIQUE (key_id, language_code_identity)
 Because the code is now the stable external identity inside I18n, renaming a language code in the Host changes the identity of its translations.
 
 * I18n exposes an explicit, package-owned operation `TranslationWriteService::rekeyLanguageCode(string $oldCode, string $newCode)`: it re-keys the authoritative `i18n_translations` rows and rebuilds the affected derived summary rows inside one I18n transaction. It fails hard (`I18nConflictException`) if `newCode` already owns translations, and does not validate the language semantically.
-* The **Host** orchestrates the rename. In Athar, `LanguageCodeChangeService` (AdminKernel) runs, in one database transaction on the shared connection: resolve the language → validate the new code against the storage contract → `LanguageManagementService::updateLanguageCode` → `rekeyLanguageCode(old, new)`. Any failure rolls both sides back. Renaming a code through LanguageCore alone (leaving I18n rows under the old code) is not supported and no path in Athar performs it.
+* The **Host** orchestrates the rename. In Athar, the Domain contract `LanguageCodeChangeInterface` (AdminKernel) is implemented by `PdoLanguageCodeChange` (AdminKernel Infrastructure, because it owns the transaction on the shared connection), which runs, in one database transaction on the shared connection: resolve the language → validate the new code against the storage contract → `LanguageManagementService::updateLanguageCode` → `rekeyLanguageCode(old, new)`. Any failure rolls both sides back. Renaming a code through LanguageCore alone (leaving I18n rows under the old code) is not supported and no path in Athar performs it.
 * No FK cascade is used and I18n never edits LanguageCore data.
 
 ## 7. Trade-offs

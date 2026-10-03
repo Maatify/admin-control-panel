@@ -6,7 +6,7 @@ namespace Tests\Integration\I18n;
 
 use DateTimeZone;
 use Maatify\AdminKernel\Domain\I18n\Dashboard\I18nDashboardLanguageStatsComposer;
-use Maatify\AdminKernel\Domain\I18n\Language\LanguageCodeChangeService;
+use Maatify\AdminKernel\Infrastructure\I18n\Language\PdoLanguageCodeChange;
 use Maatify\AdminKernel\Domain\I18n\Language\LanguageCodeResolver;
 use Maatify\AdminKernel\Domain\List\Filters\ResolvedListFilters;
 use Maatify\AdminKernel\Domain\List\ListQueryDTO;
@@ -456,9 +456,9 @@ final class I18nAdminHostLanguageBoundaryIntegrationTest extends TestCase
 
     // ── helpers ────────────────────────────────────────────────────────────
 
-    private function changeService(): LanguageCodeChangeService
+    private function changeService(): PdoLanguageCodeChange
     {
-        return new LanguageCodeChangeService(
+        return new PdoLanguageCodeChange(
             $this->pdo,
             $this->languageRepository,
             $this->languageManagement,
@@ -469,7 +469,7 @@ final class I18nAdminHostLanguageBoundaryIntegrationTest extends TestCase
     /**
      * The same production wiring on another connection (concurrency proof).
      */
-    private function changeServiceFor(PDO $pdo): LanguageCodeChangeService
+    private function changeServiceFor(PDO $pdo): PdoLanguageCodeChange
     {
         $languages = new MysqlLanguageRepository($pdo);
         $keys = new MysqlTranslationKeyRepository($pdo);
@@ -489,7 +489,7 @@ final class I18nAdminHostLanguageBoundaryIntegrationTest extends TestCase
             )
         );
 
-        return new LanguageCodeChangeService(
+        return new PdoLanguageCodeChange(
             $pdo,
             $languages,
             new LanguageManagementService($languages, new MysqlLanguageSettingsRepository($pdo)),

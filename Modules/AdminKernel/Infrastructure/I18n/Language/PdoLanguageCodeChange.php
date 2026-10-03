@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Maatify\AdminKernel\Domain\I18n\Language;
+namespace Maatify\AdminKernel\Infrastructure\I18n\Language;
 
+use Maatify\AdminKernel\Domain\I18n\Language\LanguageCodeChangeInterface;
 use Maatify\I18n\Management\Service\TranslationWriteService;
 use Maatify\I18n\ValueObject\LanguageCode;
 use Maatify\LanguageCore\Contract\LanguageRepositoryInterface;
@@ -14,7 +15,9 @@ use PDO;
 use Throwable;
 
 /**
- * Host-owned atomic language-code identity migration (ADR-019 §6).
+ * PDO implementation of LanguageCodeChangeInterface: the Host-owned atomic language-code
+ * identity migration (ADR-019 §6). It lives in Infrastructure because it owns the transaction on
+ * the shared PDO connection.
  *
  * Inside I18n the language code is the stable identity of a translation, so a
  * code change must move LanguageCore and the I18n rows together:
@@ -28,7 +31,7 @@ use Throwable;
  * serializes concurrent renames so the old code is never stale, and any
  * failure rolls both sides back, so no I18n row is ever orphaned.
  */
-final readonly class LanguageCodeChangeService
+final readonly class PdoLanguageCodeChange implements LanguageCodeChangeInterface
 {
     public function __construct(
         private PDO $pdo,

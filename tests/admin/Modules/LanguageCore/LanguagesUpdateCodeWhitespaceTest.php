@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Modules\LanguageCore;
 
-use Maatify\AdminKernel\Domain\I18n\Language\LanguageCodeChangeService;
+use Maatify\AdminKernel\Infrastructure\I18n\Language\PdoLanguageCodeChange;
 use Maatify\AdminKernel\Http\Controllers\Api\I18n\Languages\LanguagesUpdateCodeController;
 use Maatify\I18n\Management\Service\TranslationWriteService;
 use Maatify\LanguageCore\Contract\LanguageRepositoryInterface;
@@ -30,7 +30,7 @@ use Slim\Psr7\Factory\ServerRequestFactory;
  * re-key happens. It is never silently trimmed and stored.
  *
  * Runs the real controller, the real request schema/validator and the real
- * LanguageCodeChangeService; only the collaborators it must NOT reach are
+ * PdoLanguageCodeChange (the LanguageCodeChangeInterface implementation); only the collaborators it must NOT reach are
  * doubles. The positive path (an exact code is renamed atomically together
  * with its I18n translations) needs a database and is covered by
  * I18nAdminHostLanguageBoundaryIntegrationTest.
@@ -50,7 +50,7 @@ final class LanguagesUpdateCodeWhitespaceTest extends TestCase
         // the rejection happens before it is ever used (a call would fatally error).
         $translationWriter = (new ReflectionClass(TranslationWriteService::class))->newInstanceWithoutConstructor();
 
-        $service = new LanguageCodeChangeService(
+        $service = new PdoLanguageCodeChange(
             $this->pdo,
             $this->languages,
             new LanguageManagementService(
