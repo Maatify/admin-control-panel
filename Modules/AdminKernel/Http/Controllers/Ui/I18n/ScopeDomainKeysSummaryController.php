@@ -9,7 +9,7 @@ use Maatify\AdminKernel\Application\Security\UiPermissionService;
 use Maatify\AdminKernel\Context\AdminContext;
 use Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainDetailsReaderInterface;
 use Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopeDetailsRepositoryInterface;
-use Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsInterface;
+use Maatify\I18n\Management\Service\I18nManagementReadService;
 use Maatify\I18n\Exception\DomainScopeViolationException;
 use Maatify\LanguageCore\Contract\LanguageContextQueryInterface;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -22,7 +22,7 @@ final readonly class ScopeDomainKeysSummaryController
         private Twig $view,
         private I18nScopeDetailsRepositoryInterface $scopeDetailsReader,
         private I18nDomainDetailsReaderInterface $domainDetailsReader,
-        private I18nScopeDomainsInterface $scopeDomainsReader,
+        private I18nManagementReadService $scopeDomainsReader,
         private UiPermissionService $uiPermissionService,
         private LanguageContextQueryInterface $languageContextQuery,
     ) {
@@ -45,7 +45,7 @@ final readonly class ScopeDomainKeysSummaryController
         $domain = $this->domainDetailsReader->getDomainDetailsById($domainId);
         $domainCode = $domain->code;
 
-        if(!$this->scopeDomainsReader->isAssigned($scopeCode, $domainCode)){
+        if(!$this->scopeDomainsReader->isDomainAssigned($scopeCode, $domainCode)){
             throw new DomainScopeViolationException($scopeCode, $domainCode);
         }
 

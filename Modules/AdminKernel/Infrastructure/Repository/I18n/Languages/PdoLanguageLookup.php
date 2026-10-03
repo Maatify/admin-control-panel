@@ -28,9 +28,7 @@ final readonly class PdoLanguageLookup implements LanguageLookupInterface
     ) {
     }
 
-    public function getById(int $id): ?LanguageListItemDTO
-    {
-        $sql = "
+    private const SELECT = "
             SELECT
                 l.id,
                 l.name,
@@ -44,11 +42,11 @@ final readonly class PdoLanguageLookup implements LanguageLookupInterface
                 ls.sort_order
             FROM languages l
             LEFT JOIN language_settings ls ON ls.language_id = l.id
-            WHERE l.id = :id
-            LIMIT 1
-        ";
+    ";
 
-        $stmt = $this->pdo->prepare($sql);
+    public function getById(int $id): ?LanguageListItemDTO
+    {
+        $stmt = $this->pdo->prepare(self::SELECT . ' WHERE l.id = :id LIMIT 1');
 
         if ($stmt === false) {
             throw new RuntimeException('Failed to prepare language lookup query');
@@ -63,6 +61,34 @@ final readonly class PdoLanguageLookup implements LanguageLookupInterface
             return null;
         }
 
+        /** @var array<string, mixed> $row */
+        return $this->hydrate($row);
+    }
+
+    public function listAll(): array
+    {
+        $stmt = $this->pdo->query(self::SELECT . ' ORDER BY l.id ASC');
+
+        if ($stmt === false) {
+            throw new RuntimeException('Failed to execute language list query');
+        }
+
+        $items = [];
+
+        /** @var list<array<string, mixed>> $rows */
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($rows as $row) {
+            $items[] = $this->hydrate($row);
+        }
+
+        return $items;
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    private function hydrate(array $row): LanguageListItemDTO
+    {
         /** @var array{
          *     id: int|string,
          *     name: string,

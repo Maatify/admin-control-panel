@@ -5,7 +5,7 @@
  * @Library     maatify/admin-control-panel
  * @Project     maatify:admin-control-panel
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
- * @since       2026-02-07 13:05
+ * @since       2026-10-01 00:00
  * @see         https://www.maatify.dev Maatify.dev
  * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
  * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
@@ -15,10 +15,8 @@ declare(strict_types=1);
 
 namespace Maatify\AdminKernel\Http\Controllers\Api\I18n\Scope;
 
-use Maatify\AdminKernel\Domain\Exception\EntityAlreadyExistsException;
-use Maatify\AdminKernel\Domain\I18n\Scope\DTO\I18nScopeCreateDTO;
 use Maatify\AdminKernel\Domain\I18n\Scope\Validation\I18nScopeCreateSchema;
-use Maatify\AdminKernel\Domain\I18n\Scope\Writer\I18nScopeCreateWriterInterface;
+use Maatify\AdminKernel\Domain\I18n\Service\I18nScopeCommandService;
 use Maatify\Validation\Guard\ValidationGuard;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -26,7 +24,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 final readonly class I18nScopeCreateController
 {
     public function __construct(
-        private I18nScopeCreateWriterInterface $writer,
+        private I18nScopeCommandService $writer,
         private ValidationGuard $validationGuard
     ) {}
 
@@ -46,25 +44,11 @@ final readonly class I18nScopeCreateController
             : '';
 
         $isActive = isset($body['is_active']) && is_bool($body['is_active'])
-            ? (int)$body['is_active']
-            : 1;
+            ? $body['is_active']
+            : true;
 
-        if($this->writer->existsByCode($code)){
-            throw new EntityAlreadyExistsException(
-                'I18nScope',
-                'code',
-                $code
-            );
-        }
-
-        $dto = new I18nScopeCreateDTO(
-            code: $code,
-            name: $name,
-            description: $description,
-            is_active: $isActive,
-        );
-
-        $id = $this->writer->create($dto);
+        // duplicate codes are classified by the I18n package (DB UNIQUE is the race authority)
+        $id = $this->writer->create($code, $name, $description, $isActive);
 
         $response->getBody()->write(json_encode([
             'id' => $id,
@@ -78,5 +62,3 @@ final readonly class I18nScopeCreateController
             ->withStatus(200);
     }
 }
-
-

@@ -5,7 +5,7 @@
  * @Library     maatify/admin-control-panel
  * @Project     maatify:admin-control-panel
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
- * @since       2026-02-08 21:56
+ * @since       2026-10-01 00:00
  * @see         https://www.maatify.dev Maatify.dev
  * @link        https://github.com/Maatify/admin-control-panel view Project on GitHub
  * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
@@ -17,24 +17,24 @@ namespace Maatify\AdminKernel\Domain\I18n\Service;
 
 use Maatify\AdminKernel\Domain\Exception\EntityNotFoundException;
 use Maatify\AdminKernel\Domain\Exception\InvalidOperationException;
-use Maatify\AdminKernel\Domain\I18n\Domain\I18nDomainUpdaterInterface;
-use Maatify\AdminKernel\Domain\I18n\Scope\Reader\I18nScopeDetailsRepositoryInterface;
-use Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsInterface;
-use Maatify\AdminKernel\Domain\I18n\ScopeDomains\I18nScopeDomainsWriterInterface;
+use Maatify\I18n\Exception\DomainNotFoundException;
+use Maatify\I18n\Exception\DomainScopeAlreadyAssignedException;
+use Maatify\I18n\Exception\DomainScopeNotAssignedException;
+use Maatify\I18n\Exception\ScopeNotFoundException;
+use Maatify\I18n\Management\Service\I18nManagementReadService;
+use Maatify\I18n\Management\Service\I18nScopeDomainManagementService;
 
+/**
+ * Admin scope <-> domain assignment. The Admin route carries the scope id (Host
+ * navigation identity); the I18n package works by code, takes the deterministic
+ * locks and owns the duplicate / not-assigned decisions.
+ */
 final readonly class I18nScopeDomainsService
 {
     public function __construct(
-        private I18nScopeDomainsWriterInterface $writer,
-
-        // Resolve scope_code from scope_id
-        private I18nScopeDetailsRepositoryInterface $scopeDetailsReader,
-
-        private I18nDomainUpdaterInterface $domainReader,
-
-        private I18nScopeDomainsInterface $reader
-    )
-    {
+        private I18nScopeDomainManagementService $management,
+        private I18nManagementReadService $read,
+    ) {
     }
 
     /**
@@ -46,17 +46,16 @@ final readonly class I18nScopeDomainsService
     public function assign(int $scopeId, string $domainCode): void
     {
         $scopeCode = $this->resolveScopeCode($scopeId);
-        $this->ensureDomainExists($domainCode);
 
-        if($this->reader->isAssigned($scopeCode, $domainCode)){
-            throw new InvalidOperationException(
-                'domain',
-                'assign',
-                'already assigned to scope'
-            );
+        try {
+            $this->management->assign($scopeCode, $domainCode);
+        } catch (ScopeNotFoundException) {
+            throw new EntityNotFoundException('scope', $scopeId);
+        } catch (DomainNotFoundException) {
+            throw new EntityNotFoundException('domain', $domainCode);
+        } catch (DomainScopeAlreadyAssignedException) {
+            throw new InvalidOperationException('domain', 'assign', 'already assigned to scope');
         }
-
-        $this->writer->assign($scopeCode, $domainCode);
     }
 
     /**
@@ -68,42 +67,27 @@ final readonly class I18nScopeDomainsService
     public function unassign(int $scopeId, string $domainCode): void
     {
         $scopeCode = $this->resolveScopeCode($scopeId);
-        $this->ensureDomainExists($domainCode);
 
-        if(!$this->reader->isAssigned($scopeCode, $domainCode)){
-            throw new InvalidOperationException(
-                'domain',
-                'unassign',
-                'not assigned to scope'
-            );
+        try {
+            $this->management->unassign($scopeCode, $domainCode);
+        } catch (ScopeNotFoundException) {
+            throw new EntityNotFoundException('scope', $scopeId);
+        } catch (DomainNotFoundException) {
+            throw new EntityNotFoundException('domain', $domainCode);
+        } catch (DomainScopeNotAssignedException) {
+            throw new InvalidOperationException('domain', 'unassign', 'not assigned to scope');
         }
-        $this->writer->unassign($scopeCode, $domainCode);
     }
 
-    // ─────────────────────────────
-    // Internals
-    // ─────────────────────────────
-
+    /**
+     * @throws EntityNotFoundException
+     */
     private function resolveScopeCode(int $scopeId): string
     {
-        $scope = $this->scopeDetailsReader->getScopeDetailsById($scopeId);
-
-        if ($scope->code === '') {
+        try {
+            return $this->read->getScope($scopeId)->code;
+        } catch (ScopeNotFoundException) {
             throw new EntityNotFoundException('scope', $scopeId);
-        }
-
-        return $scope->code;
-    }
-
-    private function ensureDomainExists(string $domainCode): void
-    {
-        /**
-         * Domain existence is resolved via the canonical Domain updater.
-         * No list or pagination queries are used here.
-         */
-
-        if(!$this->domainReader->existsByCode($domainCode)){
-            throw new EntityNotFoundException('domain', $domainCode);
         }
     }
 }
