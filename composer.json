@@ -49,7 +49,6 @@
       "Maatify\\EmailDelivery\\": "Modules/EmailDelivery",
       "Maatify\\InputNormalization\\": "Modules/InputNormalization",
       "Maatify\\Validation\\": "Modules/Validation",
-      "Maatify\\RateLimiter\\": "Modules/RateLimiter",
       "Maatify\\AbuseProtection\\": "Modules/AbuseProtection",
       "Maatify\\AppSettings\\": "Modules/AppSettings",
       "Maatify\\LanguageCore\\": "Modules/LanguageCore",
