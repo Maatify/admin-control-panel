@@ -204,9 +204,10 @@ final readonly class LanguageManagementService
             throw new LanguageNotFoundException($languageId);
         }
 
-        $code = trim($code);
-
-        if ($code === '') {
+        // The code is identity: it is stored exactly as supplied, never trimmed.
+        // Empty / whitespace-only codes and codes with surrounding whitespace are
+        // rejected instead of being silently altered.
+        if (trim($code) === '' || $code !== trim($code)) {
             throw new LanguageUpdateFailedException('code');
         }
 

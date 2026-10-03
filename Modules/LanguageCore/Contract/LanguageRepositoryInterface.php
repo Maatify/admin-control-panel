@@ -24,6 +24,13 @@ interface LanguageRepositoryInterface
 
     public function getById(int $id): ?LanguageDTO;
 
+    /**
+     * Same as getById() but takes a row lock (`SELECT ... FOR UPDATE`).
+     * Must be called inside a transaction; used to serialize identity
+     * (code) transitions so they never act on a stale code.
+     */
+    public function getByIdForUpdate(int $id): ?LanguageDTO;
+
     public function getByCode(string $code): ?LanguageDTO;
 
     public function listAll(): LanguageCollectionDTO;
