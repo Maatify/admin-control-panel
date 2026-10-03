@@ -93,4 +93,10 @@ jobs:
         run: composer test:non-integration
 
       - name: Integration tests
+        env:
+          # The I18n forward-migration tests create isolated databases, which the limited
+          # ADMIN_DB_USER cannot do; they must run (not skip) in CI.
+          ADMIN_MIGRATION_IT_DB_USER: root
+          ADMIN_MIGRATION_IT_DB_PASS: root
+          ADMIN_I18N_MIGRATION_IT_REQUIRED: "1"
         run: vendor/bin/phpunit --configuration phpunit.admin.xml --filter Integration
