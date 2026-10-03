@@ -2,7 +2,7 @@
 
 ## Project Integration Steps
 
-This checklist guides you through integrating the 6-service multi-disk storage architecture into your Athar admin application.
+This checklist guides you through integrating the 6-service multi-disk storage architecture into your application.
 
 ### Phase 1: Environment Setup ✓
 

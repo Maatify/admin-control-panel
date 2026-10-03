@@ -726,8 +726,8 @@ final class StorageBindings
 
 ### Phase 8: Update Project Files
 
-#### ⏳ 8.1 ProductCommandController (athar-admin)
-**File:** `Modules/ArPlatformSlim/src/Admin/Http/Controllers/Api/Products/ProductCommandController.php`
+#### ⏳ 8.1 Product upload controller (host application)
+**File:** the host controller that handles product image uploads
 
 **Change from:**
 ```php
@@ -740,8 +740,8 @@ $imageService = $container->get(ImageUploadService::class);
 $publicUrl = $imageService->upload($file, 'products');
 ```
 
-#### ⏳ 8.2 GalleryCommandController (athar-admin)
-**File:** `Modules/ArPlatformSlim/src/Admin/Http/Controllers/Api/Gallery/GalleryCommandController.php`
+#### ⏳ 8.2 Gallery upload controller (host application)
+**File:** the host controller that handles gallery image uploads
 
 **Change from:**
 ```php
