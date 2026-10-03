@@ -14,7 +14,7 @@
 * `Modules/Product/architecture/PRODUCT_V1_ARCHITECTURE.md` (مستقل).
 * `Modules/Pricing/architecture/PRICING_V1_ARCHITECTURE.md` (مستقل).
 * `Modules/Inventory/architecture/INVENTORY_V1_ARCHITECTURE.md` (مستقل).
-* `Modules/Cart/architecture/CART_V1_ARCHITECTURE.md` (مستقل).
+* `docs/architecture/modules/CART_V1_ARCHITECTURE.md` (مستقل).
 * `Modules/Orders/architecture/ORDERS_V1_ARCHITECTURE.md` (مستقل).
 * `architecture_report.md` (هذا التقرير نفسه).
 
