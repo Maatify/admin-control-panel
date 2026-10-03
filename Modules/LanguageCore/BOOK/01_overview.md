@@ -16,7 +16,7 @@ In previous iterations, language identity was bundled with the translation engin
 
 By extracting **LanguageCore**, we allow:
 *   **Lightweight Identity:** User profiles, region selectors, and content tagging can depend on `LanguageCore` without needing `I18n`.
-*   **Clear Boundaries:** `I18n` becomes a consumer of `LanguageCore`, using the `languages` table as a foreign key reference for translations.
+*   **Clear Boundaries:** `I18n` does **not** depend on `LanguageCore`. It stores an exact, Host-owned `language_code` and has no FK/JOIN to `languages`; the Host resolves LanguageCore IDs to codes and owns fallback and validation.
 
 ## The Kernel Concept
 

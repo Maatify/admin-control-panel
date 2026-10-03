@@ -10,7 +10,7 @@ This library provides the canonical source of truth for language identity, setti
 
 *   **Identity First:** Languages are treated as immutable identity records (e.g., `en-US`), distinct from the mutable translations associated with them.
 *   **Translation-Agnostic:** This module knows nothing about translation keys, scopes, or domains. It only manages *which* languages exist and *how* they behave (direction, sort order, fallbacks).
-*   **Kernel-Grade:** Designed as a low-level dependency for higher-level modules like `maatify/i18n`.
+*   **Kernel-Grade:** Designed as a low-level language registry that Hosts consume. `maatify/i18n` does not depend on it: the Host resolves LanguageCore data to exact language codes before calling I18n.
 
 ---
 
@@ -24,8 +24,8 @@ This library provides the canonical source of truth for language identity, setti
 
 ## 3. Usage
 
-This module is primarily used as a dependency for:
-*   [**maatify/i18n**](../I18n/README.md) - The Translation Subsystem.
+This module is primarily consumed by Hosts (it is not a dependency of I18n) — e.g. together with:
+*   **maatify/i18n** - The Translation Subsystem (independent of LanguageCore; identified by exact language code).
 
 However, it can be used standalone for systems that need language awareness without full translation management (e.g., a simple region selector).
 
