@@ -71,6 +71,26 @@ final readonly class MysqlLanguageRepository implements LanguageRepositoryInterf
         return $this->mapRowToDTO($row);
     }
 
+    public function getByIdForUpdate(int $id): ?LanguageDTO
+    {
+        $sql = 'SELECT id, name, code, is_active, fallback_language_id, created_at, updated_at
+                FROM languages WHERE id = :id LIMIT 1 FOR UPDATE';
+
+        $stmt = $this->pdo->prepare($sql);
+        if (!$stmt instanceof PDOStatement) {
+            return null;
+        }
+
+        $stmt->execute(['id' => $id]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!is_array($row)) {
+            return null;
+        }
+
+        return $this->mapRowToDTO($row);
+    }
+
     public function getByCode(string $code): ?LanguageDTO
     {
         $sql = 'SELECT id, name, code, is_active, fallback_language_id, created_at, updated_at

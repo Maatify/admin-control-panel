@@ -66,8 +66,8 @@ $service->setLanguageActive($langId, true);
 
 **Impact:**
 *   Inactive languages are excluded from `LanguageManagementService::listActive()`.
-*   Modules consuming this service (like `I18n`) generally respect this flag.
+*   Host consumers decide whether to honor this flag. `I18n` does not: it performs no semantic language validation, so a Host that wants inactive languages excluded must filter them itself.
 
 ## 4. Deletion
 
-The system generally discourages hard deletion of languages to preserve referential integrity. However, if supported by the implementation, it would cascade delete settings but might be blocked by foreign keys in other modules (like `i18n_translations`).
+The system generally discourages hard deletion of languages. If supported by the implementation, it would cascade delete the language's settings. I18n translations are not protected by a foreign key: they are keyed by the language `code`, so the Host decides whether to keep or purge the translations of a deleted language.
