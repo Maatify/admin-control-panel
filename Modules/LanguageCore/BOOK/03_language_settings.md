@@ -28,4 +28,4 @@ The `sort_order` integer controls the display priority in lists.
 ## 4. Separation from Identity
 
 These settings are **Mutable**.
-Changing a flag icon or sort order does **not** affect the language's identity (`id`/`code`) or break any LanguageCore foreign keys. This allows UI designers to tweak presentation without touching language identity.
+Changing a flag icon or sort order does **not** affect the language's identity or break any foreign keys. This allows UI designers to tweak presentation without risking data integrity in the translation layer.
