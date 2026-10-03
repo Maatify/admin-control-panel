@@ -20,8 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Corrects the ACL contract that earlier `[Unreleased]` entries and the `#177` / `#189` changes described.**
-  Those described seven S3 canned ACLs as supported and checked the value only when uploading, with
+- **Corrects the ACL contract that earlier `[Unreleased]` entries described.**
+  Those entries described seven S3 canned ACLs as supported and checked the value only when uploading, with
   `AdapterException::unsupportedAcl()`. Spaces supports only `private` and `public-read`, so the five AWS-only
   values (`public-read-write`, `authenticated-read`, `aws-exec-read`, `bucket-owner-read`,
   `bucket-owner-full-control`) must be rejected locally. `AdapterException::unsupportedAcl()` is removed.
