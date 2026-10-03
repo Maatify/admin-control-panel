@@ -3,12 +3,10 @@
 Complete API documentation, design rules, and extension guidelines for `maatify/settings`.
 
 **Implementation status:** LEGACY / AS-IS — this reference is not a compliance declaration.
-**Governing standard for future changes:** `docs/standards/modules/MODULE_BUILDING_STANDARD.md` and the applicable package standards.
 
 This document records the current Settings implementation and its historical
-contracts. Future changes must follow the governing local standards and
-`docs/standards/ADMIN_ADOPTION_POLICY.md`; migration of existing contracts is
-a separate task.
+contracts. Future changes should follow the module standards of the consuming
+project; migration of existing contracts is a separate task.
 
 ---
 
@@ -723,4 +721,3 @@ use Maatify\Settings\Exception\SettingsInvalidArgumentException;
 
 - `README.md` — quick start and usage examples
 - `schema.sql` — database schema with design notes
-- `docs/standards/modules/MODULE_BUILDING_STANDARD.md` — module architecture and patterns

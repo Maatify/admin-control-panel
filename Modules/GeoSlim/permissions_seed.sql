@@ -1,6 +1,5 @@
 /*
  * Title: Permission Baseline Seed — GeoSlim
- * Project: maatify/admin-control-panel
  *
  * Description:
  * - Generated from ACTUAL runtime usage

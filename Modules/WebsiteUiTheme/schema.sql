@@ -49,8 +49,6 @@ CREATE TABLE `maa_website_ui_themes`
 -- INSERT INTO `maa_website_ui_themes`
 --     (`entity_type`, `theme_file`, `display_name`)
 -- VALUES
---     ('product', 'athar_for_business.twig', 'Athar For Business'),
---     ('product', 'product_custom_athar.twig', 'Product Custom Athar'),
 --     ('product', 'product_custom.twig', 'Product Custom'),
 --     ('product', 'product_ready_made_detail.twig', 'Product Ready Made Detail'),
 --     ('product', 'product_ready_made.twig', 'Product Ready Made');
